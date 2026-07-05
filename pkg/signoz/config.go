@@ -260,11 +260,6 @@ func mergeAndEnsureBackwardCompatibility(ctx context.Context, logger *slog.Logge
 		config.Emailing.SMTP.From = os.Getenv("SMTP_FROM")
 	}
 
-	if os.Getenv("SIGNOZ_SAAS_SEGMENT_KEY") != "" {
-		logger.WarnContext(ctx, "[Deprecated] env SIGNOZ_SAAS_SEGMENT_KEY is deprecated and scheduled for removal. Please use SIGNOZ_ANALYTICS_SEGMENT_KEY instead.")
-		config.Analytics.Segment.Key = os.Getenv("SIGNOZ_SAAS_SEGMENT_KEY")
-	}
-
 	if os.Getenv("TELEMETRY_ENABLED") != "" {
 		logger.WarnContext(ctx, "[Deprecated] env TELEMETRY_ENABLED is deprecated and scheduled for removal. Please use SIGNOZ_ANALYTICS_ENABLED instead.")
 		config.Analytics.Enabled = os.Getenv("TELEMETRY_ENABLED") == "true"

@@ -5,7 +5,6 @@ import (
 
 	"github.com/SigNoz/signoz/pkg/analytics"
 	"github.com/SigNoz/signoz/pkg/factory"
-	"github.com/SigNoz/signoz/pkg/types/analyticstypes"
 )
 
 type provider struct {
@@ -25,10 +24,6 @@ func New(ctx context.Context, providerSettings factory.ProviderSettings, config 
 func (provider *provider) Start(_ context.Context) error {
 	<-provider.stopC
 	return nil
-}
-
-func (provider *provider) Send(ctx context.Context, messages ...analyticstypes.Message) {
-	// do nothing
 }
 
 func (provider *provider) TrackGroup(ctx context.Context, group, event string, attributes map[string]any) {
