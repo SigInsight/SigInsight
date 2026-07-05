@@ -31,7 +31,6 @@ import (
 	errorsV2 "github.com/SigNoz/signoz/pkg/errors"
 	"github.com/SigNoz/signoz/pkg/http/middleware"
 	"github.com/SigNoz/signoz/pkg/http/render"
-	"github.com/SigNoz/signoz/pkg/licensing"
 	"github.com/SigNoz/signoz/pkg/query-service/app/cloudintegrations/services"
 	"github.com/SigNoz/signoz/pkg/query-service/app/integrations"
 	"github.com/SigNoz/signoz/pkg/query-service/app/metricsexplorer"
@@ -144,8 +143,6 @@ type APIHandler struct {
 
 	AlertmanagerAPI *alertmanager.API
 
-	LicensingAPI licensing.API
-
 	QueryParserAPI *queryparser.API
 
 	Signoz *signoz.SigNoz
@@ -171,8 +168,6 @@ type APIHandlerOpts struct {
 	FluxInterval time.Duration
 
 	AlertmanagerAPI *alertmanager.API
-
-	LicensingAPI licensing.API
 
 	QueryParserAPI *queryparser.API
 
@@ -235,7 +230,6 @@ func NewAPIHandler(opts APIHandlerOpts, config signoz.Config) (*APIHandler, erro
 		pvcsRepo:                      pvcsRepo,
 		SummaryService:                summaryService,
 		AlertmanagerAPI:               opts.AlertmanagerAPI,
-		LicensingAPI:                  opts.LicensingAPI,
 		Signoz:                        opts.Signoz,
 		QueryParserAPI:                opts.QueryParserAPI,
 	}
@@ -568,13 +562,6 @@ func (aH *APIHandler) RegisterRoutes(router *mux.Router, am *middleware.AuthZ) {
 	router.HandleFunc("/api/v1/orgs/me/filters", am.AdminAccess(aH.Signoz.Handlers.QuickFilter.UpdateQuickFilters)).Methods(http.MethodPut)
 
 	router.HandleFunc("/api/v1/register", am.OpenAccess(aH.registerUser)).Methods(http.MethodPost)
-
-	router.HandleFunc("/api/v3/licenses", am.ViewAccess(func(rw http.ResponseWriter, req *http.Request) {
-		render.Success(rw, http.StatusOK, []any{})
-	})).Methods(http.MethodGet)
-	router.HandleFunc("/api/v3/licenses/active", am.ViewAccess(func(rw http.ResponseWriter, req *http.Request) {
-		aH.LicensingAPI.Activate(rw, req)
-	})).Methods(http.MethodGet)
 
 	router.HandleFunc("/api/v1/span_percentile", am.ViewAccess(aH.Signoz.Handlers.SpanPercentile.GetSpanPercentileDetails)).Methods(http.MethodPost)
 
@@ -1975,12 +1962,6 @@ func (aH *APIHandler) getVersion(w http.ResponseWriter, r *http.Request) {
 }
 
 func (aH *APIHandler) getFeatureFlags(w http.ResponseWriter, r *http.Request) {
-	featureSet, err := aH.Signoz.Licensing.GetFeatureFlags(r.Context(), valuer.GenerateUUID())
-	if err != nil {
-		aH.HandleError(w, err, http.StatusInternalServerError)
-		return
-	}
-
 	claims, err := authtypes.ClaimsFromContext(r.Context())
 	if err != nil {
 		aH.HandleError(w, err, http.StatusInternalServerError)
@@ -1992,21 +1973,23 @@ func (aH *APIHandler) getFeatureFlags(w http.ResponseWriter, r *http.Request) {
 	evalCtx := featuretypes.NewFlaggerEvaluationContext(orgID)
 	useSpanMetrics := aH.Signoz.Flagger.BooleanOrEmpty(r.Context(), flagger.FeatureUseSpanMetrics, evalCtx)
 
-	featureSet = append(featureSet, &licensetypes.Feature{
-		Name:       valuer.NewString(flagger.FeatureUseSpanMetrics.String()),
-		Active:     useSpanMetrics,
-		Usage:      0,
-		UsageLimit: -1,
-		Route:      "",
-	})
-
-	if constants.IsDotMetricsEnabled {
-		for idx, feature := range featureSet {
-			if feature.Name == licensetypes.DotMetricsEnabled {
-				featureSet[idx].Active = true
-			}
-		}
+	featureSet := []*licensetypes.Feature{
+		{
+			Name:       licensetypes.DotMetricsEnabled,
+			Active:     constants.IsDotMetricsEnabled,
+			Usage:      0,
+			UsageLimit: -1,
+			Route:      "",
+		},
+		{
+			Name:       valuer.NewString(flagger.FeatureUseSpanMetrics.String()),
+			Active:     useSpanMetrics,
+			Usage:      0,
+			UsageLimit: -1,
+			Route:      "",
+		},
 	}
+
 	aH.Respond(w, featureSet)
 }
 

@@ -14,8 +14,6 @@ import (
 	"github.com/SigNoz/signoz/pkg/authz/openfgaschema"
 	"github.com/SigNoz/signoz/pkg/errors"
 	"github.com/SigNoz/signoz/pkg/factory"
-	"github.com/SigNoz/signoz/pkg/licensing"
-	"github.com/SigNoz/signoz/pkg/licensing/nooplicensing"
 	"github.com/SigNoz/signoz/pkg/modules/dashboard"
 	"github.com/SigNoz/signoz/pkg/modules/dashboard/impldashboard"
 	"github.com/SigNoz/signoz/pkg/modules/organization"
@@ -57,10 +55,6 @@ func runServer(ctx context.Context, config signoz.Config, logger *slog.Logger) e
 	signoz, err := signoz.New(
 		ctx,
 		config,
-		licensing.Config{},
-		func(_ sqlstore.SQLStore, _ organization.Getter, _ analytics.Analytics) factory.ProviderFactory[licensing.Licensing, licensing.Config] {
-			return nooplicensing.NewFactory()
-		},
 		signoz.NewEmailingProviderFactories(),
 		signoz.NewCacheProviderFactories(),
 		signoz.NewWebProviderFactories(),
@@ -69,13 +63,13 @@ func runServer(ctx context.Context, config signoz.Config, logger *slog.Logger) e
 		},
 		signoz.NewSQLStoreProviderFactories(),
 		signoz.NewTelemetryStoreProviderFactories(),
-		func(ctx context.Context, providerSettings factory.ProviderSettings, store authtypes.AuthNStore, licensing licensing.Licensing) (map[authtypes.AuthNProvider]authn.AuthN, error) {
-			return signoz.NewAuthNs(ctx, providerSettings, store, licensing)
+		func(ctx context.Context, providerSettings factory.ProviderSettings, store authtypes.AuthNStore) (map[authtypes.AuthNProvider]authn.AuthN, error) {
+			return signoz.NewAuthNs(ctx, providerSettings, store)
 		},
-		func(ctx context.Context, sqlstore sqlstore.SQLStore, _ licensing.Licensing, _ dashboard.Module) factory.ProviderFactory[authz.AuthZ, authz.Config] {
+		func(ctx context.Context, sqlstore sqlstore.SQLStore, _ dashboard.Module) factory.ProviderFactory[authz.AuthZ, authz.Config] {
 			return openfgaauthz.NewProviderFactory(sqlstore, openfgaschema.NewSchema().Get(ctx))
 		},
-		func(store sqlstore.SQLStore, settings factory.ProviderSettings, analytics analytics.Analytics, orgGetter organization.Getter, queryParser queryparser.QueryParser, _ querier.Querier, _ licensing.Licensing) dashboard.Module {
+		func(store sqlstore.SQLStore, settings factory.ProviderSettings, analytics analytics.Analytics, orgGetter organization.Getter, queryParser queryparser.QueryParser, _ querier.Querier) dashboard.Module {
 			return impldashboard.NewModule(impldashboard.NewStore(store), settings, analytics, orgGetter, queryParser)
 		},
 		func(ps factory.ProviderSettings, q querier.Querier, a analytics.Analytics) querier.Handler {
