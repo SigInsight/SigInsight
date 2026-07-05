@@ -6,7 +6,6 @@ import (
 	"github.com/SigNoz/signoz/pkg/authz/signozauthzapi"
 	"github.com/SigNoz/signoz/pkg/factory"
 	"github.com/SigNoz/signoz/pkg/flagger"
-	"github.com/SigNoz/signoz/pkg/gateway"
 	"github.com/SigNoz/signoz/pkg/global"
 	"github.com/SigNoz/signoz/pkg/global/signozglobal"
 	"github.com/SigNoz/signoz/pkg/licensing"
@@ -36,7 +35,6 @@ import (
 	"github.com/SigNoz/signoz/pkg/modules/tracefunnel/impltracefunnel"
 	"github.com/SigNoz/signoz/pkg/querier"
 	"github.com/SigNoz/signoz/pkg/types/telemetrytypes"
-	"github.com/SigNoz/signoz/pkg/zeus"
 )
 
 type Handlers struct {
@@ -51,10 +49,8 @@ type Handlers struct {
 	MetricsExplorer         metricsexplorer.Handler
 	Global                  global.Handler
 	FlaggerHandler          flagger.Handler
-	GatewayHandler          gateway.Handler
 	Fields                  fields.Handler
 	AuthzHandler            authz.Handler
-	ZeusHandler             zeus.Handler
 	QuerierHandler          querier.Handler
 	ServiceAccountHandler   serviceaccount.Handler
 	RegistryHandler         factory.Handler
@@ -69,10 +65,8 @@ func NewHandlers(
 	licensing licensing.Licensing,
 	global global.Global,
 	flaggerService flagger.Flagger,
-	gatewayService gateway.Gateway,
 	telemetryMetadataStore telemetrytypes.MetadataStore,
 	authz authz.AuthZ,
-	zeusService zeus.Zeus,
 	registryHandler factory.Handler,
 ) Handlers {
 	return Handlers{
@@ -87,10 +81,8 @@ func NewHandlers(
 		SpanPercentile:          implspanpercentile.NewHandler(modules.SpanPercentile),
 		Global:                  signozglobal.NewHandler(global),
 		FlaggerHandler:          flagger.NewHandler(flaggerService),
-		GatewayHandler:          gateway.NewHandler(gatewayService),
 		Fields:                  implfields.NewHandler(providerSettings, telemetryMetadataStore),
 		AuthzHandler:            signozauthzapi.NewHandler(authz),
-		ZeusHandler:             zeus.NewHandler(zeusService, licensing),
 		QuerierHandler:          querierHandler,
 		ServiceAccountHandler:   implserviceaccount.NewHandler(modules.ServiceAccount),
 		RegistryHandler:         registryHandler,

@@ -17,7 +17,6 @@ import (
 	"github.com/SigNoz/signoz/pkg/errors"
 	"github.com/SigNoz/signoz/pkg/factory"
 	"github.com/SigNoz/signoz/pkg/flagger"
-	"github.com/SigNoz/signoz/pkg/gateway"
 	"github.com/SigNoz/signoz/pkg/global"
 	"github.com/SigNoz/signoz/pkg/identn"
 	"github.com/SigNoz/signoz/pkg/instrumentation"
@@ -102,9 +101,6 @@ type Config struct {
 	// StatsReporter config
 	StatsReporter statsreporter.Config `mapstructure:"statsreporter"`
 
-	// Gateway config
-	Gateway gateway.Config `mapstructure:"gateway"`
-
 	// Tokenizer config
 	Tokenizer tokenizer.Config `mapstructure:"tokenizer"`
 
@@ -142,7 +138,6 @@ func NewConfig(ctx context.Context, logger *slog.Logger, resolverConfig config.R
 		emailing.NewConfigFactory(),
 		sharder.NewConfigFactory(),
 		statsreporter.NewConfigFactory(),
-		gateway.NewConfigFactory(),
 		tokenizer.NewConfigFactory(),
 		metricsexplorer.NewConfigFactory(),
 		flagger.NewConfigFactory(),
