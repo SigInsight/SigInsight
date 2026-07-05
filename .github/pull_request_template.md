@@ -64,7 +64,7 @@ _Select all that apply_
 
 | Field | Value |
 |------|-------|
-| Deployment Type | Cloud / OSS / Enterprise |
+| Deployment Type | Cloud / OSS |
 | Change Type | Feature / Bug Fix / Maintenance |
 | Description | User-facing summary |
 
