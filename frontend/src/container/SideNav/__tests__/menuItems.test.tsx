@@ -29,26 +29,6 @@ describe('getUserSettingsDropdownMenuItems', () => {
 		expect(keys).not.toContain('license');
 	});
 
-	it('includes manage license item for enterprise self-hosted users', () => {
-		const items = getUserSettingsDropdownMenuItems({
-			...BASE_PARAMS,
-			isEnterpriseSelfHostedUser: true,
-		});
-		const keys = items?.map((item) => item?.key);
-
-		expect(keys).toContain('license');
-	});
-
-	it('includes manage license item for community enterprise users', () => {
-		const items = getUserSettingsDropdownMenuItems({
-			...BASE_PARAMS,
-			isCommunityEnterpriseUser: true,
-		});
-		const keys = items?.map((item) => item?.key);
-
-		expect(keys).toContain('license');
-	});
-
 	it('workspace item is disabled when workspace is blocked', () => {
 		const items = getUserSettingsDropdownMenuItems({
 			...BASE_PARAMS,

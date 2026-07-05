@@ -3,7 +3,6 @@ import { rest } from 'msw';
 import commonEnTranslation from '../../public/locales/en/common.json';
 import enTranslation from '../../public/locales/en/translation.json';
 import { allAlertChannels } from './__mockdata__/alerts';
-import { billingSuccessResponse } from './__mockdata__/billing';
 import {
 	dashboardSuccessResponse,
 	getDashboardById,
@@ -160,10 +159,6 @@ export const handlers = [
 
 	rest.get('http://localhost/api/v2/licenses', (req, res, ctx) =>
 		res(ctx.status(200), ctx.json(licensesSuccessResponse)),
-	),
-
-	rest.get('http://localhost/api/v1/billing', (req, res, ctx) =>
-		res(ctx.status(200), ctx.json(billingSuccessResponse)),
 	),
 
 	rest.get('http://localhost/api/v1/dashboards', (_, res, ctx) =>

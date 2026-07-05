@@ -22,7 +22,6 @@ import { USER_ROLES } from 'types/roles';
 import { routePermission } from 'utils/permission';
 
 import routes, {
-	LIST_LICENSES,
 	oldNewRoutesMapping,
 	oldRoutes,
 	ROUTES_NOT_TO_BE_OVERRIDEN,
@@ -48,7 +47,7 @@ function PrivateRoute({ children }: PrivateRouteProps): JSX.Element {
 	const mapRoutes = useMemo(
 		() =>
 			new Map(
-				[...routes, LIST_LICENSES, SUPPORT_ROUTE].map((e) => {
+				[...routes, SUPPORT_ROUTE].map((e) => {
 					const currentPath = matchPath(pathname, {
 						path: e.path,
 					});

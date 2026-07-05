@@ -863,9 +863,6 @@ function SideNav({ isPinned }: { isPinned: boolean }): JSX.Element {
 			case 'workspace':
 				history.push(ROUTES.SETTINGS);
 				break;
-			case 'license':
-				history.push(ROUTES.LIST_LICENSES);
-				break;
 			case 'keyboard-shortcuts':
 				history.push(ROUTES.SHORTCUTS);
 				break;

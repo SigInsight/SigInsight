@@ -19,7 +19,6 @@ import {
 	Home,
 	InfrastructureMonitoring,
 	InstalledIntegrations,
-	LicensePage,
 	ListAllALertsPage,
 	LiveLogs,
 	Login,
@@ -496,14 +495,6 @@ export const SUPPORT_ROUTE: AppRoutes = {
 	component: SupportPage,
 	key: 'SUPPORT',
 	isPrivate: true,
-};
-
-export const LIST_LICENSES: AppRoutes = {
-	path: ROUTES.LIST_LICENSES,
-	exact: true,
-	component: LicensePage,
-	isPrivate: true,
-	key: 'LIST_LICENSES',
 };
 
 export const oldRoutes = [

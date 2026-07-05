@@ -39,7 +39,6 @@ import { Home } from './pageComponents';
 import PrivateRoute from './Private';
 import defaultRoutes, {
 	AppRoutes,
-	LIST_LICENSES,
 	SUPPORT_ROUTE,
 } from './routes';
 
@@ -185,10 +184,6 @@ function App(): JSX.Element {
 					);
 				}
 
-				if (isEnterpriseSelfHostedUser) {
-					updatedRoutes.push(LIST_LICENSES);
-				}
-
 				// always add support route for cloud users
 				updatedRoutes = [...updatedRoutes, SUPPORT_ROUTE];
 			} else {
@@ -197,7 +192,6 @@ function App(): JSX.Element {
 					(route) =>
 						route?.path !== ROUTES.BILLING && route?.path !== ROUTES.INTEGRATIONS,
 				);
-				updatedRoutes = [...updatedRoutes, LIST_LICENSES];
 			}
 			setRoutes(updatedRoutes);
 		}
