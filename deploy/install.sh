@@ -141,8 +141,6 @@ check_ports_occupied() {
     fi
 
     if [[ -n $port_check_output ]]; then
-        send_event "port_not_available"
-
         echo "+++++++++++ ERROR ++++++++++++++++++++++"
         echo "SigNoz requires ports 8080 & 4317 to be open. Please shut down any other service(s) that may be running on these ports."
         echo "You can run SigNoz on another port following this guide https://signoz.io/docs/install/troubleshooting/"
@@ -216,8 +214,6 @@ install_docker_compose() {
             echo ""
         fi
     else
-        send_event "docker_compose_not_found"
-
         echo "+++++++++++ IMPORTANT READ ++++++++++++++++++++++"
         echo "docker-compose not found! Please install docker-compose first and then continue with this installation."
         echo "Refer https://docs.docker.com/compose/install/ for installing docker-compose."
@@ -276,21 +272,8 @@ bye() {  # Prints a friendly good bye message and exits the script.
         echo "or reach us for support in #help channel in our Slack Community https://signoz.io/slack"
         echo "++++++++++++++++++++++++++++++++++++++++"
 
-        if [[ $email == "" ]]; then
-            echo -e "\n📨 Please share your email to receive support with the installation"
-            read -rp 'Email: ' email
-
-            while [[ $email == "" ]]
-            do
-                read -rp 'Email: ' email
-            done
-        fi
-
-        send_event "installation_support"
-
-
         echo ""
-        echo -e "\nWe will reach out to you at the email provided shortly, Exiting for now. Bye! 👋 \n"
+        echo -e "\nExiting for now. Bye! 👋 \n"
         exit 0
     fi
 }
@@ -331,110 +314,11 @@ fi
 # Checking OS and assigning package manager
 desired_os=0
 os=""
-email=""
 echo -e "🌏 Detecting your OS ...\n"
 check_os
 
-# Obtain unique installation id
-# sysinfo="$(uname -a)"
-# if [[ $? -ne 0 ]]; then
-#     uuid="$(uuidgen)"
-#     uuid="${uuid:-$(cat /proc/sys/kernel/random/uuid)}"
-#     sysinfo="${uuid:-$(cat /proc/sys/kernel/random/uuid)}"
-# fi
-if ! sysinfo="$(uname -a)"; then
-    uuid="$(uuidgen)"
-    uuid="${uuid:-$(cat /proc/sys/kernel/random/uuid)}"
-    sysinfo="${uuid:-$(cat /proc/sys/kernel/random/uuid)}"
-fi
-
-digest_cmd=""
-if hash shasum 2>/dev/null; then
-    digest_cmd="shasum -a 256"
-elif hash sha256sum 2>/dev/null; then
-    digest_cmd="sha256sum"
-elif hash openssl 2>/dev/null; then
-    digest_cmd="openssl dgst -sha256"
-fi
-
-if [[ -z $digest_cmd ]]; then
-    SIGNOZ_INSTALLATION_ID="$sysinfo"
-else
-    SIGNOZ_INSTALLATION_ID=$(echo "$sysinfo" | $digest_cmd | grep -E -o '[a-zA-Z0-9]{64}')
-fi
-
-setup_type='clickhouse'
-
 # Run bye if failure happens
 trap bye EXIT
-
-URL="https://api.segment.io/v1/track"
-HEADER_1="Content-Type: application/json"
-HEADER_2="Authorization: Basic OWtScko3b1BDR1BFSkxGNlFqTVBMdDVibGpGaFJRQnI="
-
-send_event() {
-    error=""
-
-    case "$1" in
-        'install_started')
-            event="Installation Started"
-            ;;
-        'os_not_supported')
-            event="Installation Error"
-            error="OS Not Supported"
-            ;;
-        'docker_not_installed')
-            event="Installation Error"
-            error="Docker not installed"
-            ;;
-        'docker_compose_not_found')
-            event="Installation Error"
-            event="Docker Compose not found"
-            ;;
-        'port_not_available')
-            event="Installation Error"
-            error="port not available"
-            ;;
-        'installation_error_checks')
-            event="Installation Error - Checks"
-            error="Containers not started"
-            others='"data": "some_checks",'
-            ;;
-        'installation_support')
-            event="Installation Support"
-            others='"email": "'"$email"'",'
-            ;;
-        'installation_success')
-            event="Installation Success"
-            ;;
-        'identify_successful_installation')
-            event="Identify Successful Installation"
-            others='"email": "'"$email"'",'
-            ;;
-        *)
-            print_error "unknown event type: $1"
-            exit 1
-            ;;
-    esac
-
-    if [[ "$error" != "" ]]; then
-        error='"error": "'"$error"'", '
-    fi
-
-    DATA='{ "anonymousId": "'"$SIGNOZ_INSTALLATION_ID"'", "event": "'"$event"'", "properties": { "os": "'"$os"'", '"$error $others"' "setup_type": "'"$setup_type"'" } }'
-
-    if has_curl; then
-        curl -sfL -d "$DATA" --header "$HEADER_1" --header "$HEADER_2" "$URL" > /dev/null 2>&1
-    elif has_wget; then
-        wget -q --post-data="$DATA" --header "$HEADER_1" --header "$HEADER_2" "$URL" > /dev/null 2>&1
-    fi
-}
-
-send_event "install_started"
-
-if [[ $desired_os -eq 0 ]]; then
-    send_event "os_not_supported"
-fi
 
 # Check is Docker daemon is installed and available. If not, the install & start Docker for Linux machines. We cannot automatically install Docker Desktop on Mac OS
 if ! is_command_present docker; then
@@ -451,7 +335,6 @@ if ! is_command_present docker; then
         echo "https://docs.docker.com/docker-for-mac/install/"
         echo "++++++++++++++++++++++++++++++++++++++++++++++++"
 
-        send_event "docker_not_installed"
         exit 1
     else
         echo ""
@@ -460,7 +343,6 @@ if ! is_command_present docker; then
         echo "https://docs.docker.com/get-docker/"
         echo "++++++++++++++++++++++++++++++++++++++++++++++++"
 
-        send_event "docker_not_installed"
         exit 1
     fi
 fi
@@ -523,12 +405,9 @@ if [[ $status_code -ne 200 ]]; then
     echo "or reach us on SigNoz for support https://signoz.io/slack"
     echo "++++++++++++++++++++++++++++++++++++++++"
 
-    send_event "installation_error_checks"
     exit 1
 
 else
-    send_event "installation_success"
-
     echo "++++++++++++++++++ SUCCESS ++++++++++++++++++++++"
     echo ""
     echo "🟢 Your installation is complete!"
@@ -549,15 +428,6 @@ else
     echo "👉 Need help in Getting Started?"
     echo -e "Join us on Slack https://signoz.io/slack"
     echo ""
-    echo -e "\n📨 Please share your email to receive support & updates about SigNoz!"
-    read -rp 'Email: ' email
-
-    while [[ $email == "" ]]
-    do
-        read -rp 'Email: ' email
-    done
-
-    send_event "identify_successful_installation"
 fi
 
 echo -e "\n🙏 Thank you!\n"
