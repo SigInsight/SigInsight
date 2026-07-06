@@ -917,7 +917,7 @@ function SideNav({ isPinned }: { isPinned: boolean }): JSX.Element {
 									onClickHandler(ROUTES.HOME, event);
 								}}
 							>
-								<img src="/Logos/signoz-brand-logo.svg" alt="SigNoz" />
+								<img src="/Logos/siginsight-brand-logo.svg" alt="SigInsight" />
 							</div>
 
 							{licenseTag && (

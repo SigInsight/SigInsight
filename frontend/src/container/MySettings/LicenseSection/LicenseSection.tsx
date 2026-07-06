@@ -48,7 +48,7 @@ function LicenseSection(): JSX.Element | null {
 					</div>
 
 					<div className="license-section-content-item-description">
-						Your SigNoz license key.
+						Your SigInsight license key.
 					</div>
 				</div>
 			</div>

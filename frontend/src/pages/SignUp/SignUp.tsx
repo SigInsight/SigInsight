@@ -137,7 +137,7 @@ function SignUp(): JSX.Element {
 					</Typography.Title>
 					<Typography.Paragraph className="signup-header-subtitle">
 						You&apos;re almost in. Create a password to start monitoring your
-						applications with SigNoz.
+						applications with SigInsight.
 					</Typography.Paragraph>
 				</div>
 

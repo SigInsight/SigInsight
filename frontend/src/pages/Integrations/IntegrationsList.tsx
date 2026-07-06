@@ -12,9 +12,9 @@ import './Integrations.styles.scss';
 export const AWS_INTEGRATION = {
 	id: INTEGRATION_TYPES.AWS_INTEGRATION,
 	title: 'Amazon Web Services',
-	description: 'One-click setup for AWS monitoring with SigNoz',
+	description: 'One-click setup for AWS monitoring with SigInsight',
 	author: {
-		name: 'SigNoz',
+		name: 'SigInsight',
 		email: 'integrations@signoz.io',
 		homepage: 'https://signoz.io',
 	},

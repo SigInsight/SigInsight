@@ -43,19 +43,19 @@ function RenderConnectionFields({
 			{!connectionParams?.signoz_api_url && (
 				<Form.Item
 					name="signoz_api_url"
-					label="SigNoz API URL"
-					rules={[{ required: true, message: 'Please enter SigNoz API URL' }]}
+					label="SigInsight API URL"
+					rules={[{ required: true, message: 'Please enter SigInsight API URL' }]}
 				>
-					<Input placeholder="Enter SigNoz API URL" disabled={isFormDisabled} />
+					<Input placeholder="Enter SigInsight API URL" disabled={isFormDisabled} />
 				</Form.Item>
 			)}
 			{!connectionParams?.signoz_api_key && (
 				<Form.Item
 					name="signoz_api_key"
-					label="SigNoz API KEY"
-					rules={[{ required: true, message: 'Please enter SigNoz API Key' }]}
+					label="SigInsight API KEY"
+					rules={[{ required: true, message: 'Please enter SigInsight API Key' }]}
 				>
-					<Input placeholder="Enter SigNoz API Key" disabled={isFormDisabled} />
+					<Input placeholder="Enter SigInsight API Key" disabled={isFormDisabled} />
 				</Form.Item>
 			)}
 		</Form.Item>

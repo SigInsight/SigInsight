@@ -79,7 +79,7 @@ function RemoveIntegrationAccount({
 			>
 				<div className="remove-integration-modal__text">
 					Removing this account will remove all components created for sending
-					telemetry to SigNoz in your AWS account within the next ~15 minutes
+					telemetry to SigInsight in your AWS account within the next ~15 minutes
 					(cloudformation stacks named signoz-integration-telemetry-collection in
 					enabled regions). <br />
 					<br />

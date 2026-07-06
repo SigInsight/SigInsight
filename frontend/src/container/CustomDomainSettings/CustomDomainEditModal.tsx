@@ -170,7 +170,7 @@ export default function CustomDomainEditModal({
 					>
 						{hasError
 							? errorMessage
-							: "To help you easily explore SigNoz, we've selected a tenant sub domain name for you."}
+							: "To help you easily explore SigInsight, we've selected a tenant sub domain name for you."}
 					</span>
 				</div>
 

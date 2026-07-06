@@ -1,8 +1,8 @@
 /**
  * ! Do not edit manually
- * * The file has been auto-generated using Orval for SigNoz
+ * * The file has been auto-generated using Orval for SigInsight
  * * regenerate with 'yarn generate:api'
- * SigNoz
+ * SigInsight
  */
 import type {
 	MutationFunction,

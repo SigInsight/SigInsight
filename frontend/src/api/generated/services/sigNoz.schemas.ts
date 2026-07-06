@@ -1,8 +1,8 @@
 /**
  * ! Do not edit manually
- * * The file has been auto-generated using Orval for SigNoz
+ * * The file has been auto-generated using Orval for SigInsight
  * * regenerate with 'yarn generate:api'
- * SigNoz
+ * SigInsight
  */
 export interface AuthtypesAttributeMappingDTO {
 	/**
@@ -2111,7 +2111,7 @@ export interface Querybuildertypesv5QueryBuilderFormulaDTO {
 	order?: Querybuildertypesv5OrderByDTO[];
 }
 
-export interface Querybuildertypesv5QueryBuilderQueryGithubComSigNozSignozPkgTypesQuerybuildertypesQuerybuildertypesv5LogAggregationDTO {
+export interface Querybuildertypesv5QueryBuilderQueryGithubComSigInsightSignozPkgTypesQuerybuildertypesQuerybuildertypesv5LogAggregationDTO {
 	/**
 	 * @type array
 	 */
@@ -2168,7 +2168,7 @@ export interface Querybuildertypesv5QueryBuilderQueryGithubComSigNozSignozPkgTyp
 	stepInterval?: Querybuildertypesv5StepDTO;
 }
 
-export interface Querybuildertypesv5QueryBuilderQueryGithubComSigNozSignozPkgTypesQuerybuildertypesQuerybuildertypesv5MetricAggregationDTO {
+export interface Querybuildertypesv5QueryBuilderQueryGithubComSigInsightSignozPkgTypesQuerybuildertypesQuerybuildertypesv5MetricAggregationDTO {
 	/**
 	 * @type array
 	 */
@@ -2225,7 +2225,7 @@ export interface Querybuildertypesv5QueryBuilderQueryGithubComSigNozSignozPkgTyp
 	stepInterval?: Querybuildertypesv5StepDTO;
 }
 
-export interface Querybuildertypesv5QueryBuilderQueryGithubComSigNozSignozPkgTypesQuerybuildertypesQuerybuildertypesv5TraceAggregationDTO {
+export interface Querybuildertypesv5QueryBuilderQueryGithubComSigInsightSignozPkgTypesQuerybuildertypesQuerybuildertypesv5TraceAggregationDTO {
 	/**
 	 * @type array
 	 */
@@ -2394,17 +2394,17 @@ export type Querybuildertypesv5QueryEnvelopeDTO =
 	  });
 
 export interface Querybuildertypesv5QueryEnvelopeBuilderLogDTO {
-	spec?: Querybuildertypesv5QueryBuilderQueryGithubComSigNozSignozPkgTypesQuerybuildertypesQuerybuildertypesv5LogAggregationDTO;
+	spec?: Querybuildertypesv5QueryBuilderQueryGithubComSigInsightSignozPkgTypesQuerybuildertypesQuerybuildertypesv5LogAggregationDTO;
 	type?: Querybuildertypesv5QueryTypeDTO;
 }
 
 export interface Querybuildertypesv5QueryEnvelopeBuilderMetricDTO {
-	spec?: Querybuildertypesv5QueryBuilderQueryGithubComSigNozSignozPkgTypesQuerybuildertypesQuerybuildertypesv5MetricAggregationDTO;
+	spec?: Querybuildertypesv5QueryBuilderQueryGithubComSigInsightSignozPkgTypesQuerybuildertypesQuerybuildertypesv5MetricAggregationDTO;
 	type?: Querybuildertypesv5QueryTypeDTO;
 }
 
 export interface Querybuildertypesv5QueryEnvelopeBuilderTraceDTO {
-	spec?: Querybuildertypesv5QueryBuilderQueryGithubComSigNozSignozPkgTypesQuerybuildertypesQuerybuildertypesv5TraceAggregationDTO;
+	spec?: Querybuildertypesv5QueryBuilderQueryGithubComSigInsightSignozPkgTypesQuerybuildertypesQuerybuildertypesv5TraceAggregationDTO;
 	type?: Querybuildertypesv5QueryTypeDTO;
 }
 

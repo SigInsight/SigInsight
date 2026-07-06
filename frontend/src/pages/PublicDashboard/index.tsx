@@ -39,13 +39,13 @@ function PublicDashboardPage(): JSX.Element {
 					<div className="public-dashboard-error-content-header">
 						<div className="brand">
 							<img
-								src="/Logos/signoz-brand-logo.svg"
-								alt="SigNoz"
+								src="/Logos/siginsight-brand-logo.svg"
+								alt="SigInsight"
 								className="brand-logo"
 							/>
 
 							<Typography.Title level={2} className="brand-title">
-								SigNoz
+								SigInsight
 							</Typography.Title>
 						</div>
 
