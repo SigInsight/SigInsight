@@ -24,7 +24,6 @@ import { useGetPublicDashboardMeta } from 'hooks/dashboard/useGetPublicDashboard
 import { useLockDashboard } from 'hooks/dashboard/useLockDashboard';
 import { useUpdateDashboard } from 'hooks/dashboard/useUpdateDashboard';
 import useComponentPermission from 'hooks/useComponentPermission';
-import { useGetTenantLicense } from 'hooks/useGetTenantLicense';
 import { useNotifications } from 'hooks/useNotifications';
 import { isEmpty } from 'lodash-es';
 import {
@@ -94,9 +93,9 @@ function DashboardDescription(props: DashboardDescriptionProps): JSX.Element {
 		false,
 	);
 
-	const { isCloudUser, isEnterpriseSelfHostedUser } = useGetTenantLicense();
+	
 
-	const isPublicDashboardEnabled = isCloudUser || isEnterpriseSelfHostedUser;
+	const isPublicDashboardEnabled = false;
 
 	const selectedData = selectedDashboard
 		? {

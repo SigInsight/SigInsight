@@ -12,7 +12,6 @@ import { settingsNavSections } from 'container/SideNav/menuItems';
 import NavItem from 'container/SideNav/NavItem/NavItem';
 import { SidebarItem } from 'container/SideNav/sideNav.types';
 import useComponentPermission from 'hooks/useComponentPermission';
-import { useGetTenantLicense } from 'hooks/useGetTenantLicense';
 import history from 'lib/history';
 import { Cog } from 'lucide-react';
 import { useAppContext } from 'providers/App/App';
@@ -31,7 +30,6 @@ function SettingsPage(): JSX.Element {
 		trialInfo,
 		isFetchingActiveLicense,
 	} = useAppContext();
-	const { isCloudUser, isEnterpriseSelfHostedUser } = useGetTenantLicense();
 
 	const [settingsMenuItems, setSettingsMenuItems] = useState<SidebarItem[]>(
 		settingsNavSections.flatMap((section) => section.items),
@@ -73,7 +71,7 @@ function SettingsPage(): JSX.Element {
 				return updatedItems;
 			}
 
-			if (isCloudUser) {
+			if (false) {
 				if (isAdmin) {
 					updatedItems = updatedItems.map((item) => ({
 						...item,
@@ -107,7 +105,7 @@ function SettingsPage(): JSX.Element {
 				}
 			}
 
-			if (isEnterpriseSelfHostedUser) {
+			if (false) {
 				if (isAdmin) {
 					updatedItems = updatedItems.map((item) => ({
 						...item,
@@ -139,7 +137,7 @@ function SettingsPage(): JSX.Element {
 				}
 			}
 
-			if (!isCloudUser && !isEnterpriseSelfHostedUser) {
+			if (!false && !false) {
 				if (isAdmin) {
 					updatedItems = updatedItems.map((item) => ({
 						...item,
@@ -169,8 +167,8 @@ function SettingsPage(): JSX.Element {
 	}, [
 		isAdmin,
 		isEditor,
-		isCloudUser,
-		isEnterpriseSelfHostedUser,
+		false,
+		false,
 		isFetchingActiveLicense,
 		trialInfo?.workSpaceBlock,
 		pathname,
@@ -183,8 +181,8 @@ function SettingsPage(): JSX.Element {
 				isCurrentOrgSettings,
 				isGatewayEnabled,
 				isWorkspaceBlocked,
-				isCloudUser,
-				isEnterpriseSelfHostedUser,
+				false,
+				false,
 				t,
 			),
 		[
@@ -192,8 +190,8 @@ function SettingsPage(): JSX.Element {
 			isCurrentOrgSettings,
 			isGatewayEnabled,
 			isWorkspaceBlocked,
-			isCloudUser,
-			isEnterpriseSelfHostedUser,
+			false,
+			false,
 			t,
 		],
 	);

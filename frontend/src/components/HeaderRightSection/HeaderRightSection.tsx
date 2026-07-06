@@ -2,7 +2,6 @@ import { useCallback, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Button, Popover } from 'antd';
 import logEvent from 'api/common/logEvent';
-import { useGetTenantLicense } from 'hooks/useGetTenantLicense';
 import { Globe, Inbox, SquarePen } from 'lucide-react';
 
 import AnnouncementsModal from './AnnouncementsModal';
@@ -27,8 +26,6 @@ function HeaderRightSection({
 	const [openFeedbackModal, setOpenFeedbackModal] = useState(false);
 	const [openShareURLModal, setOpenShareURLModal] = useState(false);
 	const [openAnnouncementsModal, setOpenAnnouncementsModal] = useState(false);
-
-	const { isCloudUser, isEnterpriseSelfHostedUser } = useGetTenantLicense();
 
 	const handleOpenFeedbackModal = useCallback((): void => {
 		logEvent('Feedback: Clicked', {
@@ -66,11 +63,9 @@ function HeaderRightSection({
 		setOpenShareURLModal(open);
 	};
 
-	const isLicenseEnabled = isEnterpriseSelfHostedUser || isCloudUser;
-
 	return (
 		<div className="header-right-section-container">
-			{enableFeedback && isLicenseEnabled && (
+			{enableFeedback && (
 				<Popover
 					rootClassName="header-section-popover-root"
 					className="shareable-link-popover"
