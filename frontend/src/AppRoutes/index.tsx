@@ -49,7 +49,6 @@ function App(): JSX.Element {
 	useEffect(() => {
 		if (
 			!isFetchingActiveLicense &&
-			(activeLicense || activeLicenseFetchError) &&
 			!isFetchingUser &&
 			user &&
 			!!user.email
@@ -93,9 +92,8 @@ function App(): JSX.Element {
 
 		// if all of the data is not set then return a spinner, this is required because there is some gap between loading states and data setting
 		if (
-			(!activeLicense || !user.email || !featureFlags) &&
-			!userFetchError &&
-			!activeLicenseFetchError
+			(!user.email || !featureFlags) &&
+			!userFetchError
 		) {
 			return <Spinner tip="Loading..." />;
 		}
