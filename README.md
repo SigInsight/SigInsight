@@ -1,8 +1,8 @@
 <h1 align="center" style="border-bottom: none">
-    <a href="https://signoz.io" target="_blank">
-        <img alt="SigNoz" src="https://github.com/user-attachments/assets/ef9a33f7-12d7-4c94-8908-0a02b22f0c18" width="100" height="100">
-    </a>
-    <br>SigNoz
+  <a href="https://github.com/SigInsight/SigInsight" target="_blank">
+    <img alt="SigInsight" src="https://github.com/user-attachments/assets/ef9a33f7-12d7-4c94-8908-0a02b22f0c18" width="100" height="100">
+  </a>
+  <br>SigInsight
 </h1>
 
 <p align="center">All your logs, metrics, and traces in one place. Monitor your application, spot issues before they occur and troubleshoot downtime quickly with rich context. SigNoz is a cost-effective open-source alternative to Datadog and New Relic. Visit <a href="https://signoz.io" target="_blank">signoz.io</a> for the full documentation, tutorials, and guide.</p>
@@ -15,10 +15,8 @@
   
   
 <h3 align="center">
-  <a href="https://signoz.io/docs"><b>Documentation</b></a> &bull;
-  <a href="https://github.com/SigNoz/signoz/blob/main/README.zh-cn.md"><b>ReadMe in Chinese</b></a> &bull;
-  <a href="https://github.com/SigNoz/signoz/blob/main/README.de-de.md"><b>ReadMe in German</b></a> &bull;
-  <a href="https://github.com/SigNoz/signoz/blob/main/README.pt-br.md"><b>ReadMe in Portuguese</b></a> &bull;
+  <a href="https://github.com/SigInsight/SigInsight"><b>Repository</b></a> &bull;
+  <a href="https://github.com/SigInsight/SigInsight/blob/main/README.zh-cn.md"><b>ReadMe in Chinese</b></a> &bull;
   <a href="https://signoz.io/slack"><b>Slack Community</b></a> &bull;
   <a href="https://twitter.com/SigNozHq"><b>Twitter</b></a>
 </h3>
@@ -128,7 +126,19 @@ SigNoz cloud is the easiest way to get started with SigNoz. Our cloud service is
 
 ### Deploy using Docker(self-hosted)
 
-Please follow the steps listed [here](https://signoz.io/docs/install/docker/) to install using docker
+The default self-hosted image is published to GHCR:
+
+```sh
+ghcr.io/siginsight/siginsight:latest
+```
+
+The ClickHouse helper image used to provision `histogramQuantile` is published to:
+
+```sh
+ghcr.io/siginsight/clickhouse-init-histogram-quantile:25.5.6-v0.0.1
+```
+
+For a compose-based deployment, see [deploy/README.md](deploy/README.md).
 
 The [troubleshooting instructions](https://signoz.io/docs/install/troubleshooting/) may be helpful if you face any issues.
 
@@ -235,10 +245,10 @@ You can find docs at https://signoz.io/docs/. If you need any clarification or f
 
 Join the [slack community](https://signoz.io/slack) to know more about distributed tracing, observability, or SigNoz and to connect with other users and contributors.
 
-If you have any ideas, questions, or any feedback, please share on our [Github Discussions](https://github.com/SigNoz/signoz/discussions)
+If you have any ideas, questions, or any feedback, please share on our [Github Discussions](https://github.com/SigInsight/SigInsight/discussions)
 
 As always, thanks to our amazing contributors!
 
-<a href="https://github.com/signoz/signoz/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=signoz/signoz" />
+<a href="https://github.com/SigInsight/SigInsight/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=SigInsight/SigInsight" />
 </a>

@@ -21,7 +21,7 @@ GO_BUILD_LDFLAGS_COMMUNITY 		= $(GO_BUILD_VERSION_LDFLAGS) -X github.com/SigNoz/
 
 DOCKER_BUILD_ARCHS_COMMUNITY 	= $(addprefix docker-build-community-,$(ARCHS))
 DOCKERFILE_COMMUNITY 			= $(SRC)/cmd/community/Dockerfile
-DOCKER_REGISTRY_COMMUNITY 		?= docker.io/signoz/signoz-community
+DOCKER_REGISTRY_COMMUNITY 		?= ghcr.io/siginsight/siginsight
 JS_BUILD_CONTEXT 				= $(SRC)/frontend
 
 ##############################################################
@@ -136,6 +136,9 @@ docker-buildx-community: go-build-community js-build
 ##############################################################
 # python commands
 ##############################################################
+# Deprecated: these targets support the legacy Python integration harness in
+# tests/integration. They are kept temporarily for migration/reference and
+# should not be extended for new coverage.
 .PHONY: py-fmt
 py-fmt: ## Run black for integration tests
 	@cd tests/integration && uv run black .

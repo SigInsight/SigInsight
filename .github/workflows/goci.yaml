@@ -4,19 +4,12 @@ on:
   pull_request:
     branches:
       - main
-  pull_request_target:
-    types:
-      - labeled
   merge_group:
     types:
       - checks_requested
 
 jobs:
   test:
-    if: |
-      github.event_name == 'merge_group' ||
-      (github.event_name == 'pull_request' && ! github.event.pull_request.head.repo.fork && github.event.pull_request.user.login != 'dependabot[bot]' && ! contains(github.event.pull_request.labels.*.name, 'safe-to-test')) ||
-      (github.event_name == 'pull_request_target' && contains(github.event.pull_request.labels.*.name, 'safe-to-test'))
     uses: signoz/primus.workflows/.github/workflows/go-test.yaml@main
     secrets: inherit
     with:
@@ -24,40 +17,24 @@ jobs:
       GO_TEST_CONTEXT: ./...
       GO_VERSION: 1.24
   fmt:
-    if: |
-      github.event_name == 'merge_group' ||
-      (github.event_name == 'pull_request' && ! github.event.pull_request.head.repo.fork && github.event.pull_request.user.login != 'dependabot[bot]' && ! contains(github.event.pull_request.labels.*.name, 'safe-to-test')) ||
-      (github.event_name == 'pull_request_target' && contains(github.event.pull_request.labels.*.name, 'safe-to-test'))
     uses: signoz/primus.workflows/.github/workflows/go-fmt.yaml@main
     secrets: inherit
     with:
       PRIMUS_REF: main
       GO_VERSION: 1.24
   lint:
-    if: |
-      github.event_name == 'merge_group' ||
-      (github.event_name == 'pull_request' && ! github.event.pull_request.head.repo.fork && github.event.pull_request.user.login != 'dependabot[bot]' && ! contains(github.event.pull_request.labels.*.name, 'safe-to-test')) ||
-      (github.event_name == 'pull_request_target' && contains(github.event.pull_request.labels.*.name, 'safe-to-test'))
     uses: signoz/primus.workflows/.github/workflows/go-lint.yaml@main
     secrets: inherit
     with:
       PRIMUS_REF: main
       GO_VERSION: 1.24
   deps:
-    if: |
-      github.event_name == 'merge_group' ||
-      (github.event_name == 'pull_request' && ! github.event.pull_request.head.repo.fork && github.event.pull_request.user.login != 'dependabot[bot]' && ! contains(github.event.pull_request.labels.*.name, 'safe-to-test')) ||
-      (github.event_name == 'pull_request_target' && contains(github.event.pull_request.labels.*.name, 'safe-to-test'))
     uses: signoz/primus.workflows/.github/workflows/go-deps.yaml@main
     secrets: inherit
     with:
       PRIMUS_REF: main
       GO_VERSION: 1.24
   build:
-    if: |
-      github.event_name == 'merge_group' ||
-      (github.event_name == 'pull_request' && ! github.event.pull_request.head.repo.fork && github.event.pull_request.user.login != 'dependabot[bot]' && ! contains(github.event.pull_request.labels.*.name, 'safe-to-test')) ||
-      (github.event_name == 'pull_request_target' && contains(github.event.pull_request.labels.*.name, 'safe-to-test'))
     runs-on: ubuntu-latest
     steps:
       - name: self-checkout
@@ -82,10 +59,6 @@ jobs:
         run: |
           make docker-build-community
   openapi:
-    if: |
-      github.event_name == 'merge_group' ||
-      (github.event_name == 'pull_request' && ! github.event.pull_request.head.repo.fork && github.event.pull_request.user.login != 'dependabot[bot]' && ! contains(github.event.pull_request.labels.*.name, 'safe-to-test')) ||
-      (github.event_name == 'pull_request_target' && contains(github.event.pull_request.labels.*.name, 'safe-to-test'))
     runs-on: ubuntu-latest
     steps:
       - name: self-checkout

@@ -30,9 +30,13 @@ def clickhouse(
 
     def create() -> types.TestContainerClickhouse:
         version = request.config.getoption("--clickhouse-version")
+        histogram_quantile_image = os.getenv(
+            "SIGNOZ_HISTOGRAM_QUANTILE_IMAGE_TEMPLATE",
+            "ghcr.io/siginsight/clickhouse-init-histogram-quantile:{clickhouse_version}-v0.0.1",
+        ).format(clickhouse_version=version)
 
         container = ClickHouseContainer(
-            image=f"clickhouse/clickhouse-server:{version}",
+            image=histogram_quantile_image,
             port=9000,
             username="signoz",
             password="password",
@@ -163,28 +167,22 @@ def clickhouse(
         container.with_network(network)
         container.start()
 
-        # Download and install the histogramQuantile binary
+        # Copy the histogramQuantile binary from the GHCR-backed test image.
         wrapped = container.get_wrapped_container()
         exit_code, output = wrapped.exec_run(
             [
                 "bash",
                 "-c",
                 (
-                    'version="v0.0.1" && '
-                    'node_os=$(uname -s | tr "[:upper:]" "[:lower:]") && '
-                    "node_arch=$(uname -m | sed s/aarch64/arm64/ | sed s/x86_64/amd64/) && "
-                    "cd /tmp && "
-                    'wget -O histogram-quantile.tar.gz "https://github.com/SigNoz/signoz/releases/download/histogram-quantile%2F${version}/histogram-quantile_${node_os}_${node_arch}.tar.gz" && '
-                    "tar -xzf histogram-quantile.tar.gz && "
                     "mkdir -p /var/lib/clickhouse/user_scripts && "
-                    "mv histogram-quantile /var/lib/clickhouse/user_scripts/histogramQuantile && "
+                    "cp /opt/siginsight/bin/histogramQuantile /var/lib/clickhouse/user_scripts/histogramQuantile && "
                     "chmod +x /var/lib/clickhouse/user_scripts/histogramQuantile"
                 ),
             ],
         )
         if exit_code != 0:
             raise RuntimeError(
-                f"Failed to install histogramQuantile binary: {output.decode()}"
+                f"Failed to install histogramQuantile binary from image {histogram_quantile_image}: {output.decode()}"
             )
 
         connection = clickhouse_connect.get_client(

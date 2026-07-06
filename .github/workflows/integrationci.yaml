@@ -1,18 +1,18 @@
 name: integrationci
 
+# Deprecated: retained temporarily for reference while the community-only
+# codebase is migrated away from the old Python integration harness.
+# The heavy integration matrix remains disabled and this workflow should be
+# removed once replacement coverage or a new harness is in place.
+
 on:
   pull_request:
-    types:
-      - labeled
-  pull_request_target:
-    types:
-      - labeled
+    branches:
+      - main
 
 jobs:
   fmtlint:
-    if: |
-      ((github.event_name == 'pull_request' && ! github.event.pull_request.head.repo.fork && github.event.pull_request.user.login != 'dependabot[bot]' && ! contains(github.event.pull_request.labels.*.name, 'safe-to-test')) ||
-      (github.event_name == 'pull_request_target' && contains(github.event.pull_request.labels.*.name, 'safe-to-test'))) && contains(github.event.pull_request.labels.*.name, 'safe-to-integrate')
+    # Deprecated: lightweight formatting/linting for tests/integration only.
     runs-on: ubuntu-latest
     steps:
       - name: checkout
@@ -61,10 +61,11 @@ jobs:
           - v0.142.0
         postgres-version:
           - 15
-    # Disabled: the test fixtures build the enterprise integration image
-    # (cmd/enterprise/Dockerfile.integration), removed in the community-only
-    # refactor. Re-enable after refactoring tests/integration/ to build from
-    # cmd/community.
+    # Deprecated and disabled: the fixtures historically built the enterprise
+    # integration image (cmd/enterprise/Dockerfile.integration), which was
+    # removed in the community-only refactor. Keep this block as migration
+    # documentation until the Python harness is either rebuilt on cmd/community
+    # or fully retired.
     if: false
     runs-on: ubuntu-latest
     steps:

@@ -15,7 +15,7 @@ or
 **Tag to remote url- Introduce versinoing later on**
 
 ```
-docker tag signoz/frontend:latest 7296823551/signoz:latest
+docker tag ghcr.io/siginsight/siginsight:latest ghcr.io/siginsight/siginsight:frontend-dev
 ```
 
 ```
@@ -25,7 +25,7 @@ docker compose up
 ## Without Docker
 Follow the steps below
 
-1. ```git clone https://github.com/SigNoz/signoz.git && cd signoz/frontend```
+1. ```git clone https://github.com/SigInsight/SigInsight.git && cd SigInsight/frontend```
 1. change baseURL to ```<test environment URL>``` in file ```src/constants/env.ts```
 
 1. ```yarn install```

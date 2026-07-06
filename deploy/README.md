@@ -1,7 +1,7 @@
 # Deploy
 
-Check that you have cloned [signoz/signoz](https://github.com/signoz/signoz)
-and currently are in `signoz/deploy` folder.
+Check that you have cloned [SigInsight/SigInsight](https://github.com/SigInsight/SigInsight)
+and currently are in `SigInsight/deploy` folder.
 
 ## Docker
 
@@ -28,6 +28,20 @@ docker compose up -d
 
 Open http://localhost:8080 in your favourite browser.
 
+By default, the compose files use these GHCR images:
+
+```sh
+ghcr.io/siginsight/siginsight:latest
+ghcr.io/siginsight/clickhouse-init-histogram-quantile:25.5.6-v0.0.1
+```
+
+You can override them with environment variables:
+
+```sh
+export SIGNOZ_IMAGE=ghcr.io/siginsight/siginsight:v0.117.1
+export HISTOGRAM_QUANTILE_INIT_IMAGE=ghcr.io/siginsight/clickhouse-init-histogram-quantile:25.5.6-v0.0.1
+```
+
 To start collecting logs and metrics from your infrastructure, run the following command:
 
 ```sh
@@ -42,17 +56,17 @@ cd generator/hotrod
 docker compose up -d
 ```
 
-In a couple of minutes, you should see the data generated from hotrod in SigNoz UI.
+In a couple of minutes, you should see the data generated from hotrod in the SigInsight UI.
 
-For more details, please refer to the [SigNoz documentation](https://signoz.io/docs/install/docker/).
+For more details, please refer to the repository-level deployment instructions and compose files in this repo.
 
 ## Docker Swarm
 
-To install SigNoz using Docker Swarm, run the following command:
+To install SigInsight using Docker Swarm, run the following command:
 
 ```sh
 cd deploy/docker-swarm
-docker stack deploy -c docker-compose.yaml signoz
+docker stack deploy -c docker-compose.yaml siginsight
 ```
 
 Open http://localhost:8080 in your favourite browser.
@@ -71,11 +85,11 @@ cd generator/hotrod
 docker stack deploy -c docker-compose.yaml hotrod
 ```
 
-In a couple of minutes, you should see the data generated from hotrod in SigNoz UI.
+In a couple of minutes, you should see the data generated from hotrod in the SigInsight UI.
 
-For more details, please refer to the [SigNoz documentation](https://signoz.io/docs/install/docker-swarm/).
+For more details, please refer to the compose files in this repository.
 
 ## Uninstall/Troubleshoot?
 
-Go to our official documentation site [signoz.io/docs](https://signoz.io/docs) for more.
+Go to the repository root README for the latest SigInsight deployment notes.
 
