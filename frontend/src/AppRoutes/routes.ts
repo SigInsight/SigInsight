@@ -44,7 +44,6 @@ import {
 	SignupPage,
 	SomethingWentWrong,
 	StatusPage,
-	SupportPage,
 	TraceDetail,
 	TraceFilter,
 	TracesExplorer,
@@ -53,9 +52,6 @@ import {
 	TracesSaveViews,
 	UnAuthorized,
 	UsageExplorerPage,
-	WorkspaceAccessRestricted,
-	WorkspaceBlocked,
-	WorkspaceSuspended,
 } from './pageComponents';
 
 const routes: AppRoutes[] = [
@@ -368,27 +364,6 @@ const routes: AppRoutes[] = [
 		isPrivate: false,
 	},
 	{
-		path: ROUTES.WORKSPACE_LOCKED,
-		exact: true,
-		component: WorkspaceBlocked,
-		isPrivate: true,
-		key: 'WORKSPACE_LOCKED',
-	},
-	{
-		path: ROUTES.WORKSPACE_SUSPENDED,
-		exact: true,
-		component: WorkspaceSuspended,
-		isPrivate: true,
-		key: 'WORKSPACE_SUSPENDED',
-	},
-	{
-		path: ROUTES.WORKSPACE_ACCESS_RESTRICTED,
-		exact: true,
-		component: WorkspaceAccessRestricted,
-		isPrivate: true,
-		key: 'WORKSPACE_ACCESS_RESTRICTED',
-	},
-	{
 		path: ROUTES.INTEGRATIONS,
 		exact: true,
 		component: InstalledIntegrations,
@@ -489,14 +464,6 @@ const routes: AppRoutes[] = [
 	},
 ];
 
-export const SUPPORT_ROUTE: AppRoutes = {
-	path: ROUTES.SUPPORT,
-	exact: true,
-	component: SupportPage,
-	key: 'SUPPORT',
-	isPrivate: true,
-};
-
 export const oldRoutes = [
 	'/pipelines',
 	'/logs-explorer',
@@ -519,10 +486,7 @@ export const oldNewRoutesMapping: Record<string, string> = {
 	'/alerts/edit': '/alerts/overview',
 };
 
-export const ROUTES_NOT_TO_BE_OVERRIDEN: string[] = [
-	ROUTES.WORKSPACE_LOCKED,
-	ROUTES.WORKSPACE_SUSPENDED,
-];
+export const ROUTES_NOT_TO_BE_OVERRIDEN: string[] = [];
 
 export interface AppRoutes {
 	component: RouteProps['component'];

@@ -8,7 +8,6 @@ import {
 	getDashboardById,
 } from './__mockdata__/dashboards';
 import { explorerView } from './__mockdata__/explorer_views';
-import { licensesSuccessResponse } from './__mockdata__/licenses';
 import { membersResponse } from './__mockdata__/members';
 import { queryRangeSuccessResponse } from './__mockdata__/query_range';
 import { serviceSuccessResponse } from './__mockdata__/services';
@@ -156,10 +155,6 @@ export const handlers = [
 			}),
 		);
 	}),
-
-	rest.get('http://localhost/api/v2/licenses', (req, res, ctx) =>
-		res(ctx.status(200), ctx.json(licensesSuccessResponse)),
-	),
 
 	rest.get('http://localhost/api/v1/dashboards', (_, res, ctx) =>
 		res(ctx.status(200), ctx.json(dashboardSuccessResponse)),

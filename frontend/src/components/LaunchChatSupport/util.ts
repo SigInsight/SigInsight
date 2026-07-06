@@ -1,14 +1,6 @@
+// Community edition stub: chat support utilities are cloud-only.
+// This returns an empty help message in the community edition.
 export const onboardingHelpMessage = (
-	dataSourceName: string,
-	moduleId: string,
-): string => `Hi Team,
-
-I am facing issues sending data to SigNoz. Here are my application details
-
-Data Source: ${dataSourceName}
-Framework:
-Environment:
-Module: ${moduleId}
-
-Thanks
-`;
+	_dataSourceName?: string,
+	_moduleId?: string,
+): string => '';
