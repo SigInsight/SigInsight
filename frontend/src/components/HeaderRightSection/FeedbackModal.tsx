@@ -3,14 +3,12 @@ import { useLocation } from 'react-router-dom';
 import { toast } from '@signozhq/sonner';
 import { Button, Input, Radio, RadioChangeEvent, Typography } from 'antd';
 import logEvent from 'api/common/logEvent';
-import { useGetTenantLicense } from 'hooks/useGetTenantLicense';
 import { handleContactSupport } from 'pages/Integrations/utils';
 
 function FeedbackModal({ onClose }: { onClose: () => void }): JSX.Element {
 	const [activeTab, setActiveTab] = useState('feedback');
 	const [feedback, setFeedback] = useState('');
 	const location = useLocation();
-	const { isCloudUser: isCloudUserVal } = useGetTenantLicense();
 	const [isLoading, setIsLoading] = useState(false);
 
 	const handleSubmit = async (): Promise<void> => {
@@ -94,8 +92,8 @@ function FeedbackModal({ onClose }: { onClose: () => void }): JSX.Element {
 	};
 
 	const handleContactSupportClick = useCallback((): void => {
-		handleContactSupport(isCloudUserVal);
-	}, [isCloudUserVal]);
+		handleContactSupport();
+	}, []);
 
 	return (
 		<div className="feedback-modal-container">

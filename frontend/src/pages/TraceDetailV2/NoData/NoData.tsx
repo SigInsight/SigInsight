@@ -1,13 +1,10 @@
 import { Button, Typography } from 'antd';
-import { useGetTenantLicense } from 'hooks/useGetTenantLicense';
 import { LifeBuoy, RefreshCw } from 'lucide-react';
 import { handleContactSupport } from 'pages/Integrations/utils';
 
 import './NoData.styles.scss';
 
 function NoData(): JSX.Element {
-	const { isCloudUser: isCloudUserVal } = useGetTenantLicense();
-
 	return (
 		<div className="not-found-trace">
 			<section className="description">
@@ -53,7 +50,7 @@ function NoData(): JSX.Element {
 					<Button
 						className="action-btn"
 						icon={<LifeBuoy size={14} />}
-						onClick={(): void => handleContactSupport(isCloudUserVal)}
+						onClick={(): void => handleContactSupport()}
 					>
 						Contact Support
 					</Button>

@@ -44,7 +44,6 @@ import dayjs from 'dayjs';
 import useDashboardsListQueryParams from 'hooks/dashboard/useDashboardsListQueryParams';
 import { useGetAllDashboard } from 'hooks/dashboard/useGetAllDashboard';
 import useComponentPermission from 'hooks/useComponentPermission';
-import { useGetTenantLicense } from 'hooks/useGetTenantLicense';
 import { useNotifications } from 'hooks/useNotifications';
 import { useSafeNavigate } from 'hooks/useSafeNavigate';
 import { get, isEmpty, isUndefined } from 'lodash-es';
@@ -85,7 +84,6 @@ import APIError from 'types/api/error';
 
 import DashboardTemplatesModal from './DashboardTemplates/DashboardTemplatesModal';
 import ImportJSON from './ImportJSON';
-import { RequestDashboardBtn } from './RequestDashboardBtn';
 import { DeleteButton } from './TableComponents/DeleteButton';
 import {
 	DashboardDynamicColumns,
@@ -111,8 +109,6 @@ function DashboardsList(): JSX.Element {
 		dashboardsListQueryParams,
 		updateDashboardsListQueryParams,
 	} = useDashboardsListQueryParams();
-
-	const { isCloudUser: isCloudUserVal } = useGetTenantLicense();
 
 	const [searchString, setSearchString] = useState<string>(
 		dashboardsListQueryParams.search || '',
@@ -657,13 +653,6 @@ function DashboardsList(): JSX.Element {
 							Create and manage dashboards for your workspace.
 						</Typography.Text>
 					</Flex>
-					{isCloudUserVal && (
-						<div className="integrations-container">
-							<div className="integrations-content">
-								<RequestDashboardBtn />
-							</div>
-						</div>
-					)}
 				</div>
 
 				{isDashboardListFetching ? (
@@ -696,7 +685,7 @@ function DashboardsList(): JSX.Element {
 							<Button
 								type="text"
 								className="learn-more"
-								onClick={(): void => handleContactSupport(isCloudUserVal)}
+								onClick={(): void => handleContactSupport()}
 							>
 								Contact Support
 							</Button>

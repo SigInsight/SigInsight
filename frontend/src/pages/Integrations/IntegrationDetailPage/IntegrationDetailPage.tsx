@@ -2,7 +2,6 @@ import { Color } from '@signozhq/design-tokens';
 import { Button, Flex, Skeleton, Typography } from 'antd';
 import { useGetIntegration } from 'hooks/Integrations/useGetIntegration';
 import { useGetIntegrationStatus } from 'hooks/Integrations/useGetIntegrationStatus';
-import { useGetTenantLicense } from 'hooks/useGetTenantLicense';
 import { defaultTo } from 'lodash-es';
 import { ArrowLeft, MoveUpRight, RotateCw } from 'lucide-react';
 
@@ -40,8 +39,6 @@ function IntegrationDetailPage(props: IntegrationDetailPageProps): JSX.Element {
 	} = useGetIntegration({
 		integrationId: selectedIntegration,
 	});
-
-	const { isCloudUser: isCloudUserVal } = useGetTenantLicense();
 
 	const {
 		data: integrationStatus,
@@ -103,7 +100,7 @@ function IntegrationDetailPage(props: IntegrationDetailPageProps): JSX.Element {
 							</Button>
 							<div
 								className="contact-support"
-								onClick={(): void => handleContactSupport(isCloudUserVal)}
+								onClick={(): void => handleContactSupport()}
 							>
 								<Typography.Link className="text">Contact Support </Typography.Link>
 

@@ -2,7 +2,6 @@ import { Dispatch, SetStateAction, useMemo } from 'react';
 import { Color } from '@signozhq/design-tokens';
 import { Button, List, Typography } from 'antd';
 import { useGetAllIntegrations } from 'hooks/Integrations/useGetAllIntegrations';
-import { useGetTenantLicense } from 'hooks/useGetTenantLicense';
 import { MoveUpRight, RotateCw } from 'lucide-react';
 import { IntegrationsProps } from 'types/api/integrations/types';
 
@@ -41,8 +40,6 @@ function IntegrationsList(props: IntegrationsListProps): JSX.Element {
 		refetch,
 	} = useGetAllIntegrations();
 
-	const { isCloudUser: isCloudUserVal } = useGetTenantLicense();
-
 	const integrationsList = useMemo(() => {
 		const baseList: IntegrationsProps[] = [AWS_INTEGRATION];
 
@@ -79,7 +76,7 @@ function IntegrationsList(props: IntegrationsListProps): JSX.Element {
 							</Button>
 							<div
 								className="contact-support"
-								onClick={(): void => handleContactSupport(isCloudUserVal)}
+								onClick={(): void => handleContactSupport()}
 							>
 								<Typography.Link className="text">Contact Support </Typography.Link>
 
