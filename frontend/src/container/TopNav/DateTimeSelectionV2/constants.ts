@@ -134,7 +134,7 @@ export const getOptions = (routes: string): Option[] => {
 	return Options;
 };
 
-export const routesToHideBreadCrumbs = [ROUTES.SUPPORT, ROUTES.ALL_DASHBOARD];
+export const routesToHideBreadCrumbs = [ROUTES.ALL_DASHBOARD];
 
 export const routesToSkip = [
 	ROUTES.HOME,
@@ -162,9 +162,6 @@ export const routesToSkip = [
 	ROUTES.BILLING,
 	ROUTES.ROLES_SETTINGS,
 	ROUTES.ROLE_DETAILS,
-	ROUTES.SUPPORT,
-	ROUTES.WORKSPACE_LOCKED,
-	ROUTES.WORKSPACE_SUSPENDED,
 	ROUTES.LOGS,
 	ROUTES.MY_SETTINGS,
 	ROUTES.LOGS_SAVE_VIEWS,
@@ -193,7 +190,6 @@ export const routesToSkip = [
 	ROUTES.API_MONITORING,
 	ROUTES.CHANNELS_NEW,
 	ROUTES.CHANNELS_EDIT,
-	ROUTES.WORKSPACE_ACCESS_RESTRICTED,
 	ROUTES.ALL_ERROR,
 	ROUTES.UN_AUTHORIZED,
 	ROUTES.NOT_FOUND,

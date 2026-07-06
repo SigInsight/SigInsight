@@ -70,7 +70,7 @@ export const inviteMemberMenuItem = {
 };
 
 export const helpSupportMenuItem = {
-	key: ROUTES.SUPPORT,
+	key: 'help-support',
 	label: 'Help & Support',
 	icon: <MessageSquareText size={16} />,
 };
@@ -444,12 +444,6 @@ export const helpSupportDropdownMenuItems: SidebarItem[] = [
 		isExternal: true,
 		url: 'https://signoz.io/slack',
 		itemKey: 'community-slack',
-	},
-	{
-		key: 'chat-support',
-		label: 'Chat with Support',
-		icon: <MessageSquareText size={14} />,
-		itemKey: 'chat-support',
 	},
 	{
 		key: 'invite-collaborators',

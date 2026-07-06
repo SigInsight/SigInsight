@@ -50,7 +50,6 @@ export const routeConfig: Record<string, QueryParams[]> = {
 	[ROUTES.VERSION]: [QueryParams.resourceAttributes],
 	[ROUTES.TRACE_EXPLORER]: [QueryParams.resourceAttributes],
 	[ROUTES.LOGS_PIPELINES]: [QueryParams.resourceAttributes],
-	[ROUTES.WORKSPACE_LOCKED]: [QueryParams.resourceAttributes],
 	[ROUTES.MESSAGING_QUEUES_KAFKA]: [QueryParams.resourceAttributes],
 	[ROUTES.MESSAGING_QUEUES_KAFKA_DETAIL]: [QueryParams.resourceAttributes],
 	[ROUTES.MESSAGING_QUEUES_CELERY_TASK]: [QueryParams.resourceAttributes],
