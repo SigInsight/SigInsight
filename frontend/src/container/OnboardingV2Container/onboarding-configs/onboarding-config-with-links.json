@@ -270,7 +270,7 @@
 			"signoz cloud",
 			"signoz self-hosted"
 		],
-		"imgUrl": "/Logos/signoz-brand-logo.svg",
+		"imgUrl": "/Logos/siginsight-brand-logo.svg",
 		"link": "/docs/migration/migrate-from-signoz-self-host-to-signoz-cloud/"
 	},
 	{
