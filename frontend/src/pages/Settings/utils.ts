@@ -6,7 +6,6 @@ import { ROLES, USER_ROLES } from 'types/roles';
 import {
 	alertChannels,
 	apiKeys,
-	billingSettings,
 	createAlertChannels,
 	editAlertChannels,
 	generalSettings,
@@ -40,7 +39,6 @@ export const getRoutes = (
 			...organizationSettings(t),
 			...membersSettings(t),
 			...mySettings(t),
-			...billingSettings(t),
 			...keyboardShortcuts(t),
 		);
 
@@ -73,7 +71,7 @@ export const getRoutes = (
 
 	// todo: Sagar - check the condition for role list and details page, to whom we want to serve
 	if ((isCloudUser || isEnterpriseSelfHostedUser) && isAdmin) {
-		settings.push(...billingSettings(t), ...rolesSettings(t), ...roleDetails(t));
+		settings.push(...rolesSettings(t), ...roleDetails(t));
 	}
 
 	settings.push(

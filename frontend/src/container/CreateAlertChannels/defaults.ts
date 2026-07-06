@@ -13,7 +13,7 @@ export const PagerInitialConfig: Partial<PagerChannel> = {
 	  )
 	{{- end }}`,
 	severity: '{{ (index .Alerts 0).Labels.severity }}',
-	client: 'SigNoz Alert Manager',
+	client: 'SigInsight Alert Manager',
 	client_url: 'https://enter-signoz-host-n-port-here/alerts',
 	details: JSON.stringify({
 		firing: `{{ .Alerts.Firing | toJson }}`,

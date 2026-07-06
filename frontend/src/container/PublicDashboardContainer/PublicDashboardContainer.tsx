@@ -130,12 +130,12 @@ function PublicDashboardContainer({
 				<div className="public-dashboard-header-left">
 					<div className="brand-logo">
 						<img
-							src="/Logos/signoz-brand-logo.svg"
-							alt="SigNoz"
+							src="/Logos/siginsight-brand-logo.svg"
+							alt="SigInsight"
 							className="brand-logo-img"
 						/>
 
-						<Typography className="brand-logo-name">SigNoz</Typography>
+						<Typography className="brand-logo-name">SigInsight</Typography>
 					</div>
 
 					<div className="public-dashboard-header-title">

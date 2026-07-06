@@ -23,8 +23,8 @@ import { useDashboardVariables } from 'hooks/dashboard/useDashboardVariables';
 import { useGetPublicDashboardMeta } from 'hooks/dashboard/useGetPublicDashboardMeta';
 import { useLockDashboard } from 'hooks/dashboard/useLockDashboard';
 import { useUpdateDashboard } from 'hooks/dashboard/useUpdateDashboard';
-import useComponentPermission from 'hooks/useComponentPermission';
 import { useGetTenantLicense } from 'hooks/useGetTenantLicense';
+import useComponentPermission from 'hooks/useComponentPermission';
 import { useNotifications } from 'hooks/useNotifications';
 import { isEmpty } from 'lodash-es';
 import {
@@ -94,8 +94,9 @@ function DashboardDescription(props: DashboardDescriptionProps): JSX.Element {
 		false,
 	);
 
-	const { isCloudUser, isEnterpriseSelfHostedUser } = useGetTenantLicense();
+	
 
+	const { isCloudUser, isEnterpriseSelfHostedUser } = useGetTenantLicense();
 	const isPublicDashboardEnabled = isCloudUser || isEnterpriseSelfHostedUser;
 
 	const selectedData = selectedDashboard

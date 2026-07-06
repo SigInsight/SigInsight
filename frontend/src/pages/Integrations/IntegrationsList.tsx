@@ -2,7 +2,6 @@ import { Dispatch, SetStateAction, useMemo } from 'react';
 import { Color } from '@signozhq/design-tokens';
 import { Button, List, Typography } from 'antd';
 import { useGetAllIntegrations } from 'hooks/Integrations/useGetAllIntegrations';
-import { useGetTenantLicense } from 'hooks/useGetTenantLicense';
 import { MoveUpRight, RotateCw } from 'lucide-react';
 import { IntegrationsProps } from 'types/api/integrations/types';
 
@@ -13,9 +12,9 @@ import './Integrations.styles.scss';
 export const AWS_INTEGRATION = {
 	id: INTEGRATION_TYPES.AWS_INTEGRATION,
 	title: 'Amazon Web Services',
-	description: 'One-click setup for AWS monitoring with SigNoz',
+	description: 'One-click setup for AWS monitoring with SigInsight',
 	author: {
-		name: 'SigNoz',
+		name: 'SigInsight',
 		email: 'integrations@signoz.io',
 		homepage: 'https://signoz.io',
 	},
@@ -40,8 +39,6 @@ function IntegrationsList(props: IntegrationsListProps): JSX.Element {
 		isError,
 		refetch,
 	} = useGetAllIntegrations();
-
-	const { isCloudUser: isCloudUserVal } = useGetTenantLicense();
 
 	const integrationsList = useMemo(() => {
 		const baseList: IntegrationsProps[] = [AWS_INTEGRATION];
@@ -79,7 +76,7 @@ function IntegrationsList(props: IntegrationsListProps): JSX.Element {
 							</Button>
 							<div
 								className="contact-support"
-								onClick={(): void => handleContactSupport(isCloudUserVal)}
+								onClick={(): void => handleContactSupport()}
 							>
 								<Typography.Link className="text">Contact Support </Typography.Link>
 

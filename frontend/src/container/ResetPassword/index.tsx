@@ -158,7 +158,7 @@ function ResetPassword({ version }: ResetPasswordProps): JSX.Element {
 						Monitor your applications. Find what is causing issues.
 					</Typography.Paragraph>
 					{version && (
-						<div className="reset-password-version-badge">SigNoz {version}</div>
+						<div className="reset-password-version-badge">SigInsight {version}</div>
 					)}
 				</div>
 

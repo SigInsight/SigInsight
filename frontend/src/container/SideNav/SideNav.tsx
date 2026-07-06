@@ -863,9 +863,6 @@ function SideNav({ isPinned }: { isPinned: boolean }): JSX.Element {
 			case 'workspace':
 				history.push(ROUTES.SETTINGS);
 				break;
-			case 'license':
-				history.push(ROUTES.LIST_LICENSES);
-				break;
 			case 'keyboard-shortcuts':
 				history.push(ROUTES.SHORTCUTS);
 				break;
@@ -920,7 +917,7 @@ function SideNav({ isPinned }: { isPinned: boolean }): JSX.Element {
 									onClickHandler(ROUTES.HOME, event);
 								}}
 							>
-								<img src="/Logos/signoz-brand-logo.svg" alt="SigNoz" />
+								<img src="/Logos/siginsight-brand-logo.svg" alt="SigInsight" />
 							</div>
 
 							{licenseTag && (
@@ -935,41 +932,6 @@ function SideNav({ isPinned }: { isPinned: boolean }): JSX.Element {
 									)}
 								>
 									<span className="license-type"> {licenseTag} </span>
-
-									{currentVersion && (
-										<Tooltip
-											placement="bottomLeft"
-											overlayClassName="version-tooltip-overlay"
-											arrow={false}
-											overlay={
-												showVersionUpdateNotification &&
-												changelog && (
-													<div className="version-update-notification-tooltip">
-														<div className="version-update-notification-tooltip-title">
-															There&apos;s a new version available.
-														</div>
-
-														<div className="version-update-notification-tooltip-content">
-															{latestVersion}
-														</div>
-													</div>
-												)
-											}
-										>
-											<div className="version-container">
-												<span
-													className={cx('version', changelog && 'version-clickable')}
-													onClick={onClickVersionHandler}
-												>
-													{currentVersion}
-												</span>
-
-												{showVersionUpdateNotification && changelog && (
-													<span className="version-update-notification-dot-icon" />
-												)}
-											</div>
-										</Tooltip>
-									)}
 								</div>
 							)}
 						</div>

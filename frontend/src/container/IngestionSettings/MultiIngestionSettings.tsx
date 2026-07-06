@@ -1584,7 +1584,7 @@ function MultiIngestionSettings(): JSX.Element {
 				<header>
 					<Typography.Title className="title"> Ingestion Keys </Typography.Title>
 					<Typography.Text className="subtitle">
-						Create and manage ingestion keys for the SigNoz Cloud{' '}
+						Create and manage ingestion keys for the SigInsight Cloud{' '}
 						<a
 							href="https://signoz.io/docs/ingestion/signoz-cloud/keys/"
 							target="_blank"

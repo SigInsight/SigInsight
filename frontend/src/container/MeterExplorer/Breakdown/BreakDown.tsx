@@ -13,7 +13,6 @@ import { Card, CardContainer } from 'container/GridCardLayout/styles';
 import DateTimeSelectionV2 from 'container/TopNav/DateTimeSelectionV2';
 import dayjs from 'dayjs';
 import { useIsDarkMode } from 'hooks/useDarkMode';
-import { useGetTenantLicense } from 'hooks/useGetTenantLicense';
 import useUrlQuery from 'hooks/useUrlQuery';
 import { UpdateTimeInterval } from 'store/actions';
 import { AppState } from 'store/reducers';
@@ -114,17 +113,12 @@ function Section(section: MetricSection): JSX.Element {
 }
 
 function BreakDown(): JSX.Element {
-	const { isCloudUser } = useGetTenantLicense();
 	const { maxTime, minTime } = useSelector<AppState, GlobalReducer>(
 		(state) => state.globalTime,
 	);
 
 	const showInfo =
 		getLocalStorageApi(LOCALSTORAGE.DISSMISSED_COST_METER_INFO) !== 'true';
-	const isDateBeforeAugust22nd2025 = (minTime: number): boolean => {
-		const august22nd2025UTC = dayjs.utc('2025-08-22T00:00:00Z');
-		return dayjs(minTime / 1e6).isBefore(august22nd2025UTC);
-	};
 	const showShortRangeWarning = (maxTime - minTime) / 1e6 < 61 * 60 * 1000;
 
 	return (
@@ -143,13 +137,6 @@ function BreakDown(): JSX.Element {
 						}}
 						message="Billing is calculated in UTC. To match your meter data with billing, select full-day ranges in UTC time (00:00 – 23:59 UTC). 
 						For example, if you’re in PT, for the billing of Jan 1, select your time range as Dec 31, 4:00 PM – Jan 1, 3:59 PM PT."
-					/>
-				)}
-				{isCloudUser && isDateBeforeAugust22nd2025(minTime) && (
-					<Alert
-						type="warning"
-						showIcon
-						message="Meter module data is accurate only from 22nd August 2025, 00:00 UTC onwards. Data before this time was collected during the beta phase and may be inaccurate."
 					/>
 				)}
 

@@ -84,7 +84,7 @@ function RoleMappingSection({
 								</h4>
 								<p className="role-mapping-section__section-description">
 									Configure how user roles are determined from your Identity Provider.
-									You can either use a direct role attribute or map IDP groups to SigNoz
+									You can either use a direct role attribute or map IDP groups to SigInsight
 									roles.
 								</p>
 							</div>
@@ -139,7 +139,7 @@ function RoleMappingSection({
 									}}
 								/>
 							</Form.Item>
-							<Tooltip title="If enabled, the role claim/attribute from the IDP will be used directly instead of group mappings. The role value must match a SigNoz role (VIEWER, EDITOR, or ADMIN).">
+							<Tooltip title="If enabled, the role claim/attribute from the IDP will be used directly instead of group mappings. The role value must match a SigInsight role (VIEWER, EDITOR, or ADMIN).">
 								<CircleHelp size={14} color={Style.L3_FOREGROUND} cursor="help" />
 							</Tooltip>
 						</div>
@@ -151,7 +151,7 @@ function RoleMappingSection({
 										Group to Role Mappings
 									</span>
 									<p className="role-mapping-section__group-description">
-										Map IDP group names to SigNoz roles. If a user belongs to multiple
+										Map IDP group names to SigInsight roles. If a user belongs to multiple
 										groups, the highest privilege role will be assigned.
 									</p>
 								</div>

@@ -16,10 +16,8 @@ import (
 	"github.com/SigNoz/signoz/pkg/emailing"
 	"github.com/SigNoz/signoz/pkg/factory"
 	"github.com/SigNoz/signoz/pkg/flagger"
-	"github.com/SigNoz/signoz/pkg/gateway"
 	"github.com/SigNoz/signoz/pkg/identn"
 	"github.com/SigNoz/signoz/pkg/instrumentation"
-	"github.com/SigNoz/signoz/pkg/licensing"
 	"github.com/SigNoz/signoz/pkg/modules/dashboard"
 	"github.com/SigNoz/signoz/pkg/modules/organization"
 	"github.com/SigNoz/signoz/pkg/modules/organization/implorganization"
@@ -43,7 +41,6 @@ import (
 	"github.com/SigNoz/signoz/pkg/types/authtypes"
 	"github.com/SigNoz/signoz/pkg/types/telemetrytypes"
 	"github.com/SigNoz/signoz/pkg/version"
-	"github.com/SigNoz/signoz/pkg/zeus"
 
 	"github.com/SigNoz/signoz/pkg/web"
 )
@@ -61,8 +58,6 @@ type SigNoz struct {
 	Alertmanager           alertmanager.Alertmanager
 	Querier                querier.Querier
 	APIServer              apiserver.APIServer
-	Zeus                   zeus.Zeus
-	Licensing              licensing.Licensing
 	Emailing               emailing.Emailing
 	Sharder                sharder.Sharder
 	StatsReporter          statsreporter.StatsReporter
@@ -73,26 +68,20 @@ type SigNoz struct {
 	Handlers               Handlers
 	QueryParser            queryparser.QueryParser
 	Flagger                flagger.Flagger
-	Gateway                gateway.Gateway
 }
 
 func New(
 	ctx context.Context,
 	config Config,
-	zeusConfig zeus.Config,
-	zeusProviderFactory factory.ProviderFactory[zeus.Zeus, zeus.Config],
-	licenseConfig licensing.Config,
-	licenseProviderFactory func(sqlstore.SQLStore, zeus.Zeus, organization.Getter, analytics.Analytics) factory.ProviderFactory[licensing.Licensing, licensing.Config],
 	emailingProviderFactories factory.NamedMap[factory.ProviderFactory[emailing.Emailing, emailing.Config]],
 	cacheProviderFactories factory.NamedMap[factory.ProviderFactory[cache.Cache, cache.Config]],
 	webProviderFactories factory.NamedMap[factory.ProviderFactory[web.Web, web.Config]],
 	sqlSchemaProviderFactories func(sqlstore.SQLStore) factory.NamedMap[factory.ProviderFactory[sqlschema.SQLSchema, sqlschema.Config]],
 	sqlstoreProviderFactories factory.NamedMap[factory.ProviderFactory[sqlstore.SQLStore, sqlstore.Config]],
 	telemetrystoreProviderFactories factory.NamedMap[factory.ProviderFactory[telemetrystore.TelemetryStore, telemetrystore.Config]],
-	authNsCallback func(ctx context.Context, providerSettings factory.ProviderSettings, store authtypes.AuthNStore, licensing licensing.Licensing) (map[authtypes.AuthNProvider]authn.AuthN, error),
-	authzCallback func(context.Context, sqlstore.SQLStore, licensing.Licensing, dashboard.Module) factory.ProviderFactory[authz.AuthZ, authz.Config],
-	dashboardModuleCallback func(sqlstore.SQLStore, factory.ProviderSettings, analytics.Analytics, organization.Getter, queryparser.QueryParser, querier.Querier, licensing.Licensing) dashboard.Module,
-	gatewayProviderFactory func(licensing.Licensing) factory.ProviderFactory[gateway.Gateway, gateway.Config],
+	authNsCallback func(ctx context.Context, providerSettings factory.ProviderSettings, store authtypes.AuthNStore) (map[authtypes.AuthNProvider]authn.AuthN, error),
+	authzCallback func(context.Context, sqlstore.SQLStore, dashboard.Module) factory.ProviderFactory[authz.AuthZ, authz.Config],
+	dashboardModuleCallback func(sqlstore.SQLStore, factory.ProviderSettings, analytics.Analytics, organization.Getter, queryparser.QueryParser, querier.Querier) dashboard.Module,
 	querierHandlerCallback func(factory.ProviderSettings, querier.Querier, analytics.Analytics) querier.Handler,
 ) (*SigNoz, error) {
 	// Initialize instrumentation
@@ -125,17 +114,6 @@ func New(
 		config.Analytics,
 		NewAnalyticsProviderFactories(),
 		config.Analytics.Provider(),
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	// Initialize zeus from the available zeus provider factory. This is not config controlled
-	// and depends on the variant of the build.
-	zeus, err := zeusProviderFactory.New(
-		ctx,
-		providerSettings,
-		zeusConfig,
 	)
 	if err != nil {
 		return nil, err
@@ -299,24 +277,14 @@ func New(
 	// Initialize user role store
 	userRoleStore := impluser.NewUserRoleStore(sqlstore, providerSettings)
 
-	licensingProviderFactory := licenseProviderFactory(sqlstore, zeus, orgGetter, analytics)
-	licensing, err := licensingProviderFactory.New(
-		ctx,
-		providerSettings,
-		licenseConfig,
-	)
-	if err != nil {
-		return nil, err
-	}
-
 	// Initialize query parser (needed for dashboard module)
 	queryParser := queryparser.New(providerSettings)
 
 	// Initialize dashboard module (needed for authz registry)
-	dashboard := dashboardModuleCallback(sqlstore, providerSettings, analytics, orgGetter, queryParser, querier, licensing)
+	dashboard := dashboardModuleCallback(sqlstore, providerSettings, analytics, orgGetter, queryParser, querier)
 
 	// Initialize authz
-	authzProviderFactory := authzCallback(ctx, sqlstore, licensing, dashboard)
+	authzProviderFactory := authzCallback(ctx, sqlstore, dashboard)
 	authz, err := authzProviderFactory.New(ctx, providerSettings, authz.Config{})
 	if err != nil {
 		return nil, err
@@ -361,15 +329,9 @@ func New(
 		return nil, err
 	}
 
-	gatewayFactory := gatewayProviderFactory(licensing)
-	gateway, err := gatewayFactory.New(ctx, providerSettings, config.Gateway)
-	if err != nil {
-		return nil, err
-	}
-
 	// Initialize authns
 	store := sqlauthnstore.NewStore(sqlstore)
-	authNs, err := authNsCallback(ctx, providerSettings, store, licensing)
+	authNs, err := authNsCallback(ctx, providerSettings, store)
 	if err != nil {
 		return nil, err
 	}
@@ -429,7 +391,6 @@ func New(
 		modules.Dashboard,
 		modules.SavedView,
 		modules.UserSetter,
-		licensing,
 		tokenizer,
 		config,
 		modules.AuthDomain,
@@ -454,7 +415,6 @@ func New(
 		factory.NewNamedService(factory.MustNewName("pprof"), pprofService),
 		factory.NewNamedService(factory.MustNewName("analytics"), analytics),
 		factory.NewNamedService(factory.MustNewName("alertmanager"), alertmanager),
-		factory.NewNamedService(factory.MustNewName("licensing"), licensing),
 		factory.NewNamedService(factory.MustNewName("statsreporter"), statsReporter),
 		factory.NewNamedService(factory.MustNewName("tokenizer"), tokenizer),
 		factory.NewNamedService(factory.MustNewName("authz"), authz),
@@ -466,7 +426,7 @@ func New(
 
 	// Initialize all handlers for the modules
 	registryHandler := factory.NewHandler(registry)
-	handlers := NewHandlers(modules, providerSettings, analytics, querierHandler, licensing, global, flagger, gateway, telemetryMetadataStore, authz, zeus, registryHandler)
+	handlers := NewHandlers(modules, providerSettings, analytics, querierHandler, global, flagger, telemetryMetadataStore, authz, registryHandler)
 
 	// Initialize the API server (after registry so it can access service health)
 	apiserverInstance, err := factory.NewProviderFromNamedMap(
@@ -493,8 +453,6 @@ func New(
 		Alertmanager:           alertmanager,
 		Querier:                querier,
 		APIServer:              apiserverInstance,
-		Zeus:                   zeus,
-		Licensing:              licensing,
 		Emailing:               emailing,
 		Sharder:                sharder,
 		Tokenizer:              tokenizer,
@@ -504,6 +462,5 @@ func New(
 		Handlers:               handlers,
 		QueryParser:            queryParser,
 		Flagger:                flagger,
-		Gateway:                gateway,
 	}, nil
 }

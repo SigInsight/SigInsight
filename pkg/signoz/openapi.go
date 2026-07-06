@@ -12,7 +12,6 @@ import (
 	"github.com/SigNoz/signoz/pkg/authz"
 	"github.com/SigNoz/signoz/pkg/factory"
 	"github.com/SigNoz/signoz/pkg/flagger"
-	"github.com/SigNoz/signoz/pkg/gateway"
 	"github.com/SigNoz/signoz/pkg/global"
 	"github.com/SigNoz/signoz/pkg/http/handler"
 	"github.com/SigNoz/signoz/pkg/instrumentation"
@@ -30,7 +29,6 @@ import (
 	"github.com/SigNoz/signoz/pkg/modules/user"
 	"github.com/SigNoz/signoz/pkg/querier"
 	"github.com/SigNoz/signoz/pkg/types/authtypes"
-	"github.com/SigNoz/signoz/pkg/zeus"
 	"github.com/swaggest/jsonschema-go"
 	"github.com/swaggest/openapi-go"
 	"github.com/swaggest/openapi-go/openapi3"
@@ -58,11 +56,9 @@ func NewOpenAPI(ctx context.Context, instrumentation instrumentation.Instrumenta
 		struct{ dashboard.Module }{},
 		struct{ dashboard.Handler }{},
 		struct{ metricsexplorer.Handler }{},
-		struct{ gateway.Handler }{},
 		struct{ fields.Handler }{},
 		struct{ authz.Handler }{},
 		struct{ rawdataexport.Handler }{},
-		struct{ zeus.Handler }{},
 		struct{ querier.Handler }{},
 		struct{ serviceaccount.Handler }{},
 		struct{ factory.Handler }{},

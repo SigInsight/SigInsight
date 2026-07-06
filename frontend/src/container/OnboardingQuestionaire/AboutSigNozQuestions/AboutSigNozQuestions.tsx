@@ -93,13 +93,13 @@ export function AboutSigNozQuestions({
 		<div className="questions-container">
 			<OnboardingQuestionHeader
 				title="Set up your workspace"
-				subtitle="Tailor SigNoz to suit your observability needs."
+				subtitle="Tailor SigInsight to suit your observability needs."
 			/>
 
 			<div className="questions-form-container">
 				<div className="questions-form">
 					<div className="form-group">
-						<div className="question">How did you first come across SigNoz?</div>
+						<div className="question">How did you first come across SigInsight?</div>
 
 						<AntdInput.TextArea
 							className="discover-signoz-input"
@@ -112,7 +112,7 @@ export function AboutSigNozQuestions({
 					</div>
 
 					<div className="form-group">
-						<div className="question">What got you interested in SigNoz?</div>
+						<div className="question">What got you interested in SigInsight?</div>
 						<div className="checkbox-grid">
 							{Object.keys(interestedInOptions).map((option: string) => (
 								<div key={option} className="checkbox-item">
@@ -136,7 +136,7 @@ export function AboutSigNozQuestions({
 									<Input
 										type="text"
 										className="onboarding-questionaire-other-input"
-										placeholder="What got you interested in SigNoz?"
+										placeholder="What got you interested in SigInsight?"
 										value={otherInterestInSignoz}
 										autoFocus
 										onChange={(e): void => setOtherInterestInSignoz(e.target.value)}

@@ -35,14 +35,14 @@ export default function HostsEmptyOrIncorrectMetrics({
 							>
 								this
 							</a>{' '}
-							to learn how to send host metrics to SigNoz.
+							to learn how to send host metrics to SigInsight.
 						</Typography.Text>
 					</div>
 				)}
 
 				{incorrectData && (
 					<Typography.Text className="incorrect-metrics-message">
-						To see host metrics, upgrade to the latest version of SigNoz k8s-infra
+						To see host metrics, upgrade to the latest version of SigInsight k8s-infra
 						chart. Please contact support if you need help.
 					</Typography.Text>
 				)}

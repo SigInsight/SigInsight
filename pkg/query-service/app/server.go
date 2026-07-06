@@ -22,7 +22,6 @@ import (
 	"github.com/SigNoz/signoz/pkg/alertmanager"
 	"github.com/SigNoz/signoz/pkg/cache"
 	"github.com/SigNoz/signoz/pkg/http/middleware"
-	"github.com/SigNoz/signoz/pkg/licensing/nooplicensing"
 	"github.com/SigNoz/signoz/pkg/modules/organization"
 	"github.com/SigNoz/signoz/pkg/prometheus"
 	"github.com/SigNoz/signoz/pkg/querier"
@@ -135,7 +134,6 @@ func NewServer(config signoz.Config, signoz *signoz.SigNoz) (*Server, error) {
 		LogsParsingPipelineController: logParsingPipelineController,
 		FluxInterval:                  config.Querier.FluxInterval,
 		AlertmanagerAPI:               alertmanager.NewAPI(signoz.Alertmanager),
-		LicensingAPI:                  nooplicensing.NewLicenseAPI(),
 		Signoz:                        signoz,
 		QueryParserAPI:                queryparser.NewAPI(signoz.Instrumentation.ToProviderSettings(), signoz.QueryParser),
 	}, config)

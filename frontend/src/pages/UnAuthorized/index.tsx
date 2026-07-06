@@ -2,7 +2,6 @@ import { useCallback } from 'react';
 import { Space, Typography } from 'antd';
 import UnAuthorized from 'assets/UnAuthorized';
 import { Container } from 'components/NotFound/styles';
-import { useGetTenantLicense } from 'hooks/useGetTenantLicense';
 import { useQueryState } from 'nuqs';
 import { handleContactSupport } from 'pages/Integrations/utils';
 
@@ -14,7 +13,6 @@ import './index.styles.scss';
 function UnAuthorizePage(): JSX.Element {
 	const [debugCurrentRole] = useQueryState('currentRole');
 	const { user } = useAppContext();
-	const { isCloudUser: isCloudUserVal } = useGetTenantLicense();
 
 	const userIsAnonymous =
 		debugCurrentRole === USER_ROLES.ANONYMOUS ||
@@ -24,8 +22,8 @@ function UnAuthorizePage(): JSX.Element {
 		: 'Please contact your administrator.';
 
 	const handleContactSupportClick = useCallback((): void => {
-		handleContactSupport(isCloudUserVal);
-	}, [isCloudUserVal]);
+		handleContactSupport();
+	}, []);
 
 	return (
 		<Container className="unauthorized-page">

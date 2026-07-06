@@ -1,13 +1,10 @@
 import { Button, Typography } from 'antd';
-import { useGetTenantLicense } from 'hooks/useGetTenantLicense';
 import { LifeBuoy, RefreshCw } from 'lucide-react';
 import { handleContactSupport } from 'pages/Integrations/utils';
 
 import './NoData.styles.scss';
 
 function NoData(): JSX.Element {
-	const { isCloudUser: isCloudUserVal } = useGetTenantLicense();
-
 	return (
 		<div className="not-found-trace">
 			<section className="description">
@@ -27,7 +24,7 @@ function NoData(): JSX.Element {
 						className="construction-img"
 					/>
 					<Typography.Text className="text">
-						The trace data has not been rendered on your SigNoz server yet. You can
+						The trace data has not been rendered on your SigInsight server yet. You can
 						wait for a bit and refresh this page if this is the case.
 					</Typography.Text>
 				</div>
@@ -53,7 +50,7 @@ function NoData(): JSX.Element {
 					<Button
 						className="action-btn"
 						icon={<LifeBuoy size={14} />}
-						onClick={(): void => handleContactSupport(isCloudUserVal)}
+						onClick={(): void => handleContactSupport()}
 					>
 						Contact Support
 					</Button>

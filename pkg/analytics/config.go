@@ -4,18 +4,8 @@ import (
 	"github.com/SigNoz/signoz/pkg/factory"
 )
 
-// This will be set via ldflags at build time.
-var (
-	key string = "<unset>"
-)
-
 type Config struct {
-	Enabled bool    `mapstructure:"enabled"`
-	Segment Segment `mapstructure:"segment"`
-}
-
-type Segment struct {
-	Key string `mapstructure:"key"`
+	Enabled bool `mapstructure:"enabled"`
 }
 
 func NewConfigFactory() factory.ConfigFactory {
@@ -25,9 +15,6 @@ func NewConfigFactory() factory.ConfigFactory {
 func newConfig() factory.Config {
 	return Config{
 		Enabled: false,
-		Segment: Segment{
-			Key: key,
-		},
 	}
 }
 
@@ -35,10 +22,8 @@ func (c Config) Validate() error {
 	return nil
 }
 
+// Provider always returns "noop": the Segment analytics backend has been
+// removed from this community-only fork, so analytics never phones home.
 func (c Config) Provider() string {
-	if c.Enabled {
-		return "segment"
-	}
-
 	return "noop"
 }

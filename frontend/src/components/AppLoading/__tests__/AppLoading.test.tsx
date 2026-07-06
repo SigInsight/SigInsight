@@ -47,7 +47,7 @@ describe('AppLoading', () => {
 		// Check for brand logo
 		const logo = screen.getByAltText(SIGNOZ_TEXT);
 		expect(logo).toBeInTheDocument();
-		expect(logo).toHaveAttribute('src', '/Logos/signoz-brand-logo.svg');
+		expect(logo).toHaveAttribute('src', '/Logos/siginsight-brand-logo.svg');
 
 		// Check for brand title
 		const title = screen.getByText(SIGNOZ_TEXT);

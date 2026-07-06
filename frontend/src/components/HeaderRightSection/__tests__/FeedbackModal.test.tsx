@@ -197,32 +197,13 @@ describe('FeedbackModal', () => {
 
 	it('should call handleContactSupport when contact support link is clicked', async () => {
 		const user = userEvent.setup();
-		const isCloudUser = true;
-		mockUseGetTenantLicense.mockReturnValue({
-			isCloudUser,
-		});
 
 		render(<FeedbackModal onClose={mockOnClose} />);
 
 		const contactSupportLink = screen.getByText('Contact Support');
 		await user.click(contactSupportLink);
 
-		expect(mockHandleContactSupport).toHaveBeenCalledWith(isCloudUser);
-	});
-
-	it('should handle non-cloud user for contact support', async () => {
-		const user = userEvent.setup();
-		const isCloudUser = false;
-		mockUseGetTenantLicense.mockReturnValue({
-			isCloudUser,
-		});
-
-		render(<FeedbackModal onClose={mockOnClose} />);
-
-		const contactSupportLink = screen.getByText('Contact Support');
-		await user.click(contactSupportLink);
-
-		expect(mockHandleContactSupport).toHaveBeenCalledWith(isCloudUser);
+		expect(mockHandleContactSupport).toHaveBeenCalled();
 	});
 
 	it('should render docs link with correct attributes', () => {

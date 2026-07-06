@@ -9,7 +9,6 @@ import {
 } from 'react';
 import { Input as SignozInput } from '@signozhq/input';
 import { Col, Row, Select } from 'antd';
-import { useGetTenantLicense } from 'hooks/useGetTenantLicense';
 import { find } from 'lodash-es';
 import { TTTLType } from 'types/api/settings/common';
 
@@ -66,7 +65,6 @@ function Retention({
 	);
 	const interacted = useRef(false);
 
-	const { isCloudUser: isCloudUserVal } = useGetTenantLicense();
 
 	useEffect(() => {
 		if (!interacted.current) {
@@ -135,13 +133,13 @@ function Retention({
 					type="number"
 					min={0}
 					value={selectedValue && selectedValue >= 0 ? selectedValue : ''}
-					disabled={isCloudUserVal}
+					
 					onChange={(e): void => onChangeHandler(e, setSelectedValue)}
 				/>
 				<Select
 					value={selectedTimeUnit}
 					onChange={currentSelectedOption}
-					disabled={isCloudUserVal}
+					
 				>
 					{menuItems}
 				</Select>
@@ -159,14 +157,14 @@ function Retention({
 					<RetentionFieldInputContainer>
 						<Input
 							value={selectedValue && selectedValue >= 0 ? selectedValue : ''}
-							disabled={isCloudUserVal}
+							
 							onChange={(e): void => onChangeHandler(e, setSelectedValue)}
 							style={{ width: 75 }}
 						/>
 						<Select
 							value={selectedTimeUnit}
 							onChange={currentSelectedOption}
-							disabled={isCloudUserVal}
+							
 							style={{ width: 100 }}
 						>
 							{menuItems}

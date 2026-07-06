@@ -27,16 +27,12 @@ go.mod @therealpandey
 # Zeus Owners
 
 /pkg/zeus/ @vikrantgupta25
-/ee/zeus/ @vikrantgupta25
 /pkg/licensing/ @vikrantgupta25
-/ee/licensing/ @vikrantgupta25
 
 # SQL Owners
 
 /pkg/sqlmigration/ @vikrantgupta25
-/ee/sqlmigration/ @vikrantgupta25
 /pkg/sqlschema/ @vikrantgupta25
-/ee/sqlschema/ @vikrantgupta25
 
 # Analytics Owners
 
@@ -96,9 +92,7 @@ go.mod @therealpandey
 # AuthN / AuthZ Owners
 
 /pkg/authz/ @vikrantgupta25
-/ee/authz/ @vikrantgupta25
 /pkg/authn/ @vikrantgupta25
-/ee/authn/ @vikrantgupta25
 /pkg/modules/user/ @vikrantgupta25
 /pkg/modules/session/ @vikrantgupta25
 /pkg/modules/organization/ @vikrantgupta25

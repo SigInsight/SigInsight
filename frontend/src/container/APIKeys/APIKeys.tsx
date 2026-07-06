@@ -522,7 +522,7 @@ function APIKeys(): JSX.Element {
 				<header>
 					<Typography.Title className="title">API Keys</Typography.Title>
 					<Typography.Text className="subtitle">
-						Create and manage API keys for the SigNoz API
+						Create and manage API keys for the SigInsight API
 					</Typography.Text>
 				</header>
 

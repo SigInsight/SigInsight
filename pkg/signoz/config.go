@@ -17,7 +17,6 @@ import (
 	"github.com/SigNoz/signoz/pkg/errors"
 	"github.com/SigNoz/signoz/pkg/factory"
 	"github.com/SigNoz/signoz/pkg/flagger"
-	"github.com/SigNoz/signoz/pkg/gateway"
 	"github.com/SigNoz/signoz/pkg/global"
 	"github.com/SigNoz/signoz/pkg/identn"
 	"github.com/SigNoz/signoz/pkg/instrumentation"
@@ -102,9 +101,6 @@ type Config struct {
 	// StatsReporter config
 	StatsReporter statsreporter.Config `mapstructure:"statsreporter"`
 
-	// Gateway config
-	Gateway gateway.Config `mapstructure:"gateway"`
-
 	// Tokenizer config
 	Tokenizer tokenizer.Config `mapstructure:"tokenizer"`
 
@@ -142,7 +138,6 @@ func NewConfig(ctx context.Context, logger *slog.Logger, resolverConfig config.R
 		emailing.NewConfigFactory(),
 		sharder.NewConfigFactory(),
 		statsreporter.NewConfigFactory(),
-		gateway.NewConfigFactory(),
 		tokenizer.NewConfigFactory(),
 		metricsexplorer.NewConfigFactory(),
 		flagger.NewConfigFactory(),
@@ -258,11 +253,6 @@ func mergeAndEnsureBackwardCompatibility(ctx context.Context, logger *slog.Logge
 	if os.Getenv("SMTP_FROM") != "" {
 		logger.WarnContext(ctx, "[Deprecated] env SMTP_FROM is deprecated and scheduled for removal. Please use SIGNOZ_EMAILING_FROM instead.")
 		config.Emailing.SMTP.From = os.Getenv("SMTP_FROM")
-	}
-
-	if os.Getenv("SIGNOZ_SAAS_SEGMENT_KEY") != "" {
-		logger.WarnContext(ctx, "[Deprecated] env SIGNOZ_SAAS_SEGMENT_KEY is deprecated and scheduled for removal. Please use SIGNOZ_ANALYTICS_SEGMENT_KEY instead.")
-		config.Analytics.Segment.Key = os.Getenv("SIGNOZ_SAAS_SEGMENT_KEY")
 	}
 
 	if os.Getenv("TELEMETRY_ENABLED") != "" {

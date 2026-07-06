@@ -2,7 +2,6 @@ import { RouteTabProps } from 'components/RouteTab/types';
 import ROUTES from 'constants/routes';
 import AlertChannels from 'container/AllAlertChannels';
 import APIKeys from 'container/APIKeys/APIKeys';
-import BillingContainer from 'container/BillingContainer/BillingContainer';
 import CreateAlertChannels from 'container/CreateAlertChannels';
 import { ChannelType } from 'container/CreateAlertChannels/config';
 import GeneralSettings from 'container/GeneralSettings';
@@ -20,7 +19,6 @@ import {
 	Bot,
 	Building,
 	Cpu,
-	CreditCard,
 	Keyboard,
 	KeySquare,
 	Pencil,
@@ -124,19 +122,6 @@ export const apiKeys = (t: TFunction): RouteTabProps['routes'] => [
 		),
 		route: ROUTES.API_KEYS,
 		key: ROUTES.API_KEYS,
-	},
-];
-
-export const billingSettings = (t: TFunction): RouteTabProps['routes'] => [
-	{
-		Component: BillingContainer,
-		name: (
-			<div className="periscope-tab">
-				<CreditCard size={16} /> {t('routes:billing').toString()}
-			</div>
-		),
-		route: ROUTES.BILLING,
-		key: ROUTES.BILLING,
 	},
 ];
 

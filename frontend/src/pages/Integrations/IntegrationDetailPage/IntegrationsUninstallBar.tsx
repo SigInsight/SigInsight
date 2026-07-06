@@ -27,7 +27,7 @@ function IntergrationsUninstallBar(
 		integrationId,
 		onUnInstallSuccess,
 		connectionStatus,
-		removeIntegrationTitle = 'Remove from SigNoz',
+		removeIntegrationTitle = 'Remove from SigInsight',
 	} = props;
 	const { notifications } = useNotifications();
 	const [isModalOpen, setIsModalOpen] = useState(false);
@@ -96,7 +96,7 @@ function IntergrationsUninstallBar(
 				}}
 			>
 				<Typography.Text className="remove-integration-text">
-					Removing this integration makes SigNoz stop listening for data from{' '}
+					Removing this integration makes SigInsight stop listening for data from{' '}
 					{integrationTitle} instances. You would still have to manually remove the
 					configuration in your code to stop sending data.
 				</Typography.Text>
@@ -106,7 +106,7 @@ function IntergrationsUninstallBar(
 }
 
 IntergrationsUninstallBar.defaultProps = {
-	removeIntegrationTitle: 'Remove from SigNoz',
+	removeIntegrationTitle: 'Remove from SigInsight',
 };
 
 export default IntergrationsUninstallBar;

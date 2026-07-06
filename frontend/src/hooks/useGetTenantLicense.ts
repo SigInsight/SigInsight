@@ -1,35 +1,17 @@
-import { useAppContext } from 'providers/App/App';
-import { LicensePlatform } from 'types/api/licensesV3/getActive';
-
+// Community-only build: license state is always "community".
+// The cloud/enterprise license state machine has been removed; this hook
+// is retained as a thin shim so the 30+ call sites can be migrated
+// incrementally without a big-bang refactor.
 export const useGetTenantLicense = (): {
 	isCloudUser: boolean;
 	isEnterpriseSelfHostedUser: boolean;
 	isCommunityUser: boolean;
 	isCommunityEnterpriseUser: boolean;
 } => {
-	const { activeLicense, activeLicenseFetchError } = useAppContext();
-
-	const responsePayload = {
-		isCloudUser: activeLicense?.platform === LicensePlatform.CLOUD || false,
-		isEnterpriseSelfHostedUser:
-			activeLicense?.platform === LicensePlatform.SELF_HOSTED || false,
-		isCommunityUser: false,
+	return {
+		isCloudUser: false,
+		isEnterpriseSelfHostedUser: false,
+		isCommunityUser: true,
 		isCommunityEnterpriseUser: false,
 	};
-
-	if (
-		activeLicenseFetchError &&
-		activeLicenseFetchError.getHttpStatusCode() === 404
-	) {
-		responsePayload.isCommunityEnterpriseUser = true;
-	}
-
-	if (
-		activeLicenseFetchError &&
-		activeLicenseFetchError.getHttpStatusCode() === 501
-	) {
-		responsePayload.isCommunityUser = true;
-	}
-
-	return responsePayload;
 };

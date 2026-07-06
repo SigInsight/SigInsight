@@ -1,6 +1,5 @@
 import { Button, Typography } from 'antd';
 import ROUTES from 'constants/routes';
-import { useGetTenantLicense } from 'hooks/useGetTenantLicense';
 import { useSafeNavigate } from 'hooks/useSafeNavigate';
 import { LifeBuoy, List } from 'lucide-react';
 import { handleContactSupport } from 'pages/Integrations/utils';
@@ -12,7 +11,6 @@ interface AlertNotFoundProps {
 }
 
 function AlertNotFound({ isTestAlert }: AlertNotFoundProps): JSX.Element {
-	const { isCloudUser: isCloudUserVal } = useGetTenantLicense();
 	const { safeNavigate } = useSafeNavigate();
 
 	const checkAllRulesHandler = (): void => {
@@ -20,7 +18,7 @@ function AlertNotFound({ isTestAlert }: AlertNotFoundProps): JSX.Element {
 	};
 
 	const contactSupportHandler = (): void => {
-		handleContactSupport(isCloudUserVal);
+		handleContactSupport();
 	};
 
 	return (

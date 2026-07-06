@@ -1,7 +1,6 @@
 import { useCallback } from 'react';
 import { Button } from 'antd';
 import ROUTES from 'constants/routes';
-import { useGetTenantLicense } from 'hooks/useGetTenantLicense';
 import { Home, LifeBuoy } from 'lucide-react';
 import { handleContactSupport } from 'pages/Integrations/utils';
 
@@ -13,11 +12,9 @@ function ErrorBoundaryFallback(): JSX.Element {
 		window.location.href = ROUTES.HOME;
 	};
 
-	const { isCloudUser: isCloudUserVal } = useGetTenantLicense();
-
 	const handleSupport = useCallback(() => {
-		handleContactSupport(isCloudUserVal);
-	}, [isCloudUserVal]);
+		handleContactSupport();
+	}, []);
 
 	return (
 		<div className="error-boundary-fallback-container">

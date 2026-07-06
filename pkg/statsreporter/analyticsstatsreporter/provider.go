@@ -10,7 +10,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/SigNoz/signoz/pkg/analytics"
-	"github.com/SigNoz/signoz/pkg/analytics/segmentanalytics"
+	"github.com/SigNoz/signoz/pkg/analytics/noopanalytics"
 	"github.com/SigNoz/signoz/pkg/errors"
 	"github.com/SigNoz/signoz/pkg/factory"
 	"github.com/SigNoz/signoz/pkg/modules/organization"
@@ -80,7 +80,7 @@ func New(
 ) (statsreporter.StatsReporter, error) {
 	settings := factory.NewScopedProviderSettings(providerSettings, "github.com/SigNoz/signoz/pkg/statsreporter/analyticsstatsreporter")
 	deployment := version.NewDeployment()
-	analytics, err := segmentanalytics.New(ctx, providerSettings, analyticsConfig)
+	analytics, err := noopanalytics.New(ctx, providerSettings, analyticsConfig)
 	if err != nil {
 		return nil, err
 	}

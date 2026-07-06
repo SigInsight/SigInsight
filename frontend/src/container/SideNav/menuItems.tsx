@@ -69,14 +69,8 @@ export const inviteMemberMenuItem = {
 	icon: <UserPlus size={16} />,
 };
 
-export const manageLicenseMenuItem = {
-	key: ROUTES.LIST_LICENSES,
-	label: 'Manage Licenses',
-	icon: <FileKey2 size={16} />,
-};
-
 export const helpSupportMenuItem = {
-	key: ROUTES.SUPPORT,
+	key: 'help-support',
 	label: 'Help & Support',
 	icon: <MessageSquareText size={16} />,
 };
@@ -452,12 +446,6 @@ export const helpSupportDropdownMenuItems: SidebarItem[] = [
 		itemKey: 'community-slack',
 	},
 	{
-		key: 'chat-support',
-		label: 'Chat with Support',
-		icon: <MessageSquareText size={14} />,
-		itemKey: 'chat-support',
-	},
-	{
 		key: 'invite-collaborators',
 		label: 'Invite a Team Member',
 		icon: <Plus size={14} />,
@@ -504,16 +492,6 @@ export const getUserSettingsDropdownMenuItems = ({
 			icon: <User size={14} color={Style.L1_FOREGROUND} />,
 			dataTestId: 'account-settings-nav-item',
 		},
-		...(isEnterpriseSelfHostedUser || isCommunityEnterpriseUser
-			? [
-					{
-						key: 'license',
-						label: 'Manage License',
-						icon: <Shield size={14} color={Style.L1_FOREGROUND} />,
-						dataTestId: 'manage-license-nav-item',
-					},
-			  ]
-			: []),
 		{
 			key: 'keyboard-shortcuts',
 			label: 'Keyboard Shortcuts',

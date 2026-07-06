@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/SigNoz/signoz/pkg/analytics"
-	"github.com/SigNoz/signoz/pkg/types/analyticstypes"
 )
 
 var _ analytics.Analytics = (*Provider)(nil)
@@ -21,8 +20,6 @@ func (provider *Provider) Start(_ context.Context) error {
 	<-provider.stopC
 	return nil
 }
-
-func (provider *Provider) Send(ctx context.Context, messages ...analyticstypes.Message) {}
 
 func (provider *Provider) TrackGroup(ctx context.Context, group, event string, attributes map[string]any) {
 }

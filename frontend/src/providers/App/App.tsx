@@ -17,8 +17,6 @@ import get from 'api/v1/user/me/get';
 import listUserPreferences from 'api/v1/user/preferences/list';
 import getUserVersion from 'api/v1/version/get';
 import { LOCALSTORAGE } from 'constants/localStorage';
-import dayjs from 'dayjs';
-import useActiveLicenseV3 from 'hooks/useActiveLicenseV3/useActiveLicenseV3';
 import {
 	IsAdminPermission,
 	IsEditorPermission,
@@ -29,12 +27,6 @@ import { useGetFeatureFlag } from 'hooks/useGetFeatureFlag';
 import { useGlobalEventListener } from 'hooks/useGlobalEventListener';
 import { ChangelogSchema } from 'types/api/changelog/getChangelogByVersion';
 import { FeatureFlagProps as FeatureFlags } from 'types/api/features/getFeaturesFlags';
-import {
-	LicensePlatform,
-	LicenseResModel,
-	LicenseState,
-	TrialInfo,
-} from 'types/api/licensesV3/getActive';
 import {
 	OrgPreference,
 	UserPreference,
@@ -50,10 +42,6 @@ export const AppContext = createContext<IAppContext | undefined>(undefined);
 export function AppProvider({ children }: PropsWithChildren): JSX.Element {
 	// on load of the provider set the user defaults with access token , refresh token from local storage
 	const [defaultUser, setDefaultUser] = useState<IUser>(() => getUserDefaults());
-	const [activeLicense, setActiveLicense] = useState<LicenseResModel | null>(
-		null,
-	);
-	const [trialInfo, setTrialInfo] = useState<TrialInfo | null>(null);
 	const [featureFlags, setFeatureFlags] = useState<FeatureFlags[] | null>(null);
 	const [orgPreferences, setOrgPreferences] = useState<OrgPreference[] | null>(
 		null,
@@ -152,40 +140,6 @@ export function AppProvider({ children }: PropsWithChildren): JSX.Element {
 	}, [userData, isFetchingUser]);
 
 	// fetcher for licenses v3
-	const {
-		data: activeLicenseData,
-		isFetching: isFetchingActiveLicense,
-		error: activeLicenseFetchError,
-		refetch: activeLicenseRefetch,
-	} = useActiveLicenseV3(isLoggedIn);
-	useEffect(() => {
-		if (!isFetchingActiveLicense && activeLicenseData && activeLicenseData.data) {
-			setActiveLicense(activeLicenseData.data);
-
-			const isOnTrial = dayjs(
-				activeLicenseData.data.free_until || Date.now(),
-			).isAfter(dayjs());
-
-			const trialInfo: TrialInfo = {
-				trialStart: activeLicenseData.data.valid_from,
-				trialEnd: dayjs(activeLicenseData.data.free_until || Date.now()).unix(),
-				onTrial: isOnTrial,
-				workSpaceBlock:
-					activeLicenseData.data.state === LicenseState.EVALUATION_EXPIRED &&
-					activeLicenseData.data.platform === LicensePlatform.CLOUD,
-				trialConvertedToSubscription:
-					activeLicenseData.data.state !== LicenseState.ISSUED &&
-					activeLicenseData.data.state !== LicenseState.EVALUATING &&
-					activeLicenseData.data.state !== LicenseState.EVALUATION_EXPIRED,
-				gracePeriodEnd: dayjs(
-					activeLicenseData.data.event_queue.scheduled_at || Date.now(),
-				).unix(),
-			};
-
-			setTrialInfo(trialInfo);
-		}
-	}, [activeLicenseData, isFetchingActiveLicense]);
-
 	// fetcher for feature flags
 	const {
 		isFetching: isFetchingFeatureFlags,
@@ -327,8 +281,6 @@ export function AppProvider({ children }: PropsWithChildren): JSX.Element {
 	useGlobalEventListener('LOGOUT', () => {
 		setIsLoggedIn(false);
 		setDefaultUser(getUserDefaults());
-		setActiveLicense(null);
-		setTrialInfo(null);
 		setFeatureFlags(null);
 		setOrgPreferences(null);
 		setOrg(null);
@@ -340,22 +292,22 @@ export function AppProvider({ children }: PropsWithChildren): JSX.Element {
 			user,
 			userPreferences,
 			featureFlags,
-			trialInfo,
+			trialInfo: null,
 			orgPreferences,
 			isLoggedIn,
 			org,
 			isFetchingUser,
-			isFetchingActiveLicense,
+			isFetchingActiveLicense: false,
 			isFetchingFeatureFlags,
 			isFetchingOrgPreferences,
 			userFetchError,
-			activeLicenseFetchError,
+			activeLicenseFetchError: null,
 			featureFlagsFetchError,
 			orgPreferencesFetchError,
-			activeLicense,
+			activeLicense: null,
 			changelog,
 			showChangelogModal,
-			activeLicenseRefetch,
+			activeLicenseRefetch: () => {},
 			updateUser,
 			updateOrgPreferences,
 			updateUserPreferenceInContext,
@@ -367,20 +319,15 @@ export function AppProvider({ children }: PropsWithChildren): JSX.Element {
 				user?.role === USER_ROLES.ADMIN || user?.role === USER_ROLES.EDITOR,
 		}),
 		[
-			trialInfo,
-			activeLicense,
-			activeLicenseFetchError,
 			userPreferences,
 			featureFlags,
 			featureFlagsFetchError,
-			isFetchingActiveLicense,
 			isFetchingFeatureFlags,
 			isFetchingOrgPreferences,
 			isFetchingUser,
 			isLoggedIn,
 			org,
 			orgPreferences,
-			activeLicenseRefetch,
 			orgPreferencesFetchError,
 			changelog,
 			showChangelogModal,

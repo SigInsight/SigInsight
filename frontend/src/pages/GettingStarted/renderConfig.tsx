@@ -18,7 +18,7 @@ export const GetStartedContent = (): TGetStartedContentSection[] => {
 	} = store.getState();
 	return [
 		{
-			heading: 'Send data from your applications to SigNoz',
+			heading: 'Send data from your applications to SigInsight',
 			items: [
 				{
 					title: 'Instrument your Java Application',
@@ -95,7 +95,7 @@ export const GetStartedContent = (): TGetStartedContentSection[] => {
 			heading: 'Send Metrics from your Infrastructure & create Dashboards',
 			items: [
 				{
-					title: 'Send metrics to SigNoz',
+					title: 'Send metrics to SigInsight',
 					icon: <BarChartOutlined style={{ fontSize: '3.5rem' }} />,
 					url: 'https://signoz.io/docs/userguide/send-metrics/',
 				},
@@ -107,15 +107,15 @@ export const GetStartedContent = (): TGetStartedContentSection[] => {
 			],
 		},
 		{
-			heading: 'Send your logs to SigNoz',
+			heading: 'Send your logs to SigInsight',
 			items: [
 				{
-					title: 'Send your logs to SigNoz',
+					title: 'Send your logs to SigInsight',
 					icon: <AlignLeftOutlined style={{ fontSize: '3.5rem' }} />,
 					url: 'https://signoz.io/docs/userguide/logs/',
 				},
 				{
-					title: 'Existing log collectors to SigNoz',
+					title: 'Existing log collectors to SigInsight',
 					icon: <ApiFilled style={{ fontSize: '3.5rem' }} />,
 					url: 'https://signoz.io/docs/userguide/fluentbit_to_signoz/',
 				},
@@ -160,7 +160,7 @@ export const GetStartedContent = (): TGetStartedContentSection[] => {
 
 			items: [
 				{
-					title: 'Join SigNoz slack community ',
+					title: 'Join SigInsight slack community ',
 					icon: (
 						<div style={{ padding: '0.7rem' }}>
 							<Slack width={30} height={30} />

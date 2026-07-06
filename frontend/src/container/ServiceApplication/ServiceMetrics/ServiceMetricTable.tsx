@@ -1,22 +1,16 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 // eslint-disable-next-line no-restricted-imports
 import { useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
-import { WarningFilled } from '@ant-design/icons';
-import { Flex, Typography } from 'antd';
 import { ResizeTable } from 'components/ResizeTable';
 import { ENTITY_VERSION_V4 } from 'constants/app';
-import { MAX_RPS_LIMIT } from 'constants/global';
 import ResourceAttributesFilter from 'container/ResourceAttributesFilter';
 import { useGetQueriesRange } from 'hooks/queryBuilder/useGetQueriesRange';
-import { useGetTenantLicense } from 'hooks/useGetTenantLicense';
 import { useNotifications } from 'hooks/useNotifications';
-import { useAppContext } from 'providers/App/App';
 import { AppState } from 'store/reducers';
 import { ServicesList } from 'types/api/metrics/getService';
 import { GlobalReducer } from 'types/reducer/globalTime';
-import { getTotalRPS } from 'utils/services';
 
 import { getColumns } from '../Columns/ServiceColumn';
 import { ServiceMetricsTableProps } from '../types';
@@ -33,9 +27,6 @@ function ServiceMetricTable({
 
 	const { notifications } = useNotifications();
 	const { t: getText } = useTranslation(['services']);
-
-	const { isFetchingActiveLicense, trialInfo } = useAppContext();
-	const { isCloudUser: isCloudUserVal } = useGetTenantLicense();
 
 	const queries = useGetQueriesRange(queryRangeRequestData, ENTITY_VERSION_V4, {
 		queryKey: [
@@ -67,29 +58,6 @@ function ServiceMetricTable({
 
 	const { search } = useLocation();
 	const tableColumns = useMemo(() => getColumns(search, true), [search]);
-	const [RPS, setRPS] = useState(0);
-
-	useEffect(() => {
-		if (
-			!isFetchingActiveLicense &&
-			trialInfo?.onTrial &&
-			!trialInfo?.trialConvertedToSubscription &&
-			isCloudUserVal
-		) {
-			if (services.length > 0) {
-				const rps = getTotalRPS(services);
-				setRPS(rps);
-			} else {
-				setRPS(0);
-			}
-		}
-	}, [
-		services,
-		isCloudUserVal,
-		isFetchingActiveLicense,
-		trialInfo?.onTrial,
-		trialInfo?.trialConvertedToSubscription,
-	]);
 
 	const paginationConfig = {
 		defaultPageSize: 10,
@@ -98,15 +66,6 @@ function ServiceMetricTable({
 	};
 	return (
 		<div className="service-metric-table-container">
-			{RPS > MAX_RPS_LIMIT && (
-				<Flex justify="left">
-					<Typography.Title level={5} type="warning" style={{ marginTop: 0 }}>
-						<WarningFilled /> {getText('rps_over_100')}
-						<a href="mailto:cloud-support@signoz.io">email</a>
-					</Typography.Title>
-				</Flex>
-			)}
-
 			<ResourceAttributesFilter />
 
 			<ResizeTable
