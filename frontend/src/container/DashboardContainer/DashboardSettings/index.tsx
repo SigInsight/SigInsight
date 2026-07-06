@@ -2,6 +2,7 @@ import { Button, Tabs, Tooltip } from 'antd';
 import { Braces, Globe, Table } from 'lucide-react';
 import { useAppContext } from 'providers/App/App';
 import { USER_ROLES } from 'types/roles';
+import { useGetTenantLicense } from 'hooks/useGetTenantLicense';
 
 import { VariablesSettingsTabHandle } from '../DashboardDescription/types';
 import DashboardVariableSettings from './DashboardVariableSettings';
@@ -18,7 +19,8 @@ function DashboardSettings({
 	const { user } = useAppContext();
 	
 
-	const enablePublicDashboard = false;
+	const { isCloudUser, isEnterpriseSelfHostedUser } = useGetTenantLicense();
+	const enablePublicDashboard = isCloudUser || isEnterpriseSelfHostedUser;
 
 	const publicDashboardItem = {
 		label: (
