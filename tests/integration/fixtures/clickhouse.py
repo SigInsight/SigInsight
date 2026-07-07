@@ -15,6 +15,10 @@ from fixtures.logger import setup_logger
 
 logger = setup_logger(__name__)
 
+DEFAULT_HISTOGRAM_QUANTILE_IMAGE = (
+    "ghcr.io/siginsight/clickhouse-init-histogram-quantile:25.5.6-latest"
+)
+
 
 @pytest.fixture(name="clickhouse", scope="package")
 def clickhouse(
@@ -32,7 +36,7 @@ def clickhouse(
         version = request.config.getoption("--clickhouse-version")
         histogram_quantile_image = os.getenv(
             "SIGNOZ_HISTOGRAM_QUANTILE_IMAGE_TEMPLATE",
-            "ghcr.io/siginsight/clickhouse-init-histogram-quantile:{clickhouse_version}-latest",
+            DEFAULT_HISTOGRAM_QUANTILE_IMAGE,
         ).format(clickhouse_version=version)
         clickhouse_image = os.getenv(
             "SIGNOZ_CLICKHOUSE_IMAGE_TEMPLATE",
