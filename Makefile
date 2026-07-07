@@ -6,8 +6,8 @@ SRC						?= $(shell pwd)
 NAME					?= signoz
 OS                      ?= $(shell uname -s | tr '[A-Z]' '[a-z]')
 ARCH                    ?= $(shell uname -m | sed 's/x86_64/amd64/g' | sed 's/aarch64/arm64/g')
-COMMIT_SHORT_SHA        ?= $(shell git rev-parse --short HEAD)
-BRANCH_NAME             ?= $(subst /,-,$(shell git rev-parse --abbrev-ref HEAD))
+COMMIT_SHORT_SHA        ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo unknown)
+BRANCH_NAME             ?= $(subst /,-,$(shell git rev-parse --abbrev-ref HEAD 2>/dev/null || echo local))
 VERSION                 ?= $(BRANCH_NAME)-$(COMMIT_SHORT_SHA)
 TIMESTAMP               ?= $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 ARCHS					?= amd64 arm64
@@ -109,6 +109,19 @@ $(GO_BUILD_ARCHS_COMMUNITY): go-build-community-%: $(TARGET_DIR)
 js-build: ## Builds the js frontend
 	@echo ">> building js frontend"
 	@cd $(JS_BUILD_CONTEXT) && CI=1 yarn install && yarn build
+
+##############################################################
+# python integration commands
+##############################################################
+.PHONY: py-fmt
+py-fmt: ## Formats integration python tests
+	@cd tests/integration && uv run autoflake --in-place --remove-all-unused-imports --remove-unused-variables --recursive .
+	@cd tests/integration && uv run isort .
+	@cd tests/integration && uv run black .
+
+.PHONY: py-lint
+py-lint: ## Lints integration python tests
+	@cd tests/integration && uv run pylint .
 
 ##############################################################
 # docker commands

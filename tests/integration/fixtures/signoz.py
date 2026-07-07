@@ -1,7 +1,7 @@
 import platform
 import time
 from http import HTTPStatus
-from os import path
+from os import environ, path
 from typing import Optional
 
 import docker
@@ -55,6 +55,10 @@ def create_signoz(
             tag="signoz:integration",
             buildargs={
                 "TARGETARCH": arch,
+                "APT_MIRROR": environ.get("SIGNOZ_APT_MIRROR", ""),
+                "APT_SECURITY_MIRROR": environ.get("SIGNOZ_APT_SECURITY_MIRROR", ""),
+                "GOPROXY": environ.get("SIGNOZ_GOPROXY", environ.get("GOPROXY", "")),
+                "NPM_REGISTRY": environ.get("SIGNOZ_NPM_REGISTRY", ""),
             },
         )
 

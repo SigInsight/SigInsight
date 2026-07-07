@@ -2,12 +2,25 @@ FROM golang:1.25-bookworm
 
 ARG OS="linux"
 ARG TARGETARCH
+ARG APT_MIRROR
+ARG APT_SECURITY_MIRROR
+ARG GOPROXY="https://proxy.golang.org,direct"
 
 # This path is important for stacktraces
 WORKDIR $GOPATH/src/github.com/signoz/signoz
 WORKDIR /root
 
+ENV GOPROXY=${GOPROXY}
+
 RUN set -eux; \
+	if [ -n "$APT_MIRROR" ]; then \
+		find /etc/apt -name '*.sources' -exec sed -i "s|http://deb.debian.org/debian|${APT_MIRROR}|g; s|https://deb.debian.org/debian|${APT_MIRROR}|g" {} +; \
+		find /etc/apt -name '*.list' -exec sed -i "s|http://deb.debian.org/debian|${APT_MIRROR}|g; s|https://deb.debian.org/debian|${APT_MIRROR}|g" {} +; \
+	fi; \
+	if [ -n "$APT_SECURITY_MIRROR" ]; then \
+		find /etc/apt -name '*.sources' -exec sed -i "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g; s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" {} +; \
+		find /etc/apt -name '*.list' -exec sed -i "s|http://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g; s|https://security.debian.org/debian-security|${APT_SECURITY_MIRROR}|g" {} +; \
+	fi; \
 	apt-get update; \
 	apt-get install -y --no-install-recommends \
 		g++ \

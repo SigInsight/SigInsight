@@ -140,12 +140,13 @@ class SigNoz:
 class Operation:
     __test__ = False
     name: str
+    container_id: str | None = None
 
     def __cache__(self) -> dict:
-        return {"name": self.name}
+        return {"name": self.name, "container_id": self.container_id}
 
     def __log__(self) -> str:
-        return f"Operation(name={self.name})"
+        return f"Operation(name={self.name}, container_id={self.container_id})"
 
 
 @dataclass

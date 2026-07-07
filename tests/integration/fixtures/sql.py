@@ -12,9 +12,6 @@ def sqlstore(
     """
     provider = request.config.getoption("--sqlstore-provider")
 
-    if provider == "postgres":
-        store = request.getfixturevalue("postgres")
-        return store
     if provider == "sqlite":
         store = request.getfixturevalue("sqlite")
         return store
