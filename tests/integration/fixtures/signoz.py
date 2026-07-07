@@ -45,9 +45,9 @@ def create_signoz(
             arch = "amd64"
 
         # Build the image
-        dockerfile_path = "cmd/enterprise/Dockerfile.integration"
+        dockerfile_path = "cmd/community/Dockerfile.integration"
         if with_web:
-            dockerfile_path = "cmd/enterprise/Dockerfile.with-web.integration"
+            dockerfile_path = "cmd/community/Dockerfile.with-web.integration"
 
         self = DockerImage(
             path="../../",
@@ -55,7 +55,6 @@ def create_signoz(
             tag="signoz:integration",
             buildargs={
                 "TARGETARCH": arch,
-                "ZEUSURL": zeus.container_configs["8080"].base(),
             },
         )
 
@@ -67,9 +66,7 @@ def create_signoz(
                 "SIGNOZ_WEB_DIRECTORY": "/root/web",
                 "SIGNOZ_INSTRUMENTATION_LOGS_LEVEL": "debug",
                 "SIGNOZ_PROMETHEUS_ACTIVE__QUERY__TRACKER_ENABLED": False,
-                "SIGNOZ_GATEWAY_URL": gateway.container_configs["8080"].base(),
                 "SIGNOZ_TOKENIZER_JWT_SECRET": "secret",
-                "SIGNOZ_GLOBAL_INGESTION__URL": "https://ingest.test.signoz.cloud",
                 "SIGNOZ_USER_PASSWORD_RESET_ALLOW__SELF": True,
                 "SIGNOZ_USER_PASSWORD_RESET_MAX__TOKEN__LIFETIME": "6h",
                 "RULES_EVAL_DELAY": "0s",

@@ -1,10 +1,5 @@
 name: integrationci
 
-# Deprecated: retained temporarily for reference while the community-only
-# codebase is migrated away from the old Python integration harness.
-# The heavy integration matrix remains disabled and this workflow should be
-# removed once replacement coverage or a new harness is in place.
-
 on:
   pull_request:
     branches:
@@ -41,7 +36,6 @@ jobs:
           - bootstrap
           - passwordauthn
           - callbackauthn
-          - cloudintegrations
           - dashboard
           - logspipelines
           - preference
@@ -51,6 +45,7 @@ jobs:
           - alerts
           - ingestionkeys
           - rootuser
+- cloudintegrations
         sqlstore-provider:
           - postgres
           - sqlite
@@ -61,12 +56,10 @@ jobs:
           - v0.142.0
         postgres-version:
           - 15
-    # Deprecated and disabled: the fixtures historically built the enterprise
-    # integration image (cmd/enterprise/Dockerfile.integration), which was
-    # removed in the community-only refactor. Keep this block as migration
-    # documentation until the Python harness is either rebuilt on cmd/community
-    # or fully retired.
-    if: false
+    # Re-enabled for community edition: now builds from cmd/community/Dockerfile.integration
+    if: |
+      ((github.event_name == 'pull_request' && ! github.event.pull_request.head.repo.fork && github.event.pull_request.user.login != 'dependabot[bot]') ||
+      (github.event_name == 'pull_request_target' && contains(github.event.pull_request.labels.*.name, 'safe-to-test')))
     runs-on: ubuntu-latest
     steps:
       - name: checkout
