@@ -20,8 +20,9 @@ from fixtures.idputils import (
 )
 from fixtures.types import Operation, SigNoz, TestContainerDocker, TestContainerIDP
 
-
-pytestmark = pytest.mark.skip(reason="SAML callback authn provider is not registered in the current sqlite-only runtime")
+pytestmark = pytest.mark.skip(
+    reason="SAML callback authn provider is not registered in the current sqlite-only runtime"
+)
 
 
 def test_apply_license(

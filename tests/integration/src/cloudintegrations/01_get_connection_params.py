@@ -18,7 +18,9 @@ from fixtures.logger import setup_logger
 logger = setup_logger(__name__)
 
 
-@pytest.mark.skip(reason="license endpoints are not exposed in the current sqlite-only runtime")
+@pytest.mark.skip(
+    reason="license endpoints are not exposed in the current sqlite-only runtime"
+)
 def test_generate_connection_params(
     signoz: types.SigNoz,
     create_user_admin: types.Operation,  # pylint: disable=unused-argument

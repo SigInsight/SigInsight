@@ -13,8 +13,9 @@ from wiremock.client import (
 
 from fixtures import types
 
-
-pytestmark = pytest.mark.skip(reason="license endpoints are not exposed in the current sqlite-only runtime")
+pytestmark = pytest.mark.skip(
+    reason="license endpoints are not exposed in the current sqlite-only runtime"
+)
 
 
 def test_apply_license(

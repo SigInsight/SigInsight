@@ -1,6 +1,7 @@
+import time
+
 import docker
 import pytest
-import time
 from testcontainers.core.container import Network
 
 from fixtures import dev, types

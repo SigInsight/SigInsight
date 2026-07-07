@@ -11,8 +11,9 @@ from fixtures.auth import USER_ADMIN_EMAIL, USER_ADMIN_PASSWORD, add_license
 from fixtures.metrics import Metrics
 from fixtures.types import Operation, SigNoz, TestContainerDocker
 
-
-pytestmark = pytest.mark.skip(reason="public dashboard capabilities are not supported in the current sqlite-only runtime")
+pytestmark = pytest.mark.skip(
+    reason="public dashboard capabilities are not supported in the current sqlite-only runtime"
+)
 
 
 def test_apply_license(

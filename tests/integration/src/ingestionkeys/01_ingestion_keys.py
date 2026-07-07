@@ -22,7 +22,9 @@ from fixtures.logger import setup_logger
 
 logger = setup_logger(__name__)
 
-pytestmark = pytest.mark.skip(reason="gateway ingestion key routes are not registered in the current sqlite-only runtime")
+pytestmark = pytest.mark.skip(
+    reason="gateway ingestion key routes are not registered in the current sqlite-only runtime"
+)
 
 GATEWAY_APIS_EDITOR_EMAIL = "gatewayapiseditor@integration.test"
 GATEWAY_APIS_EDITOR_PASSWORD = "password123Z$"

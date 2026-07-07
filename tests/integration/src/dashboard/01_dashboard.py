@@ -37,7 +37,9 @@ def test_create_and_delete_dashboard_without_license(
     assert response.status_code == HTTPStatus.NO_CONTENT
 
 
-@pytest.mark.skip(reason="license endpoints are not exposed in the current sqlite-only runtime")
+@pytest.mark.skip(
+    reason="license endpoints are not exposed in the current sqlite-only runtime"
+)
 def test_apply_license(
     signoz: SigNoz,
     create_user_admin: Operation,  # pylint: disable=unused-argument
