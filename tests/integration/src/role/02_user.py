@@ -142,6 +142,8 @@ def test_user_update_role_grant(
     with signoz.sqlstore.conn.connect() as conn:
         editor_tuple_object_id = f"organization/{org_id}/role/signoz-editor"
         viewer_tuple_object_id = f"organization/{org_id}/role/signoz-viewer"
+        user_object_id = f"organization/{org_id}/user/{editor_id}"
+        _user = f"user:organization/{org_id}/user/{editor_id}"
         # Check there is no tuple for signoz-editor assignment
         editor_tuple_result = conn.execute(
             sql.text(
@@ -151,10 +153,8 @@ def test_user_update_role_grant(
         )
         for row in editor_tuple_result.mappings().fetchall():
             if request.config.getoption("--sqlstore-provider") == "sqlite":
-                user_object_id = f"organization/{org_id}/user/{editor_id}"
                 assert row["user_object_id"] != user_object_id
             else:
-                _user = f"user:organization/{org_id}/user/{editor_id}"
                 assert row["_user"] != _user
 
         # Check that a tuple exists for signoz-viewer assignment
@@ -174,11 +174,9 @@ def test_user_update_role_grant(
         assert row["object_type"] == "role"
         assert row["relation"] == "assignee"
         if request.config.getoption("--sqlstore-provider") == "sqlite":
-            user_object_id = f"organization/{org_id}/user/{editor_id}"
             assert row["user_object_type"] == "user"
             assert row["user_object_id"] == user_object_id
         else:
-            _user = f"user:organization/{org_id}/user/{editor_id}"
             assert row["user_type"] == "user"
             assert row["_user"] == _user
 
