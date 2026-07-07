@@ -2,8 +2,13 @@ name: gor-histogramquantile
 
 on:
   push:
-    tags:
-      - histogram-quantile/v*
+    branches:
+      - main
+    paths:
+      - .github/workflows/gor-histogramquantile.yaml
+      - scripts/clickhouse/histogramquantile/**
+      - deploy/common/clickhouse/custom-function.xml
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -20,14 +25,15 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v4
-      - name: extract-version
-        id: version
+      - name: compute-tags
+        id: meta
         run: |
-          echo "ref=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
-      - name: image-version
-        id: image-version
-        run: |
-          echo "value=${GITHUB_REF_NAME#histogram-quantile/}" >> "$GITHUB_OUTPUT"
+          {
+            echo "tags<<EOF"
+            echo "ghcr.io/siginsight/clickhouse-init-histogram-quantile:${{ matrix.clickhouse-version }}-latest"
+            echo "ghcr.io/siginsight/clickhouse-init-histogram-quantile:${{ matrix.clickhouse-version }}-main-${GITHUB_SHA::7}"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
       - name: setup-qemu
         uses: docker/setup-qemu-action@v3
       - name: setup-buildx
@@ -47,5 +53,4 @@ jobs:
           push: true
           build-args: |
             CLICKHOUSE_VERSION=${{ matrix.clickhouse-version }}
-          tags: |
-            ghcr.io/siginsight/clickhouse-init-histogram-quantile:${{ matrix.clickhouse-version }}-${{ steps.image-version.outputs.value }}
+          tags: ${{ steps.meta.outputs.tags }}

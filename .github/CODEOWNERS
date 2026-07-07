@@ -103,10 +103,6 @@ go.mod @therealpandey
 /pkg/identn/ @vikrantgupta25
 /pkg/http/middleware/identn.go @vikrantgupta25
 
-# Integration tests
-
-/tests/integration/ @vikrantgupta25
-
 # OpenAPI types generator
 
 /frontend/src/api @SigNoz/frontend-maintainers

@@ -32,14 +32,14 @@ By default, the compose files use these GHCR images:
 
 ```sh
 ghcr.io/siginsight/siginsight:latest
-ghcr.io/siginsight/clickhouse-init-histogram-quantile:25.5.6-v0.0.1
+ghcr.io/siginsight/clickhouse-init-histogram-quantile:25.5.6-latest
 ```
 
 You can override them with environment variables:
 
 ```sh
 export SIGNOZ_IMAGE=ghcr.io/siginsight/siginsight:v0.117.1
-export HISTOGRAM_QUANTILE_INIT_IMAGE=ghcr.io/siginsight/clickhouse-init-histogram-quantile:25.5.6-v0.0.1
+export HISTOGRAM_QUANTILE_INIT_IMAGE=ghcr.io/siginsight/clickhouse-init-histogram-quantile:25.5.6-latest
 ```
 
 To start collecting logs and metrics from your infrastructure, run the following command:

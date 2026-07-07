@@ -60,7 +60,7 @@ x-db-depend: &db-depend
 services:
   init-clickhouse:
     !!merge <<: *common
-    image: ${HISTOGRAM_QUANTILE_INIT_IMAGE:-ghcr.io/siginsight/clickhouse-init-histogram-quantile:25.5.6-v0.0.1}
+    image: ${HISTOGRAM_QUANTILE_INIT_IMAGE:-ghcr.io/siginsight/clickhouse-init-histogram-quantile:25.5.6-latest}
     container_name: signoz-init-clickhouse
     command:
       - bash

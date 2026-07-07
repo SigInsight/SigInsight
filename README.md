@@ -1,253 +1,190 @@
 <h1 align="center" style="border-bottom: none">
   <a href="https://github.com/SigInsight/SigInsight" target="_blank">
-    <img alt="SigInsight" src="https://github.com/user-attachments/assets/ef9a33f7-12d7-4c94-8908-0a02b22f0c18" width="100" height="100">
+    <img alt="SigInsight" src="https://raw.githubusercontent.com/SigInsight/SigInsight/refs/heads/main/frontend/public/favicon.png" width="100" height="100">
   </a>
   <br>SigInsight
 </h1>
 
-<p align="center">All your logs, metrics, and traces in one place. Monitor your application, spot issues before they occur and troubleshoot downtime quickly with rich context. SigNoz is a cost-effective open-source alternative to Datadog and New Relic. Visit <a href="https://signoz.io" target="_blank">signoz.io</a> for the full documentation, tutorials, and guide.</p>
 
-<p align="center">
-    <img alt="GitHub issues" src="https://img.shields.io/github/issues/signoz/signoz"> </a>
-    <a href="https://twitter.com/intent/tweet?text=Monitor%20your%20applications%20and%20troubleshoot%20problems%20with%20SigNoz,%20an%20open-source%20alternative%20to%20DataDog,%20NewRelic.&url=https://signoz.io/&via=SigNozHQ&hashtags=opensource,signoz,observability"> 
-        <img alt="tweet" src="https://img.shields.io/twitter/url/http/shields.io.svg?style=social"> </a> 
+<p align="center">监控你的应用，并且可排查已部署应用的问题，这是一个可替代 DataDog、NewRelic 的开源方案（基于SigNoz构建）</p>
 </p>
-  
-  
+
+
 <h3 align="center">
-  <a href="https://github.com/SigInsight/SigInsight"><b>Repository</b></a> &bull;
-  <a href="https://github.com/SigInsight/SigInsight/blob/main/README.zh-cn.md"><b>ReadMe in Chinese</b></a> &bull;
-  <a href="https://signoz.io/slack"><b>Slack Community</b></a> &bull;
-  <a href="https://twitter.com/SigNozHq"><b>Twitter</b></a>
+  <a href="https://github.com/SigInsight/SigInsight"><b>仓库</b></a> •
+  <a href="https://github.com/SigInsight/SigInsight/blob/main/README.md"><b>ReadMe</b></a> 
 </h3>
 
-## Features
+##
 
+SigInsight 帮助开发人员监控应用并排查已部署应用的问题。你可以使用 SigInsight 实现如下能力:
 
-### Application Performance Monitoring
+👉 在同一块面板上，可视化 Metrics, Traces 和 Logs 内容。
 
-Use SigNoz APM to monitor your applications and services. It comes with out-of-box charts for key application metrics like p99 latency, error rate, Apdex and operations per second. You can also monitor the database and external calls made from your application. Read [more](https://signoz.io/application-performance-monitoring/).
+👉 你可以关注服务的 p99 延迟和错误率， 包括外部 API 调用和个别的端点。
 
-You can [instrument](https://signoz.io/docs/instrumentation/) your application with OpenTelemetry to get started.
+👉 你可以找到问题的根因，通过提取相关问题的 traces 日志、单独查看请求 traces 的火焰图详情。
 
-![apm-cover](https://github.com/user-attachments/assets/fa5c0396-0854-4c8b-b972-9b62fd2a70d2)
+👉 执行 trace 数据聚合，以获取业务相关的 metrics
 
+👉 对日志过滤和查询，通过日志的属性建立看板和告警
 
-### Logs Management
+👉 通过 Python，java，Ruby 和 Javascript 自动记录异常
 
-SigNoz can be used as a centralized log management solution. We use ClickHouse (used by likes of Uber & Cloudflare) as a datastore, ⎯ an extremely fast and highly optimized storage for logs data. Instantly search through all your logs using quick filters and a powerful query builder.
+👉 轻松的自定义查询和设置告警
 
-You can also create charts on your logs and monitor them with customized dashboards. Read [more](https://signoz.io/log-management/).
+### 应用 Metrics 展示
 
-![logs-management-cover](https://github.com/user-attachments/assets/343588ee-98fb-4310-b3d2-c5bacf9c7384)
+![application_metrics](https://user-images.githubusercontent.com/83692067/226637410-900dbc5e-6705-4b11-a10c-bd0faeb2a92f.png)
 
+### 分布式追踪
 
-### Distributed Tracing
+<img width="2068" alt="distributed_tracing_2 2" src="https://user-images.githubusercontent.com/83692067/226536447-bae58321-6a22-4ed3-af80-e3e964cb3489.png">
 
-Distributed Tracing is essential to troubleshoot issues in microservices applications. Powered by OpenTelemetry, distributed tracing in SigNoz can help you track user requests across services to help you identify performance bottlenecks. 
+<img width="2068" alt="distributed_tracing_1" src="https://user-images.githubusercontent.com/83692067/226536462-939745b6-4f9d-45a6-8016-814837e7f7b4.png">
 
-See user requests in a detailed breakdown with the help of Flamegraphs and Gantt Charts. Click on any span to see the entire trace represented beautifully, which will help you make sense of where issues actually occurred in the flow of requests.
+### 日志管理
 
-Read [more](https://signoz.io/distributed-tracing/).
+<img width="2068" alt="logs_management" src="https://user-images.githubusercontent.com/83692067/226536482-b8a5c4af-b69c-43d5-969c-338bd5eaf1a5.png">
 
-![distributed-tracing-cover](https://github.com/user-attachments/assets/9bfe060a-0c40-4922-9b55-8a97e1a4076c)
+### 基础设施监控
 
+<img width="2068" alt="infrastructure_monitoring" src="https://user-images.githubusercontent.com/83692067/226536496-f38c4dbf-e03c-4158-8be0-32d4a61158c7.png">
 
+### 异常监控
 
-### Metrics and Dashboards
+![exceptions_light](https://user-images.githubusercontent.com/83692067/226637967-4188d024-3ac9-4799-be95-f5ea9c45436f.png)
 
-Ingest metrics from your infrastructure or applications and create customized dashboards to monitor them. Create visualization that suits your needs with a variety of panel types like pie chart, time-series, bar chart, etc.
+### 告警
 
-Create queries on your metrics data quickly with an easy-to-use metrics query builder. Add multiple queries and combine those queries with formulae to create really complex queries quickly.
-
-Read [more](https://signoz.io/metrics-and-dashboards/).
-
-![metrics-n-dashboards-cover](https://github.com/user-attachments/assets/a536fd71-1d2c-4681-aa7e-516d754c47a5)
-
-### LLM Observability
-
-Monitor and debug your LLM applications with comprehensive observability. Track LLM calls, analyze token usage, monitor performance, and gain insights into your AI application's behavior in production.
-
-SigNoz LLM observability helps you understand how your language models are performing, identify issues with prompts and responses, track token usage and costs, and optimize your AI applications for better performance and reliability.
-
-[Get started with LLM Observability →](https://signoz.io/docs/llm-observability/)
-
-![llm-observability-cover](https://github.com/user-attachments/assets/a6cc0ca3-59df-48f9-9c16-7c843fccff96)
-
-
-### Alerts
-
-Use alerts in SigNoz to get notified when anything unusual happens in your application. You can set alerts on any type of telemetry signal (logs, metrics, traces), create thresholds and set up a notification channel to get notified. Advanced features like alert history and anomaly detection can help you create smarter alerts.
-
-Alerts in SigNoz help you identify issues proactively so that you can address them before they reach your customers.
-
-Read [more](https://signoz.io/alerts-management/).
-
-![alerts-cover](https://github.com/user-attachments/assets/03873bb8-1b62-4adf-8f56-28bb7b1750ea)
-
-### Exceptions Monitoring
-
-Monitor exceptions automatically in Python, Java, Ruby, and Javascript. For other languages, just drop in a few lines of code and start monitoring exceptions.
-
-See the detailed stack trace for all exceptions caught in your application. You can also log in custom attributes to add more context to your exceptions. For example, you can add attributes to identify users for which exceptions occurred.
-
-Read [more](https://signoz.io/exceptions-monitoring/).
-
-
-![exceptions-cover](https://github.com/user-attachments/assets/4be37864-59f2-4e8a-8d6e-e29ad04298c5)
-
+<img width="2068" alt="alerts_management" src="https://user-images.githubusercontent.com/83692067/226536548-2c81e2e8-c12d-47e8-bad7-c6be79055def.png">
 
 <br /><br />
 
-## Why SigNoz?
+## 特性:
 
-SigNoz is a single tool for all your monitoring and observability needs. Here are a few reasons why you should choose SigNoz:
+- 为 metrics, traces and logs 制定统一的 UI。 无需切换 Prometheus 到 Jaeger 去查找问题，也无需使用想 Elastic 这样的日志工具分开你的 metrics 和 traces
 
-- Single tool for observability(logs, metrics, and traces)
+- 默认统计应用的 metrics 数据，像 RPS (每秒请求数)， 50th/90th/99th 的分位数延迟数据，还有相关的错误率
 
-- Built on top of [OpenTelemetry](https://opentelemetry.io/), the open-source standard which frees you from any type of vendor lock-in
+- 找到应用中最慢的端点
 
-- Correlated logs, metrics and traces for much richer context while debugging
+- 查看准确的请求跟踪数据，找到下游服务的问题了，比如 DB 慢查询，或者调用第三方的支付网关等
 
-- Uses ClickHouse (used by likes of Uber & Cloudflare) as datastore - an extremely fast and highly optimized storage for observability data
+- 通过 服务名、操作方式、延迟、错误、标签/注释 过滤 traces 数据
 
-- DIY Query builder, PromQL, and ClickHouse queries to fulfill all your use-cases around querying observability data
+- 通过聚合 trace 数据而获得业务相关的 metrics。 比如你可以通过 `customer_type: gold` 或者 `deployment_version: v2` 或者 `external_call: paypal` 获取错误率和 P99 延迟数据
 
-- Open-Source - you can use open-source, our [cloud service](https://signoz.io/teams/) or a mix of both based on your use case
+- 原生支持 OpenTelemetry 日志，高级日志查询，自动收集 k8s 相关日志
 
+- 快如闪电的日志分析 ([Logs Perf. Benchmark](https://signoz.io/blog/logs-performance-benchmark/))
 
-## Getting Started
+- 可视化点到点的基础设施性能，提取有所有类型机器的 metrics 数据
 
-### Create a SigNoz Cloud Account
+- 轻易自定义告警查询
 
-SigNoz cloud is the easiest way to get started with SigNoz. Our cloud service is for those users who want to spend more time in getting insights for their application performance without worrying about maintenance. 
+<br /><br />
 
-[Get started for free](https://signoz.io/teams/)
+## 为什么使用 SigInsight?
 
-### Deploy using Docker(self-hosted)
+作为开发者, 我们发现 SaaS 厂商对一些大家想要的小功能都是闭源的，这种行为真的让人有点恼火。 闭源厂商还会在月底给你一张没有明细的巨额账单。
 
-The default self-hosted image is published to GHCR:
+我们想做一个自托管并且可开源的工具，像 DataDog 和 NewRelic 那样， 为那些担心数据隐私和安全的公司提供第三方服务。
+
+作为开源的项目，你完全可以自己掌控你的配置、样本和更新。你同样可以基于 SigInsight 拓展特定的业务模块。
+
+### 支持的编程语言:
+
+我们支持 [OpenTelemetry](https://opentelemetry.io)。作为一个观测你应用的库文件。所以任何 OpenTelemetry 支持的框架和语言，对于 SigInsight 也同样支持。 一些主要支持的语言如下：
+
+- Java
+- Python
+- NodeJS
+- Go
+- PHP
+- .NET
+- Ruby
+- Elixir
+- Rust
+
+你可以在这里找到全部支持的语言列表 - https://opentelemetry.io/docs/
+
+<br /><br />
+
+## 让我们开始吧
+
+### 使用 Docker 部署
+
+默认的自托管镜像发布在 GHCR：
 
 ```sh
 ghcr.io/siginsight/siginsight:latest
 ```
 
-The ClickHouse helper image used to provision `histogramQuantile` is published to:
+ClickHouse 初始化辅助镜像发布在：
 
 ```sh
-ghcr.io/siginsight/clickhouse-init-histogram-quantile:25.5.6-v0.0.1
+ghcr.io/siginsight/clickhouse-init-histogram-quantile:25.5.6-latest
 ```
 
-For a compose-based deployment, see [deploy/README.md](deploy/README.md).
-
-The [troubleshooting instructions](https://signoz.io/docs/install/troubleshooting/) may be helpful if you face any issues.
-
-<p>&nbsp  </p>
-  
-  
-### Deploy in Kubernetes using Helm(self-hosted)
-
-Please follow the steps listed [here](https://signoz.io/docs/deployment/helm_chart) to install using helm charts
-
-<br /><br />
-
-We also offer managed services in your infra. Check our [pricing plans](https://signoz.io/pricing/) for all details.
-
-
-## Join our Slack community
-
-Come say Hi to us on [Slack](https://signoz.io/slack) 👋
-
-<br /><br />
-
-
-### Languages supported:
-
-SigNoz supports all major programming languages for monitoring. Any framework and language supported by OpenTelemetry is supported by SigNoz. Find instructions for instrumenting different languages below:
-
-- [Java](https://signoz.io/docs/instrumentation/java/)
-- [Python](https://signoz.io/docs/instrumentation/python/)
-- [Node.js or Javascript](https://signoz.io/docs/instrumentation/javascript/)
-- [Go](https://signoz.io/docs/instrumentation/golang/)
-- [PHP](https://signoz.io/docs/instrumentation/php/)
-- [.NET](https://signoz.io/docs/instrumentation/dotnet/)
-- [Ruby](https://signoz.io/docs/instrumentation/ruby-on-rails/)
-- [Elixir](https://signoz.io/docs/instrumentation/elixir/)
-- [Rust](https://signoz.io/docs/instrumentation/rust/)
-- [Swift](https://signoz.io/docs/instrumentation/swift/)
-
-You can find our entire documentation [here](https://signoz.io/docs/introduction/).
-
-<br /><br />
-
-
-## Comparisons to Familiar Tools
-
-### SigNoz vs Prometheus
-
-Prometheus is good if you want to do just metrics. But if you want to have a seamless experience between metrics, logs and traces, then current experience of stitching together Prometheus & other tools is not great.
-
-SigNoz is a one-stop solution for metrics and other telemetry signals. And because you will use the same standard(OpenTelemetry) to collect all telemetry signals, you can also correlate these signals to troubleshoot quickly.
-
-For example, if you see that there are issues with infrastructure metrics of your k8s cluster at a timestamp, you can jump to other signals like logs and traces to understand the issue quickly.
+如需使用 compose 部署，请查看 [deploy/README.md](deploy/README.md)。
 
 <p>&nbsp  </p>
 
-### SigNoz vs Jaeger
+## 比较相似的工具
 
-Jaeger only does distributed tracing. SigNoz supports metrics, traces and logs - all the 3 pillars of observability.
+### SigInsight vs Prometheus
 
-Moreover, SigNoz has few more advanced features wrt Jaeger:
+Prometheus 是一个针对 metrics 监控的强大工具。但是如果你想无缝的切换 metrics 和 traces 查询，你当前大概率需要在 Prometheus 和 Jaeger 之间切换。
 
-- Jaegar UI doesn’t show any metrics on traces or on filtered traces
-- Jaeger can’t get aggregates on filtered traces. For example, p99 latency of requests which have tag - customer_type='premium'. This can be done easily on SigNoz
-- You can also go from traces to logs easily in SigNoz
+我们的目标是提供一个客户观测 metrics 和 traces 整合的 UI。就像 SaaS 供应商 DataDog，它提供很多 jaeger 缺失的功能，比如针对 traces 过滤功能和聚合功能。
 
 <p>&nbsp  </p>
 
-### SigNoz vs Elastic 
+### SigInsight vs Jaeger
 
-- SigNoz Logs management are based on ClickHouse, a columnar OLAP datastore which makes aggregate log analytics queries much more efficient
-- 50% lower resource requirement compared to Elastic during ingestion
+Jaeger 仅仅是一个分布式追踪系统。 但是 SigInsight 可以提供 metrics, traces 和 logs 所有的观测。
 
-We have published benchmarks comparing Elastic with SigNoz. Check it out [here](https://signoz.io/blog/logs-performance-benchmark/?utm_source=github-readme&utm_medium=logs-benchmark)
+而且, SigInsight 相较于 Jaeger 拥有更对的高级功能:
+
+- Jaegar UI 不能提供任何基于 traces 的 metrics 查询和过滤。
+
+- Jaeger 不能针对过滤的 traces 做聚合。 比如， p99 延迟的请求有个标签是 customer_type='premium'。 而这些在 SigInsight 可以轻松做到。
 
 <p>&nbsp  </p>
 
-### SigNoz vs Loki
+### SigInsight vs Elastic
 
-- SigNoz supports aggregations on high-cardinality data over a huge volume while loki doesn’t.
-- SigNoz supports indexes over high cardinality data and has no limitations on the number of indexes, while Loki reaches max streams with a few indexes added to it.
-- Searching over a huge volume of data is difficult and slow in Loki compared to SigNoz
+- SigInsight 的日志管理是基于 ClickHouse 实现的，可以使日志的聚合更加高效，因为它是基于 OLAP 的数据仓储。
 
-We have published benchmarks comparing Loki with SigNoz. Check it out [here](https://signoz.io/blog/logs-performance-benchmark/?utm_source=github-readme&utm_medium=logs-benchmark)
+- 与 Elastic 相比，可以节省 50% 的资源成本
 
-<br /><br />
+上游公布了 Elastic 和 SigNoz 的性能对比。 请点击 [这里](https://signoz.io/blog/logs-performance-benchmark/?utm_source=github-readme&utm_medium=logs-benchmark)
 
+<p>&nbsp  </p>
 
-## Contributing
+### SigInsight vs Loki
 
-We ❤️ contributions big or small. Please read [CONTRIBUTING.md](CONTRIBUTING.md) to get started with making contributions to SigNoz.
+- SigInsight 支持大容量高基数的聚合，但是 loki 是不支持的。
 
-Not sure how to get started? Just ping us on `#contributing` in our [slack community](https://signoz.io/slack)
+- SigInsight 支持索引的高基数查询，并且对索引没有数量限制，而 Loki 会在添加部分索引后到达最大上限。
 
-<br /><br />
+- 相较于 SigInsight，Loki 在搜索大量数据下既困难又缓慢。
 
-
-## Documentation
-
-You can find docs at https://signoz.io/docs/. If you need any clarification or find something missing, feel free to raise a GitHub issue with the label `documentation` or reach out to us at the community slack channel.
+上游发布了基准测试对比 Loki 和 SigNoz 性能。请点击 [这里](https://signoz.io/blog/logs-performance-benchmark/?utm_source=github-readme&utm_medium=logs-benchmark)
 
 <br /><br />
 
 
-## Community
+## 文档
 
-Join the [slack community](https://signoz.io/slack) to know more about distributed tracing, observability, or SigNoz and to connect with other users and contributors.
+你可以通过 https://signoz.io/docs/ 找到相关文档。如果你需要阐述问题或者发现一些确实的事件， 通过标签为 `documentation` 提交 Github 问题。
 
-If you have any ideas, questions, or any feedback, please share on our [Github Discussions](https://github.com/SigInsight/SigInsight/discussions)
+<br /><br />
 
-As always, thanks to our amazing contributors!
+## 社区
+
+不管怎么样，感谢这个项目的所有贡献者!
 
 <a href="https://github.com/SigInsight/SigInsight/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=SigInsight/SigInsight" />

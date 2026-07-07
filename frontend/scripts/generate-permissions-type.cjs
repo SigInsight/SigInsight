@@ -65,7 +65,7 @@ async function discoverBackendUrl() {
 	if (dockerUrl) {
 		log(`Found ${SIGNOZ_INTEGRATION_IMAGE} container, trying ${dockerUrl}...`);
 		if (await checkBackendHealth(dockerUrl)) {
-			log(`Backend found at ${dockerUrl} (from py-test-setup)`);
+			log(`Backend found at ${dockerUrl} (from an integration test environment)`);
 			return dockerUrl;
 		}
 		log(`Backend at ${dockerUrl} is not responding`);
@@ -149,15 +149,11 @@ async function main() {
 				'\nThe permissions type generator requires a running SigNoz backend.',
 			);
 			console.error('\nFor local development, start the backend with:');
-			console.error('  make go-run-enterprise');
+			console.error('  make go-run-community');
 			console.error(
-				'\nFor CI or integration testing, start the test environment with:',
+				'\nOr start any integration test environment that exposes the backend on port 8080:',
 			);
-			console.error('  make py-test-setup');
-			console.error(
-				'\nIf running in CI and seeing this error, check that the py-test-setup',
-			);
-			console.error('step completed successfully before this step runs.');
+			console.error('  uv run pytest --basetemp=./tmp/ -vv --reuse src/bootstrap/setup.py::test_setup');
 			console.error('='.repeat(80) + '\n');
 			process.exit(1);
 		}

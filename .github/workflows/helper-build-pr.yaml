@@ -1,0 +1,39 @@
+name: helper-build-pr
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/helper-build-pr.yaml
+      - .github/workflows/gor-histogramquantile.yaml
+      - scripts/clickhouse/histogramquantile/**
+      - deploy/common/clickhouse/custom-function.xml
+
+permissions:
+  contents: read
+
+jobs:
+  build-helper-image:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        clickhouse-version:
+          - 25.5.6
+          - 25.12.5
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+      - name: setup-qemu
+        uses: docker/setup-qemu-action@v3
+      - name: setup-buildx
+        uses: docker/setup-buildx-action@v3
+      - name: build-helper-image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: scripts/clickhouse/histogramquantile/ClickHouse.Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: false
+          build-args: |
+            CLICKHOUSE_VERSION=${{ matrix.clickhouse-version }}

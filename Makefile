@@ -134,44 +134,6 @@ docker-buildx-community: go-build-community js-build
 
 
 ##############################################################
-# python commands
-##############################################################
-# Deprecated: these targets support the legacy Python integration harness in
-# tests/integration. They are kept temporarily for migration/reference and
-# should not be extended for new coverage.
-.PHONY: py-fmt
-py-fmt: ## Run black for integration tests
-	@cd tests/integration && uv run black .
-
-.PHONY: py-lint
-py-lint: ## Run lint for integration tests
-	@cd tests/integration && uv run isort .
-	@cd tests/integration && uv run autoflake .
-	@cd tests/integration && uv run pylint .
-
-.PHONY: py-test-setup
-py-test-setup: ## Runs integration tests
-	@cd tests/integration && uv run pytest --basetemp=./tmp/ -vv --reuse --capture=no src/bootstrap/setup.py::test_setup
-
-.PHONY: py-test-teardown
-py-test-teardown: ## Runs integration tests with teardown
-	@cd tests/integration && uv run pytest --basetemp=./tmp/ -vv --teardown --capture=no  src/bootstrap/setup.py::test_teardown
-
-.PHONY: py-test
-py-test: ## Runs integration tests
-	@cd tests/integration && uv run pytest --basetemp=./tmp/ -vv --capture=no src/
-
-.PHONY: py-clean
-py-clean: ## Clear all pycache and pytest cache from tests directory recursively
-	@echo ">> cleaning python cache files from tests directory"
-	@find tests -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
-	@find tests -type d -name .pytest_cache -exec rm -rf {} + 2>/dev/null || true
-	@find tests -type f -name "*.pyc" -delete 2>/dev/null || true
-	@find tests -type f -name "*.pyo" -delete 2>/dev/null || true
-	@echo ">> python cache cleaned"
-
-
-##############################################################
 # generate commands
 ##############################################################
 .PHONY: gen-mocks
