@@ -19,6 +19,7 @@ logger = setup_logger(__name__)
 USER_ADMIN_NAME = "admin"
 USER_ADMIN_EMAIL = "admin@integration.test"
 USER_ADMIN_PASSWORD = "password123Z$"
+USER_ADMIN_ORG_NAME = "integration.test"
 
 USER_EDITOR_NAME = "editor"
 USER_EDITOR_EMAIL = "editor@integration.test"
@@ -29,21 +30,50 @@ USER_EDITOR_PASSWORD = "password123Z$"
 def create_user_admin(
     signoz: types.SigNoz, request: pytest.FixtureRequest, pytestconfig: pytest.Config
 ) -> types.Operation:
-    def create() -> None:
+    def create() -> types.Operation:
         response = requests.post(
             signoz.self.host_configs["8080"].get("/api/v1/register"),
             json={
                 "name": USER_ADMIN_NAME,
-                "orgName": "",
+                "orgName": USER_ADMIN_ORG_NAME,
                 "email": USER_ADMIN_EMAIL,
                 "password": USER_ADMIN_PASSWORD,
             },
             timeout=5,
         )
 
-        assert response.status_code == HTTPStatus.OK
+        if response.status_code == HTTPStatus.OK:
+            return types.Operation(name="create_user_admin")
 
-        return types.Operation(name="create_user_admin")
+        if response.status_code == HTTPStatus.BAD_REQUEST:
+            context_response = requests.get(
+                signoz.self.host_configs["8080"].get("/api/v2/sessions/context"),
+                params={
+                    "email": USER_ADMIN_EMAIL,
+                    "ref": f"{signoz.self.host_configs['8080'].base()}",
+                },
+                timeout=5,
+            )
+
+            if context_response.status_code == HTTPStatus.OK:
+                org_id = context_response.json()["data"]["orgs"][0]["id"]
+                token_response = requests.post(
+                    signoz.self.host_configs["8080"].get(
+                        "/api/v2/sessions/email_password"
+                    ),
+                    json={
+                        "email": USER_ADMIN_EMAIL,
+                        "password": USER_ADMIN_PASSWORD,
+                        "orgId": org_id,
+                    },
+                    timeout=5,
+                )
+                if token_response.status_code == HTTPStatus.OK:
+                    return types.Operation(name="create_user_admin")
+
+        raise AssertionError(
+            f"failed to create or reuse admin user: register={response.status_code} {response.text}"
+        )
 
     def delete(_: types.Operation) -> None:
         pass
