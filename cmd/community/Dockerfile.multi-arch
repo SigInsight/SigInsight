@@ -1,17 +1,15 @@
-ARG ALPINE_SHA="pass-a-valid-docker-sha-otherwise-this-will-fail"
-
-FROM alpine@sha256:${ALPINE_SHA}
+FROM alpine:3.20.3
 LABEL maintainer="SigInsight"
 WORKDIR /root
 
 ARG OS="linux"
-ARG ARCH
+ARG TARGETARCH
 
 RUN apk update && \
     apk add --no-cache ca-certificates wget && \
     rm -rf /var/cache/apk/*
 
-COPY ./target/${OS}-${ARCH}/signoz-community /root/signoz
+COPY ./target/${OS}-${TARGETARCH}/signoz-community /root/signoz
 COPY ./templates/email /root/templates
 COPY frontend/build/ /etc/signoz/web/
 

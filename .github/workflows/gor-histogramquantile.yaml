@@ -22,8 +22,8 @@ jobs:
         uses: actions/checkout@v4
       - name: extract-version
         id: version
-        with:
-          fetch-depth: 0
+        run: |
+          echo "ref=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
       - name: image-version
         id: image-version
         run: |
