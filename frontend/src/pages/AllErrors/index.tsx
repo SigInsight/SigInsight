@@ -78,11 +78,7 @@ function AllErrors(): JSX.Element {
 							rightActions={
 								<div className="right-toolbar-actions-container">
 									<RightToolbarActions onStageRunQuery={handleRunQuery} />
-									<HeaderRightSection
-										enableAnnouncements={false}
-										enableShare
-										enableFeedback
-									/>
+									<HeaderRightSection enableAnnouncements={false} enableShare />
 								</div>
 							}
 						/>
