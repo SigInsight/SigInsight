@@ -26,7 +26,6 @@ import { AxiosError } from 'axios';
 import cx from 'classnames';
 import ChangelogModal from 'components/ChangelogModal/ChangelogModal';
 import OverlayScrollbar from 'components/OverlayScrollbar/OverlayScrollbar';
-import { MIN_ACCOUNT_AGE_FOR_CHANGELOG } from 'constants/changelog';
 import { Events } from 'constants/events';
 import { LOCALSTORAGE } from 'constants/localStorage';
 import ROUTES from 'constants/routes';
@@ -34,12 +33,10 @@ import { GlobalShortcuts } from 'constants/shortcuts/globalShortcuts';
 import { USER_PREFERENCES } from 'constants/userPreferences';
 import SideNav from 'container/SideNav';
 import TopNav from 'container/TopNav';
-import dayjs from 'dayjs';
 import { useKeyboardHotkeys } from 'hooks/hotkeys/useKeyboardHotkeys';
 import { useIsDarkMode } from 'hooks/useDarkMode';
 import { useNotifications } from 'hooks/useNotifications';
 import useTabVisibility from 'hooks/useTabFocus';
-import history from 'lib/history';
 import ErrorBoundaryFallback from 'pages/ErrorBoundaryFallback/ErrorBoundaryFallback';
 import { useAppContext } from 'providers/App/App';
 // eslint-disable-next-line no-restricted-imports
@@ -59,10 +56,8 @@ import {
 } from 'types/api/changelog/getChangelogByVersion';
 import { UserPreference } from 'types/api/preferences/preference';
 import AppReducer from 'types/reducer/app';
-import { USER_ROLES } from 'types/roles';
 import { showErrorNotification } from 'utils/error';
 import { eventEmitter } from 'utils/getEventEmitter';
-import { getFormattedDate, getRemainingDays } from 'utils/timeUtils';
 
 import { ChildrenContainer, Layout, LayoutContent } from './styles';
 import { getRouteKey } from './utils';
@@ -74,9 +69,6 @@ function AppLayout(props: AppLayoutProps): JSX.Element {
 	const {
 		isLoggedIn,
 		user,
-		featureFlags,
-		isFetchingFeatureFlags,
-		featureFlagsFetchError,
 		userPreferences,
 		updateChangelog,
 		toggleChangelogModal,
@@ -88,18 +80,14 @@ function AppLayout(props: AppLayoutProps): JSX.Element {
 
 	const errorBoundaryRef = useRef<Sentry.ErrorBoundary>(null);
 
+	// showSlowApiWarning state is retained for the slow API warning event
+	// listener, even though the value is not currently read in JSX.
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const [showSlowApiWarning, setShowSlowApiWarning] = useState(false);
 
 	const { currentVersion } = useSelector<AppState, AppReducer>(
 		(state) => state.app,
 	);
-
-	const daysSinceAccountCreation = useMemo(() => {
-		const userCreationDate = dayjs(user.createdAt);
-		const currentDate = dayjs();
-
-		return Math.abs(currentDate.diff(userCreationDate, 'day'));
-	}, [user.createdAt]);
 
 	const isDarkMode = useIsDarkMode();
 
@@ -107,11 +95,6 @@ function AppLayout(props: AppLayoutProps): JSX.Element {
 	const { t } = useTranslation(['titles']);
 
 	const changelogForTenant = DeploymentType.OSS_ONLY;
-
-	const seenChangelogVersion = userPreferences?.find(
-		(preference) =>
-			preference.name === USER_PREFERENCES.LAST_SEEN_CHANGELOG_VERSION,
-	)?.value as string;
 
 	const isVisible = useTabVisibility();
 
@@ -344,12 +327,6 @@ function AppLayout(props: AppLayoutProps): JSX.Element {
 			eventEmitter.off(Events.SLOW_API_WARNING, handleWarning);
 		};
 	}, []);
-
-	const handleDismissSlowApiWarning = (): void => {
-		setShowSlowApiWarning(false);
-
-		setLocalStorageApi(LOCALSTORAGE.DONT_SHOW_SLOW_API_WARNING, 'true');
-	};
 
 	const { registerShortcut, deregisterShortcut } = useKeyboardHotkeys();
 	const { updateUserPreferenceInContext } = useAppContext();

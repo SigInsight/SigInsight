@@ -20,7 +20,10 @@ jest.mock('react-use', () => ({
 	useCopyToClipboard: jest.fn(),
 }));
 jest.mock('hooks/useGetTenantLicense', () => ({
-	useGetTenantLicense: () => ({
+	useGetTenantLicense: (): {
+		isCloudUser: boolean;
+		isEnterpriseSelfHostedUser: boolean;
+	} => ({
 		isCloudUser: true,
 		isEnterpriseSelfHostedUser: false,
 	}),

@@ -1,5 +1,4 @@
 import { useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
 // eslint-disable-next-line no-restricted-imports
 import { useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
@@ -26,7 +25,6 @@ function ServiceMetricTable({
 	>((state) => state.globalTime);
 
 	const { notifications } = useNotifications();
-	const { t: getText } = useTranslation(['services']);
 
 	const queries = useGetQueriesRange(queryRangeRequestData, ENTITY_VERSION_V4, {
 		queryKey: [

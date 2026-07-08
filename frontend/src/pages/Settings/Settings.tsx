@@ -30,7 +30,6 @@ function SettingsPage(): JSX.Element {
 	);
 
 	const isAdmin = user.role === USER_ROLES.ADMIN;
-	const isEditor = user.role === USER_ROLES.EDITOR;
 
 	const isWorkspaceBlocked = trialInfo?.workSpaceBlock || false;
 
@@ -61,108 +60,33 @@ function SettingsPage(): JSX.Element {
 				return updatedItems;
 			}
 
-			if (false) {
-				if (isAdmin) {
-					updatedItems = updatedItems.map((item) => ({
-						...item,
-						isEnabled:
-							item.key === ROUTES.BILLING ||
-							item.key === ROUTES.ROLES_SETTINGS ||
-							item.key === ROUTES.ROLE_DETAILS ||
-							item.key === ROUTES.INTEGRATIONS ||
-							item.key === ROUTES.API_KEYS ||
-							item.key === ROUTES.INGESTION_SETTINGS ||
-							item.key === ROUTES.ORG_SETTINGS ||
-							item.key === ROUTES.MEMBERS_SETTINGS ||
-							(IS_SERVICE_ACCOUNTS_ENABLED &&
-								item.key === ROUTES.SERVICE_ACCOUNTS_SETTINGS) ||
-							item.key === ROUTES.SHORTCUTS
-								? true
-								: item.isEnabled,
-					}));
-				}
-
-				if (isEditor) {
-					updatedItems = updatedItems.map((item) => ({
-						...item,
-						isEnabled:
-							item.key === ROUTES.INGESTION_SETTINGS ||
-							item.key === ROUTES.INTEGRATIONS ||
-							item.key === ROUTES.SHORTCUTS
-								? true
-								: item.isEnabled,
-					}));
-				}
-			}
-
-			if (false) {
-				if (isAdmin) {
-					updatedItems = updatedItems.map((item) => ({
-						...item,
-						isEnabled:
-							item.key === ROUTES.BILLING ||
-							item.key === ROUTES.ROLES_SETTINGS ||
-							item.key === ROUTES.ROLE_DETAILS ||
-							item.key === ROUTES.INTEGRATIONS ||
-							item.key === ROUTES.API_KEYS ||
-							item.key === ROUTES.ORG_SETTINGS ||
-							item.key === ROUTES.MEMBERS_SETTINGS ||
-							(IS_SERVICE_ACCOUNTS_ENABLED &&
-								item.key === ROUTES.SERVICE_ACCOUNTS_SETTINGS) ||
-							item.key === ROUTES.INGESTION_SETTINGS
-								? true
-								: item.isEnabled,
-					}));
-				}
-
-				if (isEditor) {
-					updatedItems = updatedItems.map((item) => ({
-						...item,
-						isEnabled:
-							item.key === ROUTES.INTEGRATIONS ||
-							item.key === ROUTES.INGESTION_SETTINGS
-								? true
-								: item.isEnabled,
-					}));
-				}
-			}
-
-			if (!false && !false) {
-				if (isAdmin) {
-					updatedItems = updatedItems.map((item) => ({
-						...item,
-						isEnabled:
-							item.key === ROUTES.API_KEYS ||
-							item.key === ROUTES.ORG_SETTINGS ||
-							item.key === ROUTES.MEMBERS_SETTINGS ||
-							(IS_SERVICE_ACCOUNTS_ENABLED &&
-								item.key === ROUTES.SERVICE_ACCOUNTS_SETTINGS)
-								? true
-								: item.isEnabled,
-					}));
-				}
-
-				// disable billing and integrations for non-cloud users
+			// Community edition: enable admin settings, disable billing/integrations
+			if (isAdmin) {
 				updatedItems = updatedItems.map((item) => ({
 					...item,
 					isEnabled:
-						item.key === ROUTES.BILLING || item.key === ROUTES.INTEGRATIONS
-							? false
+						item.key === ROUTES.API_KEYS ||
+						item.key === ROUTES.ORG_SETTINGS ||
+						item.key === ROUTES.MEMBERS_SETTINGS ||
+						(IS_SERVICE_ACCOUNTS_ENABLED &&
+							item.key === ROUTES.SERVICE_ACCOUNTS_SETTINGS)
+							? true
 							: item.isEnabled,
 				}));
 			}
 
+			// disable billing and integrations for non-cloud users
+			updatedItems = updatedItems.map((item) => ({
+				...item,
+				isEnabled:
+					item.key === ROUTES.BILLING || item.key === ROUTES.INTEGRATIONS
+						? false
+						: item.isEnabled,
+			}));
+
 			return updatedItems;
 		});
-	}, [
-		isAdmin,
-		isEditor,
-		false,
-		false,
-		isFetchingActiveLicense,
-		trialInfo?.workSpaceBlock,
-		pathname,
-	]);
+	}, [isAdmin, isFetchingActiveLicense, trialInfo?.workSpaceBlock, pathname]);
 
 	const routes = useMemo(
 		() =>
@@ -170,11 +94,11 @@ function SettingsPage(): JSX.Element {
 				user.role,
 				isCurrentOrgSettings,
 				isWorkspaceBlocked,
-				false,
-				false,
+				false, // isCloudUser - always false in community edition
+				false, // isEnterpriseSelfHostedUser - always false in community edition
 				t,
 			),
-		[user.role, isCurrentOrgSettings, isWorkspaceBlocked, false, false, t],
+		[user.role, isCurrentOrgSettings, isWorkspaceBlocked, t],
 	);
 
 	const isCtrlMetaKey = (e: MouseEvent): boolean => e.ctrlKey || e.metaKey;

@@ -37,7 +37,6 @@ function App(): JSX.Element {
 		isFetchingActiveLicense,
 		activeLicenseFetchError,
 		userFetchError,
-		featureFlagsFetchError,
 		isLoggedIn: isLoggedInState,
 		featureFlags,
 	} = useAppContext();

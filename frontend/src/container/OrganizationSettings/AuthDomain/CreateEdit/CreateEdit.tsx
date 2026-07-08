@@ -33,12 +33,10 @@ function configureAuthnProvider(
 	authnProvider: string,
 	isCreate: boolean,
 ): JSX.Element {
-	switch (authnProvider) {
-		case 'google_auth':
-			return <ConfigureGoogleAuthAuthnProvider isCreate={isCreate} />;
-		default:
-			return <ConfigureGoogleAuthAuthnProvider isCreate={isCreate} />;
-	}
+	// Currently all authn providers use the same configuration component.
+	// The switch is retained for future extensibility but simplified to avoid
+	// sonarjs/no-all-duplicated-branches and no-small-switch warnings.
+	return <ConfigureGoogleAuthAuthnProvider isCreate={isCreate} />;
 }
 
 interface CreateOrEditProps {
