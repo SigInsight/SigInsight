@@ -66,6 +66,21 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: smoke-test-image
+        run: |
+          set -euo pipefail
+          image=$(echo "${{ steps.meta.outputs.tags }}" | head -1)
+          echo "Building local amd64 image for smoke test: ${image}-smoke"
+          docker build \
+            --build-arg TARGETARCH=amd64 \
+            -t "${image}-smoke" \
+            -f cmd/community/Dockerfile.multi-arch \
+            .
+          echo "Verifying binary is executable inside the image..."
+          echo "(catches glibc/musl mismatches like 'exec ./signoz: no such file or directory')"
+          docker run --rm --entrypoint sh "${image}-smoke" \
+            -c "/root/signoz --help"
+          echo "✅ Smoke test passed: binary is executable in the image"
       - name: build-and-push-image
         uses: docker/build-push-action@v6
         with:
