@@ -37,7 +37,7 @@ describe('LicenseKeyRow', () => {
 			},
 		});
 
-		expect(screen.getByText('SigNoz License Key')).toBeInTheDocument();
+		expect(screen.getByText('SigInsight License Key')).toBeInTheDocument();
 		expect(screen.getByText('ab·······ij')).toBeInTheDocument();
 	});
 
