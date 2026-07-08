@@ -181,13 +181,6 @@ export function getAppContextMock(
 				route: '',
 			},
 			{
-				name: FeatureKeys.GATEWAY,
-				active: true,
-				usage: 0,
-				usage_limit: -1,
-				route: '',
-			},
-			{
 				name: FeatureKeys.PREMIUM_SUPPORT,
 				active: true,
 				usage: 0,

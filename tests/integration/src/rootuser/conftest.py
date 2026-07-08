@@ -11,8 +11,6 @@ ROOT_USER_PASSWORD = "password123Z$"
 @pytest.fixture(name="signoz", scope="package")
 def signoz_rootuser(
     network: Network,
-    zeus: types.TestContainerDocker,
-    gateway: types.TestContainerDocker,
     sqlstore: types.TestContainerSQL,
     clickhouse: types.TestContainerClickhouse,
     request: pytest.FixtureRequest,
@@ -23,8 +21,6 @@ def signoz_rootuser(
     """
     return create_signoz(
         network=network,
-        zeus=zeus,
-        gateway=gateway,
         sqlstore=sqlstore,
         clickhouse=clickhouse,
         request=request,

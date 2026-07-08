@@ -107,33 +107,17 @@ class TestContainerClickhouse:
 
 
 @dataclass
-class TestContainerIDP:
-    __test__ = False
-    container: TestContainerDocker
-
-    def __cache__(self) -> dict:
-        return {
-            "container": self.container.__cache__(),
-        }
-
-    def __log__(self) -> str:
-        return f"TestContainerIDP(container={self.container.__log__()})"
-
-
-@dataclass
 class SigNoz:
     __test__ = False
     self: TestContainerDocker
     sqlstore: TestContainerSQL
     telemetrystore: TestContainerClickhouse
-    zeus: TestContainerDocker
-    gateway: TestContainerDocker
 
     def __cache__(self) -> dict:
         return self.self.__cache__()
 
     def __log__(self) -> str:
-        return f"SigNoz(self={self.self.__log__()}, sqlstore={self.sqlstore.__log__()}, telemetrystore={self.telemetrystore.__log__()}, zeus={self.zeus.__log__()}, gateway={self.gateway.__log__()})"
+        return f"SigNoz(self={self.self.__log__()}, sqlstore={self.sqlstore.__log__()}, telemetrystore={self.telemetrystore.__log__()})"
 
 
 @dataclass

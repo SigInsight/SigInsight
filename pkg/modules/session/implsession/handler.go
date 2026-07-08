@@ -81,39 +81,6 @@ func (handler *handler) CreateSessionByGoogleCallback(rw http.ResponseWriter, re
 	http.Redirect(rw, req, redirectURL, http.StatusSeeOther)
 }
 
-func (handler *handler) CreateSessionBySAMLCallback(rw http.ResponseWriter, req *http.Request) {
-	ctx, cancel := context.WithTimeout(req.Context(), 15*time.Second)
-	defer cancel()
-
-	err := req.ParseForm()
-	if err != nil {
-		render.Error(rw, err)
-		return
-	}
-
-	redirectURL, err := handler.module.CreateCallbackAuthNSession(ctx, authtypes.AuthNProviderSAML, req.Form)
-	if err != nil {
-		http.Redirect(rw, req, handler.getRedirectURLFromErr(err), http.StatusSeeOther)
-		return
-	}
-
-	http.Redirect(rw, req, redirectURL, http.StatusSeeOther)
-}
-
-func (handler *handler) CreateSessionByOIDCCallback(rw http.ResponseWriter, req *http.Request) {
-	ctx, cancel := context.WithTimeout(req.Context(), 15*time.Second)
-	defer cancel()
-
-	values := req.URL.Query()
-	redirectURL, err := handler.module.CreateCallbackAuthNSession(ctx, authtypes.AuthNProviderOIDC, values)
-	if err != nil {
-		http.Redirect(rw, req, handler.getRedirectURLFromErr(err), http.StatusSeeOther)
-		return
-	}
-
-	http.Redirect(rw, req, redirectURL, http.StatusSeeOther)
-}
-
 func (handler *handler) RotateSession(rw http.ResponseWriter, req *http.Request) {
 	ctx, cancel := context.WithTimeout(req.Context(), 10*time.Second)
 	defer cancel()

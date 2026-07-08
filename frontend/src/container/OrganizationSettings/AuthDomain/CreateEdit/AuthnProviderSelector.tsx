@@ -1,4 +1,4 @@
-import { GoogleSquareFilled, KeyOutlined } from '@ant-design/icons';
+import { GoogleSquareFilled } from '@ant-design/icons';
 import { Button, Typography } from 'antd';
 
 import './CreateEdit.styles.scss';
@@ -11,7 +11,7 @@ interface AuthNProvider {
 	enabled: boolean;
 }
 
-function getAuthNProviders(samlEnabled: boolean): AuthNProvider[] {
+function getAuthNProviders(): AuthNProvider[] {
 	return [
 		{
 			key: 'google_auth',
@@ -20,34 +20,15 @@ function getAuthNProviders(samlEnabled: boolean): AuthNProvider[] {
 			icon: <GoogleSquareFilled style={{ fontSize: '37px' }} />,
 			enabled: true,
 		},
-		{
-			key: 'saml',
-			title: 'SAML Authentication',
-			description:
-				'Azure, Active Directory, Okta or your custom SAML 2.0 solution',
-			icon: <KeyOutlined style={{ fontSize: '37px' }} />,
-			enabled: samlEnabled,
-		},
-
-		{
-			key: 'oidc',
-			title: 'OIDC Authentication',
-			description:
-				'Authenticate using OpenID Connect providers like Azure, Active Directory, Okta, or other OIDC compliant solutions',
-			icon: <KeyOutlined style={{ fontSize: '37px' }} />,
-			enabled: samlEnabled,
-		},
 	];
 }
 
 function AuthnProviderSelector({
 	setAuthnProvider,
-	samlEnabled,
 }: {
 	setAuthnProvider: React.Dispatch<React.SetStateAction<string>>;
-	samlEnabled: boolean;
 }): JSX.Element {
-	const authnProviders = getAuthNProviders(samlEnabled);
+	const authnProviders = getAuthNProviders();
 	return (
 		<div className="authn-provider-selector">
 			<section className="header">

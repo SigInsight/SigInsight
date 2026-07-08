@@ -47,11 +47,6 @@ jest.mock('container/GeneralSettingsCloud', () => ({
 	default: (): JSX.Element => <div data-testid="general-settings-cloud" />,
 }));
 
-jest.mock('container/CustomDomainSettings', () => ({
-	__esModule: true,
-	default: (): JSX.Element => <div data-testid="custom-domain-settings" />,
-}));
-
 // Mock data
 const mockMetricsRetention: PayloadPropsMetrics = {
 	metrics_ttl_duration_hrs: 168,
@@ -393,7 +388,7 @@ describe('GeneralSettings - S3 Logs Retention', () => {
 			});
 		});
 
-		it('should render CustomDomainSettings and GeneralSettingsCloud for cloud admin', () => {
+		it('should render GeneralSettingsCloud for cloud admin', () => {
 			render(
 				<GeneralSettings
 					metricsTtlValuesPayload={mockMetricsRetention}
@@ -406,7 +401,6 @@ describe('GeneralSettings - S3 Logs Retention', () => {
 				/>,
 			);
 
-			expect(screen.getByTestId('custom-domain-settings')).toBeInTheDocument();
 			expect(screen.getByTestId('general-settings-cloud')).toBeInTheDocument();
 		});
 	});
@@ -419,7 +413,7 @@ describe('GeneralSettings - S3 Logs Retention', () => {
 			});
 		});
 
-		it('should render CustomDomainSettings but not GeneralSettingsCloud', () => {
+		it('should not render GeneralSettingsCloud', () => {
 			render(
 				<GeneralSettings
 					metricsTtlValuesPayload={mockMetricsRetention}
@@ -432,7 +426,6 @@ describe('GeneralSettings - S3 Logs Retention', () => {
 				/>,
 			);
 
-			expect(screen.getByTestId('custom-domain-settings')).toBeInTheDocument();
 			expect(
 				screen.queryByTestId('general-settings-cloud'),
 			).not.toBeInTheDocument();

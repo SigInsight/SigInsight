@@ -5,10 +5,6 @@ import {
 	mockDomainWithRoleMapping,
 	mockGoogleAuthDomain,
 	mockGoogleAuthWithWorkspaceGroups,
-	mockOidcAuthDomain,
-	mockOidcWithClaimMapping,
-	mockSamlAuthDomain,
-	mockSamlWithAttributeMapping,
 } from './mocks';
 
 const mockOnClose = jest.fn();
@@ -26,8 +22,6 @@ describe('CreateEdit Modal', () => {
 				screen.getByText(/configure authentication method/i),
 			).toBeInTheDocument();
 			expect(screen.getByText(/google apps authentication/i)).toBeInTheDocument();
-			expect(screen.getByText(/saml authentication/i)).toBeInTheDocument();
-			expect(screen.getByText(/oidc authentication/i)).toBeInTheDocument();
 		});
 
 		it('returns to provider selection when back button is clicked', async () => {
@@ -173,102 +167,6 @@ describe('CreateEdit Modal', () => {
 				expect(screen.getByText(/fetch groups/i)).toBeInTheDocument();
 				expect(screen.getByText(/service account json/i)).toBeInTheDocument();
 			});
-		});
-	});
-
-	describe('SAML Provider', () => {
-		it('shows SAML-specific fields when editing SAML domain', () => {
-			render(
-				<CreateEdit
-					isCreate={false}
-					record={mockSamlAuthDomain}
-					onClose={mockOnClose}
-				/>,
-			);
-
-			expect(screen.getByText(/edit saml authentication/i)).toBeInTheDocument();
-			expect(
-				screen.getByDisplayValue('https://idp.example.com/sso'),
-			).toBeInTheDocument();
-			expect(screen.getByDisplayValue('urn:example:idp')).toBeInTheDocument();
-		});
-
-		it('shows attribute mapping section for SAML', async () => {
-			const user = userEvent.setup({ pointerEventsCheck: 0 });
-
-			render(
-				<CreateEdit
-					isCreate={false}
-					record={mockSamlWithAttributeMapping}
-					onClose={mockOnClose}
-				/>,
-			);
-
-			expect(
-				screen.getByText(/attribute mapping \(advanced\)/i),
-			).toBeInTheDocument();
-
-			const attributeHeader = screen.getByText(/attribute mapping \(advanced\)/i);
-			await user.click(attributeHeader);
-
-			await waitFor(() => {
-				expect(screen.getByLabelText(/name attribute/i)).toBeInTheDocument();
-				expect(screen.getByLabelText(/groups attribute/i)).toBeInTheDocument();
-				expect(screen.getByLabelText(/role attribute/i)).toBeInTheDocument();
-			});
-		});
-	});
-
-	describe('OIDC Provider', () => {
-		it('shows OIDC-specific fields when editing OIDC domain', () => {
-			render(
-				<CreateEdit
-					isCreate={false}
-					record={mockOidcAuthDomain}
-					onClose={mockOnClose}
-				/>,
-			);
-
-			expect(screen.getByText(/edit oidc authentication/i)).toBeInTheDocument();
-			expect(screen.getByDisplayValue('https://oidc.corp.io')).toBeInTheDocument();
-			expect(screen.getByDisplayValue('oidc-client-id')).toBeInTheDocument();
-		});
-
-		it('shows claim mapping section for OIDC', async () => {
-			const user = userEvent.setup({ pointerEventsCheck: 0 });
-
-			render(
-				<CreateEdit
-					isCreate={false}
-					record={mockOidcWithClaimMapping}
-					onClose={mockOnClose}
-				/>,
-			);
-
-			expect(screen.getByText(/claim mapping \(advanced\)/i)).toBeInTheDocument();
-
-			const claimHeader = screen.getByText(/claim mapping \(advanced\)/i);
-			await user.click(claimHeader);
-
-			await waitFor(() => {
-				expect(screen.getByLabelText(/email claim/i)).toBeInTheDocument();
-				expect(screen.getByLabelText(/name claim/i)).toBeInTheDocument();
-				expect(screen.getByLabelText(/groups claim/i)).toBeInTheDocument();
-				expect(screen.getByLabelText(/role claim/i)).toBeInTheDocument();
-			});
-		});
-
-		it('shows OIDC options checkboxes', () => {
-			render(
-				<CreateEdit
-					isCreate={false}
-					record={mockOidcAuthDomain}
-					onClose={mockOnClose}
-				/>,
-			);
-
-			expect(screen.getByText(/skip email verification/i)).toBeInTheDocument();
-			expect(screen.getByText(/get user info/i)).toBeInTheDocument();
 		});
 	});
 

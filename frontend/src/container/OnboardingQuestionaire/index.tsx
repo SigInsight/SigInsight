@@ -1,10 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useMutation, useQuery } from 'react-query';
-import { toast } from '@signozhq/sonner';
 import type { NotificationInstance } from 'antd/es/notification/interface';
 import logEvent from 'api/common/logEvent';
-import { RenderErrorResponseDTO } from 'api/generated/services/sigNoz.schemas';
-import { usePutProfile } from 'api/generated/services/zeus';
 import listOrgPreferences from 'api/v1/org/preferences/list';
 import updateOrgPreferenceAPI from 'api/v1/org/preferences/name/update';
 import { AxiosError } from 'axios';
@@ -123,10 +120,6 @@ function OnboardingQuestionaire(): JSX.Element {
 		optimiseSignozDetails.hostsPerDay === 0 &&
 		optimiseSignozDetails.services === 0;
 
-	const { mutate: updateProfile, isLoading: isUpdatingProfile } = usePutProfile<
-		AxiosError<RenderErrorResponseDTO>
-	>();
-
 	const { mutate: updateOrgPreference } = useMutation(updateOrgPreferenceAPI, {
 		onSuccess: () => {
 			refetchOrgPreferences();
@@ -144,44 +137,7 @@ function OnboardingQuestionaire(): JSX.Element {
 			nextPageID: 4,
 		});
 
-		updateProfile(
-			{
-				data: {
-					uses_otel: orgDetails?.usesOtel as boolean,
-					has_existing_observability_tool: orgDetails?.usesObservability as boolean,
-					existing_observability_tool:
-						orgDetails?.observabilityTool === 'Others'
-							? (orgDetails?.otherTool as string)
-							: (orgDetails?.observabilityTool as string),
-					where_did_you_discover_signoz: signozDetails?.discoverSignoz as string,
-					timeline_for_migrating_to_signoz: orgDetails?.migrationTimeline as string,
-					reasons_for_interest_in_signoz: signozDetails?.interestInSignoz?.includes(
-						'Others',
-					)
-						? ([
-								...(signozDetails?.interestInSignoz?.filter(
-									(item) => item !== 'Others',
-								) || []),
-								signozDetails?.otherInterestInSignoz,
-						  ] as string[])
-						: (signozDetails?.interestInSignoz as string[]),
-					logs_scale_per_day_in_gb: optimiseSignozDetails?.logsPerDay as number,
-					number_of_hosts: optimiseSignozDetails?.hostsPerDay as number,
-					number_of_services: optimiseSignozDetails?.services as number,
-				},
-			},
-			{
-				onSuccess: () => {
-					setCurrentStep(4);
-				},
-				onError: (error: any) => {
-					toast.error(error?.message || SOMETHING_WENT_WRONG);
-
-					// Allow user to proceed even if API fails
-					setCurrentStep(4);
-				},
-			},
-		);
+		setCurrentStep(4);
 	};
 
 	const handleOnboardingComplete = (): void => {
@@ -234,7 +190,7 @@ function OnboardingQuestionaire(): JSX.Element {
 				{currentStep === 3 && (
 					<OptimiseSignozNeeds
 						isNextDisabled={isNextDisabled}
-						isUpdatingProfile={isUpdatingProfile}
+						isUpdatingProfile={false}
 						optimiseSignozDetails={optimiseSignozDetails}
 						setOptimiseSignozDetails={setOptimiseSignozDetails}
 						onNext={handleUpdateProfile}

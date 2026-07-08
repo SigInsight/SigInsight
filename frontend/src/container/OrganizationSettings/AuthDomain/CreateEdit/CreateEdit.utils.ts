@@ -1,9 +1,7 @@
 import {
 	AuthtypesGettableAuthDomainDTO,
 	AuthtypesGoogleConfigDTO,
-	AuthtypesOIDCConfigDTO,
 	AuthtypesRoleMappingDTO,
-	AuthtypesSamlConfigDTO,
 } from 'api/generated/services/sigNoz.schemas';
 
 // Form values interface for internal use (includes array-based fields for UI)
@@ -14,8 +12,6 @@ export interface FormValues {
 	googleAuthConfig?: AuthtypesGoogleConfigDTO & {
 		domainToAdminEmailList?: Array<{ domain?: string; adminEmail?: string }>;
 	};
-	samlConfig?: AuthtypesSamlConfigDTO;
-	oidcConfig?: AuthtypesOIDCConfigDTO;
 	roleMapping?: AuthtypesRoleMappingDTO & {
 		groupMappingsList?: Array<{ groupName?: string; role?: string }>;
 	};

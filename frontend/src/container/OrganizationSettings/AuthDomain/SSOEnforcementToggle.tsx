@@ -46,8 +46,6 @@ function SSOEnforcementToggle({
 						ssoEnabled: checked,
 						ssoType: record.ssoType,
 						googleAuthConfig: record.googleAuthConfig,
-						oidcConfig: record.oidcConfig,
-						samlConfig: record.samlConfig,
 						roleMapping: record.roleMapping,
 					},
 				},

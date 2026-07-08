@@ -9,7 +9,6 @@ import { Modal, Spin } from 'antd';
 import setRetentionApi from 'api/settings/setRetention';
 import setRetentionApiV2 from 'api/settings/setRetentionV2';
 import TextToolTip from 'components/TextToolTip';
-import CustomDomainSettings from 'container/CustomDomainSettings';
 import LicenseKeyRow from 'container/GeneralSettings/LicenseKeyRow/LicenseKeyRow';
 import GeneralSettingsCloud from 'container/GeneralSettingsCloud';
 import useComponentPermission from 'hooks/useComponentPermission';
@@ -469,10 +468,6 @@ function GeneralSettings({
 		isEnterpriseSelfHostedUser,
 	} = useGetTenantLicense();
 
-	const isAdmin = user.role === USER_ROLES.ADMIN;
-	const showCustomDomainSettings =
-		(isCloudUserVal || isEnterpriseSelfHostedUser) && isAdmin;
-
 	const renderConfig = [
 		{
 			name: 'Metrics',
@@ -681,13 +676,9 @@ function GeneralSettings({
 				</span>
 			</div>
 
-			{(showCustomDomainSettings || activeLicense?.key) && (
+			{activeLicense?.key && (
 				<div className="custom-domain-card">
-					{showCustomDomainSettings && <CustomDomainSettings />}
-					{showCustomDomainSettings && activeLicense?.key && (
-						<div className="custom-domain-card-divider" />
-					)}
-					{activeLicense?.key && <LicenseKeyRow />}
+					<LicenseKeyRow />
 				</div>
 			)}
 
