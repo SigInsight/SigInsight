@@ -10,29 +10,61 @@ on:
 
 jobs:
   tsc:
-    uses: signoz/primus.workflows/.github/workflows/js-tsc.yaml@main
-    secrets: inherit
-    with:
-      PRIMUS_REF: main
-      JS_SRC: frontend
+    runs-on: ubuntu-latest
+    steps:
+      - name: self-checkout
+        uses: actions/checkout@v4
+      - name: node-install
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+      - name: install-frontend
+        run: cd frontend && yarn install
+      - name: tsc
+        run: cd frontend && yarn tsc --noEmit
+
   test:
-    uses: signoz/primus.workflows/.github/workflows/js-test.yaml@main
-    secrets: inherit
-    with:
-      PRIMUS_REF: main
-      JS_SRC: frontend
+    runs-on: ubuntu-latest
+    steps:
+      - name: self-checkout
+        uses: actions/checkout@v4
+      - name: node-install
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+      - name: install-frontend
+        run: cd frontend && yarn install
+      - name: js-test
+        run: cd frontend && yarn test
+
   fmt:
-    uses: signoz/primus.workflows/.github/workflows/js-fmt.yaml@main
-    secrets: inherit
-    with:
-      PRIMUS_REF: main
-      JS_SRC: frontend
+    runs-on: ubuntu-latest
+    steps:
+      - name: self-checkout
+        uses: actions/checkout@v4
+      - name: node-install
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+      - name: install-frontend
+        run: cd frontend && yarn install
+      - name: js-fmt
+        run: cd frontend && yarn fmt
+
   lint:
-    uses: signoz/primus.workflows/.github/workflows/js-lint.yaml@main
-    secrets: inherit
-    with:
-      PRIMUS_REF: main
-      JS_SRC: frontend
+    runs-on: ubuntu-latest
+    steps:
+      - name: self-checkout
+        uses: actions/checkout@v4
+      - name: node-install
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+      - name: install-frontend
+        run: cd frontend && yarn install
+      - name: js-lint
+        run: cd frontend && yarn lint
+
   languages:
     runs-on: ubuntu-latest
     steps:
@@ -40,6 +72,7 @@ jobs:
         uses: actions/checkout@v4
       - name: run
         run: bash frontend/scripts/validate-md-languages.sh
+
   openapi:
     runs-on: ubuntu-latest
     steps:
