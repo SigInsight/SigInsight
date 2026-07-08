@@ -47,12 +47,7 @@ function App(): JSX.Element {
 
 	// eslint-disable-next-line sonarjs/cognitive-complexity
 	useEffect(() => {
-		if (
-			!isFetchingActiveLicense &&
-			!isFetchingUser &&
-			user &&
-			!!user.email
-		) {
+		if (!isFetchingActiveLicense && !isFetchingUser && user && !!user.email) {
 			const isIdentifiedUser = getLocalStorageApi(LOCALSTORAGE.IS_IDENTIFIED_USER);
 
 			if (isLoggedInState && user && user.id && user.email && !isIdentifiedUser) {
@@ -62,7 +57,7 @@ function App(): JSX.Element {
 			// community edition: remove billing and integrations routes
 			const updatedRoutes = defaultRoutes.filter(
 				(route) =>
-				route?.path !== ROUTES.BILLING && route?.path !== ROUTES.INTEGRATIONS,
+					route?.path !== ROUTES.BILLING && route?.path !== ROUTES.INTEGRATIONS,
 			);
 			setRoutes(updatedRoutes);
 		}
@@ -74,7 +69,6 @@ function App(): JSX.Element {
 		activeLicense,
 		activeLicenseFetchError,
 	]);
-
 
 	// if the user is in logged in state
 	if (isLoggedInState) {
@@ -91,57 +85,52 @@ function App(): JSX.Element {
 		}
 
 		// if all of the data is not set then return a spinner, this is required because there is some gap between loading states and data setting
-		if (
-			(!user.email || !featureFlags) &&
-			!userFetchError
-		) {
+		if ((!user.email || !featureFlags) && !userFetchError) {
 			return <Spinner tip="Loading..." />;
 		}
 	}
 
 	return (
 		<ConfigProvider theme={themeConfig}>
-				<Router history={history}>
-					<CompatRouter>
-						<CmdKProvider>
-							<NotificationProvider>
-								<ErrorModalProvider>
-									{isLoggedInState && <CmdKPalette userRole={user.role} />}
-									{isLoggedInState && (
-										<ShiftHoldOverlayController userRole={user.role} />
-									)}
-									<PrivateRoute>
-										<ResourceProvider>
-											<QueryBuilderProvider>
-												<KeyboardHotkeysProvider>
-													<AppLayout>
-														<PreferenceContextProvider>
-															<Suspense fallback={<Spinner size="large" tip="Loading..." />}>
-																<Switch>
-																	{routes.map(({ path, component, exact }) => (
-																		<Route
-																			key={`${path}`}
-																			exact={exact}
-																			path={path}
-																			component={component}
-																		/>
-																	))}
-																	<Route exact path="/" component={Home} />
-																	<Route path="*" component={NotFound} />
-																</Switch>
-															</Suspense>
-														</PreferenceContextProvider>
-													</AppLayout>
-												</KeyboardHotkeysProvider>
-											</QueryBuilderProvider>
-										</ResourceProvider>
-									</PrivateRoute>
-								</ErrorModalProvider>
-							</NotificationProvider>
-						</CmdKProvider>
-					</CompatRouter>
-				</Router>
-			</ConfigProvider>
+			<Router history={history}>
+				<CompatRouter>
+					<CmdKProvider>
+						<NotificationProvider>
+							<ErrorModalProvider>
+								{isLoggedInState && <CmdKPalette userRole={user.role} />}
+								{isLoggedInState && <ShiftHoldOverlayController userRole={user.role} />}
+								<PrivateRoute>
+									<ResourceProvider>
+										<QueryBuilderProvider>
+											<KeyboardHotkeysProvider>
+												<AppLayout>
+													<PreferenceContextProvider>
+														<Suspense fallback={<Spinner size="large" tip="Loading..." />}>
+															<Switch>
+																{routes.map(({ path, component, exact }) => (
+																	<Route
+																		key={`${path}`}
+																		exact={exact}
+																		path={path}
+																		component={component}
+																	/>
+																))}
+																<Route exact path="/" component={Home} />
+																<Route path="*" component={NotFound} />
+															</Switch>
+														</Suspense>
+													</PreferenceContextProvider>
+												</AppLayout>
+											</KeyboardHotkeysProvider>
+										</QueryBuilderProvider>
+									</ResourceProvider>
+								</PrivateRoute>
+							</ErrorModalProvider>
+						</NotificationProvider>
+					</CmdKProvider>
+				</CompatRouter>
+			</Router>
+		</ConfigProvider>
 	);
 }
 

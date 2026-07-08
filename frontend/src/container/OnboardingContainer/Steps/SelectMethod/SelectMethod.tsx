@@ -26,8 +26,8 @@ export default function SelectMethod(): JSX.Element {
 					<Radio value={OnboardingMethods.RECOMMENDED_STEPS}>
 						<Typography.Text> Use Recommended Steps </Typography.Text> <br />
 						<small>
-							Send data to SigInsight via OpenTelemetry Collector (better control on data
-							you send to SigInsight, collect host metrics & logs).
+							Send data to SigInsight via OpenTelemetry Collector (better control on
+							data you send to SigInsight, collect host metrics & logs).
 						</small>
 					</Radio>
 				</Space>

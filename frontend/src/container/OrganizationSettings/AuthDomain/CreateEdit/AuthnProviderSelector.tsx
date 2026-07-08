@@ -36,8 +36,8 @@ function AuthnProviderSelector({
 					Configure Authentication Method
 				</Typography.Title>
 				<Typography.Paragraph italic>
-					SigInsight supports the following single sign-on services (SSO). Get started
-					with setting your project’s SSO below
+					SigInsight supports the following single sign-on services (SSO). Get
+					started with setting your project’s SSO below
 				</Typography.Paragraph>
 			</section>
 			<section className="selector">

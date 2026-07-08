@@ -38,8 +38,8 @@ function DataSourceInfo({
 
 			<p className="welcome-description">
 				You’re not sending any data yet. <br />
-				SigInsight is so much better with your data ⎯ start by sending your telemetry
-				data to SigInsight.
+				SigInsight is so much better with your data ⎯ start by sending your
+				telemetry data to SigInsight.
 			</p>
 
 			<Card className="welcome-card">

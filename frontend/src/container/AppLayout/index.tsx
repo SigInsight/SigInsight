@@ -62,10 +62,7 @@ import AppReducer from 'types/reducer/app';
 import { USER_ROLES } from 'types/roles';
 import { showErrorNotification } from 'utils/error';
 import { eventEmitter } from 'utils/getEventEmitter';
-import {
-	getFormattedDate,
-	getRemainingDays,
-} from 'utils/timeUtils';
+import { getFormattedDate, getRemainingDays } from 'utils/timeUtils';
 
 import { ChildrenContainer, Layout, LayoutContent } from './styles';
 import { getRouteKey } from './utils';

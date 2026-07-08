@@ -174,14 +174,7 @@ function SettingsPage(): JSX.Element {
 				false,
 				t,
 			),
-		[
-			user.role,
-			isCurrentOrgSettings,
-			isWorkspaceBlocked,
-			false,
-			false,
-			t,
-		],
+		[user.role, isCurrentOrgSettings, isWorkspaceBlocked, false, false, t],
 	);
 
 	const isCtrlMetaKey = (e: MouseEvent): boolean => e.ctrlKey || e.metaKey;

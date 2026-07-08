@@ -70,8 +70,8 @@ function MonitoringRegionsSection({
 				Which regions do you want to monitor?
 			</div>
 			<div className="cloud-account-setup-form__description">
-				Choose only the regions you want SigInsight to monitor. You can enable all at
-				once, or pick specific ones:
+				Choose only the regions you want SigInsight to monitor. You can enable all
+				at once, or pick specific ones:
 			</div>
 			<Form.Item
 				name="monitorRegions"

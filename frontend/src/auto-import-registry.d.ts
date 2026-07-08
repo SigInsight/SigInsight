@@ -7,7 +7,7 @@
 // It forces VS Code to index these specific packages to fix auto-import
 // performance issues in TypeScript 4.x.
 //
-// PR for reference: https://github.com/SigInsight/signoz/pull/9694
+// PR for reference: https://github.com/SigNoz/signoz/pull/9694
 // -------------------------------------------------------------------------
 
 import '@signozhq/badge';

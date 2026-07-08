@@ -32,12 +32,16 @@ describe('SettingsPage nav sections', () => {
 			});
 		});
 
-		it.each(['settings-page-sidenav', 'workspace', 'account', 'notification-channels', 'members', 'api-keys'])(
-			'renders "%s" element',
-			(id) => {
-				expect(screen.getByTestId(id)).toBeInTheDocument();
-			},
-		);
+		it.each([
+			'settings-page-sidenav',
+			'workspace',
+			'account',
+			'notification-channels',
+			'members',
+			'api-keys',
+		])('renders "%s" element', (id) => {
+			expect(screen.getByTestId(id)).toBeInTheDocument();
+		});
 
 		// billing/roles/integrations/ingestion are EE/cloud-only and should
 		// not appear for community users (useGetTenantLicense returns
