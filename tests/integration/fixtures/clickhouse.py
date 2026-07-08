@@ -1,4 +1,5 @@
 import os
+import platform as _platform
 from typing import Any, Generator
 
 import clickhouse_connect
@@ -14,6 +15,32 @@ from fixtures import dev, types
 from fixtures.logger import setup_logger
 
 logger = setup_logger(__name__)
+
+
+def _ensure_image_pulled(image: str) -> None:
+    """
+    Pre-pull a multi-arch image with an explicit platform.
+
+    testcontainers-python's DockerClient.create() calls docker-py's
+    images.pull(image) without a ``platform`` argument. For a multi-arch
+    manifest list this only stores the manifest index in the local image
+    store and does not extract the platform-specific image, so the
+    subsequent containers.create() fails with
+    ``ImageNotFound: No such image``.
+
+    Pulling here with an explicit platform forces the daemon to extract the
+    matching single-arch image, so the later images.get() hit inside
+    DockerClient.create() succeeds and no (platform-less) pull is attempted.
+    """
+    arch = "arm64" if _platform.machine().lower() in ("arm64", "aarch64") else "amd64"
+    client = docker.from_env()
+    try:
+        client.images.get(image)
+    except docker.errors.ImageNotFound:
+        logger.info("Pre-pulling image %s for platform linux/%s", image, arch)
+        client.images.pull(image, platform=f"linux/{arch}")
+    finally:
+        client.close()
 
 
 @pytest.fixture(name="clickhouse", scope="package")
@@ -34,6 +61,8 @@ def clickhouse(
             "SIGNOZ_HISTOGRAM_QUANTILE_IMAGE_TEMPLATE",
             "ghcr.io/siginsight/clickhouse-init-histogram-quantile:{clickhouse_version}-v0.0.1",
         ).format(clickhouse_version=version)
+
+        _ensure_image_pulled(histogram_quantile_image)
 
         container = ClickHouseContainer(
             image=histogram_quantile_image,
