@@ -1,7 +1,7 @@
 import platform
 import time
 from http import HTTPStatus
-from os import path
+from os import environ, path
 from typing import Optional
 
 import docker
@@ -19,8 +19,6 @@ logger = setup_logger(__name__)
 
 def create_signoz(
     network: Network,
-    zeus: types.TestContainerDocker,
-    gateway: types.TestContainerDocker,
     sqlstore: types.TestContainerSQL,
     clickhouse: types.TestContainerClickhouse,
     request: pytest.FixtureRequest,
@@ -55,6 +53,10 @@ def create_signoz(
             tag="signoz:integration",
             buildargs={
                 "TARGETARCH": arch,
+                "APT_MIRROR": environ.get("SIGNOZ_APT_MIRROR", ""),
+                "APT_SECURITY_MIRROR": environ.get("SIGNOZ_APT_SECURITY_MIRROR", ""),
+                "GOPROXY": environ.get("SIGNOZ_GOPROXY", environ.get("GOPROXY", "")),
+                "NPM_REGISTRY": environ.get("SIGNOZ_NPM_REGISTRY", ""),
             },
         )
 
@@ -152,8 +154,6 @@ def create_signoz(
             ),
             sqlstore=sqlstore,
             telemetrystore=clickhouse,
-            zeus=zeus,
-            gateway=gateway,
         )
 
     def delete(container: types.SigNoz) -> None:
@@ -173,8 +173,6 @@ def create_signoz(
             self=self,
             sqlstore=sqlstore,
             telemetrystore=clickhouse,
-            zeus=zeus,
-            gateway=gateway,
         )
 
     return dev.wrap(
@@ -189,8 +187,6 @@ def create_signoz(
             ),
             sqlstore=sqlstore,
             telemetrystore=clickhouse,
-            zeus=zeus,
-            gateway=gateway,
         ),
         create=create,
         delete=delete,
@@ -201,8 +197,6 @@ def create_signoz(
 @pytest.fixture(name="signoz", scope="package")
 def signoz(  # pylint: disable=too-many-arguments,too-many-positional-arguments
     network: Network,
-    zeus: types.TestContainerDocker,
-    gateway: types.TestContainerDocker,
     sqlstore: types.TestContainerSQL,
     clickhouse: types.TestContainerClickhouse,
     request: pytest.FixtureRequest,
@@ -213,8 +207,6 @@ def signoz(  # pylint: disable=too-many-arguments,too-many-positional-arguments
     """
     return create_signoz(
         network=network,
-        zeus=zeus,
-        gateway=gateway,
         sqlstore=sqlstore,
         clickhouse=clickhouse,
         request=request,

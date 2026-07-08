@@ -16,6 +16,10 @@ from fixtures.logger import setup_logger
 
 logger = setup_logger(__name__)
 
+DEFAULT_HISTOGRAM_QUANTILE_IMAGE = (
+    "ghcr.io/siginsight/clickhouse-init-histogram-quantile:25.5.6-latest"
+)
+
 
 def _ensure_image_pulled(image: str) -> None:
     """
@@ -59,13 +63,17 @@ def clickhouse(
         version = request.config.getoption("--clickhouse-version")
         histogram_quantile_image = os.getenv(
             "SIGNOZ_HISTOGRAM_QUANTILE_IMAGE_TEMPLATE",
-            "ghcr.io/siginsight/clickhouse-init-histogram-quantile:{clickhouse_version}-v0.0.1",
+            DEFAULT_HISTOGRAM_QUANTILE_IMAGE,
+        ).format(clickhouse_version=version)
+        clickhouse_image = os.getenv(
+            "SIGNOZ_CLICKHOUSE_IMAGE_TEMPLATE",
+            "clickhouse/clickhouse-server:{clickhouse_version}",
         ).format(clickhouse_version=version)
 
         _ensure_image_pulled(histogram_quantile_image)
 
         container = ClickHouseContainer(
-            image=histogram_quantile_image,
+            image=clickhouse_image,
             port=9000,
             username="signoz",
             password="password",
@@ -196,19 +204,35 @@ def clickhouse(
         container.with_network(network)
         container.start()
 
-        # Copy the histogramQuantile binary from the GHCR-backed test image.
+        # Copy the histogramQuantile binary from the helper image into the running ClickHouse container.
         wrapped = container.get_wrapped_container()
-        exit_code, output = wrapped.exec_run(
-            [
-                "bash",
-                "-c",
-                (
-                    "mkdir -p /var/lib/clickhouse/user_scripts && "
-                    "cp /opt/siginsight/bin/histogramQuantile /var/lib/clickhouse/user_scripts/histogramQuantile && "
-                    "chmod +x /var/lib/clickhouse/user_scripts/histogramQuantile"
-                ),
-            ],
-        )
+        client = docker.from_env()
+        helper_container = client.containers.create(histogram_quantile_image)
+        try:
+            exit_code, output = wrapped.exec_run(
+                ["mkdir", "-p", "/var/lib/clickhouse/user_scripts"]
+            )
+            if exit_code != 0:
+                raise RuntimeError(
+                    f"Failed to create ClickHouse user_scripts directory: {output.decode()}"
+                )
+
+            archive, _ = helper_container.get_archive(
+                "/opt/siginsight/bin/histogramQuantile"
+            )
+            if not wrapped.put_archive(
+                "/var/lib/clickhouse/user_scripts", b"".join(archive)
+            ):
+                raise RuntimeError(
+                    f"Failed to copy histogramQuantile binary from image {histogram_quantile_image}"
+                )
+
+            exit_code, output = wrapped.exec_run(
+                ["chmod", "+x", "/var/lib/clickhouse/user_scripts/histogramQuantile"]
+            )
+        finally:
+            helper_container.remove(force=True)
+
         if exit_code != 0:
             raise RuntimeError(
                 f"Failed to install histogramQuantile binary from image {histogram_quantile_image}: {output.decode()}"

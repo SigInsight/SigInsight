@@ -17,9 +17,7 @@ var (
 
 var (
 	AuthNProviderGoogleAuth    = AuthNProvider{valuer.NewString("google_auth")}
-	AuthNProviderSAML          = AuthNProvider{valuer.NewString("saml")}
 	AuthNProviderEmailPassword = AuthNProvider{valuer.NewString("email_password")}
-	AuthNProviderOIDC          = AuthNProvider{valuer.NewString("oidc")}
 )
 
 type AuthNProvider struct{ valuer.String }

@@ -67,8 +67,8 @@ function AttributeMappingSection({
 									Attribute Mapping (Advanced)
 								</h4>
 								<p className="attribute-mapping-section__section-description">
-									Configure how SAML assertion attributes from your Identity Provider map
-									to SigInsight user attributes. Leave empty to use default values.
+									Configure how identity provider attributes map to SigInsight user
+									attributes. Leave empty to use default values.
 								</p>
 							</div>
 							{!expanded && hasErrors && (
@@ -97,7 +97,7 @@ function AttributeMappingSection({
 								htmlFor="email-attribute"
 							>
 								Email Attribute
-								<Tooltip title="The SAML attribute key that contains the user's email. Default: 'email'">
+								<Tooltip title="The identity provider attribute key that contains the user's email. Default: 'email'">
 									<CircleHelp size={14} color={Style.L3_FOREGROUND} cursor="help" />
 								</Tooltip>
 							</label>
@@ -116,7 +116,7 @@ function AttributeMappingSection({
 								htmlFor="name-attribute"
 							>
 								Name Attribute
-								<Tooltip title="The SAML attribute key that contains the user's display name. Default: 'name'">
+								<Tooltip title="The identity provider attribute key that contains the user's display name. Default: 'name'">
 									<CircleHelp size={14} color={Style.L3_FOREGROUND} cursor="help" />
 								</Tooltip>
 							</label>
@@ -135,7 +135,7 @@ function AttributeMappingSection({
 								htmlFor="groups-attribute"
 							>
 								Groups Attribute
-								<Tooltip title="The SAML attribute key that contains the user's group memberships. Used for role mapping. Default: 'groups'">
+								<Tooltip title="The identity provider attribute key that contains the user's group memberships. Used for role mapping. Default: 'groups'">
 									<CircleHelp size={14} color={Style.L3_FOREGROUND} cursor="help" />
 								</Tooltip>
 							</label>
@@ -154,7 +154,7 @@ function AttributeMappingSection({
 								htmlFor="role-attribute"
 							>
 								Role Attribute
-								<Tooltip title="The SAML attribute key that contains the user's role directly from the IDP. Default: 'role'">
+								<Tooltip title="The identity provider attribute key that contains the user's role directly from the IDP. Default: 'role'">
 									<CircleHelp size={14} color={Style.L3_FOREGROUND} cursor="help" />
 								</Tooltip>
 							</label>

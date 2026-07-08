@@ -1,3 +1,5 @@
+import time
+
 import docker
 import pytest
 from testcontainers.core.container import Network
@@ -22,10 +24,11 @@ def migrator(
     def create() -> None:
         version = request.config.getoption("--schema-migrator-version")
         client = docker.from_env()
+        dsn = clickhouse.env["SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN"]
 
         container = client.containers.run(
             image=f"signoz/signoz-schema-migrator:{version}",
-            command=f"sync --replication=true --cluster-name=cluster --up= --dsn={clickhouse.env["SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN"]}",
+            command=f"sync --replication=true --cluster-name=cluster --up= --dsn={dsn}",
             detach=True,
             auto_remove=False,
             network=network.id,
@@ -43,35 +46,44 @@ def migrator(
 
         container = client.containers.run(
             image=f"signoz/signoz-schema-migrator:{version}",
-            command=f"async --replication=true --cluster-name=cluster --up= --dsn={clickhouse.env["SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN"]}",
+            command=f"async --replication=true --cluster-name=cluster --up= --dsn={dsn}",
             detach=True,
             auto_remove=False,
             network=network.id,
         )
 
-        result = container.wait()
+        time.sleep(5)
+        container.reload()
+        if container.status == "exited":
+            result = container.wait()
+            if result["StatusCode"] != 0:
+                logs = container.logs().decode(encoding="utf-8")
+                container.remove()
+                print(logs)
+                raise RuntimeError("failed to run async migrations on clickhouse")
 
-        if result["StatusCode"] != 0:
-            logs = container.logs().decode(encoding="utf-8")
-            container.remove()
-            print(logs)
-            raise RuntimeError("failed to run migrations on clickhouse")
+        return types.Operation(name="migrator", container_id=container.id)
 
+    def delete(operation: types.Operation) -> None:
+        if not operation.container_id:
+            return
+
+        client = docker.from_env()
+        container = client.containers.get(operation.container_id)
+        container.stop(timeout=10)
         container.remove()
-
-        return types.Operation(name="migrator")
-
-    def delete(_: types.Operation) -> None:
-        pass
 
     def restore(cache: dict) -> types.Operation:
-        return types.Operation(name=cache["name"])
+        return types.Operation(
+            name=cache["name"],
+            container_id=cache.get("container_id"),
+        )
 
     return dev.wrap(
         request,
         pytestconfig,
         "migrator",
-        lambda: types.Operation(name=""),
+        lambda: types.Operation(name="", container_id=None),
         create,
         delete,
         restore,

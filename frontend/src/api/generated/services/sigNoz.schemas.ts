@@ -1,33 +1,12 @@
 /**
  * ! Do not edit manually
- * * The file has been auto-generated using Orval for SigInsight
+ * * The file has been auto-generated using Orval for SigNoz
  * * regenerate with 'yarn generate:api'
- * SigInsight
+ * SigNoz
  */
-export interface AuthtypesAttributeMappingDTO {
-	/**
-	 * @type string
-	 */
-	email?: string;
-	/**
-	 * @type string
-	 */
-	groups?: string;
-	/**
-	 * @type string
-	 */
-	name?: string;
-	/**
-	 * @type string
-	 */
-	role?: string;
-}
-
 export interface AuthtypesAuthDomainConfigDTO {
 	googleAuthConfig?: AuthtypesGoogleConfigDTO;
-	oidcConfig?: AuthtypesOIDCConfigDTO;
 	roleMapping?: AuthtypesRoleMappingDTO;
-	samlConfig?: AuthtypesSamlConfigDTO;
 	/**
 	 * @type boolean
 	 */
@@ -86,13 +65,11 @@ export interface AuthtypesGettableAuthDomainDTO {
 	 * @type string
 	 */
 	name?: string;
-	oidcConfig?: AuthtypesOIDCConfigDTO;
 	/**
 	 * @type string
 	 */
 	orgId?: string;
 	roleMapping?: AuthtypesRoleMappingDTO;
-	samlConfig?: AuthtypesSamlConfigDTO;
 	/**
 	 * @type boolean
 	 */
@@ -207,34 +184,6 @@ export interface AuthtypesGoogleConfigDTO {
 	 * @type string
 	 */
 	serviceAccountJson?: string;
-}
-
-export interface AuthtypesOIDCConfigDTO {
-	claimMapping?: AuthtypesAttributeMappingDTO;
-	/**
-	 * @type string
-	 */
-	clientId?: string;
-	/**
-	 * @type string
-	 */
-	clientSecret?: string;
-	/**
-	 * @type boolean
-	 */
-	getUserInfo?: boolean;
-	/**
-	 * @type boolean
-	 */
-	insecureSkipEmailVerified?: boolean;
-	/**
-	 * @type string
-	 */
-	issuer?: string;
-	/**
-	 * @type string
-	 */
-	issuerAlias?: string;
 }
 
 export interface AuthtypesObjectDTO {
@@ -391,26 +340,6 @@ export interface AuthtypesRoleMappingDTO {
 	 * @type boolean
 	 */
 	useRoleAttribute?: boolean;
-}
-
-export interface AuthtypesSamlConfigDTO {
-	attributeMapping?: AuthtypesAttributeMappingDTO;
-	/**
-	 * @type boolean
-	 */
-	insecureSkipAuthNRequestsSigned?: boolean;
-	/**
-	 * @type string
-	 */
-	samlCert?: string;
-	/**
-	 * @type string
-	 */
-	samlEntity?: string;
-	/**
-	 * @type string
-	 */
-	samlIdp?: string;
 }
 
 export interface AuthtypesSessionContextDTO {
@@ -1125,203 +1054,6 @@ export interface FeaturetypesGettableFeatureDTO {
 	 * @nullable true
 	 */
 	variants?: FeaturetypesGettableFeatureDTOVariants;
-}
-
-export interface GatewaytypesGettableCreatedIngestionKeyDTO {
-	/**
-	 * @type string
-	 */
-	id: string;
-	/**
-	 * @type string
-	 */
-	value: string;
-}
-
-export interface GatewaytypesGettableCreatedIngestionKeyLimitDTO {
-	/**
-	 * @type string
-	 */
-	id: string;
-}
-
-export interface GatewaytypesGettableIngestionKeysDTO {
-	_pagination?: GatewaytypesPaginationDTO;
-	/**
-	 * @type array
-	 * @nullable true
-	 */
-	keys?: GatewaytypesIngestionKeyDTO[] | null;
-}
-
-export interface GatewaytypesIngestionKeyDTO {
-	/**
-	 * @type string
-	 * @format date-time
-	 */
-	created_at?: Date;
-	/**
-	 * @type string
-	 * @format date-time
-	 */
-	expires_at?: Date;
-	/**
-	 * @type string
-	 */
-	id?: string;
-	/**
-	 * @type array
-	 * @nullable true
-	 */
-	limits?: GatewaytypesLimitDTO[] | null;
-	/**
-	 * @type string
-	 */
-	name?: string;
-	/**
-	 * @type array
-	 * @nullable true
-	 */
-	tags?: string[] | null;
-	/**
-	 * @type string
-	 * @format date-time
-	 */
-	updated_at?: Date;
-	/**
-	 * @type string
-	 */
-	value?: string;
-	/**
-	 * @type string
-	 */
-	workspace_id?: string;
-}
-
-export interface GatewaytypesLimitDTO {
-	config?: GatewaytypesLimitConfigDTO;
-	/**
-	 * @type string
-	 * @format date-time
-	 */
-	created_at?: Date;
-	/**
-	 * @type string
-	 */
-	id?: string;
-	/**
-	 * @type string
-	 */
-	key_id?: string;
-	metric?: GatewaytypesLimitMetricDTO;
-	/**
-	 * @type string
-	 */
-	signal?: string;
-	/**
-	 * @type array
-	 * @nullable true
-	 */
-	tags?: string[] | null;
-	/**
-	 * @type string
-	 * @format date-time
-	 */
-	updated_at?: Date;
-}
-
-export interface GatewaytypesLimitConfigDTO {
-	day?: GatewaytypesLimitValueDTO;
-	second?: GatewaytypesLimitValueDTO;
-}
-
-export interface GatewaytypesLimitMetricDTO {
-	day?: GatewaytypesLimitMetricValueDTO;
-	second?: GatewaytypesLimitMetricValueDTO;
-}
-
-export interface GatewaytypesLimitMetricValueDTO {
-	/**
-	 * @type integer
-	 * @format int64
-	 */
-	count?: number;
-	/**
-	 * @type integer
-	 * @format int64
-	 */
-	size?: number;
-}
-
-export interface GatewaytypesLimitValueDTO {
-	/**
-	 * @type integer
-	 * @nullable true
-	 */
-	count?: number | null;
-	/**
-	 * @type integer
-	 * @nullable true
-	 */
-	size?: number | null;
-}
-
-export interface GatewaytypesPaginationDTO {
-	/**
-	 * @type integer
-	 */
-	page?: number;
-	/**
-	 * @type integer
-	 */
-	pages?: number;
-	/**
-	 * @type integer
-	 */
-	per_page?: number;
-	/**
-	 * @type integer
-	 */
-	total?: number;
-}
-
-export interface GatewaytypesPostableIngestionKeyDTO {
-	/**
-	 * @type string
-	 * @format date-time
-	 */
-	expires_at?: Date;
-	/**
-	 * @type string
-	 */
-	name: string;
-	/**
-	 * @type array
-	 * @nullable true
-	 */
-	tags?: string[] | null;
-}
-
-export interface GatewaytypesPostableIngestionKeyLimitDTO {
-	config?: GatewaytypesLimitConfigDTO;
-	/**
-	 * @type string
-	 */
-	signal?: string;
-	/**
-	 * @type array
-	 * @nullable true
-	 */
-	tags?: string[] | null;
-}
-
-export interface GatewaytypesUpdatableIngestionKeyLimitDTO {
-	config: GatewaytypesLimitConfigDTO;
-	/**
-	 * @type array
-	 * @nullable true
-	 */
-	tags?: string[] | null;
 }
 
 export interface GlobaltypesAPIKeyConfigDTO {
@@ -2111,7 +1843,7 @@ export interface Querybuildertypesv5QueryBuilderFormulaDTO {
 	order?: Querybuildertypesv5OrderByDTO[];
 }
 
-export interface Querybuildertypesv5QueryBuilderQueryGithubComSigInsightSignozPkgTypesQuerybuildertypesQuerybuildertypesv5LogAggregationDTO {
+export interface Querybuildertypesv5QueryBuilderQueryGithubComSigNozSignozPkgTypesQuerybuildertypesQuerybuildertypesv5LogAggregationDTO {
 	/**
 	 * @type array
 	 */
@@ -2168,7 +1900,7 @@ export interface Querybuildertypesv5QueryBuilderQueryGithubComSigInsightSignozPk
 	stepInterval?: Querybuildertypesv5StepDTO;
 }
 
-export interface Querybuildertypesv5QueryBuilderQueryGithubComSigInsightSignozPkgTypesQuerybuildertypesQuerybuildertypesv5MetricAggregationDTO {
+export interface Querybuildertypesv5QueryBuilderQueryGithubComSigNozSignozPkgTypesQuerybuildertypesQuerybuildertypesv5MetricAggregationDTO {
 	/**
 	 * @type array
 	 */
@@ -2225,7 +1957,7 @@ export interface Querybuildertypesv5QueryBuilderQueryGithubComSigInsightSignozPk
 	stepInterval?: Querybuildertypesv5StepDTO;
 }
 
-export interface Querybuildertypesv5QueryBuilderQueryGithubComSigInsightSignozPkgTypesQuerybuildertypesQuerybuildertypesv5TraceAggregationDTO {
+export interface Querybuildertypesv5QueryBuilderQueryGithubComSigNozSignozPkgTypesQuerybuildertypesQuerybuildertypesv5TraceAggregationDTO {
 	/**
 	 * @type array
 	 */
@@ -2394,17 +2126,17 @@ export type Querybuildertypesv5QueryEnvelopeDTO =
 	  });
 
 export interface Querybuildertypesv5QueryEnvelopeBuilderLogDTO {
-	spec?: Querybuildertypesv5QueryBuilderQueryGithubComSigInsightSignozPkgTypesQuerybuildertypesQuerybuildertypesv5LogAggregationDTO;
+	spec?: Querybuildertypesv5QueryBuilderQueryGithubComSigNozSignozPkgTypesQuerybuildertypesQuerybuildertypesv5LogAggregationDTO;
 	type?: Querybuildertypesv5QueryTypeDTO;
 }
 
 export interface Querybuildertypesv5QueryEnvelopeBuilderMetricDTO {
-	spec?: Querybuildertypesv5QueryBuilderQueryGithubComSigInsightSignozPkgTypesQuerybuildertypesQuerybuildertypesv5MetricAggregationDTO;
+	spec?: Querybuildertypesv5QueryBuilderQueryGithubComSigNozSignozPkgTypesQuerybuildertypesQuerybuildertypesv5MetricAggregationDTO;
 	type?: Querybuildertypesv5QueryTypeDTO;
 }
 
 export interface Querybuildertypesv5QueryEnvelopeBuilderTraceDTO {
-	spec?: Querybuildertypesv5QueryBuilderQueryGithubComSigInsightSignozPkgTypesQuerybuildertypesQuerybuildertypesv5TraceAggregationDTO;
+	spec?: Querybuildertypesv5QueryBuilderQueryGithubComSigNozSignozPkgTypesQuerybuildertypesQuerybuildertypesv5TraceAggregationDTO;
 	type?: Querybuildertypesv5QueryTypeDTO;
 }
 
@@ -3296,91 +3028,6 @@ export interface TypesUserDTO {
 	updatedAt?: Date;
 }
 
-export interface ZeustypesGettableHostDTO {
-	/**
-	 * @type array
-	 * @nullable true
-	 */
-	hosts: ZeustypesHostDTO[] | null;
-	/**
-	 * @type string
-	 */
-	name: string;
-	/**
-	 * @type string
-	 */
-	state: string;
-	/**
-	 * @type string
-	 */
-	tier: string;
-}
-
-export interface ZeustypesHostDTO {
-	/**
-	 * @type boolean
-	 */
-	is_default: boolean;
-	/**
-	 * @type string
-	 */
-	name: string;
-	/**
-	 * @type string
-	 */
-	url: string;
-}
-
-export interface ZeustypesPostableHostDTO {
-	/**
-	 * @type string
-	 */
-	name: string;
-}
-
-export interface ZeustypesPostableProfileDTO {
-	/**
-	 * @type string
-	 */
-	existing_observability_tool: string;
-	/**
-	 * @type boolean
-	 */
-	has_existing_observability_tool: boolean;
-	/**
-	 * @type integer
-	 * @format int64
-	 */
-	logs_scale_per_day_in_gb: number;
-	/**
-	 * @type integer
-	 * @format int64
-	 */
-	number_of_hosts: number;
-	/**
-	 * @type integer
-	 * @format int64
-	 */
-	number_of_services: number;
-	/**
-	 * @type array
-	 * @nullable true
-	 */
-	reasons_for_interest_in_signoz: string[] | null;
-	/**
-	 * @type string
-	 */
-	timeline_for_migrating_to_signoz: string;
-	/**
-	 * @type boolean
-	 */
-	uses_otel: boolean;
-	/**
-	 * @type string
-	 */
-	where_did_you_discover_signoz: string;
-}
-
 export type AuthzCheck200 = {
 	/**
 	 * @type array
@@ -3495,46 +3142,6 @@ export type UpdateServicePathParameters = {
 	serviceId: string;
 };
 export type CreateSessionByGoogleCallback303 = {
-	data: AuthtypesGettableTokenDTO;
-	/**
-	 * @type string
-	 */
-	status: string;
-};
-
-export type CreateSessionByOIDCCallback303 = {
-	data: AuthtypesGettableTokenDTO;
-	/**
-	 * @type string
-	 */
-	status: string;
-};
-
-export type CreateSessionBySAMLCallbackParams = {
-	/**
-	 * @type string
-	 * @description undefined
-	 */
-	RelayState?: string;
-	/**
-	 * @type string
-	 * @description undefined
-	 */
-	SAMLResponse?: string;
-};
-
-export type CreateSessionBySAMLCallbackBody = {
-	/**
-	 * @type string
-	 */
-	RelayState?: string;
-	/**
-	 * @type string
-	 */
-	SAMLResponse?: string;
-};
-
-export type CreateSessionBySAMLCallback303 = {
 	data: AuthtypesGettableTokenDTO;
 	/**
 	 * @type string
@@ -4045,84 +3652,6 @@ export type GetFeatures200 = {
 	status: string;
 };
 
-export type GetIngestionKeysParams = {
-	/**
-	 * @type integer
-	 * @description undefined
-	 */
-	page?: number;
-	/**
-	 * @type integer
-	 * @description undefined
-	 */
-	per_page?: number;
-};
-
-export type GetIngestionKeys200 = {
-	data: GatewaytypesGettableIngestionKeysDTO;
-	/**
-	 * @type string
-	 */
-	status: string;
-};
-
-export type CreateIngestionKey201 = {
-	data: GatewaytypesGettableCreatedIngestionKeyDTO;
-	/**
-	 * @type string
-	 */
-	status: string;
-};
-
-export type DeleteIngestionKeyPathParameters = {
-	keyId: string;
-};
-export type UpdateIngestionKeyPathParameters = {
-	keyId: string;
-};
-export type CreateIngestionKeyLimitPathParameters = {
-	keyId: string;
-};
-export type CreateIngestionKeyLimit201 = {
-	data: GatewaytypesGettableCreatedIngestionKeyLimitDTO;
-	/**
-	 * @type string
-	 */
-	status: string;
-};
-
-export type DeleteIngestionKeyLimitPathParameters = {
-	limitId: string;
-};
-export type UpdateIngestionKeyLimitPathParameters = {
-	limitId: string;
-};
-export type SearchIngestionKeysParams = {
-	/**
-	 * @type string
-	 * @description undefined
-	 */
-	name: string;
-	/**
-	 * @type integer
-	 * @description undefined
-	 */
-	page?: number;
-	/**
-	 * @type integer
-	 * @description undefined
-	 */
-	per_page?: number;
-};
-
-export type SearchIngestionKeys200 = {
-	data: GatewaytypesGettableIngestionKeysDTO;
-	/**
-	 * @type string
-	 */
-	status: string;
-};
-
 export type Healthz200 = {
 	data: FactoryResponseDTO;
 	/**
@@ -4384,14 +3913,6 @@ export type RemoveUserRoleByUserIDAndRoleIDPathParameters = {
 };
 export type GetMyUser200 = {
 	data: AuthtypesUserWithRolesDTO;
-	/**
-	 * @type string
-	 */
-	status: string;
-};
-
-export type GetHosts200 = {
-	data: ZeustypesGettableHostDTO;
 	/**
 	 * @type string
 	 */

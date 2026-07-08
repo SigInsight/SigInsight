@@ -94,42 +94,5 @@ func (provider *provider) addSessionRoutes(router *mux.Router) error {
 		return err
 	}
 
-	if err := router.Handle("/api/v1/complete/saml", handler.New(provider.authZ.OpenAccess(provider.sessionHandler.CreateSessionBySAMLCallback), handler.OpenAPIDef{
-		ID:          "CreateSessionBySAMLCallback",
-		Tags:        []string{"sessions"},
-		Summary:     "Create session by saml callback",
-		Description: "This endpoint creates a session for a user using saml callback",
-		Request: struct {
-			RelayState   string `form:"RelayState"`
-			SAMLResponse string `form:"SAMLResponse"`
-		}{},
-		RequestContentType:  "application/x-www-form-urlencoded",
-		Response:            new(authtypes.GettableToken),
-		ResponseContentType: "application/json",
-		SuccessStatusCode:   http.StatusSeeOther,
-		ErrorStatusCodes:    []int{http.StatusBadRequest, http.StatusNotFound, http.StatusUnavailableForLegalReasons},
-		Deprecated:          false,
-		SecuritySchemes:     []handler.OpenAPISecurityScheme{},
-	})).Methods(http.MethodPost).GetError(); err != nil {
-		return err
-	}
-
-	if err := router.Handle("/api/v1/complete/oidc", handler.New(provider.authZ.OpenAccess(provider.sessionHandler.CreateSessionByOIDCCallback), handler.OpenAPIDef{
-		ID:                  "CreateSessionByOIDCCallback",
-		Tags:                []string{"sessions"},
-		Summary:             "Create session by oidc callback",
-		Description:         "This endpoint creates a session for a user using oidc callback",
-		Request:             nil,
-		RequestContentType:  "",
-		Response:            new(authtypes.GettableToken),
-		ResponseContentType: "application/json",
-		SuccessStatusCode:   http.StatusSeeOther,
-		ErrorStatusCodes:    []int{http.StatusBadRequest, http.StatusNotFound, http.StatusUnavailableForLegalReasons},
-		Deprecated:          false,
-		SecuritySchemes:     []handler.OpenAPISecurityScheme{},
-	})).Methods(http.MethodGet).GetError(); err != nil {
-		return err
-	}
-
 	return nil
 }

@@ -47,27 +47,6 @@ def test_create_and_get_domain(
 
     assert response.status_code == HTTPStatus.CREATED
 
-    # Create a domain with saml config
-    response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v1/domains"),
-        json={
-            "name": "domain-saml.integration.test",
-            "config": {
-                "ssoEnabled": True,
-                "ssoType": "saml",
-                "samlConfig": {
-                    "samlEntity": "saml-entity",
-                    "samlIdp": "saml-idp",
-                    "samlCert": "saml-cert",
-                },
-            },
-        },
-        headers={"Authorization": f"Bearer {admin_token}"},
-        timeout=2,
-    )
-
-    assert response.status_code == HTTPStatus.CREATED
-
     # List the domains
     response = requests.get(
         signoz.self.host_configs["8080"].get("/api/v1/domains"),
@@ -79,14 +58,11 @@ def test_create_and_get_domain(
     assert response.json()["status"] == "success"
     data = response.json()["data"]
 
-    assert len(data) == 2
+    assert len(data) == 1
 
     for domain in data:
-        assert domain["name"] in [
-            "domain-google.integration.test",
-            "domain-saml.integration.test",
-        ]
-        assert domain["ssoType"] in ["google_auth", "saml"]
+        assert domain["name"] == "domain-google.integration.test"
+        assert domain["ssoType"] == "google_auth"
 
 
 def test_create_invalid(
@@ -96,7 +72,7 @@ def test_create_invalid(
 ):
     admin_token = get_token(USER_ADMIN_EMAIL, USER_ADMIN_PASSWORD)
 
-    # Create a domain with type saml and body for oidc, this should fail because oidcConfig is not allowed for saml
+    # Create a domain with a removed SSO provider, this should fail.
     response = requests.post(
         signoz.self.host_configs["8080"].get("/api/v1/domains"),
         json={
@@ -104,11 +80,6 @@ def test_create_invalid(
             "config": {
                 "ssoEnabled": True,
                 "ssoType": "saml",
-                "oidcConfig": {
-                    "clientId": "client-id",
-                    "clientSecret": "client-secret",
-                    "issuer": "issuer",
-                },
             },
         },
         headers={"Authorization": f"Bearer {admin_token}"},
@@ -124,11 +95,11 @@ def test_create_invalid(
             "name": "$%^invalid",
             "config": {
                 "ssoEnabled": True,
-                "ssoType": "saml",
-                "samlConfig": {
-                    "samlEntity": "saml-entity",
-                    "samlIdp": "saml-idp",
-                    "samlCert": "saml-cert",
+                "ssoType": "google_auth",
+                "googleAuthConfig": {
+                    "clientId": "client-id",
+                    "clientSecret": "client-secret",
+                    "redirectURI": "redirect-uri",
                 },
             },
         },
@@ -144,11 +115,11 @@ def test_create_invalid(
         json={
             "config": {
                 "ssoEnabled": True,
-                "ssoType": "saml",
-                "samlConfig": {
-                    "samlEntity": "saml-entity",
-                    "samlIdp": "saml-idp",
-                    "samlCert": "saml-cert",
+                "ssoType": "google_auth",
+                "googleAuthConfig": {
+                    "clientId": "client-id",
+                    "clientSecret": "client-secret",
+                    "redirectURI": "redirect-uri",
                 },
             }
         },
@@ -186,11 +157,11 @@ def test_create_invalid_role_mapping(
             "name": "invalid-role-test.integration.test",
             "config": {
                 "ssoEnabled": True,
-                "ssoType": "saml",
-                "samlConfig": {
-                    "samlEntity": "saml-entity",
-                    "samlIdp": "saml-idp",
-                    "samlCert": "saml-cert",
+                "ssoType": "google_auth",
+                "googleAuthConfig": {
+                    "clientId": "client-id",
+                    "clientSecret": "client-secret",
+                    "redirectURI": "redirect-uri",
                 },
                 "roleMapping": {
                     "defaultRole": "SUPERADMIN",  # Invalid role
@@ -210,11 +181,11 @@ def test_create_invalid_role_mapping(
             "name": "invalid-group-role.integration.test",
             "config": {
                 "ssoEnabled": True,
-                "ssoType": "saml",
-                "samlConfig": {
-                    "samlEntity": "saml-entity",
-                    "samlIdp": "saml-idp",
-                    "samlCert": "saml-cert",
+                "ssoType": "google_auth",
+                "googleAuthConfig": {
+                    "clientId": "client-id",
+                    "clientSecret": "client-secret",
+                    "redirectURI": "redirect-uri",
                 },
                 "roleMapping": {
                     "defaultRole": "VIEWER",
@@ -237,11 +208,11 @@ def test_create_invalid_role_mapping(
             "name": "valid-role-mapping.integration.test",
             "config": {
                 "ssoEnabled": True,
-                "ssoType": "saml",
-                "samlConfig": {
-                    "samlEntity": "saml-entity",
-                    "samlIdp": "saml-idp",
-                    "samlCert": "saml-cert",
+                "ssoType": "google_auth",
+                "googleAuthConfig": {
+                    "clientId": "client-id",
+                    "clientSecret": "client-secret",
+                    "redirectURI": "redirect-uri",
                 },
                 "roleMapping": {
                     "defaultRole": "VIEWER",

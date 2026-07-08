@@ -14,9 +14,7 @@ import {
 	RenderErrorResponseDTO,
 } from 'api/generated/services/sigNoz.schemas';
 import { AxiosError } from 'axios';
-import { FeatureKeys } from 'constants/features';
 import { defaultTo } from 'lodash-es';
-import { useAppContext } from 'providers/App/App';
 import { useErrorModal } from 'providers/ErrorModalProvider';
 import { ErrorV2Resp } from 'types/api';
 import APIError from 'types/api/error';
@@ -29,8 +27,6 @@ import {
 	prepareInitialValues,
 } from './CreateEdit.utils';
 import ConfigureGoogleAuthAuthnProvider from './Providers/AuthnGoogleAuth';
-import ConfigureOIDCAuthnProvider from './Providers/AuthnOIDC';
-import ConfigureSAMLAuthnProvider from './Providers/AuthnSAML';
 
 import './CreateEdit.styles.scss';
 function configureAuthnProvider(
@@ -38,12 +34,8 @@ function configureAuthnProvider(
 	isCreate: boolean,
 ): JSX.Element {
 	switch (authnProvider) {
-		case 'saml':
-			return <ConfigureSAMLAuthnProvider isCreate={isCreate} />;
 		case 'google_auth':
 			return <ConfigureGoogleAuthAuthnProvider isCreate={isCreate} />;
-		case 'oidc':
-			return <ConfigureOIDCAuthnProvider isCreate={isCreate} />;
 		default:
 			return <ConfigureGoogleAuthAuthnProvider isCreate={isCreate} />;
 	}
@@ -63,7 +55,6 @@ function CreateOrEdit(props: CreateOrEditProps): JSX.Element {
 	);
 
 	const { showErrorModal } = useErrorModal();
-	const { featureFlags } = useAppContext();
 
 	const handleError = useCallback(
 		(error: AxiosError<RenderErrorResponseDTO>): void => {
@@ -75,8 +66,6 @@ function CreateOrEdit(props: CreateOrEditProps): JSX.Element {
 		},
 		[showErrorModal],
 	);
-	const samlEnabled =
-		featureFlags?.find((flag) => flag.name === FeatureKeys.SSO)?.active || false;
 
 	const {
 		mutate: createAuthDomain,
@@ -145,8 +134,6 @@ function CreateOrEdit(props: CreateOrEditProps): JSX.Element {
 
 		const name = form.getFieldValue('name');
 		const googleAuthConfig = getGoogleAuthConfig();
-		const samlConfig = form.getFieldValue('samlConfig');
-		const oidcConfig = form.getFieldValue('oidcConfig');
 		const roleMapping = getRoleMapping();
 
 		if (isCreate) {
@@ -158,8 +145,6 @@ function CreateOrEdit(props: CreateOrEditProps): JSX.Element {
 							ssoEnabled: true,
 							ssoType: authnProvider,
 							googleAuthConfig,
-							samlConfig,
-							oidcConfig,
 							roleMapping,
 						},
 					},
@@ -185,8 +170,6 @@ function CreateOrEdit(props: CreateOrEditProps): JSX.Element {
 							ssoEnabled: form.getFieldValue('ssoEnabled'),
 							ssoType: authnProvider,
 							googleAuthConfig,
-							samlConfig,
-							oidcConfig,
 							roleMapping,
 						},
 					},
@@ -237,10 +220,7 @@ function CreateOrEdit(props: CreateOrEditProps): JSX.Element {
 				layout="vertical"
 			>
 				{isCreate && authnProvider === '' && (
-					<AuthnProviderSelector
-						setAuthnProvider={setAuthnProvider}
-						samlEnabled={samlEnabled}
-					/>
+					<AuthnProviderSelector setAuthnProvider={setAuthnProvider} />
 				)}
 				{authnProvider !== '' && (
 					<div className="auth-domain-configure">

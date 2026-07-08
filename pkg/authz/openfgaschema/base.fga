@@ -4,9 +4,11 @@ type user
 
 type serviceaccount 
 
+type anonymous
+
 type role 
   relations
-    define assignee: [user, serviceaccount]
+    define assignee: [user, serviceaccount, anonymous]
 
 type organisation 
   relations

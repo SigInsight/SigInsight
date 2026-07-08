@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
 import logEvent from 'api/common/logEvent';
 import RouteTab from 'components/RouteTab';
-import { FeatureKeys } from 'constants/features';
 import ROUTES from 'constants/routes';
 import { IS_SERVICE_ACCOUNTS_ENABLED } from 'container/ServiceAccountsSettings/config';
 import { routeConfig } from 'container/SideNav/config';
@@ -24,12 +23,7 @@ import './Settings.styles.scss';
 function SettingsPage(): JSX.Element {
 	const { pathname, search } = useLocation();
 
-	const {
-		user,
-		featureFlags,
-		trialInfo,
-		isFetchingActiveLicense,
-	} = useAppContext();
+	const { user, trialInfo, isFetchingActiveLicense } = useAppContext();
 
 	const [settingsMenuItems, setSettingsMenuItems] = useState<SidebarItem[]>(
 		settingsNavSections.flatMap((section) => section.items),
@@ -45,10 +39,6 @@ function SettingsPage(): JSX.Element {
 		user.role,
 	);
 	const { t } = useTranslation(['routes']);
-
-	const isGatewayEnabled =
-		featureFlags?.find((feature) => feature.name === FeatureKeys.GATEWAY)
-			?.active || false;
 
 	// eslint-disable-next-line sonarjs/cognitive-complexity
 	useEffect(() => {
@@ -179,7 +169,6 @@ function SettingsPage(): JSX.Element {
 			getRoutes(
 				user.role,
 				isCurrentOrgSettings,
-				isGatewayEnabled,
 				isWorkspaceBlocked,
 				false,
 				false,
@@ -188,7 +177,6 @@ function SettingsPage(): JSX.Element {
 		[
 			user.role,
 			isCurrentOrgSettings,
-			isGatewayEnabled,
 			isWorkspaceBlocked,
 			false,
 			false,

@@ -1,15 +1,8 @@
 from http import HTTPStatus
-from typing import Callable, List, Tuple
+from typing import Callable, Tuple
 
 import pytest
 import requests
-from wiremock.resources.mappings import (
-    HttpMethods,
-    Mapping,
-    MappingRequest,
-    MappingResponse,
-    WireMockMatchers,
-)
 
 from fixtures import dev, types
 from fixtures.logger import setup_logger
@@ -19,6 +12,7 @@ logger = setup_logger(__name__)
 USER_ADMIN_NAME = "admin"
 USER_ADMIN_EMAIL = "admin@integration.test"
 USER_ADMIN_PASSWORD = "password123Z$"
+USER_ADMIN_ORG_NAME = "integration.test"
 
 USER_EDITOR_NAME = "editor"
 USER_EDITOR_EMAIL = "editor@integration.test"
@@ -29,21 +23,50 @@ USER_EDITOR_PASSWORD = "password123Z$"
 def create_user_admin(
     signoz: types.SigNoz, request: pytest.FixtureRequest, pytestconfig: pytest.Config
 ) -> types.Operation:
-    def create() -> None:
+    def create() -> types.Operation:
         response = requests.post(
             signoz.self.host_configs["8080"].get("/api/v1/register"),
             json={
                 "name": USER_ADMIN_NAME,
-                "orgName": "",
+                "orgName": USER_ADMIN_ORG_NAME,
                 "email": USER_ADMIN_EMAIL,
                 "password": USER_ADMIN_PASSWORD,
             },
             timeout=5,
         )
 
-        assert response.status_code == HTTPStatus.OK
+        if response.status_code == HTTPStatus.OK:
+            return types.Operation(name="create_user_admin")
 
-        return types.Operation(name="create_user_admin")
+        if response.status_code == HTTPStatus.BAD_REQUEST:
+            context_response = requests.get(
+                signoz.self.host_configs["8080"].get("/api/v2/sessions/context"),
+                params={
+                    "email": USER_ADMIN_EMAIL,
+                    "ref": f"{signoz.self.host_configs['8080'].base()}",
+                },
+                timeout=5,
+            )
+
+            if context_response.status_code == HTTPStatus.OK:
+                org_id = context_response.json()["data"]["orgs"][0]["id"]
+                token_response = requests.post(
+                    signoz.self.host_configs["8080"].get(
+                        "/api/v2/sessions/email_password"
+                    ),
+                    json={
+                        "email": USER_ADMIN_EMAIL,
+                        "password": USER_ADMIN_PASSWORD,
+                        "orgId": org_id,
+                    },
+                    timeout=5,
+                )
+                if token_response.status_code == HTTPStatus.OK:
+                    return types.Operation(name="create_user_admin")
+
+        raise AssertionError(
+            f"failed to create or reuse admin user: register={response.status_code} {response.text}"
+        )
 
     def delete(_: types.Operation) -> None:
         pass
@@ -142,71 +165,3 @@ def get_tokens(signoz: types.SigNoz) -> Callable[[str, str], Tuple[str, str]]:
         return access_token, refresh_token
 
     return _get_tokens
-
-
-# This is not a fixture purposefully, we just want to add a license to the signoz instance.
-# This is also idempotent in nature.
-def add_license(
-    signoz: types.SigNoz,
-    make_http_mocks: Callable[[types.TestContainerDocker, List[Mapping]], None],
-    get_token: Callable[[str, str], str],  # pylint: disable=redefined-outer-name
-) -> None:
-    make_http_mocks(
-        signoz.zeus,
-        [
-            Mapping(
-                request=MappingRequest(
-                    method=HttpMethods.GET,
-                    url="/v2/licenses/me",
-                    headers={
-                        "X-Signoz-Cloud-Api-Key": {
-                            WireMockMatchers.EQUAL_TO: "secret-key"
-                        }
-                    },
-                ),
-                response=MappingResponse(
-                    status=200,
-                    json_body={
-                        "status": "success",
-                        "data": {
-                            "id": "0196360e-90cd-7a74-8313-1aa815ce2a67",
-                            "key": "secret-key",
-                            "valid_from": 1732146923,
-                            "valid_until": -1,
-                            "status": "VALID",
-                            "state": "EVALUATING",
-                            "plan": {
-                                "name": "ENTERPRISE",
-                            },
-                            "platform": "CLOUD",
-                            "features": [],
-                            "event_queue": {},
-                        },
-                    },
-                ),
-                persistent=False,
-            )
-        ],
-    )
-
-    access_token = get_token(USER_ADMIN_EMAIL, USER_ADMIN_PASSWORD)
-
-    response = requests.post(
-        url=signoz.self.host_configs["8080"].get("/api/v3/licenses"),
-        json={"key": "secret-key"},
-        headers={"Authorization": "Bearer " + access_token},
-        timeout=5,
-    )
-
-    if response.status_code == HTTPStatus.CONFLICT:
-        return
-
-    assert response.status_code == HTTPStatus.ACCEPTED
-
-    response = requests.post(
-        url=signoz.zeus.host_configs["8080"].get("/__admin/requests/count"),
-        json={"method": "GET", "url": "/v2/licenses/me"},
-        timeout=5,
-    )
-
-    assert response.json()["count"] == 1

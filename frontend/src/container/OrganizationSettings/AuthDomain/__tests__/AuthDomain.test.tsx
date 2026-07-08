@@ -52,8 +52,7 @@ describe('AuthDomain', () => {
 
 			await waitFor(() => {
 				expect(screen.getByText('signoz.io')).toBeInTheDocument();
-				expect(screen.getByText('example.com')).toBeInTheDocument();
-				expect(screen.getByText('corp.io')).toBeInTheDocument();
+				expect(screen.getByText('enterprise.com')).toBeInTheDocument();
 			});
 		});
 

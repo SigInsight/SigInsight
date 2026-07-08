@@ -7,7 +7,6 @@ pytest_plugins = [
     "fixtures.http",
     "fixtures.migrator",
     "fixtures.network",
-    "fixtures.postgres",
     "fixtures.sql",
     "fixtures.sqlite",
     "fixtures.zookeeper",
@@ -16,9 +15,6 @@ pytest_plugins = [
     "fixtures.traces",
     "fixtures.metrics",
     "fixtures.meter",
-    "fixtures.driver",
-    "fixtures.idp",
-    "fixtures.idputils",
     "fixtures.notification_channel",
     "fixtures.alerts",
     "fixtures.cloudintegrations",
@@ -47,14 +43,8 @@ def pytest_addoption(parser: pytest.Parser):
     parser.addoption(
         "--sqlstore-provider",
         action="store",
-        default="postgres",
+        default="sqlite",
         help="sqlstore provider",
-    )
-    parser.addoption(
-        "--postgres-version",
-        action="store",
-        default="15",
-        help="postgres version",
     )
     parser.addoption(
         "--clickhouse-version",

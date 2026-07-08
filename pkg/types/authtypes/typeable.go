@@ -57,6 +57,8 @@ func NewType(input string) (Type, error) {
 		return TypeUser, nil
 	case "serviceaccount":
 		return TypeServiceAccount, nil
+	case "anonymous":
+		return TypeAnonymous, nil
 	case "role":
 		return TypeRole, nil
 	case "organization":
@@ -94,6 +96,8 @@ func NewTypeableFromType(typed Type, name Name) (Typeable, error) {
 		return TypeableUser, nil
 	case TypeServiceAccount:
 		return TypeableServiceAccount, nil
+	case TypeAnonymous:
+		return TypeableAnonymous, nil
 	case TypeOrganization:
 		return TypeableOrganization, nil
 	case TypeMetaResource:

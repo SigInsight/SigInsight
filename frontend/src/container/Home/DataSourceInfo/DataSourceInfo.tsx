@@ -1,11 +1,8 @@
-import { useMemo } from 'react';
 import { Button } from '@signozhq/button';
 import { Skeleton } from 'antd';
 import logEvent from 'api/common/logEvent';
-import { useGetHosts } from 'api/generated/services/zeus';
 import ROUTES from 'constants/routes';
 import history from 'lib/history';
-import { Link2 } from 'lucide-react';
 import Card from 'periscope/components/Card/Card';
 import { useAppContext } from 'providers/App/App';
 import { LicensePlatform } from 'types/api/licensesV3/getActive';
@@ -22,24 +19,6 @@ function DataSourceInfo({
 	const { activeLicense } = useAppContext();
 
 	const notSendingData = !dataSentToSigNoz;
-
-	const isEnabled =
-		activeLicense && activeLicense.platform === LicensePlatform.CLOUD;
-
-	const { data: hostsData, isError } = useGetHosts({
-		query: { enabled: isEnabled || false },
-	});
-
-	const activeHost = useMemo(
-		() =>
-			hostsData?.data?.hosts?.find((h) => !h.is_default) ??
-			hostsData?.data?.hosts?.find((h) => h.is_default),
-		[hostsData],
-	);
-
-	const url = useMemo(() => activeHost?.url?.split('://')[1] ?? '', [
-		activeHost,
-	]);
 
 	const handleConnect = (): void => {
 		logEvent('Homepage: Connect dataSource clicked', {});
@@ -90,16 +69,6 @@ function DataSourceInfo({
 								Connect Data Source
 							</Button>
 						</div>
-
-						{!isError && hostsData && (
-							<div className="workspace-details">
-								<div className="workspace-url">
-									<Link2 size={12} />
-
-									<span className="workspace-url-text">{url}</span>
-								</div>
-							</div>
-						)}
 					</div>
 				</Card.Content>
 			</Card>
@@ -111,22 +80,6 @@ function DataSourceInfo({
 			<h2 className="welcome-title">
 				Hello there, Welcome to your SigInsight workspace
 			</h2>
-
-			{!isError && hostsData && (
-				<Card className="welcome-card">
-					<Card.Content>
-						<div className="workspace-ready-container">
-							<div className="workspace-details">
-								<div className="workspace-url">
-									<Link2 size={12} />
-
-									<span className="workspace-url-text">{url}</span>
-								</div>
-							</div>
-						</div>
-					</Card.Content>
-				</Card>
-			)}
 		</>
 	);
 

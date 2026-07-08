@@ -27,9 +27,7 @@ import '../../IngestionSettings/IngestionSettings.styles.scss';
 
 export const SSOType = new Map<string, string>([
 	['google_auth', 'Google Auth'],
-	['saml', 'SAML'],
 	['email_password', 'Email Password'],
-	['oidc', 'OIDC'],
 ]);
 
 function AuthDomain(): JSX.Element {

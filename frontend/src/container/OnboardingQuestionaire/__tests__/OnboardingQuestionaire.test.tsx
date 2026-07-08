@@ -25,7 +25,6 @@ jest.mock('lib/history', () => ({
 // API Endpoints
 const ORG_PREFERENCES_ENDPOINT = '*/api/v1/org/preferences/list';
 const UPDATE_ORG_PREFERENCE_ENDPOINT = '*/api/v1/org/preferences/name/update';
-const UPDATE_PROFILE_ENDPOINT = '*/api/v2/zeus/profiles';
 const EDIT_ORG_ENDPOINT = '*/api/v2/orgs/me';
 const INVITE_USERS_ENDPOINT = '*/api/v1/invite/bulk/create';
 
@@ -46,9 +45,6 @@ describe('OnboardingQuestionaire Component', () => {
 			),
 			rest.put(EDIT_ORG_ENDPOINT, (_, res, ctx) =>
 				res(ctx.status(204), ctx.json({ status: 'success' })),
-			),
-			rest.put(UPDATE_PROFILE_ENDPOINT, (_, res, ctx) =>
-				res(ctx.status(200), ctx.json({ status: 'success', data: {} })),
 			),
 			rest.post(UPDATE_ORG_PREFERENCE_ENDPOINT, (_, res, ctx) =>
 				res(ctx.status(200), ctx.json({ status: 'success' })),
@@ -276,16 +272,8 @@ describe('OnboardingQuestionaire Component', () => {
 			).toBeInTheDocument();
 		});
 
-		it('fires PUT to /zeus/profiles and advances to step 4 on success', async () => {
+		it('advances to step 4 without updating Zeus profile', async () => {
 			const user = userEvent.setup({ pointerEventsCheck: 0 });
-			let profilePutCalled = false;
-
-			server.use(
-				rest.put(UPDATE_PROFILE_ENDPOINT, (_, res, ctx) => {
-					profilePutCalled = true;
-					return res(ctx.status(200), ctx.json({ status: 'success', data: {} }));
-				}),
-			);
 
 			render(<OnboardingQuestionaire />);
 
@@ -302,14 +290,11 @@ describe('OnboardingQuestionaire Component', () => {
 			await user.click(screen.getByLabelText(/lowering observability costs/i));
 			await user.click(screen.getByRole('button', { name: /next/i }));
 
-			// Click "I'll do this later" on step 3 — triggers PUT /zeus/profiles
 			await user.click(
 				await screen.findByRole('button', { name: /i'll do this later/i }),
 			);
 
 			await waitFor(() => {
-				expect(profilePutCalled).toBe(true);
-				// Step 3 content is gone — successfully advanced to step 4
 				expect(
 					screen.queryByText(/what does your scale approximately look like/i),
 				).not.toBeInTheDocument();

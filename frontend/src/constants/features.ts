@@ -4,7 +4,6 @@ export enum FeatureKeys {
 	USE_SPAN_METRICS = 'use_span_metrics',
 	ONBOARDING = 'onboarding',
 	CHAT_SUPPORT = 'chat_support',
-	GATEWAY = 'gateway',
 	PREMIUM_SUPPORT = 'premium_support',
 	ANOMALY_DETECTION = 'anomaly_detection',
 	ONBOARDING_V3 = 'onboarding_v3',
