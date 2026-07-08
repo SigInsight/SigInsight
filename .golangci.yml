@@ -47,6 +47,15 @@ linters:
       - common-false-positives
       - legacy
       - std-error-handling
+    rules:
+      # OpenTelemetry semantic convention attributes use dotted keys
+      - linters: [sloglint]
+        source: 'exception\.(type|code|message|stacktrace)'
+      - linters: [sloglint]
+        source: 'code\.(filepath|function|lineno|namespace)'
+      # govet inline analyzer has limited support for generics type inference
+      - linters: [govet]
+        text: 'cannot inline: type parameter inference is not yet supported'
     paths:
       - pkg/query-service
       - ee/query-service
