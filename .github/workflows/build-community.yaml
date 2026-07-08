@@ -42,6 +42,7 @@ jobs:
             {
               echo "tags<<EOF"
               echo "ghcr.io/siginsight/siginsight:${version}"
+              echo "ghcr.io/siginsight/siginsight:latest"
               echo "EOF"
             } >> "$GITHUB_OUTPUT"
           else
