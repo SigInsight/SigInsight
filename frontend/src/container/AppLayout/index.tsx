@@ -27,7 +27,6 @@ import cx from 'classnames';
 import ChangelogModal from 'components/ChangelogModal/ChangelogModal';
 import OverlayScrollbar from 'components/OverlayScrollbar/OverlayScrollbar';
 import { Events } from 'constants/events';
-import { LOCALSTORAGE } from 'constants/localStorage';
 import ROUTES from 'constants/routes';
 import { GlobalShortcuts } from 'constants/shortcuts/globalShortcuts';
 import { USER_PREFERENCES } from 'constants/userPreferences';
@@ -79,11 +78,6 @@ function AppLayout(props: AppLayoutProps): JSX.Element {
 	const { notifications } = useNotifications();
 
 	const errorBoundaryRef = useRef<Sentry.ErrorBoundary>(null);
-
-	// showSlowApiWarning state is retained for the slow API warning event
-	// listener, even though the value is not currently read in JSX.
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	const [showSlowApiWarning, setShowSlowApiWarning] = useState(false);
 
 	const { currentVersion } = useSelector<AppState, AppReducer>(
 		(state) => state.app,
@@ -291,15 +285,11 @@ function AppLayout(props: AppLayoutProps): JSX.Element {
 		}
 	}, [isDarkMode]);
 
-	// Listen for API warnings
+	// Track slow API responses for analytics (event is emitted by api/index.ts interceptor)
 	const handleWarning = (
-		isSlow: boolean,
+		_isSlow: boolean,
 		data: { duration: number; url: string; threshold: number },
 	): void => {
-		const dontShowSlowApiWarning = getLocalStorageApi(
-			LOCALSTORAGE.DONT_SHOW_SLOW_API_WARNING,
-		);
-
 		logEvent(
 			`Slow API Warning`,
 			{
@@ -310,14 +300,6 @@ function AppLayout(props: AppLayoutProps): JSX.Element {
 			'track',
 			true, // rate limited - controlled by Backend
 		);
-
-		const isDontShowSlowApiWarning = dontShowSlowApiWarning === 'true';
-
-		if (isDontShowSlowApiWarning) {
-			setShowSlowApiWarning(false);
-		} else {
-			setShowSlowApiWarning(isSlow);
-		}
 	};
 
 	useEffect(() => {
