@@ -83,7 +83,7 @@ func getJSONFieldNames(v any) []string {
 	var fields []string
 
 	t := reflect.TypeOf(v)
-	if t.Kind() == reflect.Ptr {
+	if t.Kind() == reflect.Pointer {
 		t = t.Elem()
 	}
 
