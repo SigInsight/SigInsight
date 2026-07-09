@@ -24,6 +24,7 @@ import getUserVersion from 'api/v1/version/get';
 import getUserLatestVersion from 'api/v1/version/getLatestVersion';
 import { AxiosError } from 'axios';
 import cx from 'classnames';
+import AIAssistant from 'components/AIAssistant';
 import ChangelogModal from 'components/ChangelogModal/ChangelogModal';
 import OverlayScrollbar from 'components/OverlayScrollbar/OverlayScrollbar';
 import { Events } from 'constants/events';
@@ -430,6 +431,8 @@ function AppLayout(props: AppLayoutProps): JSX.Element {
 			{showChangelogModal && changelog && (
 				<ChangelogModal changelog={changelog} onClose={toggleChangelogModal} />
 			)}
+
+			{isToDisplayLayout && !renderFullScreen && <AIAssistant />}
 
 			<Toaster />
 		</Layout>

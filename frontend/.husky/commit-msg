@@ -5,9 +5,10 @@ cd frontend && yarn run commitlint --edit $1
 
 branch="$(git rev-parse --abbrev-ref HEAD)"
 
-color_red="$(tput setaf 1)"
-bold="$(tput bold)"
-reset="$(tput sgr0)"
+TERM="${TERM:-dumb}"
+color_red="$(tput -T "$TERM" setaf 1 2>/dev/null || true)"
+bold="$(tput -T "$TERM" bold 2>/dev/null || true)"
+reset="$(tput -T "$TERM" sgr0 2>/dev/null || true)"
 
 if [ "$branch" = "main" ]; then
   echo "${color_red}${bold}You can't commit directly to the main branch${reset}"
