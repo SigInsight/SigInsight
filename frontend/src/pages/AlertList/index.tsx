@@ -123,11 +123,7 @@ function AllAlertList(): JSX.Element {
 				isAlertHistory || isAlertOverview ? 'alert-details-tabs' : ''
 			}`}
 			tabBarExtraContent={
-				<HeaderRightSection
-					enableAnnouncements={false}
-					enableShare
-					enableFeedback
-				/>
+				<HeaderRightSection enableAnnouncements={false} enableShare />
 			}
 		/>
 	);

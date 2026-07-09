@@ -19,11 +19,7 @@ function DashboardsListPage(): JSX.Element {
 					<Typography.Text className="text">Dashboards</Typography.Text>
 				</div>
 
-				<HeaderRightSection
-					enableAnnouncements={false}
-					enableShare
-					enableFeedback
-				/>
+				<HeaderRightSection enableAnnouncements={false} enableShare />
 			</div>
 			<ListOfAllDashboard />
 		</Space>

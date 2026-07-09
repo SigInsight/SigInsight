@@ -48,7 +48,7 @@ function TopNav(): JSX.Element | null {
 		<div className="top-nav-container">
 			<NewExplorerCTA />
 			<DateTimeSelector showAutoRefresh />
-			<HeaderRightSection enableShare enableFeedback enableAnnouncements={false} />
+			<HeaderRightSection enableShare enableAnnouncements={false} />
 		</div>
 	) : null;
 }
