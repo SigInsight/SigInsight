@@ -16,69 +16,68 @@
 	backdrop-filter: blur(20px);
 
 	.absolute-relative-time-toggler-container {
-					background: var(--bg-slate-400);
-					color: var(--bg-vanilla-100);
-	.share-modal-content {
-
-					.ant-tabs-tab-btn {
-						color: var(--bg-vanilla-100);
-					}
-				}
-			}
-		}
-	}
-
-	.feedback-modal-content {
 		display: flex;
-		flex-direction: column;
-		gap: 16px;
+		gap: 8px;
+		align-items: center;
+		justify-content: space-between;
 
-		.feedback-input {
-			resize: none;
-
-			text-area {
-				resize: none;
-			}
-		}
-
-		.feedback-content-include-console-logs {
-			display: flex;
-			align-items: center;
-			justify-content: space-between;
-			gap: 8px;
-		}
-	}
-
-	.feedback-modal-content-footer {
-		display: flex;
-		flex-direction: column;
-		gap: 16px;
-
-		.feedback-modal-content-footer-info-text {
-			font-size: 12px;
-			color: var(--bg-vanilla-400, #c0c1c3);
-			text-align: center;
-
-			/* button/ small  */
-			font-family: Inter;
-			font-size: 12px;
+		.absolute-relative-time-toggler-label {
+			color: var(--bg-vanilla-100);
+			font-size: 13px;
 			font-style: normal;
 			font-weight: 500;
-			line-height: 24px; /* 200% */
+			line-height: 20px; /* 142.857% */
+			letter-spacing: -0.07px;
+		}
+	}
 
-			.contact-support-link,
-			.read-docs-link {
-				color: var(--bg-robin-400);
-				font-weight: 500;
-				font-size: 12px;
+	.absolute-relative-time-toggler {
+		display: flex;
+		gap: 4px;
+		align-items: center;
+	}
+
+	.absolute-relative-time-error {
+		font-size: 12px;
+		color: var(--bg-amber-600);
+	}
+
+	.share-link {
+		.url-share-container {
+			display: flex;
+			align-items: flex-start;
+			justify-content: space-between;
+			gap: 16px;
+
+			.url-share-container-header {
+				display: flex;
+				flex-direction: column;
+				gap: 4px;
+
+				.url-share-title,
+				.url-share-sub-title {
+					color: var(--bg-vanilla-100);
+					font-size: 13px;
+					font-style: normal;
+					font-weight: 500;
+					line-height: 20px; /* 142.857% */
+					letter-spacing: -0.07px;
+				}
+
+				.url-share-sub-title {
+					font-size: 12px;
+					color: var(--bg-vanilla-300);
+					font-weight: 400;
+					line-height: 18px;
+					letter-spacing: -0.06px;
+				}
 			}
 		}
 	}
 }
 
 .lightMode {
-	.share-modal-content,
-	.feedback-modal-container {
+	.share-modal-content {
 		.absolute-relative-time-toggler-container {
 			.absolute-relative-time-toggler-label {
 				color: var(--bg-ink-400);
