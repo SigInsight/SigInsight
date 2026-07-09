@@ -20,7 +20,7 @@ jobs:
         uses: astral-sh/setup-uv@v4
       - name: install
         run: |
-          cd tests/integration && uv sync
+          cd tests/integration && uv sync --frozen
       - name: fmt
         run: |
           make py-fmt
@@ -67,7 +67,7 @@ jobs:
         uses: astral-sh/setup-uv@v4
       - name: install
         run: |
-          cd tests/integration && uv sync
+          cd tests/integration && uv sync --frozen
       - name: run
         run: |
           cd tests/integration && \
