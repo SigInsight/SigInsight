@@ -35,7 +35,6 @@ import {
 	PayloadPropsMetrics as GetRetentionPeriodMetricsPayload,
 	PayloadPropsTraces as GetRetentionPeriodTracesPayload,
 } from 'types/api/settings/getRetention';
-import { USER_ROLES } from 'types/roles';
 
 import Retention from './Retention';
 import StatusMessage from './StatusMessage';
@@ -463,10 +462,7 @@ function GeneralSettings({
 		onModalToggleHandler(type);
 	};
 
-	const {
-		isCloudUser: isCloudUserVal,
-		isEnterpriseSelfHostedUser,
-	} = useGetTenantLicense();
+	const { isCloudUser: isCloudUserVal } = useGetTenantLicense();
 
 	const renderConfig = [
 		{

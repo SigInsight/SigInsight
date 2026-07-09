@@ -456,15 +456,11 @@ export const helpSupportDropdownMenuItems: SidebarItem[] = [
 export interface UserSettingsMenuItemsParams {
 	userEmail: string;
 	isWorkspaceBlocked: boolean;
-	isEnterpriseSelfHostedUser: boolean;
-	isCommunityEnterpriseUser: boolean;
 }
 
 export const getUserSettingsDropdownMenuItems = ({
 	userEmail,
 	isWorkspaceBlocked,
-	isEnterpriseSelfHostedUser,
-	isCommunityEnterpriseUser,
 }: UserSettingsMenuItemsParams): MenuProps['items'] =>
 	[
 		{

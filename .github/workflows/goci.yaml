@@ -10,30 +10,64 @@ on:
 
 jobs:
   test:
-    uses: signoz/primus.workflows/.github/workflows/go-test.yaml@main
-    secrets: inherit
-    with:
-      PRIMUS_REF: main
-      GO_TEST_CONTEXT: ./...
-      GO_VERSION: 1.24
+    runs-on: ubuntu-latest
+    steps:
+      - name: self-checkout
+        uses: actions/checkout@v4
+      - name: go-install
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25"
+      - name: go-test
+        run: go test -race ./...
+
   fmt:
-    uses: signoz/primus.workflows/.github/workflows/go-fmt.yaml@main
-    secrets: inherit
-    with:
-      PRIMUS_REF: main
-      GO_VERSION: 1.24
+    runs-on: ubuntu-latest
+    steps:
+      - name: self-checkout
+        uses: actions/checkout@v4
+      - name: go-install
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25"
+      - name: go-fmt
+        run: |
+          out=$(gofmt -l -s .)
+          if [ -n "$out" ]; then
+            echo "The following files are not formatted with gofmt -s:"
+            echo "$out"
+            exit 1
+          fi
+
   lint:
-    uses: signoz/primus.workflows/.github/workflows/go-lint.yaml@main
-    secrets: inherit
-    with:
-      PRIMUS_REF: main
-      GO_VERSION: 1.24
+    runs-on: ubuntu-latest
+    steps:
+      - name: self-checkout
+        uses: actions/checkout@v4
+      - name: go-install
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25"
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v8
+        with:
+          version: v2.12.2
+          args: --timeout 10m
+
   deps:
-    uses: signoz/primus.workflows/.github/workflows/go-deps.yaml@main
-    secrets: inherit
-    with:
-      PRIMUS_REF: main
-      GO_VERSION: 1.24
+    runs-on: ubuntu-latest
+    steps:
+      - name: self-checkout
+        uses: actions/checkout@v4
+      - name: go-install
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25"
+      - name: go-deps
+        run: |
+          go mod tidy
+          git diff --compact-summary --exit-code || (echo; echo "Unexpected difference in go.mod/go.sum. Run 'go mod tidy' locally and commit."; exit 1)
+
   build:
     runs-on: ubuntu-latest
     steps:
@@ -42,7 +76,7 @@ jobs:
       - name: go-install
         uses: actions/setup-go@v5
         with:
-          go-version: "1.24"
+          go-version: "1.25"
       - name: qemu-install
         uses: docker/setup-qemu-action@v3
       - name: aarch64-install
@@ -66,7 +100,7 @@ jobs:
       - name: go-install
         uses: actions/setup-go@v5
         with:
-          go-version: "1.24"
+          go-version: "1.25"
       - name: generate-openapi
         run: |
           go run cmd/community/*.go generate openapi

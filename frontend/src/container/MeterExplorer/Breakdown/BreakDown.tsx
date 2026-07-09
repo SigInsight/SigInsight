@@ -11,7 +11,6 @@ import { PANEL_TYPES } from 'constants/queryBuilder';
 import GridCard from 'container/GridCardLayout/GridCard';
 import { Card, CardContainer } from 'container/GridCardLayout/styles';
 import DateTimeSelectionV2 from 'container/TopNav/DateTimeSelectionV2';
-import dayjs from 'dayjs';
 import { useIsDarkMode } from 'hooks/useDarkMode';
 import useUrlQuery from 'hooks/useUrlQuery';
 import { UpdateTimeInterval } from 'store/actions';

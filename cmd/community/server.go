@@ -12,6 +12,7 @@ import (
 	"github.com/SigNoz/signoz/pkg/authz"
 	"github.com/SigNoz/signoz/pkg/authz/openfgaauthz"
 	"github.com/SigNoz/signoz/pkg/authz/openfgaschema"
+	"github.com/SigNoz/signoz/pkg/authz/openfgaserver"
 	"github.com/SigNoz/signoz/pkg/errors"
 	"github.com/SigNoz/signoz/pkg/factory"
 	"github.com/SigNoz/signoz/pkg/modules/dashboard"
@@ -67,7 +68,12 @@ func runServer(ctx context.Context, config signoz.Config, logger *slog.Logger) e
 			return signoz.NewAuthNs(ctx, providerSettings, store)
 		},
 		func(ctx context.Context, sqlstore sqlstore.SQLStore, _ dashboard.Module) factory.ProviderFactory[authz.AuthZ, authz.Config] {
-			return openfgaauthz.NewProviderFactory(sqlstore, openfgaschema.NewSchema().Get(ctx))
+			openfgaDataStore, err := openfgaserver.NewSQLStore(sqlstore, authz.Config{})
+			if err != nil {
+				logger.ErrorContext(ctx, "failed to create openfga datastore", errors.Attr(err))
+				panic(err)
+			}
+			return openfgaauthz.NewProviderFactory(sqlstore, openfgaschema.NewSchema().Get(ctx), openfgaDataStore)
 		},
 		func(store sqlstore.SQLStore, settings factory.ProviderSettings, analytics analytics.Analytics, orgGetter organization.Getter, queryParser queryparser.QueryParser, _ querier.Querier) dashboard.Module {
 			return impldashboard.NewModule(impldashboard.NewStore(store), settings, analytics, orgGetter, queryParser)

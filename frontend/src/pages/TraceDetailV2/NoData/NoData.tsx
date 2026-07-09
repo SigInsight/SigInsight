@@ -24,8 +24,8 @@ function NoData(): JSX.Element {
 						className="construction-img"
 					/>
 					<Typography.Text className="text">
-						The trace data has not been rendered on your SigInsight server yet. You can
-						wait for a bit and refresh this page if this is the case.
+						The trace data has not been rendered on your SigInsight server yet. You
+						can wait for a bit and refresh this page if this is the case.
 					</Typography.Text>
 				</div>
 				<div className="reason-2">

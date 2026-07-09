@@ -3,9 +3,9 @@ package rules
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"math"
 	"strings"
-	"log/slog"
 	"testing"
 	"time"
 

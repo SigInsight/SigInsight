@@ -489,15 +489,8 @@ function SideNav({ isPinned }: { isPinned: boolean }): JSX.Element {
 			getUserSettingsDropdownMenuItems({
 				userEmail: user.email,
 				isWorkspaceBlocked,
-				isEnterpriseSelfHostedUser,
-				isCommunityEnterpriseUser,
 			}),
-		[
-			isEnterpriseSelfHostedUser,
-			isCommunityEnterpriseUser,
-			user.email,
-			isWorkspaceBlocked,
-		],
+		[user.email, isWorkspaceBlocked],
 	);
 
 	useEffect(() => {
@@ -872,14 +865,6 @@ function SideNav({ isPinned }: { isPinned: boolean }): JSX.Element {
 			default:
 		}
 	};
-
-	const onClickVersionHandler = useCallback((): void => {
-		if (!changelog) {
-			return;
-		}
-
-		toggleChangelogModal();
-	}, [changelog, toggleChangelogModal]);
 
 	useEffect(() => {
 		if (!isLatestVersion && !isCloudUser) {

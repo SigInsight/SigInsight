@@ -65,7 +65,6 @@ function Retention({
 	);
 	const interacted = useRef(false);
 
-
 	useEffect(() => {
 		if (!interacted.current) {
 			setSelectedValue(initialValue);
@@ -133,14 +132,9 @@ function Retention({
 					type="number"
 					min={0}
 					value={selectedValue && selectedValue >= 0 ? selectedValue : ''}
-					
 					onChange={(e): void => onChangeHandler(e, setSelectedValue)}
 				/>
-				<Select
-					value={selectedTimeUnit}
-					onChange={currentSelectedOption}
-					
-				>
+				<Select value={selectedTimeUnit} onChange={currentSelectedOption}>
 					{menuItems}
 				</Select>
 			</div>
@@ -157,14 +151,12 @@ function Retention({
 					<RetentionFieldInputContainer>
 						<Input
 							value={selectedValue && selectedValue >= 0 ? selectedValue : ''}
-							
 							onChange={(e): void => onChangeHandler(e, setSelectedValue)}
 							style={{ width: 75 }}
 						/>
 						<Select
 							value={selectedTimeUnit}
 							onChange={currentSelectedOption}
-							
 							style={{ width: 100 }}
 						>
 							{menuItems}

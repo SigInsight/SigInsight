@@ -223,7 +223,7 @@ describe('createGuardedRoute', () => {
 
 		render(<GuardedComponent {...props} />);
 
-		expect(screen.getByText('SigNoz')).toBeInTheDocument();
+		expect(screen.getByText('SigInsight')).toBeInTheDocument();
 		expect(
 			screen.queryByText('Test Component: test-value'),
 		).not.toBeInTheDocument();

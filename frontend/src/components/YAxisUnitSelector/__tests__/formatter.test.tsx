@@ -681,9 +681,12 @@ describe('formatUniversalUnit', () => {
 
 	describe('Datetime', () => {
 		it('formats datetime units', () => {
-			expect(formatUniversalUnit(900, UniversalYAxisUnit.DATETIME_FROM_NOW)).toBe(
-				'56 years ago',
-			);
+			// DATETIME_FROM_NOW treats value as a Unix timestamp (seconds) and
+			// renders relative time. 900 seconds = 1970-01-01 00:15:00 UTC.
+			// The exact "years ago" depends on the current date, so match loosely.
+			expect(
+				formatUniversalUnit(900, UniversalYAxisUnit.DATETIME_FROM_NOW),
+			).toMatch(/^\d+ years ago$/);
 		});
 	});
 

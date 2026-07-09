@@ -1,7 +1,5 @@
 import { useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
-import { Flex, Typography } from 'antd';
 import { ResizeTable } from 'components/ResizeTable';
 import ResourceAttributesFilter from 'container/ResourceAttributesFilter';
 
@@ -13,7 +11,6 @@ function ServiceTraceTable({
 	loading,
 }: ServiceTableProps): JSX.Element {
 	const { search } = useLocation();
-	const { t: getText } = useTranslation(['services']);
 
 	const tableColumns = useMemo(() => getColumns(search, false), [search]);
 

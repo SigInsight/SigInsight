@@ -153,7 +153,9 @@ async function main() {
 			console.error(
 				'\nOr start any integration test environment that exposes the backend on port 8080:',
 			);
-			console.error('  uv run pytest --basetemp=./tmp/ -vv --reuse src/bootstrap/setup.py::test_setup');
+			console.error(
+				'  uv run pytest --basetemp=./tmp/ -vv --reuse src/bootstrap/setup.py::test_setup',
+			);
 			console.error('='.repeat(80) + '\n');
 			process.exit(1);
 		}

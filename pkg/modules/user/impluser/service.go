@@ -43,8 +43,8 @@ func NewService(
 		orgGetter: orgGetter,
 		authz:     authz,
 		config:    config,
-		stopC:    make(chan struct{}),
-		healthyC: make(chan struct{}),
+		stopC:     make(chan struct{}),
+		healthyC:  make(chan struct{}),
 	}
 }
 

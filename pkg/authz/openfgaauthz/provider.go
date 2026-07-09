@@ -9,6 +9,7 @@ import (
 	"github.com/SigNoz/signoz/pkg/errors"
 	"github.com/SigNoz/signoz/pkg/types/authtypes"
 	"github.com/SigNoz/signoz/pkg/valuer"
+	openfgaserverstorage "github.com/openfga/openfga/pkg/storage"
 
 	"github.com/SigNoz/signoz/pkg/factory"
 	"github.com/SigNoz/signoz/pkg/sqlstore"
@@ -21,14 +22,14 @@ type provider struct {
 	store  authtypes.RoleStore
 }
 
-func NewProviderFactory(sqlstore sqlstore.SQLStore, openfgaSchema []openfgapkgtransformer.ModuleFile) factory.ProviderFactory[authz.AuthZ, authz.Config] {
+func NewProviderFactory(sqlstore sqlstore.SQLStore, openfgaSchema []openfgapkgtransformer.ModuleFile, openfgaDataStore openfgaserverstorage.OpenFGADatastore) factory.ProviderFactory[authz.AuthZ, authz.Config] {
 	return factory.NewProviderFactory(factory.MustNewName("openfga"), func(ctx context.Context, ps factory.ProviderSettings, config authz.Config) (authz.AuthZ, error) {
-		return newOpenfgaProvider(ctx, ps, config, sqlstore, openfgaSchema)
+		return newOpenfgaProvider(ctx, ps, config, sqlstore, openfgaSchema, openfgaDataStore)
 	})
 }
 
-func newOpenfgaProvider(ctx context.Context, settings factory.ProviderSettings, config authz.Config, sqlstore sqlstore.SQLStore, openfgaSchema []openfgapkgtransformer.ModuleFile) (authz.AuthZ, error) {
-	server, err := openfgaserver.NewOpenfgaServer(ctx, settings, config, sqlstore, openfgaSchema)
+func newOpenfgaProvider(ctx context.Context, settings factory.ProviderSettings, config authz.Config, sqlstore sqlstore.SQLStore, openfgaSchema []openfgapkgtransformer.ModuleFile, openfgaDataStore openfgaserverstorage.OpenFGADatastore) (authz.AuthZ, error) {
+	server, err := openfgaserver.NewOpenfgaServer(ctx, settings, config, sqlstore, openfgaSchema, openfgaDataStore)
 	if err != nil {
 		return nil, err
 	}

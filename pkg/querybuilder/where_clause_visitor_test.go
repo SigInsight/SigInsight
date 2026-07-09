@@ -42,7 +42,7 @@ func TestPrepareWhereClause_EmptyVariableList(t *testing.T) {
 	}
 
 	keys := map[string][]*telemetrytypes.TelemetryFieldKey{
-		"service": []*telemetrytypes.TelemetryFieldKey{
+		"service": {
 			{
 				Name:          "service",
 				Signal:        telemetrytypes.SignalLogs,
@@ -154,7 +154,7 @@ func TestVisitKey(t *testing.T) {
 			name:    "Key not found",
 			keyText: "unknown_key",
 			fieldKeys: map[string][]*telemetrytypes.TelemetryFieldKey{
-				"service": []*telemetrytypes.TelemetryFieldKey{
+				"service": {
 					{
 						Name:          "service",
 						Signal:        telemetrytypes.SignalLogs,
@@ -335,7 +335,7 @@ func TestVisitKey(t *testing.T) {
 			name:    "Unknown key with ignoreNotFoundKeys=false",
 			keyText: "unknown_key",
 			fieldKeys: map[string][]*telemetrytypes.TelemetryFieldKey{
-				"service": []*telemetrytypes.TelemetryFieldKey{
+				"service": {
 					{
 						Name:          "service",
 						Signal:        telemetrytypes.SignalLogs,
@@ -355,7 +355,7 @@ func TestVisitKey(t *testing.T) {
 			name:    "Unknown key with ignoreNotFoundKeys=true",
 			keyText: "unknown_key",
 			fieldKeys: map[string][]*telemetrytypes.TelemetryFieldKey{
-				"service": []*telemetrytypes.TelemetryFieldKey{
+				"service": {
 					{
 						Name:          "service",
 						Signal:        telemetrytypes.SignalLogs,
@@ -467,7 +467,7 @@ func TestVisitKey(t *testing.T) {
 			expectedWarnings:   nil,
 			expectedMainWrnURL: "",
 		},
-				{
+		{
 			name:    "only attribute.custom_field is selected",
 			keyText: "attribute.attribute.custom_field",
 			fieldKeys: map[string][]*telemetrytypes.TelemetryFieldKey{

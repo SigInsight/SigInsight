@@ -51,8 +51,8 @@ export default function ServiceTopLevelOperations(): JSX.Element {
 
 	const alertDesc = (): ReactNode => (
 		<div className="">
-			SigInsight calculates the RED metrics for a service using the entry-point spans.
-			For more details, you can check out our
+			SigInsight calculates the RED metrics for a service using the entry-point
+			spans. For more details, you can check out our
 			<a
 				href="https://signoz.io/docs/userguide/metrics/#open-the-services-section"
 				target="_blank"

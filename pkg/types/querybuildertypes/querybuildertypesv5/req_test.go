@@ -98,7 +98,7 @@ func TestQueryRangeRequest_UnmarshalJSON(t *testing.T) {
 					}},
 				},
 				Variables: map[string]VariableItem{
-					"service": VariableItem{
+					"service": {
 						Value: "frontend",
 					},
 				},
@@ -184,7 +184,7 @@ func TestQueryRangeRequest_UnmarshalJSON(t *testing.T) {
 					},
 				},
 				Variables: map[string]VariableItem{
-					"service": VariableItem{
+					"service": {
 						Value: "frontend",
 					},
 				},

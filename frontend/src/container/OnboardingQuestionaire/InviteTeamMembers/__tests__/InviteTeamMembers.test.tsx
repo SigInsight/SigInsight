@@ -103,7 +103,7 @@ describe('InviteTeamMembers', () => {
 				screen.getByRole('heading', { name: /invite your team/i }),
 			).toBeInTheDocument();
 			expect(
-				screen.getByText(/signoz is a lot more useful with collaborators/i),
+				screen.getByText(/siginsight is a lot more useful with collaborators/i),
 			).toBeInTheDocument();
 			expect(
 				screen.getAllByPlaceholderText(/e\.g\. john@signoz\.io/i),

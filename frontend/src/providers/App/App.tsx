@@ -307,7 +307,7 @@ export function AppProvider({ children }: PropsWithChildren): JSX.Element {
 			activeLicense: null,
 			changelog,
 			showChangelogModal,
-			activeLicenseRefetch: () => {},
+			activeLicenseRefetch: (): void => {},
 			updateUser,
 			updateOrgPreferences,
 			updateUserPreferenceInContext,

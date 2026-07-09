@@ -9,19 +9,12 @@ import history from 'lib/history';
 import { useAppContext } from 'providers/App/App';
 import { routePermission } from 'utils/permission';
 
-import routes, {
-	oldNewRoutesMapping,
-	oldRoutes,
-} from './routes';
+import routes, { oldNewRoutesMapping, oldRoutes } from './routes';
 
 function PrivateRoute({ children }: PrivateRouteProps): JSX.Element {
 	const location = useLocation();
 	const { pathname } = location;
-	const {
-		user,
-		isLoggedIn: isLoggedInState,
-		featureFlags,
-	} = useAppContext();
+	const { user, isLoggedIn: isLoggedInState, featureFlags } = useAppContext();
 
 	const mapRoutes = useMemo(
 		() =>

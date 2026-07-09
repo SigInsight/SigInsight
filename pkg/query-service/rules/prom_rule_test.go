@@ -2,8 +2,8 @@ package rules
 
 import (
 	"context"
-	"strings"
 	"log/slog"
+	"strings"
 	"testing"
 	"time"
 
