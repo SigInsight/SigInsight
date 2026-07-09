@@ -2,10 +2,9 @@ import { useCallback, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Button, Popover } from 'antd';
 import logEvent from 'api/common/logEvent';
-import { Globe, Inbox, SquarePen } from 'lucide-react';
+import { Globe, Inbox } from 'lucide-react';
 
 import AnnouncementsModal from './AnnouncementsModal';
-import FeedbackModal from './FeedbackModal';
 import ShareURLModal from './ShareURLModal';
 
 import './HeaderRightSection.styles.scss';
@@ -13,29 +12,16 @@ import './HeaderRightSection.styles.scss';
 interface HeaderRightSectionProps {
 	enableAnnouncements: boolean;
 	enableShare: boolean;
-	enableFeedback: boolean;
 }
 
 function HeaderRightSection({
 	enableAnnouncements,
 	enableShare,
-	enableFeedback,
 }: HeaderRightSectionProps): JSX.Element | null {
 	const location = useLocation();
 
-	const [openFeedbackModal, setOpenFeedbackModal] = useState(false);
 	const [openShareURLModal, setOpenShareURLModal] = useState(false);
 	const [openAnnouncementsModal, setOpenAnnouncementsModal] = useState(false);
-
-	const handleOpenFeedbackModal = useCallback((): void => {
-		logEvent('Feedback: Clicked', {
-			page: location.pathname,
-		});
-
-		setOpenFeedbackModal(true);
-		setOpenShareURLModal(false);
-		setOpenAnnouncementsModal(false);
-	}, [location.pathname]);
 
 	const handleOpenShareURLModal = useCallback((): void => {
 		logEvent('Share: Clicked', {
@@ -43,17 +29,8 @@ function HeaderRightSection({
 		});
 
 		setOpenShareURLModal(true);
-		setOpenFeedbackModal(false);
 		setOpenAnnouncementsModal(false);
 	}, [location.pathname]);
-
-	const handleCloseFeedbackModal = (): void => {
-		setOpenFeedbackModal(false);
-	};
-
-	const handleOpenFeedbackModalChange = (open: boolean): void => {
-		setOpenFeedbackModal(open);
-	};
 
 	const handleOpenAnnouncementsModalChange = (open: boolean): void => {
 		setOpenAnnouncementsModal(open);
@@ -65,28 +42,6 @@ function HeaderRightSection({
 
 	return (
 		<div className="header-right-section-container">
-			{enableFeedback && (
-				<Popover
-					rootClassName="header-section-popover-root"
-					className="shareable-link-popover"
-					placement="bottomRight"
-					content={<FeedbackModal onClose={handleCloseFeedbackModal} />}
-					destroyTooltipOnHide
-					arrow={false}
-					trigger="click"
-					open={openFeedbackModal}
-					onOpenChange={handleOpenFeedbackModalChange}
-				>
-					<Button
-						className="share-feedback-btn periscope-btn ghost"
-						icon={<SquarePen size={14} />}
-						onClick={handleOpenFeedbackModal}
-					>
-						Feedback
-					</Button>
-				</Popover>
-			)}
-
 			{enableAnnouncements && (
 				<Popover
 					rootClassName="header-section-popover-root"

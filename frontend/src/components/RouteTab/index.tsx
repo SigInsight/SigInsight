@@ -63,11 +63,7 @@ function RouteTab({
 			items={items}
 			tabBarExtraContent={
 				showRightSection && (
-					<HeaderRightSection
-						enableAnnouncements={false}
-						enableShare
-						enableFeedback
-					/>
+					<HeaderRightSection enableAnnouncements={false} enableShare />
 				)
 			}
 			{...rest}

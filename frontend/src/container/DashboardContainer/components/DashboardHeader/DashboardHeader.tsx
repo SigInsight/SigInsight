@@ -9,7 +9,7 @@ function DashboardHeader(): JSX.Element {
 	return (
 		<div className="dashboard-header">
 			<DashboardBreadcrumbs />
-			<HeaderRightSection enableAnnouncements={false} enableShare enableFeedback />
+			<HeaderRightSection enableAnnouncements={false} enableShare />
 		</div>
 	);
 }
