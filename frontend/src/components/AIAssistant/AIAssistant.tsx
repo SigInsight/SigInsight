@@ -178,12 +178,13 @@ const streamAssistantResponse = async ({
 		);
 		updateAssistantMessage((message) => ({ ...message, streaming: false }));
 	} catch (error) {
+		const failed = (error as Error).name !== 'AbortError';
 		updateAssistantMessage((message) => ({
 			...message,
-			content:
-				(error as Error).name === 'AbortError'
-					? message.content
-					: `Request failed: ${(error as Error).message}`,
+			content: !failed
+				? message.content
+				: `Request failed: ${(error as Error).message}`,
+			failed,
 			streaming: false,
 		}));
 	}
@@ -278,7 +279,13 @@ function AIAssistant(): JSX.Element {
 		const controller = new AbortController();
 		streamAbortController.current = controller;
 		const conversation = messages
-			.filter((message) => message.id !== 'assistant-welcome')
+			.filter(
+				(message) =>
+					message.id !== 'assistant-welcome' &&
+					!message.failed &&
+					!message.streaming &&
+					!message.content.startsWith('Request failed:'),
+			)
 			.map(({ role, content }) => ({ role, content }));
 
 		try {

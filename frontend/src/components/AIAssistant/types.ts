@@ -10,6 +10,7 @@ export type AIAssistantMessage = {
 	content: string;
 	createdAt: number;
 	streaming?: boolean;
+	failed?: boolean;
 };
 
 export type AIAssistantQuerySummary = {
