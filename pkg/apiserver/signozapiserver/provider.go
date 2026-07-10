@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/SigNoz/signoz/pkg/apiserver"
+	"github.com/SigNoz/signoz/pkg/assistant"
 	"github.com/SigNoz/signoz/pkg/authz"
 	"github.com/SigNoz/signoz/pkg/factory"
 	"github.com/SigNoz/signoz/pkg/flagger"
@@ -51,6 +52,7 @@ type provider struct {
 	serviceAccountHandler   serviceaccount.Handler
 	factoryHandler          factory.Handler
 	cloudIntegrationHandler cloudintegration.Handler
+	assistantHandler        assistant.Handler
 }
 
 func NewFactory(
@@ -74,6 +76,7 @@ func NewFactory(
 	serviceAccountHandler serviceaccount.Handler,
 	factoryHandler factory.Handler,
 	cloudIntegrationHandler cloudintegration.Handler,
+	assistantHandler assistant.Handler,
 ) factory.ProviderFactory[apiserver.APIServer, apiserver.Config] {
 	return factory.NewProviderFactory(factory.MustNewName("signoz"), func(ctx context.Context, providerSettings factory.ProviderSettings, config apiserver.Config) (apiserver.APIServer, error) {
 		return newProvider(
@@ -100,6 +103,7 @@ func NewFactory(
 			serviceAccountHandler,
 			factoryHandler,
 			cloudIntegrationHandler,
+			assistantHandler,
 		)
 	})
 }
@@ -128,6 +132,7 @@ func newProvider(
 	serviceAccountHandler serviceaccount.Handler,
 	factoryHandler factory.Handler,
 	cloudIntegrationHandler cloudintegration.Handler,
+	assistantHandler assistant.Handler,
 ) (apiserver.APIServer, error) {
 	settings := factory.NewScopedProviderSettings(providerSettings, "github.com/SigNoz/signoz/pkg/apiserver/signozapiserver")
 	router := mux.NewRouter().UseEncodedPath()
@@ -154,6 +159,7 @@ func newProvider(
 		serviceAccountHandler:   serviceAccountHandler,
 		factoryHandler:          factoryHandler,
 		cloudIntegrationHandler: cloudIntegrationHandler,
+		assistantHandler:        assistantHandler,
 	}
 
 	provider.authZ = middleware.NewAuthZ(settings.Logger(), orgGetter, authz)
@@ -239,6 +245,10 @@ func (provider *provider) AddToRouter(router *mux.Router) error {
 	}
 
 	if err := provider.addCloudIntegrationRoutes(router); err != nil {
+		return err
+	}
+
+	if err := provider.addAssistantRoutes(router); err != nil {
 		return err
 	}
 

@@ -188,6 +188,7 @@ func NewSQLMigrationProviderFactories(
 		sqlmigration.NewUpdatePlannedMaintenanceRuleFactory(sqlstore, sqlschema),
 		sqlmigration.NewAddUserRoleFactory(sqlstore, sqlschema),
 		sqlmigration.NewDropUserRoleColumnFactory(sqlstore, sqlschema),
+		sqlmigration.NewAddAssistantConfigFactory(sqlschema),
 	)
 }
 
@@ -276,6 +277,7 @@ func NewAPIServerProviderFactories(orgGetter organization.Getter, authz authz.Au
 			handlers.ServiceAccountHandler,
 			handlers.RegistryHandler,
 			handlers.CloudIntegrationHandler,
+			handlers.Assistant,
 		),
 	)
 }

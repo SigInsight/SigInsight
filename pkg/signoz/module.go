@@ -3,6 +3,8 @@ package signoz
 import (
 	"github.com/SigNoz/signoz/pkg/alertmanager"
 	"github.com/SigNoz/signoz/pkg/analytics"
+	"github.com/SigNoz/signoz/pkg/assistant"
+	"github.com/SigNoz/signoz/pkg/assistant/implassistant"
 	"github.com/SigNoz/signoz/pkg/authn"
 	"github.com/SigNoz/signoz/pkg/authz"
 	"github.com/SigNoz/signoz/pkg/cache"
@@ -51,6 +53,7 @@ import (
 )
 
 type Modules struct {
+	Assistant       assistant.Module
 	OrgGetter       organization.Getter
 	OrgSetter       organization.Setter
 	Preference      preference.Module
@@ -97,6 +100,7 @@ func NewModules(
 	ruleStore := sqlrulestore.NewRuleStore(sqlstore, queryParser, providerSettings)
 
 	return Modules{
+		Assistant:       implassistant.NewModule(implassistant.NewStore(sqlstore), nil),
 		OrgGetter:       orgGetter,
 		OrgSetter:       orgSetter,
 		Preference:      implpreference.NewModule(implpreference.NewStore(sqlstore), preferencetypes.NewAvailablePreference()),

@@ -9,6 +9,7 @@ export type AIAssistantMessage = {
 	role: AIAssistantRole;
 	content: string;
 	createdAt: number;
+	streaming?: boolean;
 };
 
 export type AIAssistantQuerySummary = {
@@ -21,12 +22,33 @@ export type AIAssistantQuerySummary = {
 	disabled: boolean;
 };
 
+export type AIAssistantTimeRange = {
+	startTime?: number;
+	endTime?: number;
+	label?: string;
+};
+
+export type AIAssistantSelectedEntity = {
+	type: string;
+	id: string;
+	name?: string;
+};
+
+export type AIAssistantVisibleDataSummary = {
+	description?: string;
+	rowCount?: number;
+	seriesCount?: number;
+};
+
 export type AIAssistantContextSnapshot = {
 	route: string;
 	search: string;
 	queryType: EQueryType;
 	panelType: PANEL_TYPES | null;
 	initialDataSource: DataSource | null;
+	timeRange?: AIAssistantTimeRange;
+	selectedEntity?: AIAssistantSelectedEntity;
+	visibleDataSummary?: AIAssistantVisibleDataSummary;
 	queryCount: number;
 	formulaCount: number;
 	traceOperatorCount: number;

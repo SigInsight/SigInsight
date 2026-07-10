@@ -2,6 +2,8 @@ package signoz
 
 import (
 	"github.com/SigNoz/signoz/pkg/analytics"
+	"github.com/SigNoz/signoz/pkg/assistant"
+	"github.com/SigNoz/signoz/pkg/assistant/implassistant"
 	"github.com/SigNoz/signoz/pkg/authz"
 	"github.com/SigNoz/signoz/pkg/authz/signozauthzapi"
 	"github.com/SigNoz/signoz/pkg/factory"
@@ -37,6 +39,7 @@ import (
 )
 
 type Handlers struct {
+	Assistant               assistant.Handler
 	SavedView               savedview.Handler
 	Apdex                   apdex.Handler
 	Dashboard               dashboard.Handler
@@ -68,6 +71,7 @@ func NewHandlers(
 	registryHandler factory.Handler,
 ) Handlers {
 	return Handlers{
+		Assistant:               implassistant.NewHandler(modules.Assistant),
 		SavedView:               implsavedview.NewHandler(modules.SavedView),
 		Apdex:                   implapdex.NewHandler(modules.Apdex),
 		Dashboard:               impldashboard.NewHandler(modules.Dashboard, providerSettings),
