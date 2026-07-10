@@ -21,7 +21,7 @@ Before diving in, make sure you have these tools installed:
 - **Yarn** - Our frontend package manager
   - Follow the [installation guide](https://yarnpkg.com/getting-started/install)
 
-- **Docker** - For running Clickhouse and Postgres locally
+- **Docker** - For running Clickhouse locally
   - Get it from [docs.docker.com/get-docker](https://docs.docker.com/get-docker/)
 
 > 💡 **Tip**: Run `make help` to see all available commands with descriptions
