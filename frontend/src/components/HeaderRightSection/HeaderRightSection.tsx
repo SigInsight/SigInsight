@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Button, Popover } from 'antd';
 import logEvent from 'api/common/logEvent';
+import AIAssistant from 'components/AIAssistant';
 import { Globe, Inbox } from 'lucide-react';
 
 import AnnouncementsModal from './AnnouncementsModal';
@@ -42,6 +43,8 @@ function HeaderRightSection({
 
 	return (
 		<div className="header-right-section-container">
+			<AIAssistant />
+
 			{enableAnnouncements && (
 				<Popover
 					rootClassName="header-section-popover-root"

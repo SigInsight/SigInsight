@@ -341,17 +341,15 @@ function AIAssistant(): JSX.Element {
 
 	return (
 		<>
-			<div className="ai-assistant-launcher">
-				<Tooltip title="AI assistant" placement="left">
-					<Button
-						aria-label="Open AI assistant"
-						className="ai-assistant-launcher-btn"
-						icon={<Sparkles size={18} />}
-						onClick={(): void => setOpen(true)}
-						type="primary"
-					/>
-				</Tooltip>
-			</div>
+			<Tooltip title="AI assistant">
+				<Button
+					aria-label="Open AI assistant"
+					className="ai-assistant-trigger periscope-btn ghost"
+					icon={<Sparkles size={16} />}
+					onClick={(): void => setOpen(true)}
+					type="text"
+				/>
+			</Tooltip>
 
 			<Drawer
 				className="ai-assistant-drawer"
