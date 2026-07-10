@@ -45,11 +45,6 @@ devenv-clickhouse: ## Run clickhouse in devenv
 	@cd .devenv/docker/clickhouse; \
 	docker compose -f compose.yaml up -d
 
-.PHONY: devenv-postgres
-devenv-postgres: ## Run postgres in devenv
-	@cd .devenv/docker/postgres; \
-	docker compose -f compose.yaml up -d
-
 .PHONY: devenv-signoz-otel-collector
 devenv-signoz-otel-collector: ## Run signoz-otel-collector in devenv (requires clickhouse to be running)
 	@cd .devenv/docker/signoz-otel-collector; \
@@ -76,15 +71,12 @@ go-test: ## Runs go unit tests
 	@go test -race ./...
 
 .PHONY: go-run-community
-go-run-community: ## Runs the community go backend server
-	@SIGNOZ_INSTRUMENTATION_LOGS_LEVEL=debug \
-	SIGNOZ_SQLSTORE_SQLITE_PATH=signoz.db \
-	SIGNOZ_WEB_ENABLED=false \
-	SIGNOZ_TOKENIZER_JWT_SECRET=secret \
-	SIGNOZ_ALERTMANAGER_PROVIDER=signoz \
-	SIGNOZ_TELEMETRYSTORE_PROVIDER=clickhouse \
-	SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN=tcp://127.0.0.1:9000 \
-	SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_CLUSTER=cluster \
+go-run-community: ## Runs the community go backend server (requires .env, see .env.example)
+	@if [ ! -f .env ]; then \
+		echo "Error: .env not found. Run: cp .env.example .env"; \
+		exit 1; \
+	fi
+	@set -a; . ./.env; set +a; \
 	go run -race \
 		$(GO_BUILD_CONTEXT_COMMUNITY)/*.go server
 
