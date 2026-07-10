@@ -19,12 +19,10 @@
 		"resolveJsonModule": true,
 		"isolatedModules": true,
 		"noEmit": true,
-		"baseUrl": "./src",
 		"paths": {
-			"*": ["./*"],
-			"@constants/*": ["./container/OnboardingContainer/constants/*"]
+			"*": ["./src/*"],
+			"@constants/*": ["./src/container/OnboardingContainer/constants/*"]
 		},
-		"downlevelIteration": true,
 		"plugins": [
 			{
 				"name": "typescript-plugin-css-modules"

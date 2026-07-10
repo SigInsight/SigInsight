@@ -84,7 +84,7 @@ For schema migrations, use the [SQLMigration](/pkg/sqlmigration/sqlmigration.go)
 - Do not **import types from the types package** in the `sqlmigration` package. Instead, define the required types within the migration package itself. This practice ensures migration stability as the core types evolve over time.
 - Do not implement **`Down` migrations**. As the codebase matures, we may introduce this capability, but for now, the `Down` function should remain empty.
 - Always write **idempotent** migrations. This means that if the migration is run multiple times, it should not cause an error.
-- A migration which is **dependent on the underlying dialect** (sqlite, postgres, etc) should be written as part of the [SQLDialect](/pkg/sqlstore/sqlstore.go) interface. The implementation needs to go in the dialect specific package of the respective database.
+- A migration which is **dependent on the underlying dialect** (sqlite, etc) should be written as part of the [SQLDialect](/pkg/sqlstore/sqlstore.go) interface. The implementation needs to go in the dialect specific package of the respective database.
 
 ## What should I remember?
 

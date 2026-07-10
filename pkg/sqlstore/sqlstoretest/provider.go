@@ -8,7 +8,6 @@ import (
 	"github.com/SigNoz/signoz/pkg/errors"
 	"github.com/SigNoz/signoz/pkg/sqlstore"
 	"github.com/uptrace/bun"
-	"github.com/uptrace/bun/dialect/pgdialect"
 	"github.com/uptrace/bun/dialect/sqlitedialect"
 )
 
@@ -32,8 +31,7 @@ func New(config sqlstore.Config, matcher sqlmock.QueryMatcher) *Provider {
 
 	if config.Provider == "sqlite" {
 		bunDB = bun.NewDB(db, sqlitedialect.New())
-	} else if config.Provider == "postgres" {
-		bunDB = bun.NewDB(db, pgdialect.New())
+
 	} else {
 		panic(errors.NewInvalidInputf(errors.CodeInvalidInput, "provider %q is not supported", config.Provider))
 	}
