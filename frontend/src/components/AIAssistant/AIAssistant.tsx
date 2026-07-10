@@ -161,7 +161,10 @@ const streamAssistantResponse = async ({
 		await streamAssistantChat(
 			{
 				context,
-				messages: [...conversation, userMessage],
+				messages: [
+					...conversation,
+					{ content: userMessage.content, role: userMessage.role },
+				],
 			},
 			{
 				onToken: (delta): void => {
