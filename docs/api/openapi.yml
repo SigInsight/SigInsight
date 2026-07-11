@@ -1,5 +1,24 @@
 components:
   schemas:
+    AssistantConfigResponse:
+      properties:
+        apiKeyConfigured:
+          type: boolean
+        baseUrl:
+          type: string
+        model:
+          type: string
+      type: object
+    AssistantUpdatableConfig:
+      properties:
+        apiKey:
+          nullable: true
+          type: string
+        baseUrl:
+          type: string
+        model:
+          type: string
+      type: object
     AuthtypesAuthDomainConfig:
       properties:
         googleAuthConfig:
@@ -2557,6 +2576,91 @@ info:
   version: ""
 openapi: 3.0.3
 paths:
+  /api/v1/assistant/config:
+    get:
+      deprecated: false
+      description: Returns the configured OpenAI-compatible endpoint without exposing
+        its API key
+      operationId: GetAssistantConfig
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: '#/components/schemas/AssistantConfigResponse'
+                  status:
+                    type: string
+                required:
+                - status
+                - data
+                type: object
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Forbidden
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Internal Server Error
+      security:
+      - api_key:
+        - VIEWER
+      - tokenizer:
+        - VIEWER
+      summary: Get AI assistant configuration
+      tags:
+      - assistant
+    put:
+      deprecated: false
+      description: Stores an OpenAI-compatible endpoint configuration for the organization
+      operationId: UpdateAssistantConfig
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssistantUpdatableConfig'
+      responses:
+        "204":
+          description: No Content
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Forbidden
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Internal Server Error
+      security:
+      - api_key:
+        - ADMIN
+      - tokenizer:
+        - ADMIN
+      summary: Update AI assistant configuration
+      tags:
+      - assistant
   /api/v1/authz/check:
     post:
       deprecated: false

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/SigNoz/signoz/pkg/assistant"
+	"github.com/SigNoz/signoz/pkg/errors"
 	"github.com/SigNoz/signoz/pkg/http/render"
 	"github.com/SigNoz/signoz/pkg/types/authtypes"
 )
@@ -82,7 +83,7 @@ func (handler *handler) Chat(rw http.ResponseWriter, r *http.Request) {
 
 	flusher, ok := rw.(http.Flusher)
 	if !ok {
-		render.Error(rw, fmt.Errorf("streaming is not supported by the response writer"))
+		render.Error(rw, errors.New(errors.TypeUnexpected, errors.CodeUnknown, "streaming is not supported by the response writer"))
 		return
 	}
 

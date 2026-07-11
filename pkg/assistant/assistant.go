@@ -2,8 +2,12 @@ package assistant
 
 import (
 	"context"
+	"errors"
 	"net/http"
 )
+
+// ErrConfigNotFound is returned by Store.GetConfig when no config exists for the given org.
+var ErrConfigNotFound = errors.New("assistant config not found")
 
 const (
 	DefaultBaseURL = "https://api.openai.com/v1"

@@ -3,10 +3,10 @@ package implassistant
 import (
 	"context"
 	"database/sql"
-	stderrors "errors"
 	"time"
 
 	"github.com/SigNoz/signoz/pkg/assistant"
+	"github.com/SigNoz/signoz/pkg/errors"
 	"github.com/SigNoz/signoz/pkg/sqlstore"
 	"github.com/uptrace/bun"
 )
@@ -34,8 +34,8 @@ func (store *store) GetConfig(ctx context.Context, orgID string) (*assistant.Con
 	config := new(storedConfig)
 	err := store.sqlstore.BunDB().NewSelect().Model(config).Where("org_id = ?", orgID).Scan(ctx)
 	if err != nil {
-		if stderrors.Is(err, sql.ErrNoRows) {
-			return nil, nil
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, assistant.ErrConfigNotFound
 		}
 		return nil, err
 	}

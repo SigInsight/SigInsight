@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -33,7 +32,7 @@ func NewModule(store assistant.Store, httpClient *http.Client) assistant.Module 
 
 func (module *module) GetConfig(ctx context.Context, orgID string) (*assistant.ConfigResponse, error) {
 	config, err := module.store.GetConfig(ctx, orgID)
-	if err != nil {
+	if err != nil && !errors.Is(err, assistant.ErrConfigNotFound) {
 		return nil, err
 	}
 
@@ -63,7 +62,7 @@ func (module *module) UpdateConfig(ctx context.Context, orgID string, input assi
 	}
 
 	existing, err := module.store.GetConfig(ctx, orgID)
-	if err != nil {
+	if err != nil && !errors.Is(err, assistant.ErrConfigNotFound) {
 		return err
 	}
 
@@ -91,7 +90,7 @@ func (module *module) Chat(ctx context.Context, orgID string, request assistant.
 	}
 
 	config, err := module.store.GetConfig(ctx, orgID)
-	if err != nil {
+	if err != nil && !errors.Is(err, assistant.ErrConfigNotFound) {
 		return err
 	}
 	if config == nil || config.APIKey == "" {
@@ -222,7 +221,7 @@ func streamOpenAIResponse(reader io.Reader, emit func(assistant.StreamEvent) err
 				continue
 			}
 			if err := emit(assistant.StreamEvent{Type: "token", Delta: choice.Delta.Content}); err != nil {
-				return fmt.Errorf("write assistant stream: %w", err)
+				return errors.Wrap(err, errors.TypeUnexpected, errors.CodeUnknown, "write assistant stream")
 			}
 		}
 	}

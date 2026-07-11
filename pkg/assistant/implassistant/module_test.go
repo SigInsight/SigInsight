@@ -23,7 +23,7 @@ func newMemoryStore() *memoryStore {
 func (store *memoryStore) GetConfig(_ context.Context, orgID string) (*assistant.Config, error) {
 	config, ok := store.configs[orgID]
 	if !ok {
-		return nil, nil
+		return nil, assistant.ErrConfigNotFound
 	}
 	return &config, nil
 }
