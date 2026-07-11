@@ -1,6 +1,6 @@
 ARG CLICKHOUSE_VERSION=25.5.6
 
-FROM --platform=$BUILDPLATFORM golang:1.25.0 AS builder
+FROM --platform=$BUILDPLATFORM golang:1.25.12 AS builder
 WORKDIR /src
 
 ARG TARGETOS
