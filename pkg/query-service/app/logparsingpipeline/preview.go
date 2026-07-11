@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SigNoz/signoz-otel-collector/pkg/collectorsimulator"
-	_ "github.com/SigNoz/signoz-otel-collector/pkg/parser/grok"
-	"github.com/SigNoz/signoz-otel-collector/processor/signozlogspipelineprocessor"
+	"github.com/SigInsight/OtelCollector/pkg/collectorsimulator"
+	_ "github.com/SigInsight/OtelCollector/pkg/parser/grok"
+	"github.com/SigInsight/OtelCollector/processor/signozlogspipelineprocessor"
 	"github.com/SigNoz/signoz/pkg/errors"
 	"github.com/SigNoz/signoz/pkg/query-service/model"
 	"github.com/SigNoz/signoz/pkg/types/pipelinetypes"
