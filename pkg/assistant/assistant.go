@@ -22,20 +22,20 @@ type Config struct {
 }
 
 type ConfigResponse struct {
-	BaseURL          string `json:"baseUrl"`
-	Model            string `json:"model"`
-	APIKeyConfigured bool   `json:"apiKeyConfigured"`
+	BaseURL          string `json:"baseUrl" required:"true"`
+	Model            string `json:"model" required:"true"`
+	APIKeyConfigured bool   `json:"apiKeyConfigured" required:"true"`
 }
 
 type UpdatableConfig struct {
-	BaseURL string  `json:"baseUrl"`
-	Model   string  `json:"model"`
+	BaseURL string  `json:"baseUrl" required:"true"`
+	Model   string  `json:"model" required:"true"`
 	APIKey  *string `json:"apiKey,omitempty"`
 }
 
 type ChatMessage struct {
-	Role    string `json:"role"`
-	Content string `json:"content"`
+	Role    string `json:"role" required:"true"`
+	Content string `json:"content" required:"true"`
 }
 
 type TimeRange struct {
@@ -83,7 +83,7 @@ type ContextSnapshot struct {
 }
 
 type ChatRequest struct {
-	Messages []ChatMessage   `json:"messages"`
+	Messages []ChatMessage   `json:"messages" required:"true"`
 	Context  ContextSnapshot `json:"context"`
 }
 

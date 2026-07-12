@@ -10,6 +10,11 @@ export default defineConfig({
 	signoz: {
 		input: {
 			target: '../docs/api/openapi.yml',
+			// SSE requires incremental consumption, which the Axios generator cannot provide.
+			filters: {
+				mode: 'exclude',
+				tags: ['assistant-stream'],
+			},
 		},
 		output: {
 			target: './src/api/generated/services',

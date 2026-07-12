@@ -36,7 +36,20 @@ func (provider *provider) addAssistantRoutes(router *mux.Router) error {
 		return err
 	}
 
-	if err := router.Handle("/api/v1/assistant/chat", provider.authZ.ViewAccess(provider.assistantHandler.Chat)).Methods(http.MethodPost).GetError(); err != nil {
+	if err := router.Handle("/api/v1/assistant/chat", handler.New(provider.authZ.ViewAccess(provider.assistantHandler.Chat), handler.OpenAPIDef{
+		ID:                  "ChatWithAssistant",
+		Tags:                []string{"assistant-stream"},
+		Summary:             "Chat with AI assistant",
+		Description:         "Streams Server-Sent Events. Token events contain a delta, error events contain a message, and the stream ends with a done event.",
+		Request:             new(assistant.ChatRequest),
+		RequestContentType:  "application/json",
+		Response:            new(assistant.StreamEvent),
+		ResponseContentType: "text/event-stream",
+		ResponseIsRaw:       true,
+		SuccessStatusCode:   http.StatusOK,
+		ErrorStatusCodes:    []int{http.StatusBadRequest},
+		SecuritySchemes:     newSecuritySchemes(types.RoleViewer),
+	})).Methods(http.MethodPost).GetError(); err != nil {
 		return err
 	}
 

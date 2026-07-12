@@ -1,5 +1,27 @@
 components:
   schemas:
+    AssistantChatMessage:
+      properties:
+        content:
+          type: string
+        role:
+          type: string
+      required:
+      - role
+      - content
+      type: object
+    AssistantChatRequest:
+      properties:
+        context:
+          $ref: '#/components/schemas/AssistantContextSnapshot'
+        messages:
+          items:
+            $ref: '#/components/schemas/AssistantChatMessage'
+          nullable: true
+          type: array
+      required:
+      - messages
+      type: object
     AssistantConfigResponse:
       properties:
         apiKeyConfigured:
@@ -8,6 +30,87 @@ components:
           type: string
         model:
           type: string
+      required:
+      - baseUrl
+      - model
+      - apiKeyConfigured
+      type: object
+    AssistantContextSnapshot:
+      properties:
+        capturedAt:
+          format: int64
+          type: integer
+        formulaCount:
+          type: integer
+        initialDataSource:
+          type: string
+        panelType:
+          type: string
+        queries:
+          items:
+            $ref: '#/components/schemas/AssistantQuerySummary'
+          nullable: true
+          type: array
+        queryCount:
+          type: integer
+        queryType:
+          type: string
+        route:
+          type: string
+        search:
+          type: string
+        selectedEntity:
+          $ref: '#/components/schemas/AssistantSelectedEntity'
+        timeRange:
+          $ref: '#/components/schemas/AssistantTimeRange'
+        traceOperatorCount:
+          type: integer
+        visibleDataSummary:
+          $ref: '#/components/schemas/AssistantVisibleDataSummary'
+      type: object
+    AssistantQuerySummary:
+      properties:
+        aggregateAttribute:
+          type: string
+        aggregateOperator:
+          type: string
+        dataSource:
+          type: string
+        disabled:
+          type: boolean
+        filterExpression:
+          type: string
+        groupByCount:
+          type: integer
+        name:
+          type: string
+      type: object
+    AssistantSelectedEntity:
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+      type: object
+    AssistantStreamEvent:
+      properties:
+        delta:
+          type: string
+        message:
+          type: string
+      type: object
+    AssistantTimeRange:
+      properties:
+        endTime:
+          nullable: true
+          type: integer
+        label:
+          type: string
+        startTime:
+          nullable: true
+          type: integer
       type: object
     AssistantUpdatableConfig:
       properties:
@@ -18,6 +121,20 @@ components:
           type: string
         model:
           type: string
+      required:
+      - baseUrl
+      - model
+      type: object
+    AssistantVisibleDataSummary:
+      properties:
+        description:
+          type: string
+        rowCount:
+          nullable: true
+          type: integer
+        seriesCount:
+          nullable: true
+          type: integer
       type: object
     AuthtypesAuthDomainConfig:
       properties:
@@ -2576,6 +2693,56 @@ info:
   version: ""
 openapi: 3.0.3
 paths:
+  /api/v1/assistant/chat:
+    post:
+      deprecated: false
+      description: Streams Server-Sent Events. Token events contain a delta, error
+        events contain a message, and the stream ends with a done event.
+      operationId: ChatWithAssistant
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssistantChatRequest'
+      responses:
+        "200":
+          content:
+            text/event-stream:
+              schema:
+                $ref: '#/components/schemas/AssistantStreamEvent'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Forbidden
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Internal Server Error
+      security:
+      - api_key:
+        - VIEWER
+      - tokenizer:
+        - VIEWER
+      summary: Chat with AI assistant
+      tags:
+      - assistant-stream
   /api/v1/assistant/config:
     get:
       deprecated: false

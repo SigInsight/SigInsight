@@ -4,19 +4,161 @@
  * * regenerate with 'yarn generate:api'
  * SigNoz
  */
+export interface AssistantChatMessageDTO {
+	/**
+	 * @type string
+	 */
+	content: string;
+	/**
+	 * @type string
+	 */
+	role: string;
+}
+
+export interface AssistantChatRequestDTO {
+	context?: AssistantContextSnapshotDTO;
+	/**
+	 * @type array
+	 * @nullable true
+	 */
+	messages: AssistantChatMessageDTO[] | null;
+}
+
 export interface AssistantConfigResponseDTO {
 	/**
 	 * @type boolean
 	 */
-	apiKeyConfigured?: boolean;
+	apiKeyConfigured: boolean;
 	/**
 	 * @type string
 	 */
-	baseUrl?: string;
+	baseUrl: string;
 	/**
 	 * @type string
 	 */
-	model?: string;
+	model: string;
+}
+
+export interface AssistantContextSnapshotDTO {
+	/**
+	 * @type integer
+	 * @format int64
+	 */
+	capturedAt?: number;
+	/**
+	 * @type integer
+	 */
+	formulaCount?: number;
+	/**
+	 * @type string
+	 */
+	initialDataSource?: string;
+	/**
+	 * @type string
+	 */
+	panelType?: string;
+	/**
+	 * @type array
+	 * @nullable true
+	 */
+	queries?: AssistantQuerySummaryDTO[] | null;
+	/**
+	 * @type integer
+	 */
+	queryCount?: number;
+	/**
+	 * @type string
+	 */
+	queryType?: string;
+	/**
+	 * @type string
+	 */
+	route?: string;
+	/**
+	 * @type string
+	 */
+	search?: string;
+	selectedEntity?: AssistantSelectedEntityDTO;
+	timeRange?: AssistantTimeRangeDTO;
+	/**
+	 * @type integer
+	 */
+	traceOperatorCount?: number;
+	visibleDataSummary?: AssistantVisibleDataSummaryDTO;
+}
+
+export interface AssistantQuerySummaryDTO {
+	/**
+	 * @type string
+	 */
+	aggregateAttribute?: string;
+	/**
+	 * @type string
+	 */
+	aggregateOperator?: string;
+	/**
+	 * @type string
+	 */
+	dataSource?: string;
+	/**
+	 * @type boolean
+	 */
+	disabled?: boolean;
+	/**
+	 * @type string
+	 */
+	filterExpression?: string;
+	/**
+	 * @type integer
+	 */
+	groupByCount?: number;
+	/**
+	 * @type string
+	 */
+	name?: string;
+}
+
+export interface AssistantSelectedEntityDTO {
+	/**
+	 * @type string
+	 */
+	id?: string;
+	/**
+	 * @type string
+	 */
+	name?: string;
+	/**
+	 * @type string
+	 */
+	type?: string;
+}
+
+export interface AssistantStreamEventDTO {
+	/**
+	 * @type string
+	 */
+	delta?: string;
+	/**
+	 * @type string
+	 */
+	message?: string;
+}
+
+export interface AssistantTimeRangeDTO {
+	/**
+	 * @type integer
+	 * @nullable true
+	 */
+	endTime?: number | null;
+	/**
+	 * @type string
+	 */
+	label?: string;
+	/**
+	 * @type integer
+	 * @nullable true
+	 */
+	startTime?: number | null;
 }
 
 export interface AssistantUpdatableConfigDTO {
@@ -28,11 +170,28 @@ export interface AssistantUpdatableConfigDTO {
 	/**
 	 * @type string
 	 */
-	baseUrl?: string;
+	baseUrl: string;
 	/**
 	 * @type string
 	 */
-	model?: string;
+	model: string;
+}
+
+export interface AssistantVisibleDataSummaryDTO {
+	/**
+	 * @type string
+	 */
+	description?: string;
+	/**
+	 * @type integer
+	 * @nullable true
+	 */
+	rowCount?: number | null;
+	/**
+	 * @type integer
+	 * @nullable true
+	 */
+	seriesCount?: number | null;
 }
 
 export interface AuthtypesAuthDomainConfigDTO {
