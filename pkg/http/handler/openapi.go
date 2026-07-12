@@ -29,10 +29,12 @@ type OpenAPIDef struct {
 	RequestExamples     []OpenAPIExample
 	Response            any
 	ResponseContentType string
-	SuccessStatusCode   int
-	ErrorStatusCodes    []int
-	Deprecated          bool
-	SecuritySchemes     []OpenAPISecurityScheme
+	// ResponseIsRaw declares that the response is not wrapped in render.SuccessResponse.
+	ResponseIsRaw     bool
+	SuccessStatusCode int
+	ErrorStatusCodes  []int
+	Deprecated        bool
+	SecuritySchemes   []OpenAPISecurityScheme
 }
 
 type OpenAPISecurityScheme struct {

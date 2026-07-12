@@ -1,5 +1,141 @@
 components:
   schemas:
+    AssistantChatMessage:
+      properties:
+        content:
+          type: string
+        role:
+          type: string
+      required:
+      - role
+      - content
+      type: object
+    AssistantChatRequest:
+      properties:
+        context:
+          $ref: '#/components/schemas/AssistantContextSnapshot'
+        messages:
+          items:
+            $ref: '#/components/schemas/AssistantChatMessage'
+          nullable: true
+          type: array
+      required:
+      - messages
+      type: object
+    AssistantConfigResponse:
+      properties:
+        apiKeyConfigured:
+          type: boolean
+        baseUrl:
+          type: string
+        model:
+          type: string
+      required:
+      - baseUrl
+      - model
+      - apiKeyConfigured
+      type: object
+    AssistantContextSnapshot:
+      properties:
+        capturedAt:
+          format: int64
+          type: integer
+        formulaCount:
+          type: integer
+        initialDataSource:
+          type: string
+        panelType:
+          type: string
+        queries:
+          items:
+            $ref: '#/components/schemas/AssistantQuerySummary'
+          nullable: true
+          type: array
+        queryCount:
+          type: integer
+        queryType:
+          type: string
+        route:
+          type: string
+        search:
+          type: string
+        selectedEntity:
+          $ref: '#/components/schemas/AssistantSelectedEntity'
+        timeRange:
+          $ref: '#/components/schemas/AssistantTimeRange'
+        traceOperatorCount:
+          type: integer
+        visibleDataSummary:
+          $ref: '#/components/schemas/AssistantVisibleDataSummary'
+      type: object
+    AssistantQuerySummary:
+      properties:
+        aggregateAttribute:
+          type: string
+        aggregateOperator:
+          type: string
+        dataSource:
+          type: string
+        disabled:
+          type: boolean
+        filterExpression:
+          type: string
+        groupByCount:
+          type: integer
+        name:
+          type: string
+      type: object
+    AssistantSelectedEntity:
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+      type: object
+    AssistantStreamEvent:
+      properties:
+        delta:
+          type: string
+        message:
+          type: string
+      type: object
+    AssistantTimeRange:
+      properties:
+        endTime:
+          nullable: true
+          type: integer
+        label:
+          type: string
+        startTime:
+          nullable: true
+          type: integer
+      type: object
+    AssistantUpdatableConfig:
+      properties:
+        apiKey:
+          nullable: true
+          type: string
+        baseUrl:
+          type: string
+        model:
+          type: string
+      required:
+      - baseUrl
+      - model
+      type: object
+    AssistantVisibleDataSummary:
+      properties:
+        description:
+          type: string
+        rowCount:
+          nullable: true
+          type: integer
+        seriesCount:
+          nullable: true
+          type: integer
+      type: object
     AuthtypesAuthDomainConfig:
       properties:
         googleAuthConfig:
@@ -2557,6 +2693,141 @@ info:
   version: ""
 openapi: 3.0.3
 paths:
+  /api/v1/assistant/chat:
+    post:
+      deprecated: false
+      description: Streams Server-Sent Events. Token events contain a delta, error
+        events contain a message, and the stream ends with a done event.
+      operationId: ChatWithAssistant
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssistantChatRequest'
+      responses:
+        "200":
+          content:
+            text/event-stream:
+              schema:
+                $ref: '#/components/schemas/AssistantStreamEvent'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Forbidden
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Internal Server Error
+      security:
+      - api_key:
+        - VIEWER
+      - tokenizer:
+        - VIEWER
+      summary: Chat with AI assistant
+      tags:
+      - assistant-stream
+  /api/v1/assistant/config:
+    get:
+      deprecated: false
+      description: Returns the configured OpenAI-compatible endpoint without exposing
+        its API key
+      operationId: GetAssistantConfig
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: '#/components/schemas/AssistantConfigResponse'
+                  status:
+                    type: string
+                required:
+                - status
+                - data
+                type: object
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Forbidden
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Internal Server Error
+      security:
+      - api_key:
+        - VIEWER
+      - tokenizer:
+        - VIEWER
+      summary: Get AI assistant configuration
+      tags:
+      - assistant
+    put:
+      deprecated: false
+      description: Stores an OpenAI-compatible endpoint configuration for the organization
+      operationId: UpdateAssistantConfig
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssistantUpdatableConfig'
+      responses:
+        "204":
+          description: No Content
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Forbidden
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Internal Server Error
+      security:
+      - api_key:
+        - ADMIN
+      - tokenizer:
+        - ADMIN
+      summary: Update AI assistant configuration
+      tags:
+      - assistant
   /api/v1/authz/check:
     post:
       deprecated: false

@@ -99,8 +99,12 @@ func (handler *handler) ServeOpenAPI(opCtx openapi.OperationContext) {
 
 	// Add success response
 	if handler.openAPIDef.Response != nil {
+		response := handler.openAPIDef.Response
+		if !handler.openAPIDef.ResponseIsRaw {
+			response = render.SuccessResponse{Status: render.StatusSuccess.String(), Data: response}
+		}
 		opCtx.AddRespStructure(
-			render.SuccessResponse{Status: render.StatusSuccess.String(), Data: handler.openAPIDef.Response},
+			response,
 			openapi.WithContentType(handler.openAPIDef.ResponseContentType),
 			openapi.WithHTTPStatus(handler.openAPIDef.SuccessStatusCode),
 		)
