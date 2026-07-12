@@ -103,8 +103,8 @@ github.com/Masterminds/squirrel v1.5.4/go.mod h1:NNaOrjSoIDfDA40n7sr2tPNZRfjzjA4
 github.com/Microsoft/go-winio v0.6.2 h1:F2VQgta7ecxGYO8k3ZZz3RS8fVIXVxONVUPlNERoyfY=
 github.com/Microsoft/go-winio v0.6.2/go.mod h1:yd8OoFMLzJbo9gZq8j5qaps8bJ9aShtEA8Ipt1oGCvU=
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
-github.com/SigInsight/OtelCollector v0.5.1 h1:7wODdv9/659E3dvASBdL7id5EL+zWbR2Z12UYdMevh0=
-github.com/SigInsight/OtelCollector v0.5.1/go.mod h1:/WylCfkpo3hPxMOL/zn+TPaSTKpGdBuVTdzuozfIko0=
+github.com/SigInsight/OtelCollector v0.5.2 h1:MJDkHOoElOBd/mH0l8V+yAAFURzvbNtVku4HIK9WyjM=
+github.com/SigInsight/OtelCollector v0.5.2/go.mod h1:ntctDaeibbYeQ2jfexJ14ZuVyJBJ0SPwesEkEjHnD+c=
 github.com/SigNoz/expr v1.17.7-beta h1:FyZkleM5dTQ0O6muQfwGpoH5A2ohmN/XTasRCO72gAA=
 github.com/SigNoz/expr v1.17.7-beta/go.mod h1:8/vRC7+7HBzESEqt5kKpYXxrxkr31SaO8r40VO/1IT4=
 github.com/SigNoz/govaluate v0.0.0-20240203125216-988004ccc7fd h1:Bk43AsDYe0fhkbj57eGXx8H3ZJ4zhmQXBnrW523ktj8=
@@ -112,6 +112,8 @@ github.com/SigNoz/govaluate v0.0.0-20240203125216-988004ccc7fd/go.mod h1:nxRcH/O
 github.com/Yiling-J/theine-go v0.6.2 h1:1GeoXeQ0O0AUkiwj2S9Jc0Mzx+hpqzmqsJ4kIC4M9AY=
 github.com/Yiling-J/theine-go v0.6.2/go.mod h1:08QpMa5JZ2pKN+UJCRrCasWYO1IKCdl54Xa836rpmDU=
 github.com/afex/hystrix-go v0.0.0-20180502004556-fa1af6a1f4f5/go.mod h1:SkGFH1ia65gfNATL8TAiHDNxPzPdmEL5uirI2Uyuz6c=
+github.com/alecthomas/participle/v2 v2.1.4 h1:W/H79S8Sat/krZ3el6sQMvMaahJ+XcM9WSI2naI7w2U=
+github.com/alecthomas/participle/v2 v2.1.4/go.mod h1:8tqVbpTX20Ru4NfYQgZf4mP18eXPTBViyMWiArNEgGI=
 github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=
 github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=
 github.com/alecthomas/units v0.0.0-20151022065526-2efee857e7cf/go.mod h1:ybxpYRFXyAe+OPACYpWeL0wqObRcbAqCMya13uyzqw0=
@@ -121,6 +123,10 @@ github.com/alecthomas/units v0.0.0-20240927000941-0f3dac36c52b h1:mimo19zliBX/vS
 github.com/alecthomas/units v0.0.0-20240927000941-0f3dac36c52b/go.mod h1:fvzegU4vN3H1qMT+8wDmzjAcDONcgo2/SZ/TyfdUOFs=
 github.com/andybalholm/brotli v1.2.1 h1:R+f5xP285VArJDRgowrfb9DqL18yVK0gKAW/F+eTWro=
 github.com/andybalholm/brotli v1.2.1/go.mod h1:rzTDkvFWvIrjDXZHkuS16NPggd91W3kUSvPlQ1pLaKY=
+github.com/antchfx/xmlquery v1.5.0 h1:uAi+mO40ZWfyU6mlUBxRVvL6uBNZ6LMU4M3+mQIBV4c=
+github.com/antchfx/xmlquery v1.5.0/go.mod h1:lJfWRXzYMK1ss32zm1GQV3gMIW/HFey3xDZmkP1SuNc=
+github.com/antchfx/xpath v1.3.6 h1:s0y+ElRRtTQdfHP609qFu0+c6bglDv20pqOViQjjdPI=
+github.com/antchfx/xpath v1.3.6/go.mod h1:i54GszH55fYfBmoZXapTHN8T8tkcHfRgLyVwwqzXNcs=
 github.com/antihax/optional v1.0.0/go.mod h1:uupD/76wgC+ih3iEmQUL+0Ugr19nfwCT1kdvxnR2qWY=
 github.com/antlr4-go/antlr/v4 v4.13.1 h1:SqQKkuVZ+zWkMMNkjy5FZe5mr5WURWnlpmOuzYWrPrQ=
 github.com/antlr4-go/antlr/v4 v4.13.1/go.mod h1:GKmUxMtwp6ZgGwZSva4eWPC5mS6vUAmOABFgjdkM7Nw=
@@ -279,6 +285,8 @@ github.com/ebitengine/purego v0.10.0 h1:QIw4xfpWT6GWTzaW5XEKy3HXoqrJGx1ijYHzTF0/
 github.com/ebitengine/purego v0.10.0/go.mod h1:iIjxzd6CiRiOG0UyXP+V1+jWqUXVjPKLAI0mRfJZTmQ=
 github.com/edsrzf/mmap-go v1.2.1-0.20241212181136-fad1cd13edbd h1:I4PrRZuNMeDP3VbFrak4QsqwO5tWkQf0tqrrr1L2DsU=
 github.com/edsrzf/mmap-go v1.2.1-0.20241212181136-fad1cd13edbd/go.mod h1:19H/e8pUPLicwkyNgOykDXkJ9F0MHE+Z52B8EIth78Q=
+github.com/elastic/go-grok v0.3.1 h1:WEhUxe2KrwycMnlvMimJXvzRa7DoByJB4PVUIE1ZD/U=
+github.com/elastic/go-grok v0.3.1/go.mod h1:n38ls8ZgOboZRgKcjMY8eFeZFMmcL9n2lP0iHhIDk64=
 github.com/elastic/lunes v0.2.0 h1:WI3bsdOTuaYXVe2DS1KbqA7u7FOHN4o8qJw80ZyZoQs=
 github.com/elastic/lunes v0.2.0/go.mod h1:u3W/BdONWTrh0JjNZ21C907dDc+cUZttZrGa625nf2k=
 github.com/emersion/go-sasl v0.0.0-20241020182733-b788ff22d5a6 h1:oP4q0fw+fOSWn3DfFi4EXdT+B+gTtzx8GC9xsc26Znk=
@@ -449,6 +457,7 @@ github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b/go.mod h1:SBH7ygxi8pfU
 github.com/golang/groupcache v0.0.0-20190702054246-869f871628b6/go.mod h1:cIg4eruTrX1D+g88fzRXU5OdNfaM+9IcxsU14FzY7Hc=
 github.com/golang/groupcache v0.0.0-20191227052852-215e87163ea7/go.mod h1:cIg4eruTrX1D+g88fzRXU5OdNfaM+9IcxsU14FzY7Hc=
 github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e/go.mod h1:cIg4eruTrX1D+g88fzRXU5OdNfaM+9IcxsU14FzY7Hc=
+github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da h1:oI5xCqsCo564l8iNU+DwB5epxmsaqB+rhGL0m5jtYqE=
 github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da/go.mod h1:cIg4eruTrX1D+g88fzRXU5OdNfaM+9IcxsU14FzY7Hc=
 github.com/golang/mock v1.1.1/go.mod h1:oTYuIxOrZwtPieC+H1uAHpcLFnEyAGVDL/k47Jfbm0A=
 github.com/golang/mock v1.2.0/go.mod h1:oTYuIxOrZwtPieC+H1uAHpcLFnEyAGVDL/k47Jfbm0A=
@@ -659,6 +668,8 @@ github.com/huandu/xstrings v1.4.0 h1:D17IlohoQq4UcpqD7fDk80P7l+lwAmlFaBHgOipl2FU
 github.com/huandu/xstrings v1.4.0/go.mod h1:y5/lhBue+AyNmUVz9RLU9xbLR0o4KIIExikq4ovT0aE=
 github.com/iancoleman/orderedmap v0.3.0 h1:5cbR2grmZR/DiVt+VJopEhtVs9YGInGIxAoMJn+Ichc=
 github.com/iancoleman/orderedmap v0.3.0/go.mod h1:XuLcCUkdL5owUCQeF2Ue9uuw1EptkJDkXXS7VoV7XGE=
+github.com/iancoleman/strcase v0.3.0 h1:nTXanmYxhfFAMjZL34Ov6gkzEsSJZ5DbhxWjvSASxEI=
+github.com/iancoleman/strcase v0.3.0/go.mod h1:iwCmte+B7n89clKwxIoIXy/HfoL7AsD47ZCWhYzw7ho=
 github.com/ianlancetaylor/demangle v0.0.0-20181102032728-5e5cf60278f6/go.mod h1:aSSvb/t6k1mPoxDqO4vJh6VOCGPwU4O0C2/Eqndh1Sc=
 github.com/ianlancetaylor/demangle v0.0.0-20200824232613-28f6c0f3b639/go.mod h1:aSSvb/t6k1mPoxDqO4vJh6VOCGPwU4O0C2/Eqndh1Sc=
 github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2s0bqwp9tc8=
@@ -845,6 +856,10 @@ github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal 
 github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.152.0/go.mod h1:t2rBQaw3WPJNxmfOnwdoO00pcH7r5uvy5oaHBuqr1Lc=
 github.com/open-telemetry/opentelemetry-collector-contrib/internal/exp/metrics v0.152.0 h1:45JZKYM60uBqab/rapk+YoFrmpsOFUnMg4AxNy4cqUM=
 github.com/open-telemetry/opentelemetry-collector-contrib/internal/exp/metrics v0.152.0/go.mod h1:eorhtiMySzyNWd9NqtXVNjhIXceE7lTbzlnXF6wJhvQ=
+github.com/open-telemetry/opentelemetry-collector-contrib/internal/filter v0.144.0 h1:Ywu5mU4K5TMJigiXdyZloCRs/cq3/2OnoK3WjxNHWJo=
+github.com/open-telemetry/opentelemetry-collector-contrib/internal/filter v0.144.0/go.mod h1:iebqlu6UvpiV1hO37r1sXA9fXaCaA8sQXilG0///xss=
+github.com/open-telemetry/opentelemetry-collector-contrib/pkg/ottl v0.144.0 h1:TMRTvQSAeeLtkKwSrqcbectxDRPiqB6yYM3IvjC75es=
+github.com/open-telemetry/opentelemetry-collector-contrib/pkg/ottl v0.144.0/go.mod h1:1HU0qJ4hFrphDebuBs3I4DPQ6zyBFGinQ5/bXEUM7pw=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest v0.152.0 h1:doUXkx/2b8cCLCmPPUIL7mptXLHZccEXrynOBHJXaY8=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest v0.152.0/go.mod h1:gyWlIJCVQALYPpqp824SRrBFFRKC+6UYrtLEvlYeR7w=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatautil v0.152.0 h1:Dr+hw7TeddrYpAR5qVArm7Ww+M+QSQ3ZVvq0iLJbiA8=
@@ -853,8 +868,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza v0.144.0 h1
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza v0.144.0/go.mod h1:3Y6ctEEwRg19B0jqsrQH6Hiquqte+zC0ZxpXLLSa5sA=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/deltatocumulativeprocessor v0.152.0 h1:E8hPKQC0hQEd5zK/39pw0fP5YI4Wy7Znt17kpB2wXOs=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/deltatocumulativeprocessor v0.152.0/go.mod h1:ZJqDSclotTyNe4uhoia5VASEFP1LSpp4mTWNG9ei4uo=
-github.com/open-telemetry/opentelemetry-collector-contrib/processor/logstransformprocessor v0.144.0 h1:HbmpzTixpQG/xGhQuQoiJTXQPrixe+yivAsF6tl2o4g=
-github.com/open-telemetry/opentelemetry-collector-contrib/processor/logstransformprocessor v0.144.0/go.mod h1:32jR9iqxVozOJ/Lg5RkCNoW18uCNwpKSbs6h5c28Ep4=
+github.com/open-telemetry/opentelemetry-collector-contrib/processor/filterprocessor v0.144.0 h1:NplF2G77Y9qp3JPybGrJTeRvZrTD0+QdZybffVxRen8=
+github.com/open-telemetry/opentelemetry-collector-contrib/processor/filterprocessor v0.144.0/go.mod h1:8j0rg5f74vgGuuxyFNcEP4tHFRb2oIUkilDhEAU+ZM0=
 github.com/opencontainers/go-digest v1.0.0 h1:apOUWs51W5PlhuyGyz9FCeeBIOUDA/6nW8Oi/yOhh5U=
 github.com/opencontainers/go-digest v1.0.0/go.mod h1:0JzlMkj0TRzQZfJkVvzbP0HBR3IKzErnv2BNG4W4MAM=
 github.com/opencontainers/image-spec v1.1.1 h1:y0fUlFfIZhPF1W537XOLg0/fcx6zcHCJwooC2xJA040=
@@ -1082,6 +1097,10 @@ github.com/tmthrgd/go-hex v0.0.0-20190904060850-447a3041c3bc/go.mod h1:bciPuU6GH
 github.com/tv42/httpunix v0.0.0-20150427012821-b75d8614f926/go.mod h1:9ESjWnEqriFuLhtthL60Sar/7RFoluCcXsuvEwTV5KM=
 github.com/twitchyliquid64/golang-asm v0.15.1 h1:SU5vSMR7hnwNxj24w34ZyCi/FmDZTkS4MhqMhdFk5YI=
 github.com/twitchyliquid64/golang-asm v0.15.1/go.mod h1:a1lVb/DtPvCB8fslRZhAngC2+aY1QWCk3Cedj/Gdt08=
+github.com/twmb/murmur3 v1.1.8 h1:8Yt9taO/WN3l08xErzjeschgZU2QSrwm1kclYq+0aRg=
+github.com/twmb/murmur3 v1.1.8/go.mod h1:Qq/R7NUyOfr65zD+6Q5IHKsJLwP7exErjN6lyyq3OSQ=
+github.com/ua-parser/uap-go v0.0.0-20240611065828-3a4781585db6 h1:SIKIoA4e/5Y9ZOl0DCe3eVMLPOQzJxgZpfdHHeauNTM=
+github.com/ua-parser/uap-go v0.0.0-20240611065828-3a4781585db6/go.mod h1:BUbeWZiieNxAuuADTBNb3/aeje6on3DhU3rpWsQSB1E=
 github.com/ugorji/go/codec v1.3.0 h1:Qd2W2sQawAfG8XSvzwhBeoGq71zXOC/Q1E9y/wUcsUA=
 github.com/ugorji/go/codec v1.3.0/go.mod h1:pRBVtBSKl77K30Bv8R2P+cLSGaTtex6fsA2Wjqmfxj4=
 github.com/uptrace/bun v1.2.9 h1:OOt2DlIcRUMSZPr6iXDFg/LaQd59kOxbAjpIVHddKRs=
@@ -1235,6 +1254,8 @@ go.opentelemetry.io/collector/processor v1.58.0 h1:cV4uwoW6zFGp426HhZ9AssJgeNmT+
 go.opentelemetry.io/collector/processor v1.58.0/go.mod h1:pBWS8cNRIR3IRmPKxkuJi0w1HKf/86nmJR7eKJ2forQ=
 go.opentelemetry.io/collector/processor/processorhelper v0.152.0 h1:raqJsuFJ/5CoOUnXVIqpWpKehVX2O7ZBG52XVt3tt1s=
 go.opentelemetry.io/collector/processor/processorhelper v0.152.0/go.mod h1:GxkpqvduRXFx9Zi7YVMrX68ynG3nQXFa6O4ieJSveYQ=
+go.opentelemetry.io/collector/processor/processorhelper/xprocessorhelper v0.152.0 h1:isBcc7HNjs7igypyIDesM+aupcuh2QhZWI9du+EiCoo=
+go.opentelemetry.io/collector/processor/processorhelper/xprocessorhelper v0.152.0/go.mod h1:SO4c95ZQ2xzqxDa5rOo4NQy2yshEEInRJ3VYeiFXcNs=
 go.opentelemetry.io/collector/processor/processortest v0.152.0 h1:A4S2hOuGGD/JtRj1IW9eCv8EjheP1UKmhaqpIUrXE6w=
 go.opentelemetry.io/collector/processor/processortest v0.152.0/go.mod h1:eKIKAkec0FuCGxnSp6Zbz/eFVt0ag8p/USr/nonJpN4=
 go.opentelemetry.io/collector/processor/xprocessor v0.152.0 h1:S4BWCxRfSA9UNeqQHfWOj0U8wf0Z0U5r9iKXjOaCycc=
