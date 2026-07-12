@@ -4,6 +4,37 @@
  * * regenerate with 'yarn generate:api'
  * SigNoz
  */
+export interface AssistantConfigResponseDTO {
+	/**
+	 * @type boolean
+	 */
+	apiKeyConfigured?: boolean;
+	/**
+	 * @type string
+	 */
+	baseUrl?: string;
+	/**
+	 * @type string
+	 */
+	model?: string;
+}
+
+export interface AssistantUpdatableConfigDTO {
+	/**
+	 * @type string
+	 * @nullable true
+	 */
+	apiKey?: string | null;
+	/**
+	 * @type string
+	 */
+	baseUrl?: string;
+	/**
+	 * @type string
+	 */
+	model?: string;
+}
+
 export interface AuthtypesAuthDomainConfigDTO {
 	googleAuthConfig?: AuthtypesGoogleConfigDTO;
 	roleMapping?: AuthtypesRoleMappingDTO;
@@ -3027,6 +3058,14 @@ export interface TypesUserDTO {
 	 */
 	updatedAt?: Date;
 }
+
+export type GetAssistantConfig200 = {
+	data: AssistantConfigResponseDTO;
+	/**
+	 * @type string
+	 */
+	status: string;
+};
 
 export type AuthzCheck200 = {
 	/**

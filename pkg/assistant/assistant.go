@@ -2,12 +2,13 @@ package assistant
 
 import (
 	"context"
-	"errors"
 	"net/http"
+
+	"github.com/SigNoz/signoz/pkg/errors"
 )
 
 // ErrConfigNotFound is returned by Store.GetConfig when no config exists for the given org.
-var ErrConfigNotFound = errors.New("assistant config not found")
+var ErrConfigNotFound = errors.Newf(errors.TypeNotFound, errors.CodeNotFound, "assistant config not found")
 
 const (
 	DefaultBaseURL = "https://api.openai.com/v1"
