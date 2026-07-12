@@ -1,6 +1,6 @@
 package telemetrymetadata
 
-import otelcollectorconst "github.com/SigNoz/signoz-otel-collector/constants"
+import otelcollectorconst "github.com/SigInsight/OtelCollector/constants"
 
 const (
 	DBName                           = "signoz_metadata"

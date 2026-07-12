@@ -3,8 +3,8 @@ package promotetypes
 import (
 	"strings"
 
-	"github.com/SigNoz/signoz-otel-collector/constants"
-	"github.com/SigNoz/signoz-otel-collector/pkg/keycheck"
+	"github.com/SigInsight/OtelCollector/constants"
+	"github.com/SigInsight/OtelCollector/pkg/keycheck"
 	"github.com/SigNoz/signoz/pkg/errors"
 	"github.com/SigNoz/signoz/pkg/types/telemetrytypes"
 )

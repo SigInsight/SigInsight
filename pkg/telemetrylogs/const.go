@@ -3,7 +3,7 @@ package telemetrylogs
 import (
 	"fmt"
 
-	"github.com/SigNoz/signoz-otel-collector/constants"
+	"github.com/SigInsight/OtelCollector/constants"
 	"github.com/SigNoz/signoz/pkg/querybuilder"
 	qbtypes "github.com/SigNoz/signoz/pkg/types/querybuildertypes/querybuildertypesv5"
 	"github.com/SigNoz/signoz/pkg/types/telemetrytypes"
