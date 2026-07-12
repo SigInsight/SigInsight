@@ -380,8 +380,5 @@ require (
 
 replace github.com/expr-lang/expr => github.com/SigNoz/expr v1.17.7-beta
 
-// v2.4.1 omits assert/yaml, which is imported by enable/yaml/v2.
-replace github.com/go-openapi/testify/v2 => github.com/go-openapi/testify/v2 v2.0.2
-
 // v2.45.0 adds driver.Rows.HasData, which is not implemented by ClickHouse-go-mock.
 replace github.com/ClickHouse/clickhouse-go/v2 => github.com/ClickHouse/clickhouse-go/v2 v2.40.1
