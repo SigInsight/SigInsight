@@ -5,7 +5,7 @@ import { useGetAllIntegrations } from 'hooks/Integrations/useGetAllIntegrations'
 import { MoveUpRight, RotateCw } from 'lucide-react';
 import { IntegrationsProps } from 'types/api/integrations/types';
 
-import { handleContactSupport } from './utils';
+import { handleContactSupport, isSupportedBuiltinIntegration } from './utils';
 
 import './Integrations.styles.scss';
 
@@ -27,7 +27,9 @@ function IntegrationsList(props: IntegrationsListProps): JSX.Element {
 	} = useGetAllIntegrations();
 
 	const integrationsList: IntegrationsProps[] =
-		data?.data.data.integrations || [];
+		data?.data.data.integrations.filter(({ id }) =>
+			isSupportedBuiltinIntegration(id),
+		) || [];
 
 	const loading = isLoading || isFetching || isRefetching;
 

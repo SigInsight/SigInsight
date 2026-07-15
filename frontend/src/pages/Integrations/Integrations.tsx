@@ -6,7 +6,10 @@ import useUrlQuery from 'hooks/useUrlQuery';
 import Header from './Header';
 import IntegrationDetailPage from './IntegrationDetailPage/IntegrationDetailPage';
 import IntegrationsList from './IntegrationsList';
-import { INTEGRATION_TELEMETRY_EVENTS } from './utils';
+import {
+	INTEGRATION_TELEMETRY_EVENTS,
+	isSupportedBuiltinIntegration,
+} from './utils';
 
 import './Integrations.styles.scss';
 
@@ -15,9 +18,12 @@ function Integrations(): JSX.Element {
 	const history = useHistory();
 	const location = useLocation();
 
-	const selectedIntegration = useMemo(() => urlQuery.get('integration'), [
-		urlQuery,
-	]);
+	const selectedIntegration = useMemo(() => {
+		const integrationId = urlQuery.get('integration');
+		return integrationId && isSupportedBuiltinIntegration(integrationId)
+			? integrationId
+			: null;
+	}, [urlQuery]);
 
 	const setSelectedIntegration = useCallback(
 		(integration: string | null) => {

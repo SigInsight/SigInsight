@@ -2454,63 +2454,6 @@
 		"link": "/docs/aws-monitoring/vpc-logs/"
 	},
 	{
-		"dataSource": "aws-rds",
-		"label": "AWS RDS",
-		"imgUrl": "/Logos/rds.svg",
-		"tags": [
-			"AWS",
-			"database"
-		],
-		"module": "dashboards",
-		"relatedSearchKeywords": [
-			"amazon",
-			"amazon rds",
-			"aws",
-			"aws database",
-			"aws rds",
-			"aws rds logs",
-			"aws rds metrics",
-			"aws rds mysql",
-			"aws rds postgresql",
-			"aws-rds",
-			"collect rds logs",
-			"database",
-			"integrations",
-			"mysql",
-			"postgresql",
-			"rds",
-			"rds logs",
-			"rds logs to signoz",
-			"rds metrics",
-			"rds mysql logs",
-			"rds observability",
-			"rds performance monitoring",
-			"rds postgres logs",
-			"rds slow query logs"
-		],
-		"question": {
-			"desc": "How would you like to set up AWS RDS monitoring?",
-			"type": "select",
-			"helpText": "Choose an OpenTelemetry receiver for your RDS engine.",
-			"options": [
-				{
-					"key": "aws-rds-mysql-manual",
-					"label": "MySQL Manual",
-					"imgUrl": "/Logos/rds.svg",
-					"link": "/integrations?integration=builtin-aws_rds_mysql",
-					"internalRedirect": true
-				},
-				{
-					"key": "aws-rds-postgresql-manual",
-					"label": "PostgreSQL Manual",
-					"imgUrl": "/Logos/rds.svg",
-					"link": "/integrations?integration=builtin-aws_rds_postgresql",
-					"internalRedirect": true
-				}
-			]
-		}
-	},
-	{
 		"dataSource": "aws-lambda",
 		"label": "AWS Lambda",
 		"tags": [
@@ -4770,43 +4713,6 @@
 					"label": "Manual Setup",
 					"imgUrl": "/Logos/dynamodb.svg",
 					"link": "/docs/aws-monitoring/dynamodb/"
-				}
-			]
-		}
-	},
-	{
-		"dataSource": "aws-elasticache",
-		"label": "AWS ElastiCache",
-		"tags": [
-			"AWS"
-		],
-		"module": "dashboards",
-		"relatedSearchKeywords": [
-			"amazon",
-			"amazon elasticache",
-			"aws",
-			"aws elasticache",
-			"aws-elasticache",
-			"cache",
-			"elasticache",
-			"elasticache logs",
-			"elasticache metrics",
-			"elasticache monitoring",
-			"integrations",
-			"redis"
-		],
-		"imgUrl": "/Logos/elasticache.svg",
-		"question": {
-			"desc": "How would you like to set up AWS ElastiCache monitoring?",
-			"type": "select",
-			"helpText": "Use the built-in Redis integration for ElastiCache.",
-			"options": [
-				{
-					"key": "aws-elasticache-redis-manual",
-					"label": "Redis Manual",
-					"imgUrl": "/Logos/elasticache.svg",
-					"link": "/integrations?integration=builtin-aws_elasticache_redis",
-					"internalRedirect": true
 				}
 			]
 		}
