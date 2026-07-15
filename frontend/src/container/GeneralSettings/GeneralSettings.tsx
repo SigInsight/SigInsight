@@ -9,10 +9,7 @@ import { Modal, Spin } from 'antd';
 import setRetentionApi from 'api/settings/setRetention';
 import setRetentionApiV2 from 'api/settings/setRetentionV2';
 import TextToolTip from 'components/TextToolTip';
-import LicenseKeyRow from 'container/GeneralSettings/LicenseKeyRow/LicenseKeyRow';
-import GeneralSettingsCloud from 'container/GeneralSettingsCloud';
 import useComponentPermission from 'hooks/useComponentPermission';
-import { useGetTenantLicense } from 'hooks/useGetTenantLicense';
 import { useNotifications } from 'hooks/useNotifications';
 import { StatusCodes } from 'http-status-codes';
 import find from 'lodash-es/find';
@@ -80,7 +77,7 @@ function GeneralSettings({
 		logsTtlValuesPayload,
 	);
 
-	const { user, activeLicense } = useAppContext();
+	const { user } = useAppContext();
 
 	const [setRetentionPermission] = useComponentPermission(
 		['set_retention_period'],
@@ -462,8 +459,6 @@ function GeneralSettings({
 		onModalToggleHandler(type);
 	};
 
-	const { isCloudUser: isCloudUserVal } = useGetTenantLicense();
-
 	const renderConfig = [
 		{
 			name: 'Metrics',
@@ -615,48 +610,42 @@ function GeneralSettings({
 									compact
 								/>
 							))}
-							{!isCloudUserVal && (
-								<Button
-									variant="solid"
-									size="sm"
-									color="primary"
-									onClick={category.save.modalOpen}
-									disabled={category.save.isDisabled}
-								>
-									{category.save.saveButtonText}
-								</Button>
-							)}
+							<Button
+								variant="solid"
+								size="sm"
+								color="primary"
+								onClick={category.save.modalOpen}
+								disabled={category.save.isDisabled}
+							>
+								{category.save.saveButtonText}
+							</Button>
 						</div>
 					</div>
 
-					{!isCloudUserVal && (
-						<ActionItemsContainer>{category.statusComponent}</ActionItemsContainer>
-					)}
+					<ActionItemsContainer>{category.statusComponent}</ActionItemsContainer>
 
-					{!isCloudUserVal && (
-						<Modal
-							title={t('retention_confirmation')}
-							focusTriggerAfterClose
-							forceRender
-							destroyOnClose
-							closable
-							onCancel={(): void =>
-								onModalToggleHandler(category.name.toLowerCase() as TTTLType)
-							}
-							onOk={(): Promise<void> =>
-								onOkHandler(category.name.toLowerCase() as TTTLType)
-							}
-							centered
-							open={category.save.modal}
-							confirmLoading={category.save.apiLoading}
-						>
-							<p className="retention-modal-description">
-								{t('retention_confirmation_description', {
-									name: category.name.toLowerCase(),
-								})}
-							</p>
-						</Modal>
-					)}
+					<Modal
+						title={t('retention_confirmation')}
+						focusTriggerAfterClose
+						forceRender
+						destroyOnClose
+						closable
+						onCancel={(): void =>
+							onModalToggleHandler(category.name.toLowerCase() as TTTLType)
+						}
+						onOk={(): Promise<void> =>
+							onOkHandler(category.name.toLowerCase() as TTTLType)
+						}
+						centered
+						open={category.save.modal}
+						confirmLoading={category.save.apiLoading}
+					>
+						<p className="retention-modal-description">
+							{t('retention_confirmation_description', {
+								name: category.name.toLowerCase(),
+							})}
+						</p>
+					</Modal>
 				</Fragment>
 			);
 		}
@@ -672,12 +661,6 @@ function GeneralSettings({
 				</span>
 			</div>
 
-			{activeLicense?.key && (
-				<div className="custom-domain-card">
-					<LicenseKeyRow />
-				</div>
-			)}
-
 			<div className="retention-controls-container">
 				<div className="retention-controls-header">
 					<span className="retention-controls-header-label">Retention Controls</span>
@@ -685,21 +668,15 @@ function GeneralSettings({
 				{renderConfig}
 			</div>
 
-			{(!isCloudUserVal || errorText) && (
-				<ErrorTextContainer>
-					{!isCloudUserVal && (
-						<TextToolTip
-							{...{
-								text: `More details on how to set retention period`,
-								url: 'https://signoz.io/docs/userguide/retention-period/',
-							}}
-						/>
-					)}
-					{errorText && <ErrorText>{errorText}</ErrorText>}
-				</ErrorTextContainer>
-			)}
-
-			{isCloudUserVal && <GeneralSettingsCloud />}
+			<ErrorTextContainer>
+				<TextToolTip
+					{...{
+						text: `More details on how to set retention period`,
+						url: 'https://signoz.io/docs/userguide/retention-period/',
+					}}
+				/>
+				{errorText && <ErrorText>{errorText}</ErrorText>}
+			</ErrorTextContainer>
 		</div>
 	);
 }

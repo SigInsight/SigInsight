@@ -1,27 +1,13 @@
-import { Dispatch, SetStateAction, useMemo } from 'react';
+import { Dispatch, SetStateAction } from 'react';
 import { Color } from '@signozhq/design-tokens';
 import { Button, List, Typography } from 'antd';
 import { useGetAllIntegrations } from 'hooks/Integrations/useGetAllIntegrations';
 import { MoveUpRight, RotateCw } from 'lucide-react';
 import { IntegrationsProps } from 'types/api/integrations/types';
 
-import { handleContactSupport, INTEGRATION_TYPES } from './utils';
+import { handleContactSupport } from './utils';
 
 import './Integrations.styles.scss';
-
-export const AWS_INTEGRATION = {
-	id: INTEGRATION_TYPES.AWS_INTEGRATION,
-	title: 'Amazon Web Services',
-	description: 'One-click setup for AWS monitoring with SigInsight',
-	author: {
-		name: 'SigInsight',
-		email: 'integrations@signoz.io',
-		homepage: 'https://signoz.io',
-	},
-	icon: `Logos/aws-dark.svg`,
-	is_installed: false,
-	is_new: true,
-};
 
 interface IntegrationsListProps {
 	setSelectedIntegration: (id: string) => void;
@@ -40,15 +26,8 @@ function IntegrationsList(props: IntegrationsListProps): JSX.Element {
 		refetch,
 	} = useGetAllIntegrations();
 
-	const integrationsList = useMemo(() => {
-		const baseList: IntegrationsProps[] = [AWS_INTEGRATION];
-
-		if (data?.data.data.integrations) {
-			baseList.push(...data.data.data.integrations);
-		}
-
-		return baseList;
-	}, [data?.data.data.integrations]);
+	const integrationsList: IntegrationsProps[] =
+		data?.data.data.integrations || [];
 
 	const loading = isLoading || isFetching || isRefetching;
 

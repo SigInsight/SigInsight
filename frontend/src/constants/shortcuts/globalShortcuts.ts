@@ -25,7 +25,6 @@ export const GlobalShortcuts = {
 	// settings
 	NavigateToSettings: 'shift+g',
 	NavigateToSettingsIngestion: 'shift+g+i',
-	NavigateToSettingsBilling: 'shift+g+b',
 	NavigateToSettingsAPIKeys: 'shift+g+k',
 	NavigateToSettingsNotificationChannels: 'shift+g+n',
 };
@@ -46,7 +45,6 @@ export const GlobalShortcutsName = {
 	NavigateToMetricsViews: 'shift+m+v',
 	NavigateToSettings: 'shift+g',
 	NavigateToSettingsIngestion: 'shift+g+i',
-	NavigateToSettingsBilling: 'shift+g+b',
 	NavigateToSettingsAPIKeys: 'shift+g+k',
 	NavigateToSettingsNotificationChannels: 'shift+g+n',
 	NavigateToLogs: 'shift+l',
@@ -71,7 +69,6 @@ export const GlobalShortcutsDescription = {
 	NavigateToMetricsViews: 'Navigate to Metrics Views',
 	NavigateToSettings: 'Navigate to Settings',
 	NavigateToSettingsIngestion: 'Navigate to Ingestion Settings',
-	NavigateToSettingsBilling: 'Navigate to Billing Settings',
 	NavigateToSettingsAPIKeys: 'Navigate to API Keys Settings',
 	NavigateToSettingsNotificationChannels:
 		'Navigate to Notification Channels Settings',

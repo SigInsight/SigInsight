@@ -66,7 +66,7 @@ function ErrorModal({
 					<>
 						{versionDataPayload ? (
 							<KeyValueLabel
-								badgeKey={versionDataPayload.ee === 'Y' ? 'ENTERPRISE' : 'COMMUNITY'}
+								badgeKey="COMMUNITY"
 								badgeValue={versionDataPayload.version}
 							/>
 						) : (

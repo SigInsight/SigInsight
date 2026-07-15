@@ -20,12 +20,6 @@ import TimezoneProvider from 'providers/Timezone';
 import configureStore from 'redux-mock-store';
 import thunk from 'redux-thunk';
 import store from 'store';
-import {
-	LicenseEvent,
-	LicensePlatform,
-	LicenseState,
-	LicenseStatus,
-} from 'types/api/licensesV3/getActive';
 import { QueryBuilderContextType } from 'types/common/queryBuilder';
 import { ROLES, USER_ROLES } from 'types/roles';
 // import { MemoryRouter as V5MemoryRouter } from 'react-router-dom-v5-compat';
@@ -107,42 +101,6 @@ export function getAppContextMock(
 	appContextOverrides?: Partial<IAppContext>,
 ): IAppContext {
 	return {
-		activeLicense: {
-			key: 'test-key',
-			event_queue: {
-				created_at: '0',
-				event: LicenseEvent.NO_EVENT,
-				scheduled_at: '0',
-				status: '',
-				updated_at: '0',
-			},
-			state: LicenseState.ACTIVE,
-			status: LicenseStatus.VALID,
-			platform: LicensePlatform.CLOUD,
-			created_at: '0',
-			plan: {
-				created_at: '0',
-				description: '',
-				is_active: true,
-				name: '',
-				updated_at: '0',
-			},
-			plan_id: '0',
-			free_until: '0',
-			updated_at: '0',
-			valid_from: 0,
-			valid_until: 0,
-		},
-		trialInfo: {
-			trialStart: -1,
-			trialEnd: -1,
-			onTrial: false,
-			workSpaceBlock: false,
-			trialConvertedToSubscription: false,
-			gracePeriodEnd: -1,
-		},
-		isFetchingActiveLicense: false,
-		activeLicenseFetchError: null,
 		changelog: null,
 		user: {
 			accessJwt: 'some-token',
@@ -167,13 +125,6 @@ export function getAppContextMock(
 		userFetchError: null,
 		featureFlags: [
 			{
-				name: FeatureKeys.SSO,
-				active: true,
-				usage: 0,
-				usage_limit: -1,
-				route: '',
-			},
-			{
 				name: FeatureKeys.USE_SPAN_METRICS,
 				active: false,
 				usage: 0,
@@ -181,28 +132,7 @@ export function getAppContextMock(
 				route: '',
 			},
 			{
-				name: FeatureKeys.PREMIUM_SUPPORT,
-				active: true,
-				usage: 0,
-				usage_limit: -1,
-				route: '',
-			},
-			{
 				name: FeatureKeys.ANOMALY_DETECTION,
-				active: true,
-				usage: 0,
-				usage_limit: -1,
-				route: '',
-			},
-			{
-				name: FeatureKeys.ONBOARDING,
-				active: true,
-				usage: 0,
-				usage_limit: -1,
-				route: '',
-			},
-			{
-				name: FeatureKeys.CHAT_SUPPORT,
 				active: true,
 				usage: 0,
 				usage_limit: -1,
@@ -231,7 +161,6 @@ export function getAppContextMock(
 		updateUser: jest.fn(),
 		updateOrg: jest.fn(),
 		updateOrgPreferences: jest.fn(),
-		activeLicenseRefetch: jest.fn(),
 		updateChangelog: jest.fn(),
 		toggleChangelogModal: jest.fn(),
 		versionData: {

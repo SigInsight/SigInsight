@@ -1,6 +1,5 @@
 import * as appContextHooks from 'providers/App/App';
 import * as timezoneHooks from 'providers/Timezone';
-import { LicenseEvent } from 'types/api/licensesV3/getActive';
 
 const setupCommonMocks = (): void => {
 	const createMockObserver = (): {
@@ -68,24 +67,6 @@ const setupCommonMocks = (): void => {
 	jest.spyOn(appContextHooks, 'useAppContext').mockReturnValue({
 		user: {
 			role: 'admin',
-		},
-		activeLicenseV3: {
-			event_queue: {
-				created_at: '0',
-				event: LicenseEvent.NO_EVENT,
-				scheduled_at: '0',
-				status: '',
-				updated_at: '0',
-			},
-			license: {
-				license_key: 'test-license-key',
-				license_type: 'trial',
-				org_id: 'test-org-id',
-				plan_id: 'test-plan-id',
-				plan_name: 'test-plan-name',
-				plan_type: 'trial',
-				plan_version: 'test-plan-version',
-			},
 		},
 	} as any);
 

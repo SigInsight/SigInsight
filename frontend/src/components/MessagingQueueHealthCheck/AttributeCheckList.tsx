@@ -1,5 +1,4 @@
 import { ReactNode, useEffect, useState } from 'react';
-import { useHistory } from 'react-router-dom';
 import { CaretDownOutlined, LoadingOutlined } from '@ant-design/icons';
 import {
 	Modal,
@@ -11,14 +10,8 @@ import {
 	Typography,
 } from 'antd';
 import { OnboardingStatusResponse } from 'api/messagingQueues/onboarding/getOnboardingStatus';
-import { QueryParams } from 'constants/query';
-import ROUTES from 'constants/routes';
-import { History } from 'history';
 import { Bolt, Check, OctagonAlert, X } from 'lucide-react';
-import {
-	KAFKA_SETUP_DOC_LINK,
-	MessagingQueueHealthCheckService,
-} from 'pages/MessagingQueues/MessagingQueuesUtils';
+import { KAFKA_SETUP_DOC_LINK } from 'pages/MessagingQueues/MessagingQueuesUtils';
 import { v4 as uuid } from 'uuid';
 
 import './MessagingQueueHealthCheck.styles.scss';
@@ -42,41 +35,15 @@ export enum AttributesFilters {
 
 function ErrorTitleAndKey({
 	title,
-	parentTitle,
-	history,
-	isCloudUserVal,
 	errorMsg,
 	isLeaf,
 }: {
 	title: string;
-	parentTitle: string;
-	isCloudUserVal: boolean;
-	history: History<unknown>;
 	errorMsg?: string;
 	isLeaf?: boolean;
 }): TreeDataNode {
 	const handleRedirection = (): void => {
-		let link = '';
-
-		switch (parentTitle) {
-			case 'Consumers':
-				link = `${ROUTES.GET_STARTED_APPLICATION_MONITORING}?${QueryParams.getStartedSource}=kafka&${QueryParams.getStartedSourceService}=${MessagingQueueHealthCheckService.Consumers}`;
-				break;
-			case 'Producers':
-				link = `${ROUTES.GET_STARTED_APPLICATION_MONITORING}?${QueryParams.getStartedSource}=kafka&${QueryParams.getStartedSourceService}=${MessagingQueueHealthCheckService.Producers}`;
-				break;
-			case 'Kafka':
-				link = `${ROUTES.GET_STARTED_INFRASTRUCTURE_MONITORING}?${QueryParams.getStartedSource}=kafka&${QueryParams.getStartedSourceService}=${MessagingQueueHealthCheckService.Kafka}`;
-				break;
-			default:
-				link = '';
-		}
-
-		if (isCloudUserVal && !!link) {
-			history.push(link);
-		} else {
-			window.open(KAFKA_SETUP_DOC_LINK, '_blank');
-		}
+		window.open(KAFKA_SETUP_DOC_LINK, '_blank');
 	};
 	return {
 		key: `${title}-key-${uuid()}`,
@@ -141,9 +108,6 @@ function treeTitleAndKey({
 
 function generateTreeDataNodes(
 	response: OnboardingStatusResponse['data'],
-	parentTitle: string,
-	isCloudUserVal: boolean,
-	history: History<unknown>,
 ): TreeDataNode[] {
 	return response
 		.map((item) => {
@@ -155,9 +119,6 @@ function generateTreeDataNodes(
 					return ErrorTitleAndKey({
 						title: item.attribute,
 						errorMsg: item.error_message || '',
-						parentTitle,
-						history,
-						isCloudUserVal,
 					});
 				}
 			}
@@ -178,9 +139,6 @@ function AttributeCheckList({
 	const handleFilterChange = (value: AttributesFilters): void => {
 		setFilter(value);
 	};
-	const isCloudUserVal = false;
-	const history = useHistory();
-
 	useEffect(() => {
 		const filteredData = onboardingStatusResponses.map((response) => {
 			if (response.errorMsg) {
@@ -188,9 +146,6 @@ function AttributeCheckList({
 					title: response.title,
 					errorMsg: response.errorMsg,
 					isLeaf: true,
-					parentTitle: response.title,
-					history,
-					isCloudUserVal,
 				});
 			}
 			let filteredData = response.data;
@@ -203,12 +158,7 @@ function AttributeCheckList({
 
 			return {
 				...treeTitleAndKey({ title: response.title }),
-				children: generateTreeDataNodes(
-					filteredData,
-					response.title,
-					isCloudUserVal,
-					history,
-				),
+				children: generateTreeDataNodes(filteredData),
 			};
 		});
 

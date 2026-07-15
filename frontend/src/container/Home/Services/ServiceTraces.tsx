@@ -7,12 +7,10 @@ import logEvent from 'api/common/logEvent';
 import ROUTES from 'constants/routes';
 import { useQueryService } from 'hooks/useQueryService';
 import { useSafeNavigate } from 'hooks/useSafeNavigate';
-import history from 'lib/history';
 import { ArrowRight, ArrowUpRight } from 'lucide-react';
 import Card from 'periscope/components/Card/Card';
 import { useAppContext } from 'providers/App/App';
 import { AppState } from 'store/reducers';
-import { LicensePlatform } from 'types/api/licensesV3/getActive';
 import { ServicesList } from 'types/api/metrics/getService';
 import { GlobalReducer } from 'types/reducer/globalTime';
 import { USER_ROLES } from 'types/roles';
@@ -33,7 +31,7 @@ export default function ServiceTraces({
 		(state) => state.globalTime,
 	);
 
-	const { user, activeLicense } = useAppContext();
+	const { user } = useAppContext();
 
 	const now = new Date().getTime();
 	const [timeRange, setTimeRange] = useState({
@@ -124,18 +122,11 @@ export default function ServiceTraces({
 										source: 'Service Traces',
 									});
 
-									if (
-										activeLicense &&
-										activeLicense.platform === LicensePlatform.CLOUD
-									) {
-										history.push(ROUTES.GET_STARTED_WITH_CLOUD);
-									} else {
-										window?.open(
-											DOCS_LINKS.ADD_DATA_SOURCE,
-											'_blank',
-											'noopener noreferrer',
-										);
-									}
+									window?.open(
+										DOCS_LINKS.ADD_DATA_SOURCE,
+										'_blank',
+										'noopener noreferrer',
+									);
 								}}
 							>
 								Get Started &nbsp; <ArrowRight size={16} />
@@ -161,7 +152,7 @@ export default function ServiceTraces({
 				</div>
 			</div>
 		),
-		[user?.role, activeLicense],
+		[user?.role],
 	);
 
 	const renderDashboardsList = useCallback(

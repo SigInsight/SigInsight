@@ -6,7 +6,6 @@ import ROUTES from 'constants/routes';
 import history from 'lib/history';
 import { ArrowRight, ArrowRightToLine, BookOpenText } from 'lucide-react';
 import { useAppContext } from 'providers/App/App';
-import { LicensePlatform } from 'types/api/licensesV3/getActive';
 import { USER_ROLES } from 'types/roles';
 
 import './HomeChecklist.styles.scss';
@@ -32,7 +31,7 @@ function HomeChecklist({
 	onSkip: (item: ChecklistItem) => void;
 	isLoading: boolean;
 }): JSX.Element {
-	const { user, activeLicense } = useAppContext();
+	const { user } = useAppContext();
 
 	const [completedChecklistItems, setCompletedChecklistItems] = useState<
 		ChecklistItem[]
@@ -91,19 +90,14 @@ function HomeChecklist({
 															step: item.id,
 														});
 
-														if (item.toRoute !== ROUTES.GET_STARTED_WITH_CLOUD) {
-															history.push(item.toRoute || '');
-														} else if (
-															activeLicense &&
-															activeLicense.platform === LicensePlatform.CLOUD
-														) {
-															history.push(item.toRoute || '');
-														} else {
+														if (item.toRoute === ROUTES.GET_STARTED_WITH_CLOUD) {
 															window?.open(
 																item.docsLink || '',
 																'_blank',
 																'noopener noreferrer',
 															);
+														} else {
+															history.push(item.toRoute || '');
 														}
 													}}
 												>

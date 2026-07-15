@@ -23,15 +23,13 @@ import './Settings.styles.scss';
 function SettingsPage(): JSX.Element {
 	const { pathname, search } = useLocation();
 
-	const { user, trialInfo, isFetchingActiveLicense } = useAppContext();
+	const { user } = useAppContext();
 
 	const [settingsMenuItems, setSettingsMenuItems] = useState<SidebarItem[]>(
 		settingsNavSections.flatMap((section) => section.items),
 	);
 
 	const isAdmin = user.role === USER_ROLES.ADMIN;
-
-	const isWorkspaceBlocked = trialInfo?.workSpaceBlock || false;
 
 	const [isCurrentOrgSettings] = useComponentPermission(
 		['current_org_settings'],
@@ -44,23 +42,7 @@ function SettingsPage(): JSX.Element {
 		setSettingsMenuItems((prevItems) => {
 			let updatedItems = [...prevItems];
 
-			if (trialInfo?.workSpaceBlock && !isFetchingActiveLicense) {
-				updatedItems = updatedItems.map((item) => ({
-					...item,
-					isEnabled: !!(
-						isAdmin &&
-						(item.key === ROUTES.BILLING ||
-							item.key === ROUTES.ORG_SETTINGS ||
-							item.key === ROUTES.MEMBERS_SETTINGS ||
-							item.key === ROUTES.MY_SETTINGS ||
-							item.key === ROUTES.SHORTCUTS)
-					),
-				}));
-
-				return updatedItems;
-			}
-
-			// Community edition: enable admin settings, disable billing/integrations
+			// Community edition: enable admin settings.
 			if (isAdmin) {
 				updatedItems = updatedItems.map((item) => ({
 					...item,
@@ -74,31 +56,13 @@ function SettingsPage(): JSX.Element {
 							: item.isEnabled,
 				}));
 			}
-
-			// disable billing and integrations for non-cloud users
-			updatedItems = updatedItems.map((item) => ({
-				...item,
-				isEnabled:
-					item.key === ROUTES.BILLING || item.key === ROUTES.INTEGRATIONS
-						? false
-						: item.isEnabled,
-			}));
-
 			return updatedItems;
 		});
-	}, [isAdmin, isFetchingActiveLicense, trialInfo?.workSpaceBlock, pathname]);
+	}, [isAdmin, pathname]);
 
 	const routes = useMemo(
-		() =>
-			getRoutes(
-				user.role,
-				isCurrentOrgSettings,
-				isWorkspaceBlocked,
-				false, // isCloudUser - always false in community edition
-				false, // isEnterpriseSelfHostedUser - always false in community edition
-				t,
-			),
-		[user.role, isCurrentOrgSettings, isWorkspaceBlocked, t],
+		() => getRoutes(user.role, isCurrentOrgSettings, false, t),
+		[user.role, isCurrentOrgSettings, t],
 	);
 
 	const isCtrlMetaKey = (e: MouseEvent): boolean => e.ctrlKey || e.metaKey;

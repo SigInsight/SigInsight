@@ -1,7 +1,5 @@
 import { ChangelogSchema } from 'types/api/changelog/getChangelogByVersion';
-import APIError from 'types/api/error';
 import { FeatureFlagProps as FeatureFlags } from 'types/api/features/getFeaturesFlags';
-import { LicenseResModel, TrialInfo } from 'types/api/licensesV3/getActive';
 import {
 	OrgPreference,
 	UserPreference,
@@ -12,24 +10,19 @@ import { Info } from 'types/api/v1/version/get';
 
 export interface IAppContext {
 	user: IUser;
-	activeLicense: LicenseResModel | null;
-	trialInfo: TrialInfo | null;
 	featureFlags: FeatureFlags[] | null;
 	orgPreferences: OrgPreference[] | null;
 	userPreferences: UserPreference[] | null;
 	isLoggedIn: boolean;
 	org: Organization[] | null;
 	isFetchingUser: boolean;
-	isFetchingActiveLicense: boolean;
 	isFetchingFeatureFlags: boolean;
 	isFetchingOrgPreferences: boolean;
 	userFetchError: unknown;
-	activeLicenseFetchError: APIError | null;
 	featureFlagsFetchError: unknown;
 	orgPreferencesFetchError: unknown;
 	changelog: ChangelogSchema | null;
 	showChangelogModal: boolean;
-	activeLicenseRefetch: () => void;
 	updateUser: (user: IUser) => void;
 	updateOrgPreferences: (orgPreferences: OrgPreference[]) => void;
 	updateUserPreferenceInContext: (userPreference: UserPreference) => void;

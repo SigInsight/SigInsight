@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect } from 'react';
 import { Route, Router, Switch } from 'react-router-dom';
 import { CompatRouter } from 'react-router-dom-v5-compat';
 import { ConfigProvider } from 'antd';
@@ -25,7 +25,7 @@ import { QueryBuilderProvider } from 'providers/QueryBuilder';
 
 import { Home } from './pageComponents';
 import PrivateRoute from './Private';
-import defaultRoutes, { AppRoutes } from './routes';
+import defaultRoutes from './routes';
 
 function App(): JSX.Element {
 	const themeConfig = useThemeConfig();
@@ -33,46 +33,27 @@ function App(): JSX.Element {
 		user,
 		isFetchingUser,
 		isFetchingFeatureFlags,
-		activeLicense,
-		isFetchingActiveLicense,
-		activeLicenseFetchError,
 		userFetchError,
 		isLoggedIn: isLoggedInState,
 		featureFlags,
 	} = useAppContext();
-	const [routes, setRoutes] = useState<AppRoutes[]>(defaultRoutes);
-
 	const { pathname } = window.location;
 
 	// eslint-disable-next-line sonarjs/cognitive-complexity
 	useEffect(() => {
-		if (!isFetchingActiveLicense && !isFetchingUser && user && !!user.email) {
+		if (!isFetchingUser && user && !!user.email) {
 			const isIdentifiedUser = getLocalStorageApi(LOCALSTORAGE.IS_IDENTIFIED_USER);
 
 			if (isLoggedInState && user && user.id && user.email && !isIdentifiedUser) {
 				setLocalStorageApi(LOCALSTORAGE.IS_IDENTIFIED_USER, 'true');
 			}
-
-			// community edition: remove billing and integrations routes
-			const updatedRoutes = defaultRoutes.filter(
-				(route) =>
-					route?.path !== ROUTES.BILLING && route?.path !== ROUTES.INTEGRATIONS,
-			);
-			setRoutes(updatedRoutes);
 		}
-	}, [
-		isLoggedInState,
-		user,
-		isFetchingActiveLicense,
-		isFetchingUser,
-		activeLicense,
-		activeLicenseFetchError,
-	]);
+	}, [isLoggedInState, user, isFetchingUser]);
 
 	// if the user is in logged in state
 	if (isLoggedInState) {
 		// if the setup calls are loading then return a spinner
-		if (isFetchingActiveLicense || isFetchingUser || isFetchingFeatureFlags) {
+		if (isFetchingUser || isFetchingFeatureFlags) {
 			return <AppLoading />;
 		}
 
@@ -106,7 +87,7 @@ function App(): JSX.Element {
 													<PreferenceContextProvider>
 														<Suspense fallback={<Spinner size="large" tip="Loading..." />}>
 															<Switch>
-																{routes.map(({ path, component, exact }) => (
+																{defaultRoutes.map(({ path, component, exact }) => (
 																	<Route
 																		key={`${path}`}
 																		exact={exact}

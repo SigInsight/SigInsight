@@ -5,24 +5,18 @@ import APIKeys from 'container/APIKeys/APIKeys';
 import CreateAlertChannels from 'container/CreateAlertChannels';
 import { ChannelType } from 'container/CreateAlertChannels/config';
 import GeneralSettings from 'container/GeneralSettings';
-import GeneralSettingsCloud from 'container/GeneralSettingsCloud';
-import IngestionSettings from 'container/IngestionSettings/IngestionSettings';
 import MySettings from 'container/MySettings';
 import OrganizationSettings from 'container/OrganizationSettings';
-import RolesSettings from 'container/RolesSettings';
-import RoleDetailsPage from 'container/RolesSettings/RoleDetails';
 import { TFunction } from 'i18next';
 import {
 	Backpack,
 	BellDot,
 	Bot,
 	Building,
-	Cpu,
 	Keyboard,
 	KeySquare,
 	Pencil,
 	Plus,
-	Shield,
 	User,
 	Users,
 } from 'lucide-react';
@@ -57,35 +51,9 @@ export const alertChannels = (t: TFunction): RouteTabProps['routes'] => [
 	},
 ];
 
-export const ingestionSettings = (t: TFunction): RouteTabProps['routes'] => [
-	{
-		Component: IngestionSettings,
-		name: (
-			<div className="periscope-tab">
-				<Cpu size={16} /> {t('routes:ingestion_settings').toString()}
-			</div>
-		),
-		route: ROUTES.INGESTION_SETTINGS,
-		key: ROUTES.INGESTION_SETTINGS,
-	},
-];
-
 export const generalSettings = (t: TFunction): RouteTabProps['routes'] => [
 	{
 		Component: GeneralSettings,
-		name: (
-			<div className="periscope-tab">
-				<Backpack size={16} /> {t('routes:general').toString()}
-			</div>
-		),
-		route: ROUTES.SETTINGS,
-		key: ROUTES.SETTINGS,
-	},
-];
-
-export const generalSettingsCloud = (t: TFunction): RouteTabProps['routes'] => [
-	{
-		Component: GeneralSettingsCloud,
 		name: (
 			<div className="periscope-tab">
 				<Backpack size={16} /> {t('routes:general').toString()}
@@ -119,32 +87,6 @@ export const membersSettings = (t: TFunction): RouteTabProps['routes'] => [
 		),
 		route: ROUTES.MEMBERS_SETTINGS,
 		key: ROUTES.MEMBERS_SETTINGS,
-	},
-];
-
-export const rolesSettings = (t: TFunction): RouteTabProps['routes'] => [
-	{
-		Component: RolesSettings,
-		name: (
-			<div className="periscope-tab">
-				<Shield size={16} /> {t('routes:roles').toString()}
-			</div>
-		),
-		route: ROUTES.ROLES_SETTINGS,
-		key: ROUTES.ROLES_SETTINGS,
-	},
-];
-
-export const roleDetails = (t: TFunction): RouteTabProps['routes'] => [
-	{
-		Component: RoleDetailsPage,
-		name: (
-			<div className="periscope-tab">
-				<Shield size={16} /> {t('routes:role_details').toString()}
-			</div>
-		),
-		route: ROUTES.ROLE_DETAILS,
-		key: ROUTES.ROLE_DETAILS,
 	},
 ];
 

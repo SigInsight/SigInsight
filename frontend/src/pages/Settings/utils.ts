@@ -9,13 +9,10 @@ import {
 	createAlertChannels,
 	editAlertChannels,
 	generalSettings,
-	ingestionSettings,
 	keyboardShortcuts,
 	membersSettings,
 	mySettings,
 	organizationSettings,
-	roleDetails,
-	rolesSettings,
 	serviceAccountsSettings,
 } from './config';
 
@@ -23,8 +20,6 @@ export const getRoutes = (
 	userRole: ROLES | null,
 	isCurrentOrgSettings: boolean,
 	isWorkspaceBlocked: boolean,
-	isCloudUser: boolean,
-	isEnterpriseSelfHostedUser: boolean,
 	t: TFunction,
 ): RouteTabProps['routes'] => {
 	const settings = [];
@@ -48,10 +43,6 @@ export const getRoutes = (
 		settings.push(...organizationSettings(t));
 	}
 
-	if (isCloudUser) {
-		settings.push(...ingestionSettings(t));
-	}
-
 	settings.push(...alertChannels(t));
 
 	if (isAdmin) {
@@ -60,11 +51,6 @@ export const getRoutes = (
 		if (IS_SERVICE_ACCOUNTS_ENABLED) {
 			settings.push(...serviceAccountsSettings(t));
 		}
-	}
-
-	// todo: Sagar - check the condition for role list and details page, to whom we want to serve
-	if ((isCloudUser || isEnterpriseSelfHostedUser) && isAdmin) {
-		settings.push(...rolesSettings(t), ...roleDetails(t));
 	}
 
 	settings.push(

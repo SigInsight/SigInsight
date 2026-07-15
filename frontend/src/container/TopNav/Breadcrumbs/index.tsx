@@ -26,7 +26,6 @@ const breadcrumbNameMap: Record<string, string> = {
 	[ROUTES.OLD_LOGS_EXPLORER]: 'Old Logs Explorer',
 	[ROUTES.LIVE_LOGS]: 'Live View',
 	[ROUTES.LOGS_PIPELINES]: 'Logs Pipelines',
-	[ROUTES.BILLING]: 'Billing',
 	[ROUTES.MESSAGING_QUEUES_OVERVIEW]: 'Messaging Queues',
 };
 

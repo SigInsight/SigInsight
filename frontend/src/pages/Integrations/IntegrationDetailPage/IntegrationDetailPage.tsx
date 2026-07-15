@@ -4,6 +4,7 @@ import { useGetIntegration } from 'hooks/Integrations/useGetIntegration';
 import { useGetIntegrationStatus } from 'hooks/Integrations/useGetIntegrationStatus';
 import { defaultTo } from 'lodash-es';
 import { ArrowLeft, MoveUpRight, RotateCw } from 'lucide-react';
+import { useAppContext } from 'providers/App/App';
 
 import { handleContactSupport } from '../utils';
 import IntegrationDetailContent from './IntegrationDetailContent';
@@ -28,6 +29,7 @@ function IntegrationDetailPage(props: IntegrationDetailPageProps): JSX.Element {
 		activeDetailTab,
 		setActiveDetailTab,
 	} = props;
+	const { hasEditPermission } = useAppContext();
 
 	const {
 		data,
@@ -124,6 +126,7 @@ function IntegrationDetailPage(props: IntegrationDetailPageProps): JSX.Element {
 							})}
 							onUnInstallSuccess={refetch}
 							setActiveDetailTab={setActiveDetailTab}
+							canManageIntegration={hasEditPermission}
 						/>
 						<IntegrationDetailContent
 							activeDetailTab={activeDetailTab}
@@ -132,14 +135,15 @@ function IntegrationDetailPage(props: IntegrationDetailPageProps): JSX.Element {
 							setActiveDetailTab={setActiveDetailTab}
 						/>
 
-						{connectionStatus !== ConnectionStates.NotInstalled && (
-							<IntergrationsUninstallBar
-								integrationTitle={defaultTo(integrationData?.title, '')}
-								integrationId={selectedIntegration}
-								onUnInstallSuccess={refetch}
-								connectionStatus={connectionStatus}
-							/>
-						)}
+						{hasEditPermission &&
+							connectionStatus !== ConnectionStates.NotInstalled && (
+								<IntergrationsUninstallBar
+									integrationTitle={defaultTo(integrationData?.title, '')}
+									integrationId={selectedIntegration}
+									onUnInstallSuccess={refetch}
+									connectionStatus={connectionStatus}
+								/>
+							)}
 					</>
 				)
 			)}

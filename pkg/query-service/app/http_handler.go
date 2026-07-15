@@ -3179,11 +3179,11 @@ func (aH *APIHandler) RegisterIntegrationRoutes(router *mux.Router, am *middlewa
 	subRouter := router.PathPrefix("/api/v1/integrations").Subrouter()
 
 	subRouter.HandleFunc(
-		"/install", am.ViewAccess(aH.InstallIntegration),
+		"/install", am.EditAccess(aH.InstallIntegration),
 	).Methods(http.MethodPost)
 
 	subRouter.HandleFunc(
-		"/uninstall", am.ViewAccess(aH.UninstallIntegration),
+		"/uninstall", am.EditAccess(aH.UninstallIntegration),
 	).Methods(http.MethodPost)
 
 	// Used for polling for status in v0

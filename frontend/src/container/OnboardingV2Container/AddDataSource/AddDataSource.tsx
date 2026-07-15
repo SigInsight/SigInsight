@@ -12,7 +12,6 @@ import {
 	Typography,
 } from 'antd';
 import logEvent from 'api/common/logEvent';
-import LaunchChatSupport from 'components/LaunchChatSupport/LaunchChatSupport';
 import { DOCS_BASE_URL } from 'constants/app';
 import ROUTES from 'constants/routes';
 import { useGetGlobalConfig } from 'hooks/globalConfig/useGetGlobalConfig';
@@ -656,19 +655,6 @@ function OnboardingAddDataSource(): JSX.Element {
 							>
 								Invite a teammate
 							</Button>
-
-							<LaunchChatSupport
-								attributes={{
-									dataSource: selectedDataSource?.dataSource,
-									framework: selectedFramework?.label,
-									environment: selectedEnvironment?.label,
-									currentPage: setupStepItems[currentStep]?.title || '',
-								}}
-								eventName={`${ONBOARDING_V3_ANALYTICS_EVENTS_MAP?.BASE}: ${ONBOARDING_V3_ANALYTICS_EVENTS_MAP?.GET_HELP_BUTTON_CLICKED}`}
-								message=""
-								buttonText="Contact Support"
-								className="periscope-btn get-help-btn outlined"
-							/>
 						</div>
 					</div>
 				</div>

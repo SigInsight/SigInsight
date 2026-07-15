@@ -52,7 +52,6 @@ const ROUTES = {
 	PASSWORD_RESET: '/password-reset',
 	LOGS_INDEX_FIELDS: '/logs-explorer/index-fields',
 	TRACE_EXPLORER: '/trace-explorer',
-	BILLING: '/settings/billing',
 	ROLES_SETTINGS: '/settings/roles',
 	ROLE_DETAILS: '/settings/roles/:roleId',
 	MEMBERS_SETTINGS: '/settings/members',

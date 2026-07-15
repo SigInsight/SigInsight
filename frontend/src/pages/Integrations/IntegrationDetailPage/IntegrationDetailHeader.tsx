@@ -26,6 +26,7 @@ interface IntegrationDetailHeaderProps {
 	connectionState: ConnectionStates;
 	connectionData: IntegrationConnectionStatus;
 	setActiveDetailTab: React.Dispatch<React.SetStateAction<string | null>>;
+	canManageIntegration: boolean;
 }
 // eslint-disable-next-line sonarjs/cognitive-complexity
 function IntegrationDetailHeader(
@@ -40,6 +41,7 @@ function IntegrationDetailHeader(
 		connectionData,
 		onUnInstallSuccess,
 		setActiveDetailTab,
+		canManageIntegration,
 	} = props;
 	const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -126,32 +128,34 @@ function IntegrationDetailHeader(
 						<Typography.Text className="description">{description}</Typography.Text>
 					</div>
 				</div>
-				<Button
-					className={cx(
-						'configure-btn',
-						!isConnectionStateNotInstalled && 'test-connection',
-					)}
-					icon={<ArrowLeftRight size={14} />}
-					disabled={isInstallLoading}
-					onClick={(): void => {
-						if (connectionState === ConnectionStates.NotInstalled) {
-							logEvent(INTEGRATION_TELEMETRY_EVENTS.INTEGRATIONS_DETAIL_CONNECT, {
-								integration: id,
-							});
-						} else {
-							logEvent(
-								INTEGRATION_TELEMETRY_EVENTS.INTEGRATIONS_DETAIL_TEST_CONNECTION,
-								{
+				{(!isConnectionStateNotInstalled || canManageIntegration) && (
+					<Button
+						className={cx(
+							'configure-btn',
+							!isConnectionStateNotInstalled && 'test-connection',
+						)}
+						icon={<ArrowLeftRight size={14} />}
+						disabled={isInstallLoading}
+						onClick={(): void => {
+							if (connectionState === ConnectionStates.NotInstalled) {
+								logEvent(INTEGRATION_TELEMETRY_EVENTS.INTEGRATIONS_DETAIL_CONNECT, {
 									integration: id,
-									connectionStatus: connectionState,
-								},
-							);
-						}
-						showModal();
-					}}
-				>
-					{isConnectionStateNotInstalled ? `Connect ${title}` : `Test Connection`}
-				</Button>
+								});
+							} else {
+								logEvent(
+									INTEGRATION_TELEMETRY_EVENTS.INTEGRATIONS_DETAIL_TEST_CONNECTION,
+									{
+										integration: id,
+										connectionStatus: connectionState,
+									},
+								);
+							}
+							showModal();
+						}}
+					>
+						{isConnectionStateNotInstalled ? `Connect ${title}` : `Test Connection`}
+					</Button>
+				)}
 			</div>
 
 			{connectionState !== ConnectionStates.NotInstalled && (
