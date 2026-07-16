@@ -2,7 +2,6 @@ module.exports = {
 	presets: [
 		['@babel/preset-env', { modules: 'auto' }],
 		['@babel/preset-react', { runtime: 'automatic' }],
-		['@babel/preset-typescript'],
 	],
 	env: {
 		test: {
@@ -12,7 +11,6 @@ module.exports = {
 					{ modules: 'commonjs', targets: { node: 'current' } },
 				],
 				['@babel/preset-react', { runtime: 'automatic' }],
-				['@babel/preset-typescript'],
 			],
 		},
 	},
