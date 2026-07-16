@@ -27,18 +27,17 @@ const config: Config.InitialOptions = {
 		'^@signozhq/(?!ui$)([^/]+)$':
 			'<rootDir>/node_modules/@signozhq/$1/dist/$1.js',
 	},
-	extensionsToTreatAsEsm: ['.ts'],
+	extensionsToTreatAsEsm: ['.jsx', '.ts', '.tsx'],
 	testMatch: ['<rootDir>/src/**/*?(*.)(test).(ts|js)?(x)'],
 	preset: 'ts-jest/presets/js-with-ts-esm',
 	transform: {
-		'^.+\\.(ts|tsx)?$': [
+		'^.+\\.m?[tj]sx?$': [
 			'ts-jest',
 			{
 				useESM: true,
 				tsconfig: '<rootDir>/tsconfig.jest.json',
 			},
 		],
-		'^.+\\.(js|jsx)$': 'babel-jest',
 	},
 	transformIgnorePatterns: [
 		'node_modules/(?!(lodash-es|react-dnd|core-dnd|@react-dnd|dnd-core|react-dnd-html5-backend|axios|@signozhq/design-tokens|@signozhq/table|@signozhq/calendar|@signozhq/input|@signozhq/popover|@signozhq/button|@signozhq/sonner|@signozhq/*|date-fns|d3-interpolate|d3-color|api|@codemirror|@lezer|@marijn|@grafana|nuqs)/)',

@@ -146,9 +146,6 @@
     ]
   },
   "devDependencies": {
-    "@babel/core": "^7.22.11",
-    "@babel/preset-env": "^7.22.14",
-    "@babel/preset-react": "^7.12.13",
     "@commitlint/cli": "^20.4.2",
     "@commitlint/config-conventional": "^20.4.2",
     "@jest/globals": "30.2.0",
@@ -177,7 +174,6 @@
     "@typescript-eslint/eslint-plugin": "^4.33.0",
     "@typescript-eslint/parser": "^4.33.0",
     "@vitejs/plugin-react": "5.1.4",
-    "babel-jest": "^29.6.4",
     "dotenv": "8.2.0",
     "esbuild": "0.27.0",
     "eslint": "^7.32.0",
