@@ -23,11 +23,6 @@
 			"*": ["./src/*"],
 			"@constants/*": ["./src/container/OnboardingContainer/constants/*"]
 		},
-		"plugins": [
-			{
-				"name": "typescript-plugin-css-modules"
-			}
-		],
 		"types": ["vite/client", "node", "jest"]
 	},
 	"exclude": ["node_modules", "src/parser/*.ts", "src/parser/TraceOperatorParser/*.ts", "orval.config.ts"],
