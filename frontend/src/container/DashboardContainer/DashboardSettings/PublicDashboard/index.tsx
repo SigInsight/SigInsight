@@ -8,7 +8,6 @@ import createPublicDashboardAPI from 'api/dashboard/public/createPublicDashboard
 import revokePublicDashboardAccessAPI from 'api/dashboard/public/revokePublicDashboardAccess';
 import updatePublicDashboardAPI from 'api/dashboard/public/updatePublicDashboard';
 import { useGetPublicDashboardMeta } from 'hooks/dashboard/useGetPublicDashboardMeta';
-import { useGetTenantLicense } from 'hooks/useGetTenantLicense';
 import { Copy, ExternalLink, Globe, Info, Loader2, Trash } from 'lucide-react';
 import { useAppContext } from 'providers/App/App';
 import { useDashboardStore } from 'providers/Dashboard/store/useDashboardStore';
@@ -61,9 +60,6 @@ function PublicDashboardSetting(): JSX.Element {
 
 	const { selectedDashboard } = useDashboardStore();
 
-	const { isCloudUser, isEnterpriseSelfHostedUser } = useGetTenantLicense();
-	const isPublicDashboardEnabled = isCloudUser || isEnterpriseSelfHostedUser;
-
 	const { user } = useAppContext();
 
 	const isAdmin = user?.role === USER_ROLES.ADMIN;
@@ -84,7 +80,7 @@ function PublicDashboardSetting(): JSX.Element {
 		error: errorPublicDashboard,
 	} = useGetPublicDashboardMeta(
 		selectedDashboard?.id || '',
-		!!selectedDashboard?.id && isPublicDashboardEnabled,
+		!!selectedDashboard?.id,
 	);
 
 	const isPublicDashboard = !!publicDashboardData?.publicPath;

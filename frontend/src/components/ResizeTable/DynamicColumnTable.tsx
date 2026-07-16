@@ -6,7 +6,6 @@ import type {
 } from 'antd';
 import { Button, Dropdown, Flex, MenuProps, Switch } from 'antd';
 import logEvent from 'api/common/logEvent';
-import LaunchChatSupport from 'components/LaunchChatSupport/LaunchChatSupport';
 import { useSafeNavigate } from 'hooks/useSafeNavigate';
 import useUrlQuery from 'hooks/useUrlQuery';
 import { SlidersHorizontal } from 'lucide-react';
@@ -27,7 +26,6 @@ function DynamicColumnTable({
 	columns,
 	dynamicColumns,
 	onDragColumn,
-	facingIssueBtn,
 	shouldSendAlertsLogEvent,
 	pagination,
 	...restProps
@@ -126,7 +124,6 @@ function DynamicColumnTable({
 	return (
 		<div className="DynamicColumnTable">
 			<Flex justify="flex-end" align="center" gap={8}>
-				{facingIssueBtn && <LaunchChatSupport {...facingIssueBtn} />}
 				{dynamicColumns && (
 					<Dropdown
 						getPopupContainer={popupContainer}

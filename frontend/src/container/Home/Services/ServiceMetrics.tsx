@@ -16,16 +16,11 @@ import useGetTopLevelOperations from 'hooks/useGetTopLevelOperations';
 import useResourceAttribute from 'hooks/useResourceAttribute';
 import { convertRawQueriesToTraceSelectedTags } from 'hooks/useResourceAttribute/utils';
 import { useSafeNavigate } from 'hooks/useSafeNavigate';
-import history from 'lib/history';
 import { ArrowRight, ArrowUpRight } from 'lucide-react';
 import Card from 'periscope/components/Card/Card';
 import { useAppContext } from 'providers/App/App';
 import { IUser } from 'providers/App/types';
 import { AppState } from 'store/reducers';
-import {
-	LicensePlatform,
-	LicenseResModel,
-} from 'types/api/licensesV3/getActive';
 import { ServicesList } from 'types/api/metrics/getService';
 import { GlobalReducer } from 'types/reducer/globalTime';
 import { Tags } from 'types/reducer/trace';
@@ -39,13 +34,7 @@ const homeInterval = 30 * 60 * 1000;
 
 // Extracted EmptyState component
 const EmptyState = memo(
-	({
-		user,
-		activeLicenseV3,
-	}: {
-		user: IUser;
-		activeLicenseV3: LicenseResModel | null;
-	}): JSX.Element => (
+	({ user }: { user: IUser }): JSX.Element => (
 		<div className="empty-state-container">
 			<div className="empty-state-content-container">
 				<div className="empty-state-content">
@@ -70,18 +59,11 @@ const EmptyState = memo(
 									source: 'Service Metrics',
 								});
 
-								if (
-									activeLicenseV3 &&
-									activeLicenseV3.platform === LicensePlatform.CLOUD
-								) {
-									history.push(ROUTES.GET_STARTED_WITH_CLOUD);
-								} else {
-									window?.open(
-										DOCS_LINKS.ADD_DATA_SOURCE,
-										'_blank',
-										'noopener noreferrer',
-									);
-								}
+								window?.open(
+									DOCS_LINKS.ADD_DATA_SOURCE,
+									'_blank',
+									'noopener noreferrer',
+								);
 							}}
 						>
 							Get Started &nbsp; <ArrowRight size={16} />
@@ -148,7 +130,7 @@ function ServiceMetrics({
 		GlobalReducer
 	>((state) => state.globalTime);
 
-	const { user, activeLicense } = useAppContext();
+	const { user } = useAppContext();
 
 	const [timeRange, setTimeRange] = useState(() => {
 		const now = new Date().getTime();
@@ -336,7 +318,7 @@ function ServiceMetrics({
 				{servicesExist ? (
 					<ServicesListTable services={top5Services} onRowClick={handleRowClick} />
 				) : (
-					<EmptyState user={user} activeLicenseV3={activeLicense} />
+					<EmptyState user={user} />
 				)}
 			</Card.Content>
 

@@ -1,11 +1,7 @@
 import { Button } from '@signozhq/button';
 import { Skeleton } from 'antd';
 import logEvent from 'api/common/logEvent';
-import ROUTES from 'constants/routes';
-import history from 'lib/history';
 import Card from 'periscope/components/Card/Card';
-import { useAppContext } from 'providers/App/App';
-import { LicensePlatform } from 'types/api/licensesV3/getActive';
 
 import { DOCS_LINKS } from '../constants';
 
@@ -16,18 +12,12 @@ function DataSourceInfo({
 	dataSentToSigNoz: boolean;
 	isLoading: boolean;
 }): JSX.Element {
-	const { activeLicense } = useAppContext();
-
 	const notSendingData = !dataSentToSigNoz;
 
 	const handleConnect = (): void => {
 		logEvent('Homepage: Connect dataSource clicked', {});
 
-		if (activeLicense && activeLicense.platform === LicensePlatform.CLOUD) {
-			history.push(ROUTES.GET_STARTED_WITH_CLOUD);
-		} else {
-			window?.open(DOCS_LINKS.ADD_DATA_SOURCE, '_blank', 'noopener noreferrer');
-		}
+		window?.open(DOCS_LINKS.ADD_DATA_SOURCE, '_blank', 'noopener noreferrer');
 	};
 
 	const renderNotSendingData = (): JSX.Element => (

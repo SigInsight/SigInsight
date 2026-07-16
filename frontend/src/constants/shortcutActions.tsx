@@ -239,16 +239,6 @@ export function createShortcutActions(deps: ActionDeps): CmdAction[] {
 		},
 
 		{
-			id: 'my-settings-billing',
-			name: 'Go to Account Settings Billing',
-			shortcut: [GlobalShortcutsName.NavigateToSettingsBilling],
-			keywords: 'account settings billing',
-			section: 'Settings',
-			icon: <Settings size={14} />,
-			roles: ['ADMIN', 'EDITOR'],
-			perform: (): void => navigate(ROUTES.BILLING),
-		},
-		{
 			id: 'my-settings-api-keys',
 			name: 'Go to Account Settings API Keys',
 			shortcut: [GlobalShortcutsName.NavigateToSettingsAPIKeys],

@@ -153,10 +153,6 @@ export const OrganizationSettings = Loadable(
 	() => import(/* webpackChunkName: "All Settings" */ 'pages/Settings'),
 );
 
-export const IngestionSettings = Loadable(
-	() => import(/* webpackChunkName: "Ingestion Settings" */ 'pages/Settings'),
-);
-
 export const APIKeys = Loadable(
 	() => import(/* webpackChunkName: "All Settings" */ 'pages/Settings'),
 );
@@ -211,10 +207,6 @@ export const SomethingWentWrong = Loadable(
 export const LogsIndexToFields = Loadable(
 	() =>
 		import(/* webpackChunkName: "LogsIndexToFields Page" */ 'pages/LogsSettings'),
-);
-
-export const BillingPage = Loadable(
-	() => import(/* webpackChunkName: "BillingPage" */ 'pages/Settings'),
 );
 
 export const ShortcutsPage = Loadable(

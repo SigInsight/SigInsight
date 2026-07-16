@@ -19,15 +19,6 @@ jest.mock('react-use', () => ({
 	...jest.requireActual('react-use'),
 	useCopyToClipboard: jest.fn(),
 }));
-jest.mock('hooks/useGetTenantLicense', () => ({
-	useGetTenantLicense: (): {
-		isCloudUser: boolean;
-		isEnterpriseSelfHostedUser: boolean;
-	} => ({
-		isCloudUser: true,
-		isEnterpriseSelfHostedUser: false,
-	}),
-}));
 jest.mock('@signozhq/sonner', () => ({
 	toast: {
 		success: jest.fn(),

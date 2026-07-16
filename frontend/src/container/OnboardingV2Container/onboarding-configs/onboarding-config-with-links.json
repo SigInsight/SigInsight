@@ -2269,17 +2269,8 @@
 					"imgUrl": "/Logos/ec2.svg",
 					"question": {
 						"desc": "How would you like to set up EC2 Metrics monitoring?",
-						"helpText": "One Click uses AWS CloudWatch integration for automated setup. Manual setup uses OpenTelemetry for more control.",
-						"helpLink": "/docs/aws-monitoring/one-click-vs-manual/",
-						"helpLinkText": "Read the comparison guide \u2192",
+						"helpText": "Use OpenTelemetry to collect EC2 metrics.",
 						"options": [
-							{
-								"key": "aws-ec2-metrics-one-click",
-								"label": "One Click AWS",
-								"imgUrl": "/Logos/ec2.svg",
-								"link": "/integrations?integration=aws-integration&service=ec2",
-								"internalRedirect": true
-							},
 							{
 								"key": "aws-ec2-metrics-manual",
 								"label": "Manual Setup",
@@ -2327,17 +2318,8 @@
 					"imgUrl": "/Logos/ecs.svg",
 					"question": {
 						"desc": "How would you like to set up ECS EC2/External monitoring?",
-						"helpText": "One Click uses AWS CloudWatch integration for automated setup. Manual setup uses OpenTelemetry for more control.",
-						"helpLink": "/docs/aws-monitoring/one-click-vs-manual/",
-						"helpLinkText": "Read the comparison guide \u2192",
+						"helpText": "Use OpenTelemetry to monitor ECS EC2 or external deployments.",
 						"options": [
-							{
-								"key": "aws-ecs-ec2-one-click",
-								"label": "One Click AWS",
-								"imgUrl": "/Logos/ecs.svg",
-								"link": "/integrations?integration=aws-integration&service=ecs",
-								"internalRedirect": true
-							},
 							{
 								"key": "aws-ecs-ec2-manual",
 								"label": "Manual Setup",
@@ -2390,17 +2372,8 @@
 					"imgUrl": "/Logos/eks.svg",
 					"question": {
 						"desc": "How would you like to set up EKS EC2 Nodes monitoring?",
-						"helpText": "One Click uses AWS CloudWatch integration for automated setup. Manual setup uses OpenTelemetry for more control.",
-						"helpLink": "/docs/aws-monitoring/one-click-vs-manual/",
-						"helpLinkText": "Read the comparison guide \u2192",
+						"helpText": "Use OpenTelemetry to monitor EKS EC2 nodes.",
 						"options": [
-							{
-								"key": "aws-eks-ec2-one-click",
-								"label": "One Click AWS",
-								"imgUrl": "/Logos/eks.svg",
-								"link": "/integrations?integration=aws-integration&service=eks",
-								"internalRedirect": true
-							},
 							{
 								"key": "aws-eks-ec2-manual",
 								"label": "Manual Setup",
@@ -2481,74 +2454,6 @@
 		"link": "/docs/aws-monitoring/vpc-logs/"
 	},
 	{
-		"dataSource": "aws-rds",
-		"label": "AWS RDS",
-		"imgUrl": "/Logos/rds.svg",
-		"tags": [
-			"AWS",
-			"database"
-		],
-		"module": "dashboards",
-		"relatedSearchKeywords": [
-			"amazon",
-			"amazon rds",
-			"aws",
-			"aws database",
-			"aws rds",
-			"aws rds logs",
-			"aws rds metrics",
-			"aws rds mysql",
-			"aws rds one click",
-			"aws rds postgresql",
-			"aws-rds",
-			"collect rds logs",
-			"database",
-			"integrations",
-			"mysql",
-			"postgresql",
-			"rds",
-			"rds logs",
-			"rds logs to signoz",
-			"rds metrics",
-			"rds mysql logs",
-			"rds observability",
-			"rds performance monitoring",
-			"rds postgres logs",
-			"rds slow query logs"
-		],
-		"link": "/docs/aws-monitoring/one-click-vs-manual/",
-		"question": {
-			"desc": "How would you like to set up AWS RDS monitoring?",
-			"type": "select",
-			"helpText": "One Click uses AWS CloudWatch integration for automated setup. Manual setup uses OpenTelemetry receivers for more control.",
-			"helpLink": "/docs/aws-monitoring/one-click-vs-manual/",
-			"helpLinkText": "Read the comparison guide \u2192",
-			"options": [
-				{
-					"key": "aws-rds-one-click",
-					"label": "One Click AWS",
-					"imgUrl": "/Logos/rds.svg",
-					"link": "/integrations?integration=aws-integration&service=rds",
-					"internalRedirect": true
-				},
-				{
-					"key": "aws-rds-mysql-manual",
-					"label": "MySQL Manual",
-					"imgUrl": "/Logos/rds.svg",
-					"link": "/integrations?integration=builtin-aws_rds_mysql",
-					"internalRedirect": true
-				},
-				{
-					"key": "aws-rds-postgresql-manual",
-					"label": "PostgreSQL Manual",
-					"imgUrl": "/Logos/rds.svg",
-					"link": "/integrations?integration=builtin-aws_rds_postgresql",
-					"internalRedirect": true
-				}
-			]
-		}
-	},
-	{
 		"dataSource": "aws-lambda",
 		"label": "AWS Lambda",
 		"tags": [
@@ -2593,17 +2498,8 @@
 					"imgUrl": "/Logos/lambda.svg",
 					"question": {
 						"desc": "How would you like to set up Lambda Logs monitoring?",
-						"helpText": "One Click uses AWS CloudWatch integration for automated setup. Manual setup uses OpenTelemetry for more control.",
-						"helpLink": "/docs/aws-monitoring/one-click-vs-manual/",
-						"helpLinkText": "Read the comparison guide \u2192",
+						"helpText": "Use OpenTelemetry to collect Lambda logs.",
 						"options": [
-							{
-								"key": "aws-lambda-logs-one-click",
-								"label": "One Click AWS",
-								"imgUrl": "/Logos/lambda.svg",
-								"link": "/integrations?integration=aws-integration&service=lambda",
-								"internalRedirect": true
-							},
 							{
 								"key": "aws-lambda-logs-manual",
 								"label": "Manual Setup",
@@ -2625,17 +2521,8 @@
 					"imgUrl": "/Logos/lambda.svg",
 					"question": {
 						"desc": "How would you like to set up Lambda Metrics monitoring?",
-						"helpText": "One Click uses AWS CloudWatch integration for automated setup. Manual setup uses OpenTelemetry for more control.",
-						"helpLink": "/docs/aws-monitoring/one-click-vs-manual/",
-						"helpLinkText": "Read the comparison guide \u2192",
+						"helpText": "Use OpenTelemetry to collect Lambda metrics.",
 						"options": [
-							{
-								"key": "aws-lambda-metrics-one-click",
-								"label": "One Click AWS",
-								"imgUrl": "/Logos/lambda.svg",
-								"link": "/integrations?integration=aws-integration&service=lambda",
-								"internalRedirect": true
-							},
 							{
 								"key": "aws-lambda-metrics-manual",
 								"label": "Manual Setup",
@@ -4748,21 +4635,11 @@
 			"load balancer"
 		],
 		"imgUrl": "/Logos/aws-alb.svg",
-		"link": "/docs/aws-monitoring/one-click-vs-manual/",
 		"question": {
 			"desc": "How would you like to set up AWS ALB monitoring?",
 			"type": "select",
-			"helpText": "One Click uses AWS CloudWatch integration for automated setup. Manual setup uses OpenTelemetry receivers for more control.",
-			"helpLink": "/docs/aws-monitoring/one-click-vs-manual/",
-			"helpLinkText": "Read the comparison guide \u2192",
+			"helpText": "Use OpenTelemetry receivers to monitor AWS ALB.",
 			"options": [
-				{
-					"key": "aws-alb-one-click",
-					"label": "One Click AWS",
-					"imgUrl": "/Logos/aws-alb.svg",
-					"link": "/integrations?integration=aws-integration&service=alb",
-					"internalRedirect": true
-				},
 				{
 					"key": "aws-alb-manual",
 					"label": "Manual Setup",
@@ -4790,21 +4667,11 @@
 			"gateway"
 		],
 		"imgUrl": "/Logos/api-gateway.svg",
-		"link": "/docs/aws-monitoring/one-click-vs-manual/",
 		"question": {
 			"desc": "How would you like to set up AWS API Gateway monitoring?",
 			"type": "select",
-			"helpText": "One Click uses AWS CloudWatch integration for automated setup. Manual setup uses OpenTelemetry receivers for more control.",
-			"helpLink": "/docs/aws-monitoring/one-click-vs-manual/",
-			"helpLinkText": "Read the comparison guide \u2192",
+			"helpText": "Use OpenTelemetry receivers to monitor AWS API Gateway.",
 			"options": [
-				{
-					"key": "aws-api-gateway-one-click",
-					"label": "One Click AWS",
-					"imgUrl": "/Logos/api-gateway.svg",
-					"link": "/integrations?integration=aws-integration&service=api-gateway",
-					"internalRedirect": true
-				},
 				{
 					"key": "aws-api-gateway-manual",
 					"label": "Manual Setup",
@@ -4836,75 +4703,16 @@
 			"nosql"
 		],
 		"imgUrl": "/Logos/dynamodb.svg",
-		"link": "/docs/aws-monitoring/one-click-vs-manual/",
 		"question": {
 			"desc": "How would you like to set up AWS DynamoDB monitoring?",
 			"type": "select",
-			"helpText": "One Click uses AWS CloudWatch integration for automated setup. Manual setup uses OpenTelemetry receivers for more control.",
-			"helpLink": "/docs/aws-monitoring/one-click-vs-manual/",
-			"helpLinkText": "Read the comparison guide \u2192",
+			"helpText": "Use OpenTelemetry receivers to monitor AWS DynamoDB.",
 			"options": [
-				{
-					"key": "aws-dynamodb-one-click",
-					"label": "One Click AWS",
-					"imgUrl": "/Logos/dynamodb.svg",
-					"link": "/integrations?integration=aws-integration&service=dynamodb",
-					"internalRedirect": true
-				},
 				{
 					"key": "aws-dynamodb-manual",
 					"label": "Manual Setup",
 					"imgUrl": "/Logos/dynamodb.svg",
 					"link": "/docs/aws-monitoring/dynamodb/"
-				}
-			]
-		}
-	},
-	{
-		"dataSource": "aws-elasticache",
-		"label": "AWS ElastiCache",
-		"tags": [
-			"AWS"
-		],
-		"module": "dashboards",
-		"relatedSearchKeywords": [
-			"amazon",
-			"amazon elasticache",
-			"aws",
-			"aws elasticache",
-			"aws-elasticache",
-			"cache",
-			"elasticache",
-			"elasticache - one click",
-			"elasticache logs",
-			"elasticache metrics",
-			"elasticache monitoring",
-			"integrations",
-			"one click",
-			"redis"
-		],
-		"imgUrl": "/Logos/elasticache.svg",
-		"link": "/docs/aws-monitoring/one-click-vs-manual/",
-		"question": {
-			"desc": "How would you like to set up AWS ElastiCache monitoring?",
-			"type": "select",
-			"helpText": "One Click uses AWS CloudWatch integration for automated setup. Manual setup uses OpenTelemetry receivers for more control.",
-			"helpLink": "/docs/aws-monitoring/one-click-vs-manual/",
-			"helpLinkText": "Read the comparison guide \u2192",
-			"options": [
-				{
-					"key": "aws-elasticache-one-click",
-					"label": "One Click AWS",
-					"imgUrl": "/Logos/elasticache.svg",
-					"link": "/integrations?integration=aws-integration&service=elasticache",
-					"internalRedirect": true
-				},
-				{
-					"key": "aws-elasticache-redis-manual",
-					"label": "Redis Manual",
-					"imgUrl": "/Logos/elasticache.svg",
-					"link": "/integrations?integration=builtin-aws_elasticache_redis",
-					"internalRedirect": true
 				}
 			]
 		}
@@ -4919,7 +4727,6 @@
 		"relatedSearchKeywords": [
 			"amazon",
 			"amazon msk",
-			"amazon msk - one click",
 			"amazon-msk",
 			"aws",
 			"aws msk",
@@ -4931,21 +4738,11 @@
 			"one"
 		],
 		"imgUrl": "/Logos/amazon-msk.svg",
-		"link": "/docs/aws-monitoring/one-click-vs-manual/",
 		"question": {
 			"desc": "How would you like to set up AWS MSK monitoring?",
 			"type": "select",
-			"helpText": "One Click uses AWS CloudWatch integration for automated setup. Manual setup uses OpenTelemetry receivers for more control.",
-			"helpLink": "/docs/aws-monitoring/one-click-vs-manual/",
-			"helpLinkText": "Read the comparison guide \u2192",
+			"helpText": "Use OpenTelemetry to monitor Amazon MSK.",
 			"options": [
-				{
-					"key": "aws-msk-one-click",
-					"label": "One Click AWS",
-					"imgUrl": "/Logos/amazon-msk.svg",
-					"link": "/integrations?integration=aws-integration&service=msk",
-					"internalRedirect": true
-				},
 				{
 					"key": "aws-msk-manual",
 					"label": "Manual Setup",
@@ -4975,21 +4772,11 @@
 			"storage"
 		],
 		"imgUrl": "/Logos/s3.svg",
-		"link": "/docs/aws-monitoring/one-click-vs-manual/",
 		"question": {
 			"desc": "How would you like to set up AWS S3 monitoring?",
 			"type": "select",
-			"helpText": "One Click uses AWS CloudWatch integration for automated setup. Manual setup uses OpenTelemetry receivers for more control.",
-			"helpLink": "/docs/aws-monitoring/one-click-vs-manual/",
-			"helpLinkText": "Read the comparison guide \u2192",
+			"helpText": "Use OpenTelemetry to monitor AWS S3.",
 			"options": [
-				{
-					"key": "aws-s3-one-click",
-					"label": "One Click AWS",
-					"imgUrl": "/Logos/s3.svg",
-					"link": "/integrations?integration=aws-integration&service=s3sync",
-					"internalRedirect": true
-				},
 				{
 					"key": "aws-s3-manual",
 					"label": "Manual Setup",
@@ -5018,21 +4805,11 @@
 			"sns"
 		],
 		"imgUrl": "/Logos/sns.svg",
-		"link": "/docs/aws-monitoring/one-click-vs-manual/",
 		"question": {
 			"desc": "How would you like to set up AWS SNS monitoring?",
 			"type": "select",
-			"helpText": "One Click uses AWS CloudWatch integration for automated setup. Manual setup uses OpenTelemetry receivers for more control.",
-			"helpLink": "/docs/aws-monitoring/one-click-vs-manual/",
-			"helpLinkText": "Read the comparison guide \u2192",
+			"helpText": "Use OpenTelemetry to monitor AWS SNS.",
 			"options": [
-				{
-					"key": "aws-sns-one-click",
-					"label": "One Click AWS",
-					"imgUrl": "/Logos/sns.svg",
-					"link": "/integrations?integration=aws-integration&service=sns",
-					"internalRedirect": true
-				},
 				{
 					"key": "aws-sns-manual",
 					"label": "Manual Setup",
@@ -5061,21 +4838,11 @@
 			"sqs"
 		],
 		"imgUrl": "/Logos/sqs.svg",
-		"link": "/docs/aws-monitoring/one-click-vs-manual/",
 		"question": {
 			"desc": "How would you like to set up AWS SQS monitoring?",
 			"type": "select",
-			"helpText": "One Click uses AWS CloudWatch integration for automated setup. Manual setup uses OpenTelemetry receivers for more control.",
-			"helpLink": "/docs/aws-monitoring/one-click-vs-manual/",
-			"helpLinkText": "Read the comparison guide \u2192",
+			"helpText": "Use OpenTelemetry to monitor AWS SQS.",
 			"options": [
-				{
-					"key": "aws-sqs-one-click",
-					"label": "One Click AWS",
-					"imgUrl": "/Logos/sqs.svg",
-					"link": "/integrations?integration=aws-integration&service=sqs",
-					"internalRedirect": true
-				},
 				{
 					"key": "aws-sqs-manual",
 					"label": "Manual Setup",

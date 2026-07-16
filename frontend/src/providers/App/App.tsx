@@ -139,7 +139,6 @@ export function AppProvider({ children }: PropsWithChildren): JSX.Element {
 		}
 	}, [userData, isFetchingUser]);
 
-	// fetcher for licenses v3
 	// fetcher for feature flags
 	const {
 		isFetching: isFetchingFeatureFlags,
@@ -292,22 +291,17 @@ export function AppProvider({ children }: PropsWithChildren): JSX.Element {
 			user,
 			userPreferences,
 			featureFlags,
-			trialInfo: null,
 			orgPreferences,
 			isLoggedIn,
 			org,
 			isFetchingUser,
-			isFetchingActiveLicense: false,
 			isFetchingFeatureFlags,
 			isFetchingOrgPreferences,
 			userFetchError,
-			activeLicenseFetchError: null,
 			featureFlagsFetchError,
 			orgPreferencesFetchError,
-			activeLicense: null,
 			changelog,
 			showChangelogModal,
-			activeLicenseRefetch: (): void => {},
 			updateUser,
 			updateOrgPreferences,
 			updateUserPreferenceInContext,

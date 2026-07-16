@@ -31,18 +31,6 @@ export const getFormattedDateWithMinutes = (epochTimestamp: number): string => {
 	return date.format(DATE_TIME_FORMATS.MONTH_DATETIME_SHORT);
 };
 
-export const getRemainingDays = (billingEndDate: number): number => {
-	// Convert Epoch timestamps to Date objects
-	const startDate = new Date(); // Convert seconds to milliseconds
-	const endDate = new Date(billingEndDate * 1000); // Convert seconds to milliseconds
-
-	// Calculate the time difference in milliseconds
-	// @ts-ignore
-	const timeDifference = endDate - startDate;
-
-	return Math.ceil(timeDifference / (1000 * 60 * 60 * 24));
-};
-
 /**
  * Calculates the duration from the given epoch timestamp to the current time.
  *

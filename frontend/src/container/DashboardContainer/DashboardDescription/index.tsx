@@ -24,7 +24,6 @@ import { useGetPublicDashboardMeta } from 'hooks/dashboard/useGetPublicDashboard
 import { useLockDashboard } from 'hooks/dashboard/useLockDashboard';
 import { useUpdateDashboard } from 'hooks/dashboard/useUpdateDashboard';
 import useComponentPermission from 'hooks/useComponentPermission';
-import { useGetTenantLicense } from 'hooks/useGetTenantLicense';
 import { useNotifications } from 'hooks/useNotifications';
 import { isEmpty } from 'lodash-es';
 import {
@@ -93,9 +92,6 @@ function DashboardDescription(props: DashboardDescriptionProps): JSX.Element {
 	const [isSettingsDrawerOpen, setIsSettingsDrawerOpen] = useState<boolean>(
 		false,
 	);
-
-	const { isCloudUser, isEnterpriseSelfHostedUser } = useGetTenantLicense();
-	const isPublicDashboardEnabled = isCloudUser || isEnterpriseSelfHostedUser;
 
 	const selectedData = selectedDashboard
 		? {
@@ -299,7 +295,7 @@ function DashboardDescription(props: DashboardDescriptionProps): JSX.Element {
 		isError: isErrorPublicDashboardData,
 	} = useGetPublicDashboardMeta(
 		selectedDashboard?.id || '',
-		!!selectedDashboard?.id && isPublicDashboardEnabled,
+		!!selectedDashboard?.id,
 	);
 
 	useEffect(() => {

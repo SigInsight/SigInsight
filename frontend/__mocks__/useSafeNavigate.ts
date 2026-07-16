@@ -19,11 +19,7 @@ interface UseSafeNavigateReturn {
 }
 
 export const useSafeNavigate = (): UseSafeNavigateReturn => ({
-	safeNavigate: jest.fn(
-		(to: SafeNavigateToType, options?: SafeNavigateOptions) => {
-			console.log(`Mock safeNavigate called with:`, to, options);
-		},
-	) as jest.MockedFunction<
+	safeNavigate: jest.fn() as jest.MockedFunction<
 		(to: SafeNavigateToType, options?: SafeNavigateOptions) => void
 	>,
 });

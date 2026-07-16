@@ -13,7 +13,8 @@ export default defineConfig({
 			// SSE requires incremental consumption, which the Axios generator cannot provide.
 			filters: {
 				mode: 'exclude',
-				tags: ['assistant-stream'],
+				tags: ['assistant-stream', 'cloudintegration'],
+				schemas: [/^Cloudintegrationtypes/],
 			},
 		},
 		output: {

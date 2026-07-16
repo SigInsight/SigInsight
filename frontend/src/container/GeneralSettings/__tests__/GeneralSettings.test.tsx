@@ -1,5 +1,4 @@
 import setRetentionApiV2 from 'api/settings/setRetentionV2';
-import { useGetTenantLicense } from 'hooks/useGetTenantLicense';
 import {
 	fireEvent,
 	render,
@@ -33,18 +32,6 @@ jest.mock('hooks/useNotifications', () => ({
 jest.mock('hooks/useComponentPermission', () => ({
 	__esModule: true,
 	default: jest.fn(() => [true]),
-}));
-
-jest.mock('hooks/useGetTenantLicense', () => ({
-	useGetTenantLicense: jest.fn(() => ({
-		isCloudUser: false,
-		isEnterpriseSelfHostedUser: false,
-	})),
-}));
-
-jest.mock('container/GeneralSettingsCloud', () => ({
-	__esModule: true,
-	default: (): JSX.Element => <div data-testid="general-settings-cloud" />,
 }));
 
 // Mock data
@@ -380,15 +367,8 @@ describe('GeneralSettings - S3 Logs Retention', () => {
 		});
 	});
 
-	describe('Cloud User Rendering', () => {
-		beforeEach(() => {
-			(useGetTenantLicense as jest.Mock).mockReturnValue({
-				isCloudUser: true,
-				isEnterpriseSelfHostedUser: false,
-			});
-		});
-
-		it('should render GeneralSettingsCloud for cloud admin', () => {
+	describe('Community self-hosted rendering', () => {
+		it('renders retention controls', () => {
 			render(
 				<GeneralSettings
 					metricsTtlValuesPayload={mockMetricsRetention}
@@ -401,36 +381,6 @@ describe('GeneralSettings - S3 Logs Retention', () => {
 				/>,
 			);
 
-			expect(screen.getByTestId('general-settings-cloud')).toBeInTheDocument();
-		});
-	});
-
-	describe('Enterprise Self-Hosted User Rendering', () => {
-		beforeEach(() => {
-			(useGetTenantLicense as jest.Mock).mockReturnValue({
-				isCloudUser: false,
-				isEnterpriseSelfHostedUser: true,
-			});
-		});
-
-		it('should not render GeneralSettingsCloud', () => {
-			render(
-				<GeneralSettings
-					metricsTtlValuesPayload={mockMetricsRetention}
-					tracesTtlValuesPayload={mockTracesRetention}
-					logsTtlValuesPayload={mockLogsRetentionWithS3}
-					getAvailableDiskPayload={mockDisksWithS3}
-					metricsTtlValuesRefetch={jest.fn()}
-					tracesTtlValuesRefetch={jest.fn()}
-					logsTtlValuesRefetch={jest.fn()}
-				/>,
-			);
-
-			expect(
-				screen.queryByTestId('general-settings-cloud'),
-			).not.toBeInTheDocument();
-
-			// Save buttons should be visible for self-hosted
 			const saveButtons = screen.getAllByRole('button', { name: /save/i });
 			expect(saveButtons.length).toBeGreaterThan(0);
 		});

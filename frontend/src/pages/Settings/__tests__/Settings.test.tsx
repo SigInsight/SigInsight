@@ -25,9 +25,6 @@ describe('SettingsPage nav sections', () => {
 		beforeEach(() => {
 			render(<SettingsPage />, undefined, {
 				role: USER_ROLES.ADMIN,
-				appContextOverrides: {
-					activeLicense: null,
-				},
 				initialRoute: '/settings',
 			});
 		});
@@ -43,10 +40,7 @@ describe('SettingsPage nav sections', () => {
 			expect(screen.getByTestId(id)).toBeInTheDocument();
 		});
 
-		// billing/roles/integrations/ingestion are EE/cloud-only and should
-		// not appear for community users (useGetTenantLicense returns
-		// isCommunityUser=true, isCloudUser=false, isEnterpriseSelfHostedUser=false)
-		it.each(['billing', 'roles', 'integrations', 'ingestion'])(
+		it.each(['billing', 'roles', 'ingestion'])(
 			'does not render "%s" element',
 			(id) => {
 				expect(screen.queryByTestId(id)).not.toBeInTheDocument();
@@ -58,9 +52,6 @@ describe('SettingsPage nav sections', () => {
 		beforeEach(() => {
 			render(<SettingsPage />, undefined, {
 				role: USER_ROLES.VIEWER,
-				appContextOverrides: {
-					activeLicense: null,
-				},
 				initialRoute: '/settings',
 			});
 		});
@@ -82,9 +73,6 @@ describe('SettingsPage nav sections', () => {
 			// Community viewer has very limited access — identity section should be hidden
 			render(<SettingsPage />, undefined, {
 				role: USER_ROLES.VIEWER,
-				appContextOverrides: {
-					activeLicense: null,
-				},
 				initialRoute: '/settings',
 			});
 
@@ -94,9 +82,6 @@ describe('SettingsPage nav sections', () => {
 		it('renders settings-page-sidenav for community admin', () => {
 			const { container } = render(<SettingsPage />, undefined, {
 				role: USER_ROLES.ADMIN,
-				appContextOverrides: {
-					activeLicense: null,
-				},
 				initialRoute: '/settings',
 			});
 

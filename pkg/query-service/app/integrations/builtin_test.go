@@ -15,10 +15,13 @@ func TestBuiltinIntegrations(t *testing.T) {
 
 	builtins, apiErr := repo.list(context.Background())
 	require.Nil(apiErr)
-	require.Greater(
-		len(builtins), 0,
-		"some built in integrations are expected to be bundled.",
-	)
+	require.ElementsMatch([]string{
+		"builtin-clickhouse",
+		"builtin-mongo",
+		"builtin-nginx",
+		"builtin-postgres",
+		"builtin-redis",
+	}, integrationIDs(builtins))
 
 	nginxIntegrationId := "builtin-nginx"
 	res, apiErr := repo.get(context.Background(), []string{
@@ -29,4 +32,12 @@ func TestBuiltinIntegrations(t *testing.T) {
 	nginxIntegration, exists := res[nginxIntegrationId]
 	require.True(exists)
 	require.False(strings.HasPrefix(nginxIntegration.Overview, "file://"))
+}
+
+func integrationIDs(integrations []IntegrationDetails) []string {
+	ids := make([]string, 0, len(integrations))
+	for _, integration := range integrations {
+		ids = append(ids, integration.Id)
+	}
+	return ids
 }

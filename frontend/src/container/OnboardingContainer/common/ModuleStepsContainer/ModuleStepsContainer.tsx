@@ -6,8 +6,6 @@ import {
 } from '@ant-design/icons';
 import { Button, Space, Steps, Typography } from 'antd';
 import logEvent from 'api/common/logEvent';
-import LaunchChatSupport from 'components/LaunchChatSupport/LaunchChatSupport';
-import { onboardingHelpMessage } from 'components/LaunchChatSupport/util';
 import ROUTES from 'constants/routes';
 import { stepsMap } from 'container/OnboardingContainer/constants/stepsConfig';
 import { DataSourceType } from 'container/OnboardingContainer/Steps/DataSource/DataSource';
@@ -461,23 +459,6 @@ export default function ModuleStepsContainer({
 					<Button onClick={handleNext} type="primary" icon={<ArrowRightOutlined />}>
 						{current < lastStepIndex ? 'Continue to next step' : 'Done'}
 					</Button>
-					<LaunchChatSupport
-						attributes={{
-							dataSource: selectedDataSource?.id,
-							framework: selectedFramework,
-							environment: selectedEnvironment,
-							module: activeStep?.module?.id,
-							step: activeStep?.step?.id,
-							screen: 'Onboarding',
-						}}
-						eventName="Onboarding V2: Facing Issues Sending Data to SigInsight"
-						message={onboardingHelpMessage(
-							selectedDataSource?.name || '',
-							activeStep?.module?.id,
-						)}
-						buttonText="Facing issues sending data to SigInsight?"
-						onHoverText="Click here to get help with sending data to SigInsight"
-					/>
 				</div>
 			</div>
 		</div>

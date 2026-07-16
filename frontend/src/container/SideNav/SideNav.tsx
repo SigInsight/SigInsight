@@ -30,13 +30,11 @@ import logEvent from 'api/common/logEvent';
 import { Logout } from 'api/utils';
 import updateUserPreference from 'api/v1/user/preferences/name/update';
 import cx from 'classnames';
-import { FeatureKeys } from 'constants/features';
 import ROUTES from 'constants/routes';
 import { GlobalShortcuts } from 'constants/shortcuts/globalShortcuts';
 import { USER_PREFERENCES } from 'constants/userPreferences';
 import { useKeyboardHotkeys } from 'hooks/hotkeys/useKeyboardHotkeys';
 import useComponentPermission from 'hooks/useComponentPermission';
-import { useGetTenantLicense } from 'hooks/useGetTenantLicense';
 import { useNotifications } from 'hooks/useNotifications';
 import history from 'lib/history';
 import { isArray } from 'lodash-es';
@@ -53,7 +51,6 @@ import {
 	LampDesk,
 	Logs,
 	MousePointerClick,
-	PackagePlus,
 	ScrollText,
 	X,
 } from 'lucide-react';
@@ -129,9 +126,6 @@ function SideNav({ isPinned }: { isPinned: boolean }): JSX.Element {
 
 	const {
 		user,
-		featureFlags,
-		trialInfo,
-		isLoggedIn,
 		userPreferences,
 		changelog,
 		toggleChangelogModal,
@@ -214,16 +208,7 @@ function SideNav({ isPinned }: { isPinned: boolean }): JSX.Element {
 		};
 	}, [checkScroll]);
 
-	const {
-		isCloudUser,
-		isEnterpriseSelfHostedUser,
-		isCommunityUser,
-		isCommunityEnterpriseUser,
-	} = useGetTenantLicense();
-
-	const [licenseTag, setLicenseTag] = useState('');
 	const isAdmin = user.role === USER_ROLES.ADMIN;
-	const isEditor = user.role === USER_ROLES.EDITOR;
 
 	// Compute initial pinned items and secondary menu items synchronously to avoid flash
 	const computedPinnedMenuItems = useMemo(() => {
@@ -253,26 +238,13 @@ function SideNav({ isPinned }: { isPinned: boolean }): JSX.Element {
 	}, [userPreferences]);
 
 	const computedSecondaryMenuItems = useMemo(() => {
-		const shouldShowIntegrationsValue =
-			(isCloudUser || isEnterpriseSelfHostedUser) && (isAdmin || isEditor);
-
 		return defaultMoreMenuItems.map((item) => ({
 			...item,
 			isPinned: computedPinnedMenuItems.some(
 				(pinned) => pinned.itemKey === item.itemKey,
 			),
-			isEnabled:
-				item.key === ROUTES.INTEGRATIONS
-					? shouldShowIntegrationsValue
-					: item.isEnabled,
 		}));
-	}, [
-		computedPinnedMenuItems,
-		isCloudUser,
-		isEnterpriseSelfHostedUser,
-		isAdmin,
-		isEditor,
-	]);
+	}, [computedPinnedMenuItems]);
 
 	// Track if we've done the initial sync (to avoid overwriting user actions during session)
 	const hasInitializedRef = useRef(false);
@@ -286,18 +258,6 @@ function SideNav({ isPinned }: { isPinned: boolean }): JSX.Element {
 			hasInitializedRef.current = true;
 		}
 	}, [computedPinnedMenuItems, computedSecondaryMenuItems, userPreferences]);
-
-	const isOnboardingV3Enabled = featureFlags?.find(
-		(flag) => flag.name === FeatureKeys.ONBOARDING_V3,
-	)?.active;
-
-	const isChatSupportEnabled = featureFlags?.find(
-		(flag) => flag.name === FeatureKeys.CHAT_SUPPORT,
-	)?.active;
-
-	const isPremiumSupportEnabled = featureFlags?.find(
-		(flag) => flag.name === FeatureKeys.PREMIUM_SUPPORT,
-	)?.active;
 
 	const userSettingsMenuItem = {
 		key: ROUTES.SETTINGS,
@@ -433,27 +393,10 @@ function SideNav({ isPinned }: { isPinned: boolean }): JSX.Element {
 
 	const { registerShortcut, deregisterShortcut } = useKeyboardHotkeys();
 
-	const isWorkspaceBlocked = trialInfo?.workSpaceBlock || false;
+	const isWorkspaceBlocked = false;
 
 	const openInNewTab = (path: string): void => {
 		window.open(path, '_blank');
-	};
-
-	const onClickGetStarted = (event: MouseEvent): void => {
-		logEvent('Sidebar: Menu clicked', {
-			menuRoute: '/get-started',
-			menuLabel: 'Get Started',
-		});
-
-		const onboaringRoute = isOnboardingV3Enabled
-			? ROUTES.GET_STARTED_WITH_CLOUD
-			: ROUTES.GET_STARTED;
-
-		if (isCtrlMetaKey(event)) {
-			openInNewTab(onboaringRoute);
-		} else {
-			history.push(onboaringRoute);
-		}
 	};
 
 	const onClickHandler = useCallback(
@@ -494,44 +437,11 @@ function SideNav({ isPinned }: { isPinned: boolean }): JSX.Element {
 	);
 
 	useEffect(() => {
-		if (isCloudUser) {
-			setLicenseTag('Cloud');
-		} else if (isEnterpriseSelfHostedUser) {
-			setLicenseTag('Enterprise');
-		} else if (isCommunityEnterpriseUser) {
-			setLicenseTag('Free');
-		} else if (isCommunityUser) {
-			setLicenseTag('Community');
-		}
-	}, [
-		isCloudUser,
-		isEnterpriseSelfHostedUser,
-		isCommunityEnterpriseUser,
-		isCommunityUser,
-	]);
-
-	useEffect(() => {
 		if (!isAdmin) {
 			setHelpSupportDropdownMenuItems((prevState) =>
 				prevState.filter(
 					(item) => !('key' in item) || item.key !== 'invite-collaborators',
 				),
-			);
-		}
-
-		const showAddCreditCardModal =
-			!isPremiumSupportEnabled && !trialInfo?.trialConvertedToSubscription;
-
-		if (
-			!(
-				isLoggedIn &&
-				isChatSupportEnabled &&
-				!showAddCreditCardModal &&
-				(isCloudUser || isEnterpriseSelfHostedUser)
-			)
-		) {
-			setHelpSupportDropdownMenuItems((prevState) =>
-				prevState.filter((item) => !('key' in item) || item.key !== 'chat-support'),
 			);
 		}
 
@@ -600,14 +510,7 @@ function SideNav({ isPinned }: { isPinned: boolean }): JSX.Element {
 			});
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [
-		isAdmin,
-		isChatSupportEnabled,
-		isPremiumSupportEnabled,
-		isCloudUser,
-		trialInfo,
-		changelog,
-	]);
+	}, [isAdmin, changelog]);
 
 	const [isCurrentOrgSettings] = useComponentPermission(
 		['current_org_settings'],
@@ -686,9 +589,6 @@ function SideNav({ isPinned }: { isPinned: boolean }): JSX.Element {
 		registerShortcut(GlobalShortcuts.NavigateToSettingsIngestion, () =>
 			onClickHandler(ROUTES.INGESTION_SETTINGS, null),
 		);
-		registerShortcut(GlobalShortcuts.NavigateToSettingsBilling, () =>
-			onClickHandler(ROUTES.BILLING, null),
-		);
 		registerShortcut(GlobalShortcuts.NavigateToSettingsAPIKeys, () =>
 			onClickHandler(ROUTES.API_KEYS, null),
 		);
@@ -716,7 +616,6 @@ function SideNav({ isPinned }: { isPinned: boolean }): JSX.Element {
 			deregisterShortcut(GlobalShortcuts.NavigateToMetricsViews);
 			deregisterShortcut(GlobalShortcuts.NavigateToSettings);
 			deregisterShortcut(GlobalShortcuts.NavigateToSettingsIngestion);
-			deregisterShortcut(GlobalShortcuts.NavigateToSettingsBilling);
 			deregisterShortcut(GlobalShortcuts.NavigateToSettingsAPIKeys);
 			deregisterShortcut(GlobalShortcuts.NavigateToSettingsNotificationChannels);
 			deregisterShortcut(GlobalShortcuts.NavigateToLogsPipelines);
@@ -756,11 +655,7 @@ function SideNav({ isPinned }: { isPinned: boolean }): JSX.Element {
 					key={item.key || index}
 					item={item}
 					isActive={activeMenuKey === item.key}
-					isDisabled={
-						isWorkspaceBlocked &&
-						item.key !== ROUTES.BILLING &&
-						item.key !== ROUTES.SETTINGS
-					}
+					isDisabled={isWorkspaceBlocked && item.key !== ROUTES.SETTINGS}
 					onTogglePin={
 						allowPin
 							? (item): void => {
@@ -817,11 +712,6 @@ function SideNav({ isPinned }: { isPinned: boolean }): JSX.Element {
 				case 'invite-collaborators':
 					history.push(`${ROUTES.ORG_SETTINGS}#invite-team-members`);
 					break;
-				case 'chat-support':
-					if (window.pylon) {
-						window.Pylon('show');
-					}
-					break;
 				case 'changelog-1':
 				case 'changelog-2':
 					toggleChangelogModal();
@@ -867,19 +757,12 @@ function SideNav({ isPinned }: { isPinned: boolean }): JSX.Element {
 	};
 
 	useEffect(() => {
-		if (!isLatestVersion && !isCloudUser) {
+		if (!isLatestVersion) {
 			setShowVersionUpdateNotification(true);
 		} else {
 			setShowVersionUpdateNotification(false);
 		}
-	}, [
-		currentVersion,
-		latestVersion,
-		isCurrentVersionError,
-		isLatestVersion,
-		isCloudUser,
-		isEnterpriseSelfHostedUser,
-	]);
+	}, [currentVersion, latestVersion, isCurrentVersionError, isLatestVersion]);
 
 	return (
 		<div className={cx('sidenav-container', isPinned && 'pinned')}>
@@ -905,50 +788,22 @@ function SideNav({ isPinned }: { isPinned: boolean }): JSX.Element {
 								<img src="/Logos/siginsight-brand-logo.svg" alt="SigInsight" />
 							</div>
 
-							{licenseTag && (
-								<div
-									className={cx(
-										'brand-title-section',
-										isCommunityEnterpriseUser && 'community-enterprise-user',
-										isCloudUser && 'cloud-user',
-										showVersionUpdateNotification &&
-											changelog &&
-											'version-update-notification',
-									)}
-								>
-									<span className="license-type"> {licenseTag} </span>
-								</div>
-							)}
+							<div
+								className={cx(
+									'brand-title-section',
+									showVersionUpdateNotification &&
+										changelog &&
+										'version-update-notification',
+								)}
+							>
+								<span className="license-type"> Community </span>
+							</div>
 						</div>
 					</div>
 				</div>
 
-				<div
-					className={cx(
-						`nav-wrapper`,
-						isCloudUser && 'nav-wrapper-cloud',
-						hasScroll && 'scroll-available',
-					)}
-				>
+				<div className={cx(`nav-wrapper`, hasScroll && 'scroll-available')}>
 					<div className={cx('nav-top-section')} ref={navTopSectionRef}>
-						{isCloudUser && user?.role !== USER_ROLES.VIEWER && (
-							<div className="get-started-nav-items">
-								<Button
-									className="get-started-btn"
-									disabled={isWorkspaceBlocked}
-									onClick={(event: MouseEvent): void => {
-										if (isWorkspaceBlocked) {
-											return;
-										}
-										onClickGetStarted(event);
-									}}
-								>
-									<PackagePlus size={16} />
-									<div className="license tag nav-item-label"> New source </div>
-								</Button>
-							</div>
-						)}
-
 						<div className="primary-nav-items">
 							{renderNavItems(primaryMenuItems)}
 						</div>

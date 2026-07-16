@@ -4,7 +4,6 @@ import { K8sCategory } from 'container/InfraMonitoringK8s/constants';
 import { Time } from 'container/TopNav/DateTimeSelectionV2/types';
 import * as useQueryBuilderHooks from 'hooks/queryBuilder/useQueryBuilder';
 import * as appContextHooks from 'providers/App/App';
-import { LicenseEvent } from 'types/api/licensesV3/getActive';
 import { DataTypes } from 'types/api/queryBuilder/queryAutocompleteResponse';
 import { IBuilderQuery } from 'types/api/queryBuilder/queryBuilderData';
 import { DataSource } from 'types/common/queryBuilder';
@@ -42,24 +41,6 @@ jest.mock('hooks/useSafeNavigate', () => ({
 jest.spyOn(appContextHooks, 'useAppContext').mockReturnValue({
 	user: {
 		role: 'admin',
-	},
-	activeLicenseV3: {
-		event_queue: {
-			created_at: '0',
-			event: LicenseEvent.NO_EVENT,
-			scheduled_at: '0',
-			status: '',
-			updated_at: '0',
-		},
-		license: {
-			license_key: 'test-license-key',
-			license_type: 'trial',
-			org_id: 'test-org-id',
-			plan_id: 'test-plan-id',
-			plan_name: 'test-plan-name',
-			plan_type: 'trial',
-			plan_version: 'test-plan-version',
-		},
 	},
 } as any);
 

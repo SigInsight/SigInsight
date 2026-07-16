@@ -64,7 +64,7 @@ describe('ErrorModal Component', () => {
 		render(<ErrorModal error={mockError} open onClose={jest.fn()} />);
 
 		// Check if the version data is displayed
-		expect(screen.getByText('ENTERPRISE')).toBeInTheDocument();
+		expect(screen.getByText('COMMUNITY')).toBeInTheDocument();
 		expect(screen.getByText('1.0.0')).toBeInTheDocument();
 	});
 	it('should render the messages count badge when there are multiple errors', () => {

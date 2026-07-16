@@ -36,7 +36,6 @@ export default defineConfig(
 			createHtmlPlugin({
 				inject: {
 					data: {
-						PYLON_APP_ID: env.VITE_PYLON_APP_ID || '',
 						APPCUES_APP_ID: env.VITE_APPCUES_APP_ID || '',
 					},
 				},
@@ -106,10 +105,6 @@ export default defineConfig(
 				),
 				'process.env.WEBSOCKET_API_ENDPOINT': JSON.stringify(
 					env.VITE_WEBSOCKET_API_ENDPOINT,
-				),
-				'process.env.PYLON_APP_ID': JSON.stringify(env.VITE_PYLON_APP_ID),
-				'process.env.PYLON_IDENTITY_SECRET': JSON.stringify(
-					env.VITE_PYLON_IDENTITY_SECRET,
 				),
 				'process.env.APPCUES_APP_ID': JSON.stringify(env.VITE_APPCUES_APP_ID),
 				'process.env.POSTHOG_KEY': JSON.stringify(env.VITE_POSTHOG_KEY),
