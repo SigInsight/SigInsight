@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"io"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
@@ -26,7 +25,7 @@ func TestEditAccessAPIKeyRoles(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			middleware := NewAuthZ(slog.New(slog.NewTextHandler(io.Discard, nil)), nil, nil)
+			middleware := NewAuthZ(slog.New(slog.DiscardHandler), nil, nil)
 			handlerCalled := false
 			handler := middleware.EditAccess(func(rw http.ResponseWriter, _ *http.Request) {
 				handlerCalled = true
