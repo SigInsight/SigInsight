@@ -148,7 +148,7 @@ func NewDefaultQuickFilter(orgID valuer.UUID) ([]*StorableQuickFilter, error) {
 		{"key": "rpc.method", "dataType": "string", "type": "tag"},
 		{"key": "response_status_code", "dataType": "string", "type": "tag"},
 		{"key": "http_host", "dataType": "string", "type": "tag"},
-		{"key": "http.method", "dataType": "string", "type": "tag"},
+		{"key": "http_method", "dataType": "string", "type": "tag"},
 		{"key": "http.route", "dataType": "string", "type": "tag"},
 		{"key": "http_url", "dataType": "string", "type": "tag"},
 		{"key": "trace_id", "dataType": "string", "type": "tag"},

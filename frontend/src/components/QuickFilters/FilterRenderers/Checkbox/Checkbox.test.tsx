@@ -134,6 +134,36 @@ describe('CheckboxFilter - User Flows', () => {
 		);
 	});
 
+	it('should request trace HTTP method values using the canonical key', () => {
+		mockUseQueryBuilder.mockReturnValue(createMockQueryBuilderData(false) as any);
+
+		const mockFilter = createMockFilter({
+			title: 'Http Method',
+			attributeKey: {
+				key: 'http_method',
+				dataType: DataTypes.String,
+				type: 'tag',
+			},
+			dataSource: DataSource.TRACES,
+			defaultOpen: true,
+		});
+
+		render(
+			<CheckboxFilter
+				filter={mockFilter}
+				source={QuickFiltersSource.TRACES_EXPLORER}
+			/>,
+		);
+
+		expect(mockUseGetAggregateValues).toHaveBeenCalledWith(
+			expect.objectContaining({
+				attributeKey: 'http_method',
+				dataSource: DataSource.TRACES,
+			}),
+			expect.objectContaining({ enabled: true }),
+		);
+	});
+
 	it('should auto-open filter and prioritize checked items with visual separator when user opens page with active filters', async () => {
 		// Mock query builder with active filters
 		mockUseQueryBuilder.mockReturnValue(createMockQueryBuilderData(true) as any);
