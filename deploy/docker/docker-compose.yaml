@@ -105,7 +105,7 @@ services:
       # - ../common/clickhouse/storage.xml:/etc/clickhouse-server/config.d/storage.xml
   signoz:
     !!merge <<: *db-depend
-    image: ${SIGNOZ_IMAGE:-ghcr.io/siginsight/siginsight:${VERSION:-v1.3.1}}
+    image: ${SIGNOZ_IMAGE:-ghcr.io/siginsight/siginsight:${VERSION:-v1.4.0}}
     container_name: signoz
     ports:
       - "8080:8080" # signoz port
@@ -128,7 +128,7 @@ services:
       retries: 3
   otel-collector:
     !!merge <<: *db-depend
-    image: ghcr.io/siginsight/signoz-otel-collector:${OTELCOL_TAG:-v0.5.2}
+    image: ghcr.io/siginsight/signoz-otel-collector:${OTELCOL_TAG:-v1.0.0}
     container_name: signoz-otel-collector
     entrypoint:
       - /bin/sh
@@ -153,7 +153,7 @@ services:
       - "4318:4318" # OTLP HTTP receiver
   signoz-telemetrystore-migrator:
     !!merge <<: *db-depend
-    image: ghcr.io/siginsight/signoz-otel-collector:${OTELCOL_TAG:-v0.5.2}
+    image: ghcr.io/siginsight/signoz-otel-collector:${OTELCOL_TAG:-v1.0.0}
     container_name: signoz-telemetrystore-migrator
     environment:
       - SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN=tcp://clickhouse:9000

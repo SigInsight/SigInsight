@@ -7,7 +7,7 @@ require (
 	github.com/AfterShip/clickhouse-sql-parser v0.4.16
 	github.com/ClickHouse/clickhouse-go/v2 v2.45.0
 	github.com/DATA-DOG/go-sqlmock v1.5.2
-	github.com/SigInsight/OtelCollector v0.5.2
+	github.com/SigInsight/OtelCollector v1.0.0
 	github.com/SigNoz/govaluate v0.0.0-20240203125216-988004ccc7fd
 	github.com/antlr4-go/antlr/v4 v4.13.1
 	github.com/antonmedv/expr v1.15.3

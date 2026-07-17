@@ -40,16 +40,19 @@ jobs:
           if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
             version="${GITHUB_REF_NAME}"
             {
+              echo "version=${version}"
               echo "tags<<EOF"
               echo "ghcr.io/siginsight/siginsight:${version}"
               echo "ghcr.io/siginsight/siginsight:latest"
               echo "EOF"
             } >> "$GITHUB_OUTPUT"
           else
+            version="main-${GITHUB_SHA::7}"
             {
+              echo "version=${version}"
               echo "tags<<EOF"
               echo "ghcr.io/siginsight/siginsight:latest"
-              echo "ghcr.io/siginsight/siginsight:main-${GITHUB_SHA::7}"
+              echo "ghcr.io/siginsight/siginsight:${version}"
               echo "EOF"
             } >> "$GITHUB_OUTPUT"
           fi
@@ -60,7 +63,7 @@ jobs:
         working-directory: frontend
         run: yarn build
       - name: build-community-binaries
-        run: make go-build-community js-build
+        run: make VERSION="${{ steps.meta.outputs.version }}" go-build-community js-build
       - name: ghcr-login
         uses: docker/login-action@v3
         with:
