@@ -36,7 +36,7 @@ ghcr.io/siginsight/signoz-otel-collector:v1.0.0
 ghcr.io/siginsight/clickhouse-init-histogram-quantile:25.5.6-latest
 ```
 
-The `v1.0.0` collector image currently supports Linux AMD64 hosts only.
+The complete deployment currently supports Linux AMD64 hosts only because the `v1.0.0` collector image does not provide an ARM64 variant.
 
 You can override their tags with environment variables:
 

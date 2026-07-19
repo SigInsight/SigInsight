@@ -60,7 +60,7 @@ services:
       timeout: 5s
       retries: 3
   telemetrystore-migrator:
-    image: ghcr.io/siginsight/signoz-otel-collector:v0.4.1
+    image: ghcr.io/siginsight/signoz-otel-collector:${OTELCOL_TAG:-v1.0.0}
     container_name: telemetrystore-migrator
     environment:
       - SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN=tcp://clickhouse:9000

@@ -43,7 +43,9 @@ jobs:
               echo "version=${version}"
               echo "tags<<EOF"
               echo "ghcr.io/siginsight/siginsight:${version}"
-              echo "ghcr.io/siginsight/siginsight:latest"
+              if [[ "${GITHUB_REF_NAME}" != *-rc.* ]]; then
+                echo "ghcr.io/siginsight/siginsight:latest"
+              fi
               echo "EOF"
             } >> "$GITHUB_OUTPUT"
           else
@@ -51,7 +53,6 @@ jobs:
             {
               echo "version=${version}"
               echo "tags<<EOF"
-              echo "ghcr.io/siginsight/siginsight:latest"
               echo "ghcr.io/siginsight/siginsight:${version}"
               echo "EOF"
             } >> "$GITHUB_OUTPUT"

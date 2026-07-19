@@ -51,6 +51,11 @@ is_arm64(){
 }
 
 check_os() {
+    if is_arm64; then
+        echo "SigNoz installation is currently supported on Linux AMD64 only. The bundled OpenTelemetry Collector image does not provide an ARM64 image."
+        exit 1
+    fi
+
     if is_mac; then
         package_manager="brew"
         desired_os=1
@@ -58,13 +63,8 @@ check_os() {
         return
     fi
 
-    if is_arm64; then
-        arch="arm64"
-        arch_official="aarch64"
-    else
-        arch="amd64"
-        arch_official="x86_64"
-    fi
+    arch="amd64"
+    arch_official="x86_64"
 
     platform=$(uname -s | tr '[:upper:]' '[:lower:]')
 
@@ -365,12 +365,10 @@ start_docker
 pushd "${BASE_DIR}/${DOCKER_STANDALONE_DIR}" > /dev/null 2>&1
 
 # check for open ports, if signoz is not installed
-if is_command_present docker-compose; then
-    if $sudo_cmd $docker_compose_cmd ps | grep "signoz" | grep -q "healthy" > /dev/null 2>&1; then
-        echo "SigNoz already installed, skipping the occupied ports check"
-    else
-        check_ports_occupied
-    fi
+if $sudo_cmd $docker_compose_cmd ps | grep "signoz" | grep -q "healthy" > /dev/null 2>&1; then
+    echo "SigNoz already installed, skipping the occupied ports check"
+else
+    check_ports_occupied
 fi
 
 echo ""
