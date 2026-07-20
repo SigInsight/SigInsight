@@ -1,6 +1,6 @@
 services:
   signoz-otel-collector:
-    image: ghcr.io/siginsight/signoz-otel-collector:v0.4.1
+    image: ghcr.io/siginsight/signoz-otel-collector:${OTELCOL_TAG:-v1.0.0}
     container_name: signoz-otel-collector-dev
     entrypoint:
     - /bin/sh

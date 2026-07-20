@@ -1,5 +1,3 @@
-import time
-
 import docker
 import pytest
 from testcontainers.core.container import Network
@@ -27,8 +25,8 @@ def migrator(
         dsn = clickhouse.env["SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN"]
 
         container = client.containers.run(
-            image=f"signoz/signoz-schema-migrator:{version}",
-            command=f"sync --replication=true --cluster-name=cluster --up= --dsn={dsn}",
+            image=f"ghcr.io/siginsight/signoz-otel-collector:{version}",
+            command=f"migrate bootstrap --clickhouse-replication=true --clickhouse-cluster=cluster --clickhouse-dsn={dsn}",
             detach=True,
             auto_remove=False,
             network=network.id,
@@ -45,24 +43,53 @@ def migrator(
         container.remove()
 
         container = client.containers.run(
-            image=f"signoz/signoz-schema-migrator:{version}",
-            command=f"async --replication=true --cluster-name=cluster --up= --dsn={dsn}",
+            image=f"ghcr.io/siginsight/signoz-otel-collector:{version}",
+            command=f"migrate sync up --clickhouse-replication=true --clickhouse-cluster=cluster --clickhouse-dsn={dsn}",
             detach=True,
             auto_remove=False,
             network=network.id,
         )
 
-        time.sleep(5)
-        container.reload()
-        if container.status == "exited":
-            result = container.wait()
-            if result["StatusCode"] != 0:
-                logs = container.logs().decode(encoding="utf-8")
-                container.remove()
-                print(logs)
-                raise RuntimeError("failed to run async migrations on clickhouse")
+        result = container.wait()
+        if result["StatusCode"] != 0:
+            logs = container.logs().decode(encoding="utf-8")
+            container.remove()
+            print(logs)
+            raise RuntimeError("failed to run sync migrations on clickhouse")
+        container.remove()
 
-        return types.Operation(name="migrator", container_id=container.id)
+        container = client.containers.run(
+            image=f"ghcr.io/siginsight/signoz-otel-collector:{version}",
+            command=f"migrate async up --clickhouse-replication=true --clickhouse-cluster=cluster --clickhouse-dsn={dsn}",
+            detach=True,
+            auto_remove=False,
+            network=network.id,
+        )
+
+        result = container.wait()
+        if result["StatusCode"] != 0:
+            logs = container.logs().decode(encoding="utf-8")
+            container.remove()
+            print(logs)
+            raise RuntimeError("failed to run async migrations on clickhouse")
+        container.remove()
+
+        check = client.containers.run(
+            image=f"ghcr.io/siginsight/signoz-otel-collector:{version}",
+            command=f"migrate sync check --clickhouse-replication=true --clickhouse-cluster=cluster --clickhouse-dsn={dsn}",
+            detach=True,
+            auto_remove=False,
+            network=network.id,
+        )
+        result = check.wait()
+        if result["StatusCode"] != 0:
+            logs = check.logs().decode(encoding="utf-8")
+            check.remove()
+            print(logs)
+            raise RuntimeError("failed to verify sync migrations on clickhouse")
+        check.remove()
+
+        return types.Operation(name="migrator", container_id=None)
 
     def delete(operation: types.Operation) -> None:
         if not operation.container_id:
