@@ -27,9 +27,6 @@
     }
   ],
   "assets": {
-    "logs": {
-      "pipelines": []
-    },
     "dashboards": [
       "file://assets/dashboards/overview.json"
     ],

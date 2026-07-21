@@ -120,8 +120,7 @@ func (r *Repo) insertConfig(
 		return errors.NewInvalidInputf(CodeElementTypeRequired, "element type is required for creating agent config version")
 	}
 
-	// allowing empty elements for logs - use case is deleting all pipelines
-	if len(elements) == 0 && c.ElementType != opamptypes.ElementTypeLogPipelines {
+	if len(elements) == 0 {
 		slog.ErrorContext(ctx, "insert config called with no elements", "element_type", c.ElementType.StringValue())
 		return errors.NewInvalidInputf(CodeConfigElementsRequired, "config must have atleast one element")
 	}

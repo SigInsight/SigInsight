@@ -45,7 +45,6 @@ type ElementType struct{ valuer.String }
 var (
 	ElementTypeSamplingRules = ElementType{valuer.NewString("sampling_rules")}
 	ElementTypeDropRules     = ElementType{valuer.NewString("drop_rules")}
-	ElementTypeLogPipelines  = ElementType{valuer.NewString("log_pipelines")}
 	ElementTypeLbExporter    = ElementType{valuer.NewString("lb_exporter")}
 )
 
@@ -118,22 +117,4 @@ func NewAgentConfigVersion(orgId valuer.UUID, userId valuer.UUID, elementType El
 
 func (a *AgentConfigVersion) IncrementVersion(lastVersion int) {
 	a.Version = lastVersion + 1
-}
-
-// NewElementType creates a new ElementType from a string value.
-// Returns the corresponding ElementType constant if the string matches,
-// otherwise returns an empty ElementType.
-func NewElementType(value string) ElementType {
-	switch valuer.NewString(value) {
-	case ElementTypeSamplingRules.String:
-		return ElementTypeSamplingRules
-	case ElementTypeDropRules.String:
-		return ElementTypeDropRules
-	case ElementTypeLogPipelines.String:
-		return ElementTypeLogPipelines
-	case ElementTypeLbExporter.String:
-		return ElementTypeLbExporter
-	default:
-		return ElementType{valuer.NewString("")}
-	}
 }

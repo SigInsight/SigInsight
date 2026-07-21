@@ -32,45 +32,24 @@ func init() {
 	m = &Manager{}
 }
 
-type AgentFeatureType string
-
 type Manager struct {
 	Repo
 	// lock to make sure only one update is sent to remote agents at a time
 	lock   uint32
 	logger *slog.Logger
 
-	// For AgentConfigProvider implementation
-	agentFeatures         []AgentFeature
 	configSubscribers     map[string]func()
 	configSubscribersLock sync.Mutex
 }
 
 type ManagerOptions struct {
 	Store sqlstore.SQLStore
-
-	// When acting as opamp.AgentConfigProvider, agent conf recommendations are
-	// applied to the base conf in the order the features have been specified here.
-	AgentFeatures []AgentFeature
 }
 
 func Initiate(options *ManagerOptions) (*Manager, error) {
-	// featureType must be unqiue across registered AgentFeatures.
-	agentFeatureByType := map[AgentFeatureType]AgentFeature{}
-	for _, feature := range options.AgentFeatures {
-		featureType := feature.AgentFeatureType()
-		if agentFeatureByType[featureType] != nil {
-			panic(fmt.Sprintf(
-				"found multiple agent features with type: %s", featureType,
-			))
-		}
-		agentFeatureByType[featureType] = feature
-	}
-
 	m = &Manager{
 		Repo:              Repo{options.Store},
 		logger:            slog.Default(),
-		agentFeatures:     options.AgentFeatures,
 		configSubscribers: map[string]func(){},
 	}
 
@@ -99,65 +78,16 @@ func (m *Manager) notifyConfigUpdateSubscribers() {
 }
 
 // Implements opamp.AgentConfigProvider
-func (m *Manager) RecommendAgentConfig(orgId valuer.UUID, currentConfYaml []byte) (
+func (m *Manager) RecommendAgentConfig(_ valuer.UUID, currentConfYaml []byte) (
 	recommendedConfYaml []byte,
 	// Opaque id of the recommended config, used for reporting deployment status updates
 	configId string,
 	err error,
 ) {
-	recommendation := currentConfYaml
-	settingVersionsUsed := []string{}
+	hash := sha256.New()
+	hash.Write(currentConfYaml)
 
-	for _, feature := range m.agentFeatures {
-		featureType := opamptypes.NewElementType(string(feature.AgentFeatureType()))
-		latestConfig, err := GetLatestVersion(context.Background(), orgId, featureType)
-		if err != nil && !errors.Ast(err, errors.TypeNotFound) {
-			return nil, "", err
-		}
-
-		updatedConf, serializedSettingsUsed, err := feature.RecommendAgentConfig(orgId, recommendation, latestConfig)
-		if err != nil {
-			return nil, "", errors.WithAdditionalf(err, "agent config recommendation for %s failed", featureType)
-		}
-		recommendation = updatedConf
-
-		// It is possible for a feature to recommend collector config
-		// before any user created config versions exist.
-		//
-		// For example, log pipeline config for installed integrations will
-		// have to be recommended even if the user hasn't created any pipelines yet
-		configVersion := -1
-		if latestConfig != nil {
-			configVersion = latestConfig.Version
-		}
-		configId := fmt.Sprintf("%s:%d", featureType, configVersion)
-
-		settingVersionsUsed = append(settingVersionsUsed, configId)
-
-		_ = m.updateDeployStatus(
-			context.Background(),
-			orgId,
-			featureType,
-			configVersion,
-			opamptypes.DeployInitiated.StringValue(),
-			"Deployment has started",
-			configId,
-			serializedSettingsUsed,
-		)
-
-	}
-
-	if len(settingVersionsUsed) > 0 {
-		configId = strings.Join(settingVersionsUsed, ",")
-
-	} else {
-		// Do not return an empty configId even if no recommendations were made
-		hash := sha256.New()
-		hash.Write(recommendation)
-		configId = string(hash.Sum(nil))
-	}
-
-	return recommendation, configId, nil
+	return currentConfYaml, string(hash.Sum(nil)), nil
 }
 
 // Implements opamp.AgentConfigProvider
