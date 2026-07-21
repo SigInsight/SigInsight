@@ -12,7 +12,6 @@ function ExplorerOptionWrapper({
 	disabled,
 	query,
 	isLoading,
-	onExport,
 	sourcepage,
 	isOneChartPerQuery,
 	splitedQueries,
@@ -32,7 +31,6 @@ function ExplorerOptionWrapper({
 			disabled={disabled}
 			query={query}
 			isLoading={isLoading}
-			onExport={onExport}
 			sourcepage={sourcepage}
 			signalSource={signalSource}
 			isExplorerOptionHidden={isExplorerOptionHidden}

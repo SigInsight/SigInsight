@@ -1,5 +1,5 @@
 import { BuilderQuery } from 'api/v5/v5';
-import { useNavigateToExplorer } from 'components/CeleryTask/useNavigateToExplorer';
+import { useNavigateToExplorer } from 'hooks/useNavigateToExplorer';
 import { rest, server } from 'mocks-server/server';
 import { fireEvent, render, screen, waitFor, within } from 'tests/test-utils';
 import { DataSource } from 'types/common/queryBuilder';
@@ -30,7 +30,7 @@ jest.mock(
 	}),
 );
 
-jest.mock('components/CeleryTask/useNavigateToExplorer', () => ({
+jest.mock('hooks/useNavigateToExplorer', () => ({
 	useNavigateToExplorer: jest.fn(),
 }));
 

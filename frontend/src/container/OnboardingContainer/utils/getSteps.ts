@@ -3,7 +3,6 @@ import {
 	CheckServiceStatus,
 	CloneRepo,
 	ConfigureAws,
-	ConfigureHostmetricsJSON,
 	ConfigureMetricsReceiver,
 	ConfigureReceiver,
 	CreateDaemonService,
@@ -17,7 +16,6 @@ import {
 	EnvDetailsStep,
 	InstallOpenTelemetryStep,
 	LogsTestConnectionStep,
-	MonitorDashboard,
 	PlotMetrics,
 	RestartOtelCollector,
 	RunApplicationStep,
@@ -120,12 +118,7 @@ export const getSteps = ({
 			return [DataSourceStep, SetupOtelCollectorStep, PlotMetrics];
 		case 'hostMetrics':
 		case 'awsEc2InfrastructureMetrics':
-			return [
-				DataSourceStep,
-				EnvDetailsStep,
-				SetupOtelCollectorStep,
-				ConfigureHostmetricsJSON,
-			];
+			return [DataSourceStep, EnvDetailsStep, SetupOtelCollectorStep];
 		case 'otherMetrics':
 			return [
 				DataSourceStep,
@@ -153,7 +146,7 @@ export const getSteps = ({
 				EcsSendLogsData,
 			];
 		case 'awsEks':
-			return [DataSourceStep, SetupOtelCollectorStep, MonitorDashboard];
+			return [DataSourceStep, SetupOtelCollectorStep];
 		case 'azureVm':
 			return [
 				DataSourceStep,

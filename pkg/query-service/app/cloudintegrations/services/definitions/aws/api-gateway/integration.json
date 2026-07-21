@@ -184,16 +184,5 @@
         }
       ]
     }
-  },
-  "assets": {
-    "dashboards": [
-      {
-        "id": "overview",
-        "title": "API Gateway Overview",
-        "description": "Overview of API Gateway",
-        "image": "file://assets/dashboards/overview.png",
-        "definition": "file://assets/dashboards/overview.json"
-      }
-    ]
   }
 }

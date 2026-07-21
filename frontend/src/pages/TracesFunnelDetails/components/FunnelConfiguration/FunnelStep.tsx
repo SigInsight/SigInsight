@@ -10,8 +10,6 @@ import {
 	Tooltip,
 } from 'antd';
 import cx from 'classnames';
-import { FilterSelect } from 'components/CeleryOverview/CeleryOverviewConfigOptions/CeleryOverviewConfigOptions';
-import { QueryParams } from 'constants/query';
 import { initialQueriesMap } from 'constants/queryBuilder';
 import QueryBuilderSearchV2 from 'container/QueryBuilder/filters/QueryBuilderSearchV2/QueryBuilderSearchV2';
 import { ChevronDown, PencilLine } from 'lucide-react';
@@ -21,6 +19,7 @@ import { useAppContext } from 'providers/App/App';
 import { FunnelStepData } from 'types/api/traceFunnels';
 import { DataSource } from 'types/common/queryBuilder';
 
+import FunnelFilterSelect from './FunnelFilterSelect';
 import FunnelStepPopover from './FunnelStepPopover';
 
 import './FunnelStep.styles.scss';
@@ -146,13 +145,10 @@ function FunnelStep({
 						<div className="filters__service-and-span">
 							<div className="service">
 								<Form.Item name={['steps', stepData.id, 'service_name']}>
-									<FilterSelect
+									<FunnelFilterSelect
 										placeholder="Select Service"
-										queryParam={QueryParams.service}
-										filterType="serviceName"
-										shouldSetQueryParams={false}
-										values={stepData.service_name}
-										isMultiple={false}
+										attributeKey="serviceName"
+										value={stepData.service_name}
 										onChange={
 											hasEditPermission
 												? (v): void => {
@@ -165,13 +161,10 @@ function FunnelStep({
 							</div>
 							<div className="span">
 								<Form.Item name={['steps', stepData.id, 'span_name']}>
-									<FilterSelect
+									<FunnelFilterSelect
 										placeholder="Select Span name"
-										queryParam={QueryParams.spanName}
-										filterType="name"
-										shouldSetQueryParams={false}
-										values={stepData.span_name}
-										isMultiple={false}
+										attributeKey="name"
+										value={stepData.span_name}
 										onChange={
 											hasEditPermission
 												? (v): void =>

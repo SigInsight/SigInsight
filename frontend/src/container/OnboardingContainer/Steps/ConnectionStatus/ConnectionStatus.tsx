@@ -7,16 +7,11 @@ import {
 	LoadingOutlined,
 } from '@ant-design/icons';
 import logEvent from 'api/common/logEvent';
-import MessagingQueueHealthCheck from 'components/MessagingQueueHealthCheck/MessagingQueueHealthCheck';
-import { QueryParams } from 'constants/query';
 import Header from 'container/OnboardingContainer/common/Header/Header';
 import { useOnboardingContext } from 'container/OnboardingContainer/context/OnboardingContext';
-import { useOnboardingStatus } from 'hooks/messagingQueue/useOnboardingStatus';
 import { useQueryService } from 'hooks/useQueryService';
 import useResourceAttribute from 'hooks/useResourceAttribute';
 import { convertRawQueriesToTraceSelectedTags } from 'hooks/useResourceAttribute/utils';
-import useUrlQuery from 'hooks/useUrlQuery';
-import { getAttributeDataFromOnboardingStatus } from 'pages/MessagingQueues/MessagingQueuesUtils';
 import { AppState } from 'store/reducers';
 import { UPDATE_TIME_INTERVAL } from 'types/actions/globalTime';
 import { PayloadProps as QueryServicePayloadProps } from 'types/api/metrics/getService';
@@ -32,12 +27,6 @@ export default function ConnectionStatus(): JSX.Element {
 		AppState,
 		GlobalReducer
 	>((state) => state.globalTime);
-
-	const urlQuery = useUrlQuery();
-	const getStartedSource = urlQuery.get(QueryParams.getStartedSource);
-	const getStartedSourceService = urlQuery.get(
-		QueryParams.getStartedSourceService,
-	);
 
 	const {
 		serviceName,
@@ -69,68 +58,8 @@ export default function ConnectionStatus(): JSX.Element {
 		maxTime,
 		selectedTime,
 		selectedTags,
-		options: {
-			enabled: getStartedSource !== 'kafka',
-		},
+		options: {},
 	});
-
-	const [pollInterval, setPollInterval] = useState<number | false>(10000);
-	const {
-		data: onbData,
-		error: onbErr,
-		isFetching: onbFetching,
-	} = useOnboardingStatus(
-		{
-			enabled: getStartedSource === 'kafka',
-			refetchInterval: pollInterval,
-		},
-		getStartedSourceService || '',
-		'query-key-onboarding-status',
-	);
-
-	const [
-		shouldRetryOnboardingCall,
-		setShouldRetryOnboardingCall,
-	] = useState<boolean>(false);
-
-	useEffect(() => {
-		// runs only when the caller is coming from 'kafka' i.e. coming from Messaging Queues - setup helper
-		if (getStartedSource === 'kafka') {
-			if (onbData?.statusCode !== 200) {
-				setShouldRetryOnboardingCall(true);
-			} else if (onbData?.payload?.status === 'success') {
-				const attributeData = getAttributeDataFromOnboardingStatus(
-					onbData?.payload,
-				);
-				if (attributeData.overallStatus === 'success') {
-					setLoading(false);
-					setIsReceivingData(true);
-					setPollInterval(false);
-				} else {
-					setShouldRetryOnboardingCall(true);
-				}
-			}
-		}
-	}, [
-		shouldRetryOnboardingCall,
-		onbData,
-		onbErr,
-		onbFetching,
-		getStartedSource,
-	]);
-
-	useEffect(() => {
-		if (retryCount < 0 && getStartedSource === 'kafka') {
-			setPollInterval(false);
-			setLoading(false);
-		}
-	}, [retryCount, getStartedSource]);
-
-	useEffect(() => {
-		if (getStartedSource === 'kafka' && !onbFetching) {
-			setRetryCount((prevCount) => prevCount - 1);
-		}
-	}, [getStartedSource, onbData, onbFetching]);
 
 	const renderDocsReference = (): JSX.Element => {
 		switch (selectedDataSource?.name) {
@@ -265,27 +194,22 @@ export default function ConnectionStatus(): JSX.Element {
 	useEffect(() => {
 		let pollingTimer: string | number | NodeJS.Timer | undefined;
 
-		if (getStartedSource !== 'kafka') {
-			if (loading) {
-				pollingTimer = setInterval(() => {
-					// Trigger a refetch with the updated parameters
-					const updatedMinTime = (Date.now() - 15 * 60 * 1000) * 1000000;
-					const updatedMaxTime = Date.now() * 1000000;
+		if (loading) {
+			pollingTimer = setInterval(() => {
+				const updatedMinTime = (Date.now() - 15 * 60 * 1000) * 1000000;
+				const updatedMaxTime = Date.now() * 1000000;
 
-					const payload = {
+				dispatch({
+					type: UPDATE_TIME_INTERVAL,
+					payload: {
 						maxTime: updatedMaxTime,
 						minTime: updatedMinTime,
 						selectedTime,
-					};
-
-					dispatch({
-						type: UPDATE_TIME_INTERVAL,
-						payload,
-					});
-				}, pollingInterval); // Same interval as pollingInterval
-			} else if (!loading && pollingTimer) {
-				clearInterval(pollingTimer);
-			}
+					},
+				});
+			}, pollingInterval);
+		} else if (pollingTimer) {
+			clearInterval(pollingTimer);
 		}
 
 		// Clean up the interval when the component unmounts
@@ -296,23 +220,19 @@ export default function ConnectionStatus(): JSX.Element {
 	}, [refetch, selectedTags, selectedTime, loading]);
 
 	useEffect(() => {
-		if (getStartedSource !== 'kafka') {
-			verifyApplicationData(data);
-		}
+		verifyApplicationData(data);
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [isServiceLoading, data, error, isError]);
 
 	useEffect(() => {
-		if (getStartedSource !== 'kafka') {
-			refetch();
-		}
+		refetch();
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
-	const isQueryServiceLoading = useMemo(
-		() => isServiceLoading || loading || onbFetching,
-		[isServiceLoading, loading, onbFetching],
-	);
+	const isQueryServiceLoading = useMemo(() => isServiceLoading || loading, [
+		isServiceLoading,
+		loading,
+	]);
 
 	return (
 		<div className="connection-status-container">
@@ -335,30 +255,18 @@ export default function ConnectionStatus(): JSX.Element {
 
 					<div className="status">
 						{isQueryServiceLoading && <LoadingOutlined />}
-						{!isQueryServiceLoading &&
-							isReceivingData &&
-							(getStartedSource !== 'kafka' ? (
-								<>
-									<CheckCircleTwoTone twoToneColor="#52c41a" />
-									<span> Success </span>
-								</>
-							) : (
-								<MessagingQueueHealthCheck
-									serviceToInclude={[getStartedSourceService || '']}
-								/>
-							))}
-						{!isQueryServiceLoading &&
-							!isReceivingData &&
-							(getStartedSource !== 'kafka' ? (
-								<>
-									<CloseCircleTwoTone twoToneColor="#e84749" />
-									<span> Failed </span>
-								</>
-							) : (
-								<MessagingQueueHealthCheck
-									serviceToInclude={[getStartedSourceService || '']}
-								/>
-							))}
+						{!isQueryServiceLoading && isReceivingData && (
+							<>
+								<CheckCircleTwoTone twoToneColor="#52c41a" />
+								<span> Success </span>
+							</>
+						)}
+						{!isQueryServiceLoading && !isReceivingData && (
+							<>
+								<CloseCircleTwoTone twoToneColor="#e84749" />
+								<span> Failed </span>
+							</>
+						)}
 					</div>
 				</div>
 				<div className="details-info">

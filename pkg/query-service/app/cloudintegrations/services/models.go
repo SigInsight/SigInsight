@@ -1,9 +1,5 @@
 package services
 
-import (
-	"github.com/SigNoz/signoz/pkg/types/dashboardtypes"
-)
-
 type Metadata struct {
 	Id    string `json:"id"`
 	Title string `json:"title"`
@@ -15,17 +11,11 @@ type Definition struct {
 
 	Overview string `json:"overview"` // markdown
 
-	Assets Assets `json:"assets"`
-
 	SupportedSignals SupportedSignals `json:"supported_signals"`
 
 	DataCollected DataCollected `json:"data_collected"`
 
 	Strategy *CollectionStrategy `json:"telemetry_collection_strategy"`
-}
-
-type Assets struct {
-	Dashboards []Dashboard `json:"dashboards"`
 }
 
 type SupportedSignals struct {
@@ -79,13 +69,4 @@ type AWSLogsStrategy struct {
 		// "" implies no filtering is required.
 		FilterPattern string `json:"filter_pattern"`
 	} `json:"cloudwatch_logs_subscriptions"`
-}
-
-type Dashboard struct {
-	Id          string                                `json:"id"`
-	Url         string                                `json:"url"`
-	Title       string                                `json:"title"`
-	Description string                                `json:"description"`
-	Image       string                                `json:"image"`
-	Definition  *dashboardtypes.StorableDashboardData `json:"definition,omitempty"`
 }

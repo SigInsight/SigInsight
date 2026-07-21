@@ -30,12 +30,6 @@
       "instructions": "file://config/collect-query-logs.md"
     }
   ],
-  "assets": {
-    "dashboards": [
-      "file://assets/dashboards/overview.json"
-    ],
-    "alerts": []
-  },
   "connection_tests": {
     "logs": {
       "attribute_key": "source",

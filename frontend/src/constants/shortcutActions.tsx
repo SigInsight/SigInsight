@@ -9,8 +9,6 @@ import {
 	DraftingCompass,
 	HardDrive,
 	Home,
-	LayoutGrid,
-	ListMinus,
 	ScrollText,
 	Settings,
 	TowerControl,
@@ -47,16 +45,6 @@ export function createShortcutActions(deps: ActionDeps): CmdAction[] {
 			perform: (): void => navigate(ROUTES.HOME),
 		},
 		{
-			id: 'dashboards',
-			name: 'Go to Dashboards',
-			shortcut: [GlobalShortcutsName.NavigateToDashboards],
-			keywords: 'dashboards',
-			section: 'Navigation',
-			icon: <LayoutGrid size={14} />,
-			roles: ['ADMIN', 'EDITOR', 'VIEWER'],
-			perform: (): void => navigate(ROUTES.ALL_DASHBOARD),
-		},
-		{
 			id: 'services',
 			name: 'Go to Services',
 			shortcut: [GlobalShortcutsName.NavigateToServices],
@@ -86,17 +74,6 @@ export function createShortcutActions(deps: ActionDeps): CmdAction[] {
 			roles: ['ADMIN', 'EDITOR', 'VIEWER'],
 			perform: (): void => navigate(ROUTES.ALL_ERROR),
 		},
-		{
-			id: 'messaging-queues',
-			name: 'Go to Messaging Queues',
-			shortcut: [GlobalShortcutsName.NavigateToMessagingQueues],
-			keywords: 'messaging queues mq',
-			section: 'Navigation',
-			icon: <ListMinus size={14} />,
-			roles: ['ADMIN', 'EDITOR', 'VIEWER'],
-			perform: (): void => navigate(ROUTES.MESSAGING_QUEUES_OVERVIEW),
-		},
-
 		// logs
 		{
 			id: 'logs',

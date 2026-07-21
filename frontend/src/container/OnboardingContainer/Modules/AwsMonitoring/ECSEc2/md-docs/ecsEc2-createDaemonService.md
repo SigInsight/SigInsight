@@ -48,10 +48,7 @@ aws ecs list-tasks --cluster ${CLUSTER_NAME} --region ${REGION}
 
 ### Step 4: Verify Data in SigNoz
 
-To verify that the data is being sent to SigNoz Cloud, you can go to the dashboard section of SigNoz and import one of the following dashboards below:
-
-- [instancemetrics.json](https://raw.githubusercontent.com/SigNoz/dashboards/chore/ecs-dashboards/ecs-infra-metrics/instance-metrics.json)
-- [hostmetrics.json](https://raw.githubusercontent.com/SigNoz/dashboards/main/hostmetrics/hostmetrics.json)
+To verify that the data is being sent to SigNoz Cloud, use Metrics Explorer to query the ECS and host metrics, and use Logs Explorer to inspect collected logs.
 
 &nbsp;
 

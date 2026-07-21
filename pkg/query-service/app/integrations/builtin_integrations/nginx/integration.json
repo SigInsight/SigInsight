@@ -23,10 +23,6 @@
       "instructions": "file://config/collect-logs.md"
     }
   ],
-  "assets": {
-    "dashboards": null,
-    "alerts": null
-  },
   "connection_tests": {
     "logs": {
       "attribute_key": "source",

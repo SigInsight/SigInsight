@@ -8,7 +8,7 @@ import { Button, Checkbox, Popover, Typography } from 'antd';
 import type { CheckboxChangeEvent } from 'antd/lib/checkbox';
 import get from 'api/browser/localstorage/get';
 import set from 'api/browser/localstorage/set';
-import { DASHBOARD_TIME_IN_DURATION } from 'constants/app';
+import { AUTO_REFRESH_INTERVAL } from 'constants/app';
 import useUrlQuery from 'hooks/useUrlQuery';
 import { getMinMaxForSelectedTime } from 'lib/getMinMax';
 import _omit from 'lodash-es/omit';
@@ -48,7 +48,7 @@ function AutoRefresh({
 		[globalTime.isAutoRefreshDisabled, disabled, globalTime.selectedTime],
 	);
 
-	const localStorageData = JSON.parse(get(DASHBOARD_TIME_IN_DURATION) || '{}');
+	const localStorageData = JSON.parse(get(AUTO_REFRESH_INTERVAL) || '{}');
 
 	const localStorageValue = useMemo(() => localStorageData[pathname], [
 		pathname,
@@ -121,9 +121,9 @@ function AutoRefresh({
 	const onChangeHandler = useCallback(
 		(selectedValue: string) => {
 			setSelectedOption(selectedValue);
-			params.set(DASHBOARD_TIME_IN_DURATION, selectedValue);
+			params.set(AUTO_REFRESH_INTERVAL, selectedValue);
 			set(
-				DASHBOARD_TIME_IN_DURATION,
+				AUTO_REFRESH_INTERVAL,
 				JSON.stringify({ ...localStorageData, [pathname]: selectedValue }),
 			);
 			setIsAutoRefreshfreshEnabled(true);
@@ -137,14 +137,14 @@ function AutoRefresh({
 			if (!checked) {
 				// remove the path from localstorage
 				set(
-					DASHBOARD_TIME_IN_DURATION,
+					AUTO_REFRESH_INTERVAL,
 					JSON.stringify(_omit(localStorageData, pathname)),
 				);
 			} else {
 				// When enabling auto-refresh, set to DEFAULT_REFRESH_INTERVAL if no previous preference
 				const refreshInterval = localStorageValue || defaultOption?.key;
 				set(
-					DASHBOARD_TIME_IN_DURATION,
+					AUTO_REFRESH_INTERVAL,
 					JSON.stringify({ ...localStorageData, [pathname]: refreshInterval }),
 				);
 				setSelectedOption(refreshInterval);

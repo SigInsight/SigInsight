@@ -40,7 +40,6 @@ function IntegrationDetailContent(
 			children: (
 				<Overview
 					categories={integrationData.categories}
-					assets={integrationData.assets}
 					overviewContent={integrationData.overview}
 				/>
 			),

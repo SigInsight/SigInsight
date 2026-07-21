@@ -11,7 +11,7 @@ import { drawStyles, lineInterpolations } from './constants';
 import { generateColor } from './generateColor';
 import getRenderer from './getRenderer';
 
-const paths = (
+export const paths = (
 	u: any,
 	seriesIdx: number,
 	idx0: number,

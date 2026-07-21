@@ -379,16 +379,5 @@
         }
       ]
     }
-  },
-  "assets": {
-    "dashboards": [
-      {
-        "id": "overview",
-        "title": "DynamoDB Overview",
-        "description": "Overview of DynamoDB",
-        "image": "file://assets/dashboards/overview.png",
-        "definition": "file://assets/dashboards/overview.json"
-      }
-    ]
   }
 }

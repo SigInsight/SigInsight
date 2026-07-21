@@ -531,6 +531,22 @@ describe('TracesExplorer - ', () => {
 		cleanup();
 	});
 
+	it('executes the default list query without a composite query parameter', async () => {
+		let queryRangeRequestCount = 0;
+		server.use(
+			rest.post(`${BASE_URL}/api/v5/query_range`, (_req, res, ctx) => {
+				queryRangeRequestCount += 1;
+				return res(ctx.status(200), ctx.json(queryRangeForListView));
+			}),
+		);
+
+		renderWithTracesExplorerRouter(<TracesExplorer />);
+
+		await waitFor(() => {
+			expect(queryRangeRequestCount).toBeGreaterThan(0);
+		});
+	});
+
 	it.skip('trace explorer - list view', async () => {
 		server.use(
 			rest.post(`${BASE_URL}/api/v5/query_range`, (req, res, ctx) =>
@@ -674,12 +690,9 @@ describe('TracesExplorer - ', () => {
 		]);
 
 		// assert explorer options - action btns
-		[
-			'Save this view',
-			'Create an Alert',
-			'Add to Dashboard',
-			'Select a view',
-		].forEach((val) => expect(getByText(val)).toBeInTheDocument());
+		['Save this view', 'Create an Alert', 'Select a view'].forEach((val) =>
+			expect(getByText(val)).toBeInTheDocument(),
+		);
 
 		const hideExplorerOption = getByTestId('hide-toolbar');
 		expect(hideExplorerOption).toBeInTheDocument();
@@ -742,32 +755,6 @@ describe('TracesExplorer - ', () => {
 		expect(successNotification).toHaveBeenCalledWith({
 			message: 'View Saved Successfully',
 		});
-	});
-
-	it('create a dashboard btn assert', async () => {
-		const { getByText } = renderWithTracesExplorerRouter(<TracesExplorer />, [
-			'/traces-explorer/?panelType=list&selectedExplorerView=list',
-		]);
-		await screen.findByText(FILTER_SERVICE_NAME);
-
-		const createDashboardBtn = getByText('Add to Dashboard');
-		expect(createDashboardBtn).toBeInTheDocument();
-		fireEvent.click(createDashboardBtn);
-
-		expect(await screen.findByText('Export Panel')).toBeInTheDocument();
-		const createDashboardModal = document.querySelector(
-			'.ant-modal-content',
-		) as HTMLElement;
-		expect(createDashboardModal).toBeInTheDocument();
-
-		// assert modal content
-		expect(
-			within(createDashboardModal).getByText('Select Dashboard'),
-		).toBeInTheDocument();
-
-		expect(
-			within(createDashboardModal).getByText('New Dashboard'),
-		).toBeInTheDocument();
 	});
 
 	it('create an alert btn assert', async () => {

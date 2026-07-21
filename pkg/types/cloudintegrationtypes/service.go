@@ -1,12 +1,8 @@
 package cloudintegrationtypes
 
 import (
-	"fmt"
-	"time"
-
 	"github.com/SigNoz/signoz/pkg/errors"
 	"github.com/SigNoz/signoz/pkg/types"
-	"github.com/SigNoz/signoz/pkg/types/dashboardtypes"
 	"github.com/SigNoz/signoz/pkg/valuer"
 )
 
@@ -59,7 +55,6 @@ type UpdatableService struct {
 type ServiceDefinition struct {
 	ServiceDefinitionMetadata
 	Overview         string              `json:"overview" required:"true"` // markdown
-	Assets           Assets              `json:"assets" required:"true"`
 	SupportedSignals SupportedSignals    `json:"supported_signals" required:"true"`
 	DataCollected    DataCollected       `json:"dataCollected" required:"true"`
 	Strategy         *CollectionStrategy `json:"telemetryCollectionStrategy" required:"true" nullable:"false"`
@@ -97,11 +92,6 @@ type AWSServiceLogsConfig struct {
 
 type AWSServiceMetricsConfig struct {
 	Enabled bool `json:"enabled"`
-}
-
-// Assets represents the collection of dashboards.
-type Assets struct {
-	Dashboards []Dashboard `json:"dashboards"`
 }
 
 // CollectedLogAttribute represents a log attribute that is present in all log entries for a service,
@@ -158,53 +148,4 @@ type AWSLogsStrategy struct {
 		// "" implies no filtering is required.
 		FilterPattern string `json:"filter_pattern"`
 	} `json:"cloudwatch_logs_subscriptions"`
-}
-
-// Dashboard represents a dashboard definition for cloud integration.
-// This is used to show available pre-made dashboards for a service,
-// hence has additional fields like id, title and description
-type Dashboard struct {
-	ID          string                               `json:"id"`
-	Title       string                               `json:"title"`
-	Description string                               `json:"description"`
-	Definition  dashboardtypes.StorableDashboardData `json:"definition,omitempty"`
-}
-
-// UTILS
-
-// GetCloudIntegrationDashboardID returns the dashboard id for a cloud integration, given the cloud provider, service id, and dashboard id.
-// This is used to generate unique dashboard ids for cloud integration, and also to parse the dashboard id to get the cloud provider and service id when needed.
-func GetCloudIntegrationDashboardID(cloudProvider CloudProviderType, svcID, dashboardID string) string {
-	return fmt.Sprintf("cloud-integration--%s--%s--%s", cloudProvider, svcID, dashboardID)
-}
-
-// GetDashboardsFromAssets returns the list of dashboards for the cloud provider service from definition.
-func GetDashboardsFromAssets(
-	svcID string,
-	orgID valuer.UUID,
-	cloudProvider CloudProviderType,
-	createdAt time.Time,
-	assets Assets,
-) []*dashboardtypes.Dashboard {
-	dashboards := make([]*dashboardtypes.Dashboard, 0)
-
-	for _, d := range assets.Dashboards {
-		author := fmt.Sprintf("%s-integration", cloudProvider)
-		dashboards = append(dashboards, &dashboardtypes.Dashboard{
-			ID:     GetCloudIntegrationDashboardID(cloudProvider, svcID, d.ID),
-			Locked: true,
-			OrgID:  orgID,
-			Data:   d.Definition,
-			TimeAuditable: types.TimeAuditable{
-				CreatedAt: createdAt,
-				UpdatedAt: createdAt,
-			},
-			UserAuditable: types.UserAuditable{
-				CreatedBy: author,
-				UpdatedBy: author,
-			},
-		})
-	}
-
-	return dashboards
 }

@@ -102,7 +102,7 @@ Step 5. Run the application
 OTEL_EXPORTER_OTLP_HEADERS="signoz-ingestion-key={{SIGNOZ_INGESTION_KEY}}" nest start
 ```
 
-You can now run your Nestjs application. The data captured with OpenTelemetry from your application should start showing on the SigNoz dashboard.
+You can now run your Nestjs application. The data captured with OpenTelemetry from your application should start appearing in SigNoz Traces Explorer.
 
 ---
 

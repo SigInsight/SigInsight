@@ -1,10 +1,5 @@
 import { TableProps } from 'antd';
 import {
-	DashboardShortcuts,
-	DashboardShortcutsDescription,
-	DashboardShortcutsName,
-} from 'constants/shortcuts/DashboardShortcuts';
-import {
 	GlobalShortcuts,
 	GlobalShortcutsDescription,
 	GlobalShortcutsName,
@@ -24,14 +19,12 @@ export const ALL_SHORTCUTS: Record<string, Record<string, string>> = {
 	'Global Shortcuts': GlobalShortcuts,
 	'Logs Explorer Shortcuts': LogsExplorerShortcuts,
 	'Query Builder Shortcuts': QBShortcuts,
-	'Dashboard Shortcuts': DashboardShortcuts,
 };
 
 export const ALL_SHORTCUTS_LABEL: Record<string, Record<string, string>> = {
 	'Global Shortcuts': GlobalShortcutsName,
 	'Logs Explorer Shortcuts': LogsExplorerShortcutsName,
 	'Query Builder Shortcuts': QBShortcutsName,
-	'Dashboard Shortcuts': DashboardShortcutsName,
 };
 
 export const ALL_SHORTCUTS_DESCRIPTION: Record<
@@ -41,7 +34,6 @@ export const ALL_SHORTCUTS_DESCRIPTION: Record<
 	'Global Shortcuts': GlobalShortcutsDescription,
 	'Logs Explorer Shortcuts': LogsExplorerShortcutsDescription,
 	'Query Builder Shortcuts': QBShortcutsDescription,
-	'Dashboard Shortcuts': DashboardShortcutsDescription,
 };
 
 export const shortcutColumns = [

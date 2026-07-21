@@ -393,5 +393,3 @@ export const moduleRouteMap = {
 	[ModulesMap.AwsMonitoring]: ROUTES.GET_STARTED_AWS_MONITORING,
 	[ModulesMap.AzureMonitoring]: ROUTES.GET_STARTED_AZURE_MONITORING,
 };
-
-export const messagingQueueKakfaSupportedDataSources = ['java'];

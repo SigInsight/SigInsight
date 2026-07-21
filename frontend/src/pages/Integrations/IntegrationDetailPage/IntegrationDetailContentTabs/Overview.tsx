@@ -5,21 +5,11 @@ import './IntegrationDetailContentTabs.styles.scss';
 
 interface OverviewProps {
 	categories: string[];
-	assets: {
-		dashboards: Array<any>;
-		alerts: Array<any>;
-	};
 	overviewContent: string;
 }
 
 function Overview(props: OverviewProps): JSX.Element {
-	const { categories, assets, overviewContent } = props;
-	const assetsCount = [
-		assets?.dashboards?.length || 0,
-		assets?.alerts?.length || 0,
-	];
-
-	const assetLabelMap = ['Dashboards', 'Alerts'];
+	const { categories, overviewContent } = props;
 
 	return (
 		<div className="integration-detail-overview">
@@ -33,21 +23,6 @@ function Overview(props: OverviewProps): JSX.Element {
 							</div>
 						))}
 					</div>
-				</div>
-				<div className="integration-detail-overview-assets">
-					<Typography.Text className="heading">Assets</Typography.Text>
-					<ul className="assets-list">
-						{assetsCount.map((count, index) => {
-							if (count === 0) {
-								return undefined;
-							}
-							return (
-								<li key={assetLabelMap[index]}>
-									{count} {assetLabelMap[index]}
-								</li>
-							);
-						})}
-					</ul>
 				</div>
 			</div>
 			<div className="integration-detail-overview-right-container">

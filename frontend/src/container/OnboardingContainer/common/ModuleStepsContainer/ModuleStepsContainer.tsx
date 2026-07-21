@@ -317,13 +317,6 @@ export default function ModuleStepsContainer({
 							module: activeStep?.module?.id,
 						});
 						break;
-					case stepsMap.monitorDashboard:
-						logEvent('Onboarding V2: EKS monitor dashboard', {
-							dataSource: selectedDataSource?.id,
-							environment: selectedEnvironment,
-							module: activeStep?.module?.id,
-						});
-						break;
 					default:
 						break;
 				}

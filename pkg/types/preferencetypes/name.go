@@ -13,7 +13,6 @@ var (
 	NameWelcomeChecklistSendLogsSkipped         = Name{valuer.NewString("welcome_checklist_send_logs_skipped")}
 	NameWelcomeChecklistSendTracesSkipped       = Name{valuer.NewString("welcome_checklist_send_traces_skipped")}
 	NameWelcomeChecklistSendInfraMetricsSkipped = Name{valuer.NewString("welcome_checklist_send_infra_metrics_skipped")}
-	NameWelcomeChecklistSetupDashboardsSkipped  = Name{valuer.NewString("welcome_checklist_setup_dashboards_skipped")}
 	NameWelcomeChecklistSetupAlertsSkipped      = Name{valuer.NewString("welcome_checklist_setup_alerts_skipped")}
 	NameWelcomeChecklistSetupSavedViewSkipped   = Name{valuer.NewString("welcome_checklist_setup_saved_view_skipped")}
 	NameSidenavPinned                           = Name{valuer.NewString("sidenav_pinned")}
@@ -33,7 +32,6 @@ func NewName(name string) (Name, error) {
 			NameWelcomeChecklistSendLogsSkipped.StringValue(),
 			NameWelcomeChecklistSendTracesSkipped.StringValue(),
 			NameWelcomeChecklistSendInfraMetricsSkipped.StringValue(),
-			NameWelcomeChecklistSetupDashboardsSkipped.StringValue(),
 			NameWelcomeChecklistSetupAlertsSkipped.StringValue(),
 			NameWelcomeChecklistSetupSavedViewSkipped.StringValue(),
 			NameSidenavPinned.StringValue(),

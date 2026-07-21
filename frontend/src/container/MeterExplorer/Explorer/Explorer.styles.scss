@@ -157,11 +157,11 @@
 	}
 }
 
-.dashboards-and-alerts-popover-container {
+.alerts-popover-container {
 	display: flex;
 	gap: 16px;
 
-	.dashboards-and-alerts-popover {
+	.alerts-popover {
 		border-radius: 20px;
 		padding: 4px 8px;
 		cursor: pointer;
@@ -172,13 +172,6 @@
 
 		&:hover {
 			opacity: 0.8;
-		}
-	}
-
-	.dashboards-popover {
-		border: 1px solid var(--bg-sienna-500);
-		.ant-typography {
-			color: var(--bg-sienna-500);
 		}
 	}
 

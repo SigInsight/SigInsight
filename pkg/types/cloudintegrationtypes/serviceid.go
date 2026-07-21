@@ -16,7 +16,6 @@ var (
 	AWSServiceEKS         = ServiceID{valuer.NewString("eks")}
 	AWSServiceElastiCache = ServiceID{valuer.NewString("elasticache")}
 	AWSServiceLambda      = ServiceID{valuer.NewString("lambda")}
-	AWSServiceMSK         = ServiceID{valuer.NewString("msk")}
 	AWSServiceRDS         = ServiceID{valuer.NewString("rds")}
 	AWSServiceS3Sync      = ServiceID{valuer.NewString("s3sync")}
 	AWSServiceSNS         = ServiceID{valuer.NewString("sns")}
@@ -33,7 +32,6 @@ func (ServiceID) Enum() []any {
 		AWSServiceEKS,
 		AWSServiceElastiCache,
 		AWSServiceLambda,
-		AWSServiceMSK,
 		AWSServiceRDS,
 		AWSServiceS3Sync,
 		AWSServiceSNS,
@@ -52,7 +50,6 @@ var SupportedServices = map[CloudProviderType][]ServiceID{
 		AWSServiceEKS,
 		AWSServiceElastiCache,
 		AWSServiceLambda,
-		AWSServiceMSK,
 		AWSServiceRDS,
 		AWSServiceS3Sync,
 		AWSServiceSNS,

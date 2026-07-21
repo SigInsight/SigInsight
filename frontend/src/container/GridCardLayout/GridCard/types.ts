@@ -65,6 +65,7 @@ export interface GridCardGraphProps {
 	start?: number;
 	end?: number;
 	analyticsEvent?: string;
+	fetchWhenHidden?: boolean;
 	customTimeRange?: {
 		startTime: number;
 		endTime: number;

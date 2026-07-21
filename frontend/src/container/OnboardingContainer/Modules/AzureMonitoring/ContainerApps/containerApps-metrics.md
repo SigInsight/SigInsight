@@ -9,19 +9,17 @@ Follow these steps if you want to monitor System metrics like CPU Percentage, Me
 
 &nbsp;
 
-# Dashboard Example
+# Query Metrics
 
 Once you have completed the prerequisites, you can start monitoring your Azure Container App's system metrics with SigNoz. Here's how you can do it:
 
 1. Log in to your SigNoz account.
-2. Navigate to the Dashboards, and [add an dashboard](https://signoz.io/docs/userguide/manage-dashboards/)
-3. Add a Timeseries Panel
-4. In **Metrics**, select `azure_replicas_count`  and **Avg By** select tag `name`
-5. In Filter say `type = Microsoft.App/containerApps`
-6. Hit “Save Changes”. You now have Memory Usage of your Container App in a Dashboard for reporting and alerting 
+2. Open Metrics Explorer.
+3. Select `azure_replicas_count` and use **Avg By** with the `name` tag.
+4. Filter with `type = Microsoft.App/containerApps`.
 
-In this way, you can monitor system metrics of your Azure Container App in SigNoz!
+This query lets you monitor system metrics of your Azure Container App in SigNoz.
 
 &nbsp;
 
-If you encounter any difficulties, please refer to this [troubleshooting section](https://signoz.io/docs/azure-monitoring/az-container-apps/metrics/#troubleshooting) 
+If you encounter any difficulties, please refer to this [troubleshooting section](https://signoz.io/docs/azure-monitoring/az-container-apps/metrics/#troubleshooting)

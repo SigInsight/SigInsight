@@ -9,11 +9,7 @@ import (
 	"github.com/SigNoz/signoz/pkg/query-service/model"
 	"github.com/SigNoz/signoz/pkg/query-service/utils"
 	"github.com/SigNoz/signoz/pkg/sqlstore"
-	"github.com/SigNoz/signoz/pkg/types"
-	"github.com/SigNoz/signoz/pkg/types/dashboardtypes"
 	"github.com/SigNoz/signoz/pkg/types/integrationtypes"
-	ruletypes "github.com/SigNoz/signoz/pkg/types/ruletypes"
-	"github.com/SigNoz/signoz/pkg/valuer"
 )
 
 type IntegrationAuthor struct {
@@ -29,12 +25,6 @@ type IntegrationSummary struct {
 	Author IntegrationAuthor `json:"author"`
 
 	Icon string `json:"icon"`
-}
-
-type IntegrationAssets struct {
-	Dashboards []dashboardtypes.StorableDashboardData `json:"dashboards"`
-
-	Alerts []ruletypes.PostableRule `json:"alerts"`
 }
 
 type IntegrationConfigStep struct {
@@ -90,7 +80,6 @@ type IntegrationDetails struct {
 	Overview      string                      `json:"overview"` // markdown
 	Configuration []IntegrationConfigStep     `json:"configuration"`
 	DataCollected DataCollectedForIntegration `json:"data_collected"`
-	Assets        IntegrationAssets           `json:"assets"`
 
 	ConnectionTests *IntegrationConnectionTests `json:"connection_tests"`
 }
@@ -246,114 +235,6 @@ func (m *Manager) UninstallIntegration(
 	integrationId string,
 ) *model.ApiError {
 	return m.installedIntegrationsRepo.delete(ctx, orgId, integrationId)
-}
-
-func (m *Manager) dashboardUuid(integrationId string, dashboardId string) string {
-	return strings.Join([]string{"integration", integrationId, dashboardId}, "--")
-}
-
-func (m *Manager) parseDashboardUuid(dashboardUuid string) (
-	integrationId string, dashboardId string, apiErr *model.ApiError,
-) {
-	parts := strings.SplitN(dashboardUuid, "--", 3)
-	if len(parts) != 3 || parts[0] != "integration" {
-		return "", "", model.BadRequest(fmt.Errorf(
-			"invalid installed integration dashboard id",
-		))
-	}
-
-	return parts[1], parts[2], nil
-}
-
-func (m *Manager) IsInstalledIntegrationDashboardUuid(dashboardUuid string) bool {
-	_, _, apiErr := m.parseDashboardUuid(dashboardUuid)
-	return apiErr == nil
-}
-
-func (m *Manager) GetInstalledIntegrationDashboardById(
-	ctx context.Context,
-	orgId valuer.UUID,
-	dashboardUuid string,
-) (*dashboardtypes.Dashboard, *model.ApiError) {
-	integrationId, dashboardId, apiErr := m.parseDashboardUuid(dashboardUuid)
-	if apiErr != nil {
-		return nil, apiErr
-	}
-
-	integration, apiErr := m.GetIntegration(ctx, orgId.StringValue(), integrationId)
-	if apiErr != nil {
-		return nil, apiErr
-	}
-
-	if integration.Installation == nil {
-		return nil, model.BadRequest(fmt.Errorf(
-			"integration with id %s is not installed", integrationId,
-		))
-	}
-
-	for _, dd := range integration.IntegrationDetails.Assets.Dashboards {
-		if dId, exists := dd["id"]; exists {
-			if id, ok := dId.(string); ok && id == dashboardId {
-				author := "integration"
-				return &dashboardtypes.Dashboard{
-					ID:     m.dashboardUuid(integrationId, string(dashboardId)),
-					Locked: true,
-					Data:   dd,
-					TimeAuditable: types.TimeAuditable{
-						CreatedAt: integration.Installation.InstalledAt,
-						UpdatedAt: integration.Installation.InstalledAt,
-					},
-					UserAuditable: types.UserAuditable{
-						CreatedBy: author,
-						UpdatedBy: author,
-					},
-					OrgID: orgId,
-				}, nil
-			}
-		}
-	}
-
-	return nil, model.NotFoundError(fmt.Errorf(
-		"integration dashboard with id %s not found", dashboardUuid,
-	))
-}
-
-func (m *Manager) GetDashboardsForInstalledIntegrations(
-	ctx context.Context,
-	orgId valuer.UUID,
-) ([]*dashboardtypes.Dashboard, *model.ApiError) {
-	installedIntegrations, apiErr := m.getInstalledIntegrations(ctx, orgId.StringValue())
-	if apiErr != nil {
-		return nil, apiErr
-	}
-
-	result := []*dashboardtypes.Dashboard{}
-
-	for _, ii := range installedIntegrations {
-		for _, dd := range ii.Assets.Dashboards {
-			if dId, exists := dd["id"]; exists {
-				if dashboardId, ok := dId.(string); ok {
-					author := "integration"
-					result = append(result, &dashboardtypes.Dashboard{
-						ID:     m.dashboardUuid(ii.IntegrationSummary.Id, dashboardId),
-						Locked: true,
-						Data:   dd,
-						TimeAuditable: types.TimeAuditable{
-							CreatedAt: ii.Installation.InstalledAt,
-							UpdatedAt: ii.Installation.InstalledAt,
-						},
-						UserAuditable: types.UserAuditable{
-							CreatedBy: author,
-							UpdatedBy: author,
-						},
-						OrgID: orgId,
-					})
-				}
-			}
-		}
-	}
-
-	return result, nil
 }
 
 // Helpers.

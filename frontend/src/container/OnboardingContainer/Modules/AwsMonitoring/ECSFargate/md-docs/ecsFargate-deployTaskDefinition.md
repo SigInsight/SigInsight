@@ -7,4 +7,4 @@ If your application runs as an ECS service, you update the service to use the ne
 
 ## Verify data in SigNoz
 
-To verify that your sidecar container is running, go to the Dashboard section of SigNoz Cloud and import the dashboard **ECS - Container Metrics** Dashboard from [here](https://raw.githubusercontent.com/SigNoz/dashboards/main/ecs-infra-metrics/container-metrics.json).
+To verify that your sidecar container is running, use Metrics Explorer to query the ECS container metrics and Logs Explorer to inspect the sidecar logs.

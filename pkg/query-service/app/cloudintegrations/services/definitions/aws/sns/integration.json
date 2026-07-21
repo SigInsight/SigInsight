@@ -115,16 +115,5 @@
         }
       ]
     }
-  },
-  "assets": {
-    "dashboards": [
-      {
-        "id": "overview",
-        "title": "SNS Overview",
-        "description": "Overview of SNS",
-        "image": "file://assets/dashboards/overview.png",
-        "definition": "file://assets/dashboards/overview.json"
-      }
-    ]
   }
 }

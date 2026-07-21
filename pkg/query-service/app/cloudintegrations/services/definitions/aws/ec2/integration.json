@@ -503,16 +503,5 @@
         }
       ]
     }
-  },
-  "assets": {
-    "dashboards": [
-      {
-        "id": "overview",
-        "title": "EC2 Overview",
-        "description": "Overview of EC2",
-        "image": "file://assets/dashboards/overview.png",
-        "definition": "file://assets/dashboards/overview.json"
-      }
-    ]
   }
 }

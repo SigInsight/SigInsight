@@ -66,7 +66,7 @@ function TableView({
 		ENTITY_VERSION_V5,
 		{
 			queryKey,
-			enabled: !!stagedQuery && panelType === PANEL_TYPES.TABLE,
+			enabled: panelType === PANEL_TYPES.TABLE,
 		},
 	);
 

@@ -22,8 +22,6 @@ import {
 	Key,
 	Keyboard,
 	Layers2,
-	LayoutGrid,
-	ListMinus,
 	LogOut,
 	MessageSquareText,
 	Plus,
@@ -126,22 +124,9 @@ const menuItems: SidebarItem[] = [
 		itemKey: 'infrastructure',
 	},
 	{
-		key: ROUTES.ALL_DASHBOARD,
-		label: 'Dashboards',
-		icon: <LayoutGrid size={16} />,
-		itemKey: 'dashboards',
-	},
-	{
-		key: ROUTES.MESSAGING_QUEUES_OVERVIEW,
-		label: 'Messaging Queues',
-		icon: <ListMinus size={16} />,
-		itemKey: 'messaging-queues',
-	},
-	{
 		key: ROUTES.API_MONITORING,
 		label: 'External APIs',
 		icon: <Binoculars size={16} />,
-		isNew: true,
 		itemKey: 'external-apis',
 	},
 	{
@@ -189,12 +174,6 @@ export const primaryMenuItems: SidebarItem[] = [
 		label: 'Alerts',
 		icon: <BellDot size={16} />,
 		itemKey: 'alerts',
-	},
-	{
-		key: ROUTES.ALL_DASHBOARD,
-		label: 'Dashboards',
-		icon: <LayoutGrid size={16} />,
-		itemKey: 'dashboards',
 	},
 ];
 
@@ -257,7 +236,6 @@ export const defaultMoreMenuItems: SidebarItem[] = [
 		key: ROUTES.API_MONITORING,
 		label: 'External APIs',
 		icon: <Binoculars size={16} />,
-		isNew: true,
 		isEnabled: true,
 		itemKey: 'external-apis',
 	},
@@ -269,13 +247,6 @@ export const defaultMoreMenuItems: SidebarItem[] = [
 		isEnabled: true,
 		isBeta: false,
 		itemKey: 'meter-explorer',
-	},
-	{
-		key: ROUTES.MESSAGING_QUEUES_OVERVIEW,
-		label: 'Messaging Queues',
-		icon: <ListMinus size={16} />,
-		isEnabled: true,
-		itemKey: 'messaging-queues',
 	},
 	{
 		key: ROUTES.SERVICE_MAP,
@@ -500,7 +471,6 @@ export const NEW_ROUTES_MENU_ITEM_KEY_MAP: Record<string, string> = {
 	[ROUTES.INFRASTRUCTURE_MONITORING_BASE]:
 		ROUTES.INFRASTRUCTURE_MONITORING_HOSTS,
 	[ROUTES.API_MONITORING_BASE]: ROUTES.API_MONITORING,
-	[ROUTES.MESSAGING_QUEUES_BASE]: ROUTES.MESSAGING_QUEUES_OVERVIEW,
 };
 
 export default menuItems;

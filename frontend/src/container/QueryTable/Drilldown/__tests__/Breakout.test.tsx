@@ -4,7 +4,6 @@ import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router-dom';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { Button } from 'antd';
-import ROUTES from 'constants/routes';
 import { server } from 'mocks-server/server';
 import { rest } from 'msw';
 import ContextMenu, { useCoordinates } from 'periscope/components/ContextMenu';
@@ -49,7 +48,7 @@ jest.mock('container/GridCardLayout/useResolveQuery', () => ({
 jest.mock('react-router-dom', () => ({
 	...jest.requireActual('react-router-dom'),
 	useLocation: (): { pathname: string } => ({
-		pathname: `${process.env.FRONTEND_API_ENDPOINT}/${ROUTES.DASHBOARD}/`,
+		pathname: `${process.env.FRONTEND_API_ENDPOINT}/metrics-explorer`,
 	}),
 }));
 

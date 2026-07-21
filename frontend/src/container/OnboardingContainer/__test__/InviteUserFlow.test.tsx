@@ -38,7 +38,7 @@ describe('Onboarding invite team member flow', () => {
 			{
 				title: 'Logs Management',
 				description:
-					'Easily filter and query logs, build dashboards and alerts based on attributes in logs',
+					'Easily filter and query logs, and build alerts based on attributes in logs',
 			},
 			{
 				title: 'Infrastructure Monitoring',

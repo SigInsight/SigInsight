@@ -10,7 +10,7 @@ export const DEFAULT_AUTH0_APP_REDIRECTION_PATH = ROUTES.APPLICATION;
 
 export const INVITE_MEMBERS_HASH = '#invite-team-members';
 
-export const DASHBOARD_TIME_IN_DURATION = 'refreshInterval';
+export const AUTO_REFRESH_INTERVAL = 'refreshInterval';
 
 export const DEFAULT_ENTITY_VERSION = 'v3';
 export const ENTITY_VERSION_V4 = 'v4';

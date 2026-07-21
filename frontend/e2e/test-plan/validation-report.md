@@ -82,23 +82,6 @@ This report documents the validation of the E2E test plan against the current li
 
 ---
 
-## Messaging Queues Module
-
-- **Coverage:**
-  - Overview tab: queue metrics, filters (Service Name, Span Name, Msg System, Destination, Kind)
-  - Search across all columns
-  - Pagination of queue data
-  - Sync and Share buttons
-  - Tabs for Kafka and Celery
-- **Gaps/Updates:**
-  - Add scenario for Kafka tab (detailed metrics, actions)
-  - Add scenario for Celery tab (detailed metrics, actions)
-  - Add scenario for filter combinations and edge cases
-  - Add scenario for sharing queue data
-  - Add scenario for time range selection
-
----
-
 ## External APIs Module
 
 - **Coverage:**

@@ -126,9 +126,7 @@ Once we are done with the above configurations, we can now run the collector ser
 
 &nbsp;
 
-### Hostmetrics Dashboard
+### Verify Collected Data
 
-Once the collector is running, you can access the SigNoz dashboard to view the logs and metrics from your Azure VM.
-
-Please refer to the [Hostmetrics Dashboard](https://signoz.io/docs/userguide/hostmetrics/) for information on how to import and use the dashboard.
+Once the collector is running, use Metrics Explorer to query host metrics and Logs Explorer to view logs from your Azure VM.
 

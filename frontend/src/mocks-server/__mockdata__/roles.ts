@@ -45,15 +45,6 @@ export const customRoles: AuthtypesRoleDTO[] = [
 		type: 'custom',
 		orgId,
 	},
-	{
-		id: '019c24aa-3333-0002-bbbb-222222222222',
-		createdAt: new Date('2026-02-11T09:00:00.000Z'),
-		updatedAt: new Date('2026-02-13T11:45:00.000Z'),
-		name: 'dashboard-creator',
-		description: 'Custom role allowing users to create and manage dashboards.',
-		type: 'custom',
-		orgId,
-	},
 ];
 
 export const allRoles: AuthtypesRoleDTO[] = [...managedRoles, ...customRoles];

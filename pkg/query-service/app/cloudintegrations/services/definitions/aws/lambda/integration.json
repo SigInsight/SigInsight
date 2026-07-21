@@ -284,16 +284,5 @@
         }
       ]
     }
-  },
-  "assets": {
-    "dashboards": [
-      {
-        "id": "overview",
-        "title": "AWS Lambda Overview",
-        "description": "Overview of AWS Lambda",
-        "image": "file://assets/dashboards/overview.png",
-        "definition": "file://assets/dashboards/overview.json"
-      }
-    ]
   }
 }

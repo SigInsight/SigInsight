@@ -75,14 +75,6 @@ type Alert struct {
 	AlertID   string `json:"alert_id"`
 }
 
-// Dashboard represents individual dashboards associated with the metric.
-type Dashboard struct {
-	DashboardName string `json:"dashboard_name"`
-	DashboardID   string `json:"dashboard_id"`
-	WidgetID      string `json:"widget_id"`
-	WidgetName    string `json:"widget_name"`
-}
-
 type MetricDetailsDTO struct {
 	Name             string      `json:"name"`
 	Description      string      `json:"description"`
@@ -95,7 +87,6 @@ type MetricDetailsDTO struct {
 	Attributes       []Attribute `json:"attributes"`
 	Metadata         Metadata    `json:"metadata"`
 	Alerts           []Alert     `json:"alerts"`
-	Dashboards       []Dashboard `json:"dashboards"`
 }
 
 type FilterKeyRequest struct {
@@ -146,10 +137,9 @@ type RelatedMetricsResponse struct {
 }
 
 type RelatedMetrics struct {
-	Name       string           `json:"name"`
-	Query      *v3.BuilderQuery `json:"query"`
-	Dashboards []Dashboard      `json:"dashboards"`
-	Alerts     []Alert          `json:"alerts"`
+	Name   string           `json:"name"`
+	Query  *v3.BuilderQuery `json:"query"`
+	Alerts []Alert          `json:"alerts"`
 }
 
 type InspectMetricsRequest struct {

@@ -51,14 +51,10 @@ jest.mock(
 		},
 );
 jest.mock(
-	'container/MetricsExplorer/MetricDetails/DashboardsAndAlertsPopover',
+	'container/MetricsExplorer/MetricDetails/AlertsPopover',
 	() =>
-		function MockDashboardsAndAlertsPopover(): JSX.Element {
-			return (
-				<div data-testid="dashboards-and-alerts-popover">
-					Dashboards and Alerts Popover
-				</div>
-			);
+		function MockAlertsPopover(): JSX.Element {
+			return <div data-testid="alerts-popover">Alerts Popover</div>;
 		},
 );
 jest.mock(
@@ -100,9 +96,7 @@ describe('MetricDetails', () => {
 
 		expect(screen.getByText(mockMetricName)).toBeInTheDocument();
 		expect(screen.getByTestId('all-attributes')).toBeInTheDocument();
-		expect(
-			screen.getByTestId('dashboards-and-alerts-popover'),
-		).toBeInTheDocument();
+		expect(screen.getByTestId('alerts-popover')).toBeInTheDocument();
 		expect(screen.getByTestId('highlights')).toBeInTheDocument();
 		expect(screen.getByTestId('metadata')).toBeInTheDocument();
 	});

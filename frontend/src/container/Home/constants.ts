@@ -8,7 +8,6 @@ export const checkListStepToPreferenceKeyMap = {
 	SEND_LOGS: ORG_PREFERENCES.WELCOME_CHECKLIST_SEND_LOGS_SKIPPED,
 	SEND_TRACES: ORG_PREFERENCES.WELCOME_CHECKLIST_SEND_TRACES_SKIPPED,
 	SEND_METRICS: ORG_PREFERENCES.WELCOME_CHECKLIST_SEND_METRICS_SKIPPED,
-	SETUP_DASHBOARDS: ORG_PREFERENCES.WELCOME_CHECKLIST_SETUP_DASHBOARDS_SKIPPED,
 	SETUP_ALERTS: ORG_PREFERENCES.WELCOME_CHECKLIST_SETUP_ALERTS_SKIPPED,
 	SETUP_SAVED_VIEWS: ORG_PREFERENCES.WELCOME_CHECKLIST_SETUP_SAVED_VIEW_SKIPPED,
 	SETUP_WORKSPACE: ORG_PREFERENCES.WELCOME_CHECKLIST_SETUP_WORKSPACE_SKIPPED,
@@ -23,7 +22,6 @@ export const DOCS_LINKS = {
 	SETUP_ALERTS: 'https://signoz.io/docs/userguide/alerts-management/',
 	SETUP_SAVED_VIEWS:
 		'https://signoz.io/docs/product-features/saved-view/#step-2-save-your-view',
-	SETUP_DASHBOARDS: 'https://signoz.io/docs/userguide/manage-dashboards/',
 };
 
 export const defaultChecklistItemsState: ChecklistItem[] = [
@@ -106,17 +104,5 @@ export const defaultChecklistItemsState: ChecklistItem[] = [
 		skippedPreferenceKey: checkListStepToPreferenceKeyMap.SETUP_SAVED_VIEWS,
 		toRoute: ROUTES.LOGS_EXPLORER,
 		docsLink: DOCS_LINKS.SETUP_SAVED_VIEWS,
-	},
-	{
-		id: 'SETUP_DASHBOARDS',
-		title: 'Setup Dashboards',
-		description:
-			'Create dashboards to visualize your data and share it with your team.',
-		completed: false,
-		isSkipped: false,
-		isSkippable: true,
-		skippedPreferenceKey: checkListStepToPreferenceKeyMap.SETUP_DASHBOARDS,
-		toRoute: ROUTES.ALL_DASHBOARD,
-		docsLink: DOCS_LINKS.SETUP_DASHBOARDS,
 	},
 ];

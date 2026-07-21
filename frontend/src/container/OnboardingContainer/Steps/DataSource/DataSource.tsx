@@ -5,21 +5,15 @@ import { LoadingOutlined } from '@ant-design/icons';
 import { Button, Card, Form, Input, Select, Space, Typography } from 'antd';
 import logEvent from 'api/common/logEvent';
 import cx from 'classnames';
-import { QueryParams } from 'constants/query';
 import ROUTES from 'constants/routes';
 import { useOnboardingContext } from 'container/OnboardingContainer/context/OnboardingContext';
-import {
-	ModulesMap,
-	useCases,
-} from 'container/OnboardingContainer/OnboardingContainer';
+import { useCases } from 'container/OnboardingContainer/OnboardingContainer';
 import {
 	getDataSources,
 	getSupportedFrameworks,
 	hasFrameworks,
-	messagingQueueKakfaSupportedDataSources,
 } from 'container/OnboardingContainer/utils/dataSourceUtils';
 import { useNotifications } from 'hooks/useNotifications';
-import useUrlQuery from 'hooks/useUrlQuery';
 import { Blocks, Check } from 'lucide-react';
 import { popupContainer } from 'utils/selectPopupContainer';
 
@@ -37,8 +31,6 @@ export default function DataSource(): JSX.Element {
 	const { t } = useTranslation(['common']);
 	const history = useHistory();
 
-	const getStartedSource = useUrlQuery().get(QueryParams.getStartedSource);
-
 	const {
 		serviceName,
 		selectedModule,
@@ -49,9 +41,6 @@ export default function DataSource(): JSX.Element {
 		updateServiceName,
 		updateSelectedFramework,
 	} = useOnboardingContext();
-
-	const isKafkaAPM =
-		getStartedSource === 'kafka' && selectedModule?.id === ModulesMap.APM;
 
 	const [supportedDataSources, setSupportedDataSources] = useState<
 		DataSourceType[]
@@ -159,19 +148,13 @@ export default function DataSource(): JSX.Element {
 						className={cx(
 							'supported-language',
 							selectedDataSource?.name === dataSource.name ? 'selected' : '',
-							isKafkaAPM &&
-								!messagingQueueKakfaSupportedDataSources.includes(dataSource?.id || '')
-								? 'disabled'
-								: '',
 						)}
 						key={dataSource.name}
 						onClick={(): void => {
-							if (!isKafkaAPM) {
-								updateSelectedFramework(null);
-								updateSelectedEnvironment(null);
-								updateSelectedDataSource(dataSource);
-								form.setFieldsValue({ selectFramework: null });
-							}
+							updateSelectedFramework(null);
+							updateSelectedEnvironment(null);
+							updateSelectedDataSource(dataSource);
+							form.setFieldsValue({ selectFramework: null });
 						}}
 					>
 						<div>

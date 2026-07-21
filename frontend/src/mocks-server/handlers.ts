@@ -3,10 +3,6 @@ import { rest } from 'msw';
 import commonEnTranslation from '../../public/locales/en/common.json';
 import enTranslation from '../../public/locales/en/translation.json';
 import { allAlertChannels } from './__mockdata__/alerts';
-import {
-	dashboardSuccessResponse,
-	getDashboardById,
-} from './__mockdata__/dashboards';
 import { explorerView } from './__mockdata__/explorer_views';
 import { membersResponse } from './__mockdata__/members';
 import { queryRangeSuccessResponse } from './__mockdata__/query_range';
@@ -155,14 +151,6 @@ export const handlers = [
 			}),
 		);
 	}),
-
-	rest.get('http://localhost/api/v1/dashboards', (_, res, ctx) =>
-		res(ctx.status(200), ctx.json(dashboardSuccessResponse)),
-	),
-
-	rest.get('http://localhost/api/v1/dashboards/4', (_, res, ctx) =>
-		res(ctx.status(200), ctx.json(getDashboardById)),
-	),
 
 	rest.post('http://localhost/api/v1/invite', (_, res, ctx) =>
 		res(

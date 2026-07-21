@@ -12,8 +12,8 @@ import { VariableResponseProps } from 'types/api/dashboard/variables/query';
 import { GlobalReducer } from 'types/reducer/globalTime';
 
 import {
-	DASHBOARD_CACHE_TIME,
-	DASHBOARD_CACHE_TIME_ON_REFRESH_ENABLED,
+	PANEL_QUERY_CACHE_TIME,
+	PANEL_QUERY_CACHE_TIME_ON_AUTO_REFRESH,
 } from '../../../constants/queryCacheTime';
 import { variablePropsToPayloadVariables } from '../utils';
 import SelectVariableInput from './SelectVariableInput';
@@ -179,7 +179,7 @@ function QueryVariableInput({
 
 	const { isLoading, refetch } = useQuery(
 		[
-			REACT_QUERY_KEY.DASHBOARD_BY_ID,
+			REACT_QUERY_KEY.VARIABLE_OPTIONS,
 			variableData.name || '',
 			`${minTime}`,
 			`${maxTime}`,
@@ -203,8 +203,8 @@ function QueryVariableInput({
 				),
 			refetchOnWindowFocus: false,
 			cacheTime: isAutoRefreshDisabled
-				? DASHBOARD_CACHE_TIME
-				: DASHBOARD_CACHE_TIME_ON_REFRESH_ENABLED,
+				? PANEL_QUERY_CACHE_TIME
+				: PANEL_QUERY_CACHE_TIME_ON_AUTO_REFRESH,
 			onSuccess: (response) => {
 				getOptions(response.payload);
 				settleVariableFetch(variableData.name, 'complete');

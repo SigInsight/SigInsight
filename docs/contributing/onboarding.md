@@ -44,11 +44,8 @@ The `module` key determines where users are redirected after completing onboardi
 | `apm` | APM / Traces |
 | `logs` | Logs Explorer |
 | `metrics` | Metrics Explorer |
-| `dashboards` | Dashboards |
 | `infra-monitoring-hosts` | Infrastructure Monitoring - Hosts |
 | `infra-monitoring-k8s` | Infrastructure Monitoring - Kubernetes |
-| `messaging-queues-kafka` | Messaging Queues - Kafka |
-| `messaging-queues-celery` | Messaging Queues - Celery |
 | `integrations` | Integrations page |
 | `home` | Home page |
 | `api-monitoring` | API Monitoring |

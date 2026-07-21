@@ -73,7 +73,7 @@ export const useCases = {
 		id: ModulesMap.LogsManagement,
 		title: 'Logs Management',
 		desc:
-			'Easily filter and query logs, build dashboards and alerts based on attributes in logs',
+			'Easily filter and query logs, and build alerts based on attributes in logs',
 	},
 	InfrastructureMonitoring: {
 		id: ModulesMap.InfrastructureMonitoring,

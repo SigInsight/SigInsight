@@ -14,8 +14,8 @@ import { GlobalReducer } from 'types/reducer/globalTime';
 import { isRetryableError as checkIfRetryableError } from 'utils/errorUtils';
 
 import {
-	DASHBOARD_CACHE_TIME,
-	DASHBOARD_CACHE_TIME_ON_REFRESH_ENABLED,
+	PANEL_QUERY_CACHE_TIME,
+	PANEL_QUERY_CACHE_TIME_ON_AUTO_REFRESH,
 } from '../../../constants/queryCacheTime';
 import SelectVariableInput from './SelectVariableInput';
 import { useDashboardVariableSelectHelper } from './useDashboardVariableSelectHelper';
@@ -214,7 +214,7 @@ function DynamicVariableInput({
 
 	const { isLoading, refetch } = useQuery(
 		[
-			REACT_QUERY_KEY.DASHBOARD_BY_ID,
+			REACT_QUERY_KEY.VARIABLE_OPTIONS,
 			variableData.name || `variable_${variableData.id}`,
 			dynamicVariablesKey,
 			minTime,
@@ -238,8 +238,8 @@ function DynamicVariableInput({
 				!!variableData.dynamicVariablesAttribute &&
 				(isVariableFetching || (isVariableSettled && hasVariableFetchedOnce)),
 			cacheTime: isAutoRefreshDisabled
-				? DASHBOARD_CACHE_TIME
-				: DASHBOARD_CACHE_TIME_ON_REFRESH_ENABLED,
+				? PANEL_QUERY_CACHE_TIME
+				: PANEL_QUERY_CACHE_TIME_ON_AUTO_REFRESH,
 			queryFn: ({ signal }) =>
 				getFieldValues(
 					variableData.dynamicVariablesSource?.toLowerCase() === 'all telemetry'

@@ -27,8 +27,8 @@ import { getGraphType } from 'utils/getGraphType';
 import { getSortedSeriesData } from 'utils/getSortedSeriesData';
 
 import {
-	DASHBOARD_CACHE_TIME,
-	DASHBOARD_CACHE_TIME_ON_REFRESH_ENABLED,
+	PANEL_QUERY_CACHE_TIME,
+	PANEL_QUERY_CACHE_TIME_ON_AUTO_REFRESH,
 } from '../../../constants/queryCacheTime';
 import { REACT_QUERY_KEY } from '../../../constants/reactQueryKeys';
 import EmptyWidget from '../EmptyWidget';
@@ -58,6 +58,7 @@ function GridCardGraph({
 	start,
 	end,
 	analyticsEvent,
+	fetchWhenHidden,
 	customTimeRange,
 	customOnRowClick,
 	customTimeRangeWindowForCoRelation,
@@ -144,7 +145,10 @@ function GridCardGraph({
 	);
 
 	const queryEnabledCondition =
-		isVisible && !isEmptyWidget && isQueryEnabled && !isPanelWaitingOnAnyVariable;
+		(fetchWhenHidden || isVisible) &&
+		!isEmptyWidget &&
+		isQueryEnabled &&
+		!isPanelWaitingOnAnyVariable;
 
 	const [requestData, setRequestData] = useState<GetQueryResultsProps>(() => {
 		if (widget.panelTypes !== PANEL_TYPES.LIST) {
@@ -217,7 +221,7 @@ function GridCardGraph({
 		version || DEFAULT_ENTITY_VERSION,
 		{
 			queryKey: [
-				REACT_QUERY_KEY.DASHBOARD_GRID_CARD_QUERY_RANGE,
+				REACT_QUERY_KEY.PANEL_QUERY_RANGE,
 				maxTime,
 				minTime,
 				isAutoRefreshDisabled,
@@ -251,8 +255,8 @@ function GridCardGraph({
 			},
 			keepPreviousData: true,
 			cacheTime: isAutoRefreshDisabled
-				? DASHBOARD_CACHE_TIME
-				: DASHBOARD_CACHE_TIME_ON_REFRESH_ENABLED,
+				? PANEL_QUERY_CACHE_TIME
+				: PANEL_QUERY_CACHE_TIME_ON_AUTO_REFRESH,
 			enabled: queryEnabledCondition,
 			refetchOnMount: false,
 			onError: (error) => {
@@ -347,6 +351,7 @@ GridCardGraph.defaultProps = {
 	headerMenuList: [MenuItemKeys.View],
 	version: 'v3',
 	analyticsEvent: undefined,
+	fetchWhenHidden: false,
 	customTimeRangeWindowForCoRelation: undefined,
 	enableDrillDown: false,
 };

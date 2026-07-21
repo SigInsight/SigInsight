@@ -11,21 +11,18 @@ import { PANEL_TYPES } from 'constants/queryBuilder';
 import { useGetCompositeQueryParam } from 'hooks/queryBuilder/useGetCompositeQueryParam';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
 import { GetQueryResultsProps } from 'lib/dashboard/getQueryResults';
-import { Dashboard, Widgets } from 'types/api/dashboard/getAll';
+import { Widgets } from 'types/api/dashboard/getAll';
 import { Query } from 'types/api/queryBuilder/queryBuilderData';
-import { generateExportToDashboardLink } from 'utils/dashboard/generateExportToDashboardLink';
 
 export interface DrilldownQueryProps {
 	widget: Widgets;
 	setRequestData: Dispatch<SetStateAction<GetQueryResultsProps>>;
 	enableDrillDown: boolean;
-	selectedDashboard: Dashboard | undefined;
 	selectedPanelType: PANEL_TYPES;
 }
 
 export interface UseDrilldownReturn {
 	drilldownQuery: Query;
-	dashboardEditView: string;
 	handleResetQuery: () => void;
 	showResetQuery: boolean;
 }
@@ -34,8 +31,7 @@ const useDrilldown = ({
 	enableDrillDown,
 	widget,
 	setRequestData,
-	selectedDashboard,
-	selectedPanelType,
+	selectedPanelType: _selectedPanelType,
 }: DrilldownQueryProps): UseDrilldownReturn => {
 	const isMounted = useRef(false);
 	const { redirectWithQueryBuilderData, currentQuery } = useQueryBuilder();
@@ -60,15 +56,6 @@ const useDrilldown = ({
 		isMounted.current = true;
 	}, [widget, enableDrillDown, compositeQuery, redirectWithQueryBuilderData]);
 
-	const dashboardEditView = selectedDashboard?.id
-		? generateExportToDashboardLink({
-				query: currentQuery,
-				panelType: selectedPanelType,
-				dashboardId: selectedDashboard?.id || '',
-				widgetId: widget.id,
-		  })
-		: '';
-
 	const showResetQuery = useMemo(
 		() =>
 			JSON.stringify(widget.query?.builder) !==
@@ -90,7 +77,6 @@ const useDrilldown = ({
 
 	return {
 		drilldownQuery: compositeQuery || widget.query,
-		dashboardEditView,
 		handleResetQuery,
 		showResetQuery,
 	};

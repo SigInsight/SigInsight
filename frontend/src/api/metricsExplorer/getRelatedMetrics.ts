@@ -10,13 +10,6 @@ export interface RelatedMetricsPayload {
 	currentMetricName: string;
 }
 
-export interface RelatedMetricDashboard {
-	dashboard_name: string;
-	dashboard_id: string;
-	widget_id: string;
-	widget_name: string;
-}
-
 export interface RelatedMetricAlert {
 	alert_name: string;
 	alert_id: string;
@@ -25,7 +18,6 @@ export interface RelatedMetricAlert {
 export interface RelatedMetric {
 	name: string;
 	query: IBuilderQuery;
-	dashboards: RelatedMetricDashboard[];
 	alerts: RelatedMetricAlert[];
 }
 

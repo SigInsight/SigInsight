@@ -448,7 +448,7 @@ describe('ExplorerColumnsRenderer', () => {
 		});
 	});
 
-	it('does not show isRoot or isEntryPoint in add column dropdown (traces, dashboard table panel)', async () => {
+	it('does not show isRoot or isEntryPoint in add column dropdown (traces, table panel)', async () => {
 		(useQueryBuilder as jest.Mock).mockReturnValue({
 			currentQuery: {
 				builder: {

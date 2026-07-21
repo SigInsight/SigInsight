@@ -40,7 +40,7 @@ jest.mock('hooks/queryBuilder/useQueryBuilder', () => ({
 jest.mock('react-router-dom', () => ({
 	...jest.requireActual('react-router-dom'),
 	useLocation: (): { pathname: string } => ({
-		pathname: `${process.env.FRONTEND_API_ENDPOINT}/${ROUTES.DASHBOARD}/`,
+		pathname: `${process.env.FRONTEND_API_ENDPOINT}/metrics-explorer`,
 	}),
 }));
 

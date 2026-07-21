@@ -220,7 +220,7 @@ describe('DynamicVariableInput Component', () => {
 		// Verify the useQuery hook was called with expected parameters
 		expect(ReactQuery.useQuery).toHaveBeenCalledWith(
 			[
-				'DASHBOARD_BY_ID',
+				'VARIABLE_OPTIONS',
 				mockDynamicVariableData.name,
 				'service:"frontend"|services:["frontend","backend"]', // The actual dynamicVariablesKey
 				'2023-01-01T00:00:00Z', // minTime from useSelector mock

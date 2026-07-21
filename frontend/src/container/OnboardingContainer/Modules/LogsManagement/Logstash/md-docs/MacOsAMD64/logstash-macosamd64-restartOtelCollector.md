@@ -1,6 +1,6 @@
 ### Restart the Otel Collector
 
-Restart the otel collector so that new changes are saved and you should see the logs in the dashboard.
+Restart the otel collector so that new changes are saved and you should see the logs in SigNoz Logs Explorer.
  &nbsp;
 
 **Stop OTel Collector if it was already running using the below command in `otelcol-contrib` directory**

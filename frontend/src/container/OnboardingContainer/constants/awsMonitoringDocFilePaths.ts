@@ -16,18 +16,14 @@ import AwsMonitoring_awsEc2ApplicationLogs_macOsARM64_configureReceiver from '..
 // MacOS ARM 64
 import AwsMonitoring_awsEc2ApplicationLogs_macOsARM64_setupOtelCollector from '../Modules/AwsMonitoring/EC2ApplicationLogs/md-docs/MacOsARM64/appplicationLogs-macosarm64-installOtelCollector.md';
 import AwsMonitoring_awsEc2ApplicationLogs_macOsARM64_restartOtelCollector from '../Modules/AwsMonitoring/EC2ApplicationLogs/md-docs/MacOsARM64/appplicationLogs-macosarm64-runOtelCollector.md';
-import AwsMonitoring_awsEc2InfrastructureMetrics_linuxAMD64_configureHostmetricsJson from '../Modules/AwsMonitoring/EC2InfrastructureMetrics/md-docs/LinuxAMD64/hostmetrics-configureHostmetricsJson.md';
 // Application Logs End
 // Hostmetrics Start
 // LINUX AMD 64
 import AwsMonitoring_awsEc2InfrastructureMetrics_linuxAMD64_setupOtelCollector from '../Modules/AwsMonitoring/EC2InfrastructureMetrics/md-docs/LinuxAMD64/hostmetrics-setupOtelCollector.md';
-import AwsMonitoring_awsEc2InfrastructureMetrics_linuxARM64_configureHostmetricsJson from '../Modules/AwsMonitoring/EC2InfrastructureMetrics/md-docs/LinuxARM64/hostmetrics-configureHostmetricsJson.md';
 // LINUX ARM 64
 import AwsMonitoring_awsEc2InfrastructureMetrics_linuxARM64_setupOtelCollector from '../Modules/AwsMonitoring/EC2InfrastructureMetrics/md-docs/LinuxARM64/hostmetrics-setupOtelCollector.md';
-import AwsMonitoring_awsEc2InfrastructureMetrics_macOsAMD64_configureHostmetricsJson from '../Modules/AwsMonitoring/EC2InfrastructureMetrics/md-docs/MacOsAMD64/hostmetrics-configureHostmetricsJson.md';
 // MacOS AMD 64
 import AwsMonitoring_awsEc2InfrastructureMetrics_macOsAMD64_setupOtelCollector from '../Modules/AwsMonitoring/EC2InfrastructureMetrics/md-docs/MacOsAMD64/hostmetrics-setupOtelCollector.md';
-import AwsMonitoring_awsEc2InfrastructureMetrics_macOsARM64_configureHostmetricsJson from '../Modules/AwsMonitoring/EC2InfrastructureMetrics/md-docs/MacOsARM64/hostmetrics-configureHostmetricsJson.md';
 // MacOS ARM 64
 import AwsMonitoring_awsEc2InfrastructureMetrics_macOsARM64_setupOtelCollector from '../Modules/AwsMonitoring/EC2InfrastructureMetrics/md-docs/MacOsARM64/hostmetrics-setupOtelCollector.md';
 import AwsMonitoring_awsEcsEc2_createDaemonService from '../Modules/AwsMonitoring/ECSEc2/md-docs/ecsEc2-createDaemonService.md';
@@ -47,7 +43,6 @@ import AwsMonitoring_awsEcsFargate_ecsSendData from '../Modules/AwsMonitoring/EC
 import AwsMonitoring_awsEcsFargate_ecsSendLogsData from '../Modules/AwsMonitoring/ECSFargate/md-docs/ecsFargate-sendLogs.md';
 // AWS EKS
 import AwsMonitoring_awsEks_setupOtelCollector from '../Modules/AwsMonitoring/EKS/eks-installOtelCollector.md';
-import AwsMonitoring_awsEks_monitorDashboard from '../Modules/AwsMonitoring/EKS/eks-monitorUsingDashboard.md';
 
 export const AwsMonitoringDocFilePaths = {
 	/// /// AWS EC2 Application Logs
@@ -73,19 +68,15 @@ export const AwsMonitoringDocFilePaths = {
 
 	// Linux AMD64
 	AwsMonitoring_awsEc2InfrastructureMetrics_linuxAMD64_setupOtelCollector,
-	AwsMonitoring_awsEc2InfrastructureMetrics_linuxAMD64_configureHostmetricsJson,
 
 	// Linux ARM64
 	AwsMonitoring_awsEc2InfrastructureMetrics_linuxARM64_setupOtelCollector,
-	AwsMonitoring_awsEc2InfrastructureMetrics_linuxARM64_configureHostmetricsJson,
 
 	// MacOS AMD64
 	AwsMonitoring_awsEc2InfrastructureMetrics_macOsAMD64_setupOtelCollector,
-	AwsMonitoring_awsEc2InfrastructureMetrics_macOsAMD64_configureHostmetricsJson,
 
 	// MacOS ARM64
 	AwsMonitoring_awsEc2InfrastructureMetrics_macOsARM64_setupOtelCollector,
-	AwsMonitoring_awsEc2InfrastructureMetrics_macOsARM64_configureHostmetricsJson,
 
 	/// //// AWS ECS EC2
 	AwsMonitoring_awsEcsEc2_setupDaemonService,
@@ -108,5 +99,4 @@ export const AwsMonitoringDocFilePaths = {
 
 	/// /// AWS EKS
 	AwsMonitoring_awsEks_setupOtelCollector,
-	AwsMonitoring_awsEks_monitorDashboard,
 };

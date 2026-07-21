@@ -32,7 +32,6 @@ import { LOCALSTORAGE } from 'constants/localStorage';
 import { QueryParams } from 'constants/query';
 import { PANEL_TYPES } from 'constants/queryBuilder';
 import ROUTES from 'constants/routes';
-import ExportPanelContainer from 'container/ExportPanel/ExportPanelContainer';
 import {
 	MetricsExplorerEventKeys,
 	MetricsExplorerEvents,
@@ -54,17 +53,9 @@ import { useHandleExplorerTabChange } from 'hooks/useHandleExplorerTabChange';
 import { useNotifications } from 'hooks/useNotifications';
 import { mapCompositeQueryFromQuery } from 'lib/newQueryBuilder/queryBuilderMappers/mapCompositeQueryFromQuery';
 import { cloneDeep, isEqual, omit } from 'lodash-es';
-import {
-	Check,
-	ConciergeBell,
-	Disc3,
-	PanelBottomClose,
-	Plus,
-	X,
-} from 'lucide-react';
+import { Check, ConciergeBell, Disc3, PanelBottomClose, X } from 'lucide-react';
 import { useAppContext } from 'providers/App/App';
 import { FormattingOptions } from 'providers/preferences/types';
-import { Dashboard } from 'types/api/dashboard/getAll';
 import { Query } from 'types/api/queryBuilder/queryBuilderData';
 import { ViewProps } from 'types/api/saveViews/types';
 import { DataSource, StringOperators } from 'types/common/queryBuilder';
@@ -89,8 +80,7 @@ const allowedRoles = [USER_ROLES.ADMIN, USER_ROLES.AUTHOR, USER_ROLES.EDITOR];
 // eslint-disable-next-line sonarjs/cognitive-complexity
 function ExplorerOptions({
 	disabled,
-	isLoading,
-	onExport,
+	isLoading: _isLoading,
 	query,
 	sourcepage,
 	signalSource,
@@ -100,7 +90,6 @@ function ExplorerOptions({
 	splitedQueries = [],
 	handleChangeSelectedView,
 }: ExplorerOptionsProps): JSX.Element {
-	const [isExport, setIsExport] = useState<boolean>(false);
 	const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
 	const [newViewName, setNewViewName] = useState<string>('');
 	const [color, setColor] = useState(Color.BG_SIENNA_500);
@@ -108,7 +97,6 @@ function ExplorerOptions({
 	const history = useHistory();
 	const ref = useRef<RefSelectProps>(null);
 	const isDarkMode = useIsDarkMode();
-	const [queryToExport, setQueryToExport] = useState<Query | null>(null);
 
 	const isLogsExplorer = sourcepage === DataSource.LOGS;
 	const isMetricsExplorer = sourcepage === DataSource.METRICS;
@@ -128,10 +116,6 @@ function ExplorerOptions({
 		}
 		return PreservedViewsTypes.TRACES;
 	}, [isLogsExplorer, isMetricsExplorer, isMeterExplorer]);
-
-	const onModalToggle = useCallback((value: boolean) => {
-		setIsExport(value);
-	}, []);
 
 	const {
 		currentQuery,
@@ -247,33 +231,6 @@ function ExplorerOptions({
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 		[handleConditionalQueryModification, history],
 	);
-
-	const onCancel = (value: boolean) => (): void => {
-		onModalToggle(value);
-		if (isOneChartPerQuery) {
-			setQueryToExport(null);
-		}
-	};
-
-	const onAddToDashboard = useCallback((): void => {
-		if (sourcepage === DataSource.TRACES) {
-			logEvent('Traces Explorer: Add to dashboard clicked', {
-				panelType,
-			});
-		} else if (isLogsExplorer) {
-			logEvent('Logs Explorer: Add to dashboard clicked', {
-				panelType,
-			});
-		} else if (isMetricsExplorer) {
-			logEvent(MetricsExplorerEvents.AddToDashboardClicked, {
-				panelType,
-				[MetricsExplorerEventKeys.Tab]: 'explorer',
-				[MetricsExplorerEventKeys.OneChartPerQueryEnabled]: isOneChartPerQuery,
-			});
-		}
-		setIsExport(true);
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [isLogsExplorer, isMetricsExplorer, panelType, setIsExport, sourcepage]);
 
 	const {
 		data: viewsData,
@@ -789,60 +746,6 @@ function ExplorerOptions({
 		splitedQueries,
 	]);
 
-	const AddToDashboardButton = useMemo(() => {
-		if (isOneChartPerQuery) {
-			const selectLabel = (
-				<Button
-					type="primary"
-					disabled={disabled}
-					shape="round"
-					onClick={onAddToDashboard}
-					icon={<Plus size={16} />}
-				>
-					Add to Dashboard
-				</Button>
-			);
-			return (
-				<Select
-					disabled={disabled}
-					className="multi-dashboard-button"
-					placeholder={selectLabel}
-					value={selectLabel}
-					suffixIcon={null}
-					onSelect={(e): void => {
-						const selectedQuery = splitedQueries.find(
-							(query) => query.id === ((e as unknown) as string),
-						);
-						if (selectedQuery) {
-							setQueryToExport(() => {
-								onAddToDashboard();
-								return selectedQuery;
-							});
-						}
-					}}
-				>
-					{/* eslint-disable-next-line sonarjs/no-identical-functions */}
-					{splitedQueries.map((splittedQuery) => (
-						<Select.Option key={splittedQuery.id} value={splittedQuery.id}>
-							{getQueryName(splittedQuery)}
-						</Select.Option>
-					))}
-				</Select>
-			);
-		}
-		return (
-			<Button
-				type="primary"
-				disabled={disabled}
-				shape="round"
-				onClick={onAddToDashboard}
-				icon={<Plus size={16} />}
-			>
-				Add to Dashboard
-			</Button>
-		);
-	}, [disabled, isOneChartPerQuery, onAddToDashboard, splitedQueries]);
-
 	const hideToolbar = (): void => {
 		setExplorerToolBarVisibility(false, sourcepage);
 		if (setIsExplorerOptionHidden) {
@@ -955,7 +858,6 @@ function ExplorerOptions({
 					{signalSource !== 'meter' && (
 						<div className={cx('actions', isEditDeleteSupported ? '' : 'hidden')}>
 							{CreateAlertButton}
-							{AddToDashboardButton}
 						</div>
 					)}
 
@@ -1030,37 +932,12 @@ function ExplorerOptions({
 					/>
 				</div>
 			</Modal>
-			<Modal
-				footer={null}
-				onOk={onCancel(false)}
-				onCancel={onCancel(false)}
-				open={isExport}
-				centered
-				destroyOnClose
-			>
-				<ExportPanelContainer
-					query={isOneChartPerQuery ? queryToExport : query}
-					isLoading={isLoading}
-					onExport={(dashboard, isNewDashboard): void => {
-						if (isOneChartPerQuery && queryToExport) {
-							onExport(dashboard, isNewDashboard, queryToExport);
-						} else {
-							onExport(dashboard, isNewDashboard);
-						}
-					}}
-				/>
-			</Modal>
 		</div>
 	);
 }
 
 export interface ExplorerOptionsProps {
 	isLoading?: boolean;
-	onExport: (
-		dashboard: Dashboard | null,
-		isNewDashboard?: boolean,
-		queryToExport?: Query,
-	) => void;
 	query: Query | null;
 	disabled: boolean;
 	sourcepage: DataSource;

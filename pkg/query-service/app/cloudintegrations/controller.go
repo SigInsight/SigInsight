@@ -5,17 +5,13 @@ import (
 	"fmt"
 	"net/url"
 	"slices"
-	"strings"
 	"time"
 
 	"github.com/SigNoz/signoz/pkg/errors"
 	"github.com/SigNoz/signoz/pkg/query-service/app/cloudintegrations/services"
 	"github.com/SigNoz/signoz/pkg/query-service/model"
 	"github.com/SigNoz/signoz/pkg/sqlstore"
-	"github.com/SigNoz/signoz/pkg/types"
-	"github.com/SigNoz/signoz/pkg/types/dashboardtypes"
 	"github.com/SigNoz/signoz/pkg/types/integrationtypes"
-	"github.com/SigNoz/signoz/pkg/valuer"
 	"golang.org/x/exp/maps"
 )
 
@@ -419,22 +415,6 @@ func (c *Controller) GetServiceDetails(
 		if config != nil {
 			details.Config = config
 
-			enabled := false
-			if config.Metrics != nil && config.Metrics.Enabled {
-				enabled = true
-			}
-
-			// add links to service dashboards, making them clickable.
-			for i, d := range definition.Assets.Dashboards {
-				dashboardUuid := c.dashboardUuid(
-					cloudProvider, serviceId, d.Id,
-				)
-				if enabled {
-					definition.Assets.Dashboards[i].Url = fmt.Sprintf("/dashboard/%s", dashboardUuid)
-				} else {
-					definition.Assets.Dashboards[i].Url = "" // to unset the in-memory URL if enabled once and disabled afterwards
-				}
-			}
 		}
 	}
 
@@ -505,121 +485,4 @@ func (c *Controller) UpdateServiceConfig(
 		Id:     serviceType,
 		Config: *updatedConfig,
 	}, nil
-}
-
-// All dashboards that are available based on cloud integrations configuration
-// across all cloud providers
-func (c *Controller) AvailableDashboards(ctx context.Context, orgId valuer.UUID) ([]*dashboardtypes.Dashboard, *model.ApiError) {
-	allDashboards := []*dashboardtypes.Dashboard{}
-
-	for _, provider := range []string{"aws"} {
-		providerDashboards, apiErr := c.AvailableDashboardsForCloudProvider(ctx, orgId, provider)
-		if apiErr != nil {
-			return nil, model.WrapApiError(
-				apiErr, fmt.Sprintf("couldn't get available dashboards for %s", provider),
-			)
-		}
-
-		allDashboards = append(allDashboards, providerDashboards...)
-	}
-
-	return allDashboards, nil
-}
-
-func (c *Controller) AvailableDashboardsForCloudProvider(ctx context.Context, orgID valuer.UUID, cloudProvider string) ([]*dashboardtypes.Dashboard, *model.ApiError) {
-	accountRecords, apiErr := c.accountsRepo.listConnected(ctx, orgID.StringValue(), cloudProvider)
-	if apiErr != nil {
-		return nil, model.WrapApiError(apiErr, "couldn't list connected cloud accounts")
-	}
-
-	// for v0, service dashboards are only available when metrics are enabled.
-	servicesWithAvailableMetrics := map[string]*time.Time{}
-
-	for _, ar := range accountRecords {
-		if ar.AccountID != nil {
-			configsBySvcId, apiErr := c.serviceConfigRepo.getAllForAccount(
-				ctx, orgID.StringValue(), ar.ID.StringValue(),
-			)
-			if apiErr != nil {
-				return nil, apiErr
-			}
-
-			for svcId, config := range configsBySvcId {
-				if config.Metrics != nil && config.Metrics.Enabled {
-					servicesWithAvailableMetrics[svcId] = &ar.CreatedAt
-				}
-			}
-		}
-	}
-
-	allServices, apiErr := services.List(cloudProvider)
-	if apiErr != nil {
-		return nil, apiErr
-	}
-
-	svcDashboards := []*dashboardtypes.Dashboard{}
-	for _, svc := range allServices {
-		serviceDashboardsCreatedAt := servicesWithAvailableMetrics[svc.Id]
-		if serviceDashboardsCreatedAt != nil {
-			for _, d := range svc.Assets.Dashboards {
-				author := fmt.Sprintf("%s-integration", cloudProvider)
-				svcDashboards = append(svcDashboards, &dashboardtypes.Dashboard{
-					ID:     c.dashboardUuid(cloudProvider, svc.Id, d.Id),
-					Locked: true,
-					Data:   *d.Definition,
-					TimeAuditable: types.TimeAuditable{
-						CreatedAt: *serviceDashboardsCreatedAt,
-						UpdatedAt: *serviceDashboardsCreatedAt,
-					},
-					UserAuditable: types.UserAuditable{
-						CreatedBy: author,
-						UpdatedBy: author,
-					},
-					OrgID: orgID,
-				})
-			}
-			servicesWithAvailableMetrics[svc.Id] = nil
-		}
-	}
-
-	return svcDashboards, nil
-}
-func (c *Controller) GetDashboardById(ctx context.Context, orgId valuer.UUID, dashboardUuid string) (*dashboardtypes.Dashboard, *model.ApiError) {
-	cloudProvider, _, _, apiErr := c.parseDashboardUuid(dashboardUuid)
-	if apiErr != nil {
-		return nil, apiErr
-	}
-
-	allDashboards, apiErr := c.AvailableDashboardsForCloudProvider(ctx, orgId, cloudProvider)
-	if apiErr != nil {
-		return nil, model.WrapApiError(apiErr, "couldn't list available dashboards")
-	}
-
-	for _, d := range allDashboards {
-		if d.ID == dashboardUuid {
-			return d, nil
-		}
-	}
-
-	return nil, model.NotFoundError(fmt.Errorf("couldn't find dashboard with uuid: %s", dashboardUuid))
-}
-
-func (c *Controller) dashboardUuid(
-	cloudProvider string, svcId string, dashboardId string,
-) string {
-	return fmt.Sprintf("cloud-integration--%s--%s--%s", cloudProvider, svcId, dashboardId)
-}
-
-func (c *Controller) parseDashboardUuid(dashboardUuid string) (cloudProvider string, svcId string, dashboardId string, apiErr *model.ApiError) {
-	parts := strings.SplitN(dashboardUuid, "--", 4)
-	if len(parts) != 4 || parts[0] != "cloud-integration" {
-		return "", "", "", model.BadRequest(fmt.Errorf("invalid cloud integration dashboard id"))
-	}
-
-	return parts[1], parts[2], parts[3], nil
-}
-
-func (c *Controller) IsCloudIntegrationDashboardUuid(dashboardUuid string) bool {
-	_, _, _, apiErr := c.parseDashboardUuid(dashboardUuid)
-	return apiErr == nil
 }

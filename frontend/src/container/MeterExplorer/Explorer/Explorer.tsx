@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import * as Sentry from '@sentry/react';
 import { Button, Tooltip } from 'antd';
 import logEvent from 'api/common/logEvent';
@@ -13,18 +13,12 @@ import { QueryBuilderProps } from 'container/QueryBuilder/QueryBuilder.interface
 import DateTimeSelector from 'container/TopNav/DateTimeSelectionV2';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
 import { useShareBuilderUrl } from 'hooks/queryBuilder/useShareBuilderUrl';
-import { useSafeNavigate } from 'hooks/useSafeNavigate';
 import { Filter } from 'lucide-react';
 import ErrorBoundaryFallback from 'pages/ErrorBoundaryFallback/ErrorBoundaryFallback';
-import { Dashboard } from 'types/api/dashboard/getAll';
-import { Query } from 'types/api/queryBuilder/queryBuilderData';
 import { DataSource } from 'types/common/queryBuilder';
-import { generateExportToDashboardLink } from 'utils/dashboard/generateExportToDashboardLink';
-import { v4 as uuid } from 'uuid';
 
 import { MeterExplorerEventKeys, MeterExplorerEvents } from '../events';
 import TimeSeries from './TimeSeries';
-import { splitQueryIntoOneChartPerQuery } from './utils';
 
 import './Explorer.styles.scss';
 
@@ -36,7 +30,6 @@ function Explorer(): JSX.Element {
 		handleSetQueryData,
 		currentQuery,
 	} = useQueryBuilder();
-	const { safeNavigate } = useSafeNavigate();
 
 	const [showQuickFilters, setShowQuickFilters] = useState(true);
 
@@ -72,36 +65,6 @@ function Explorer(): JSX.Element {
 	);
 
 	useShareBuilderUrl({ defaultValue: defaultQuery });
-
-	const handleExport = useCallback(
-		(
-			dashboard: Dashboard | null,
-			_isNewDashboard?: boolean,
-			queryToExport?: Query,
-		): void => {
-			if (!dashboard) {
-				return;
-			}
-
-			const widgetId = uuid();
-
-			const dashboardEditView = generateExportToDashboardLink({
-				query: queryToExport || exportDefaultQuery,
-				panelType: PANEL_TYPES.BAR,
-				dashboardId: dashboard.id,
-				widgetId,
-			});
-
-			safeNavigate(dashboardEditView);
-		},
-		[exportDefaultQuery, safeNavigate],
-	);
-
-	const splitedQueries = useMemo(
-		() =>
-			splitQueryIntoOneChartPerQuery(stagedQuery || initialQueryMeterWithType),
-		[stagedQuery],
-	);
 
 	useEffect(() => {
 		logEvent(MeterExplorerEvents.TabChanged, {
@@ -179,9 +142,6 @@ function Explorer(): JSX.Element {
 						query={exportDefaultQuery}
 						sourcepage={DataSource.METRICS}
 						signalSource="meter"
-						onExport={handleExport}
-						isOneChartPerQuery={false}
-						splitedQueries={splitedQueries}
 					/>
 				</div>
 			</div>

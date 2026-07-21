@@ -657,86 +657,6 @@ export interface AuthtypesUserWithRolesDTO {
 	userRoles?: AuthtypesUserRoleDTO[] | null;
 }
 
-export interface DashboardtypesDashboardDTO {
-	/**
-	 * @type string
-	 * @format date-time
-	 */
-	createdAt?: Date;
-	/**
-	 * @type string
-	 */
-	createdBy?: string;
-	data?: DashboardtypesStorableDashboardDataDTO;
-	/**
-	 * @type string
-	 */
-	id?: string;
-	/**
-	 * @type boolean
-	 */
-	locked?: boolean;
-	/**
-	 * @type string
-	 */
-	org_id?: string;
-	/**
-	 * @type string
-	 * @format date-time
-	 */
-	updatedAt?: Date;
-	/**
-	 * @type string
-	 */
-	updatedBy?: string;
-}
-
-export interface DashboardtypesGettablePublicDasbhboardDTO {
-	/**
-	 * @type string
-	 */
-	defaultTimeRange?: string;
-	/**
-	 * @type string
-	 */
-	publicPath?: string;
-	/**
-	 * @type boolean
-	 */
-	timeRangeEnabled?: boolean;
-}
-
-export interface DashboardtypesGettablePublicDashboardDataDTO {
-	dashboard?: DashboardtypesDashboardDTO;
-	publicDashboard?: DashboardtypesGettablePublicDasbhboardDTO;
-}
-
-export interface DashboardtypesPostablePublicDashboardDTO {
-	/**
-	 * @type string
-	 */
-	defaultTimeRange?: string;
-	/**
-	 * @type boolean
-	 */
-	timeRangeEnabled?: boolean;
-}
-
-export interface DashboardtypesStorableDashboardDataDTO {
-	[key: string]: unknown;
-}
-
-export interface DashboardtypesUpdatablePublicDashboardDTO {
-	/**
-	 * @type string
-	 */
-	defaultTimeRange?: string;
-	/**
-	 * @type boolean
-	 */
-	timeRangeEnabled?: boolean;
-}
-
 export interface ErrorsJSONDTO {
 	/**
 	 * @type string
@@ -931,33 +851,6 @@ export interface MetricsexplorertypesMetricAttributesResponseDTO {
 	 * @format int64
 	 */
 	totalKeys: number;
-}
-
-export interface MetricsexplorertypesMetricDashboardDTO {
-	/**
-	 * @type string
-	 */
-	dashboardId: string;
-	/**
-	 * @type string
-	 */
-	dashboardName: string;
-	/**
-	 * @type string
-	 */
-	widgetId: string;
-	/**
-	 * @type string
-	 */
-	widgetName: string;
-}
-
-export interface MetricsexplorertypesMetricDashboardsResponseDTO {
-	/**
-	 * @type array
-	 * @nullable true
-	 */
-	dashboards: MetricsexplorertypesMetricDashboardDTO[] | null;
 }
 
 export interface MetricsexplorertypesMetricHighlightsResponseDTO {
@@ -2826,34 +2719,6 @@ export type CreateSessionByGoogleCallback303 = {
 	status: string;
 };
 
-export type DeletePublicDashboardPathParameters = {
-	id: string;
-};
-export type GetPublicDashboardPathParameters = {
-	id: string;
-};
-export type GetPublicDashboard200 = {
-	data: DashboardtypesGettablePublicDasbhboardDTO;
-	/**
-	 * @type string
-	 */
-	status: string;
-};
-
-export type CreatePublicDashboardPathParameters = {
-	id: string;
-};
-export type CreatePublicDashboard201 = {
-	data: TypesIdentifiableDTO;
-	/**
-	 * @type string
-	 */
-	status: string;
-};
-
-export type UpdatePublicDashboardPathParameters = {
-	id: string;
-};
 export type ListAuthDomains200 = {
 	/**
 	 * @type array
@@ -3099,29 +2964,6 @@ export type RevokeAPIKeyPathParameters = {
 export type UpdateAPIKeyPathParameters = {
 	id: string;
 };
-export type GetPublicDashboardDataPathParameters = {
-	id: string;
-};
-export type GetPublicDashboardData200 = {
-	data: DashboardtypesGettablePublicDashboardDataDTO;
-	/**
-	 * @type string
-	 */
-	status: string;
-};
-
-export type GetPublicDashboardWidgetQueryRangePathParameters = {
-	id: string;
-	idx: string;
-};
-export type GetPublicDashboardWidgetQueryRange200 = {
-	data: Querybuildertypesv5QueryRangeResponseDTO;
-	/**
-	 * @type string
-	 */
-	status: string;
-};
-
 export type ListRoles200 = {
 	/**
 	 * @type array
@@ -3422,17 +3264,6 @@ export type GetMetricAttributesParams = {
 
 export type GetMetricAttributes200 = {
 	data: MetricsexplorertypesMetricAttributesResponseDTO;
-	/**
-	 * @type string
-	 */
-	status: string;
-};
-
-export type GetMetricDashboardsPathParameters = {
-	metricName: string;
-};
-export type GetMetricDashboards200 = {
-	data: MetricsexplorertypesMetricDashboardsResponseDTO;
 	/**
 	 * @type string
 	 */

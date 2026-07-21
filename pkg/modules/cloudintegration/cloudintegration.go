@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	citypes "github.com/SigNoz/signoz/pkg/types/cloudintegrationtypes"
-	"github.com/SigNoz/signoz/pkg/types/dashboardtypes"
 	"github.com/SigNoz/signoz/pkg/valuer"
 )
 
@@ -41,15 +40,6 @@ type Module interface {
 
 	// AgentCheckIn is called by agent to heartbeat and get latest config in response.
 	AgentCheckIn(ctx context.Context, orgID valuer.UUID, req *citypes.AgentCheckInRequest) (*citypes.AgentCheckInResponse, error)
-
-	// GetDashboardByID returns dashboard JSON for a given dashboard id.
-	// this only returns the dashboard when the service (embedded in dashboard id) is enabled
-	// in the org for any cloud integration account
-	GetDashboardByID(ctx context.Context, orgID valuer.UUID, id string) (*dashboardtypes.Dashboard, error)
-
-	// ListDashboards returns list of dashboards across all connected cloud integration accounts
-	// for enabled services in the org. This list gets added to dashboard list page
-	ListDashboards(ctx context.Context, orgID valuer.UUID) ([]*dashboardtypes.Dashboard, error)
 }
 
 type Handler interface {

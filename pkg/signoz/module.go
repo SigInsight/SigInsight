@@ -14,7 +14,6 @@ import (
 	"github.com/SigNoz/signoz/pkg/modules/apdex/implapdex"
 	"github.com/SigNoz/signoz/pkg/modules/authdomain"
 	"github.com/SigNoz/signoz/pkg/modules/authdomain/implauthdomain"
-	"github.com/SigNoz/signoz/pkg/modules/dashboard"
 	"github.com/SigNoz/signoz/pkg/modules/metricsexplorer"
 	"github.com/SigNoz/signoz/pkg/modules/metricsexplorer/implmetricsexplorer"
 	"github.com/SigNoz/signoz/pkg/modules/organization"
@@ -61,7 +60,6 @@ type Modules struct {
 	UserGetter      user.Getter
 	SavedView       savedview.Module
 	Apdex           apdex.Module
-	Dashboard       dashboard.Module
 	QuickFilter     quickfilter.Module
 	TraceFunnel     tracefunnel.Module
 	RawDataExport   rawdataexport.Module
@@ -90,7 +88,6 @@ func NewModules(
 	cache cache.Cache,
 	queryParser queryparser.QueryParser,
 	config Config,
-	dashboard dashboard.Module,
 	userGetter user.Getter,
 	userRoleStore authtypes.UserRoleStore,
 ) Modules {
@@ -106,7 +103,6 @@ func NewModules(
 		Preference:      implpreference.NewModule(implpreference.NewStore(sqlstore), preferencetypes.NewAvailablePreference()),
 		SavedView:       implsavedview.NewModule(sqlstore),
 		Apdex:           implapdex.NewModule(sqlstore),
-		Dashboard:       dashboard,
 		UserSetter:      userSetter,
 		UserGetter:      userGetter,
 		QuickFilter:     quickfilter,
@@ -116,7 +112,7 @@ func NewModules(
 		Session:         implsession.NewModule(providerSettings, authNs, userSetter, userGetter, implauthdomain.NewModule(implauthdomain.NewStore(sqlstore), authNs), tokenizer, orgGetter),
 		SpanPercentile:  implspanpercentile.NewModule(querier, providerSettings),
 		Services:        implservices.NewModule(querier, telemetryStore),
-		MetricsExplorer: implmetricsexplorer.NewModule(telemetryStore, telemetryMetadataStore, cache, ruleStore, dashboard, providerSettings, config.MetricsExplorer),
+		MetricsExplorer: implmetricsexplorer.NewModule(telemetryStore, telemetryMetadataStore, cache, ruleStore, providerSettings, config.MetricsExplorer),
 		Promote:         implpromote.NewModule(telemetryMetadataStore, telemetryStore),
 		ServiceAccount:  implserviceaccount.NewModule(implserviceaccount.NewStore(sqlstore), authz, emailing, providerSettings),
 	}

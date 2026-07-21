@@ -3,7 +3,6 @@ import { UseQueryResult } from 'react-query';
 import { Color } from '@signozhq/design-tokens';
 import { Button, Card, Skeleton, Typography } from 'antd';
 import cx from 'classnames';
-import { useNavigateToExplorer } from 'components/CeleryTask/useNavigateToExplorer';
 import {
 	getCustomFiltersForBarChart,
 	getFormattedEndPointStatusCodeChartData,
@@ -17,14 +16,15 @@ import useNavigateToExplorerPages from 'container/GridCardLayout/useNavigateToEx
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
 import { useIsDarkMode } from 'hooks/useDarkMode';
 import { useResizeObserver } from 'hooks/useDimensions';
+import { useNavigateToExplorer } from 'hooks/useNavigateToExplorer';
 import { useNotifications } from 'hooks/useNotifications';
 import { getUPlotChartData } from 'lib/uPlotLib/utils/getUplotChartData';
 import { LegendPosition } from 'lib/uPlotV2/components/types';
-import { getStartAndEndTimesInMilliseconds } from 'pages/MessagingQueues/MessagingQueuesUtils';
 import { useTimezone } from 'providers/Timezone';
 import { SuccessResponse } from 'types/api';
 import { Widgets } from 'types/api/dashboard/getAll';
 import { IBuilderQuery } from 'types/api/queryBuilder/queryBuilderData';
+import { getStartAndEndTimesInMilliseconds } from 'utils/chartTimeRange';
 
 import ErrorState from './ErrorState';
 import { prepareStatusCodeBarChartsConfig } from './utils';

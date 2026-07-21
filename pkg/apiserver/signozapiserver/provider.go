@@ -13,7 +13,6 @@ import (
 	"github.com/SigNoz/signoz/pkg/http/middleware"
 	"github.com/SigNoz/signoz/pkg/modules/authdomain"
 	"github.com/SigNoz/signoz/pkg/modules/cloudintegration"
-	"github.com/SigNoz/signoz/pkg/modules/dashboard"
 	"github.com/SigNoz/signoz/pkg/modules/fields"
 	"github.com/SigNoz/signoz/pkg/modules/metricsexplorer"
 	"github.com/SigNoz/signoz/pkg/modules/organization"
@@ -42,8 +41,6 @@ type provider struct {
 	globalHandler           global.Handler
 	promoteHandler          promote.Handler
 	flaggerHandler          flagger.Handler
-	dashboardModule         dashboard.Module
-	dashboardHandler        dashboard.Handler
 	metricsExplorerHandler  metricsexplorer.Handler
 	fieldsHandler           fields.Handler
 	authzHandler            authz.Handler
@@ -66,8 +63,6 @@ func NewFactory(
 	globalHandler global.Handler,
 	promoteHandler promote.Handler,
 	flaggerHandler flagger.Handler,
-	dashboardModule dashboard.Module,
-	dashboardHandler dashboard.Handler,
 	metricsExplorerHandler metricsexplorer.Handler,
 	fieldsHandler fields.Handler,
 	authzHandler authz.Handler,
@@ -93,8 +88,6 @@ func NewFactory(
 			globalHandler,
 			promoteHandler,
 			flaggerHandler,
-			dashboardModule,
-			dashboardHandler,
 			metricsExplorerHandler,
 			fieldsHandler,
 			authzHandler,
@@ -122,8 +115,6 @@ func newProvider(
 	globalHandler global.Handler,
 	promoteHandler promote.Handler,
 	flaggerHandler flagger.Handler,
-	dashboardModule dashboard.Module,
-	dashboardHandler dashboard.Handler,
 	metricsExplorerHandler metricsexplorer.Handler,
 	fieldsHandler fields.Handler,
 	authzHandler authz.Handler,
@@ -149,8 +140,6 @@ func newProvider(
 		globalHandler:           globalHandler,
 		promoteHandler:          promoteHandler,
 		flaggerHandler:          flaggerHandler,
-		dashboardModule:         dashboardModule,
-		dashboardHandler:        dashboardHandler,
 		metricsExplorerHandler:  metricsExplorerHandler,
 		fieldsHandler:           fieldsHandler,
 		authzHandler:            authzHandler,
@@ -205,10 +194,6 @@ func (provider *provider) AddToRouter(router *mux.Router) error {
 	}
 
 	if err := provider.addFlaggerRoutes(router); err != nil {
-		return err
-	}
-
-	if err := provider.addDashboardRoutes(router); err != nil {
 		return err
 	}
 

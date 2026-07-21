@@ -4,7 +4,6 @@ import { LoadingOutlined } from '@ant-design/icons';
 import { Spin, Switch, Table, Tooltip, Typography } from 'antd';
 import { getQueryRangeV5 } from 'api/v5/queryRange/getQueryRange';
 import { MetricRangePayloadV5, ScalarData } from 'api/v5/v5';
-import { useNavigateToExplorer } from 'components/CeleryTask/useNavigateToExplorer';
 import { withErrorBoundary } from 'components/ErrorBoundaryHOC';
 import { ENTITY_VERSION_V5 } from 'constants/app';
 import { REACT_QUERY_KEY } from 'constants/reactQueryKeys';
@@ -16,6 +15,7 @@ import {
 	getTopErrorsCoRelationQueryFilters,
 	getTopErrorsQueryPayload,
 } from 'container/ApiMonitoring/utils';
+import { useNavigateToExplorer } from 'hooks/useNavigateToExplorer';
 import { GetMetricQueryRange } from 'lib/dashboard/getQueryResults';
 import { Info } from 'lucide-react';
 import { SuccessResponse, SuccessResponseV2 } from 'types/api';

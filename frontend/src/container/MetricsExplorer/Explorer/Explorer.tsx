@@ -16,18 +16,13 @@ import {
 	ICurrentQueryData,
 	useHandleExplorerTabChange,
 } from 'hooks/useHandleExplorerTabChange';
-import { useSafeNavigate } from 'hooks/useSafeNavigate';
 import { isEmpty } from 'lodash-es';
 import ErrorBoundaryFallback from 'pages/ErrorBoundaryFallback/ErrorBoundaryFallback';
 import { ExplorerViews } from 'pages/LogsExplorer/utils';
 import { Warning } from 'types/api';
-import { Dashboard } from 'types/api/dashboard/getAll';
-import { Query } from 'types/api/queryBuilder/queryBuilderData';
 import { MetricAggregation } from 'types/api/v5/queryRange';
 import { DataSource } from 'types/common/queryBuilder';
-import { generateExportToDashboardLink } from 'utils/dashboard/generateExportToDashboardLink';
 import { explorerViewToPanelType } from 'utils/explorerUtils';
-import { v4 as uuid } from 'uuid';
 
 import { MetricsExplorerEventKeys, MetricsExplorerEvents } from '../events';
 import MetricDetails from '../MetricDetails/MetricDetails';
@@ -51,7 +46,6 @@ function Explorer(): JSX.Element {
 		currentQuery,
 		handleSetConfig,
 	} = useQueryBuilder();
-	const { safeNavigate } = useSafeNavigate();
 	const { handleExplorerTabChange } = useHandleExplorerTabChange();
 	const [isMetricDetailsOpen, setIsMetricDetailsOpen] = useState(false);
 
@@ -198,38 +192,6 @@ function Explorer(): JSX.Element {
 		[handleSetConfig, handleExplorerTabChange],
 	);
 
-	const handleExport = useCallback(
-		(
-			dashboard: Dashboard | null,
-			_isNewDashboard?: boolean,
-			queryToExport?: Query,
-		): void => {
-			if (!dashboard) {
-				return;
-			}
-
-			const widgetId = uuid();
-
-			let query = queryToExport || exportDefaultQuery;
-			if (yAxisUnit && !query.unit) {
-				query = {
-					...query,
-					unit: yAxisUnit,
-				};
-			}
-
-			const dashboardEditView = generateExportToDashboardLink({
-				query,
-				panelType: PANEL_TYPES.TIME_SERIES,
-				dashboardId: dashboard.id,
-				widgetId,
-			});
-
-			safeNavigate(dashboardEditView);
-		},
-		[exportDefaultQuery, safeNavigate, yAxisUnit],
-	);
-
 	const splitedQueries = useMemo(
 		() =>
 			splitQueryIntoOneChartPerQuery(
@@ -367,7 +329,6 @@ function Explorer(): JSX.Element {
 				disabled={!stagedQuery}
 				query={exportDefaultQuery}
 				sourcepage={DataSource.METRICS}
-				onExport={handleExport}
 				isOneChartPerQuery={showOneChartPerQuery}
 				splitedQueries={splitedQueries}
 				handleChangeSelectedView={handleChangeSelectedView}

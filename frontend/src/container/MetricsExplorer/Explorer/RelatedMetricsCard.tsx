@@ -2,7 +2,7 @@ import { Empty, Skeleton, Typography } from 'antd';
 import TimeSeriesView from 'container/TimeSeriesView/TimeSeriesView';
 import { DataSource } from 'types/common/queryBuilder';
 
-import DashboardsAndAlertsPopover from '../MetricDetails/DashboardsAndAlertsPopover';
+import AlertsPopover from '../MetricDetails/AlertsPopover';
 import { RelatedMetricsCardProps } from './types';
 
 function RelatedMetricsCard({ metric }: RelatedMetricsCardProps): JSX.Element {
@@ -39,7 +39,7 @@ function RelatedMetricsCard({ metric }: RelatedMetricsCardProps): JSX.Element {
 					dataSource={DataSource.METRICS}
 				/>
 			)}
-			<DashboardsAndAlertsPopover metricName={metric.name} />
+			<AlertsPopover metricName={metric.name} />
 		</div>
 	);
 }

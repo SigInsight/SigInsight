@@ -18,7 +18,6 @@ export enum MeterExplorerEvents {
 	QueryBuilderQueryChanged = 'Meter Explorer: QueryBuilder query changed',
 	YAxisUnitApplied = 'Meter Explorer: Y axis unit applied',
 	AddToAlertClicked = 'Meter Explorer: Add to alert clicked',
-	AddToDashboardClicked = 'Meter Explorer: Add to dashboard clicked',
 	SaveViewClicked = 'Meter Explorer: Save view clicked',
 	SearchApplied = 'Meter Explorer: Search applied',
 	ViewEdited = 'Meter Explorer: View edited',

@@ -23,7 +23,6 @@ export interface MetricDetails {
 		temporality?: Temporality;
 	};
 	alerts: MetricDetailsAlert[] | null;
-	dashboards: MetricDetailsDashboard[] | null;
 }
 
 export enum Temporality {
@@ -40,11 +39,6 @@ export interface MetricDetailsAttribute {
 export interface MetricDetailsAlert {
 	alert_name: string;
 	alert_id: string;
-}
-
-export interface MetricDetailsDashboard {
-	dashboard_name: string;
-	dashboard_id: string;
 }
 
 export interface MetricDetailsResponse {

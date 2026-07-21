@@ -105,7 +105,7 @@ function TracesView({
 		ENTITY_VERSION_V5,
 		{
 			queryKey,
-			enabled: !!stagedQuery && panelType === PANEL_TYPES.TRACE,
+			enabled: panelType === PANEL_TYPES.TRACE,
 		},
 	);
 

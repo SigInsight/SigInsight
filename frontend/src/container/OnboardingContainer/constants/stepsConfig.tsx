@@ -20,7 +20,6 @@ export const stepsMap = {
 	checkServiceStatus: 'checkServiceStatus',
 	restartOtelCollector: 'restartOtelCollector',
 	plotMetrics: 'plotMetrics',
-	configureHostmetricsJson: 'configureHostmetricsJson',
 	configureMetricsReceiver: 'configureMetricsReceiver',
 	addHttpDrain: 'addHttpDrain',
 	setupLogDrains: `setupLogDrains`,
@@ -34,7 +33,6 @@ export const stepsMap = {
 	createSidecarCollectorContainer: `createSidecarCollectorContainer`,
 	deployTaskDefinition: `deployTaskDefinition`,
 	ecsSendLogsData: `ecsSendLogsData`,
-	monitorDashboard: `monitorDashboard`,
 	setupCentralCollector: `setupCentralCollector`,
 	setupAzureEventsHub: `setupAzureEventsHub`,
 	sendTraces: `sendTraces`,
@@ -127,12 +125,6 @@ export const PlotMetrics: SelectedModuleStepProps = {
 	component: <MarkdownStep />,
 };
 
-export const ConfigureHostmetricsJSON: SelectedModuleStepProps = {
-	id: stepsMap.configureHostmetricsJson,
-	title: 'Configure Hostmetrics JSON',
-	component: <MarkdownStep />,
-};
-
 export const ConfigureMetricsReceiver: SelectedModuleStepProps = {
 	id: stepsMap.configureMetricsReceiver,
 	title: 'Configure Metrics Receiver',
@@ -200,11 +192,6 @@ export const DeployTaskDefinition: SelectedModuleStepProps = {
 export const EcsSendLogsData: SelectedModuleStepProps = {
 	id: stepsMap.ecsSendLogsData,
 	title: 'Send Logs Data',
-	component: <MarkdownStep />,
-};
-export const MonitorDashboard: SelectedModuleStepProps = {
-	id: stepsMap.monitorDashboard,
-	title: 'Monitor using Dashboard ',
 	component: <MarkdownStep />,
 };
 export const SetupCentralCollectorStep: SelectedModuleStepProps = {

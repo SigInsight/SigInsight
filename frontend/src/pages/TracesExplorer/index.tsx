@@ -8,20 +8,13 @@ import ExplorerCard from 'components/ExplorerCard/ExplorerCard';
 import QuickFilters from 'components/QuickFilters/QuickFilters';
 import { QuickFiltersSource, SignalType } from 'components/QuickFilters/types';
 import WarningPopover from 'components/WarningPopover/WarningPopover';
-import { LOCALSTORAGE } from 'constants/localStorage';
-import { AVAILABLE_EXPORT_PANEL_TYPES } from 'constants/panelTypes';
 import { initialQueriesMap, PANEL_TYPES } from 'constants/queryBuilder';
 import ExplorerOptionWrapper from 'container/ExplorerOptions/ExplorerOptionWrapper';
-import { useOptionsMenu } from 'container/OptionsMenu';
 import LeftToolbarActions from 'container/QueryBuilder/components/ToolbarActions/LeftToolbarActions';
 import RightToolbarActions from 'container/QueryBuilder/components/ToolbarActions/RightToolbarActions';
 import Toolbar from 'container/Toolbar/Toolbar';
-import {
-	getExportQueryData,
-	getQueryByPanelType,
-} from 'container/TracesExplorer/explorerUtils';
+import { getQueryByPanelType } from 'container/TracesExplorer/explorerUtils';
 import ListView from 'container/TracesExplorer/ListView';
-import { defaultSelectedColumns } from 'container/TracesExplorer/ListView/configs';
 import QuerySection from 'container/TracesExplorer/QuerySection';
 import TableView from 'container/TracesExplorer/TableView';
 import TracesView from 'container/TracesExplorer/TracesView';
@@ -32,21 +25,17 @@ import {
 	ICurrentQueryData,
 	useHandleExplorerTabChange,
 } from 'hooks/useHandleExplorerTabChange';
-import { useSafeNavigate } from 'hooks/useSafeNavigate';
 import { isEmpty } from 'lodash-es';
 import ErrorBoundaryFallback from 'pages/ErrorBoundaryFallback/ErrorBoundaryFallback';
 import { ExplorerViews } from 'pages/LogsExplorer/utils';
 import { TOOLBAR_VIEWS } from 'pages/TracesExplorer/constants';
 import { Warning } from 'types/api';
-import { Dashboard } from 'types/api/dashboard/getAll';
 import { Query } from 'types/api/queryBuilder/queryBuilderData';
 import { DataSource } from 'types/common/queryBuilder';
-import { generateExportToDashboardLink } from 'utils/dashboard/generateExportToDashboardLink';
 import {
 	explorerViewToPanelType,
 	getExplorerViewFromUrl,
 } from 'utils/explorerUtils';
-import { v4 } from 'uuid';
 
 import TimeSeriesView from './TimeSeriesView';
 
@@ -60,15 +49,6 @@ function TracesExplorer(): JSX.Element {
 		stagedQuery,
 		handleSetConfig,
 	} = useQueryBuilder();
-
-	const { options } = useOptionsMenu({
-		storageKey: LOCALSTORAGE.TRACES_LIST_OPTIONS,
-		dataSource: DataSource.TRACES,
-		aggregateOperator: 'noop',
-		initialOptions: {
-			selectColumns: defaultSelectedColumns,
-		},
-	});
 
 	const [searchParams] = useSearchParams();
 	const listQueryKeyRef = useRef<any>();
@@ -95,7 +75,6 @@ function TracesExplorer(): JSX.Element {
 	);
 
 	const { handleExplorerTabChange } = useHandleExplorerTabChange();
-	const { safeNavigate } = useSafeNavigate();
 
 	const handleChangeSelectedView = useCallback(
 		(view: ExplorerViews, querySearchParameters?: ICurrentQueryData): void => {
@@ -118,42 +97,6 @@ function TracesExplorer(): JSX.Element {
 				panelType || PANEL_TYPES.LIST,
 			),
 		[stagedQuery, panelType],
-	);
-
-	const handleExport = useCallback(
-		(dashboard: Dashboard | null, isNewDashboard?: boolean): void => {
-			if (!dashboard || !panelType) {
-				return;
-			}
-
-			const panelTypeParam = AVAILABLE_EXPORT_PANEL_TYPES.includes(panelType)
-				? panelType
-				: PANEL_TYPES.TIME_SERIES;
-
-			const widgetId = v4();
-
-			const query = getExportQueryData(
-				exportDefaultQuery,
-				panelTypeParam,
-				options,
-			);
-
-			logEvent('Traces Explorer: Add to dashboard successful', {
-				panelType,
-				isNewDashboard,
-				dashboardName: dashboard?.data?.title,
-			});
-
-			const dashboardEditView = generateExportToDashboardLink({
-				query,
-				panelType: panelTypeParam,
-				dashboardId: dashboard.id,
-				widgetId,
-			});
-
-			safeNavigate(dashboardEditView);
-		},
-		[exportDefaultQuery, panelType, safeNavigate, options],
 	);
 
 	useShareBuilderUrl({ defaultValue: defaultQuery });
@@ -273,7 +216,6 @@ function TracesExplorer(): JSX.Element {
 						disabled={!stagedQuery}
 						query={exportDefaultQuery}
 						sourcepage={DataSource.TRACES}
-						onExport={handleExport}
 						handleChangeSelectedView={handleChangeSelectedView}
 					/>
 				</div>

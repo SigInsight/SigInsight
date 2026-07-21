@@ -33,7 +33,6 @@ import { popupContainer } from 'utils/selectPopupContainer';
 
 import AlertRules from './AlertRules/AlertRules';
 import { defaultChecklistItemsState } from './constants';
-import Dashboards from './Dashboards/Dashboards';
 import DataSourceInfo from './DataSourceInfo/DataSourceInfo';
 import HomeChecklist, { ChecklistItem } from './HomeChecklist/HomeChecklist';
 import SavedViews from './SavedViews/SavedViews';
@@ -577,47 +576,6 @@ export default function Home(): JSX.Element {
 										<div className="section-content">
 											<div className="section-icon">
 												<img
-													src="/Icons/dashboard.svg"
-													alt="dashboard"
-													width={16}
-													height={16}
-												/>
-											</div>
-
-											<div className="section-title">
-												<div className="title">Create a dashboard</div>
-
-												<div className="description">
-													Create a dashboard to visualize your data.
-												</div>
-											</div>
-										</div>
-
-										<div className="section-actions">
-											<Button
-												type="default"
-												className="periscope-btn secondary"
-												icon={<Plus size={14} />}
-												onClick={(): void => {
-													logEvent('Homepage: Explore clicked', {
-														source: 'Dashboards',
-													});
-													history.push(ROUTES.ALL_DASHBOARD);
-												}}
-											>
-												Create dashboard
-											</Button>
-										</div>
-									</div>
-								</Card.Content>
-							</Card>
-
-							<Card className="explorer-card">
-								<Card.Content>
-									<div className="section-container">
-										<div className="section-content">
-											<div className="section-icon">
-												<img
 													src="/Icons/cracker.svg"
 													alt="cracker"
 													width={16}
@@ -661,10 +619,6 @@ export default function Home(): JSX.Element {
 						isMetricsIngestionActive) && (
 						<>
 							<AlertRules
-								onUpdateChecklistDoneItem={handleUpdateChecklistDoneItem}
-								loadingUserPreferences={loadingUserPreferences}
-							/>
-							<Dashboards
 								onUpdateChecklistDoneItem={handleUpdateChecklistDoneItem}
 								loadingUserPreferences={loadingUserPreferences}
 							/>

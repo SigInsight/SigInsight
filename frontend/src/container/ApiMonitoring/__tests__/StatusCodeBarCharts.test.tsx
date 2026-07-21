@@ -31,13 +31,13 @@ jest.mock(
 	}),
 );
 
-jest.mock('components/CeleryTask/useGetGraphCustomSeries', () => ({
+jest.mock('hooks/useGetGraphCustomSeries', () => ({
 	useGetGraphCustomSeries: (): { getCustomSeries: jest.Mock } => ({
 		getCustomSeries: jest.fn(),
 	}),
 }));
 
-jest.mock('components/CeleryTask/useNavigateToExplorer', () => ({
+jest.mock('hooks/useNavigateToExplorer', () => ({
 	useNavigateToExplorer: (): { navigateToExplorer: jest.Mock } => ({
 		navigateToExplorer: jest.fn(),
 	}),

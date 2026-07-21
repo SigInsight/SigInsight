@@ -151,7 +151,6 @@ function ListView({
 			enabled:
 				// don't make api call while the time range state in redux is loading
 				!timeRangeUpdateLoading &&
-				!!stagedQuery &&
 				panelType === PANEL_TYPES.LIST &&
 				!!options?.selectColumns?.length,
 		},

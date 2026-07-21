@@ -8,7 +8,7 @@
     "logs": false
   },
   "data_collected": {
-    "metrics":[
+    "metrics": [
       {
         "name": "aws_ElastiCache_NetworkMaxBytesOut_sum",
         "unit": "Bytes",
@@ -1928,7 +1928,7 @@
         "unit": "Percent",
         "type": "Gauge",
         "description": ""
-      }                      
+      }
     ]
   },
   "telemetry_collection_strategy": {
@@ -1939,16 +1939,5 @@
         }
       ]
     }
-  },
-  "assets": {
-    "dashboards": [
-      {
-        "id": "redis_overview",
-        "title": "ElastiCache Redis Overview",
-        "description": "Overview of ElastiCache Redis",
-        "image": "file://assets/dashboards/redis_overview.png",
-        "definition": "file://assets/dashboards/redis_overview.json"
-      }
-    ]
   }
 }

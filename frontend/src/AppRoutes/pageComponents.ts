@@ -93,22 +93,6 @@ export const OnboardingV2 = Loadable(
 	() => import(/* webpackChunkName: "Onboarding V2" */ 'pages/OnboardingPageV2'),
 );
 
-export const DashboardsListPage = Loadable(
-	() =>
-		import(
-			/* webpackChunkName: "DashboardsListPage" */ 'pages/DashboardsListPage'
-		),
-);
-
-export const DashboardPage = Loadable(
-	() => import(/* webpackChunkName: "DashboardPage" */ 'pages/DashboardPage'),
-);
-
-export const DashboardWidget = Loadable(
-	() =>
-		import(/* webpackChunkName: "DashboardWidgetPage" */ 'pages/DashboardWidget'),
-);
-
 export const EditRulesPage = Loadable(
 	() => import(/* webpackChunkName: "Alerts Edit Page" */ 'pages/EditRules'),
 );
@@ -216,36 +200,10 @@ export const InstalledIntegrations = Loadable(
 		),
 );
 
-export const MessagingQueuesMainPage = Loadable(
-	() =>
-		import(/* webpackChunkName: "MessagingQueues" */ 'pages/MessagingQueues'),
-);
-
-export const MQDetailPage = Loadable(
-	() =>
-		import(
-			/* webpackChunkName: "MQDetailPage" */ 'pages/MessagingQueues/MQDetailPage'
-		),
-);
-
 export const InfrastructureMonitoring = Loadable(
 	() =>
 		import(
 			/* webpackChunkName: "InfrastructureMonitoring" */ 'pages/InfrastructureMonitoring'
-		),
-);
-
-export const CeleryTask = Loadable(
-	() =>
-		import(
-			/* webpackChunkName: "CeleryTask" */ 'pages/Celery/CeleryTask/CeleryTask'
-		),
-);
-
-export const CeleryOverview = Loadable(
-	() =>
-		import(
-			/* webpackChunkName: "CeleryOverview" */ 'pages/Celery/CeleryOverview/CeleryOverview'
 		),
 );
 
@@ -256,13 +214,6 @@ export const MetricsExplorer = Loadable(
 
 export const ApiMonitoring = Loadable(
 	() => import(/* webpackChunkName: "ApiMonitoring" */ 'pages/ApiMonitoring'),
-);
-
-export const PublicDashboardPage = Loadable(
-	() =>
-		import(
-			/* webpackChunkName: "Public Dashboard Page" */ 'pages/PublicDashboard'
-		),
 );
 
 export const AlertTypeSelectionPage = Loadable(

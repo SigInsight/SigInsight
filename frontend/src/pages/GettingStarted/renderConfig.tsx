@@ -3,7 +3,6 @@ import {
 	AlignLeftOutlined,
 	ApiFilled,
 	BarChartOutlined,
-	DashboardFilled,
 	SoundFilled,
 } from '@ant-design/icons';
 import { Typography } from 'antd';
@@ -92,17 +91,12 @@ export const GetStartedContent = (): TGetStartedContentSection[] => {
 			],
 		},
 		{
-			heading: 'Send Metrics from your Infrastructure & create Dashboards',
+			heading: 'Send Metrics from your Infrastructure',
 			items: [
 				{
 					title: 'Send metrics to SigInsight',
 					icon: <BarChartOutlined style={{ fontSize: '3.5rem' }} />,
 					url: 'https://signoz.io/docs/userguide/send-metrics/',
-				},
-				{
-					title: 'Create and Manage Dashboards',
-					icon: <DashboardFilled style={{ fontSize: '3.5rem' }} />,
-					url: 'https://signoz.io/docs/userguide/manage-dashboards-and-panels/',
 				},
 			],
 		},

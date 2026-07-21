@@ -2,7 +2,6 @@
 import { useCallback } from 'react';
 import { useAddDynamicVariableToPanels } from 'hooks/dashboard/useAddDynamicVariableToPanels';
 import { updateLocalStorageDashboardVariable } from 'hooks/dashboard/useDashboardFromLocalStorage';
-import { useUpdateDashboard } from 'hooks/dashboard/useUpdateDashboard';
 import { IDashboardVariables } from 'providers/Dashboard/store/dashboardVariables/dashboardVariablesStoreTypes';
 import { useDashboardStore } from 'providers/Dashboard/store/useDashboardStore';
 import { IDashboardVariable } from 'types/api/dashboard/getAll';
@@ -50,7 +49,6 @@ export const useDashboardVariableUpdate = (): UseDashboardVariableUpdateReturn =
 		})),
 	);
 	const addDynamicVariableToPanels = useAddDynamicVariableToPanels();
-	const updateMutation = useUpdateDashboard();
 
 	const onValueUpdate = useCallback(
 		(
@@ -134,33 +132,15 @@ export const useDashboardVariableUpdate = (): UseDashboardVariableUpdateReturn =
 					)) ||
 				selectedDashboard;
 
-			updateMutation.mutateAsync(
-				{
-					id: selectedDashboard.id,
-
-					data: {
-						...newDashboard.data,
-						variables: updatedVariablesData,
-					},
+			setSelectedDashboard({
+				...newDashboard,
+				data: {
+					...newDashboard.data,
+					variables: updatedVariablesData,
 				},
-				{
-					onSuccess: (updatedDashboard) => {
-						if (updatedDashboard.data) {
-							setSelectedDashboard(updatedDashboard.data);
-							// notifications.success({
-							// 	message: t('variable_updated_successfully'),
-							// });
-						}
-					},
-				},
-			);
+			});
 		},
-		[
-			selectedDashboard,
-			addDynamicVariableToPanels,
-			updateMutation,
-			setSelectedDashboard,
-		],
+		[selectedDashboard, addDynamicVariableToPanels, setSelectedDashboard],
 	);
 
 	const createVariable = useCallback(

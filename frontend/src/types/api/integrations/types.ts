@@ -43,10 +43,6 @@ export interface IntegrationDetailedProps {
 		} | null;
 	};
 	categories: string[];
-	assets: {
-		dashboards: [];
-		alerts: [];
-	};
 	overview: string;
 	configuration: [
 		{

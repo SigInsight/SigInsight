@@ -1,8 +1,8 @@
 /* eslint-disable sonarjs/cognitive-complexity */
 import type { NotificationInstance } from 'antd/es/notification/interface';
-import { NavigateToExplorerProps } from 'components/CeleryTask/useNavigateToExplorer';
 import { LOCALSTORAGE } from 'constants/localStorage';
 import { PANEL_TYPES } from 'constants/queryBuilder';
+import { NavigateToExplorerProps } from 'hooks/useNavigateToExplorer';
 import getLabelName from 'lib/getLabelName';
 import { Widgets } from 'types/api/dashboard/getAll';
 import APIError from 'types/api/error';

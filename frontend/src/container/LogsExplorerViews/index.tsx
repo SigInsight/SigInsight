@@ -16,7 +16,6 @@ import setToLocalstorage from 'api/browser/localstorage/set';
 import logEvent from 'api/common/logEvent';
 import { ENTITY_VERSION_V5 } from 'constants/app';
 import { LOCALSTORAGE } from 'constants/localStorage';
-import { AVAILABLE_EXPORT_PANEL_TYPES } from 'constants/panelTypes';
 import { QueryParams } from 'constants/query';
 import { initialFilters, PANEL_TYPES } from 'constants/queryBuilder';
 import { DEFAULT_PER_PAGE_VALUE } from 'container/Controls/config';
@@ -37,7 +36,6 @@ import TimeSeriesView from 'container/TimeSeriesView/TimeSeriesView';
 import { useCopyLogLink } from 'hooks/logs/useCopyLogLink';
 import { useGetExplorerQueryRange } from 'hooks/queryBuilder/useGetExplorerQueryRange';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
-import { useSafeNavigate } from 'hooks/useSafeNavigate';
 import useUrlQueryData from 'hooks/useUrlQueryData';
 import useUrlYAxisUnit from 'hooks/useUrlYAxisUnit';
 import { isEmpty, isUndefined } from 'lodash-es';
@@ -45,7 +43,6 @@ import LiveLogs from 'pages/LiveLogs';
 import { UpdateTimeInterval } from 'store/actions';
 import { AppState } from 'store/reducers';
 import { Warning } from 'types/api';
-import { Dashboard } from 'types/api/dashboard/getAll';
 import APIError from 'types/api/error';
 import { ILog } from 'types/api/logs/log';
 import { Query, TagFilter } from 'types/api/queryBuilder/queryBuilderData';
@@ -53,7 +50,6 @@ import { Filter } from 'types/api/v5/queryRange';
 import { QueryDataV3 } from 'types/api/widgets/getQuery';
 import { DataSource } from 'types/common/queryBuilder';
 import { GlobalReducer } from 'types/reducer/globalTime';
-import { generateExportToDashboardLink } from 'utils/dashboard/generateExportToDashboardLink';
 import { v4 } from 'uuid';
 
 import LogsActionsContainer from './LogsActionsContainer';
@@ -76,7 +72,6 @@ function LogsExplorerViewsContainer({
 	showLiveLogs: boolean;
 	handleChangeSelectedView: ChangeViewFunctionType;
 }): JSX.Element {
-	const { safeNavigate } = useSafeNavigate();
 	const dispatch = useDispatch();
 
 	const [showFrequencyChart, setShowFrequencyChart] = useState(
@@ -267,42 +262,6 @@ function LogsExplorerViewsContainer({
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [data?.payload]);
-
-	const handleExport = useCallback(
-		(dashboard: Dashboard | null, isNewDashboard?: boolean): void => {
-			if (!dashboard || !selectedPanelType) {
-				return;
-			}
-
-			const panelTypeParam = AVAILABLE_EXPORT_PANEL_TYPES.includes(
-				selectedPanelType,
-			)
-				? selectedPanelType
-				: PANEL_TYPES.TIME_SERIES;
-
-			const widgetId = v4();
-
-			if (!exportDefaultQuery) {
-				return;
-			}
-
-			logEvent('Logs Explorer: Add to dashboard successful', {
-				panelType: selectedPanelType,
-				isNewDashboard,
-				dashboardName: dashboard?.data?.title,
-			});
-
-			const dashboardEditView = generateExportToDashboardLink({
-				query: exportDefaultQuery,
-				panelType: panelTypeParam,
-				dashboardId: dashboard.id,
-				widgetId,
-			});
-
-			safeNavigate(dashboardEditView);
-		},
-		[safeNavigate, exportDefaultQuery, selectedPanelType],
-	);
 
 	useEffect(() => {
 		const currentData = data?.payload?.data?.newResult?.data?.result || [];
@@ -518,7 +477,6 @@ function LogsExplorerViewsContainer({
 			<ExplorerOptionWrapper
 				disabled={!stagedQuery}
 				query={exportDefaultQuery}
-				onExport={handleExport}
 				sourcepage={DataSource.LOGS}
 				handleChangeSelectedView={handleChangeSelectedView}
 			/>

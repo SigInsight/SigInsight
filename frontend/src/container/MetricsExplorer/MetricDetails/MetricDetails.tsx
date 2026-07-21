@@ -15,8 +15,8 @@ import ROUTES from '../../../constants/routes';
 import { useHandleExplorerTabChange } from '../../../hooks/useHandleExplorerTabChange';
 import { MetricsExplorerEventKeys, MetricsExplorerEvents } from '../events';
 import { isInspectEnabled } from '../Inspect/utils';
+import AlertsPopover from './AlertsPopover';
 import AllAttributes from './AllAttributes';
-import DashboardsAndAlertsPopover from './DashboardsAndAlertsPopover';
 import Highlights from './Highlights';
 import Metadata from './Metadata';
 import { MetricDetailsProps } from './types';
@@ -184,7 +184,7 @@ function MetricDetails({
 		>
 			<div className="metric-details-content">
 				<Highlights metricName={metricName} />
-				<DashboardsAndAlertsPopover metricName={metricName} />
+				<AlertsPopover metricName={metricName} />
 				<Metadata
 					metricName={metricName}
 					metadata={metadata}

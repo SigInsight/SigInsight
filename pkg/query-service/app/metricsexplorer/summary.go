@@ -2,37 +2,31 @@ package metricsexplorer
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"sort"
 
 	"strings"
 	"time"
 
-	signozerrors "github.com/SigNoz/signoz/pkg/errors"
-
 	"log/slog"
 
 	"golang.org/x/sync/errgroup"
 
-	"github.com/SigNoz/signoz/pkg/modules/dashboard"
 	"github.com/SigNoz/signoz/pkg/query-service/interfaces"
 	"github.com/SigNoz/signoz/pkg/query-service/model"
 	"github.com/SigNoz/signoz/pkg/query-service/model/metrics_explorer"
 	v3 "github.com/SigNoz/signoz/pkg/query-service/model/v3"
 	"github.com/SigNoz/signoz/pkg/query-service/rules"
-	"github.com/SigNoz/signoz/pkg/types/authtypes"
 	"github.com/SigNoz/signoz/pkg/valuer"
 )
 
 type SummaryService struct {
 	reader       interfaces.Reader
 	rulesManager *rules.Manager
-	dashboard    dashboard.Module
 }
 
-func NewSummaryService(reader interfaces.Reader, alertManager *rules.Manager, dashboard dashboard.Module) *SummaryService {
-	return &SummaryService{reader: reader, rulesManager: alertManager, dashboard: dashboard}
+func NewSummaryService(reader interfaces.Reader, alertManager *rules.Manager) *SummaryService {
+	return &SummaryService{reader: reader, rulesManager: alertManager}
 }
 
 func (receiver *SummaryService) FilterKeys(ctx context.Context, params *metrics_explorer.FilterKeyRequest) (*metrics_explorer.FilterKeyResponse, *model.ApiError) {
@@ -154,42 +148,6 @@ func (receiver *SummaryService) GetMetricsSummary(ctx context.Context, orgID val
 		}
 		if attributes != nil {
 			metricDetailsDTO.Attributes = *attributes
-		}
-		return nil
-	})
-
-	g.Go(func() error {
-		var metricNames []string
-		metricNames = append(metricNames, metricName)
-		claims, errv2 := authtypes.ClaimsFromContext(ctx)
-		if errv2 != nil {
-			return &model.ApiError{Typ: model.ErrorInternal, Err: errv2}
-		}
-
-		orgID, err := valuer.NewUUID(claims.OrgID)
-		if err != nil {
-			return &model.ApiError{Typ: model.ErrorBadData, Err: err}
-		}
-		data, err := receiver.dashboard.GetByMetricNames(ctx, orgID, metricNames)
-		if err != nil {
-			return err
-		}
-		if data != nil {
-			jsonData, err := json.Marshal(data)
-			if err != nil {
-				slog.Error("error marshalling data", signozerrors.Attr(err))
-				return &model.ApiError{Typ: "MarshallingErr", Err: err}
-			}
-
-			var dashboards map[string][]metrics_explorer.Dashboard
-			err = json.Unmarshal(jsonData, &dashboards)
-			if err != nil {
-				slog.Error("error unmarshalling data", signozerrors.Attr(err))
-				return &model.ApiError{Typ: "UnMarshallingErr", Err: err}
-			}
-			if _, ok := dashboards[metricName]; ok {
-				metricDetailsDTO.Dashboards = dashboards[metricName]
-			}
 		}
 		return nil
 	})
@@ -332,39 +290,10 @@ func (receiver *SummaryService) GetRelatedMetrics(ctx context.Context, params *m
 		metricNames[i] = ms.Name
 	}
 
-	// Fetch dashboards and alerts concurrently
+	// Fetch alerts for related metrics.
 	g, ctx := errgroup.WithContext(ctx)
 
-	dashboardsRelatedData := make(map[string][]metrics_explorer.Dashboard)
 	alertsRelatedData := make(map[string][]metrics_explorer.Alert)
-
-	g.Go(func() error {
-		claims, errv2 := authtypes.ClaimsFromContext(ctx)
-		if errv2 != nil {
-			return &model.ApiError{Typ: model.ErrorInternal, Err: errv2}
-		}
-		orgID, err := valuer.NewUUID(claims.OrgID)
-		if err != nil {
-			return &model.ApiError{Typ: model.ErrorBadData, Err: err}
-		}
-		names, err := receiver.dashboard.GetByMetricNames(ctx, orgID, metricNames)
-		if err != nil {
-			return err
-		}
-		if names != nil {
-			jsonData, err := json.Marshal(names)
-			if err != nil {
-				slog.Error("error marshalling dashboard data", signozerrors.Attr(err))
-				return &model.ApiError{Typ: "MarshallingErr", Err: err}
-			}
-			err = json.Unmarshal(jsonData, &dashboardsRelatedData)
-			if err != nil {
-				slog.Error("error unmarshalling dashboard data", signozerrors.Attr(err))
-				return &model.ApiError{Typ: "UnMarshallingErr", Err: err}
-			}
-		}
-		return nil
-	})
 
 	g.Go(func() error {
 		rulesData, apiError := receiver.rulesManager.GetAlertDetailsForMetricNames(ctx, metricNames)
@@ -400,9 +329,6 @@ func (receiver *SummaryService) GetRelatedMetrics(ctx context.Context, params *m
 		relatedMetric := metrics_explorer.RelatedMetrics{
 			Name:  ms.Name,
 			Query: getQueryRangeForRelateMetricsList(ms.Name, relatedMetricsMap[ms.Name]),
-		}
-		if dashboardsDetails, ok := dashboardsRelatedData[ms.Name]; ok {
-			relatedMetric.Dashboards = dashboardsDetails
 		}
 		if alerts, ok := alertsRelatedData[ms.Name]; ok {
 			relatedMetric.Alerts = alerts

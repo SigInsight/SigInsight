@@ -198,15 +198,6 @@ func readServiceDefinition(cloudProvider string, svcDirpath string) (*Definition
 }
 
 func validateServiceDefinition(s *Definition) error {
-	// Validate dashboard data
-	seenDashboardIds := map[string]interface{}{}
-	for _, dd := range s.Assets.Dashboards {
-		if _, seen := seenDashboardIds[dd.Id]; seen {
-			return fmt.Errorf("multiple dashboards found with id %s", dd.Id)
-		}
-		seenDashboardIds[dd.Id] = nil
-	}
-
 	if s.Strategy == nil {
 		return fmt.Errorf("telemetry_collection_strategy is required")
 	}

@@ -48,7 +48,7 @@ Special case: `log.body.X` normalizes to `{FieldContext: body, Name: X}` — the
 
 ### Invariant: Historical aliases must be preserved
 
-The `fieldContexts` map includes aliases (`tag` -> `attribute`, `spanfield` -> `span`, `logfield` -> `log`). These exist because older database entries use these names. Removing or changing these aliases will break existing saved queries and dashboard configurations.
+The `fieldContexts` map includes aliases (`tag` -> `attribute`, `spanfield` -> `span`, `logfield` -> `log`). These exist because older database entries use these names. Removing or changing these aliases will break existing saved queries and panel configurations.
 
 ---
 

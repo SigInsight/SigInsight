@@ -55,10 +55,9 @@ describe('RolesSettings', () => {
 
 		// Custom roles
 		expect(screen.getByText('billing-manager')).toBeInTheDocument();
-		expect(screen.getByText('dashboard-creator')).toBeInTheDocument();
 
 		// Custom roles count badge
-		expect(screen.getByText('2')).toBeInTheDocument();
+		expect(screen.getByText('1')).toBeInTheDocument();
 
 		// Column headers
 		expect(screen.getByText('Name')).toBeInTheDocument();
@@ -86,7 +85,6 @@ describe('RolesSettings', () => {
 		expect(await screen.findByText('billing-manager')).toBeInTheDocument();
 		expect(screen.queryByText('signoz-admin')).not.toBeInTheDocument();
 		expect(screen.queryByText('signoz-editor')).not.toBeInTheDocument();
-		expect(screen.queryByText('dashboard-creator')).not.toBeInTheDocument();
 	});
 
 	it('filters roles by search query on description', async () => {

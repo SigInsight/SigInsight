@@ -95,7 +95,7 @@ jest.mock('hooks/useSafeNavigate', () => ({
 describe('Column unit selector panel unit test', () => {
 	it('unit selectors should be rendered for queries and formula', () => {
 		const mockLocation = {
-			pathname: `${process.env.FRONTEND_API_ENDPOINT}/${ROUTES.DASHBOARD_WIDGET}/`,
+			pathname: `${process.env.FRONTEND_API_ENDPOINT}/${ROUTES.METRICS_EXPLORER}`,
 		};
 		(useLocation as jest.Mock).mockReturnValue(mockLocation);
 		const { getByText } = render(

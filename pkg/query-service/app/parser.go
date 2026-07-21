@@ -23,9 +23,6 @@ import (
 
 	"github.com/SigNoz/govaluate"
 
-	"github.com/SigNoz/signoz/pkg/query-service/app/integrations/messagingQueues/kafka"
-	queues2 "github.com/SigNoz/signoz/pkg/query-service/app/integrations/messagingQueues/queues"
-
 	"github.com/gorilla/mux"
 	promModel "github.com/prometheus/common/model"
 	"go.uber.org/multierr"
@@ -967,24 +964,6 @@ func ParseQueryRangeParams(r *http.Request) (*v3.QueryRangeParamsV3, *model.ApiE
 	}
 
 	return queryRangeParams, nil
-}
-
-// ParseKafkaQueueBody parse for messaging queue params
-func ParseKafkaQueueBody(r *http.Request) (*kafka.MessagingQueue, *model.ApiError) {
-	messagingQueue := new(kafka.MessagingQueue)
-	if err := json.NewDecoder(r.Body).Decode(messagingQueue); err != nil {
-		return nil, &model.ApiError{Typ: model.ErrorBadData, Err: fmt.Errorf("cannot parse the request body: %v", err)}
-	}
-	return messagingQueue, nil
-}
-
-// ParseQueueBody parses for any queue
-func ParseQueueBody(r *http.Request) (*queues2.QueueListRequest, *model.ApiError) {
-	queue := new(queues2.QueueListRequest)
-	if err := json.NewDecoder(r.Body).Decode(queue); err != nil {
-		return nil, &model.ApiError{Typ: model.ErrorBadData, Err: fmt.Errorf("cannot parse the request body: %v", err)}
-	}
-	return queue, nil
 }
 
 // ParseRequestBody for third party APIs

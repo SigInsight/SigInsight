@@ -31,14 +31,11 @@ import { useDashboardVariables } from 'hooks/dashboard/useDashboardVariables';
 import { useGetQueryRange } from 'hooks/queryBuilder/useGetQueryRange';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
 import { useChartMutable } from 'hooks/useChartMutable';
-import useComponentPermission from 'hooks/useComponentPermission';
-import { useSafeNavigate } from 'hooks/useSafeNavigate';
 import useUrlQuery from 'hooks/useUrlQuery';
 import { GetQueryResultsProps } from 'lib/dashboard/getQueryResults';
 import { getDashboardVariables } from 'lib/dashboardVariables/getDashboardVariables';
 import GetMinMax from 'lib/getMinMax';
 import { isEmpty } from 'lodash-es';
-import { useAppContext } from 'providers/App/App';
 import {
 	selectIsDashboardLocked,
 	useDashboardStore,
@@ -70,7 +67,6 @@ function FullView({
 	setCurrentGraphRef,
 	enableDrillDown = false,
 }: FullViewProps): JSX.Element {
-	const { safeNavigate } = useSafeNavigate();
 	const { selectedTime: globalSelectedTime, minTime, maxTime } = useSelector<
 		AppState,
 		GlobalReducer
@@ -94,9 +90,6 @@ function FullView({
 		[setColumnWidths, widget.id],
 	);
 	const { dashboardVariables } = useDashboardVariables();
-	const { user } = useAppContext();
-
-	const [editWidget] = useComponentPermission(['edit_widget'], user.role);
 
 	const getSelectedTime = useCallback(
 		() =>
@@ -150,16 +143,10 @@ function FullView({
 		};
 	});
 
-	const {
-		drilldownQuery,
-		dashboardEditView,
-		handleResetQuery,
-		showResetQuery,
-	} = useDrilldown({
+	const { drilldownQuery, handleResetQuery, showResetQuery } = useDrilldown({
 		enableDrillDown,
 		widget,
 		setRequestData,
-		selectedDashboard,
 		selectedPanelType,
 	});
 
@@ -284,19 +271,6 @@ function FullView({
 										{showResetQuery && (
 											<Button type="link" onClick={handleResetQuery}>
 												Reset Query
-											</Button>
-										)}
-										{editWidget && (
-											<Button
-												className="switch-edit-btn"
-												disabled={response.isFetching || response.isLoading}
-												onClick={(): void => {
-													if (dashboardEditView) {
-														safeNavigate(dashboardEditView);
-													}
-												}}
-											>
-												Switch to Edit Mode
 											</Button>
 										)}
 										<PanelTypeSelector

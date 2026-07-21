@@ -1,9 +1,7 @@
 export const GlobalShortcuts = {
 	NavigateToServices: 'shift+s',
-	NavigateToDashboards: 'shift+d',
 	NavigateToAlerts: 'shift+a',
 	NavigateToExceptions: 'shift+e',
-	NavigateToMessagingQueues: 'shift+q',
 	ToggleSidebar: 'shift+b',
 	NavigateToHome: 'shift+h',
 
@@ -31,10 +29,8 @@ export const GlobalShortcuts = {
 export const GlobalShortcutsName = {
 	NavigateToServices: 'shift+s',
 	NavigateToTraces: 'shift+t',
-	NavigateToDashboards: 'shift+d',
 	NavigateToAlerts: 'shift+a',
 	NavigateToExceptions: 'shift+e',
-	NavigateToMessagingQueues: 'shift+q',
 	ToggleSidebar: 'shift+b',
 	NavigateToHome: 'shift+h',
 	NavigateToTracesFunnel: 'shift+t+f',
@@ -55,10 +51,8 @@ export const GlobalShortcutsDescription = {
 	NavigateToServices: 'Navigate to Services page',
 	NavigateToTraces: 'Navigate to Traces Explorer',
 	NavigateToLogs: 'Navigate to Logs Explorer',
-	NavigateToDashboards: 'Navigate to Dashboards List',
 	NavigateToAlerts: 'Navigate to Alerts List',
 	NavigateToExceptions: 'Navigate to Exceptions List',
-	NavigateToMessagingQueues: 'Navigate to Messaging Queues',
 	ToggleSidebar: 'Toggle sidebar visibility',
 	NavigateToTracesFunnel: 'Navigate to Traces Funnel',
 	NavigateToTracesViews: 'Navigate to Traces Views',

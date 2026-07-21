@@ -143,7 +143,6 @@ describe('CmdKPalette', () => {
 		expect(screen.getByText('Settings')).toBeInTheDocument();
 
 		expect(screen.getByText(HOME_LABEL)).toBeInTheDocument();
-		expect(screen.getByText('Go to Dashboards')).toBeInTheDocument();
 		expect(screen.queryByText('Switch to Dark Mode')).not.toBeInTheDocument();
 		expect(
 			screen.queryByText('Switch to Light Mode [Beta]'),
@@ -184,11 +183,10 @@ describe('CmdKPalette', () => {
 		expect(screen.getByText(HOME_LABEL)).toBeInTheDocument();
 	});
 
-	test('closing the palette via handleInvoke sets open to false', async () => {
+	test('closing the palette via navigation sets open to false', async () => {
 		render(<CmdKPalette userRole="ADMIN" />);
 
-		const dashItem = screen.getByText('Go to Dashboards');
-		await userEvent.click(dashItem);
+		await userEvent.click(screen.getByText(HOME_LABEL));
 
 		// last call from handleInvoke should set open to false
 		expect(mockSetOpen).toHaveBeenCalledWith(false);

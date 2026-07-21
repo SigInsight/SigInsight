@@ -191,6 +191,7 @@ func NewSQLMigrationProviderFactories(
 		sqlmigration.NewAddAssistantConfigFactory(sqlschema),
 		sqlmigration.NewUpdateTraceHTTPMethodQuickFilterFactory(),
 		sqlmigration.NewDropLogPipelinesFactory(),
+		sqlmigration.NewDropDashboardTablesFactory(),
 	)
 }
 
@@ -269,8 +270,6 @@ func NewAPIServerProviderFactories(orgGetter organization.Getter, authz authz.Au
 			handlers.Global,
 			implpromote.NewHandler(modules.Promote),
 			handlers.FlaggerHandler,
-			modules.Dashboard,
-			handlers.Dashboard,
 			handlers.MetricsExplorer,
 			handlers.Fields,
 			handlers.AuthzHandler,

@@ -1,4 +1,4 @@
 ### Plot Metrics in SigNoz Cloud
 
-You can follow the instructions [here](https://signoz.io/docs/tutorial/kubernetes-infra-metrics/#plot-metrics-in-signoz-ui) to create a metrics dashboard to see you metrics.
+Use Metrics Explorer to query and visualize the Kubernetes metrics collected by the OpenTelemetry Collector.
 

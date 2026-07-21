@@ -273,14 +273,6 @@ func mergeAndEnsureBackwardCompatibility(ctx context.Context, logger *slog.Logge
 		config.Tokenizer.JWT.Secret = os.Getenv("SIGNOZ_JWT_SECRET")
 	}
 
-	if os.Getenv("KAFKA_SPAN_EVAL") != "" {
-		logger.WarnContext(ctx, "[Deprecated] env KAFKA_SPAN_EVAL is deprecated and scheduled for removal. Please use SIGNOZ_FLAGGER_CONFIG_BOOLEAN_KAFKA__SPAN__EVAL instead.")
-		if config.Flagger.Config.Boolean == nil {
-			config.Flagger.Config.Boolean = make(map[string]bool)
-		}
-		config.Flagger.Config.Boolean[flagger.FeatureKafkaSpanEval.String()] = os.Getenv("KAFKA_SPAN_EVAL") == "true"
-	}
-
 }
 
 func (config Config) Collect(_ context.Context, _ valuer.UUID) (map[string]any, error) {

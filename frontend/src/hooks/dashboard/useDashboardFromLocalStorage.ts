@@ -15,7 +15,7 @@ interface DashboardLocalStorageVariables {
 }
 
 function readAll(): DashboardLocalStorageVariables {
-	const raw = getLocalStorageKey(LOCALSTORAGE.DASHBOARD_VARIABLES);
+	const raw = getLocalStorageKey(LOCALSTORAGE.VARIABLE_SELECTIONS);
 	if (!raw) {
 		return {};
 	}
@@ -29,7 +29,7 @@ function readAll(): DashboardLocalStorageVariables {
 
 function writeAll(data: DashboardLocalStorageVariables): void {
 	try {
-		setLocalStorageKey(LOCALSTORAGE.DASHBOARD_VARIABLES, JSON.stringify(data));
+		setLocalStorageKey(LOCALSTORAGE.VARIABLE_SELECTIONS, JSON.stringify(data));
 	} catch {
 		console.error('Failed to set dashboard variables in local storage');
 	}

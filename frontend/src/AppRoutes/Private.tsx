@@ -49,13 +49,6 @@ function PrivateRoute({ children }: PrivateRouteProps): JSX.Element {
 			return;
 		}
 
-		// if the current route is public dashboard then don't redirect to login
-		const isPublicDashboard = currentRoute?.path === ROUTES.PUBLIC_DASHBOARD;
-
-		if (isPublicDashboard) {
-			return;
-		}
-
 		// if the current route
 		if (currentRoute) {
 			const { isPrivate, key } = currentRoute;

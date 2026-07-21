@@ -14,8 +14,6 @@ import (
 	"github.com/SigNoz/signoz/pkg/modules/apdex/implapdex"
 	"github.com/SigNoz/signoz/pkg/modules/cloudintegration"
 	"github.com/SigNoz/signoz/pkg/modules/cloudintegration/implcloudintegration"
-	"github.com/SigNoz/signoz/pkg/modules/dashboard"
-	"github.com/SigNoz/signoz/pkg/modules/dashboard/impldashboard"
 	"github.com/SigNoz/signoz/pkg/modules/fields"
 	"github.com/SigNoz/signoz/pkg/modules/fields/implfields"
 	"github.com/SigNoz/signoz/pkg/modules/metricsexplorer"
@@ -42,7 +40,6 @@ type Handlers struct {
 	Assistant               assistant.Handler
 	SavedView               savedview.Handler
 	Apdex                   apdex.Handler
-	Dashboard               dashboard.Handler
 	QuickFilter             quickfilter.Handler
 	TraceFunnel             tracefunnel.Handler
 	RawDataExport           rawdataexport.Handler
@@ -74,7 +71,6 @@ func NewHandlers(
 		Assistant:               implassistant.NewHandler(modules.Assistant),
 		SavedView:               implsavedview.NewHandler(modules.SavedView),
 		Apdex:                   implapdex.NewHandler(modules.Apdex),
-		Dashboard:               impldashboard.NewHandler(modules.Dashboard, providerSettings),
 		QuickFilter:             implquickfilter.NewHandler(modules.QuickFilter),
 		TraceFunnel:             impltracefunnel.NewHandler(modules.TraceFunnel),
 		RawDataExport:           implrawdataexport.NewHandler(modules.RawDataExport),
