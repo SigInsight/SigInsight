@@ -24,9 +24,6 @@
     }
   ],
   "assets": {
-    "logs": {
-      "pipelines": []
-    },
     "dashboards": null,
     "alerts": null
   },

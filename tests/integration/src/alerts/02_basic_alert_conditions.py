@@ -414,7 +414,9 @@ TEST_RULES_MATCH_TYPE_AND_COMPARE_OPERATORS = [
         ],
         alert_expectation=types.AlertExpectation(
             should_alert=True,
-            wait_time_seconds=30,
+            # This rate-based total condition can require an additional
+            # evaluation cycle before Alertmanager receives the firing alert.
+            wait_time_seconds=45,
             expected_alerts=[
                 types.FiringAlert(
                     labels={

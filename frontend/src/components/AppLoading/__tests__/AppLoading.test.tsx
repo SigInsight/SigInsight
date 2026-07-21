@@ -1,15 +1,6 @@
 import { render, screen } from '@testing-library/react';
 
-import getLocal from '../../../api/browser/localstorage/get';
 import AppLoading from '../AppLoading';
-
-jest.mock('../../../api/browser/localstorage/get', () => ({
-	__esModule: true,
-	default: jest.fn(),
-}));
-
-// Access the mocked function
-const mockGet = (getLocal as unknown) as jest.Mock;
 
 describe('AppLoading', () => {
 	const SIGNOZ_TEXT = 'SigInsight';
@@ -17,14 +8,7 @@ describe('AppLoading', () => {
 		'OpenTelemetry-Native Logs, Metrics and Traces in a single pane';
 	const CONTAINER_SELECTOR = '.app-loading-container';
 
-	beforeEach(() => {
-		jest.clearAllMocks();
-	});
-
 	it('should render loading screen with dark theme by default', () => {
-		// Mock localStorage to return dark theme (or undefined for default)
-		mockGet.mockReturnValue(undefined);
-
 		render(<AppLoading />);
 
 		// Check if main elements are rendered
@@ -39,9 +23,6 @@ describe('AppLoading', () => {
 	});
 
 	it('should have proper structure and content', () => {
-		// Mock localStorage to return dark theme
-		mockGet.mockReturnValue(undefined);
-
 		render(<AppLoading />);
 
 		// Check for brand logo
@@ -60,19 +41,5 @@ describe('AppLoading', () => {
 		// Check for loader
 		const loader = document.querySelector('.loader');
 		expect(loader).toBeInTheDocument();
-	});
-
-	it('should handle localStorage errors gracefully', () => {
-		// Mock localStorage to throw an error
-		mockGet.mockImplementation(() => {
-			throw new Error('localStorage not available');
-		});
-
-		render(<AppLoading />);
-
-		// Should still render with dark theme as fallback
-		expect(screen.getByText(SIGNOZ_TEXT)).toBeInTheDocument();
-		const container = screen.getByText(SIGNOZ_TEXT).closest(CONTAINER_SELECTOR);
-		expect(container).toHaveClass('dark');
 	});
 });

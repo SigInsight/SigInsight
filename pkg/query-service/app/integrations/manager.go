@@ -12,7 +12,6 @@ import (
 	"github.com/SigNoz/signoz/pkg/types"
 	"github.com/SigNoz/signoz/pkg/types/dashboardtypes"
 	"github.com/SigNoz/signoz/pkg/types/integrationtypes"
-	"github.com/SigNoz/signoz/pkg/types/pipelinetypes"
 	ruletypes "github.com/SigNoz/signoz/pkg/types/ruletypes"
 	"github.com/SigNoz/signoz/pkg/valuer"
 )
@@ -33,14 +32,9 @@ type IntegrationSummary struct {
 }
 
 type IntegrationAssets struct {
-	Logs       LogsAssets                             `json:"logs"`
 	Dashboards []dashboardtypes.StorableDashboardData `json:"dashboards"`
 
 	Alerts []ruletypes.PostableRule `json:"alerts"`
-}
-
-type LogsAssets struct {
-	Pipelines []pipelinetypes.PostablePipeline `json:"pipelines"`
 }
 
 type IntegrationConfigStep struct {
@@ -252,41 +246,6 @@ func (m *Manager) UninstallIntegration(
 	integrationId string,
 ) *model.ApiError {
 	return m.installedIntegrationsRepo.delete(ctx, orgId, integrationId)
-}
-
-func (m *Manager) GetPipelinesForInstalledIntegrations(
-	ctx context.Context,
-	orgId string,
-) ([]pipelinetypes.GettablePipeline, error) {
-	installedIntegrations, apiErr := m.getInstalledIntegrations(ctx, orgId)
-	if apiErr != nil {
-		return nil, apiErr
-	}
-
-	gettablePipelines := []pipelinetypes.GettablePipeline{}
-	for _, ii := range installedIntegrations {
-		for _, p := range ii.Assets.Logs.Pipelines {
-			gettablePipelines = append(gettablePipelines, pipelinetypes.GettablePipeline{
-				// Alias is used for identifying integration pipelines. Id can't be used for this
-				// since versioning while saving pipelines requires a new id for each version
-				// to avoid altering history when pipelines are edited/reordered etc
-				StoreablePipeline: pipelinetypes.StoreablePipeline{
-					Alias: AliasForIntegrationPipeline(ii.Id, p.Alias),
-					Identifiable: types.Identifiable{
-						ID: valuer.GenerateUUID(),
-					},
-					OrderID:     p.OrderID,
-					Enabled:     p.Enabled,
-					Name:        p.Name,
-					Description: p.Description,
-				},
-				Filter: p.Filter,
-				Config: p.Config,
-			})
-		}
-	}
-
-	return gettablePipelines, nil
 }
 
 func (m *Manager) dashboardUuid(integrationId string, dashboardId string) string {

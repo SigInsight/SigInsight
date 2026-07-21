@@ -44,7 +44,6 @@ import (
 
 	"github.com/SigNoz/signoz/pkg/contextlinks"
 	traceFunnelsModule "github.com/SigNoz/signoz/pkg/modules/tracefunnel"
-	"github.com/SigNoz/signoz/pkg/query-service/agentConf"
 	"github.com/SigNoz/signoz/pkg/query-service/app/cloudintegrations"
 	"github.com/SigNoz/signoz/pkg/query-service/app/inframetrics"
 	queues2 "github.com/SigNoz/signoz/pkg/query-service/app/integrations/messagingQueues/queues"
@@ -68,14 +67,11 @@ import (
 	"github.com/SigNoz/signoz/pkg/types/featuretypes"
 	"github.com/SigNoz/signoz/pkg/types/instrumentationtypes"
 	"github.com/SigNoz/signoz/pkg/types/licensetypes"
-	"github.com/SigNoz/signoz/pkg/types/opamptypes"
-	"github.com/SigNoz/signoz/pkg/types/pipelinetypes"
 	qbtypes "github.com/SigNoz/signoz/pkg/types/querybuildertypes/querybuildertypesv5"
 	"github.com/SigNoz/signoz/pkg/types/ruletypes"
 	traceFunnels "github.com/SigNoz/signoz/pkg/types/tracefunneltypes"
 
 	"github.com/SigNoz/signoz/pkg/query-service/app/integrations/messagingQueues/kafka"
-	"github.com/SigNoz/signoz/pkg/query-service/app/logparsingpipeline"
 	"github.com/SigNoz/signoz/pkg/query-service/interfaces"
 	"github.com/SigNoz/signoz/pkg/query-service/model"
 	"github.com/SigNoz/signoz/pkg/query-service/rules"
@@ -114,8 +110,6 @@ type APIHandler struct {
 	IntegrationsController *integrations.Controller
 
 	CloudIntegrationsController *cloudintegrations.Controller
-
-	LogsParsingPipelineController *logparsingpipeline.LogParsingPipelineController
 
 	// SetupCompleted indicates if SigNoz is ready for general use.
 	// at the moment, we mark the app ready when the first user
@@ -161,9 +155,6 @@ type APIHandlerOpts struct {
 	// Cloud Provider Integrations
 	CloudIntegrationsController *cloudintegrations.Controller
 
-	// Log parsing pipelines
-	LogsParsingPipelineController *logparsingpipeline.LogParsingPipelineController
-
 	// Flux Interval
 	FluxInterval time.Duration
 
@@ -208,30 +199,29 @@ func NewAPIHandler(opts APIHandlerOpts, config signoz.Config) (*APIHandler, erro
 	//quickFilterModule := quickfilter.NewAPI(opts.QuickFilterModule)
 
 	aH := &APIHandler{
-		logger:                        slog.Default(),
-		reader:                        opts.Reader,
-		temporalityMap:                make(map[string]map[v3.Temporality]bool),
-		ruleManager:                   opts.RuleManager,
-		IntegrationsController:        opts.IntegrationsController,
-		CloudIntegrationsController:   opts.CloudIntegrationsController,
-		LogsParsingPipelineController: opts.LogsParsingPipelineController,
-		querier:                       querier,
-		querierV2:                     querierv2,
-		hostsRepo:                     hostsRepo,
-		processesRepo:                 processesRepo,
-		podsRepo:                      podsRepo,
-		nodesRepo:                     nodesRepo,
-		namespacesRepo:                namespacesRepo,
-		clustersRepo:                  clustersRepo,
-		deploymentsRepo:               deploymentsRepo,
-		daemonsetsRepo:                daemonsetsRepo,
-		statefulsetsRepo:              statefulsetsRepo,
-		jobsRepo:                      jobsRepo,
-		pvcsRepo:                      pvcsRepo,
-		SummaryService:                summaryService,
-		AlertmanagerAPI:               opts.AlertmanagerAPI,
-		Signoz:                        opts.Signoz,
-		QueryParserAPI:                opts.QueryParserAPI,
+		logger:                      slog.Default(),
+		reader:                      opts.Reader,
+		temporalityMap:              make(map[string]map[v3.Temporality]bool),
+		ruleManager:                 opts.RuleManager,
+		IntegrationsController:      opts.IntegrationsController,
+		CloudIntegrationsController: opts.CloudIntegrationsController,
+		querier:                     querier,
+		querierV2:                   querierv2,
+		hostsRepo:                   hostsRepo,
+		processesRepo:               processesRepo,
+		podsRepo:                    podsRepo,
+		nodesRepo:                   nodesRepo,
+		namespacesRepo:              namespacesRepo,
+		clustersRepo:                clustersRepo,
+		deploymentsRepo:             deploymentsRepo,
+		daemonsetsRepo:              daemonsetsRepo,
+		statefulsetsRepo:            statefulsetsRepo,
+		jobsRepo:                    jobsRepo,
+		pvcsRepo:                    pvcsRepo,
+		SummaryService:              summaryService,
+		AlertmanagerAPI:             opts.AlertmanagerAPI,
+		Signoz:                      opts.Signoz,
+		QueryParserAPI:              opts.QueryParserAPI,
 	}
 
 	logsQueryBuilder := logsv4.PrepareLogsQuery
@@ -4040,10 +4030,6 @@ func (aH *APIHandler) RegisterLogsRoutes(router *mux.Router, am *middleware.Auth
 	subRouter.HandleFunc("/fields", am.EditAccess(aH.logFieldUpdate)).Methods(http.MethodPost)
 	subRouter.HandleFunc("/aggregate", am.ViewAccess(aH.logAggregate)).Methods(http.MethodGet)
 
-	// log pipelines
-	subRouter.HandleFunc("/pipelines/preview", am.ViewAccess(aH.PreviewLogsPipelinesHandler)).Methods(http.MethodPost)
-	subRouter.HandleFunc("/pipelines/{version}", am.ViewAccess(aH.ListLogsPipelinesHandler)).Methods(http.MethodGet)
-	subRouter.HandleFunc("/pipelines", am.EditAccess(aH.CreateLogsPipeline)).Methods(http.MethodPost)
 }
 
 func (aH *APIHandler) logFields(w http.ResponseWriter, r *http.Request) {
@@ -4084,177 +4070,6 @@ func (aH *APIHandler) getLogs(w http.ResponseWriter, r *http.Request) {
 
 func (aH *APIHandler) logAggregate(w http.ResponseWriter, r *http.Request) {
 	aH.WriteJSON(w, r, model.GetLogsAggregatesResponse{})
-}
-
-func parseAgentConfigVersion(r *http.Request) (int, error) {
-	versionString := mux.Vars(r)["version"]
-
-	if versionString == "latest" {
-		return -1, nil
-	}
-
-	version64, err := strconv.ParseInt(versionString, 0, 8)
-
-	if err != nil {
-		return 0, errors.WrapInvalidInputf(err, errors.CodeInvalidInput, "invalid version number")
-	}
-
-	if version64 <= 0 {
-		return 0, errors.NewInvalidInputf(errors.CodeInvalidInput, "invalid version number")
-	}
-
-	return int(version64), nil
-}
-
-func (aH *APIHandler) PreviewLogsPipelinesHandler(w http.ResponseWriter, r *http.Request) {
-	req := logparsingpipeline.PipelinesPreviewRequest{}
-
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		render.Error(w, errors.WrapInvalidInputf(err, errors.CodeInvalidInput, "failed to decode request body"))
-		return
-	}
-
-	resultLogs, err := aH.LogsParsingPipelineController.PreviewLogsPipelines(r.Context(), &req)
-	if err != nil {
-		render.Error(w, err)
-		return
-	}
-
-	aH.Respond(w, resultLogs)
-}
-
-func (aH *APIHandler) ListLogsPipelinesHandler(w http.ResponseWriter, r *http.Request) {
-	claims, err := authtypes.ClaimsFromContext(r.Context())
-	if err != nil {
-		render.Error(w, err)
-		return
-	}
-
-	orgID, errv2 := valuer.NewUUID(claims.OrgID)
-	if errv2 != nil {
-		render.Error(w, errv2)
-		return
-	}
-
-	version, err := parseAgentConfigVersion(r)
-	if err != nil {
-		render.Error(w, err)
-		return
-	}
-
-	var payload *logparsingpipeline.PipelinesResponse
-	if version != -1 {
-		payload, err = aH.listLogsPipelinesByVersion(r.Context(), orgID, version)
-	} else {
-		payload, err = aH.listLogsPipelines(r.Context(), orgID)
-	}
-	if err != nil {
-		render.Error(w, err)
-		return
-	}
-
-	aH.Respond(w, payload)
-}
-
-// listLogsPipelines lists logs pipelines for latest version
-func (aH *APIHandler) listLogsPipelines(ctx context.Context, orgID valuer.UUID) (
-	*logparsingpipeline.PipelinesResponse, error,
-) {
-	// get latest agent config
-	latestVersion := -1
-	lastestConfig, err := agentConf.GetLatestVersion(ctx, orgID, opamptypes.ElementTypeLogPipelines)
-	if err != nil && !errorsV2.Ast(err, errorsV2.TypeNotFound) {
-		return nil, err
-	}
-
-	if lastestConfig != nil {
-		latestVersion = lastestConfig.Version
-	}
-
-	payload, err := aH.LogsParsingPipelineController.GetPipelinesByVersion(ctx, orgID, latestVersion)
-	if err != nil {
-		return nil, err
-	}
-
-	// todo(Nitya): make a new API for history pagination
-	limit := 10
-	history, err := agentConf.GetConfigHistory(ctx, orgID, opamptypes.ElementTypeLogPipelines, limit)
-	if err != nil {
-		return nil, err
-	}
-	payload.History = history
-	return payload, nil
-}
-
-// listLogsPipelinesByVersion lists pipelines along with config version history
-func (aH *APIHandler) listLogsPipelinesByVersion(ctx context.Context, orgID valuer.UUID, version int) (
-	*logparsingpipeline.PipelinesResponse, error,
-) {
-	payload, err := aH.LogsParsingPipelineController.GetPipelinesByVersion(ctx, orgID, version)
-	if err != nil {
-		return nil, err
-	}
-
-	// todo(Nitya): make a new API for history pagination
-	limit := 10
-	history, err := agentConf.GetConfigHistory(ctx, orgID, opamptypes.ElementTypeLogPipelines, limit)
-	if err != nil {
-		return nil, err
-	}
-
-	payload.History = history
-	return payload, nil
-}
-
-func (aH *APIHandler) CreateLogsPipeline(w http.ResponseWriter, r *http.Request) {
-	claims, errv2 := authtypes.ClaimsFromContext(r.Context())
-	if errv2 != nil {
-		render.Error(w, errv2)
-		return
-	}
-
-	// prepare config by calling gen func
-	orgID, errv2 := valuer.NewUUID(claims.OrgID)
-	if errv2 != nil {
-		render.Error(w, errv2)
-		return
-	}
-	userID, errv2 := valuer.NewUUID(claims.UserID)
-	if errv2 != nil {
-		render.Error(w, errv2)
-		return
-	}
-
-	req := pipelinetypes.PostablePipelines{}
-
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		RespondError(w, model.BadRequest(err), nil)
-		return
-	}
-
-	createPipeline := func(
-		ctx context.Context,
-		postable []pipelinetypes.PostablePipeline,
-	) (*logparsingpipeline.PipelinesResponse, error) {
-		if len(postable) == 0 {
-			aH.logger.WarnContext(r.Context(), "found no pipelines in the http request, this will delete all the pipelines")
-		}
-
-		err := aH.LogsParsingPipelineController.ValidatePipelines(ctx, postable)
-		if err != nil {
-			return nil, err
-		}
-
-		return aH.LogsParsingPipelineController.ApplyPipelines(ctx, orgID, userID, postable)
-	}
-
-	res, err := createPipeline(r.Context(), req.Pipelines)
-	if err != nil {
-		render.Error(w, err)
-		return
-	}
-
-	aH.Respond(w, res)
 }
 
 func (aH *APIHandler) autocompleteAggregateAttributes(w http.ResponseWriter, r *http.Request) {

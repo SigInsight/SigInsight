@@ -37,7 +37,6 @@ jobs:
           - passwordauthn
           - callbackauthn
           - dashboard
-          - logspipelines
           - preference
           - querier
           - role

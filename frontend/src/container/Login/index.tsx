@@ -10,7 +10,7 @@ import AuthError from 'components/AuthError/AuthError';
 import ROUTES from 'constants/routes';
 import useUrlQuery from 'hooks/useUrlQuery';
 import history from 'lib/history';
-import { ArrowRight } from 'lucide-react';
+import { Activity, ArrowRight } from 'lucide-react';
 import { ErrorV2 } from 'types/api';
 import APIError from 'types/api/error';
 import { SessionsContext } from 'types/api/v2/sessions/context/get';
@@ -305,7 +305,7 @@ function Login(): JSX.Element {
 			<FormContainer form={form} onFinish={onSubmitHandler}>
 				<div className="login-form-header">
 					<div className="login-form-emoji">
-						<img src="/svgs/tv.svg" alt="TV" width="32" height="32" />
+						<Activity size={28} aria-hidden="true" />
 					</div>
 					<Typography.Title level={4} className="login-form-title">
 						Sign in to your workspace
@@ -325,7 +325,7 @@ function Login(): JSX.Element {
 								id="email"
 								data-testid="email"
 								required
-								placeholder="e.g. john@signoz.io"
+								placeholder="e.g. student@example.edu"
 								autoFocus
 								disabled={versionLoading}
 								className="login-form-input"
