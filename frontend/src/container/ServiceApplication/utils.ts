@@ -62,10 +62,15 @@ export const getServiceListFromQuery = ({
 	const services: ServicesList[] = [];
 	if (!isLoading) {
 		queries.forEach((query, index) => {
+			const topLevelOperation = topLevelOperations[index];
+			if (!topLevelOperation) {
+				return;
+			}
+
 			// handling error case if query fails
 			if (query.isError) {
 				const serviceData: ServicesList = {
-					serviceName: topLevelOperations[index][0].toString(),
+					serviceName: topLevelOperation[0].toString(),
 					p99: 0,
 					callRate: 0,
 					errorRate: 0,
@@ -78,7 +83,7 @@ export const getServiceListFromQuery = ({
 			if (query.data) {
 				const queryArray = query.data?.payload?.data?.newResult?.data?.result;
 				const serviceData: ServicesList = {
-					serviceName: topLevelOperations[index][0].toString(),
+					serviceName: topLevelOperation[0].toString(),
 					p99: parseFloat(getSeriesValue(queryArray, 'A')),
 					callRate: parseFloat(getSeriesValue(queryArray, 'D')),
 					errorRate: parseFloat(getSeriesValue(queryArray, 'F1')),

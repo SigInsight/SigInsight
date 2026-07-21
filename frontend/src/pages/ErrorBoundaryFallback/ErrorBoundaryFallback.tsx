@@ -1,8 +1,6 @@
-import { useCallback } from 'react';
 import { Button } from 'antd';
 import ROUTES from 'constants/routes';
-import { Home, LifeBuoy } from 'lucide-react';
-import { handleContactSupport } from 'pages/Integrations/utils';
+import { Home } from 'lucide-react';
 
 import './ErrorBoundaryFallback.styles.scss';
 
@@ -11,10 +9,6 @@ function ErrorBoundaryFallback(): JSX.Element {
 		// Go to home page
 		window.location.href = ROUTES.HOME;
 	};
-
-	const handleSupport = useCallback(() => {
-		handleContactSupport();
-	}, []);
 
 	return (
 		<div className="error-boundary-fallback-container">
@@ -37,15 +31,6 @@ function ErrorBoundaryFallback(): JSX.Element {
 						className="periscope-btn primary"
 					>
 						Go to Home
-					</Button>
-
-					<Button
-						className="periscope-btn secondary"
-						type="default"
-						onClick={handleSupport}
-						icon={<LifeBuoy size={16} />}
-					>
-						Contact Support
 					</Button>
 				</div>
 			</div>
