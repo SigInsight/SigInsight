@@ -177,7 +177,6 @@ export async function GetMetricQueryRange(
 	dynamicVariables?: IDashboardVariable[],
 	signal?: AbortSignal,
 	headers?: Record<string, string>,
-	_isInfraMonitoring?: boolean,
 ): Promise<MetricQueryRangeSuccessResponse> {
 	let legendMap: Record<string, string>;
 	let response:

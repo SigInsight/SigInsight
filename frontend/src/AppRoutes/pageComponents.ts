@@ -200,13 +200,6 @@ export const InstalledIntegrations = Loadable(
 		),
 );
 
-export const InfrastructureMonitoring = Loadable(
-	() =>
-		import(
-			/* webpackChunkName: "InfrastructureMonitoring" */ 'pages/InfrastructureMonitoring'
-		),
-);
-
 export const MetricsExplorer = Loadable(
 	() =>
 		import(/* webpackChunkName: "MetricsExplorer" */ 'pages/MetricsExplorer'),

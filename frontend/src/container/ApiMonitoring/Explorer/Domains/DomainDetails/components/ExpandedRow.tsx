@@ -6,6 +6,7 @@ import { LoadingOutlined } from '@ant-design/icons';
 import { Spin, Table } from 'antd';
 import type { ColumnType } from 'antd/lib/table';
 import logEvent from 'api/common/logEvent';
+import TableLoading from 'components/TableLoading/TableLoading';
 import { ENTITY_VERSION_V4 } from 'constants/app';
 import { REACT_QUERY_KEY } from 'constants/reactQueryKeys';
 import {
@@ -15,7 +16,6 @@ import {
 	getEndPointsColumnsConfig,
 	getEndPointsQueryPayload,
 } from 'container/ApiMonitoring/utils';
-import LoadingContainer from 'container/InfraMonitoringK8s/LoadingContainer';
 import { GetMetricQueryRange } from 'lib/dashboard/getQueryResults';
 import { AppState } from 'store/reducers';
 import { SuccessResponse } from 'types/api';
@@ -96,7 +96,7 @@ function ExpandedRow({
 	return (
 		<div className="expanded-table-container">
 			{groupedByRowQuery?.isFetching || groupedByRowQuery?.isLoading ? (
-				<LoadingContainer />
+				<TableLoading />
 			) : (
 				<div className="expanded-table">
 					<Table

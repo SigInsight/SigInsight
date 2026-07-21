@@ -1,0 +1,11 @@
+.table-loading-state {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	padding: 8px;
+
+	.table-loading-state-item {
+		height: 48px;
+		width: 100%;
+	}
+}

@@ -43,8 +43,6 @@
 	"ALERT_HISTORY": "SigInsight | Alert Rule History",
 	"ALERT_OVERVIEW": "SigInsight | Alert Rule Overview",
 	"ALERT_TYPE_SELECTION": "SigInsight | Select Alert Type",
-	"INFRASTRUCTURE_MONITORING_HOSTS": "SigInsight | Infra Monitoring",
-	"INFRASTRUCTURE_MONITORING_KUBERNETES": "SigInsight | Infra Monitoring",
 	"METER_EXPLORER": "SigInsight | Meter Explorer",
 	"METER_EXPLORER_VIEWS": "SigInsight | Meter Explorer Views",
 	"METER": "SigInsight | Meter",

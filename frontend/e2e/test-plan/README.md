@@ -21,7 +21,6 @@ This directory contains the structured test plan for the SigNoz application. Eac
 - `navigation/` — Navigation, sidebar, and cross-module flows
 - `exceptions/` — Exception and error handling scenarios
 - `external-apis/` — External API monitoring scenarios
-- `infrastructure/` — Infrastructure monitoring scenarios
 - `help-support/` — Help & support scenarios
 - `user-preferences/` — User preferences and personalization scenarios
 - `service-map/` — Service map scenarios

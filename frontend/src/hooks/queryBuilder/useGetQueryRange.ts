@@ -150,7 +150,6 @@ export const useGetQueryRange: UseGetQueryRange = (
 				dashboardDynamicVariables,
 				signal,
 				headers,
-				undefined,
 			),
 		...options,
 		retry,

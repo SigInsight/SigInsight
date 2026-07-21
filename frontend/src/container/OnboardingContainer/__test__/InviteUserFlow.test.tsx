@@ -41,11 +41,6 @@ describe('Onboarding invite team member flow', () => {
 					'Easily filter and query logs, and build alerts based on attributes in logs',
 			},
 			{
-				title: 'Infrastructure Monitoring',
-				description:
-					'Monitor Kubernetes infrastructure metrics, hostmetrics, or metrics of any third-party integration',
-			},
-			{
 				title: 'AWS Monitoring',
 				description:
 					'Monitor your traces, logs and metrics for AWS services like EC2, ECS, EKS etc.',

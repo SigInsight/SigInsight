@@ -18,10 +18,10 @@ import {
 } from 'api/generated/services/sigNoz.schemas';
 import { convertExpressionToFilters } from 'components/QueryBuilderV2/utils';
 import { initialQueriesMap } from 'constants/queryBuilder';
-import { usePageSize } from 'container/InfraMonitoringK8s/utils';
 import NoLogs from 'container/NoLogs/NoLogs';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
 import { useShareBuilderUrl } from 'hooks/queryBuilder/useShareBuilderUrl';
+import { usePageSize } from 'hooks/usePageSize';
 import ErrorBoundaryFallback from 'pages/ErrorBoundaryFallback/ErrorBoundaryFallback';
 import { AppState } from 'store/reducers';
 import { TagFilter } from 'types/api/queryBuilder/queryBuilderData';

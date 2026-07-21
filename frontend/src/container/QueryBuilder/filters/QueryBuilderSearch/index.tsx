@@ -14,7 +14,6 @@ import cx from 'classnames';
 import { OPERATORS } from 'constants/queryBuilder';
 import ROUTES from 'constants/routes';
 import { LogsExplorerShortcuts } from 'constants/shortcuts/logsExplorerShortcuts';
-import { K8sCategory } from 'container/InfraMonitoringK8s/constants';
 import { getDataTypes } from 'container/LogDetailedView/utils';
 import { useKeyboardHotkeys } from 'hooks/hotkeys/useKeyboardHotkeys';
 import {
@@ -74,10 +73,8 @@ function QueryBuilderSearch({
 	className,
 	placeholder,
 	suffixIcon,
-	isInfraMonitoring,
 	isMetricsExplorer,
 	disableNavigationShortcuts,
-	entity,
 }: QueryBuilderSearchProps): JSX.Element {
 	const { pathname } = useLocation();
 	const isLogsExplorerPage = useMemo(() => pathname === ROUTES.LOGS_EXPLORER, [
@@ -113,8 +110,6 @@ function QueryBuilderSearch({
 		dotMetricsEnabled,
 		whereClauseConfig,
 		isLogsExplorerPage,
-		isInfraMonitoring,
-		entity,
 		isMetricsExplorer,
 	);
 
@@ -131,8 +126,6 @@ function QueryBuilderSearch({
 		dotMetricsEnabled,
 		searchKey,
 		isLogsExplorerPage,
-		isInfraMonitoring,
-		entity,
 		isMetricsExplorer,
 	);
 
@@ -142,12 +135,11 @@ function QueryBuilderSearch({
 
 	const toggleEditMode = useCallback(
 		(value: boolean) => {
-			// Editing mode is required only in infra monitoring or metrics explorer
-			if (isInfraMonitoring || isMetricsExplorer) {
+			if (isMetricsExplorer) {
 				setIsEditingTag(value);
 			}
 		},
-		[isInfraMonitoring, isMetricsExplorer],
+		[isMetricsExplorer],
 	);
 
 	const onTagRender = ({
@@ -173,7 +165,7 @@ function QueryBuilderSearch({
 			updateTag(value);
 			// Editing starts
 			toggleEditMode(true);
-			if (isInfraMonitoring || isMetricsExplorer) {
+			if (isMetricsExplorer) {
 				setSearchValue(value);
 			} else {
 				handleSearch(value);
@@ -253,11 +245,8 @@ function QueryBuilderSearch({
 	);
 
 	const isMetricsDataSource = useMemo(
-		() =>
-			query.dataSource === DataSource.METRICS &&
-			!isInfraMonitoring &&
-			!isMetricsExplorer,
-		[query.dataSource, isInfraMonitoring, isMetricsExplorer],
+		() => query.dataSource === DataSource.METRICS && !isMetricsExplorer,
+		[query.dataSource, isMetricsExplorer],
 	);
 
 	const fetchValueDataType = (value: unknown, operator: string): DataTypes => {
@@ -306,8 +295,7 @@ function QueryBuilderSearch({
 			};
 		});
 
-		// If in infra monitoring or metrics explorer, only run the onChange query when editing is finsished.
-		if (isInfraMonitoring || isMetricsExplorer) {
+		if (isMetricsExplorer) {
 			if (!isEditingTag) {
 				onChange(initialTagFilters);
 			}
@@ -515,9 +503,7 @@ interface QueryBuilderSearchProps {
 	className?: string;
 	placeholder?: string;
 	suffixIcon?: React.ReactNode;
-	isInfraMonitoring?: boolean;
 	disableNavigationShortcuts?: boolean;
-	entity?: K8sCategory | null;
 	isMetricsExplorer?: boolean;
 }
 
@@ -526,9 +512,7 @@ QueryBuilderSearch.defaultProps = {
 	className: '',
 	placeholder: PLACEHOLDER,
 	suffixIcon: undefined,
-	isInfraMonitoring: false,
 	disableNavigationShortcuts: false,
-	entity: null,
 	isMetricsExplorer: false,
 };
 

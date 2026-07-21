@@ -6,7 +6,6 @@ import { DataSourceType } from '../Steps/DataSource/DataSource';
 export enum ModulesMap {
 	APM = 'APM',
 	LogsManagement = 'LogsManagement',
-	InfrastructureMonitoring = 'InfrastructureMonitoring',
 	AwsMonitoring = 'AwsMonitoring',
 	AzureMonitoring = 'AzureMonitoring',
 }
@@ -81,7 +80,6 @@ export const frameworksMap = {
 		],
 	},
 	LogsManagement: {},
-	InfrastructureMonitoring: {},
 	AwsMonitoring: {},
 	AzureMonitoring: {},
 };
@@ -209,30 +207,6 @@ const supportedLogsTypes = [
 	},
 ];
 
-export const defaultInfraMetricsType = {
-	name: 'Kubernetes Infra Metrics',
-	id: 'kubernetesInfraMetrics',
-	imgURL: `/Logos/kubernetes.svg`,
-};
-
-const supportedInfraMetrics = [
-	{
-		name: 'Kubernetes Infra Metrics',
-		id: 'kubernetesInfraMetrics',
-		imgURL: `/Logos/kubernetes.svg`,
-	},
-	{
-		name: 'HostMetrics',
-		id: 'hostMetrics',
-		imgURL: `/Logos/software-window.svg`,
-	},
-	{
-		name: 'Other Metrics',
-		id: 'otherMetrics',
-		imgURL: `/Logos/cmd-terminal.svg`,
-	},
-];
-
 export const defaultAwsServices = {
 	name: 'EC2 - App/Server Logs',
 	id: 'awsEc2ApplicationLogs',
@@ -321,10 +295,6 @@ export const getDataSources = (module: ModuleProps): DataSourceType[] => {
 		return supportedLanguages;
 	}
 
-	if (module.id === ModulesMap.InfrastructureMonitoring) {
-		return supportedInfraMetrics;
-	}
-
 	if (module.id === ModulesMap.LogsManagement) {
 		return supportedLogsTypes;
 	}
@@ -374,7 +344,6 @@ export const hasFrameworks = ({
 
 	return !(
 		moduleID === ModulesMap.LogsManagement ||
-		moduleID === ModulesMap.InfrastructureMonitoring ||
 		(moduleID === ModulesMap.APM && dataSourceName === 'go') ||
 		(moduleID === ModulesMap.APM && dataSourceName === 'rails') ||
 		(moduleID === ModulesMap.APM && dataSourceName === '.NET') ||
@@ -388,8 +357,6 @@ export const hasFrameworks = ({
 export const moduleRouteMap = {
 	[ModulesMap.APM]: ROUTES.GET_STARTED_APPLICATION_MONITORING,
 	[ModulesMap.LogsManagement]: ROUTES.GET_STARTED_LOGS_MANAGEMENT,
-	[ModulesMap.InfrastructureMonitoring]:
-		ROUTES.GET_STARTED_INFRASTRUCTURE_MONITORING,
 	[ModulesMap.AwsMonitoring]: ROUTES.GET_STARTED_AWS_MONITORING,
 	[ModulesMap.AzureMonitoring]: ROUTES.GET_STARTED_AZURE_MONITORING,
 };

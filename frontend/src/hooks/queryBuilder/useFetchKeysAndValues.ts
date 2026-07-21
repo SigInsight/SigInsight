@@ -6,10 +6,6 @@ import { getAttributesValues } from 'api/queryBuilder/getAttributesValues';
 import { DATA_TYPE_VS_ATTRIBUTE_VALUES_KEY } from 'constants/queryBuilder';
 import { DEBOUNCE_DELAY } from 'constants/queryBuilderFilterConfig';
 import {
-	GetK8sEntityToAggregateAttribute,
-	K8sCategory,
-} from 'container/InfraMonitoringK8s/constants';
-import {
 	getRemovePrefixFromKey,
 	getTagToken,
 	isInNInOperator,
@@ -53,8 +49,6 @@ export const useFetchKeysAndValues = (
 	dotMetricsEnabled: boolean,
 	searchKey: string,
 	shouldUseSuggestions?: boolean,
-	isInfraMonitoring?: boolean,
-	entity?: K8sCategory | null,
 	isMetricsExplorer?: boolean,
 ): IuseFetchKeysAndValues => {
 	const [keys, setKeys] = useState<BaseAutocompleteData[]>([]);
@@ -104,17 +98,10 @@ export const useFetchKeysAndValues = (
 
 	const isQueryEnabled = useMemo(
 		() =>
-			query.dataSource === DataSource.METRICS &&
-			!isInfraMonitoring &&
-			!isMetricsExplorer
+			query.dataSource === DataSource.METRICS && !isMetricsExplorer
 				? !!query.dataSource && !!query.aggregateAttribute?.dataType
 				: true,
-		[
-			isInfraMonitoring,
-			isMetricsExplorer,
-			query.aggregateAttribute?.dataType,
-			query.dataSource,
-		],
+		[isMetricsExplorer, query.aggregateAttribute?.dataType, query.dataSource],
 	);
 
 	const { data, isFetching, status } = useGetAggregateKeys(
@@ -122,18 +109,13 @@ export const useFetchKeysAndValues = (
 			searchText: searchKey,
 			dataSource: query.dataSource,
 			aggregateOperator: query.aggregateOperator || '',
-			aggregateAttribute:
-				isInfraMonitoring && entity
-					? GetK8sEntityToAggregateAttribute(entity, dotMetricsEnabled)
-					: query.aggregateAttribute?.key || '',
+			aggregateAttribute: query.aggregateAttribute?.key || '',
 			tagType: query.aggregateAttribute?.type ?? null,
 		},
 		{
 			queryKey: [searchParams],
 			enabled: isMetricsExplorer ? false : isQueryEnabled && !shouldUseSuggestions,
 		},
-		isInfraMonitoring, // isInfraMonitoring
-		entity, // infraMonitoringEntity
 	);
 
 	const {
@@ -214,24 +196,7 @@ export const useFetchKeysAndValues = (
 
 		try {
 			let payload;
-			if (isInfraMonitoring && entity) {
-				const response = await getAttributesValues({
-					aggregateOperator: 'noop',
-					dataSource: query.dataSource,
-					aggregateAttribute:
-						GetK8sEntityToAggregateAttribute(entity, dotMetricsEnabled) ||
-						query.aggregateAttribute?.key ||
-						'',
-					attributeKey: filterAttributeKey?.key ?? tagKey,
-					filterAttributeKeyDataType:
-						filterAttributeKey?.dataType ?? DataTypes.EMPTY,
-					tagType: filterAttributeKey?.type ?? '',
-					searchText: isInNInOperator(tagOperator)
-						? tagValue[tagValue.length - 1]?.toString() ?? ''
-						: tagValue?.toString() ?? '',
-				});
-				payload = response.payload;
-			} else if (isMetricsExplorer) {
+			if (isMetricsExplorer) {
 				const response = await getMetricsListFilterValues({
 					searchText: searchKey,
 					filterKey: filterAttributeKey?.key ?? tagKey,
@@ -336,15 +301,13 @@ export const useFetchKeysAndValues = (
 			fetchingSuggestionsStatus === 'success' &&
 			suggestionsData?.payload?.attributes
 		) {
-			if (!isInfraMonitoring) {
-				setKeys(suggestionsData.payload.attributes);
-				setSourceKeys((prevState) =>
-					uniqWith(
-						[...(suggestionsData.payload.attributes ?? []), ...prevState],
-						isEqual,
-					),
-				);
-			}
+			setKeys(suggestionsData.payload.attributes);
+			setSourceKeys((prevState) =>
+				uniqWith(
+					[...(suggestionsData.payload.attributes ?? []), ...prevState],
+					isEqual,
+				),
+			);
 		} else {
 			setKeys([]);
 		}
@@ -360,7 +323,6 @@ export const useFetchKeysAndValues = (
 		suggestionsData?.payload?.attributes,
 		fetchingSuggestionsStatus,
 		suggestionsData?.payload?.example_queries,
-		isInfraMonitoring,
 	]);
 
 	return {
