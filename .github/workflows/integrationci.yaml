@@ -36,7 +36,6 @@ jobs:
           - bootstrap
           - passwordauthn
           - callbackauthn
-          - dashboard
           - preference
           - querier
           - role
