@@ -830,7 +830,6 @@ components:
       - title
       - icon
       - overview
-      - assets
       - supported_signals
       - dataCollected
       - telemetryCollectionStrategy
