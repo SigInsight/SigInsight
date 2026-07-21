@@ -1,14 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useMutation } from 'react-query';
-import { Radio, RadioChangeEvent, Switch, Tag } from 'antd';
+import { Switch } from 'antd';
 import setLocalStorageApi from 'api/browser/localstorage/set';
 import logEvent from 'api/common/logEvent';
 import updateUserPreference from 'api/v1/user/preferences/name/update';
 import { AxiosError } from 'axios';
 import { USER_PREFERENCES } from 'constants/userPreferences';
-import useThemeMode, { useIsDarkMode, useSystemTheme } from 'hooks/useDarkMode';
 import { useNotifications } from 'hooks/useNotifications';
-import { MonitorCog, Moon, Sun } from 'lucide-react';
 import { useAppContext } from 'providers/App/App';
 import { UserPreference } from 'types/api/preferences/preference';
 import { showErrorNotification } from 'utils/error';
@@ -19,10 +17,7 @@ import UserInfo from './UserInfo';
 import './MySettings.styles.scss';
 
 function MySettings(): JSX.Element {
-	const isDarkMode = useIsDarkMode();
 	const { userPreferences, updateUserPreferenceInContext } = useAppContext();
-	const { toggleTheme, autoSwitch, setAutoSwitch } = useThemeMode();
-	const systemTheme = useSystemTheme();
 	const { notifications } = useNotifications();
 
 	const [sideNavPinned, setSideNavPinned] = useState(false);
@@ -48,74 +43,6 @@ function MySettings(): JSX.Element {
 			showErrorNotification(notifications, error as AxiosError);
 		},
 	});
-
-	const themeOptions = [
-		{
-			label: (
-				<div className="theme-option">
-					<Moon data-testid="dark-theme-icon" size={12} /> Dark{' '}
-				</div>
-			),
-			value: 'dark',
-		},
-		{
-			label: (
-				<div className="theme-option">
-					<Sun size={12} data-testid="light-theme-icon" /> Light{' '}
-					<Tag bordered={false} color="geekblue">
-						Beta
-					</Tag>
-				</div>
-			),
-			value: 'light',
-		},
-		{
-			label: (
-				<div className="theme-option">
-					<MonitorCog size={12} data-testid="auto-theme-icon" /> System{' '}
-				</div>
-			),
-			value: 'auto',
-		},
-	];
-
-	const [theme, setTheme] = useState(() => {
-		if (autoSwitch) {
-			return 'auto';
-		}
-		return isDarkMode ? 'dark' : 'light';
-	});
-
-	const handleThemeChange = ({ target: { value } }: RadioChangeEvent): void => {
-		logEvent('Account Settings: Theme Changed', {
-			theme: value,
-		});
-		setTheme(value);
-
-		if (value === 'auto') {
-			setAutoSwitch(true);
-		} else {
-			setAutoSwitch(false);
-			// Only toggle if the current theme is different from the target
-			const targetIsDark = value === 'dark';
-			if (targetIsDark !== isDarkMode) {
-				toggleTheme();
-			}
-		}
-	};
-
-	useEffect(() => {
-		if (autoSwitch) {
-			setTheme('auto');
-			return;
-		}
-
-		if (isDarkMode) {
-			setTheme('dark');
-		} else {
-			setTheme('light');
-		}
-	}, [autoSwitch, isDarkMode]);
 
 	const handleSideNavPinnedChange = (checked: boolean): void => {
 		logEvent('Account Settings: Sidebar Pinned Changed', {
@@ -182,35 +109,6 @@ function MySettings(): JSX.Element {
 				</div>
 
 				<div className="user-preference-section-content">
-					<div className="user-preference-section-content-item theme-selector">
-						<div className="user-preference-section-content-item-title-action">
-							Select your theme
-							<Radio.Group
-								options={themeOptions}
-								onChange={handleThemeChange}
-								value={theme}
-								optionType="button"
-								buttonStyle="solid"
-								data-testid="theme-selector"
-								size="middle"
-							/>
-						</div>
-
-						<div className="user-preference-section-content-item-description">
-							Select if SigInsight&apos;s appearance should be light, dark, or
-							automatically follow your system preference
-						</div>
-
-						{autoSwitch && (
-							<div className="auto-theme-info">
-								<div className="auto-theme-status">
-									Currently following system theme:{' '}
-									<strong>{systemTheme === 'dark' ? 'Dark' : 'Light'}</strong>
-								</div>
-							</div>
-						)}
-					</div>
-
 					<TimezoneAdaptation />
 
 					<div className="user-preference-section-content-item">

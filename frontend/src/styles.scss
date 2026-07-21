@@ -24,22 +24,6 @@
 :root {
 	--si-font-sans: 'Work Sans', sans-serif;
 	--si-font-mono: 'Geist Mono', monospace;
-	--si-accent: #4f5fd7;
-	--si-accent-hover: #414fbe;
-	--si-accent-soft: rgba(79, 95, 215, 0.12);
-	--si-positive: #16856b;
-	--si-bg-canvas: #f5f6f8;
-	--si-bg-surface: #ffffff;
-	--si-bg-subtle: #eef0f4;
-	--si-border: #dfe2e8;
-	--si-text-primary: #20242c;
-	--si-text-secondary: #626976;
-	--si-text-muted: #8a919e;
-	--si-radius-sm: 4px;
-	--si-radius-md: 6px;
-}
-
-.isDarkMode {
 	--si-accent: #8793ed;
 	--si-accent-hover: #a3acf4;
 	--si-accent-soft: rgba(135, 147, 237, 0.14);
@@ -51,6 +35,8 @@
 	--si-text-primary: #f0f1f4;
 	--si-text-secondary: #b4bac5;
 	--si-text-muted: #858d9b;
+	--si-radius-sm: 4px;
+	--si-radius-md: 6px;
 }
 
 #root,

@@ -115,19 +115,6 @@ jest.mock('hooks/useNotifications', (): unknown => ({
 	useNotifications: (): { notifications: [] } => ({ notifications: [] }),
 }));
 
-// mock theme hook
-jest.mock('hooks/useDarkMode', (): unknown => ({
-	useThemeMode: (): {
-		setAutoSwitch: jest.Mock;
-		setTheme: jest.Mock;
-		theme: string;
-	} => ({
-		setAutoSwitch: jest.fn(),
-		setTheme: jest.fn(),
-		theme: 'dark',
-	}),
-}));
-
 // mock updateUserPreference API and react-query mutation
 jest.mock('api/v1/user/preferences/name/update', (): jest.Mock => jest.fn());
 jest.mock('react-query', (): unknown => {
@@ -157,7 +144,11 @@ describe('CmdKPalette', () => {
 
 		expect(screen.getByText(HOME_LABEL)).toBeInTheDocument();
 		expect(screen.getByText('Go to Dashboards')).toBeInTheDocument();
-		expect(screen.getByText('Switch to Dark Mode')).toBeInTheDocument();
+		expect(screen.queryByText('Switch to Dark Mode')).not.toBeInTheDocument();
+		expect(
+			screen.queryByText('Switch to Light Mode [Beta]'),
+		).not.toBeInTheDocument();
+		expect(screen.queryByText('Switch to System Theme')).not.toBeInTheDocument();
 	});
 
 	test('clicking a navigation item calls history.push with correct route', async () => {

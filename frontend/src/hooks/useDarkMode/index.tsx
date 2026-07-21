@@ -4,130 +4,45 @@ import {
 	Dispatch,
 	ReactNode,
 	SetStateAction,
-	useCallback,
 	// eslint-disable-next-line no-restricted-imports
 	useContext,
-	useEffect,
-	useMemo,
-	useState,
 } from 'react';
 import { theme as antdTheme, ThemeConfig } from 'antd';
-import get from 'api/browser/localstorage/get';
-import set from 'api/browser/localstorage/set';
-import { LOCALSTORAGE } from 'constants/localStorage';
 
 import { THEME_MODE } from './constant';
 
-const THEME_COLORS = {
-	dark: {
-		accent: '#8793ED',
-		accentHover: '#A3ACF4',
-		background: '#121419',
-		border: '#303540',
-		elevated: '#191C22',
-		hover: '#22262E',
-		shadow: '0 12px 32px rgba(0, 0, 0, 0.32)',
-		text: '#F0F1F4',
-		textSecondary: '#B4BAC5',
-	},
-	light: {
-		accent: '#4F5FD7',
-		accentHover: '#414FBE',
-		background: '#F5F6F8',
-		border: '#DFE2E8',
-		elevated: '#FFFFFF',
-		hover: '#EEF0F4',
-		shadow: '0 12px 32px rgba(32, 36, 44, 0.12)',
-		text: '#20242C',
-		textSecondary: '#626976',
-	},
+const DARK_THEME_COLORS = {
+	accent: '#8793ED',
+	accentHover: '#A3ACF4',
+	background: '#121419',
+	border: '#303540',
+	elevated: '#191C22',
+	hover: '#22262E',
+	shadow: '0 12px 32px rgba(0, 0, 0, 0.32)',
+	text: '#F0F1F4',
+	textSecondary: '#B4BAC5',
 } as const;
 
-export const ThemeContext = createContext({
+const noop = (): void => {};
+
+const DARK_THEME_CONTEXT = {
 	theme: THEME_MODE.DARK,
-	toggleTheme: (): void => {},
+	toggleTheme: noop,
 	autoSwitch: false,
-	setAutoSwitch: ((): void => {}) as Dispatch<SetStateAction<boolean>>,
-	setTheme: ((): void => {}) as Dispatch<SetStateAction<string>>,
-});
-
-// Hook to detect system theme preference
-export const useSystemTheme = (): 'light' | 'dark' => {
-	const [systemTheme, setSystemTheme] = useState<'light' | 'dark'>('dark');
-
-	useEffect(() => {
-		const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-		setSystemTheme(mediaQuery.matches ? 'dark' : 'light');
-
-		const handler = (e: MediaQueryListEvent): void => {
-			setSystemTheme(e.matches ? 'dark' : 'light');
-		};
-
-		mediaQuery.addEventListener('change', handler);
-		return (): void => mediaQuery.removeEventListener('change', handler);
-	}, []);
-
-	return systemTheme;
+	setAutoSwitch: noop as Dispatch<SetStateAction<boolean>>,
+	setTheme: noop as Dispatch<SetStateAction<string>>,
 };
 
+export const ThemeContext = createContext(DARK_THEME_CONTEXT);
+
+export const useSystemTheme = (): 'dark' => 'dark';
+
 export function ThemeProvider({ children }: ThemeProviderProps): JSX.Element {
-	const [theme, setThemeState] = useState(
-		get(LOCALSTORAGE.THEME) || THEME_MODE.DARK,
+	return (
+		<ThemeContext.Provider value={DARK_THEME_CONTEXT}>
+			{children}
+		</ThemeContext.Provider>
 	);
-	const [autoSwitch, setAutoSwitch] = useState(
-		get(LOCALSTORAGE.THEME_AUTO_SWITCH) === 'true',
-	);
-	const systemTheme = useSystemTheme();
-
-	// Handle auto-switch functionality
-	useEffect(() => {
-		if (autoSwitch) {
-			const newTheme = systemTheme === 'dark' ? THEME_MODE.DARK : THEME_MODE.LIGHT;
-			if (newTheme !== theme) {
-				setThemeState(newTheme);
-				set(LOCALSTORAGE.THEME, newTheme);
-			}
-		}
-	}, [systemTheme, autoSwitch, theme]);
-
-	// Save auto-switch preference
-	useEffect(() => {
-		set(LOCALSTORAGE.THEME_AUTO_SWITCH, autoSwitch.toString());
-	}, [autoSwitch]);
-
-	const toggleTheme = useCallback((): void => {
-		if (theme === THEME_MODE.LIGHT) {
-			setThemeState(THEME_MODE.DARK);
-			set(LOCALSTORAGE.THEME, THEME_MODE.DARK);
-		} else {
-			setThemeState(THEME_MODE.LIGHT);
-			set(LOCALSTORAGE.THEME, THEME_MODE.LIGHT);
-		}
-		set(LOCALSTORAGE.THEME_ANALYTICS_V1, '');
-	}, [theme]);
-
-	const setTheme = useCallback(
-		(newTheme: SetStateAction<string>): void => {
-			const themeValue =
-				typeof newTheme === 'function' ? newTheme(theme) : newTheme;
-			setThemeState(themeValue);
-			set(LOCALSTORAGE.THEME, themeValue);
-		},
-		[theme],
-	);
-
-	const value = useMemo(
-		() => ({
-			theme,
-			toggleTheme,
-			autoSwitch,
-			setAutoSwitch,
-			setTheme,
-		}),
-		[theme, toggleTheme, autoSwitch, setAutoSwitch, setTheme],
-	);
-
-	return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
 
 interface ThemeProviderProps {
@@ -151,17 +66,14 @@ export const useThemeMode = (): ThemeMode => {
 };
 
 export const useIsDarkMode = (): boolean => {
-	const { theme } = useContext(ThemeContext);
-
-	return theme === THEME_MODE.DARK;
+	return true;
 };
 
 export const useThemeConfig = (): ThemeConfig => {
-	const isDarkMode = useIsDarkMode();
-	const colors = isDarkMode ? THEME_COLORS.dark : THEME_COLORS.light;
+	const colors = DARK_THEME_COLORS;
 
 	return {
-		algorithm: isDarkMode ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm,
+		algorithm: antdTheme.darkAlgorithm,
 		token: {
 			borderRadius: 6,
 			borderRadiusLG: 6,

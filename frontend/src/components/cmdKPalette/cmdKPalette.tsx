@@ -8,8 +8,6 @@ import {
 	CommandList,
 	CommandShortcut,
 } from '@signozhq/command';
-import logEvent from 'api/common/logEvent';
-import { useThemeMode } from 'hooks/useDarkMode';
 import history from 'lib/history';
 import { ROLES as UserRole } from 'types/roles';
 
@@ -35,8 +33,6 @@ export function CmdKPalette({
 	userRole: UserRole;
 }): JSX.Element | null {
 	const { open, setOpen } = useCmdK();
-
-	const { setAutoSwitch, setTheme, theme } = useThemeMode();
 
 	// toggle palette with ⌘/Ctrl+K
 	function handleGlobalCmdK(
@@ -64,23 +60,12 @@ export function CmdKPalette({
 
 	useEffect(cmdKEffect, [setOpen]);
 
-	function handleThemeChange(value: string): void {
-		logEvent('Account Settings: Theme Changed', { theme: value });
-		if (value === 'auto') {
-			setAutoSwitch(true);
-		} else {
-			setAutoSwitch(false);
-			setTheme(value);
-		}
-	}
-
 	function onClickHandler(key: string): void {
 		history.push(key);
 	}
 
 	const actions = createShortcutActions({
 		navigate: onClickHandler,
-		handleThemeChange,
 	});
 
 	// RBAC filter: show action if no roles set OR current user role is included
@@ -132,7 +117,7 @@ export function CmdKPalette({
 								key={it.id}
 								onSelect={(): void => handleInvoke(it)}
 								value={it.name}
-								className={theme === 'light' ? 'cmdk-item-light' : 'cmdk-item'}
+								className="cmdk-item"
 							>
 								<span className="cmd-item-icon">{it.icon}</span>
 								{it.name}

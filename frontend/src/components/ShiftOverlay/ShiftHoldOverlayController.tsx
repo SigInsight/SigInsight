@@ -14,7 +14,6 @@ export function ShiftHoldOverlayController({
 
 	const actions = createShortcutActions({
 		navigate: noop,
-		handleThemeChange: noop,
 	});
 
 	const visible = useShiftHoldOverlay({
