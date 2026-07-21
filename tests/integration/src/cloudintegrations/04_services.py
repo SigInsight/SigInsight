@@ -135,11 +135,15 @@ def test_get_service_details_without_account(
     assert data["id"] == service_id, "Service ID should match requested ID"
     assert "title" in data, "Service details should have 'title' field"
     assert "overview" in data, "Service details should have 'overview' field"
-    assert "data_collected" in data, "Service details should have 'data_collected' field"
+    assert (
+        "data_collected" in data
+    ), "Service details should have 'data_collected' field"
     assert isinstance(
         data["data_collected"], dict
     ), "data_collected should be a dictionary"
-    assert "supported_signals" in data, "Service details should have 'supported_signals' field"
+    assert (
+        "supported_signals" in data
+    ), "Service details should have 'supported_signals' field"
 
 
 def test_get_service_details_with_account(
@@ -196,7 +200,9 @@ def test_get_service_details_with_account(
     assert data["id"] == service_id, "Service ID should match requested ID"
     assert "title" in data, "Service details should have 'title' field"
     assert "overview" in data, "Service details should have 'overview' field"
-    assert "data_collected" in data, "Service details should have 'data_collected' field"
+    assert (
+        "data_collected" in data
+    ), "Service details should have 'data_collected' field"
     assert "config" in data, "Service details should have 'config' field"
     assert "status" in data, "Service details should have 'status' field"
 
