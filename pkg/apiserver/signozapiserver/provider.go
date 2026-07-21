@@ -246,9 +246,3 @@ func newSecuritySchemes(role types.Role) []handler.OpenAPISecurityScheme {
 		{Name: authtypes.IdentNProviderTokenizer.StringValue(), Scopes: []string{role.String()}},
 	}
 }
-
-func newAnonymousSecuritySchemes(scopes []string) []handler.OpenAPISecurityScheme {
-	return []handler.OpenAPISecurityScheme{
-		{Name: authtypes.IdentNProviderAnonymous.StringValue(), Scopes: scopes},
-	}
-}
