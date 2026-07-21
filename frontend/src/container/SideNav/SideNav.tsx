@@ -595,9 +595,6 @@ function SideNav({ isPinned }: { isPinned: boolean }): JSX.Element {
 		registerShortcut(GlobalShortcuts.NavigateToSettingsNotificationChannels, () =>
 			onClickHandler(ROUTES.ALL_CHANNELS, null),
 		);
-		registerShortcut(GlobalShortcuts.NavigateToLogsPipelines, () =>
-			onClickHandler(ROUTES.LOGS_PIPELINES, null),
-		);
 		registerShortcut(GlobalShortcuts.NavigateToLogsViews, () =>
 			onClickHandler(ROUTES.LOGS_SAVE_VIEWS, null),
 		);
@@ -618,7 +615,6 @@ function SideNav({ isPinned }: { isPinned: boolean }): JSX.Element {
 			deregisterShortcut(GlobalShortcuts.NavigateToSettingsIngestion);
 			deregisterShortcut(GlobalShortcuts.NavigateToSettingsAPIKeys);
 			deregisterShortcut(GlobalShortcuts.NavigateToSettingsNotificationChannels);
-			deregisterShortcut(GlobalShortcuts.NavigateToLogsPipelines);
 			deregisterShortcut(GlobalShortcuts.NavigateToLogsViews);
 			deregisterShortcut(GlobalShortcuts.NavigateToTracesViews);
 		};

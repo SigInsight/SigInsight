@@ -9,7 +9,6 @@ export const GlobalShortcuts = {
 
 	// logs
 	NavigateToLogs: 'shift+l',
-	NavigateToLogsPipelines: 'shift+l+p',
 	NavigateToLogsViews: 'shift+l+v',
 
 	// traces
@@ -48,7 +47,6 @@ export const GlobalShortcutsName = {
 	NavigateToSettingsAPIKeys: 'shift+g+k',
 	NavigateToSettingsNotificationChannels: 'shift+g+n',
 	NavigateToLogs: 'shift+l',
-	NavigateToLogsPipelines: 'shift+l+p',
 	NavigateToLogsViews: 'shift+l+v',
 };
 
@@ -72,6 +70,5 @@ export const GlobalShortcutsDescription = {
 	NavigateToSettingsAPIKeys: 'Navigate to API Keys Settings',
 	NavigateToSettingsNotificationChannels:
 		'Navigate to Notification Channels Settings',
-	NavigateToLogsPipelines: 'Navigate to Logs Pipelines',
 	NavigateToLogsViews: 'Navigate to Logs Views',
 };

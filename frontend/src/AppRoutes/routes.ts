@@ -34,7 +34,6 @@ import {
 	OnboardingV2,
 	OrgOnboarding,
 	PasswordReset,
-	PipelinePage,
 	PublicDashboardPage,
 	ServiceMapPage,
 	ServiceMetricsPage,
@@ -322,13 +321,6 @@ const routes: AppRoutes[] = [
 		isPrivate: true,
 	},
 	{
-		path: ROUTES.LOGS_PIPELINES,
-		exact: true,
-		component: PipelinePage,
-		key: 'LOGS_PIPELINES',
-		isPrivate: true,
-	},
-	{
 		path: ROUTES.LOGIN,
 		exact: true,
 		component: Login,
@@ -466,6 +458,7 @@ const routes: AppRoutes[] = [
 
 export const oldRoutes = [
 	'/pipelines',
+	'/logs/pipelines',
 	'/logs-explorer',
 	'/logs-explorer/live',
 	'/logs-save-views',
@@ -476,7 +469,8 @@ export const oldRoutes = [
 ];
 
 export const oldNewRoutesMapping: Record<string, string> = {
-	'/pipelines': '/logs/pipelines',
+	'/pipelines': '/logs/logs-explorer',
+	'/logs/pipelines': '/logs/logs-explorer',
 	'/logs-explorer': '/logs/logs-explorer',
 	'/logs-explorer/live': '/logs/logs-explorer/live',
 	'/logs-save-views': '/logs/saved-views',

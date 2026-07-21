@@ -1,8 +1,7 @@
 import { TabRoutes } from 'components/RouteTab/types';
 import ROUTES from 'constants/routes';
-import { Compass, TowerControl, Workflow } from 'lucide-react';
+import { Compass, TowerControl } from 'lucide-react';
 import LogsExplorer from 'pages/LogsExplorer';
-import Pipelines from 'pages/Pipelines';
 import SaveView from 'pages/SaveView';
 
 export const logsExplorer: TabRoutes = {
@@ -14,17 +13,6 @@ export const logsExplorer: TabRoutes = {
 	),
 	route: ROUTES.LOGS,
 	key: ROUTES.LOGS,
-};
-
-export const logsPipelines: TabRoutes = {
-	Component: (): JSX.Element => <Pipelines />,
-	name: (
-		<div className="tab-item">
-			<Workflow size={16} /> Pipelines
-		</div>
-	),
-	route: ROUTES.LOGS_PIPELINES,
-	key: ROUTES.LOGS_PIPELINES,
 };
 
 export const logSaveView: TabRoutes = {

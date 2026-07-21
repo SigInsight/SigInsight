@@ -14,7 +14,6 @@ import {
 	ScrollText,
 	Settings,
 	TowerControl,
-	Workflow,
 } from 'lucide-react';
 import { ROLES } from 'types/roles';
 
@@ -108,16 +107,6 @@ export function createShortcutActions(deps: ActionDeps): CmdAction[] {
 			icon: <ScrollText size={14} />,
 			roles: ['ADMIN', 'EDITOR', 'VIEWER'],
 			perform: (): void => navigate(ROUTES.LOGS),
-		},
-		{
-			id: 'logs',
-			name: 'Go to Logs Pipelines',
-			shortcut: [GlobalShortcutsName.NavigateToLogsPipelines],
-			keywords: 'logs pipelines',
-			section: 'Logs',
-			icon: <Workflow size={14} />,
-			roles: ['ADMIN', 'EDITOR', 'VIEWER'],
-			perform: (): void => navigate(ROUTES.LOGS_PIPELINES),
 		},
 		{
 			id: 'logs',
