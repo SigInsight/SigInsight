@@ -452,12 +452,6 @@ function OnboardingAddDataSource(): JSX.Element {
 				case 'metrics':
 					history.push(ROUTES.METRICS_EXPLORER);
 					break;
-				case 'infra-monitoring-hosts':
-					history.push(ROUTES.INFRASTRUCTURE_MONITORING_HOSTS);
-					break;
-				case 'infra-monitoring-k8s':
-					history.push(ROUTES.INFRASTRUCTURE_MONITORING_KUBERNETES);
-					break;
 				case 'integrations':
 					history.push(ROUTES.INTEGRATIONS);
 					break;

@@ -1,6 +1,5 @@
 import { KeyboardEvent, useCallback, useState } from 'react';
 import { OPERATORS } from 'constants/queryBuilder';
-import { K8sCategory } from 'container/InfraMonitoringK8s/constants';
 import {
 	getRemovePrefixFromKey,
 	getTagToken,
@@ -30,8 +29,6 @@ export const useAutoComplete = (
 	dotMetricsEnabled: boolean,
 	whereClauseConfig?: WhereClauseConfig,
 	shouldUseSuggestions?: boolean,
-	isInfraMonitoring?: boolean,
-	entity?: K8sCategory | null,
 	isMetricsExplorer?: boolean,
 ): IAutoComplete => {
 	const [searchValue, setSearchValue] = useState<string>('');
@@ -43,8 +40,6 @@ export const useAutoComplete = (
 		dotMetricsEnabled,
 		searchKey,
 		shouldUseSuggestions,
-		isInfraMonitoring,
-		entity,
 		isMetricsExplorer,
 	);
 
@@ -181,5 +176,4 @@ interface IAutoComplete {
 	searchKey: string;
 	key: string;
 	exampleQueries: TagFilter[];
-	isInfraMonitoring?: boolean;
 }

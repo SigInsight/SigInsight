@@ -14,7 +14,6 @@ import {
 	ErrorDetails,
 	ForgotPassword,
 	Home,
-	InfrastructureMonitoring,
 	InstalledIntegrations,
 	ListAllALertsPage,
 	LiveLogs,
@@ -328,20 +327,6 @@ const routes: AppRoutes[] = [
 		component: InstalledIntegrations,
 		isPrivate: true,
 		key: 'INTEGRATIONS',
-	},
-	{
-		path: ROUTES.INFRASTRUCTURE_MONITORING_HOSTS,
-		exact: true,
-		component: InfrastructureMonitoring,
-		key: 'INFRASTRUCTURE_MONITORING_HOSTS',
-		isPrivate: true,
-	},
-	{
-		path: ROUTES.INFRASTRUCTURE_MONITORING_KUBERNETES,
-		exact: true,
-		component: InfrastructureMonitoring,
-		key: 'INFRASTRUCTURE_MONITORING_KUBERNETES',
-		isPrivate: true,
 	},
 	{
 		path: ROUTES.METRICS_EXPLORER,

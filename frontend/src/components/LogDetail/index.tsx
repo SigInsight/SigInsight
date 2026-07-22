@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-// eslint-disable-next-line no-restricted-imports
-import { useSelector } from 'react-redux';
-import { useCopyToClipboard, useLocation } from 'react-use';
+import { useCopyToClipboard } from 'react-use';
 import { Color, Spacing } from '@signozhq/design-tokens';
 import { Button, Divider, Drawer, Radio, Tooltip, Typography } from 'antd';
 import type { RadioChangeEvent } from 'antd/lib';
@@ -10,9 +8,6 @@ import { LogType } from 'components/Logs/LogStateIndicator/LogStateIndicator';
 import QuerySearch from 'components/QueryBuilderV2/QueryV2/QuerySearch/QuerySearch';
 import { convertExpressionToFilters } from 'components/QueryBuilderV2/utils';
 import { LOCALSTORAGE } from 'constants/localStorage';
-import { QueryParams } from 'constants/query';
-import { initialQueriesMap, PANEL_TYPES } from 'constants/queryBuilder';
-import ROUTES from 'constants/routes';
 import ContextView from 'container/LogDetailedView/ContextView/ContextView';
 import InfraMetrics from 'container/LogDetailedView/InfraMetrics/InfraMetrics';
 import JSONView from 'container/LogDetailedView/JsonView';
@@ -28,8 +23,6 @@ import { useCopyLogLink } from 'hooks/logs/useCopyLogLink';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
 import { useIsDarkMode } from 'hooks/useDarkMode';
 import { useNotifications } from 'hooks/useNotifications';
-import { useSafeNavigate } from 'hooks/useSafeNavigate';
-import createQueryParams from 'lib/createQueryParams';
 import { cloneDeep } from 'lodash-es';
 import {
 	ArrowDown,
@@ -38,17 +31,14 @@ import {
 	Braces,
 	ChevronDown,
 	ChevronUp,
-	Compass,
 	Copy,
 	Filter,
 	Table,
 	TextSelect,
 	X,
 } from 'lucide-react';
-import { AppState } from 'store/reducers';
 import { Query, TagFilter } from 'types/api/queryBuilder/queryBuilderData';
 import { DataSource, StringOperators } from 'types/common/queryBuilder';
-import { GlobalReducer } from 'types/reducer/globalTime';
 
 import { RESOURCE_KEYS, VIEW_TYPES, VIEWS } from './constants';
 import { LogDetailInnerProps, LogDetailProps } from './LogDetail.interfaces';
@@ -80,7 +70,7 @@ function LogDetailInner({
 
 	const [filters, setFilters] = useState<TagFilter | null>(null);
 	const [isEdit, setIsEdit] = useState<boolean>(false);
-	const { stagedQuery, updateAllQueriesOperators } = useQueryBuilder();
+	const { stagedQuery } = useQueryBuilder();
 
 	// Handle clicks outside to close drawer, except on explicitly ignored regions
 	useEffect(() => {
@@ -175,12 +165,6 @@ function LogDetailInner({
 	});
 
 	const isDarkMode = useIsDarkMode();
-	const location = useLocation();
-	const { safeNavigate } = useSafeNavigate();
-	const { maxTime, minTime } = useSelector<AppState, GlobalReducer>(
-		(state) => state.globalTime,
-	);
-
 	const { notifications } = useNotifications();
 
 	const { onLogCopy } = useCopyLogLink(log?.id);
@@ -218,23 +202,6 @@ function LogDetailInner({
 		notifications.success({
 			message: 'Copied to clipboard',
 		});
-	};
-
-	// Go to logs explorer page with the log data
-	const handleOpenInExplorer = (): void => {
-		const queryParams = {
-			[QueryParams.activeLogId]: `"${log?.id}"`,
-			[QueryParams.startTime]: minTime?.toString() || '',
-			[QueryParams.endTime]: maxTime?.toString() || '',
-			[QueryParams.compositeQuery]: JSON.stringify(
-				updateAllQueriesOperators(
-					initialQueriesMap[DataSource.LOGS],
-					PANEL_TYPES.LIST,
-					DataSource.LOGS,
-				),
-			),
-		};
-		safeNavigate(`${ROUTES.LOGS_EXPLORER}?${createQueryParams(queryParams)}`);
 	};
 
 	const handleQueryExpressionChange = useCallback(
@@ -305,13 +272,6 @@ function LogDetailInner({
 		}
 	};
 
-	// Only show when opened from infra monitoring page
-	const showOpenInExplorerBtn = useMemo(
-		() => location.pathname?.includes('/infrastructure-monitoring'),
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-		[],
-	);
-
 	const logType = log?.attributes_string?.log_level || LogType.INFO;
 	const currentLogIndex = logs ? logs.findIndex((l) => l.id === log.id) : -1;
 	const isPrevDisabled =
@@ -379,17 +339,6 @@ function LogDetailInner({
 								/>
 							</Tooltip>
 						</div>
-						{showOpenInExplorerBtn && (
-							<div>
-								<Button
-									className="open-in-explorer-btn"
-									icon={<Compass size={16} />}
-									onClick={handleOpenInExplorer}
-								>
-									Open in Explorer
-								</Button>
-							</div>
-						)}
 					</div>
 				</div>
 			}

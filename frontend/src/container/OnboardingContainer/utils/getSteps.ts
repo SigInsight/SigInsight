@@ -3,7 +3,6 @@ import {
 	CheckServiceStatus,
 	CloneRepo,
 	ConfigureAws,
-	ConfigureMetricsReceiver,
 	ConfigureReceiver,
 	CreateDaemonService,
 	CreateHttpPayload,
@@ -16,7 +15,6 @@ import {
 	EnvDetailsStep,
 	InstallOpenTelemetryStep,
 	LogsTestConnectionStep,
-	PlotMetrics,
 	RestartOtelCollector,
 	RunApplicationStep,
 	SelectMethodStep,
@@ -52,10 +50,6 @@ export const APM_STEPS: SelectedModuleStepProps[] = [
 ];
 
 export const LOGS_MANAGEMENT_STEPS: SelectedModuleStepProps[] = [
-	DataSourceStep,
-];
-
-export const INFRASTRUCTURE_MONITORING_STEPS: SelectedModuleStepProps[] = [
 	DataSourceStep,
 ];
 
@@ -114,18 +108,8 @@ export const getSteps = ({
 				SendLogsCloudwatch,
 			];
 
-		case 'kubernetesInfraMetrics':
-			return [DataSourceStep, SetupOtelCollectorStep, PlotMetrics];
-		case 'hostMetrics':
 		case 'awsEc2InfrastructureMetrics':
 			return [DataSourceStep, EnvDetailsStep, SetupOtelCollectorStep];
-		case 'otherMetrics':
-			return [
-				DataSourceStep,
-				EnvDetailsStep,
-				SetupOtelCollectorStep,
-				ConfigureMetricsReceiver,
-			];
 		case 'awsEcsExternal':
 		case 'awsEcsEc2':
 			return [

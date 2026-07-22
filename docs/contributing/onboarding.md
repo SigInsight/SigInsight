@@ -44,8 +44,6 @@ The `module` key determines where users are redirected after completing onboardi
 | `apm` | APM / Traces |
 | `logs` | Logs Explorer |
 | `metrics` | Metrics Explorer |
-| `infra-monitoring-hosts` | Infrastructure Monitoring - Hosts |
-| `infra-monitoring-k8s` | Infrastructure Monitoring - Kubernetes |
 | `integrations` | Integrations page |
 | `home` | Home page |
 | `api-monitoring` | API Monitoring |
@@ -255,7 +253,7 @@ Options can be simple (direct link) or nested (with another question):
 
 ### 1. Tags
 
-- Use existing tags when possible: `AWS`, `Azure`, `GCP`, `database`, `logs`, `apm/traces`, `infrastructure monitoring`, `LLM Monitoring`
+- Use existing tags when possible: `AWS`, `Azure`, `GCP`, `database`, `logs`, `apm/traces`, `LLM Monitoring`
 - Tags are used for grouping in the sidebar
 - Every data source must have at least one tag
 

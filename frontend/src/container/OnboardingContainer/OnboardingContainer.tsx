@@ -27,7 +27,6 @@ import {
 	defaultApplicationDataSource,
 	defaultAwsServices,
 	defaultAzureServices,
-	defaultInfraMetricsType,
 	defaultLogsType,
 	moduleRouteMap,
 } from './utils/dataSourceUtils';
@@ -36,7 +35,6 @@ import {
 	AWS_MONITORING_STEPS,
 	AZURE_MONITORING_STEPS,
 	getSteps,
-	INFRASTRUCTURE_MONITORING_STEPS,
 	LOGS_MANAGEMENT_STEPS,
 } from './utils/getSteps';
 
@@ -45,7 +43,6 @@ import './Onboarding.styles.scss';
 export enum ModulesMap {
 	APM = 'APM',
 	LogsManagement = 'LogsManagement',
-	InfrastructureMonitoring = 'InfrastructureMonitoring',
 	AwsMonitoring = 'AwsMonitoring',
 	AzureMonitoring = 'AzureMonitoring',
 }
@@ -74,12 +71,6 @@ export const useCases = {
 		title: 'Logs Management',
 		desc:
 			'Easily filter and query logs, and build alerts based on attributes in logs',
-	},
-	InfrastructureMonitoring: {
-		id: ModulesMap.InfrastructureMonitoring,
-		title: 'Infrastructure Monitoring',
-		desc:
-			'Monitor Kubernetes infrastructure metrics, hostmetrics, or metrics of any third-party integration',
 	},
 	AwsMonitoring: {
 		id: ModulesMap.AwsMonitoring,
@@ -190,14 +181,7 @@ export default function Onboarding(): JSX.Element {
 
 	// eslint-disable-next-line sonarjs/cognitive-complexity
 	useEffect(() => {
-		if (selectedModule?.id === ModulesMap.InfrastructureMonitoring) {
-			if (selectedDataSource) {
-				setModuleStepsBasedOnSelectedDataSource(selectedDataSource);
-			} else {
-				setSelectedModuleSteps(INFRASTRUCTURE_MONITORING_STEPS);
-				updateSelectedDataSource(defaultInfraMetricsType);
-			}
-		} else if (selectedModule?.id === ModulesMap.LogsManagement) {
+		if (selectedModule?.id === ModulesMap.LogsManagement) {
 			if (selectedDataSource) {
 				setModuleStepsBasedOnSelectedDataSource(selectedDataSource);
 			} else {
@@ -275,9 +259,6 @@ export default function Onboarding(): JSX.Element {
 		if (pathname === ROUTES.GET_STARTED_APPLICATION_MONITORING) {
 			handleModuleSelect(useCases.APM);
 			updateSelectedDataSource(defaultApplicationDataSource);
-			handleNextStep();
-		} else if (pathname === ROUTES.GET_STARTED_INFRASTRUCTURE_MONITORING) {
-			handleModuleSelect(useCases.InfrastructureMonitoring);
 			handleNextStep();
 		} else if (pathname === ROUTES.GET_STARTED_LOGS_MANAGEMENT) {
 			handleModuleSelect(useCases.LogsManagement);

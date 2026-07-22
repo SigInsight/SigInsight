@@ -91,15 +91,6 @@ func NewAvailablePreference() map[Name]Preference {
 			AllowedValues: []string{},
 			Value:         MustNewValue(false, ValueTypeBoolean),
 		},
-		NameWelcomeChecklistSendInfraMetricsSkipped: {
-			Name:          NameWelcomeChecklistSendInfraMetricsSkipped,
-			Description:   "Welcome Checklist Send Infra Metrics Skipped",
-			ValueType:     ValueTypeBoolean,
-			DefaultValue:  MustNewValue(false, ValueTypeBoolean),
-			AllowedScopes: []Scope{ScopeUser},
-			AllowedValues: []string{},
-			Value:         MustNewValue(false, ValueTypeBoolean),
-		},
 		NameWelcomeChecklistSetupAlertsSkipped: {
 			Name:          NameWelcomeChecklistSetupAlertsSkipped,
 			Description:   "Welcome Checklist Setup Alerts Skipped",

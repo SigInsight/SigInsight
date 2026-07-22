@@ -9,7 +9,6 @@ import {
 	Binoculars,
 	Book,
 	Bot,
-	Boxes,
 	BugIcon,
 	Building2,
 	ChartArea,
@@ -118,12 +117,6 @@ const menuItems: SidebarItem[] = [
 		itemKey: 'metrics',
 	},
 	{
-		key: ROUTES.INFRASTRUCTURE_MONITORING_HOSTS,
-		label: 'Infra Monitoring',
-		icon: <Boxes size={16} />,
-		itemKey: 'infrastructure',
-	},
-	{
 		key: ROUTES.API_MONITORING,
 		label: 'External APIs',
 		icon: <Binoculars size={16} />,
@@ -209,14 +202,6 @@ export const defaultMoreMenuItems: SidebarItem[] = [
 		isNew: false,
 		isEnabled: true,
 		itemKey: 'metrics',
-	},
-	{
-		key: ROUTES.INFRASTRUCTURE_MONITORING_HOSTS,
-		label: 'Infrastructure',
-		icon: <Boxes size={16} />,
-		isPinned: true,
-		isEnabled: true,
-		itemKey: 'infrastructure',
 	},
 	{
 		key: ROUTES.INTEGRATIONS,
@@ -468,8 +453,6 @@ export const NEW_ROUTES_MENU_ITEM_KEY_MAP: Record<string, string> = {
 	[ROUTES.TRACE_EXPLORER]: ROUTES.TRACES_EXPLORER,
 	[ROUTES.LOGS_BASE]: ROUTES.LOGS_EXPLORER,
 	[ROUTES.METRICS_EXPLORER_BASE]: ROUTES.METRICS_EXPLORER,
-	[ROUTES.INFRASTRUCTURE_MONITORING_BASE]:
-		ROUTES.INFRASTRUCTURE_MONITORING_HOSTS,
 	[ROUTES.API_MONITORING_BASE]: ROUTES.API_MONITORING,
 };
 

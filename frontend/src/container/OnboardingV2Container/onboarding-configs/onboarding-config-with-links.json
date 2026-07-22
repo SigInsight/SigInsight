@@ -2128,75 +2128,6 @@
 		}
 	},
 	{
-		"dataSource": "hostmetrics",
-		"label": "Host Monitoring",
-		"tags": [
-			"infrastructure monitoring"
-		],
-		"module": "infra-monitoring-hosts",
-		"relatedSearchKeywords": [
-			"collect cpu memory disk",
-			"collect node metrics",
-			"host",
-			"host metrics",
-			"host metrics to signoz",
-			"host monitoring",
-			"host resource usage",
-			"hostmetrics",
-			"hosts",
-			"infra",
-			"infra-monitoring-hosts",
-			"infrastructure",
-			"infrastructure monitoring",
-			"linux host monitoring",
-			"monitoring",
-			"observability",
-			"otel hostmetrics receiver",
-			"system metrics monitoring",
-			"vm performance metrics",
-			"ubuntu",
-			"windows",
-			"macos",
-			"linux"
-		],
-		"imgUrl": "/Logos/hostmetrics.svg",
-		"link": "/docs/userguide/hostmetrics/"
-	},
-	{
-		"dataSource": "k8s-metrics",
-		"label": "Kubernetes Monitoring",
-		"tags": [
-			"infrastructure monitoring"
-		],
-		"module": "infra-monitoring-k8s",
-		"relatedSearchKeywords": [
-			"collect k8s metrics",
-			"infra",
-			"infra-monitoring-k8s",
-			"infrastructure",
-			"infrastructure monitoring",
-			"k8s",
-			"k8s performance metrics",
-			"k8s pod metrics",
-			"k8s-metrics",
-			"kubernetes",
-			"kubernetes cluster monitoring",
-			"kubernetes metrics",
-			"kubernetes metrics to signoz",
-			"kubernetes monitoring",
-			"kubernetes resource usage",
-			"metrics",
-			"monitoring",
-			"node metrics kubernetes",
-			"observability",
-			"opentelemetry k8s metrics",
-			"otel k8s metrics receiver",
-			"telemetry"
-		],
-		"imgUrl": "/Logos/kubernetes.svg",
-		"link": "/docs/userguide/k8s-metrics/"
-	},
-	{
 		"dataSource": "docker-container-metrics",
 		"label": "Docker Container Metrics",
 		"tags": [
@@ -2289,7 +2220,7 @@
 		"tags": [
 			"AWS"
 		],
-		"module": "infra-monitoring-hosts",
+		"module": "metrics",
 		"relatedSearchKeywords": [
 			"amazon",
 			"aws",
@@ -2344,7 +2275,7 @@
 		"tags": [
 			"AWS"
 		],
-		"module": "infra-monitoring-k8s",
+		"module": "metrics",
 		"relatedSearchKeywords": [
 			"amazon",
 			"aws",
@@ -5642,7 +5573,7 @@
 		"tags": [
 			"infrastructure monitoring"
 		],
-		"module": "infra-monitoring-hosts",
+		"module": "metrics",
 		"relatedSearchKeywords": [
 			"dcgm",
 			"gpu monitoring",
@@ -5661,7 +5592,7 @@
 		"tags": [
 			"infrastructure monitoring"
 		],
-		"module": "infra-monitoring-hosts",
+		"module": "metrics",
 		"relatedSearchKeywords": [
 			"infrastructure monitoring",
 			"slurm",

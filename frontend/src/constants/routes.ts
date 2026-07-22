@@ -14,8 +14,6 @@ const ROUTES = {
 	GET_STARTED_WITH_CLOUD: '/get-started-with-signoz-cloud',
 	GET_STARTED_APPLICATION_MONITORING: '/get-started/application-monitoring',
 	GET_STARTED_LOGS_MANAGEMENT: '/get-started/logs-management',
-	GET_STARTED_INFRASTRUCTURE_MONITORING:
-		'/get-started/infrastructure-monitoring',
 	GET_STARTED_AWS_MONITORING: '/get-started/aws-monitoring',
 	GET_STARTED_AZURE_MONITORING: '/get-started/azure-monitoring',
 	USAGE_EXPLORER: '/usage-explorer',
@@ -57,9 +55,6 @@ const ROUTES = {
 	TRACES_FUNNELS_DETAIL: '/traces/funnels/:funnelId',
 	SHORTCUTS: '/settings/shortcuts',
 	INTEGRATIONS: '/integrations',
-	INFRASTRUCTURE_MONITORING_BASE: '/infrastructure-monitoring',
-	INFRASTRUCTURE_MONITORING_HOSTS: '/infrastructure-monitoring/hosts',
-	INFRASTRUCTURE_MONITORING_KUBERNETES: '/infrastructure-monitoring/kubernetes',
 	METRICS_EXPLORER: '/metrics-explorer/summary',
 	METRICS_EXPLORER_EXPLORER: '/metrics-explorer/explorer',
 	METRICS_EXPLORER_VIEWS: '/metrics-explorer/views',

@@ -119,12 +119,9 @@ export default function ModuleStepsContainer({
 		}
 
 		return !(
-			(selectedModuleID === useCases.InfrastructureMonitoring.id &&
-				selectedModuleSteps[current].id === dataSourceStep &&
-				!selectedDataSourceName) ||
-			(selectedModuleID === useCases.LogsManagement.id &&
-				selectedModuleSteps[current].id === dataSourceStep &&
-				!selectedDataSourceName)
+			selectedModuleID === useCases.LogsManagement.id &&
+			selectedModuleSteps[current].id === dataSourceStep &&
+			!selectedDataSourceName
 		);
 	};
 
@@ -142,8 +139,6 @@ export default function ModuleStepsContainer({
 			history.push(ROUTES.APPLICATION);
 		} else if (selectedModule.id === ModulesMap.LogsManagement) {
 			history.push(ROUTES.LOGS_EXPLORER);
-		} else if (selectedModule.id === ModulesMap.InfrastructureMonitoring) {
-			history.push(ROUTES.APPLICATION);
 		} else if (selectedModule.id === ModulesMap.AwsMonitoring) {
 			history.push(ROUTES.APPLICATION);
 		} else {

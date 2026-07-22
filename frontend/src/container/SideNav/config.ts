@@ -46,9 +46,5 @@ export const routeConfig: Record<string, QueryParams[]> = {
 	[ROUTES.USAGE_EXPLORER]: [QueryParams.resourceAttributes],
 	[ROUTES.VERSION]: [QueryParams.resourceAttributes],
 	[ROUTES.TRACE_EXPLORER]: [QueryParams.resourceAttributes],
-	[ROUTES.INFRASTRUCTURE_MONITORING_HOSTS]: [QueryParams.resourceAttributes],
-	[ROUTES.INFRASTRUCTURE_MONITORING_KUBERNETES]: [
-		QueryParams.resourceAttributes,
-	],
 	[ROUTES.HOME]: [QueryParams.resourceAttributes],
 };
