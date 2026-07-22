@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQueryClient } from 'react-query';
 import { Input } from 'antd';
-import SignozModal from 'components/SignozModal/SignozModal';
+import AppModal from 'components/AppModal/AppModal';
 import { REACT_QUERY_KEY } from 'constants/reactQueryKeys';
 import { useSaveFunnelDescription } from 'hooks/TracesFunnels/useFunnels';
 import { useNotifications } from 'hooks/useNotifications';
@@ -66,7 +66,7 @@ function AddFunnelDescriptionModal({
 	};
 
 	return (
-		<SignozModal
+		<AppModal
 			open={isOpen}
 			title="Add funnel description"
 			width={384}
@@ -103,7 +103,7 @@ function AddFunnelDescriptionModal({
 					/>
 				</div>
 			</div>
-		</SignozModal>
+		</AppModal>
 	);
 }
 

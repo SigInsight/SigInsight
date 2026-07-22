@@ -83,9 +83,9 @@ export const slackSupportMenuItem = {
 	icon: <Slack size={16} />,
 };
 
-export const trySignozCloudMenuItem: SidebarItem = {
-	key: 'trySignozCloud',
-	label: 'Try Signoz Cloud',
+export const trySigInsightCloudMenuItem: SidebarItem = {
+	key: 'trySigInsightCloud',
+	label: 'Try SigInsight Cloud',
 	icon: <Cloudy size={16} />,
 };
 
@@ -366,19 +366,6 @@ export const helpSupportDropdownMenuItems: SidebarItem[] = [
 		isExternal: true,
 		url: 'https://github.com/signoz/signoz',
 		itemKey: 'github',
-	},
-	{
-		key: 'slack',
-		label: (
-			<div className="nav-item-label-container">
-				<span>Community Slack</span>
-				<ArrowUpRight size={14} />
-			</div>
-		),
-		icon: <Slack size={14} />,
-		isExternal: true,
-		url: 'https://signoz.io/slack',
-		itemKey: 'community-slack',
 	},
 	{
 		key: 'invite-collaborators',

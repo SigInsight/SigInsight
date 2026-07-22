@@ -1,8 +1,8 @@
 import { Modal, ModalProps } from 'antd';
 
-import './SignozModal.style.scss';
+import './AppModal.style.scss';
 
-function SignozModal({
+function AppModal({
 	children,
 	width = 672,
 	rootClassName = '',
@@ -13,7 +13,7 @@ function SignozModal({
 			centered
 			width={width}
 			cancelText="Close"
-			rootClassName={`signoz-modal ${rootClassName}`}
+			rootClassName={`app-modal ${rootClassName}`}
 			{...rest}
 		>
 			{children}
@@ -21,4 +21,4 @@ function SignozModal({
 	);
 }
 
-export default SignozModal;
+export default AppModal;

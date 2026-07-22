@@ -2,8 +2,8 @@ import { ChangeEvent, useEffect, useMemo, useState } from 'react';
 import { LoadingOutlined } from '@ant-design/icons';
 import { Button, Input, Spin } from 'antd';
 import cx from 'classnames';
+import AppModal from 'components/AppModal/AppModal';
 import OverlayScrollbar from 'components/OverlayScrollbar/OverlayScrollbar';
-import SignozModal from 'components/SignozModal/SignozModal';
 import {
 	useFunnelDetails,
 	useFunnelsList,
@@ -239,7 +239,7 @@ function AddSpanToFunnelModal({
 	);
 
 	return (
-		<SignozModal
+		<AppModal
 			open={isOpen}
 			onCancel={onClose}
 			width={570}
@@ -287,7 +287,7 @@ function AddSpanToFunnelModal({
 			{activeView === ModalView.LIST
 				? renderListView()
 				: renderDetailsView({ span })}
-		</SignozModal>
+		</AppModal>
 	);
 }
 

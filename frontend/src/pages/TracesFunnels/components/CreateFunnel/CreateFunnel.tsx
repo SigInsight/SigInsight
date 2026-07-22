@@ -4,7 +4,7 @@ import { generatePath, matchPath, useLocation } from 'react-router-dom';
 import { Input } from 'antd';
 import logEvent from 'api/common/logEvent';
 import axios from 'axios';
-import SignozModal from 'components/SignozModal/SignozModal';
+import AppModal from 'components/AppModal/AppModal';
 import { REACT_QUERY_KEY } from 'constants/reactQueryKeys';
 import ROUTES from 'constants/routes';
 import { useCreateFunnel } from 'hooks/TracesFunnels/useFunnels';
@@ -97,7 +97,7 @@ function CreateFunnel({
 	};
 
 	return (
-		<SignozModal
+		<AppModal
 			open={isOpen}
 			title="Create new funnel"
 			width={384}
@@ -138,7 +138,7 @@ function CreateFunnel({
 					<span className="funnel-modal-content__error">{inputError}</span>
 				)}
 			</div>
-		</SignozModal>
+		</AppModal>
 	);
 }
 

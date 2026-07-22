@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Empty } from 'antd';
 import type { RadioChangeEvent } from 'antd/lib';
-import SignozRadioGroup from 'components/SignozRadioGroup/SignozRadioGroup';
+import AppRadioGroup from 'components/AppRadioGroup/AppRadioGroup';
 import { History, Table } from 'lucide-react';
 import { DataSource } from 'types/common/queryBuilder';
 
@@ -82,7 +82,7 @@ function InfraMetrics({
 
 	return (
 		<div className="infra-metrics-container">
-			<SignozRadioGroup
+			<AppRadioGroup
 				value={selectedView}
 				onChange={handleModeChange}
 				className="views-tabs"

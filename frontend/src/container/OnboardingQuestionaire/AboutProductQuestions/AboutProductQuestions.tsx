@@ -10,15 +10,15 @@ import { OnboardingQuestionHeader } from '../OnboardingQuestionHeader';
 
 import '../OnboardingQuestionaire.styles.scss';
 
-export interface SignozDetails {
-	interestInSignoz: string[] | null;
-	otherInterestInSignoz: string | null;
-	discoverSignoz: string | null;
+export interface ProductDetails {
+	interestInProduct: string[] | null;
+	otherInterestInProduct: string | null;
+	discoverProduct: string | null;
 }
 
-interface AboutSigNozQuestionsProps {
-	signozDetails: SignozDetails;
-	setSignozDetails: (details: SignozDetails) => void;
+interface AboutProductQuestionsProps {
+	productDetails: ProductDetails;
+	setProductDetails: (details: ProductDetails) => void;
 	onNext: () => void;
 }
 
@@ -31,39 +31,39 @@ const interestedInOptions: Record<string, string> = {
 	correlateSignals: 'Correlate signals for faster troubleshooting',
 };
 
-export function AboutSigNozQuestions({
-	signozDetails,
-	setSignozDetails,
+export function AboutProductQuestions({
+	productDetails,
+	setProductDetails,
 	onNext,
-}: AboutSigNozQuestionsProps): JSX.Element {
-	const [interestInSignoz, setInterestInSignoz] = useState<string[]>(
-		signozDetails?.interestInSignoz || [],
+}: AboutProductQuestionsProps): JSX.Element {
+	const [interestInProduct, setInterestInProduct] = useState<string[]>(
+		productDetails?.interestInProduct || [],
 	);
-	const [otherInterestInSignoz, setOtherInterestInSignoz] = useState<string>(
-		signozDetails?.otherInterestInSignoz || '',
+	const [otherInterestInProduct, setOtherInterestInProduct] = useState<string>(
+		productDetails?.otherInterestInProduct || '',
 	);
-	const [discoverSignoz, setDiscoverSignoz] = useState<string>(
-		signozDetails?.discoverSignoz || '',
+	const [discoverProduct, setDiscoverProduct] = useState<string>(
+		productDetails?.discoverProduct || '',
 	);
 	const [isNextDisabled, setIsNextDisabled] = useState<boolean>(true);
 
 	useEffect((): void => {
 		if (
-			discoverSignoz !== '' &&
-			interestInSignoz.length > 0 &&
-			(!interestInSignoz.includes('Others') || otherInterestInSignoz !== '')
+			discoverProduct !== '' &&
+			interestInProduct.length > 0 &&
+			(!interestInProduct.includes('Others') || otherInterestInProduct !== '')
 		) {
 			setIsNextDisabled(false);
 		} else {
 			setIsNextDisabled(true);
 		}
-	}, [interestInSignoz, otherInterestInSignoz, discoverSignoz]);
+	}, [interestInProduct, otherInterestInProduct, discoverProduct]);
 
 	const handleInterestChange = (option: string, checked: boolean): void => {
 		if (checked) {
-			setInterestInSignoz((prev) => [...prev, option]);
+			setInterestInProduct((prev) => [...prev, option]);
 		} else {
-			setInterestInSignoz((prev) => prev.filter((item) => item !== option));
+			setInterestInProduct((prev) => prev.filter((item) => item !== option));
 		}
 	};
 
@@ -74,16 +74,16 @@ export function AboutSigNozQuestions({
 	};
 
 	const handleOnNext = (): void => {
-		setSignozDetails({
-			discoverSignoz,
-			interestInSignoz,
-			otherInterestInSignoz,
+		setProductDetails({
+			discoverProduct,
+			interestInProduct,
+			otherInterestInProduct,
 		});
 
 		logEvent('Org Onboarding: Answered', {
-			discoverSignoz,
-			interestInSignoz,
-			otherInterestInSignoz,
+			discoverProduct,
+			interestInProduct,
+			otherInterestInProduct,
 		});
 
 		onNext();
@@ -102,12 +102,12 @@ export function AboutSigNozQuestions({
 						<div className="question">How did you first come across SigInsight?</div>
 
 						<AntdInput.TextArea
-							className="discover-signoz-input"
+							className="discover-product-input"
 							placeholder={`e.g., googling "datadog alternative", a post on r/devops, from a friend/colleague, a LinkedIn post, ChatGPT, etc.`}
-							value={discoverSignoz}
+							value={discoverProduct}
 							autoFocus
 							rows={4}
-							onChange={(e): void => setDiscoverSignoz(e.target.value)}
+							onChange={(e): void => setDiscoverProduct(e.target.value)}
 						/>
 					</div>
 
@@ -118,7 +118,7 @@ export function AboutSigNozQuestions({
 								<div key={option} className="checkbox-item">
 									<Checkbox
 										id={`checkbox-${option}`}
-										checked={interestInSignoz.includes(option)}
+										checked={interestInProduct.includes(option)}
 										onCheckedChange={createInterestChangeHandler(option)}
 										labelName={interestedInOptions[option]}
 									/>
@@ -128,18 +128,18 @@ export function AboutSigNozQuestions({
 							<div className="checkbox-item checkbox-item-others">
 								<Checkbox
 									id="others-checkbox"
-									checked={interestInSignoz.includes('Others')}
+									checked={interestInProduct.includes('Others')}
 									onCheckedChange={createInterestChangeHandler('Others')}
-									labelName={interestInSignoz.includes('Others') ? '' : 'Others'}
+									labelName={interestInProduct.includes('Others') ? '' : 'Others'}
 								/>
-								{interestInSignoz.includes('Others') && (
+								{interestInProduct.includes('Others') && (
 									<Input
 										type="text"
 										className="onboarding-questionaire-other-input"
 										placeholder="What got you interested in SigInsight?"
-										value={otherInterestInSignoz}
+										value={otherInterestInProduct}
 										autoFocus
-										onChange={(e): void => setOtherInterestInSignoz(e.target.value)}
+										onChange={(e): void => setOtherInterestInProduct(e.target.value)}
 									/>
 								)}
 							</div>

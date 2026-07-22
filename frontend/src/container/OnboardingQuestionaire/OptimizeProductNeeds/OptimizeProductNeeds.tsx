@@ -6,7 +6,7 @@ import { ArrowRight, Loader2, Minus } from 'lucide-react';
 
 import { OnboardingQuestionHeader } from '../OnboardingQuestionHeader';
 
-export interface OptimiseSignozDetails {
+export interface OptimizeProductDetails {
 	logsPerDay: number;
 	hostsPerDay: number;
 	services: number;
@@ -46,9 +46,9 @@ const exponentialToLinear = (
 	return Math.round(linearValue); // Round to get a whole number within the 0-100 range
 };
 
-interface OptimiseSignozNeedsProps {
-	optimiseSignozDetails: OptimiseSignozDetails;
-	setOptimiseSignozDetails: (details: OptimiseSignozDetails) => void;
+interface OptimizeProductNeedsProps {
+	optimiseProductDetails: OptimizeProductDetails;
+	setOptimizeProductDetails: (details: OptimizeProductDetails) => void;
 	onNext: () => void;
 	onWillDoLater: () => void;
 	isUpdatingProfile: boolean;
@@ -79,22 +79,22 @@ const serviceMarks = {
 	100: `${linearToExponential(100, servicesMin, servicesMax).toLocaleString()}`,
 };
 
-function OptimiseSignozNeeds({
+function OptimizeProductNeeds({
 	isUpdatingProfile,
-	optimiseSignozDetails,
-	setOptimiseSignozDetails,
+	optimiseProductDetails,
+	setOptimizeProductDetails,
 	onNext,
 	onWillDoLater,
 	isNextDisabled,
-}: OptimiseSignozNeedsProps): JSX.Element {
+}: OptimizeProductNeedsProps): JSX.Element {
 	const [logsPerDay, setLogsPerDay] = useState<number>(
-		optimiseSignozDetails?.logsPerDay || 0,
+		optimiseProductDetails?.logsPerDay || 0,
 	);
 	const [hostsPerDay, setHostsPerDay] = useState<number>(
-		optimiseSignozDetails?.hostsPerDay || 0,
+		optimiseProductDetails?.hostsPerDay || 0,
 	);
 	const [services, setServices] = useState<number>(
-		optimiseSignozDetails?.services || 0,
+		optimiseProductDetails?.services || 0,
 	);
 
 	// Internal state for the linear slider
@@ -114,7 +114,7 @@ function OptimiseSignozNeeds({
 	}, []);
 
 	useEffect(() => {
-		setOptimiseSignozDetails({
+		setOptimizeProductDetails({
 			logsPerDay,
 			hostsPerDay,
 			services,
@@ -133,7 +133,7 @@ function OptimiseSignozNeeds({
 	};
 
 	const handleWillDoLater = (): void => {
-		setOptimiseSignozDetails({
+		setOptimizeProductDetails({
 			logsPerDay: 0,
 			hostsPerDay: 0,
 			services: 0,
@@ -315,4 +315,4 @@ function OptimiseSignozNeeds({
 	);
 }
 
-export default OptimiseSignozNeeds;
+export default OptimizeProductNeeds;

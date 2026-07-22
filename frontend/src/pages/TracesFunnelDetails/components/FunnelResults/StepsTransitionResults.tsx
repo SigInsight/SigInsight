@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import SignozRadioGroup from 'components/SignozRadioGroup/SignozRadioGroup';
+import AppRadioGroup from 'components/AppRadioGroup/AppRadioGroup';
 import { useFunnelContext } from 'pages/TracesFunnels/FunnelContext';
 
 import StepsTransitionMetrics from './StepsTransitionMetrics';
@@ -35,7 +35,7 @@ function StepsTransitionResults(): JSX.Element {
 	return (
 		<div className="steps-transition-results">
 			<div className="steps-transition-results__steps-selector">
-				<SignozRadioGroup
+				<AppRadioGroup
 					value={selectedTransition}
 					options={stepTransitions}
 					onChange={(e): void => setSelectedTransition(e.target.value)}

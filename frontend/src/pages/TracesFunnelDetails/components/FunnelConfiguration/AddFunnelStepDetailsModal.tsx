@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Input } from 'antd';
-import SignozModal from 'components/SignozModal/SignozModal';
+import AppModal from 'components/AppModal/AppModal';
 import { useUpdateFunnelSteps } from 'hooks/TracesFunnels/useFunnels';
 import { useNotifications } from 'hooks/useNotifications';
 import { Check, X } from 'lucide-react';
@@ -84,7 +84,7 @@ function AddFunnelStepDetailsModal({
 	};
 
 	return (
-		<SignozModal
+		<AppModal
 			open={isOpen}
 			title="Add funnel step details"
 			width={384}
@@ -133,7 +133,7 @@ function AddFunnelStepDetailsModal({
 					/>
 				</div>
 			</div>
-		</SignozModal>
+		</AppModal>
 	);
 }
 
