@@ -2587,7 +2587,7 @@ components:
       type: http
 info:
   description: OpenTelemetry-Native Logs, Metrics and Traces in a single pane
-  title: SigInsight
+  title: SigNoz
   version: ""
 openapi: 3.0.3
 paths:
