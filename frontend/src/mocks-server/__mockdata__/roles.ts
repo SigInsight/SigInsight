@@ -1,4 +1,4 @@
-import { AuthtypesRoleDTO } from 'api/generated/services/sigInsight.schemas';
+import { AuthtypesRoleDTO } from 'api/generated/services/sigNoz.schemas';
 
 const orgId = '019ba2bb-2fa1-7b24-8159-cfca08617ef9';
 

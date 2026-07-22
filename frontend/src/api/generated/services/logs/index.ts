@@ -2,7 +2,7 @@
  * ! Do not edit manually
  * * The file has been auto-generated using Orval for SigInsight
  * * regenerate with 'yarn generate:api'
- * SigInsight
+ * SigNoz
  */
 import type {
 	InvalidateOptions,
@@ -25,7 +25,7 @@ import type {
 	PromotetypesPromotePathDTO,
 	Querybuildertypesv5QueryRangeRequestDTO,
 	RenderErrorResponseDTO,
-} from '../sigInsight.schemas';
+} from '../sigNoz.schemas';
 
 /**
  * This endpoints allows complex query exporting raw data for traces and logs

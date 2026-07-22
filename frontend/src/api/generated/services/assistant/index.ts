@@ -2,7 +2,7 @@
  * ! Do not edit manually
  * * The file has been auto-generated using Orval for SigInsight
  * * regenerate with 'yarn generate:api'
- * SigInsight
+ * SigNoz
  */
 import type {
 	InvalidateOptions,
@@ -23,7 +23,7 @@ import type {
 	AssistantUpdatableConfigDTO,
 	GetAssistantConfig200,
 	RenderErrorResponseDTO,
-} from '../sigInsight.schemas';
+} from '../sigNoz.schemas';
 
 /**
  * Returns the configured OpenAI-compatible endpoint without exposing its API key

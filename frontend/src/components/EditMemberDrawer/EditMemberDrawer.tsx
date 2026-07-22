@@ -16,7 +16,7 @@ import { Input } from '@signozhq/input';
 import { toast } from '@signozhq/sonner';
 import { Select } from 'antd';
 import { convertToApiError } from 'api/ErrorResponseHandlerForGeneratedAPIs';
-import { RenderErrorResponseDTO } from 'api/generated/services/sigInsight.schemas';
+import { RenderErrorResponseDTO } from 'api/generated/services/sigNoz.schemas';
 import {
 	getResetPasswordToken,
 	useDeleteUser,

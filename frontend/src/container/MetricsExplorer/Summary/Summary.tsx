@@ -15,7 +15,7 @@ import {
 	MetricsexplorertypesTreemapRequestDTO,
 	Querybuildertypesv5OrderByDTO,
 	Querybuildertypesv5OrderDirectionDTO,
-} from 'api/generated/services/sigInsight.schemas';
+} from 'api/generated/services/sigNoz.schemas';
 import { convertExpressionToFilters } from 'components/QueryBuilderV2/utils';
 import { initialQueriesMap } from 'constants/queryBuilder';
 import NoLogs from 'container/NoLogs/NoLogs';

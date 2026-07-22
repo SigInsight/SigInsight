@@ -2,7 +2,7 @@
  * ! Do not edit manually
  * * The file has been auto-generated using Orval for SigInsight
  * * regenerate with 'yarn generate:api'
- * SigInsight
+ * SigNoz
  */
 import type {
 	InvalidateOptions,
@@ -24,7 +24,7 @@ import type {
 	AuthzCheck200,
 	AuthzResources200,
 	RenderErrorResponseDTO,
-} from '../sigInsight.schemas';
+} from '../sigNoz.schemas';
 
 /**
  * Checks if the authenticated user has permissions for given transactions

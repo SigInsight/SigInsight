@@ -2,7 +2,7 @@
  * ! Do not edit manually
  * * The file has been auto-generated using Orval for SigInsight
  * * regenerate with 'yarn generate:api'
- * SigInsight
+ * SigNoz
  */
 import type {
 	InvalidateOptions,
@@ -57,7 +57,7 @@ import type {
 	UpdateUserDeprecated200,
 	UpdateUserDeprecatedPathParameters,
 	UpdateUserPathParameters,
-} from '../sigInsight.schemas';
+} from '../sigNoz.schemas';
 
 /**
  * This endpoint changes the password by id

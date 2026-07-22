@@ -2,7 +2,7 @@
  * ! Do not edit manually
  * * The file has been auto-generated using Orval for SigInsight
  * * regenerate with 'yarn generate:api'
- * SigInsight
+ * SigNoz
  */
 import type {
 	InvalidateOptions,
@@ -39,7 +39,7 @@ import type {
 	UpdateServiceAccountKeyPathParameters,
 	UpdateServiceAccountPathParameters,
 	UpdateServiceAccountStatusPathParameters,
-} from '../sigInsight.schemas';
+} from '../sigNoz.schemas';
 
 /**
  * This endpoint lists the service accounts for an organisation

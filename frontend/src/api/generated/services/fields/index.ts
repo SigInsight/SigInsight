@@ -2,7 +2,7 @@
  * ! Do not edit manually
  * * The file has been auto-generated using Orval for SigInsight
  * * regenerate with 'yarn generate:api'
- * SigInsight
+ * SigNoz
  */
 import type {
 	InvalidateOptions,
@@ -22,7 +22,7 @@ import type {
 	GetFieldsValues200,
 	GetFieldsValuesParams,
 	RenderErrorResponseDTO,
-} from '../sigInsight.schemas';
+} from '../sigNoz.schemas';
 
 /**
  * This endpoint returns field keys

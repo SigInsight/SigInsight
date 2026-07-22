@@ -2,7 +2,7 @@
  * ! Do not edit manually
  * * The file has been auto-generated using Orval for SigInsight
  * * regenerate with 'yarn generate:api'
- * SigInsight
+ * SigNoz
  */
 import type {
 	InvalidateOptions,
@@ -27,7 +27,7 @@ import type {
 	GetSessionContext200,
 	RenderErrorResponseDTO,
 	RotateSession200,
-} from '../sigInsight.schemas';
+} from '../sigNoz.schemas';
 
 /**
  * This endpoint creates a session for a user using google callback

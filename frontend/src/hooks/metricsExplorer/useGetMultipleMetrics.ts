@@ -3,7 +3,7 @@ import {
 	getGetMetricMetadataQueryKey,
 	getMetricMetadata,
 } from 'api/generated/services/metrics';
-import { GetMetricMetadata200 } from 'api/generated/services/sigInsight.schemas';
+import { GetMetricMetadata200 } from 'api/generated/services/sigNoz.schemas';
 
 type QueryResult = UseQueryResult<GetMetricMetadata200, Error>;
 

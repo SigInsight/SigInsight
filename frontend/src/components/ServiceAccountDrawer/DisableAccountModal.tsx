@@ -12,7 +12,7 @@ import {
 import type {
 	RenderErrorResponseDTO,
 	ServiceaccounttypesServiceAccountDTO,
-} from 'api/generated/services/sigInsight.schemas';
+} from 'api/generated/services/sigNoz.schemas';
 import { AxiosError } from 'axios';
 import { SA_QUERY_PARAMS } from 'container/ServiceAccountsSettings/constants';
 import { parseAsBoolean, useQueryState } from 'nuqs';

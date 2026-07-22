@@ -2,7 +2,7 @@
  * ! Do not edit manually
  * * The file has been auto-generated using Orval for SigInsight
  * * regenerate with 'yarn generate:api'
- * SigInsight
+ * SigNoz
  */
 import type {
 	MutationFunction,
@@ -18,7 +18,7 @@ import type {
 	QueryRangeV5200,
 	RenderErrorResponseDTO,
 	ReplaceVariables200,
-} from '../sigInsight.schemas';
+} from '../sigNoz.schemas';
 
 /**
  * Execute a composite query over a time range. Supports builder queries (traces, logs, metrics), formulas, trace operators, PromQL, and ClickHouse SQL.

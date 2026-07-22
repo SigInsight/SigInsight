@@ -12,7 +12,7 @@ import {
 import type {
 	GetServiceAccount200,
 	ListServiceAccounts200,
-} from 'api/generated/services/sigInsight.schemas';
+} from 'api/generated/services/sigNoz.schemas';
 import CreateServiceAccountModal from 'components/CreateServiceAccountModal/CreateServiceAccountModal';
 import ErrorInPlace from 'components/ErrorInPlace/ErrorInPlace';
 import ServiceAccountDrawer from 'components/ServiceAccountDrawer/ServiceAccountDrawer';

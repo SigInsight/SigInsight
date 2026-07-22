@@ -2,7 +2,7 @@
  * ! Do not edit manually
  * * The file has been auto-generated using Orval for SigInsight
  * * regenerate with 'yarn generate:api'
- * SigInsight
+ * SigNoz
  */
 import type {
 	InvalidateOptions,
@@ -16,10 +16,7 @@ import { useQuery } from 'react-query';
 
 import type { ErrorType } from '../../../generatedAPIInstance';
 import { GeneratedAPIInstance } from '../../../generatedAPIInstance';
-import type {
-	GetFeatures200,
-	RenderErrorResponseDTO,
-} from '../sigInsight.schemas';
+import type { GetFeatures200, RenderErrorResponseDTO } from '../sigNoz.schemas';
 
 /**
  * This endpoint returns the supported features and their details

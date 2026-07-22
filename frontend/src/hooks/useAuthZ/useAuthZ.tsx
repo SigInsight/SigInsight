@@ -4,7 +4,7 @@ import { authzCheck } from 'api/generated/services/authz';
 import type {
 	AuthtypesObjectDTO,
 	AuthtypesTransactionDTO,
-} from 'api/generated/services/sigInsight.schemas';
+} from 'api/generated/services/sigNoz.schemas';
 
 import { AUTHZ_CACHE_TIME, SINGLE_FLIGHT_WAIT_TIME_MS } from './constants';
 import {

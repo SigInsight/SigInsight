@@ -2,7 +2,7 @@ import { CircleAlert, RefreshCw } from '@signozhq/icons';
 import { Checkbox, Select } from 'antd';
 import { convertToApiError } from 'api/ErrorResponseHandlerForGeneratedAPIs';
 import { useListRoles } from 'api/generated/services/role';
-import type { AuthtypesRoleDTO } from 'api/generated/services/sigInsight.schemas';
+import type { AuthtypesRoleDTO } from 'api/generated/services/sigNoz.schemas';
 import cx from 'classnames';
 import APIError from 'types/api/error';
 import { popupContainer } from 'utils/selectPopupContainer';

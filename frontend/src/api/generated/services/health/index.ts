@@ -2,7 +2,7 @@
  * ! Do not edit manually
  * * The file has been auto-generated using Orval for SigInsight
  * * regenerate with 'yarn generate:api'
- * SigInsight
+ * SigNoz
  */
 import type {
 	InvalidateOptions,
@@ -23,7 +23,7 @@ import type {
 	Readyz200,
 	Readyz503,
 	RenderErrorResponseDTO,
-} from '../sigInsight.schemas';
+} from '../sigNoz.schemas';
 
 /**
  * @summary Health check
