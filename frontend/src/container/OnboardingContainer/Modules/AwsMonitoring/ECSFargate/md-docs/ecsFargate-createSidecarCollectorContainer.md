@@ -13,7 +13,7 @@ In your ECS task definition, include a new container definition specifically for
         ...,
         {
             "name": "siginsight-collector",
-            "image": "ghcr.io/siginsight/siginsight-otel-collector:v1.0.3",
+            "image": "ghcr.io/siginsight/siginsight-otel-collector:v1.0.4",
             "user": "root",
             "command": [
                 "--config=env:SIGNOZ_CONFIG_CONTENT"

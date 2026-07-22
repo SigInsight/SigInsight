@@ -18,8 +18,8 @@ const allDeps = {
 	...packageJson.devDependencies,
 };
 
-// 4. Filter for @signozhq packages
-const signozPackages = Object.keys(allDeps).filter((dep) =>
+// 4. Filter design-system packages
+const designSystemPackages = Object.keys(allDeps).filter((dep) =>
 	dep.startsWith('@signozhq/'),
 );
 
@@ -33,17 +33,17 @@ const fileContent = `// --------------------------------------------------------
 // It forces VS Code to index these specific packages to fix auto-import
 // performance issues in TypeScript 4.x.
 //
-// PR for reference: https://github.com/SigNoz/signoz/pull/9694
+// Keep this registry synchronized with the workspace design-system dependencies.
 // -------------------------------------------------------------------------
 
-${signozPackages.map((pkg) => `import '${pkg}';`).join('\n')}
+${designSystemPackages.map((pkg) => `import '${pkg}';`).join('\n')}
 `;
 
 // 6. Write the file
 try {
 	fs.writeFileSync(registryPath, fileContent);
 	console.log(
-		`✅ Auto-import registry updated with ${signozPackages.length} @signozhq packages.`,
+		`✅ Auto-import registry updated with ${designSystemPackages.length} design-system packages.`,
 	);
 } catch (err) {
 	console.error('❌ Failed to update auto-import registry:', err);

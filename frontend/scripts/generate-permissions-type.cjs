@@ -63,7 +63,9 @@ async function checkBackendHealth(url, maxAttempts = 3, delayMs = 1000) {
 async function discoverBackendUrl() {
 	const dockerUrl = getBackendUrlFromDocker();
 	if (dockerUrl) {
-		log(`Found ${SIGINSIGHT_INTEGRATION_IMAGE} container, trying ${dockerUrl}...`);
+		log(
+			`Found ${SIGINSIGHT_INTEGRATION_IMAGE} container, trying ${dockerUrl}...`,
+		);
 		if (await checkBackendHealth(dockerUrl)) {
 			log(`Backend found at ${dockerUrl} (from an integration test environment)`);
 			return dockerUrl;

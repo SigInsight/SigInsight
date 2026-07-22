@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { Color, Spacing } from '@signozhq/design-tokens';
 import { Button, Divider, Drawer, RadioChangeEvent, Typography } from 'antd';
 import LogsIcon from 'assets/AlertHistory/LogsIcon';
-import SignozRadioGroup from 'components/SignozRadioGroup/SignozRadioGroup';
+import AppRadioGroup from 'components/AppRadioGroup/AppRadioGroup';
 import { QueryParams } from 'constants/query';
 import {
 	initialQueryBuilderFormValuesMap,
@@ -199,7 +199,7 @@ function SpanRelatedSignals({
 			{selectedSpan && (
 				<div className="span-related-signals-drawer__content">
 					<div className="views-tabs-container">
-						<SignozRadioGroup
+						<AppRadioGroup
 							value={selectedView}
 							options={tabOptions}
 							onChange={handleTabChange}

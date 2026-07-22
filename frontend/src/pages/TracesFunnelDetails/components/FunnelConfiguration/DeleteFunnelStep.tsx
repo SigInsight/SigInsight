@@ -1,4 +1,4 @@
-import SignozModal from 'components/SignozModal/SignozModal';
+import AppModal from 'components/AppModal/AppModal';
 import { Trash2, X } from 'lucide-react';
 import { useFunnelContext } from 'pages/TracesFunnels/FunnelContext';
 
@@ -23,7 +23,7 @@ function DeleteFunnelStep({
 	};
 
 	return (
-		<SignozModal
+		<AppModal
 			open={isOpen}
 			title="Delete this step"
 			width={390}
@@ -49,7 +49,7 @@ function DeleteFunnelStep({
 				Deleting this step would stop further analytics using this step of the
 				funnel.
 			</div>
-		</SignozModal>
+		</AppModal>
 	);
 }
 

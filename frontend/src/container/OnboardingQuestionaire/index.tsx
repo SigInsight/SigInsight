@@ -15,13 +15,13 @@ import history from 'lib/history';
 import { useAppContext } from 'providers/App/App';
 
 import {
-	AboutSigNozQuestions,
-	SignozDetails,
-} from './AboutSigNozQuestions/AboutSigNozQuestions';
+	AboutProductQuestions,
+	ProductDetails,
+} from './AboutProductQuestions/AboutProductQuestions';
 import InviteTeamMembers from './InviteTeamMembers/InviteTeamMembers';
-import OptimiseSignozNeeds, {
-	OptimiseSignozDetails,
-} from './OptimiseSignozNeeds/OptimiseSignozNeeds';
+import OptimizeProductNeeds, {
+	OptimizeProductDetails,
+} from './OptimizeProductNeeds/OptimizeProductNeeds';
 import OrgQuestions, { OrgDetails } from './OrgQuestions/OrgQuestions';
 
 import './OnboardingQuestionaire.styles.scss';
@@ -43,13 +43,13 @@ const INITIAL_ORG_DETAILS: OrgDetails = {
 	migrationTimeline: null,
 };
 
-const INITIAL_SIGNOZ_DETAILS: SignozDetails = {
-	interestInSignoz: [],
-	otherInterestInSignoz: '',
-	discoverSignoz: '',
+const INITIAL_PRODUCT_DETAILS: ProductDetails = {
+	interestInProduct: [],
+	otherInterestInProduct: '',
+	discoverProduct: '',
 };
 
-const INITIAL_OPTIMISE_SIGNOZ_DETAILS: OptimiseSignozDetails = {
+const INITIAL_OPTIMIZE_PRODUCT_DETAILS: OptimizeProductDetails = {
 	logsPerDay: 0,
 	hostsPerDay: 0,
 	services: 0,
@@ -66,14 +66,14 @@ function OnboardingQuestionaire(): JSX.Element {
 	)?.active;
 	const [currentStep, setCurrentStep] = useState<number>(1);
 	const [orgDetails, setOrgDetails] = useState<OrgDetails>(INITIAL_ORG_DETAILS);
-	const [signozDetails, setSignozDetails] = useState<SignozDetails>(
-		INITIAL_SIGNOZ_DETAILS,
+	const [productDetails, setProductDetails] = useState<ProductDetails>(
+		INITIAL_PRODUCT_DETAILS,
 	);
 
 	const [
-		optimiseSignozDetails,
-		setOptimiseSignozDetails,
-	] = useState<OptimiseSignozDetails>(INITIAL_OPTIMISE_SIGNOZ_DETAILS);
+		optimiseProductDetails,
+		setOptimizeProductDetails,
+	] = useState<OptimizeProductDetails>(INITIAL_OPTIMIZE_PRODUCT_DETAILS);
 	const [teamMembers, setTeamMembers] = useState<
 		InviteTeamMembersProps[] | null
 	>(null);
@@ -116,9 +116,9 @@ function OnboardingQuestionaire(): JSX.Element {
 	});
 
 	const isNextDisabled =
-		optimiseSignozDetails.logsPerDay === 0 &&
-		optimiseSignozDetails.hostsPerDay === 0 &&
-		optimiseSignozDetails.services === 0;
+		optimiseProductDetails.logsPerDay === 0 &&
+		optimiseProductDetails.hostsPerDay === 0 &&
+		optimiseProductDetails.services === 0;
 
 	const { mutate: updateOrgPreference } = useMutation(updateOrgPreferenceAPI, {
 		onSuccess: () => {
@@ -174,9 +174,9 @@ function OnboardingQuestionaire(): JSX.Element {
 				)}
 
 				{currentStep === 2 && (
-					<AboutSigNozQuestions
-						signozDetails={signozDetails}
-						setSignozDetails={setSignozDetails}
+					<AboutProductQuestions
+						productDetails={productDetails}
+						setProductDetails={setProductDetails}
 						onNext={(): void => {
 							logEvent(NEXT_BUTTON_EVENT_NAME, {
 								currentPageID: 2,
@@ -188,11 +188,11 @@ function OnboardingQuestionaire(): JSX.Element {
 				)}
 
 				{currentStep === 3 && (
-					<OptimiseSignozNeeds
+					<OptimizeProductNeeds
 						isNextDisabled={isNextDisabled}
 						isUpdatingProfile={false}
-						optimiseSignozDetails={optimiseSignozDetails}
-						setOptimiseSignozDetails={setOptimiseSignozDetails}
+						optimiseProductDetails={optimiseProductDetails}
+						setOptimizeProductDetails={setOptimizeProductDetails}
 						onNext={handleUpdateProfile}
 						onWillDoLater={handleUpdateProfile}
 					/>
