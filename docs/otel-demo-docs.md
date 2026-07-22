@@ -173,7 +173,7 @@ default:
     - name: OTEL_RESOURCE_ATTRIBUTES
       value: 'service.name=$(OTEL_SERVICE_NAME),service.namespace=opentelemetry-demo'
     - name: OTEL_COLLECTOR_NAME
-      value: signoz-otel-collector.<namespace>.svc.cluster.local
+      value: siginsight-otel-collector.<namespace>.svc.cluster.local
 ```
 Replace namespace with your appropriate namespace. This file will replace the chart’s existing settings with our new ones, ensuring telemetry data is sent to SigNoz [Kubernetes].
 

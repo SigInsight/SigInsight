@@ -32,7 +32,7 @@ By default, the compose files use these GHCR images:
 
 ```sh
 ghcr.io/siginsight/siginsight:v1.5.0
-ghcr.io/siginsight/signoz-otel-collector:v1.0.2
+ghcr.io/siginsight/siginsight-otel-collector:v1.0.3
 ghcr.io/siginsight/clickhouse-init-histogram-quantile:25.5.6-latest
 ```
 

@@ -25,7 +25,7 @@ def migrator(
         dsn = clickhouse.env["SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN"]
 
         container = client.containers.run(
-            image=f"ghcr.io/siginsight/signoz-otel-collector:{version}",
+            image=f"ghcr.io/siginsight/siginsight-otel-collector:{version}",
             command=f"migrate bootstrap --clickhouse-replication=true --clickhouse-cluster=cluster --clickhouse-dsn={dsn}",
             detach=True,
             auto_remove=False,
@@ -43,7 +43,7 @@ def migrator(
         container.remove()
 
         container = client.containers.run(
-            image=f"ghcr.io/siginsight/signoz-otel-collector:{version}",
+            image=f"ghcr.io/siginsight/siginsight-otel-collector:{version}",
             command=f"migrate sync up --clickhouse-replication=true --clickhouse-cluster=cluster --clickhouse-dsn={dsn}",
             detach=True,
             auto_remove=False,
@@ -59,7 +59,7 @@ def migrator(
         container.remove()
 
         container = client.containers.run(
-            image=f"ghcr.io/siginsight/signoz-otel-collector:{version}",
+            image=f"ghcr.io/siginsight/siginsight-otel-collector:{version}",
             command=f"migrate async up --clickhouse-replication=true --clickhouse-cluster=cluster --clickhouse-dsn={dsn}",
             detach=True,
             auto_remove=False,
@@ -75,7 +75,7 @@ def migrator(
         container.remove()
 
         check = client.containers.run(
-            image=f"ghcr.io/siginsight/signoz-otel-collector:{version}",
+            image=f"ghcr.io/siginsight/siginsight-otel-collector:{version}",
             command=f"migrate sync check --clickhouse-replication=true --clickhouse-cluster=cluster --clickhouse-dsn={dsn}",
             detach=True,
             auto_remove=False,

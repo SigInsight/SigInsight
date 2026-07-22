@@ -12,8 +12,8 @@ In your ECS task definition, include a new container definition specifically for
     "containerDefinitions": [
         ...,
         {
-            "name": "signoz-collector",
-            "image": "signoz/signoz-otel-collector:0.88.13",
+            "name": "siginsight-collector",
+            "image": "ghcr.io/siginsight/siginsight-otel-collector:v1.0.3",
             "user": "root",
             "command": [
                 "--config=env:SIGNOZ_CONFIG_CONTENT"
