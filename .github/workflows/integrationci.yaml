@@ -48,7 +48,7 @@ jobs:
         clickhouse-version:
           - 25.5.6
         schema-migrator-version:
-          - v1.0.0
+          - v1.0.2
     # Re-enabled for community edition: now builds from cmd/community/Dockerfile.integration
     if: |
       ((github.event_name == 'pull_request' && ! github.event.pull_request.head.repo.fork && github.event.pull_request.user.login != 'dependabot[bot]') ||
