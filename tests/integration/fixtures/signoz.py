@@ -50,7 +50,7 @@ def create_signoz(
         self = DockerImage(
             path="../../",
             dockerfile_path=dockerfile_path,
-            tag="signoz:integration",
+            tag="siginsight:integration",
             buildargs={
                 "TARGETARCH": arch,
                 "APT_MIRROR": environ.get("SIGNOZ_APT_MIRROR", ""),
@@ -86,7 +86,7 @@ def create_signoz(
         if env_overrides:
             env = env | env_overrides
 
-        container = DockerContainer("signoz:integration")
+        container = DockerContainer("siginsight:integration")
         for k, v in env.items():
             container.with_env(k, v)
         container.with_exposed_ports(8080)

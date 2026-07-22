@@ -1,6 +1,6 @@
 ### Restart the Otel Collector
 
-Restart the otel collector so that new changes are saved and you should see the logs in SigNoz Logs Explorer.
+Restart the otel collector so that new changes are saved and you should see the logs in SigInsight Logs Explorer.
 
 Kill the process if it was already running using the below command
 ```bash
@@ -12,6 +12,6 @@ Restart the OTel collector when you’re in the `otel-contrib` folder
 ./otelcol-contrib --config ./config.yaml &> otelcol-output.log & echo "$!" > otel-pid
 ```
 
-Restart fluentBit 
+Restart fluentBit
 
-Now you should be able to see the Logs on your SigNoz Cloud UI
+Now you should be able to see the Logs on your SigInsight Cloud UI

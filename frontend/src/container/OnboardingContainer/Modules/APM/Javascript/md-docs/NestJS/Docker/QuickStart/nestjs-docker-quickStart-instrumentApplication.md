@@ -87,7 +87,7 @@ async function bootstrap() {
 
 ### Step 5: Dockerize your application
 
-Set the SigNoz ingestion key Environment variable and expose port 3001 in Dockerfile as:
+Set the SigInsight ingestion key Environment variable and expose port 3001 in Dockerfile as:
 
 ```bash
 ...

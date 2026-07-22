@@ -4,7 +4,7 @@
 If you run your .war package by putting in webapps folder, just add setenv.sh in your Tomcat bin folder.
 &nbsp;
 
-This should set these environment variables and start sending telemetry data to SigNoz Cloud.
+This should set these environment variables and start sending telemetry data to SigInsight Cloud.
 
 ```bash
 export CATALINA_OPTS="$CATALINA_OPTS -javaagent:/<path>/opentelemetry-javaagent.jar"

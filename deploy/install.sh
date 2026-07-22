@@ -52,7 +52,7 @@ is_arm64(){
 
 check_os() {
     if is_arm64; then
-        echo "SigNoz installation is currently supported on Linux AMD64 only. The bundled OpenTelemetry Collector image does not provide an ARM64 image."
+        echo "SigInsight installation is currently supported on Linux AMD64 only. The bundled OpenTelemetry Collector image does not provide an ARM64 image."
         exit 1
     fi
 
@@ -123,7 +123,7 @@ check_os() {
 }
 
 
-# This function checks if the relevant ports required by SigNoz are available or not
+# This function checks if the relevant ports required by SigInsight are available or not
 # The script should error out in case they aren't available
 check_ports_occupied() {
     local port_check_output
@@ -142,8 +142,8 @@ check_ports_occupied() {
 
     if [[ -n $port_check_output ]]; then
         echo "+++++++++++ ERROR ++++++++++++++++++++++"
-        echo "SigNoz requires ports 8080 & 4317 to be open. Please shut down any other service(s) that may be running on these ports."
-        echo "You can run SigNoz on another port following this guide https://signoz.io/docs/install/troubleshooting/"
+        echo "SigInsight requires ports 8080 & 4317 to be open. Please shut down any other service(s) that may be running on these ports."
+        echo "You can run SigInsight on another port following this guide https://github.com/SigInsight/SigInsight/issues"
         echo "++++++++++++++++++++++++++++++++++++++++"
         echo ""
         exit 1
@@ -268,8 +268,8 @@ bye() {  # Prints a friendly good bye message and exits the script.
         echo -e "cd ${DOCKER_STANDALONE_DIR}"
         echo -e "$sudo_cmd $docker_compose_cmd ps -a"
 
-        echo "Please read our troubleshooting guide https://signoz.io/docs/install/troubleshooting/"
-        echo "or reach us for support in #help channel in our Slack Community https://signoz.io/slack"
+        echo "Please read our troubleshooting guide https://github.com/SigInsight/SigInsight/issues"
+        echo "or report the issue at https://github.com/SigInsight/SigInsight/issues"
         echo "++++++++++++++++++++++++++++++++++++++++"
 
         echo ""
@@ -290,13 +290,13 @@ request_sudo() {
             fi
 
             echo -e "Got it! Thanks!! 🙏\n"
-            echo -e "Okay! We will bring up the SigNoz cluster from here 🚀\n"
+            echo -e "Okay! We will bring up the SigInsight cluster from here 🚀\n"
         fi
 	fi
 }
 
 echo ""
-echo -e "👋 Thank you for trying out SigNoz! "
+echo -e "👋 Thank you for trying out SigInsight! "
 echo ""
 
 sudo_cmd=""
@@ -366,17 +366,17 @@ pushd "${BASE_DIR}/${DOCKER_STANDALONE_DIR}" > /dev/null 2>&1
 
 # check for open ports, if signoz is not installed
 if $sudo_cmd $docker_compose_cmd ps | grep "signoz" | grep -q "healthy" > /dev/null 2>&1; then
-    echo "SigNoz already installed, skipping the occupied ports check"
+    echo "SigInsight already installed, skipping the occupied ports check"
 else
     check_ports_occupied
 fi
 
 echo ""
-echo -e "\n🟡 Pulling the latest container images for SigNoz.\n"
+echo -e "\n🟡 Pulling the latest container images for SigInsight.\n"
 $sudo_cmd $docker_compose_cmd pull
 
 echo ""
-echo "🟡 Starting the SigNoz containers. It may take a few minutes ..."
+echo "🟡 Starting the SigInsight containers. It may take a few minutes ..."
 echo
 # The $docker_compose_cmd command does some nasty stuff for the `--detach` functionality. So we add a `|| true` so that the
 # script doesn't exit because this command looks like it failed to do it's thing.
@@ -399,8 +399,8 @@ if [[ $status_code -ne 200 ]]; then
     echo "$sudo_cmd $docker_compose_cmd down -v"
     echo ""
 
-    echo "Please read our troubleshooting guide https://signoz.io/docs/install/troubleshooting/"
-    echo "or reach us on SigNoz for support https://signoz.io/slack"
+    echo "Please read our troubleshooting guide https://github.com/SigInsight/SigInsight/issues"
+    echo "or report the issue at https://github.com/SigInsight/SigInsight/issues"
     echo "++++++++++++++++++++++++++++++++++++++++"
 
     exit 1
@@ -410,12 +410,12 @@ else
     echo ""
     echo "🟢 Your installation is complete!"
     echo ""
-    echo -e "🟢 SigNoz is running on http://localhost:8080"
+    echo -e "🟢 SigInsight is running on http://localhost:8080"
     echo ""
     echo "ℹ️  By default, retention period is set to 15 days for logs and traces, and 30 days for metrics."
-    echo -e "To change this, navigate to the General tab on the Settings page of SigNoz UI. For more details, refer to https://signoz.io/docs/userguide/retention-period \n"
+    echo -e "To change this, navigate to the General tab on the Settings page of SigInsight UI. For help, contact your administrator \n"
 
-    echo "ℹ️  To bring down SigNoz and clean volumes:"
+    echo "ℹ️  To bring down SigInsight and clean volumes:"
     echo ""
     echo "cd ${DOCKER_STANDALONE_DIR}"
     echo "$sudo_cmd $docker_compose_cmd down -v"
@@ -424,7 +424,7 @@ else
     echo "+++++++++++++++++++++++++++++++++++++++++++++++++"
     echo ""
     echo "👉 Need help in Getting Started?"
-    echo -e "Join us on Slack https://signoz.io/slack"
+    echo -e "Open an issue at https://github.com/SigInsight/SigInsight/issues"
     echo ""
 fi
 

@@ -15,7 +15,7 @@ tonic = { version = "0.8.2", features = ["tls-roots"] }
 ```
 &nbsp;
 
-Use the above crates in entry point of your Rust application, which is generally your `main.rs` file 
+Use the above crates in entry point of your Rust application, which is generally your `main.rs` file
 
 ```rust
 use opentelemetry::global::shutdown_tracer_provider;
@@ -32,7 +32,7 @@ use tonic::metadata::{MetadataMap, MetadataValue};
 &nbsp;
 
 ### Step 2: Initialize tracer
-Add `init_tracer` function to your `main.rs` file. It initializes an OpenTelemetry tracer with the OpenTelemetry OTLP exporter which is sending data to SigNoz Cloud.
+Add `init_tracer` function to your `main.rs` file. It initializes an OpenTelemetry tracer with the OpenTelemetry OTLP exporter which is sending data to SigInsight Cloud.
 
 ```rust
 fn init_tracer() -> Result<sdktrace::Tracer, TraceError> {
@@ -72,12 +72,12 @@ async fn main() {
 }
 ```
 
-Add the below code block within a function or a section of your code where you're setting up and using the tracer for distributed tracing. After adding the below code block you can send traces to SigNoz Cloud
+Add the below code block within a function or a section of your code where you're setting up and using the tracer for distributed tracing. After adding the below code block you can send traces to SigInsight Cloud
 
 ```rust
   let tracer = global::tracer("global_tracer");
     let _cx = Context::new();
-  
+
     tracer.in_span("operation", |cx| {
         let span = cx.span();
         span.set_attribute(Key::new("KEY").string("value"));
@@ -85,11 +85,11 @@ Add the below code block within a function or a section of your code where you'r
         span.add_event(
             format!("Operations"),
             vec![
-                Key::new("SigNoz is").string("working!"),
+                Key::new("SigInsight is").string("working!"),
             ],
         );
     });
     shutdown_tracer_provider()
 ```
 
-The above code block will create a span named operation which sets an attribute and an event to it saying "SigNoz is working!". 
+The above code block will create a span named operation which sets an attribute and an event to it saying "SigInsight is working!".

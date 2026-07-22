@@ -528,7 +528,7 @@ func CleanPathPrefixes(path string) string {
 	return path
 }
 
-// PromotePaths inserts promoted paths into the Column Evolution table (same schema as signoz-otel-collector metadata_migrations).
+// PromotePaths inserts promoted paths into the Column Evolution table (same schema as siginsight-otel-collector metadata_migrations).
 func (t *telemetryMetaStore) PromotePaths(ctx context.Context, paths ...string) error {
 	ctx = withTelemetryContext(ctx, "PromotePaths")
 	batch, err := t.telemetrystore.ClickhouseDB().PrepareBatch(ctx,

@@ -70,7 +70,7 @@ services:
   init-clickhouse:
     !!merge <<: *common
     image: ${HISTOGRAM_QUANTILE_INIT_IMAGE:-ghcr.io/siginsight/clickhouse-init-histogram-quantile:25.5.6-latest}
-    container_name: signoz-init-clickhouse
+    container_name: siginsight-init-clickhouse
     command:
       - bash
       - -c
@@ -84,7 +84,7 @@ services:
       - ../common/clickhouse/user_scripts:/var/lib/clickhouse/user_scripts/
   zookeeper-1:
     !!merge <<: *zookeeper-defaults
-    container_name: signoz-zookeeper-1
+    container_name: siginsight-zookeeper-1
     # ports:
     #   - "2181:2181"
     #   - "2888:2888"
@@ -100,7 +100,7 @@ services:
       - ZOO_PROMETHEUS_METRICS_PORT_NUMBER=9141
   zookeeper-2:
     !!merge <<: *zookeeper-defaults
-    container_name: signoz-zookeeper-2
+    container_name: siginsight-zookeeper-2
     # ports:
     #   - "2182:2181"
     #   - "2889:2888"
@@ -116,7 +116,7 @@ services:
       - ZOO_PROMETHEUS_METRICS_PORT_NUMBER=9141
   zookeeper-3:
     !!merge <<: *zookeeper-defaults
-    container_name: signoz-zookeeper-3
+    container_name: siginsight-zookeeper-3
     # ports:
     #   - "2183:2181"
     #   - "2890:2888"
@@ -132,7 +132,7 @@ services:
       - ZOO_PROMETHEUS_METRICS_PORT_NUMBER=9141
   clickhouse:
     !!merge <<: *clickhouse-defaults
-    container_name: signoz-clickhouse
+    container_name: siginsight-clickhouse
     # ports:
     #   - "9000:9000"
     #   - "8123:8123"
@@ -147,7 +147,7 @@ services:
       # - ../common/clickhouse/storage.xml:/etc/clickhouse-server/config.d/storage.xml
   clickhouse-2:
     !!merge <<: *clickhouse-defaults
-    container_name: signoz-clickhouse-2
+    container_name: siginsight-clickhouse-2
     # ports:
     #   - "9001:9000"
     #   - "8124:8123"
@@ -162,7 +162,7 @@ services:
       # - ../common/clickhouse/storage.xml:/etc/clickhouse-server/config.d/storage.xml
   clickhouse-3:
     !!merge <<: *clickhouse-defaults
-    container_name: signoz-clickhouse-3
+    container_name: siginsight-clickhouse-3
     # ports:
     #   - "9002:9000"
     #   - "8125:8123"
@@ -177,8 +177,8 @@ services:
       # - ../common/clickhouse/storage.xml:/etc/clickhouse-server/config.d/storage.xml
   signoz:
     !!merge <<: *db-depend
-    image: ${SIGNOZ_IMAGE:-ghcr.io/siginsight/siginsight:${VERSION:-v1.5.0}}
-    container_name: signoz
+    image: ${SIGINSIGHT_IMAGE:-ghcr.io/siginsight/siginsight:${VERSION:-v1.5.0}}
+    container_name: siginsight
     ports:
       - "8080:8080" # signoz port
     volumes:
@@ -200,46 +200,46 @@ services:
       retries: 3
   otel-collector:
     !!merge <<: *db-depend
-    image: ghcr.io/siginsight/signoz-otel-collector:${OTELCOL_TAG:-v1.0.2}
-    container_name: signoz-otel-collector
+    image: ghcr.io/siginsight/siginsight-otel-collector:${OTELCOL_TAG:-v1.0.3}
+    container_name: siginsight-otel-collector
     entrypoint:
       - /bin/sh
     command:
       - -c
       - |
-        /signoz-otel-collector migrate sync check &&
-        /signoz-otel-collector --config=/etc/otel-collector-config.yaml --manager-config=/etc/manager-config.yaml --copy-path=/var/tmp/collector-config.yaml
+        /siginsight-otel-collector migrate sync check &&
+        /siginsight-otel-collector --config=/etc/otel-collector-config.yaml --manager-config=/etc/manager-config.yaml --copy-path=/var/tmp/collector-config.yaml
     volumes:
       - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
       - ../common/signoz/otel-collector-opamp-config.yaml:/etc/manager-config.yaml
     environment:
-      - OTEL_RESOURCE_ATTRIBUTES=host.name=signoz-host,os.type=linux
+      - OTEL_RESOURCE_ATTRIBUTES=host.name=siginsight-host,os.type=linux
       - LOW_CARDINAL_EXCEPTION_GROUPING=false
-      - SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN=tcp://clickhouse:9000
-      - SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_CLUSTER=cluster
-      - SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_REPLICATION=true
-      - SIGNOZ_OTEL_COLLECTOR_TIMEOUT=10m
+      - SIGINSIGHT_OTEL_COLLECTOR_CLICKHOUSE_DSN=tcp://clickhouse:9000
+      - SIGINSIGHT_OTEL_COLLECTOR_CLICKHOUSE_CLUSTER=cluster
+      - SIGINSIGHT_OTEL_COLLECTOR_CLICKHOUSE_REPLICATION=true
+      - SIGINSIGHT_OTEL_COLLECTOR_TIMEOUT=10m
     ports:
       # - "1777:1777"     # pprof extension
       - "4317:4317" # OTLP gRPC receiver
       - "4318:4318" # OTLP HTTP receiver
   signoz-telemetrystore-migrator:
     !!merge <<: *db-depend
-    image: ghcr.io/siginsight/signoz-otel-collector:${OTELCOL_TAG:-v1.0.2}
-    container_name: signoz-telemetrystore-migrator
+    image: ghcr.io/siginsight/siginsight-otel-collector:${OTELCOL_TAG:-v1.0.3}
+    container_name: siginsight-telemetrystore-migrator
     environment:
-      - SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN=tcp://clickhouse:9000
-      - SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_CLUSTER=cluster
-      - SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_REPLICATION=true
-      - SIGNOZ_OTEL_COLLECTOR_TIMEOUT=10m
+      - SIGINSIGHT_OTEL_COLLECTOR_CLICKHOUSE_DSN=tcp://clickhouse:9000
+      - SIGINSIGHT_OTEL_COLLECTOR_CLICKHOUSE_CLUSTER=cluster
+      - SIGINSIGHT_OTEL_COLLECTOR_CLICKHOUSE_REPLICATION=true
+      - SIGINSIGHT_OTEL_COLLECTOR_TIMEOUT=10m
     entrypoint:
       - /bin/sh
     command:
       - -c
       - |
-        /signoz-otel-collector migrate bootstrap &&
-        /signoz-otel-collector migrate sync up &&
-        /signoz-otel-collector migrate async up
+        /siginsight-otel-collector migrate bootstrap &&
+        /siginsight-otel-collector migrate sync up &&
+        /siginsight-otel-collector migrate async up
     restart: on-failure
 networks:
   signoz-net:

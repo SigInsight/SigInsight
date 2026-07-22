@@ -1,4 +1,4 @@
-## Collect Syslogs in SigNoz cloud
+## Collect Syslogs in SigInsight cloud
 
 - Add otel collector binary to your VM by following this [guide](https://signoz.io/docs/tutorial/opentelemetry-binary-usage-in-virtual-machine/).
 
@@ -72,4 +72,4 @@
 
 - You can check the status of service by running `sudo systemctl status rsyslog.service`
 
-- If there are no errors your logs will be visible on SigNoz UI.
+- If there are no errors your logs will be visible on SigInsight UI.

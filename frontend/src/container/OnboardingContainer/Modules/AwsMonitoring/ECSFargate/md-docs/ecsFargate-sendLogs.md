@@ -2,7 +2,7 @@
 
 ## Send Logs Data
 
-To send logs data from applications deployed in ECS to SigNoz Cloud using sidecar container we created in the previous steps, follow these steps:
+To send logs data from applications deployed in ECS to SigInsight Cloud using sidecar container we created in the previous steps, follow these steps:
 
 ### Step 1: Configure Log Router
 
@@ -125,9 +125,9 @@ Rebuild your application container and deploy it to ECS cluster using the same t
 
 &nbsp;
 
-### Step 4: Verify Data in SigNoz
+### Step 4: Verify Data in SigInsight
 
-Generate some logs from your application and go to your SigNoz cloud **Logs** page to see your application logs.
+Generate some logs from your application and go to your SigInsight cloud **Logs** page to see your application logs.
 
 
 

@@ -6,7 +6,7 @@
 </h1>
 
 
-<p align="center">监控你的应用，并且可排查已部署应用的问题，这是一个可替代 DataDog、NewRelic 的开源方案（基于SigNoz构建）</p>
+<p align="center">监控你的应用，并且可排查已部署应用的问题，这是一个可替代 DataDog、NewRelic 的开源方案</p>
 </p>
 
 
@@ -77,7 +77,7 @@ SigInsight 帮助开发人员监控应用并排查已部署应用的问题。你
 
 - 原生支持 OpenTelemetry 日志，高级日志查询，自动收集 k8s 相关日志
 
-- 快如闪电的日志分析 ([Logs Perf. Benchmark](https://signoz.io/blog/logs-performance-benchmark/))
+- 快如闪电的日志分析
 
 - 可视化点到点的基础设施性能，提取有所有类型机器的 metrics 数据
 
@@ -159,7 +159,7 @@ Jaeger 仅仅是一个分布式追踪系统。 但是 SigInsight 可以提供 me
 
 - 与 Elastic 相比，可以节省 50% 的资源成本
 
-上游公布了 Elastic 和 SigNoz 的性能对比。 请点击 [这里](https://signoz.io/blog/logs-performance-benchmark/?utm_source=github-readme&utm_medium=logs-benchmark)
+SigInsight 提供基于 ClickHouse 的高性能日志分析能力。
 
 <p>&nbsp  </p>
 
@@ -171,14 +171,14 @@ Jaeger 仅仅是一个分布式追踪系统。 但是 SigInsight 可以提供 me
 
 - 相较于 SigInsight，Loki 在搜索大量数据下既困难又缓慢。
 
-上游发布了基准测试对比 Loki 和 SigNoz 性能。请点击 [这里](https://signoz.io/blog/logs-performance-benchmark/?utm_source=github-readme&utm_medium=logs-benchmark)
+SigInsight 适用于高基数日志查询和聚合。
 
 <br /><br />
 
 
 ## 文档
 
-你可以通过 https://signoz.io/docs/ 找到相关文档。如果你需要阐述问题或者发现一些确实的事件， 通过标签为 `documentation` 提交 Github 问题。
+部署说明请查看 [deploy/README.md](deploy/README.md)。如需帮助或报告问题，请提交 [GitHub Issue](https://github.com/SigInsight/SigInsight/issues)。
 
 <br /><br />
 

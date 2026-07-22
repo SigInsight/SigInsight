@@ -11,15 +11,15 @@ Follow these steps if you want to monitor system metrics like Total Requests, To
 
 ## Query Metrics
 
-Once you have completed the prerequisites, you can start monitoring your Azure Blob Storage's system metrics with SigNoz.
+Once you have completed the prerequisites, you can start monitoring your Azure Blob Storage's system metrics with SigInsight.
 
-1. Log in to your SigNoz account.
+1. Log in to your SigInsight account.
 2. Open Metrics Explorer.
 3. Select `azure_ingress_total` and use **Avg By** with the `location` tag.
 4. Filter with `name = <storage-account-name>`.
 
 
-That's it! You have successfully set up monitoring for your Azure Blob Storage's system metrics with SigNoz.
+That's it! You have successfully set up monitoring for your Azure Blob Storage's system metrics with SigInsight.
 
 &nbsp;
 

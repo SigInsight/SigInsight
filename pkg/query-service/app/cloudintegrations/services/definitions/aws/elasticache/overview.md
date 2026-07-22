@@ -1,3 +1,3 @@
-### Monitor ElastiCache with SigNoz
+### Monitor ElastiCache with SigInsight
 
 Collect key ElastiCache metrics.

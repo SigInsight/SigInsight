@@ -33,7 +33,7 @@ helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm
 
   You will need to set up a [service principal](https://learn.microsoft.com/en-us/entra/identity-platform/howto-create-service-principal-portal) with Read permissions to receive data from Azure Monitor.
 
-  1. Follow the steps in the [Create a service principal Azure Doc](https://learn.microsoft.com/en-us/entra/identity-platform/howto-create-service-principal-portal#register-an-application-with-microsoft-entra-id-and-create-a-service-principal) documentation to create a service principal. 
+  1. Follow the steps in the [Create a service principal Azure Doc](https://learn.microsoft.com/en-us/entra/identity-platform/howto-create-service-principal-portal#register-an-application-with-microsoft-entra-id-and-create-a-service-principal) documentation to create a service principal.
   You can name it `signoz-central-collector-app` the redirect URI can be empty.
   2. To add read permissions to Azure Monitor, Follow the [Assign Role](https://learn.microsoft.com/en-us/entra/identity-platform/howto-create-service-principal-portal#assign-a-role-to-the-application) documentation. The read acess can be given to the full subscription.
   3. There are multiple ways to authenticate the service principal, we will use the client secret option, follow [Creating a client secret](https://learn.microsoft.com/en-us/entra/identity-platform/howto-create-service-principal-portal#option-3-create-a-new-client-secret) and don't forget to copy the client secret. The secret is used in the configuration file as `client_secret`.
@@ -41,12 +41,12 @@ helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm
   4. To find `client_id` and `tenant_id`, go to the [Azure Portal](https://portal.azure.com/) and search for the `Application` you created. You would see the `Application (client) ID` and `Directory (tenant) ID` in the Overview section.
 
   5. To find `subscription_id`, follow steps in [Find Your Subscription](https://learn.microsoft.com/en-us/azure/azure-portal/get-subscription-tenant-id#find-your-azure-subscription) and populate them in the configuration file.
-  
+
   6. Ensure you replace the placeholders `<region>` and `<ingestion-key>` with the appropriate values for your signoz cloud instance.
 
 
 
-Below is an example targeting the SigNoz backend with Azure Monitor receivers configured:
+Below is an example targeting the SigInsight backend with Azure Monitor receivers configured:
 
 ```yaml
 service:

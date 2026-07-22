@@ -1,23 +1,23 @@
 services:
-  signoz-otel-collector:
-    image: ghcr.io/siginsight/signoz-otel-collector:${OTELCOL_TAG:-v1.0.2}
-    container_name: signoz-otel-collector-dev
+  siginsight-otel-collector:
+    image: ghcr.io/siginsight/siginsight-otel-collector:${OTELCOL_TAG:-v1.0.3}
+    container_name: siginsight-otel-collector-dev
     entrypoint:
     - /bin/sh
     command:
       - -c
       - |
-        /signoz-otel-collector migrate sync check &&
-        /signoz-otel-collector --config=/etc/otel-collector-config.yaml
+        /siginsight-otel-collector migrate sync check &&
+        /siginsight-otel-collector --config=/etc/otel-collector-config.yaml
     volumes:
       - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
     environment:
-      - OTEL_RESOURCE_ATTRIBUTES=host.name=signoz-host,os.type=linux
+      - OTEL_RESOURCE_ATTRIBUTES=host.name=siginsight-host,os.type=linux
       - LOW_CARDINAL_EXCEPTION_GROUPING=false
-      - SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN=tcp://clickhouse:9000
-      - SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_CLUSTER=cluster
-      - SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_REPLICATION=true
-      - SIGNOZ_OTEL_COLLECTOR_TIMEOUT=10m
+      - SIGINSIGHT_OTEL_COLLECTOR_CLICKHOUSE_DSN=tcp://clickhouse:9000
+      - SIGINSIGHT_OTEL_COLLECTOR_CLICKHOUSE_CLUSTER=cluster
+      - SIGINSIGHT_OTEL_COLLECTOR_CLICKHOUSE_REPLICATION=true
+      - SIGINSIGHT_OTEL_COLLECTOR_TIMEOUT=10m
     ports:
       - "4317:4317" # OTLP gRPC receiver
       - "4318:4318" # OTLP HTTP receiver

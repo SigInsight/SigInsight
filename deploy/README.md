@@ -32,7 +32,7 @@ By default, the compose files use these GHCR images:
 
 ```sh
 ghcr.io/siginsight/siginsight:v1.5.0
-ghcr.io/siginsight/signoz-otel-collector:v1.0.2
+ghcr.io/siginsight/siginsight-otel-collector:v1.0.3
 ghcr.io/siginsight/clickhouse-init-histogram-quantile:25.5.6-latest
 ```
 
@@ -49,7 +49,7 @@ export HISTOGRAM_QUANTILE_INIT_IMAGE=ghcr.io/siginsight/clickhouse-init-histogra
 To use a different SigInsight registry or repository, set the complete image reference:
 
 ```sh
-export SIGNOZ_IMAGE=ghcr.io/siginsight/siginsight:v1.5.0
+export SIGINSIGHT_IMAGE=ghcr.io/siginsight/siginsight:v1.5.0
 ```
 
 To start collecting logs and metrics from your infrastructure, run the following command:

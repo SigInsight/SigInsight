@@ -11,20 +11,20 @@ The [SSH Keys Guide](https://learn.microsoft.com/en-us/azure/virtual-machines/ss
 
 ### Install OpenTelemetry Collector
 
-Follow the [OpenTelemetry SigNoz documentation](https://signoz.io/docs/tutorial/opentelemetry-binary-usage-in-virtual-machine/) to install the OpenTelemetry Collector. 
+Follow the [OpenTelemetry SigInsight documentation](https://signoz.io/docs/tutorial/opentelemetry-binary-usage-in-virtual-machine/) to install the OpenTelemetry Collector.
 
 &nbsp;
 
 ### Configure Collector
 
- We send the logs, traces and metrics to the central collector that we set up in the previous step instead of SigNoz directly, in order to adopt a scalable architecture pattern. We recommend to our users to use the same pattern in your Azure subscription.
+ We send the logs, traces and metrics to the central collector that we set up in the previous step instead of SigInsight directly, in order to adopt a scalable architecture pattern. We recommend to our users to use the same pattern in your Azure subscription.
 
 Replace the content of the `config.yaml` file that you created while installing the collector.
 
 ```yaml
 receivers:
   filelog:
-    include: [ <file paths> ] # /var/log/myservice/*.json 
+    include: [ <file paths> ] # /var/log/myservice/*.json
     operators:
       - type: json_parser
         timestamp:
@@ -66,11 +66,11 @@ processors:
     timeout: 10s
   # Ref: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/resourcedetectionprocessor/README.md
   resourcedetection:
-    detectors: [env, azure, system] 
+    detectors: [env, azure, system]
     # Using OTEL_RESOURCE_ATTRIBUTES envvar, env detector adds custom labels.
     timeout: 2s
     system:
-      hostname_sources: [dns, os] 
+      hostname_sources: [dns, os]
 extensions:
   health_check: {}
   zpages: {}
@@ -110,7 +110,7 @@ Make sure to replace `<Central Collector DNS Name>` with the DNS name of your ce
 &nbsp;
 
 #### File Logs Receiver Configuration
-The file logs receiver needs to be configured with the paths to the log files that you want to stream to SigNoz. You can specify multiple paths by separating them as a array.
+The file logs receiver needs to be configured with the paths to the log files that you want to stream to SigInsight. You can specify multiple paths by separating them as a array.
 
 You can also specify globed path patterns to match multiple log files. For example, `/var/log/myservice/*.json` will match all log files in the `/var/log/myservice` directory with a `.json` extension.
 

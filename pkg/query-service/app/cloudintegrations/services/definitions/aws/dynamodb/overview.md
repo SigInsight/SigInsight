@@ -1,3 +1,3 @@
-### Monitor DynamoDB with SigNoz
+### Monitor DynamoDB with SigInsight
 
 Collect key DynamoDB metrics.

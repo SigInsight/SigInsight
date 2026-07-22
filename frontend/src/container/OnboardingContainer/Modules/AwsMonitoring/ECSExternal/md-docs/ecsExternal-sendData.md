@@ -4,7 +4,7 @@
 
 ## Send Traces Data
 
-To send traces data from applications deployed in ECS to SigNoz Cloud using Daemon Service we created in the previous section, follow these steps:
+To send traces data from applications deployed in ECS to SigInsight Cloud using Daemon Service we created in the previous section, follow these steps:
 
 ### Step 1: Instrument your application
 To add OpenTelemetry instrumentation to your application, check out the Application Monitoring section in onboarding you can follow the docs [here](https://signoz.io/docs/instrumentation/).
@@ -13,7 +13,7 @@ To add OpenTelemetry instrumentation to your application, check out the Applicat
 
 ### Step 2: Add Entrypoint to your Application Container
 
-Add an entrypoint to the application container to set the `OTEL_EXPORTER_OTLP_ENDPOINT` environment variable to the endpoint of the daemon service. 
+Add an entrypoint to the application container to set the `OTEL_EXPORTER_OTLP_ENDPOINT` environment variable to the endpoint of the daemon service.
 
 Obtain the endpoint or IP address of the instance on which the task is running. This can be done using the default network mode, i.e., **Bridge**
 
@@ -58,7 +58,7 @@ Replace `<Application Startup Commands>` with the commands to start your applica
 
 To add the service name of your application, you need to set the `OTEL_RESOURCE_ATTRIBUTES` environment variable of the application container to `service.name=<your-service-name>`.
 
-In your task definition, add the following lines: 
+In your task definition, add the following lines:
 
 ```bash
 ...
@@ -101,6 +101,6 @@ Once you follow the above steps, you need to rebuild the application container a
 
 &nbsp;
 
-### Step 5: Step 5: Verify Data in SigNoz
+### Step 5: Step 5: Verify Data in SigInsight
 
-Generate some traffic to your application and go to your SigNoz cloud services page to see your application name in the service list.
+Generate some traffic to your application and go to your SigInsight cloud services page to see your application name in the service list.

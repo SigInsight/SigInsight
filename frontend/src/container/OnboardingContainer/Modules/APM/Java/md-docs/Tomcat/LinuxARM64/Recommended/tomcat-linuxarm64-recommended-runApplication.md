@@ -25,7 +25,7 @@ kill "$(< otel-pid)"
 
 If you run your .war package by putting in webapps folder, just add setenv.sh in your Tomcat bin folder.
 
-This should set the environment variable and start sending telemetry data to SigNoz Cloud.
+This should set the environment variable and start sending telemetry data to SigInsight Cloud.
 
 ```bash
 export CATALINA_OPTS="$CATALINA_OPTS -javaagent:/<path>/opentelemetry-javaagent.jar"

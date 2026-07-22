@@ -5,10 +5,10 @@ Dependencies related to OpenTelemetry exporter and SDK have to be installed firs
 Run the below commands after navigating to the application source folder:
 ```bash
 dotnet add package OpenTelemetry
-dotnet add package OpenTelemetry.Exporter.OpenTelemetryProtocol 
+dotnet add package OpenTelemetry.Exporter.OpenTelemetryProtocol
 dotnet add package OpenTelemetry.Extensions.Hosting
 dotnet add package OpenTelemetry.Instrumentation.Runtime
-dotnet add package OpenTelemetry.Instrumentation.AspNetCore 
+dotnet add package OpenTelemetry.Instrumentation.AspNetCore
 dotnet add package OpenTelemetry.AutoInstrumentation
 ```
 
@@ -36,18 +36,18 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Configure OpenTelemetry with tracing and auto-start.
 builder.Services.AddOpenTelemetry()
-    .ConfigureResource(resource => 
+    .ConfigureResource(resource =>
         resource.AddService(serviceName: "{{MYAPP}}"))
     .WithTracing(tracing => tracing
         .AddAspNetCoreInstrumentation()
         .AddOtlpExporter(otlpOptions =>
         {
-                        //sigNoz Cloud Endpoint 
+                        //sigNoz Cloud Endpoint
             otlpOptions.Endpoint = new Uri("https://ingest.{{REGION}}.signoz.cloud:443");
 
             otlpOptions.Protocol = OtlpExportProtocol.Grpc;
-                        
-                        //SigNoz Cloud account Ingestion key
+
+                        //SigInsight Cloud account Ingestion key
             string headerKey = "signoz-ingestion-key";
             string headerValue = "{{SIGNOZ_INGESTION_KEY}}";
 

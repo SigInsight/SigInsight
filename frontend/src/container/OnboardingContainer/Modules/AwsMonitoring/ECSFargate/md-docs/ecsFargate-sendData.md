@@ -4,7 +4,7 @@
 
 ## Send Traces Data
 
-To send traces data from applications deployed in ECS to SigNoz Cloud using sidecar container we created in the previous steps, follow these steps:
+To send traces data from applications deployed in ECS to SigInsight Cloud using sidecar container we created in the previous steps, follow these steps:
 
 ### Step 1: Instrument your application
 To add OpenTelemetry instrumentation to your application, check out the Application Monitoring section in onboarding you can follow the docs [here](https://signoz.io/docs/instrumentation/).
@@ -79,6 +79,6 @@ After instrumenting your application and configuring the OTLP endpoint, you'll n
 
 &nbsp;
 
-### Step 4: Verify Data in SigNoz
+### Step 4: Verify Data in SigInsight
 
-Generate some traffic to your application and go to your SigNoz cloud **Services** page to see your application name in the service list.
+Generate some traffic to your application and go to your SigInsight cloud **Services** page to see your application name in the service list.

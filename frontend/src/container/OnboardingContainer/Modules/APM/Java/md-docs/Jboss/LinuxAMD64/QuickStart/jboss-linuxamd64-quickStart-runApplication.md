@@ -5,7 +5,7 @@ vim /opt/jboss-eap-7.1/bin/standalone.conf
 &nbsp;
 
 ### Update `JAVA_OPTS` environment variable
-Update `JAVA_OPTS` environment variable with configurations required to send data to SigNoz cloud in your configuration file.
+Update `JAVA_OPTS` environment variable with configurations required to send data to SigInsight cloud in your configuration file.
 
 ```bash
 JAVA_OPTS="-javaagent:/<path>/opentelemetry-javaagent.jar

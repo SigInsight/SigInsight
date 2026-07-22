@@ -1,5 +1,5 @@
 
-OTel Collector binary helps to collect logs, hostmetrics, resource and infra attributes. It is recommended to install Otel Collector binary to collect and send traces to SigNoz cloud. You can correlate signals and have rich contextual data through this way.
+OTel Collector binary helps to collect logs, hostmetrics, resource and infra attributes. It is recommended to install Otel Collector binary to collect and send traces to SigInsight cloud. You can correlate signals and have rich contextual data through this way.
 
 You can find instructions to install OTel Collector binary [here](https://signoz.io/docs/tutorial/opentelemetry-binary-usage-in-virtual-machine/) in your VM. Once you are done setting up your OTel Collector binary, you can follow the below steps for instrumenting your Elixir (Phoenix + Ecto) application.
 
@@ -47,8 +47,8 @@ config :opentelemetry, :resource, service: %{name: "{{MYAPP}}"}
 
 config :opentelemetry, :processors,
     otel_batch_processor: %{
-      exporter: 
-      {:opentelemetry_exporter, 
+      exporter:
+      {:opentelemetry_exporter,
       %{endpoints: ["http://localhost:4318"]}
       }
   }

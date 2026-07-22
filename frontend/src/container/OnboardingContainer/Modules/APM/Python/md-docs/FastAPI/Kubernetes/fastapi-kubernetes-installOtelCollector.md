@@ -1,6 +1,6 @@
 ### Install otel-collector in your Kubernetes infra
 
-Add the SigNoz Helm Chart repository
+Add the SigInsight Helm Chart repository
 ```bash
 helm repo add signoz https://charts.signoz.io
 ```

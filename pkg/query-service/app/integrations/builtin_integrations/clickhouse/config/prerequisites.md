@@ -1,12 +1,12 @@
-## Before You Begin  
+## Before You Begin
 
 To configure metrics and logs collection for a Clickhouse server, you need the following.
 
 ### Ensure Clickhouse server is prepared for monitoring
 
-- **Ensure that the Clickhouse server is running a supported version**  
-  Clickhouse versions v23 and newer are supported.  
-  You can use the following SQL statement to determine server version  
+- **Ensure that the Clickhouse server is running a supported version**
+  Clickhouse versions v23 and newer are supported.
+  You can use the following SQL statement to determine server version
   ```SQL
   SELECT version();
   ```
@@ -27,14 +27,14 @@ To configure metrics and logs collection for a Clickhouse server, you need the f
 
 ### Ensure OTEL Collector is running and has access to the Clickhouse server
 
-- **Ensure that an OTEL collector is running in your deployment environment**  
-  If needed, please [install SigNoz OTEL Collector](https://signoz.io/docs/tutorial/opentelemetry-binary-usage-in-virtual-machine/)  
-  If already installed, ensure that the collector version is v0.88.0 or newer.  
+- **Ensure that an OTEL collector is running in your deployment environment**
+  If needed, please [install SigInsight OTEL Collector](https://signoz.io/docs/tutorial/opentelemetry-binary-usage-in-virtual-machine/)
+  If already installed, ensure that the collector version is v0.88.0 or newer.
   If collecting logs from system.query_log table, ensure that the collector version is v0.88.23 or newer.
 
-  Also ensure that you can provide config files to the collector and that you can set environment variables and command line flags used for running it.  
+  Also ensure that you can provide config files to the collector and that you can set environment variables and command line flags used for running it.
 
-- **Ensure that the OTEL collector can access the Clickhouse server**  
+- **Ensure that the OTEL collector can access the Clickhouse server**
   In order to collect metrics, the collector must be able to reach clickhouse server and access the port on which prometheus metrics are being exposed.
 
   In order to collect server logs, the collector must be able to read the Clickhouse server log file.

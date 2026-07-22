@@ -1,4 +1,4 @@
-### Send traces directly to SigNoz Cloud
+### Send traces directly to SigInsight Cloud
 
 **Step 1. Install dependencies**
 
@@ -44,7 +44,7 @@ OpenTelemetry::SDK.configure do |c|
     OpenTelemetry::SDK::Trace::Export::BatchSpanProcessor.new(
       OpenTelemetry::Exporter::OTLP::Exporter.new(
         endpoint: '<SIGNOZ_URL>',
-        headers: { 'signoz-ingestion-key' => '{{SIGNOZ_INGESTION_KEY}}' } 
+        headers: { 'signoz-ingestion-key' => '{{SIGNOZ_INGESTION_KEY}}' }
       )
     )
   )
@@ -52,6 +52,6 @@ OpenTelemetry::SDK.configure do |c|
     OpenTelemetry::SemanticConventions::Resource::HOST_NAME => '<your-host-name>',
   })
   c.service_name = '{{MYAPP}}'    # The name of the application.
-  c.use_all()    # The libraries supported by automatic OpenTelemetry observation. 
+  c.use_all()    # The libraries supported by automatic OpenTelemetry observation.
 end
 ```

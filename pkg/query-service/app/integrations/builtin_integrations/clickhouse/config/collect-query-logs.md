@@ -16,7 +16,7 @@ receivers:
       min_scrape_delay_seconds: ${env:QUERY_LOG_SCRAPE_DELAY_SECONDS}
 
 exporters:
-  # export to SigNoz cloud
+  # export to SigInsight cloud
   otlp/clickhouse-query-logs:
     endpoint: "${env:OTLP_DESTINATION_ENDPOINT}"
     tls:
@@ -62,21 +62,21 @@ export QUERY_LOG_SCRAPE_INTERVAL_SECONDS=20
 # flushed before an attempt to collect them is made.
 export QUERY_LOG_SCRAPE_DELAY_SECONDS=8
 
-# region specific SigNoz cloud ingestion endpoint
+# region specific SigInsight cloud ingestion endpoint
 export OTLP_DESTINATION_ENDPOINT="ingest.us.signoz.cloud:443"
 
-# your SigNoz ingestion key
+# your SigInsight ingestion key
 export SIGNOZ_INGESTION_KEY="signoz-ingestion-key"
 
 ```
 
 #### Use collector config file
 
-Make the collector config file available to your otel collector and use it by adding the following flag to the command for running your collector  
+Make the collector config file available to your otel collector and use it by adding the following flag to the command for running your collector
 ```bash
 --config clickhouse-query-logs-collection-config.yaml
 ```
 Note: the collector can use multiple config files, specified by multiple occurrences of the --config flag.
 
-Also note that only 1 collector instance should be configured to collect query_logs.  
+Also note that only 1 collector instance should be configured to collect query_logs.
 Using multiple collector instances or replicas with this config will lead to duplicate logs.

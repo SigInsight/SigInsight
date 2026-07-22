@@ -60,21 +60,21 @@ services:
       timeout: 5s
       retries: 3
   telemetrystore-migrator:
-    image: ghcr.io/siginsight/signoz-otel-collector:${OTELCOL_TAG:-v1.0.2}
+    image: ghcr.io/siginsight/siginsight-otel-collector:${OTELCOL_TAG:-v1.0.3}
     container_name: telemetrystore-migrator
     environment:
-      - SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN=tcp://clickhouse:9000
-      - SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_CLUSTER=cluster
-      - SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_REPLICATION=true
-      - SIGNOZ_OTEL_COLLECTOR_TIMEOUT=10m
+      - SIGINSIGHT_OTEL_COLLECTOR_CLICKHOUSE_DSN=tcp://clickhouse:9000
+      - SIGINSIGHT_OTEL_COLLECTOR_CLICKHOUSE_CLUSTER=cluster
+      - SIGINSIGHT_OTEL_COLLECTOR_CLICKHOUSE_REPLICATION=true
+      - SIGINSIGHT_OTEL_COLLECTOR_TIMEOUT=10m
     entrypoint:
       - /bin/sh
     command:
     - -c 
     - |
-      /signoz-otel-collector migrate bootstrap &&
-      /signoz-otel-collector migrate sync up &&
-      /signoz-otel-collector migrate async up
+      /siginsight-otel-collector migrate bootstrap &&
+      /siginsight-otel-collector migrate sync up &&
+      /siginsight-otel-collector migrate async up
     depends_on:
       clickhouse:
         condition: service_healthy

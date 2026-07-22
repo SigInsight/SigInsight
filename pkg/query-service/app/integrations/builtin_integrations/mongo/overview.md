@@ -1,4 +1,4 @@
-### Monitor MongoDB with SigNoz
+### Monitor MongoDB with SigInsight
 
 Collect key MongoDB metrics.
 

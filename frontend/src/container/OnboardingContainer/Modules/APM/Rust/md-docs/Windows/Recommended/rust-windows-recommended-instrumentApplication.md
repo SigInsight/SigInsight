@@ -16,7 +16,7 @@ opentelemetry-proto = { version = "0.1.0"}
 tokio = { version = "1", features = ["full"] }
 tonic = { version = "0.8.2", features = ["tls-roots"] }
 ```
-after adding these in `Cargo.toml` , you need to use these in entry point of your Rust application , which is `main.rs` file in majority of applications. 
+after adding these in `Cargo.toml` , you need to use these in entry point of your Rust application , which is `main.rs` file in majority of applications.
 
 ```rust
 use opentelemetry::global::shutdown_tracer_provider;
@@ -33,9 +33,9 @@ use tonic::metadata::{MetadataMap, MetadataValue};
 
 **Step 2: Initialize the tracer and create env file**
 
-Add this function in main.rs file, `init_tracer` is initializing an OpenTelemetry tracer with the OpenTelemetry OTLP exporter which is sending data to SigNoz Cloud. 
+Add this function in main.rs file, `init_tracer` is initializing an OpenTelemetry tracer with the OpenTelemetry OTLP exporter which is sending data to SigInsight Cloud.
 
-This tracer initializes the connection with the OTel collector from the system variables passed while starting the app. 
+This tracer initializes the connection with the OTel collector from the system variables passed while starting the app.
 
 ```rust
 fn init_tracer() -> Result<sdktrace::Tracer, TraceError> {
@@ -61,7 +61,7 @@ fn init_tracer() -> Result<sdktrace::Tracer, TraceError> {
 **Step 3: Add the OpenTelemetry instrumentation for your Rust app**
 
 You need call init_tracer function inside `main()` at starting so that as soon as your rust application starts, tracer will be available globally.
-```rust 
+```rust
 let _ = init_tracer();
 ```
 
@@ -71,7 +71,7 @@ fn main(){
     //rest of the code
 }
 ```
-to 
+to
 ```rust
 #[tokio::main]
 async fn main() {
@@ -79,12 +79,12 @@ async fn main() {
 }
 ```
 
-Now comes the most interesting part, Sending data to SigNoz to get sense of your traces. After adding the below block you can send traces to SigNoz cloud
+Now comes the most interesting part, Sending data to SigInsight to get sense of your traces. After adding the below block you can send traces to SigInsight cloud
 
 ```rust
   let tracer = global::tracer("global_tracer");
     let _cx = Context::new();
-  
+
     tracer.in_span("operation", |cx| {
         let span = cx.span();
         span.set_attribute(Key::new("KEY").string("value"));
@@ -92,7 +92,7 @@ Now comes the most interesting part, Sending data to SigNoz to get sense of your
         span.add_event(
             format!("Operations"),
             vec![
-                Key::new("SigNoz is").string("Awesome"),
+                Key::new("SigInsight is").string("Awesome"),
             ],
         );
     });
@@ -110,7 +110,7 @@ project_root/
 |-- .env
 ```
 
-Paste these in `.env` file 
+Paste these in `.env` file
 ```bash
 OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
 OTEL_RESOURCE_ATTRIBUTES={{MYAPP}}

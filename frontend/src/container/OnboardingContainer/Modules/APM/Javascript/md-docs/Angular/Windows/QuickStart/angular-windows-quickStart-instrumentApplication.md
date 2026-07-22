@@ -3,7 +3,7 @@
 **Step 1.** Install OpenTelemetry packages
 
 ```bash
-npm install --save @opentelemetry/sdk-trace-web@^1.21.0                                                                   
+npm install --save @opentelemetry/sdk-trace-web@^1.21.0
 npm install --save @opentelemetry/instrumentation@^0.48.0
 npm install --save @opentelemetry/auto-instrumentations-web@^0.36.0
 npm install --save @opentelemetry/exporter-trace-otlp-http@^0.48.0
@@ -14,7 +14,7 @@ npm install --save @opentelemetry/semantic-conventions@^1.21.0
 &nbsp;
 
 **Step 2.** Create `instrument.ts` file<br></br>
-You need to configure the endpoint for SigNoz cloud in this file.
+You need to configure the endpoint for SigInsight cloud in this file.
 
 ```bash
 import { registerInstrumentations } from '@opentelemetry/instrumentation';
