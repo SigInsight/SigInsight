@@ -9,7 +9,6 @@
 	"custom_domain_settings": "Custom Domain Settings",
 	"dbcall_metrics": "Database Calls",
 	"external_metrics": "External Calls",
-	"pipeline": "Pipeline",
 	"pipelines": "Pipelines",
 	"archives": "Archives",
 	"logs_to_metrics": "Logs To Metrics",

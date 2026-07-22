@@ -43,17 +43,17 @@
 }
 
 .highlight-text {
-	border-radius: 2px;
-	background: rgba(78, 116, 248, 0.1);
+	border-radius: var(--si-radius-sm);
+	background: var(--si-accent-soft);
 	padding-right: 4px;
-	font-family: 'Geist Mono';
-	color: var(--bg-robin-500);
+	font-family: var(--si-font-mono);
+	color: var(--si-accent);
 }
 
 .isDarkMode {
 	.app-layout {
 		.app-content {
-			background: #0b0c0e;
+			background: var(--si-bg-canvas);
 		}
 	}
 }
@@ -61,7 +61,7 @@
 .isLightMode {
 	.app-layout {
 		.app-content {
-			background: #ffffff;
+			background: var(--si-bg-canvas);
 		}
 	}
 }
@@ -75,7 +75,7 @@
 }
 
 .slow-api-warning-banner {
-	background-color: var(--bg-robin-500);
+	background-color: var(--si-accent);
 
 	.dismiss-banner {
 		color: white;

@@ -44,9 +44,6 @@ export interface IntegrationDetailedProps {
 	};
 	categories: string[];
 	assets: {
-		logs: {
-			pipelines: [];
-		};
 		dashboards: [];
 		alerts: [];
 	};

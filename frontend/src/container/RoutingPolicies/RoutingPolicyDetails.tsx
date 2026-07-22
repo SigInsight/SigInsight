@@ -9,8 +9,8 @@ import {
 	Select,
 	Typography,
 } from 'antd';
+import { ModalTitle } from 'components/Modal/styles';
 import ROUTES from 'constants/routes';
-import { ModalTitle } from 'container/PipelinePage/PipelineListsView/styles';
 import { Check, Loader, X } from 'lucide-react';
 import { useAppContext } from 'providers/App/App';
 import { USER_ROLES } from 'types/roles';

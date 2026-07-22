@@ -19,11 +19,8 @@ import {
 	Recurrence,
 } from 'api/plannedDowntime/getAllDowntimeSchedules';
 import { DowntimeScheduleUpdatePayload } from 'api/plannedDowntime/updateDowntimeSchedule';
+import { ModalButtonWrapper, ModalTitle } from 'components/Modal/styles';
 import { DATE_TIME_FORMATS } from 'constants/dateTimeFormats';
-import {
-	ModalButtonWrapper,
-	ModalTitle,
-} from 'container/PipelinePage/PipelineListsView/styles';
 import dayjs from 'dayjs';
 import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';

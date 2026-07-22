@@ -2,17 +2,17 @@ import { Form } from 'antd';
 import styled from 'styled-components';
 
 export const Label = styled.label`
-	font-family: var(--font-family-inter, Inter), sans-serif;
+	font-family: var(--si-font-sans);
 	font-size: 13px;
 	font-weight: 600;
 	line-height: 1;
-	letter-spacing: -0.065px;
-	color: var(--l1-foreground);
+	letter-spacing: 0;
+	color: var(--si-text-primary);
 	margin-bottom: 12px;
 	display: block;
 
 	.lightMode & {
-		color: var(--text-ink-500);
+		color: var(--si-text-primary);
 	}
 `;
 
@@ -47,30 +47,30 @@ export const FormContainer = styled(Form)`
 	& .ant-input,
 	& .ant-input-password,
 	& .ant-select-selector {
-		background: var(--l3-background) !important;
-		border-color: var(--l3-border) !important;
-		color: var(--l1-foreground) !important;
+		background: var(--si-bg-subtle) !important;
+		border-color: var(--si-border) !important;
+		color: var(--si-text-primary) !important;
 
 		.lightMode & {
-			background: var(--bg-vanilla-200) !important;
-			border-color: var(--bg-vanilla-300) !important;
-			color: var(--text-ink-500) !important;
+			background: var(--si-bg-subtle) !important;
+			border-color: var(--si-border) !important;
+			color: var(--si-text-primary) !important;
 		}
 	}
 
 	& .ant-input::placeholder {
-		color: var(--l3-foreground) !important;
+		color: var(--si-text-muted) !important;
 
 		.lightMode & {
-			color: var(--text-neutral-light-200) !important;
+			color: var(--si-text-muted) !important;
 		}
 	}
 
 	& .ant-input:focus,
 	& .ant-input-password:focus,
 	& .ant-select-focused .ant-select-selector {
-		border-color: var(--primary) !important;
-		box-shadow: none !important;
+		border-color: var(--si-accent) !important;
+		box-shadow: 0 0 0 2px var(--si-accent-soft) !important;
 	}
 `;
 

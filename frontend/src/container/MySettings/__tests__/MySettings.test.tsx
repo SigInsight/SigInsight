@@ -1,24 +1,12 @@
 import MySettingsContainer from 'container/MySettings';
 import { act, fireEvent, render, screen, waitFor } from 'tests/test-utils';
 
-const toggleThemeFunction = jest.fn();
 const logEventFunction = jest.fn();
 const editUserFn = jest.fn();
 
 jest.mock('api/v1/user/id/update', () => ({
 	__esModule: true,
 	default: (...args: unknown[]): Promise<unknown> => editUserFn(...args),
-}));
-
-jest.mock('hooks/useDarkMode', () => ({
-	__esModule: true,
-	useIsDarkMode: jest.fn(() => true),
-	useSystemTheme: jest.fn(() => 'dark'),
-	default: jest.fn(() => ({
-		toggleTheme: toggleThemeFunction,
-		autoSwitch: false,
-		setAutoSwitch: jest.fn(),
-	})),
 }));
 
 jest.mock('api/common/logEvent', () => ({
@@ -38,7 +26,6 @@ jest.mock('hooks/useNotifications', () => ({
 	})),
 }));
 
-const THEME_SELECTOR_TEST_ID = 'theme-selector';
 const RESET_PASSWORD_BUTTON_TEXT = 'Reset password';
 const CURRENT_PASSWORD_TEST_ID = 'current-password-textbox';
 const NEW_PASSWORD_TEST_ID = 'new-password-textbox';
@@ -54,53 +41,10 @@ describe('MySettings Flows', () => {
 		render(<MySettingsContainer />);
 	});
 
-	describe('Dark/Light Theme Switch', () => {
-		it('Should display Dark, Light, and System theme options properly', async () => {
-			// Check Dark theme option
-			expect(screen.getByText('Dark')).toBeInTheDocument();
-			const darkThemeIcon = screen.getByTestId('dark-theme-icon');
-			expect(darkThemeIcon).toBeInTheDocument();
-			expect(darkThemeIcon.tagName).toBe('svg');
-
-			// Check Light theme option
-			expect(screen.getByText('Light')).toBeInTheDocument();
-			const lightThemeIcon = screen.getByTestId('light-theme-icon');
-			expect(lightThemeIcon).toBeInTheDocument();
-			expect(lightThemeIcon.tagName).toBe('svg');
-			expect(screen.getByText('Beta')).toBeInTheDocument();
-
-			// Check System theme option
-			expect(screen.getByText('System')).toBeInTheDocument();
-			const autoThemeIcon = screen.getByTestId('auto-theme-icon');
-			expect(autoThemeIcon).toBeInTheDocument();
-			expect(autoThemeIcon.tagName).toBe('svg');
-		});
-
-		it('Should have Dark theme selected by default', async () => {
-			const themeSelector = screen.getByTestId(THEME_SELECTOR_TEST_ID);
-			const darkOption = themeSelector.querySelector(
-				'input[value="dark"]',
-			) as HTMLInputElement;
-			expect(darkOption).toBeChecked();
-		});
-
-		it('Should switch theme and log event when Light theme is selected', async () => {
-			const themeSelector = screen.getByTestId(THEME_SELECTOR_TEST_ID);
-			const lightOption = themeSelector.querySelector(
-				'input[value="light"]',
-			) as HTMLInputElement;
-
-			fireEvent.click(lightOption);
-
-			await waitFor(() => {
-				expect(toggleThemeFunction).toHaveBeenCalled();
-				expect(logEventFunction).toHaveBeenCalledWith(
-					'Account Settings: Theme Changed',
-					{
-						theme: 'light',
-					},
-				);
-			});
+	describe('Theme settings', () => {
+		it('Should not display theme controls', () => {
+			expect(screen.queryByText('Select your theme')).not.toBeInTheDocument();
+			expect(screen.queryByTestId('theme-selector')).not.toBeInTheDocument();
 		});
 	});
 

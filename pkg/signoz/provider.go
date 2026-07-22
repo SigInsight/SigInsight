@@ -190,6 +190,7 @@ func NewSQLMigrationProviderFactories(
 		sqlmigration.NewDropUserRoleColumnFactory(sqlstore, sqlschema),
 		sqlmigration.NewAddAssistantConfigFactory(sqlschema),
 		sqlmigration.NewUpdateTraceHTTPMethodQuickFilterFactory(),
+		sqlmigration.NewDropLogPipelinesFactory(),
 	)
 }
 

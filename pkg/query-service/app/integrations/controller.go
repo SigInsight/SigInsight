@@ -4,11 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/SigNoz/signoz/pkg/query-service/agentConf"
 	"github.com/SigNoz/signoz/pkg/query-service/model"
 	"github.com/SigNoz/signoz/pkg/sqlstore"
 	"github.com/SigNoz/signoz/pkg/types/dashboardtypes"
-	"github.com/SigNoz/signoz/pkg/types/pipelinetypes"
 	"github.com/SigNoz/signoz/pkg/valuer"
 )
 
@@ -81,7 +79,6 @@ func (c *Controller) Install(ctx context.Context, orgId string, req *InstallInte
 	if apiErr != nil {
 		return nil, apiErr
 	}
-	agentConf.NotifyConfigUpdate(ctx)
 	return res, nil
 }
 
@@ -102,12 +99,7 @@ func (c *Controller) Uninstall(ctx context.Context, orgId string, req *Uninstall
 	if apiErr != nil {
 		return apiErr
 	}
-	agentConf.NotifyConfigUpdate(ctx)
 	return nil
-}
-
-func (c *Controller) GetPipelinesForInstalledIntegrations(ctx context.Context, orgId string) ([]pipelinetypes.GettablePipeline, error) {
-	return c.mgr.GetPipelinesForInstalledIntegrations(ctx, orgId)
 }
 
 func (c *Controller) GetDashboardsForInstalledIntegrations(ctx context.Context, orgId valuer.UUID) ([]*dashboardtypes.Dashboard, *model.ApiError) {

@@ -6,9 +6,6 @@ import './IntegrationDetailContentTabs.styles.scss';
 interface OverviewProps {
 	categories: string[];
 	assets: {
-		logs: {
-			pipelines: Array<any>;
-		};
 		dashboards: Array<any>;
 		alerts: Array<any>;
 	};
@@ -18,12 +15,11 @@ interface OverviewProps {
 function Overview(props: OverviewProps): JSX.Element {
 	const { categories, assets, overviewContent } = props;
 	const assetsCount = [
-		assets?.logs?.pipelines?.length || 0,
 		assets?.dashboards?.length || 0,
 		assets?.alerts?.length || 0,
 	];
 
-	const assetLabelMap = ['Pipelines', 'Dashboards', 'Alerts'];
+	const assetLabelMap = ['Dashboards', 'Alerts'];
 
 	return (
 		<div className="integration-detail-overview">

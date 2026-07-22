@@ -5,18 +5,46 @@
 
 @import '@signozhq/design-tokens/dist/themes/signoz-tokens.css';
 
-/* Import fonts from CDN */
-@import url('https://fonts.googleapis.com/css2?family=Work+Sans&wght@500&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Space+Mono&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Geist+Mono&wght@100;200;300;400;500;600;700;800;900&display=swap');
+@font-face {
+	font-family: 'Work Sans';
+	src: url('/fonts/WorkSans-VariableFont_wght.ttf') format('truetype');
+	font-weight: 100 900;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Geist Mono';
+	src: url('/fonts/GeistMonoVF.woff2') format('woff2');
+	font-weight: 100 900;
+	font-style: normal;
+	font-display: swap;
+}
+
+:root {
+	--si-font-sans: 'Work Sans', sans-serif;
+	--si-font-mono: 'Geist Mono', monospace;
+	--si-accent: #8793ed;
+	--si-accent-hover: #a3acf4;
+	--si-accent-soft: rgba(135, 147, 237, 0.14);
+	--si-positive: #57b99e;
+	--si-bg-canvas: #121419;
+	--si-bg-surface: #191c22;
+	--si-bg-subtle: #22262e;
+	--si-border: #303540;
+	--si-text-primary: #f0f1f4;
+	--si-text-secondary: #b4bac5;
+	--si-text-muted: #858d9b;
+	--si-radius-sm: 4px;
+	--si-radius-md: 6px;
+}
 
 #root,
 html,
 body {
 	height: 100%;
 	overflow: hidden;
-	font-family: 'Inter', sans-serif;
+	font-family: var(--si-font-sans);
 	font-optical-sizing: auto;
 	font-weight: 400;
 	font-style: normal;

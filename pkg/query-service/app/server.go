@@ -29,7 +29,6 @@ import (
 	"github.com/SigNoz/signoz/pkg/query-service/app/clickhouseReader"
 	"github.com/SigNoz/signoz/pkg/query-service/app/cloudintegrations"
 	"github.com/SigNoz/signoz/pkg/query-service/app/integrations"
-	"github.com/SigNoz/signoz/pkg/query-service/app/logparsingpipeline"
 	"github.com/SigNoz/signoz/pkg/query-service/app/opamp"
 	opAmpModel "github.com/SigNoz/signoz/pkg/query-service/app/opamp/model"
 	"github.com/SigNoz/signoz/pkg/query-service/interfaces"
@@ -117,25 +116,15 @@ func NewServer(config signoz.Config, signoz *signoz.SigNoz) (*Server, error) {
 		return nil, err
 	}
 
-	logParsingPipelineController, err := logparsingpipeline.NewLogParsingPipelinesController(
-		signoz.SQLStore,
-		integrationsController.GetPipelinesForInstalledIntegrations,
-		reader,
-	)
-	if err != nil {
-		return nil, err
-	}
-
 	apiHandler, err := NewAPIHandler(APIHandlerOpts{
-		Reader:                        reader,
-		RuleManager:                   rm,
-		IntegrationsController:        integrationsController,
-		CloudIntegrationsController:   cloudIntegrationsController,
-		LogsParsingPipelineController: logParsingPipelineController,
-		FluxInterval:                  config.Querier.FluxInterval,
-		AlertmanagerAPI:               alertmanager.NewAPI(signoz.Alertmanager),
-		Signoz:                        signoz,
-		QueryParserAPI:                queryparser.NewAPI(signoz.Instrumentation.ToProviderSettings(), signoz.QueryParser),
+		Reader:                      reader,
+		RuleManager:                 rm,
+		IntegrationsController:      integrationsController,
+		CloudIntegrationsController: cloudIntegrationsController,
+		FluxInterval:                config.Querier.FluxInterval,
+		AlertmanagerAPI:             alertmanager.NewAPI(signoz.Alertmanager),
+		Signoz:                      signoz,
+		QueryParserAPI:              queryparser.NewAPI(signoz.Instrumentation.ToProviderSettings(), signoz.QueryParser),
 	}, config)
 	if err != nil {
 		return nil, err
@@ -162,9 +151,6 @@ func NewServer(config signoz.Config, signoz *signoz.SigNoz) (*Server, error) {
 	agentConfMgr, err := agentConf.Initiate(
 		&agentConf.ManagerOptions{
 			Store: signoz.SQLStore,
-			AgentFeatures: []agentConf.AgentFeature{
-				logParsingPipelineController,
-			},
 		},
 	)
 	if err != nil {

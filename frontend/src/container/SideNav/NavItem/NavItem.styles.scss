@@ -1,5 +1,5 @@
 .nav-item {
-	border-radius: 2px;
+	border-radius: var(--si-radius-sm);
 
 	display: flex;
 	flex-direction: row;
@@ -11,12 +11,12 @@
 
 	&.active {
 		.nav-item-active-marker {
-			background: #4e74f8;
+			background: var(--si-accent);
 		}
 
 		.nav-item-data {
 			.nav-item-label {
-				color: var(--bg-vanilla-100, #fff);
+				color: var(--si-text-primary);
 			}
 		}
 	}
@@ -32,16 +32,20 @@
 		cursor: pointer;
 
 		.nav-item-data {
-			color: white;
-			background: var(--bg-slate-500, #161922);
+			color: var(--si-text-primary);
+			background: var(--si-bg-subtle);
 		}
+	}
+
+	&:focus-visible {
+		outline: 2px solid var(--si-accent);
+		outline-offset: 1px;
 	}
 
 	&.active {
 		.nav-item-data {
-			color: white;
-			background: var(--bg-slate-500, #161922);
-			// color: #3f5ecc;
+			color: var(--si-text-primary);
+			background: var(--si-accent-soft);
 		}
 	}
 
@@ -64,19 +68,19 @@
 		align-items: center;
 		gap: 8px;
 		align-self: stretch;
-		color: #c0c1c3;
+		color: var(--si-text-secondary);
 
-		font-family: Inter;
+		font-family: var(--si-font-sans);
 		font-size: 13px;
 		font-style: normal;
-		font-weight: 300;
+		font-weight: 450;
 		line-height: 18px;
 
 		background: transparent;
 
 		transition: 0.08s all ease;
 
-		border-radius: 3px;
+		border-radius: var(--si-radius-sm);
 
 		.nav-item-icon {
 			height: 16px;
@@ -88,11 +92,11 @@
 			overflow: hidden;
 			text-overflow: ellipsis;
 
-			color: #c0c1c3;
-			font-family: Inter;
+			color: var(--si-text-secondary);
+			font-family: var(--si-font-sans);
 			font-size: 13px;
 			font-style: normal;
-			font-weight: 300;
+			font-weight: 450;
 			line-height: normal;
 			letter-spacing: 0.14px;
 		}
@@ -106,7 +110,7 @@
 
 		&:hover {
 			.nav-item-label {
-				color: var(--bg-vanilla-100, #fff);
+				color: var(--si-text-primary);
 			}
 
 			.nav-item-pin-icon {
@@ -124,12 +128,12 @@
 	.nav-item {
 		&.active {
 			.nav-item-active-marker {
-				background: #4e74f8;
+				background: var(--si-accent);
 			}
 
 			.nav-item-data {
 				.nav-item-label {
-					color: var(--bg-slate-500);
+					color: var(--si-text-primary);
 				}
 			}
 		}
@@ -138,24 +142,23 @@
 			cursor: pointer;
 
 			.nav-item-data {
-				color: #121317;
-
-				background: var(--bg-vanilla-300);
+				color: var(--si-text-primary);
+				background: var(--si-bg-subtle);
 			}
 		}
 
 		&.active {
 			.nav-item-data {
-				color: #121317;
-				background: var(--bg-vanilla-300);
+				color: var(--si-text-primary);
+				background: var(--si-accent-soft);
 			}
 		}
 
 		.nav-item-data {
-			color: #121317;
+			color: var(--si-text-secondary);
 
 			.nav-item-label {
-				color: var(--bg-ink-400);
+				color: var(--si-text-secondary);
 			}
 		}
 	}
