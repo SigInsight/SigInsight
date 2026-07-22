@@ -32,17 +32,17 @@ By default, the compose files use these GHCR images:
 
 ```sh
 ghcr.io/siginsight/siginsight:v1.4.0
-ghcr.io/siginsight/signoz-otel-collector:v1.0.0
+ghcr.io/siginsight/signoz-otel-collector:v1.0.2
 ghcr.io/siginsight/clickhouse-init-histogram-quantile:25.5.6-latest
 ```
 
-The complete deployment currently supports Linux AMD64 hosts only because the `v1.0.0` collector image does not provide an ARM64 variant.
+The complete deployment currently supports Linux AMD64 hosts only because the `v1.0.2` collector image does not provide an ARM64 variant.
 
 You can override their tags with environment variables:
 
 ```sh
 export VERSION=v1.4.0
-export OTELCOL_TAG=v1.0.0
+export OTELCOL_TAG=v1.0.2
 export HISTOGRAM_QUANTILE_INIT_IMAGE=ghcr.io/siginsight/clickhouse-init-histogram-quantile:25.5.6-latest
 ```
 
