@@ -1,1 +1,1 @@
-# SigNoz integrations
+# SigInsight integrations

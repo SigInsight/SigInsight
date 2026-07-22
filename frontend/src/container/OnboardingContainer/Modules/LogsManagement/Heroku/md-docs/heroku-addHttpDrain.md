@@ -1,5 +1,5 @@
 
-You can stream logs from Heroku to SigNoz using [httpsdrain](https://devcenter.heroku.com/articles/log-drains#https-drains).
+You can stream logs from Heroku to SigInsight using [httpsdrain](https://devcenter.heroku.com/articles/log-drains#https-drains).
 
 
 &nbsp;
@@ -13,9 +13,9 @@ heroku drains:add https://<TENANT_NAME>:{{SIGNOZ_INGESTION_KEY}}@ingest.{{REGION
 
 &nbsp;
 
-`<TENANT_NAME>` should be raplaced with the name of your SigNoz instance.
+`<TENANT_NAME>` should be raplaced with the name of your SigInsight instance.
 
-For example, if your SigNoz instance URL is `https://cpvo-test.us.signoz.cloud` the `TENANT_NAME` is `cpvo-test`. 
+For example, if your SigInsight instance URL is `https://cpvo-test.us.signoz.cloud` the `TENANT_NAME` is `cpvo-test`.
 
 
 **Note:** You can find your instance URL in your browser's current tab address bar or in the invite email sent to you.
@@ -26,4 +26,4 @@ For example, if your SigNoz instance URL is `https://cpvo-test.us.signoz.cloud` 
 
 &nbsp;
 
-Once you have successfully added the drain, click on the `Done` button below to see your logs in the SigNoz UI.
+Once you have successfully added the drain, click on the `Done` button below to see your logs in the SigInsight UI.

@@ -48,7 +48,7 @@ processors:
       hostname_sources: ["os"]
 
 exporters:
-  # export to SigNoz cloud
+  # export to SigInsight cloud
   otlp/mongodb:
     endpoint: "${env:OTLP_DESTINATION_ENDPOINT}"
     tls:
@@ -87,18 +87,18 @@ export MONGODB_USERNAME="monitoring"
 # password for MongoDB monitoring user"
 export MONGODB_PASSWORD="<PASSWORD>"
 
-# region specific SigNoz cloud ingestion endpoint
+# region specific SigInsight cloud ingestion endpoint
 export OTLP_DESTINATION_ENDPOINT="ingest.us.signoz.cloud:443"
 
-# your SigNoz ingestion key
+# your SigInsight ingestion key
 export SIGNOZ_INGESTION_KEY="signoz-ingestion-key"
 
 ```
 
 #### Use collector config file
 
-Make the collector config file available to your otel collector and use it by adding the following flag to the command for running your collector  
+Make the collector config file available to your otel collector and use it by adding the following flag to the command for running your collector
 ```bash
 --config mongodb-metrics-collection-config.yaml
-```  
+```
 Note: the collector can use multiple config files, specified by multiple occurrences of the --config flag.

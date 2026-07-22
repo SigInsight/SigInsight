@@ -1,7 +1,7 @@
 services:
   signoz-otel-collector:
     image: ghcr.io/siginsight/signoz-otel-collector:${OTELCOL_TAG:-v1.0.2}
-    container_name: signoz-otel-collector-dev
+    container_name: siginsight-otel-collector-dev
     entrypoint:
     - /bin/sh
     command:

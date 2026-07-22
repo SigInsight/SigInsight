@@ -67,7 +67,7 @@ processors:
     timeout: 10s
 
 exporters:
-  # export to SigNoz cloud
+  # export to SigInsight cloud
   otlp/mongodb-logs:
     endpoint: "${env:OTLP_DESTINATION_ENDPOINT}"
     tls:
@@ -101,19 +101,19 @@ Set the following environment variables in your otel-collector environment:
 # mongod.conf file can also be checked for finding log file location
 export MONGODB_LOG_FILE=/var/log/mongodb/mongodb.log
 
-# region specific SigNoz cloud ingestion endpoint
+# region specific SigInsight cloud ingestion endpoint
 export OTLP_DESTINATION_ENDPOINT="ingest.us.signoz.cloud:443"
 
-# your SigNoz ingestion key
+# your SigInsight ingestion key
 export SIGNOZ_INGESTION_KEY="signoz-ingestion-key"
 
 ```
 
 #### Use collector config file
 
-Make the collector config file available to your otel collector and use it by adding the following flag to the command for running your collector  
+Make the collector config file available to your otel collector and use it by adding the following flag to the command for running your collector
 ```bash
 --config mongodb-logs-collection-config.yaml
-```  
+```
 Note: the collector can use multiple config files, specified by multiple occurrences of the --config flag.
 

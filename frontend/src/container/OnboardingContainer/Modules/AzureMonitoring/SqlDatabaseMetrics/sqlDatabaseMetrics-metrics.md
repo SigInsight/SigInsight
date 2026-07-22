@@ -9,14 +9,14 @@
 
 ## Query Metrics
 
-Once you have completed the prerequisites, you can start monitoring your Database's system metrics with SigNoz. Here's how you can do it:
+Once you have completed the prerequisites, you can start monitoring your Database's system metrics with SigInsight. Here's how you can do it:
 
-1. Log in to your SigNoz account.
+1. Log in to your SigInsight account.
 2. Open Metrics Explorer.
 3. Select `azure_storage_maximum` and use **Avg By** with the `location` tag.
 4. Filter with `name = <database-name>`.
 
-That's it! You have successfully set up monitoring for your Database's system metrics with SigNoz.
+That's it! You have successfully set up monitoring for your Database's system metrics with SigInsight.
 
 &nbsp;
 

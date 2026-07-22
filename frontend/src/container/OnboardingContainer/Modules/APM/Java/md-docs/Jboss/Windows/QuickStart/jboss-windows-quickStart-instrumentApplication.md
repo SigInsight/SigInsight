@@ -1,4 +1,4 @@
- 
+
 **Step 1.** Download otel java binary agent
 
 ```bash
@@ -9,10 +9,10 @@ wget https://github.com/open-telemetry/opentelemetry-java-instrumentation/releas
 **Step 2.** Edit your configuration file,i.e `standalone.conf` for JBoss with nano or notepad.
 &nbsp;
 &nbsp;
-    
+
 **Step 3.** Update `JAVA_OPTS` environment variable
 
-Update `JAVA_OPTS` environment variable with configurations required to send data to SigNoz cloud in your configuration file.
+Update `JAVA_OPTS` environment variable with configurations required to send data to SigInsight cloud in your configuration file.
 
 ```bash
 set JAVA_OPTS=-javaagent:C:\path\to\opentelemetry-javaagent.jar

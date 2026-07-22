@@ -1,4 +1,4 @@
-### Monitor Redis with SigNoz
+### Monitor Redis with SigInsight
 
 Collect key Redis metrics.
 

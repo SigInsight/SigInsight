@@ -13,7 +13,7 @@ tonic = { version = "0.8.2", features = ["tls-roots"] }
 
 &nbsp;
 
-after adding these in `Cargo.toml` , you need to use these in entry point of your Rust application , which is `main.rs` file in majority of applications. 
+after adding these in `Cargo.toml` , you need to use these in entry point of your Rust application , which is `main.rs` file in majority of applications.
 
 &nbsp;
 
@@ -34,7 +34,7 @@ use tonic::metadata::{MetadataMap, MetadataValue};
 
 **Step 2: Initialize the tracer and create env file**
 
-Add this function in main.rs file, `init_tracer` is initializing an OpenTelemetry tracer with the OpenTelemetry OTLP exporter which is sending data to SigNoz Cloud. 
+Add this function in main.rs file, `init_tracer` is initializing an OpenTelemetry tracer with the OpenTelemetry OTLP exporter which is sending data to SigInsight Cloud.
 
 ```bash
 fn init_tracer() -> Result<sdktrace::Tracer, TraceError> {
@@ -79,12 +79,12 @@ project_root/
 
 &nbsp;
 
-Paste these in `.env` file 
+Paste these in `.env` file
 
 &nbsp;
 
 
-```bash 
+```bash
 PORT=3000
 APP_NAME={{MYAPP}}
 SIGNOZ_ENDPOINT=https://ingest.{{REGION}}.signoz.cloud:443/v1/traces
@@ -116,7 +116,7 @@ use dotenv::dotenv;
 
 After importing , just call these functions inside `main()` function by pasting this at starting of `main()` function
 
-```bash 
+```bash
 dotenv().ok();
 let _ = init_tracer();
 ```
@@ -134,7 +134,7 @@ fn main(){
 &nbsp;
 
 
-to 
+to
 
 
 ```bash
@@ -146,12 +146,12 @@ async fn main() {
 &nbsp;
 
 
-Now comes the most interesting part, Sending data to SigNoz to get sense of your traces. After adding the below block you can send data to SigNoz cloud
+Now comes the most interesting part, Sending data to SigInsight to get sense of your traces. After adding the below block you can send data to SigInsight cloud
 
 ```bash
   let tracer = global::tracer("global_tracer");
     let _cx = Context::new();
-  
+
     tracer.in_span("operation", |cx| {
         let span = cx.span();
         span.set_attribute(Key::new("KEY").string("value"));
@@ -159,7 +159,7 @@ Now comes the most interesting part, Sending data to SigNoz to get sense of your
         span.add_event(
             format!("Operations"),
             vec![
-                Key::new("SigNoz is").string("Awesome"),
+                Key::new("SigInsight is").string("Awesome"),
             ],
         );
     });

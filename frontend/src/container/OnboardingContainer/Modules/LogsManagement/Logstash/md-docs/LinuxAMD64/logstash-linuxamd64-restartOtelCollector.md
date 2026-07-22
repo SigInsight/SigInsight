@@ -1,6 +1,6 @@
 ### Restart the Otel Collector
 
-Restart the otel collector so that new changes are saved and you should see the logs in SigNoz Logs Explorer.
+Restart the otel collector so that new changes are saved and you should see the logs in SigInsight Logs Explorer.
  &nbsp;
 
 **Stop OTel Collector if it was already running using the below command in `otelcol-contrib` directory**
@@ -14,7 +14,7 @@ kill "$(< otel-pid)"
 ```
 &nbsp;
 
-### Restart logstash 
+### Restart logstash
  &nbsp;
 
-Now you should be able to see the Logs on your SigNoz Cloud UI
+Now you should be able to see the Logs on your SigInsight Cloud UI

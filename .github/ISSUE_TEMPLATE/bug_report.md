@@ -23,7 +23,7 @@ assignees: ''
 3.
 
 ## Version information 
-* **Signoz version**:
+* **SigInsight version**:
 * **Browser version**:
 * **Your OS and version**:
 * **Your CPU Architecture**(ARM/Intel): 

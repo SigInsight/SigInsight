@@ -1,6 +1,6 @@
 ## Create Daemon Service
 
-Using the template we downloaded and the SigNoz OpenTelemetry Collector configuration we created, we will create the Daemon Service. This can be done following these steps:
+Using the template we downloaded and the SigInsight OpenTelemetry Collector configuration we created, we will create the Daemon Service. This can be done following these steps:
 
 ### Step 1: Set the environment variable
 
@@ -13,7 +13,7 @@ export COMMAND=--config=env:SIGNOZ_CONFIG_CONTENT
 export SIGNOZ_CONFIG_PATH=/ecs/signoz/otelcol-daemon.yaml
 ```
 
-`<YOUR-ECS-CLUSTER-NAME>` - Name of your ECS cluster. For example, **my-test-cluster** 
+`<YOUR-ECS-CLUSTER-NAME>` - Name of your ECS cluster. For example, **my-test-cluster**
 
 `<YOUR-ECS-REGION>` - Region in which your ECS cluster is running. For example, **us-east-1**
 
@@ -46,15 +46,15 @@ aws ecs list-tasks --cluster ${CLUSTER_NAME} --region ${REGION}
 ```
 &nbsp;
 
-### Step 4: Verify Data in SigNoz
+### Step 4: Verify Data in SigInsight
 
-To verify that the data is being sent to SigNoz Cloud, use Metrics Explorer to query the ECS and host metrics, and use Logs Explorer to inspect collected logs.
+To verify that the data is being sent to SigInsight Cloud, use Metrics Explorer to query the ECS and host metrics, and use Logs Explorer to inspect collected logs.
 
 &nbsp;
 
 ### Optional Step: Clean Up
 
-In a cloud environment where resources are billed based on usage, cleaning up resources is crucial. This step involves removing the daemon service and any associated resources that were created during the setup process to collect and forward metrics and logs from your ECS infrastructure to SigNoz. To clean up the daemon service, you can run the following command:
+In a cloud environment where resources are billed based on usage, cleaning up resources is crucial. This step involves removing the daemon service and any associated resources that were created during the setup process to collect and forward metrics and logs from your ECS infrastructure to SigInsight. To clean up the daemon service, you can run the following command:
 
 ```bash
 aws cloudformation delete-stack --stack-name AOCECS-daemon-${CLUSTER_NAME}-${REGION} --region ${REGION}
@@ -62,4 +62,4 @@ aws cloudformation delete-stack --stack-name AOCECS-daemon-${CLUSTER_NAME}-${REG
 
 &nbsp;
 
-Once you follow these steps, you should be able to see your logs and metrics data coming in SigNoz Cloud. To see data for your traces, click on Continue to next step below.
+Once you follow these steps, you should be able to see your logs and metrics data coming in SigInsight Cloud. To see data for your traces, click on Continue to next step below.

@@ -1,4 +1,4 @@
-### Monitor Postgres with SigNoz
+### Monitor Postgres with SigInsight
 
 Collect key Postgres metrics.
 

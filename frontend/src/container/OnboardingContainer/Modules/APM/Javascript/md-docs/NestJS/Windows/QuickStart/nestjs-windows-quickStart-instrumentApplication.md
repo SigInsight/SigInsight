@@ -1,14 +1,14 @@
 **Step 1.** Install OpenTelemetry packages
 
 ```bash
-npm install --save @opentelemetry/api@^1.6.0                                                                       
+npm install --save @opentelemetry/api@^1.6.0
 npm install --save @opentelemetry/sdk-node@^0.45.0
 npm install --save @opentelemetry/auto-instrumentations-node@^0.39.4
 npm install --save @opentelemetry/exporter-trace-otlp-http@^0.45.0
 ```
 
 **Step 2.** Create `tracer.ts` file<br></br>
-You need to configure the endpoint for SigNoz cloud in this file.
+You need to configure the endpoint for SigInsight cloud in this file.
 
 ```bash
 'use strict';
@@ -56,7 +56,7 @@ export default sdk;
 &nbsp;
 
 **Step 3.** On `main.ts` file or file where your app starts import tracer using below command.
-      
+
 ```bash
 const tracer = require('./tracer')
 ```
@@ -64,7 +64,7 @@ const tracer = require('./tracer')
 &nbsp;
 
 **Step 4.** Start the tracer<br></br>
-In the `async function boostrap` section of the application code, initialize the tracer as follows: 
+In the `async function boostrap` section of the application code, initialize the tracer as follows:
 
 ```bash
 const tracer = require('./tracer')

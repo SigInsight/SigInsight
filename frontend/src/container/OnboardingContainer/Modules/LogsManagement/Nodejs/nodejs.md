@@ -1,10 +1,10 @@
 # Collecting NodeJS winston logs
 
-If you are using `winston` as your logging library in your Nodejs application, you can export these logs to SigNoz very easily using various transports provided by `winston`.
+If you are using `winston` as your logging library in your Nodejs application, you can export these logs to SigInsight very easily using various transports provided by `winston`.
 
 ## Collecting Nodejs logs when application is deployed on Docker or Kubernetes
 
-When your application is deployed in Docker or a Kubernetes cluster the logs from the console are automatically collected and stored in the node. The SigNoz collector will automatically collect the logs and it will be visible on the SigNoz UI.
+When your application is deployed in Docker or a Kubernetes cluster the logs from the console are automatically collected and stored in the node. The SigInsight collector will automatically collect the logs and it will be visible on the SigInsight UI.
 
 You can add a console transport very easily as stated <a href="https://github.com/winstonjs/winston/blob/master/docs/transports.md#console-transport" rel="noopener noreferrer nofollow" target="_blank">here</a>.
 

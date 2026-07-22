@@ -2,21 +2,21 @@
 
 - Python 3.8 or newer
 
-## Send Traces to SigNoz Cloud
+## Send Traces to SigInsight Cloud
 
-Based on your application environment, you can choose the setup below to send traces to SigNoz Cloud.
+Based on your application environment, you can choose the setup below to send traces to SigInsight Cloud.
 
 ### Application on VMs
 
-From VMs, there are two ways to send data to SigNoz Cloud.
+From VMs, there are two ways to send data to SigInsight Cloud.
 
-- Send traces directly to SigNoz Cloud (quick start)
+- Send traces directly to SigInsight Cloud (quick start)
 - Send traces via OTel Collector binary (recommended)
 
-#### **Send traces directly to SigNoz Cloud**
+#### **Send traces directly to SigInsight Cloud**
 
 Step 1. Create a virtual environment
-    
+
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
@@ -56,12 +56,12 @@ Don’t run app in reloader/hot-reload mode as it breaks instrumentation. For ex
 
 #### **Send traces via OTel Collector binary**
 
-OTel Collector binary helps to collect logs, hostmetrics, resource and infra attributes. It is recommended to install Otel Collector binary to collect and send traces to SigNoz cloud. You can correlate signals and have rich contextual data through this way.
+OTel Collector binary helps to collect logs, hostmetrics, resource and infra attributes. It is recommended to install Otel Collector binary to collect and send traces to SigInsight cloud. You can correlate signals and have rich contextual data through this way.
 
 You can find instructions to install OTel Collector binary [here](https://signoz.io/docs/tutorial/opentelemetry-binary-usage-in-virtual-machine/) in your VM. Once you are done setting up your OTel Collector binary, you can follow the below steps for instrumenting your Python application.
 
 Step 1. Create a virtual environment
-    
+
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
@@ -105,12 +105,12 @@ In case you have OtelCollector Agent in different VM, replace localhost:4317 wit
 
 ### Applications Deployed on Kubernetes
 
-For Python application deployed on Kubernetes, you need to install OTel Collector agent in your k8s infra to collect and send traces to SigNoz Cloud. You can find the instructions to install OTel Collector agent [here](https://signoz.io/docs/tutorial/kubernetes-infra-metrics/).
+For Python application deployed on Kubernetes, you need to install OTel Collector agent in your k8s infra to collect and send traces to SigInsight Cloud. You can find the instructions to install OTel Collector agent [here](https://signoz.io/docs/tutorial/kubernetes-infra-metrics/).
 
 Once you have set up OTel Collector agent, you can proceed with OpenTelemetry Python instrumentation by following the below steps:
 
 Step 1. Create a virtual environment
-    
+
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate

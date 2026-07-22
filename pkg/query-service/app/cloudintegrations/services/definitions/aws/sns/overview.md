@@ -1,3 +1,3 @@
-### Monitor SNS with SigNoz
+### Monitor SNS with SigInsight
 
 Collect key SNS metrics.

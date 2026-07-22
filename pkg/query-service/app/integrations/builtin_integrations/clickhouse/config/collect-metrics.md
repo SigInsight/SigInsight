@@ -29,7 +29,7 @@ processors:
       hostname_sources: ["os"]
 
 exporters:
-  # export to SigNoz cloud
+  # export to SigInsight cloud
   otlp/clickhouse:
     endpoint: "${env:OTLP_DESTINATION_ENDPOINT}"
     tls:
@@ -65,18 +65,18 @@ export CLICKHOUSE_PROM_METRICS_ENDPOINT="clickhouse:9363"
 # You can examine clickhouse server configuration to find it. For details see https://clickhouse.com/docs/en/operations/server-configuration-parameters/settings#prometheus
 export CLICKHOUSE_PROM_METRICS_PATH="/metrics"
 
-# region specific SigNoz cloud ingestion endpoint
+# region specific SigInsight cloud ingestion endpoint
 export OTLP_DESTINATION_ENDPOINT="ingest.us.signoz.cloud:443"
 
-# your SigNoz ingestion key
+# your SigInsight ingestion key
 export SIGNOZ_INGESTION_KEY="signoz-ingestion-key"
 
 ```
 
 #### Use collector config file
 
-Make the collector config file available to your otel collector and use it by adding the following flag to the command for running your collector  
+Make the collector config file available to your otel collector and use it by adding the following flag to the command for running your collector
 ```bash
 --config clickhouse-metrics-collection-config.yaml
-```  
+```
 Note: the collector can use multiple config files, specified by multiple occurrences of the --config flag.

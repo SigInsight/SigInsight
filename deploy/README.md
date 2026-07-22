@@ -49,7 +49,7 @@ export HISTOGRAM_QUANTILE_INIT_IMAGE=ghcr.io/siginsight/clickhouse-init-histogra
 To use a different SigInsight registry or repository, set the complete image reference:
 
 ```sh
-export SIGNOZ_IMAGE=ghcr.io/siginsight/siginsight:v1.5.0
+export SIGINSIGHT_IMAGE=ghcr.io/siginsight/siginsight:v1.5.0
 ```
 
 To start collecting logs and metrics from your infrastructure, run the following command:

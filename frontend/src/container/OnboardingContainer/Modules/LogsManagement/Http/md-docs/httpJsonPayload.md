@@ -1,6 +1,6 @@
 ## Payload Structure
 
-To send logs to SigNoz over HTTP, we have a payload structure which is an array of JSON logs which adheres to the [OTEL Logs Data Model](https://opentelemetry.io/docs/specs/otel/logs/data-model/).
+To send logs to SigInsight over HTTP, we have a payload structure which is an array of JSON logs which adheres to the [OTEL Logs Data Model](https://opentelemetry.io/docs/specs/otel/logs/data-model/).
 
 &nbsp;
 
@@ -27,7 +27,7 @@ The structure of the Payload has the following fields:
 
 &nbsp;
 
-Any other fields present apart from the ones mentioned above will be moved to the **attributes map**. For example: 
+Any other fields present apart from the ones mentioned above will be moved to the **attributes map**. For example:
 
 ```bash
 [
@@ -53,9 +53,9 @@ Will be treated as:
 ```
 &nbsp;
 
-## Send logs 
+## Send logs
 
-This is a **sample cURL request** which can be used as a template: 
+This is a **sample cURL request** which can be used as a template:
 
 &nbsp;
 
