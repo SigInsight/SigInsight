@@ -177,7 +177,7 @@ services:
       # - ../common/clickhouse/storage.xml:/etc/clickhouse-server/config.d/storage.xml
   signoz:
     !!merge <<: *db-depend
-    image: ${SIGNOZ_IMAGE:-ghcr.io/siginsight/siginsight:${VERSION:-v1.4.0}}
+    image: ${SIGNOZ_IMAGE:-ghcr.io/siginsight/siginsight:${VERSION:-v1.5.0}}
     container_name: signoz
     ports:
       - "8080:8080" # signoz port
