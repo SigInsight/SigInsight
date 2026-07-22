@@ -7,7 +7,7 @@
 import { defineConfig } from 'orval';
 
 export default defineConfig({
-	signoz: {
+	siginsight: {
 		input: {
 			target: '../docs/api/openapi.yml',
 			// SSE requires incremental consumption, which the Axios generator cannot provide.
@@ -85,7 +85,7 @@ export default defineConfig({
 				// info is of type InfoObject from openapi spec
 				header: (info: { title: string; version: string }): string[] => [
 					`! Do not edit manually`,
-					`* The file has been auto-generated using Orval for SigNoz`,
+					`* The file has been auto-generated using Orval for SigInsight`,
 					`* regenerate with 'yarn generate:api'`,
 					...(info.title ? [info.title] : []),
 					...(info.version ? [`OpenAPI spec version: ${info.version}`] : []),

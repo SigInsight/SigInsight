@@ -11,7 +11,7 @@ import {
 import type {
 	RenderErrorResponseDTO,
 	ServiceaccounttypesGettableFactorAPIKeyWithKeyDTO,
-} from 'api/generated/services/sigNoz.schemas';
+} from 'api/generated/services/sigInsight.schemas';
 import { AxiosError } from 'axios';
 import { DATE_TIME_FORMATS } from 'constants/dateTimeFormats';
 import { SA_QUERY_PARAMS } from 'container/ServiceAccountsSettings/constants';

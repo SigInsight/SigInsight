@@ -1,7 +1,7 @@
 import {
 	MetrictypesTemporalityDTO,
 	MetrictypesTypeDTO,
-} from 'api/generated/services/sigNoz.schemas';
+} from 'api/generated/services/sigInsight.schemas';
 import { ATTRIBUTE_TYPES } from 'constants/queryBuilder';
 
 import {

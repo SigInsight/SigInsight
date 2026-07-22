@@ -2,7 +2,7 @@ import { Badge } from '@signozhq/badge';
 import { Button } from '@signozhq/button';
 import { Callout } from '@signozhq/callout';
 import { Check, Copy } from '@signozhq/icons';
-import type { ServiceaccounttypesGettableFactorAPIKeyWithKeyDTO } from 'api/generated/services/sigNoz.schemas';
+import type { ServiceaccounttypesGettableFactorAPIKeyWithKeyDTO } from 'api/generated/services/sigInsight.schemas';
 
 export interface KeyCreatedPhaseProps {
 	createdKey: ServiceaccounttypesGettableFactorAPIKeyWithKeyDTO;

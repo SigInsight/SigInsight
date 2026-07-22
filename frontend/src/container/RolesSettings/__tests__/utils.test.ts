@@ -1,7 +1,7 @@
 import type {
 	AuthtypesGettableObjectsDTO,
 	AuthtypesGettableResourcesDTO,
-} from 'api/generated/services/sigNoz.schemas';
+} from 'api/generated/services/sigInsight.schemas';
 
 import type {
 	PermissionConfig,

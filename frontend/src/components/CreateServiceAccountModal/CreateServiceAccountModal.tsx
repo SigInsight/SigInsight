@@ -10,7 +10,7 @@ import {
 	invalidateListServiceAccounts,
 	useCreateServiceAccount,
 } from 'api/generated/services/serviceaccount';
-import type { RenderErrorResponseDTO } from 'api/generated/services/sigNoz.schemas';
+import type { RenderErrorResponseDTO } from 'api/generated/services/sigInsight.schemas';
 import { AxiosError } from 'axios';
 import RolesSelect, { useRoles } from 'components/RolesSelect';
 import { SA_QUERY_PARAMS } from 'container/ServiceAccountsSettings/constants';

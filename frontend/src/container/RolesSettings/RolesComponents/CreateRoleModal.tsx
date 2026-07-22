@@ -15,7 +15,7 @@ import {
 import {
 	AuthtypesPostableRoleDTO,
 	RenderErrorResponseDTO,
-} from 'api/generated/services/sigNoz.schemas';
+} from 'api/generated/services/sigInsight.schemas';
 import { ErrorType } from 'api/generatedAPIInstance';
 import ROUTES from 'constants/routes';
 import { useErrorModal } from 'providers/ErrorModalProvider';

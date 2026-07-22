@@ -6,7 +6,7 @@ import { LockKeyhole, Trash2, X } from '@signozhq/icons';
 import { Input } from '@signozhq/input';
 import { ToggleGroup, ToggleGroupItem } from '@signozhq/toggle-group';
 import { DatePicker } from 'antd';
-import type { ServiceaccounttypesFactorAPIKeyDTO } from 'api/generated/services/sigNoz.schemas';
+import type { ServiceaccounttypesFactorAPIKeyDTO } from 'api/generated/services/sigInsight.schemas';
 import { popupContainer } from 'utils/selectPopupContainer';
 
 import { disabledDate, formatLastObservedAt } from '../utils';

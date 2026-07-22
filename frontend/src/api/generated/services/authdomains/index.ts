@@ -1,8 +1,8 @@
 /**
  * ! Do not edit manually
- * * The file has been auto-generated using Orval for SigNoz
+ * * The file has been auto-generated using Orval for SigInsight
  * * regenerate with 'yarn generate:api'
- * SigNoz
+ * SigInsight
  */
 import type {
 	InvalidateOptions,
@@ -27,7 +27,7 @@ import type {
 	ListAuthDomains200,
 	RenderErrorResponseDTO,
 	UpdateAuthDomainPathParameters,
-} from '../sigNoz.schemas';
+} from '../sigInsight.schemas';
 
 /**
  * This endpoint lists all auth domains

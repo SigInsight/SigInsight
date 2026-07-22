@@ -2,7 +2,7 @@ import {
 	AuthtypesGettableAuthDomainDTO,
 	AuthtypesGoogleConfigDTO,
 	AuthtypesRoleMappingDTO,
-} from 'api/generated/services/sigNoz.schemas';
+} from 'api/generated/services/sigInsight.schemas';
 
 // Form values interface for internal use (includes array-based fields for UI)
 export interface FormValues {

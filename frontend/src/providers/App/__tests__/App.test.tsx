@@ -5,7 +5,7 @@ import setLocalStorageApi from 'api/browser/localstorage/set';
 import {
 	AuthtypesGettableTransactionDTO,
 	AuthtypesTransactionDTO,
-} from 'api/generated/services/sigNoz.schemas';
+} from 'api/generated/services/sigInsight.schemas';
 import { LOCALSTORAGE } from 'constants/localStorage';
 import { SINGLE_FLIGHT_WAIT_TIME_MS } from 'hooks/useAuthZ/constants';
 import { server } from 'mocks-server/server';
