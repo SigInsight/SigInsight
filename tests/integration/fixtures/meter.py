@@ -114,6 +114,4 @@ def insert_meter_samples(
 
     yield _insert_meter_samples
     for table in ["samples", "samples_agg_1d"]:
-        clickhouse.conn.query(
-            f"TRUNCATE TABLE signoz_meter.{table}"
-        )
+        clickhouse.conn.query(f"TRUNCATE TABLE signoz_meter.{table}")

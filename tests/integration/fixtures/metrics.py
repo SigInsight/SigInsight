@@ -557,9 +557,7 @@ def insert_metrics(
         "metadata",
     ]
     for table in tables_to_truncate:
-        clickhouse.conn.query(
-            f"TRUNCATE TABLE signoz_metrics.{table}"
-        )
+        clickhouse.conn.query(f"TRUNCATE TABLE signoz_metrics.{table}")
 
 
 @pytest.fixture(name="remove_metrics_ttl_and_storage_settings", scope="function")

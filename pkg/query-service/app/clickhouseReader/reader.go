@@ -1313,11 +1313,14 @@ func (r *ClickHouseReader) GetDependencyGraph(ctx context.Context, queryParams *
 	return &response, nil
 }
 
+// getLocalTableName normalizes legacy distributed table names for single-node ClickHouse.
 func getLocalTableName(tableName string) string {
+	tableNameSplit := strings.SplitN(tableName, ".", 2)
+	if len(tableNameSplit) != 2 {
+		return tableName
+	}
 
-	tableNameSplit := strings.Split(tableName, ".")
-	return tableNameSplit[0] + "." + strings.Split(tableNameSplit[1], "distributed_")[1]
-
+	return tableNameSplit[0] + "." + strings.TrimPrefix(tableNameSplit[1], "distributed_")
 }
 
 func (r *ClickHouseReader) setTTLLogs(ctx context.Context, orgID string, params *model.TTLParams) (*model.SetTTLResponseItem, *model.ApiError) {
@@ -2429,11 +2432,11 @@ func (r *ClickHouseReader) GetDisks(ctx context.Context) (*[]model.DiskItem, *mo
 }
 
 func getLocalTableNameArray(tableNames []string) []string {
-	var localTableNames []string
-	for _, name := range tableNames {
-		tableNameSplit := strings.Split(name, ".")
-		localTableNames = append(localTableNames, tableNameSplit[0]+"."+strings.Split(tableNameSplit[1], "distributed_")[1])
+	localTableNames := make([]string, 0, len(tableNames))
+	for _, tableName := range tableNames {
+		localTableNames = append(localTableNames, getLocalTableName(tableName))
 	}
+
 	return localTableNames
 }
 

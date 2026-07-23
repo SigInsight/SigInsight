@@ -1,5 +1,6 @@
-import docker
 import os
+
+import docker
 import pytest
 from testcontainers.core.container import Network
 
@@ -22,7 +23,10 @@ def migrator(
 
     def create() -> None:
         version = request.config.getoption("--schema-migrator-version")
-        image = os.getenv("SIGINSIGHT_OTEL_COLLECTOR_IMAGE", f"ghcr.io/siginsight/siginsight-otel-collector:{version}")
+        image = os.getenv(
+            "SIGINSIGHT_OTEL_COLLECTOR_IMAGE",
+            f"ghcr.io/siginsight/siginsight-otel-collector:{version}",
+        )
         client = docker.from_env()
         dsn = clickhouse.env["SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN"]
 

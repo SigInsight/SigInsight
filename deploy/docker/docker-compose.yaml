@@ -93,7 +93,7 @@ services:
       retries: 3
   otel-collector:
     !!merge <<: *db-depend
-    image: ghcr.io/siginsight/siginsight-otel-collector:${OTELCOL_TAG:-v1.1.0}
+    image: ghcr.io/siginsight/siginsight-otel-collector:${OTELCOL_TAG:-staging-v1.1.0-2-g1787ef1}
     container_name: siginsight-otel-collector
     entrypoint:
       - /bin/sh
@@ -116,7 +116,7 @@ services:
       - "4318:4318" # OTLP HTTP receiver
   siginsight-telemetrystore-migrator:
     !!merge <<: *db-depend
-    image: ghcr.io/siginsight/siginsight-otel-collector:${OTELCOL_TAG:-v1.1.0}
+    image: ghcr.io/siginsight/siginsight-otel-collector:${OTELCOL_TAG:-staging-v1.1.0-2-g1787ef1}
     container_name: siginsight-telemetrystore-migrator
     environment:
       - SIGINSIGHT_OTEL_COLLECTOR_CLICKHOUSE_DSN=tcp://clickhouse:9000

@@ -478,21 +478,11 @@ def insert_logs(
 
     yield _insert_logs
 
-    clickhouse.conn.query(
-        f"TRUNCATE TABLE signoz_logs.logs_v2"
-    )
-    clickhouse.conn.query(
-        f"TRUNCATE TABLE signoz_logs.logs_v2_resource"
-    )
-    clickhouse.conn.query(
-        f"TRUNCATE TABLE signoz_logs.tag_attributes_v2"
-    )
-    clickhouse.conn.query(
-        f"TRUNCATE TABLE signoz_logs.logs_attribute_keys"
-    )
-    clickhouse.conn.query(
-        f"TRUNCATE TABLE signoz_logs.logs_resource_keys"
-    )
+    clickhouse.conn.query(f"TRUNCATE TABLE signoz_logs.logs_v2")
+    clickhouse.conn.query(f"TRUNCATE TABLE signoz_logs.logs_v2_resource")
+    clickhouse.conn.query(f"TRUNCATE TABLE signoz_logs.tag_attributes_v2")
+    clickhouse.conn.query(f"TRUNCATE TABLE signoz_logs.logs_attribute_keys")
+    clickhouse.conn.query(f"TRUNCATE TABLE signoz_logs.logs_resource_keys")
 
 
 @pytest.fixture(name="ttl_legacy_logs_v2_table_setup", scope="function")
