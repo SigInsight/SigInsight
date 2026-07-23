@@ -26,30 +26,30 @@ cd deploy/docker
 docker compose up -d
 ```
 
-Open http://localhost:8080 in your favourite browser.
+Open http://localhost:8081 in your favourite browser.
 
 By default, the compose files use these GHCR images:
 
 ```sh
-ghcr.io/siginsight/siginsight:v1.5.0
-ghcr.io/siginsight/siginsight-otel-collector:v1.0.4
+ghcr.io/siginsight/siginsight:v1.6.0
+ghcr.io/siginsight/siginsight-otel-collector:staging-v1.1.0
 ghcr.io/siginsight/clickhouse-init-histogram-quantile:25.5.6-latest
 ```
 
-The complete deployment currently supports Linux AMD64 hosts only because the `v1.0.2` collector image does not provide an ARM64 variant.
+The complete deployment currently supports Linux AMD64 hosts only because the `staging-v1.1.0` collector image does not provide an ARM64 variant.
 
 You can override their tags with environment variables:
 
 ```sh
-export VERSION=v1.5.0
-export OTELCOL_TAG=v1.0.2
+export VERSION=v1.6.0
+export OTELCOL_TAG=staging-v1.1.0
 export HISTOGRAM_QUANTILE_INIT_IMAGE=ghcr.io/siginsight/clickhouse-init-histogram-quantile:25.5.6-latest
 ```
 
 To use a different SigInsight registry or repository, set the complete image reference:
 
 ```sh
-export SIGINSIGHT_IMAGE=ghcr.io/siginsight/siginsight:v1.5.0
+export SIGINSIGHT_IMAGE=ghcr.io/siginsight/siginsight:v1.6.0
 ```
 
 To start collecting logs and metrics from your infrastructure, run the following command:
@@ -79,7 +79,7 @@ cd deploy/docker-swarm
 docker stack deploy -c docker-compose.yaml siginsight
 ```
 
-Open http://localhost:8080 in your favourite browser.
+Open http://localhost:8081 in your favourite browser.
 
 To start collecting logs and metrics from your infrastructure, run the following command:
 
@@ -102,4 +102,3 @@ For more details, please refer to the compose files in this repository.
 ## Uninstall/Troubleshoot?
 
 Go to the repository root README for the latest SigInsight deployment notes.
-
