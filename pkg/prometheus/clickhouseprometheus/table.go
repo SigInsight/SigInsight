@@ -4,10 +4,10 @@ import "time"
 
 const (
 	databaseName                string = "signoz_metrics"
-	distributedTimeSeriesV4     string = "distributed_time_series_v4"
-	distributedTimeSeriesV46hrs string = "distributed_time_series_v4_6hrs"
-	distributedTimeSeriesV41day string = "distributed_time_series_v4_1day"
-	distributedSamplesV4        string = "distributed_samples_v4"
+	distributedTimeSeriesV4     string = "time_series_v4"
+	distributedTimeSeriesV46hrs string = "time_series_v4_6hrs"
+	distributedTimeSeriesV41day string = "time_series_v4_1day"
+	distributedSamplesV4        string = "samples_v4"
 )
 
 var (

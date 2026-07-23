@@ -130,8 +130,6 @@ telemetrystore:
   clickhouse:
     # The DSN to use for clickhouse.
     dsn: tcp://localhost:9000
-    # The cluster name to use for clickhouse.
-    cluster: cluster
     # The query settings for clickhouse.
     settings:
       max_execution_time: 0

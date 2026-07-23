@@ -697,11 +697,11 @@ def insert_traces(
         """
         Insert traces into ClickHouse tables following the same logic as the Go exporter.
         This function handles insertion into multiple tables:
-        - distributed_signoz_index_v3 (main traces table)
-        - distributed_traces_v3_resource (resource fingerprints)
-        - distributed_tag_attributes_v2 (tag attributes)
-        - distributed_span_attributes_keys (attribute keys)
-        - distributed_signoz_error_index_v2 (error events)
+        - signoz_index_v3 (main traces table)
+        - traces_v3_resource (resource fingerprints)
+        - tag_attributes_v2 (tag attributes)
+        - span_attributes_keys (attribute keys)
+        - signoz_error_index_v2 (error events)
         """
         resources: List[TracesResource] = []
         for trace in traces:
@@ -710,7 +710,7 @@ def insert_traces(
         if len(resources) > 0:
             clickhouse.conn.insert(
                 database="signoz_traces",
-                table="distributed_traces_v3_resource",
+                table="traces_v3_resource",
                 data=[resource.np_arr() for resource in resources],
             )
 
@@ -721,7 +721,7 @@ def insert_traces(
         if len(tag_attributes) > 0:
             clickhouse.conn.insert(
                 database="signoz_traces",
-                table="distributed_tag_attributes_v2",
+                table="tag_attributes_v2",
                 data=[tag_attribute.np_arr() for tag_attribute in tag_attributes],
             )
 
@@ -734,21 +734,21 @@ def insert_traces(
         if len(attribute_keys) > 0:
             clickhouse.conn.insert(
                 database="signoz_traces",
-                table="distributed_span_attributes_keys",
+                table="span_attributes_keys",
                 data=[attribute_key.np_arr() for attribute_key in attribute_keys],
             )
 
         if len(resource_keys) > 0:
             clickhouse.conn.insert(
                 database="signoz_traces",
-                table="distributed_span_attributes_keys",
+                table="span_attributes_keys",
                 data=[resource_key.np_arr() for resource_key in resource_keys],
             )
 
         # Insert main traces
         clickhouse.conn.insert(
             database="signoz_traces",
-            table="distributed_signoz_index_v3",
+            table="signoz_index_v3",
             column_names=[
                 "ts_bucket_start",
                 "resource_fingerprint",
@@ -794,26 +794,26 @@ def insert_traces(
         if len(error_events) > 0:
             clickhouse.conn.insert(
                 database="signoz_traces",
-                table="distributed_signoz_error_index_v2",
+                table="signoz_error_index_v2",
                 data=[error_event.np_arr() for error_event in error_events],
             )
 
     yield _insert_traces
 
     clickhouse.conn.query(
-        f"TRUNCATE TABLE signoz_traces.signoz_index_v3 ON CLUSTER '{clickhouse.env['SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_CLUSTER']}' SYNC"
+        f"TRUNCATE TABLE signoz_traces.signoz_index_v3"
     )
     clickhouse.conn.query(
-        f"TRUNCATE TABLE signoz_traces.traces_v3_resource ON CLUSTER '{clickhouse.env['SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_CLUSTER']}' SYNC"
+        f"TRUNCATE TABLE signoz_traces.traces_v3_resource"
     )
     clickhouse.conn.query(
-        f"TRUNCATE TABLE signoz_traces.tag_attributes_v2 ON CLUSTER '{clickhouse.env['SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_CLUSTER']}' SYNC"
+        f"TRUNCATE TABLE signoz_traces.tag_attributes_v2"
     )
     clickhouse.conn.query(
-        f"TRUNCATE TABLE signoz_traces.span_attributes_keys ON CLUSTER '{clickhouse.env['SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_CLUSTER']}' SYNC"
+        f"TRUNCATE TABLE signoz_traces.span_attributes_keys"
     )
     clickhouse.conn.query(
-        f"TRUNCATE TABLE signoz_traces.signoz_error_index_v2 ON CLUSTER '{clickhouse.env['SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_CLUSTER']}' SYNC"
+        f"TRUNCATE TABLE signoz_traces.signoz_error_index_v2"
     )
 
 
@@ -836,10 +836,10 @@ def remove_traces_ttl_and_storage_settings(signoz: types.SigNoz):
     for table in tables:
         try:
             signoz.telemetrystore.conn.query(
-                f"ALTER TABLE signoz_traces.{table} ON CLUSTER '{signoz.telemetrystore.env['SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_CLUSTER']}' REMOVE TTL"
+                f"ALTER TABLE signoz_traces.{table} REMOVE TTL"
             )
             signoz.telemetrystore.conn.query(
-                f"ALTER TABLE signoz_traces.{table} ON CLUSTER '{signoz.telemetrystore.env['SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_CLUSTER']}' RESET SETTING storage_policy;"
+                f"ALTER TABLE signoz_traces.{table} RESET SETTING storage_policy;"
             )
         except Exception as e:  # pylint: disable=broad-exception-caught
             print(f"ttl and storage policy reset failed for {table}: {e}")

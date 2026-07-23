@@ -61,7 +61,7 @@ func GenerateMetricQueryCHArgs(
 	queryArgs = append(queryArgs, false)
 
 	// Step2: Add temporal aggregation args
-	// build args for filtering signoz_metrics.distributed_samples_v4 table
+	// build args for filtering signoz_metrics.samples_v4 table
 	temporalAggArgs := []interface{}{
 		metricName,
 		start,

@@ -282,7 +282,7 @@ func buildTracesQuery(start, end, step int64, mq *v3.BuilderQuery, panelType v3.
 		filterSubQuery = filterSubQuery + " AND " + emptyValuesInGroupByFilter
 	}
 
-	resourceSubQuery, err := resource.BuildResourceSubQuery("signoz_traces", "distributed_traces_v3_resource", bucketStart, bucketEnd, mq.Filters, mq.GroupBy, mq.AggregateAttribute, false)
+	resourceSubQuery, err := resource.BuildResourceSubQuery("signoz_traces", "traces_v3_resource", bucketStart, bucketEnd, mq.Filters, mq.GroupBy, mq.AggregateAttribute, false)
 	if err != nil {
 		return "", err
 	}
@@ -336,7 +336,7 @@ func buildTracesQuery(start, end, step int64, mq *v3.BuilderQuery, panelType v3.
 				query = fmt.Sprintf(constants.TraceExplorerSpanCountBeforeSubQuery, constants.SIGNOZ_TRACE_DBNAME, constants.SIGNOZ_SPAN_INDEX_V3) + withSubQuery + ") " + fmt.Sprintf(afterSubQuery, constants.SIGNOZ_TRACE_DBNAME, constants.SIGNOZ_SPAN_INDEX_V3, timeFilter)
 			}
 			// adding this to avoid the distributed product mode error which doesn't allow global in
-			query += " settings distributed_product_mode='allow', max_memory_usage=10000000000"
+			query += " settings max_memory_usage=10000000000"
 		} else if panelType == v3.PanelTypeList {
 			if len(mq.SelectColumns) == 0 {
 				return "", fmt.Errorf("select columns cannot be empty for panelType %s", panelType)

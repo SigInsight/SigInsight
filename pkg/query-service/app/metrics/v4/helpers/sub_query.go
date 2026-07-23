@@ -74,9 +74,9 @@ func whichTSTableToUse(start, end int64, mq *v3.BuilderQuery) (int64, int64, str
 
 // start and end are in milliseconds
 // we have three tables for samples
-// 1. distributed_samples_v4
-// 2. distributed_samples_v4_agg_5m - for queries with time range above or equal to 1 day and less than 1 week
-// 3. distributed_samples_v4_agg_30m - for queries with time range above or equal to 1 week
+// 1. samples_v4
+// 2. samples_v4_agg_5m - for queries with time range above or equal to 1 day and less than 1 week
+// 3. samples_v4_agg_30m - for queries with time range above or equal to 1 week
 // if the `timeAggregation` is `count_distinct` we can't use the aggregated tables because they don't support it
 func WhichSamplesTableToUse(start, end int64, mq *v3.BuilderQuery) string {
 
@@ -93,7 +93,7 @@ func WhichSamplesTableToUse(start, end int64, mq *v3.BuilderQuery) string {
 		return constants.SIGNOZ_EXP_HISTOGRAM_TABLENAME
 	}
 
-	// if the time aggregation is count_distinct, we need to use the distributed_samples_v4 table
+	// if the time aggregation is count_distinct, we need to use the samples_v4 table
 	// because the aggregated tables don't support count_distinct
 	if mq.TimeAggregation == v3.TimeAggregationCountDistinct {
 		return constants.SIGNOZ_SAMPLES_V4_TABLENAME

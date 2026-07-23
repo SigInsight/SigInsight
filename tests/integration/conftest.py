@@ -9,7 +9,6 @@ pytest_plugins = [
     "fixtures.network",
     "fixtures.sql",
     "fixtures.sqlite",
-    "fixtures.keeper",
     "fixtures.signoz",
     "fixtures.logs",
     "fixtures.traces",
@@ -51,12 +50,6 @@ def pytest_addoption(parser: pytest.Parser):
         action="store",
         default="25.5.6",
         help="clickhouse version",
-    )
-    parser.addoption(
-        "--keeper-version",
-        action="store",
-        default="25.5.6",
-        help="keeper version",
     )
     parser.addoption(
         "--schema-migrator-version",

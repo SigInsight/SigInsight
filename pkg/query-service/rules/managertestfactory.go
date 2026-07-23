@@ -105,7 +105,6 @@ func NewTestManager(t *testing.T, testOpts *TestManagerOptions) *Manager {
 		nil,
 		telemetryStore,
 		prometheus,
-		"",
 		time.Duration(time.Second),
 		nil,
 		readerCache,

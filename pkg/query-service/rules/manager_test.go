@@ -87,7 +87,7 @@ func TestManager_TestNotification_SendUnmatched_ThresholdRule(t *testing.T) {
 					metadataRows := cmock.NewRows(metadataCols, [][]any{
 						{"probe_success", metrictypes.Unspecified, metrictypes.GaugeType, false},
 					})
-					mock.ExpectQuery("*distributed_time_series_v4*").WithArgs(nil, nil, nil).WillReturnRows(metadataRows)
+					mock.ExpectQuery("*time_series_v4*").WithArgs(nil, nil, nil).WillReturnRows(metadataRows)
 					// Second query: fetchMeterSourceMetricsTemporalityAndType (from signoz_meter table)
 					emptyMetadataRows := cmock.NewRows(metadataCols, [][]any{})
 					mock.ExpectQuery("*meter*").WithArgs(nil).WillReturnRows(emptyMetadataRows)

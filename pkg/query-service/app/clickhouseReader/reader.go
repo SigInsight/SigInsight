@@ -62,12 +62,12 @@ const (
 	archiveNamespace          = "clickhouse-archive"
 	signozTraceDBName         = "signoz_traces"
 	signozHistoryDBName       = "signoz_analytics"
-	ruleStateHistoryTableName = "distributed_rule_state_history_v0"
-	signozDurationMVTable     = "distributed_durationSort"
-	signozUsageExplorerTable  = "distributed_usage_explorer"
-	signozSpansTable          = "distributed_signoz_spans"
-	signozErrorIndexTable     = "distributed_signoz_error_index_v2"
-	signozTraceTableName      = "distributed_signoz_index_v2"
+	ruleStateHistoryTableName = "rule_state_history_v0"
+	signozDurationMVTable     = "durationSort"
+	signozUsageExplorerTable  = "usage_explorer"
+	signozSpansTable          = "signoz_spans"
+	signozErrorIndexTable     = "signoz_error_index_v2"
+	signozTraceTableName      = "signoz_index_v2"
 	signozTraceLocalTableName = "signoz_index_v2"
 	signozMetricDBName        = "signoz_metrics"
 	signozMetadataDbName      = "signoz_metadata"
@@ -75,34 +75,34 @@ const (
 	signozMeterSamplesName    = "samples_agg_1d"
 
 	signozSampleLocalTableName = "samples_v4"
-	signozSampleTableName      = "distributed_samples_v4"
+	signozSampleTableName      = "samples_v4"
 
 	signozSamplesAgg5mLocalTableName = "samples_v4_agg_5m"
-	signozSamplesAgg5mTableName      = "distributed_samples_v4_agg_5m"
+	signozSamplesAgg5mTableName      = "samples_v4_agg_5m"
 
 	signozSamplesAgg30mLocalTableName = "samples_v4_agg_30m"
-	signozSamplesAgg30mTableName      = "distributed_samples_v4_agg_30m"
+	signozSamplesAgg30mTableName      = "samples_v4_agg_30m"
 
 	signozExpHistLocalTableName = "exp_hist"
-	signozExpHistTableName      = "distributed_exp_hist"
+	signozExpHistTableName      = "exp_hist"
 
 	signozTSLocalTableNameV4 = "time_series_v4"
-	signozTSTableNameV4      = "distributed_time_series_v4"
+	signozTSTableNameV4      = "time_series_v4"
 
 	signozTSLocalTableNameV46Hrs = "time_series_v4_6hrs"
-	signozTSTableNameV46Hrs      = "distributed_time_series_v4_6hrs"
+	signozTSTableNameV46Hrs      = "time_series_v4_6hrs"
 
 	signozTSLocalTableNameV41Day = "time_series_v4_1day"
-	signozTSTableNameV41Day      = "distributed_time_series_v4_1day"
+	signozTSTableNameV41Day      = "time_series_v4_1day"
 
 	signozTSLocalTableNameV41Week = "time_series_v4_1week"
-	signozTSTableNameV41Week      = "distributed_time_series_v4_1week"
+	signozTSTableNameV41Week      = "time_series_v4_1week"
 
-	signozTableAttributesMetadata      = "distributed_attributes_metadata"
+	signozTableAttributesMetadata      = "attributes_metadata"
 	signozLocalTableAttributesMetadata = "attributes_metadata"
 
 	signozUpdatedMetricsMetadataLocalTable = "updated_metadata"
-	signozUpdatedMetricsMetadataTable      = "distributed_updated_metadata"
+	signozUpdatedMetricsMetadataTable      = "updated_metadata"
 	minTimespanForProgressiveSearch        = time.Hour
 	minTimespanForProgressiveSearchMargin  = time.Minute
 	maxProgressiveSteps                    = 4
@@ -125,7 +125,6 @@ type ClickHouseReader struct {
 	prometheus              prometheus.Prometheus
 	sqlDB                   sqlstore.SQLStore
 	TraceDB                 string
-	operationsTable         string
 	durationTable           string
 	indexTable              string
 	errorTable              string
@@ -136,8 +135,6 @@ type ClickHouseReader struct {
 	dependencyGraphTable    string
 	topLevelOperationsTable string
 	logsDB                  string
-	logsTable               string
-	logsLocalTable          string
 	logsAttributeKeys       string
 	logsResourceKeys        string
 	logsTagAttributeTableV2 string
@@ -150,7 +147,6 @@ type ClickHouseReader struct {
 	logsResourceLocalTableV2 string
 
 	liveTailRefreshSeconds int
-	cluster                string
 
 	logsTableName      string
 	logsLocalTableName string
@@ -173,7 +169,6 @@ func NewReader(
 	sqlDB sqlstore.SQLStore,
 	telemetryStore telemetrystore.TelemetryStore,
 	prometheus prometheus.Prometheus,
-	cluster string,
 	fluxIntervalForTraceDetail time.Duration,
 	cacheForTraceDetail cache.Cache,
 	cache cache.Cache,
@@ -194,7 +189,6 @@ func NewReader(
 		prometheus:                 prometheus,
 		sqlDB:                      sqlDB,
 		TraceDB:                    options.primary.TraceDB,
-		operationsTable:            options.primary.OperationsTable,
 		indexTable:                 options.primary.IndexTable,
 		errorTable:                 options.primary.ErrorTable,
 		usageExplorerTable:         options.primary.UsageExplorerTable,
@@ -205,13 +199,10 @@ func NewReader(
 		dependencyGraphTable:       options.primary.DependencyGraphTable,
 		topLevelOperationsTable:    options.primary.TopLevelOperationsTable,
 		logsDB:                     options.primary.LogsDB,
-		logsTable:                  options.primary.LogsTable,
-		logsLocalTable:             options.primary.LogsLocalTable,
 		logsAttributeKeys:          options.primary.LogsAttributeKeysTable,
 		logsResourceKeys:           options.primary.LogsResourceKeysTable,
 		logsTagAttributeTableV2:    options.primary.LogsTagAttributeTableV2,
 		liveTailRefreshSeconds:     options.primary.LiveTailRefreshSeconds,
-		cluster:                    cluster,
 		queryProgressTracker:       queryprogress.NewQueryProgressTracker(logger),
 		logsTableV2:                options.primary.LogsTableV2,
 		logsLocalTableV2:           options.primary.LogsLocalTableV2,
@@ -1371,8 +1362,8 @@ func (r *ClickHouseReader) setTTLLogs(ctx context.Context, orgID string, params 
 
 	// TTL query for logs_v2 table
 	ttlLogsV2 := fmt.Sprintf(
-		"ALTER TABLE %v ON CLUSTER %s MODIFY TTL toDateTime(timestamp / 1000000000) + "+
-			"INTERVAL %v SECOND DELETE", tableNameArray[0], r.cluster, params.DelDuration)
+		"ALTER TABLE %v MODIFY TTL toDateTime(timestamp / 1000000000) + "+
+			"INTERVAL %v SECOND DELETE", tableNameArray[0], params.DelDuration)
 	if len(params.ColdStorageVolume) > 0 {
 		ttlLogsV2 += fmt.Sprintf(", toDateTime(timestamp / 1000000000)"+
 			" + INTERVAL %v SECOND TO VOLUME '%s'",
@@ -1382,8 +1373,8 @@ func (r *ClickHouseReader) setTTLLogs(ctx context.Context, orgID string, params 
 	// TTL query for logs_v2_resource table
 	// adding 1800 as our bucket size is 1800 seconds
 	ttlLogsV2Resource := fmt.Sprintf(
-		"ALTER TABLE %v ON CLUSTER %s MODIFY TTL toDateTime(seen_at_ts_bucket_start) + toIntervalSecond(1800) + "+
-			"INTERVAL %v SECOND DELETE", tableNameArray[1], r.cluster, params.DelDuration)
+		"ALTER TABLE %v MODIFY TTL toDateTime(seen_at_ts_bucket_start) + toIntervalSecond(1800) + "+
+			"INTERVAL %v SECOND DELETE", tableNameArray[1], params.DelDuration)
 	if len(params.ColdStorageVolume) > 0 {
 		ttlLogsV2Resource += fmt.Sprintf(", toDateTime(seen_at_ts_bucket_start) + toIntervalSecond(1800) + "+
 			"INTERVAL %v SECOND TO VOLUME '%s'",
@@ -1391,12 +1382,12 @@ func (r *ClickHouseReader) setTTLLogs(ctx context.Context, orgID string, params 
 	}
 
 	ttlLogsV2AttributeKeys := fmt.Sprintf(
-		"ALTER TABLE %v ON CLUSTER %s MODIFY TTL timestamp + "+
-			"INTERVAL %v SECOND DELETE", tableNameArray[2], r.cluster, params.DelDuration)
+		"ALTER TABLE %v MODIFY TTL timestamp + "+
+			"INTERVAL %v SECOND DELETE", tableNameArray[2], params.DelDuration)
 
 	ttlLogsV2ResourceKeys := fmt.Sprintf(
-		"ALTER TABLE %v ON CLUSTER %s MODIFY TTL timestamp + "+
-			"INTERVAL %v SECOND DELETE", tableNameArray[3], r.cluster, params.DelDuration)
+		"ALTER TABLE %v MODIFY TTL timestamp + "+
+			"INTERVAL %v SECOND DELETE", tableNameArray[3], params.DelDuration)
 
 	ttlPayload := map[string]string{
 		tableNameArray[0]: ttlLogsV2,
@@ -1533,11 +1524,11 @@ func (r *ClickHouseReader) setTTLTraces(ctx context.Context, orgID string, param
 	}
 
 	// TTL query
-	ttlV2 := "ALTER TABLE %s ON CLUSTER %s MODIFY TTL toDateTime(%s) + INTERVAL %v SECOND DELETE"
+	ttlV2 := "ALTER TABLE %s MODIFY TTL toDateTime(%s) + INTERVAL %v SECOND DELETE"
 	ttlV2ColdStorage := ", toDateTime(%s) + INTERVAL %v SECOND TO VOLUME '%s'"
 
 	// TTL query for resource table
-	ttlV2Resource := "ALTER TABLE %s ON CLUSTER %s MODIFY TTL toDateTime(seen_at_ts_bucket_start) + toIntervalSecond(1800) + INTERVAL %v SECOND DELETE"
+	ttlV2Resource := "ALTER TABLE %s MODIFY TTL toDateTime(seen_at_ts_bucket_start) + toIntervalSecond(1800) + INTERVAL %v SECOND DELETE"
 	ttlTracesV2ResourceColdStorage := ", toDateTime(seen_at_ts_bucket_start) + toIntervalSecond(1800) + INTERVAL %v SECOND TO VOLUME '%s'"
 
 	for _, distributedTableName := range tableNames {
@@ -1576,9 +1567,9 @@ func (r *ClickHouseReader) setTTLTraces(ctx context.Context, orgID string, param
 				return
 			}
 
-			req := fmt.Sprintf(ttlV2, tableName, r.cluster, timestamp, params.DelDuration)
+			req := fmt.Sprintf(ttlV2, tableName, timestamp, params.DelDuration)
 			if strings.HasSuffix(distributedTableName, r.traceResourceTableV3) {
-				req = fmt.Sprintf(ttlV2Resource, tableName, r.cluster, params.DelDuration)
+				req = fmt.Sprintf(ttlV2Resource, tableName, params.DelDuration)
 			}
 
 			if len(params.ColdStorageVolume) > 0 && !strings.HasSuffix(distributedTableName, r.spanAttributesKeysTable) {
@@ -1762,42 +1753,42 @@ func (r *ClickHouseReader) SetTTLV2(ctx context.Context, orgID string, params *m
 	ttlPayload := make(map[string][]string)
 
 	queries := []string{
-		fmt.Sprintf(`ALTER TABLE %s ON CLUSTER %s MODIFY COLUMN _retention_days UInt16 DEFAULT %s`,
-			tableNames[0], r.cluster, multiIfExpr),
+		fmt.Sprintf(`ALTER TABLE %s MODIFY COLUMN _retention_days UInt16 DEFAULT %s`,
+			tableNames[0], multiIfExpr),
 		// for distributed table
-		fmt.Sprintf(`ALTER TABLE %s ON CLUSTER %s MODIFY COLUMN _retention_days UInt16 DEFAULT %s`,
-			distributedTableNames[0], r.cluster, multiIfExpr),
+		fmt.Sprintf(`ALTER TABLE %s MODIFY COLUMN _retention_days UInt16 DEFAULT %s`,
+			distributedTableNames[0], multiIfExpr),
 	}
 
 	if len(params.ColdStorageVolume) > 0 && coldStorageDuration > 0 {
-		queries = append(queries, fmt.Sprintf(`ALTER TABLE %s ON CLUSTER %s MODIFY COLUMN _retention_days_cold UInt16 DEFAULT %d`,
-			tableNames[0], r.cluster, coldStorageDuration))
+		queries = append(queries, fmt.Sprintf(`ALTER TABLE %s MODIFY COLUMN _retention_days_cold UInt16 DEFAULT %d`,
+			tableNames[0], coldStorageDuration))
 		// for distributed table
-		queries = append(queries, fmt.Sprintf(`ALTER TABLE %s ON CLUSTER %s MODIFY COLUMN _retention_days_cold UInt16 DEFAULT %d`,
-			distributedTableNames[0], r.cluster, coldStorageDuration))
+		queries = append(queries, fmt.Sprintf(`ALTER TABLE %s MODIFY COLUMN _retention_days_cold UInt16 DEFAULT %d`,
+			distributedTableNames[0], coldStorageDuration))
 
-		queries = append(queries, fmt.Sprintf(`ALTER TABLE %s ON CLUSTER %s MODIFY TTL toDateTime(timestamp / 1000000000) + toIntervalDay(_retention_days) DELETE, toDateTime(timestamp / 1000000000) + toIntervalDay(_retention_days_cold) TO VOLUME '%s' SETTINGS materialize_ttl_after_modify=0`,
-			tableNames[0], r.cluster, params.ColdStorageVolume))
+		queries = append(queries, fmt.Sprintf(`ALTER TABLE %s MODIFY TTL toDateTime(timestamp / 1000000000) + toIntervalDay(_retention_days) DELETE, toDateTime(timestamp / 1000000000) + toIntervalDay(_retention_days_cold) TO VOLUME '%s' SETTINGS materialize_ttl_after_modify=0`,
+			tableNames[0], params.ColdStorageVolume))
 	}
 
 	ttlPayload[tableNames[0]] = queries
 
 	resourceQueries := []string{
-		fmt.Sprintf(`ALTER TABLE %s ON CLUSTER %s MODIFY COLUMN _retention_days UInt16 DEFAULT %s`,
-			tableNames[1], r.cluster, resourceMultiIfExpr),
+		fmt.Sprintf(`ALTER TABLE %s MODIFY COLUMN _retention_days UInt16 DEFAULT %s`,
+			tableNames[1], resourceMultiIfExpr),
 		// for distributed table
-		fmt.Sprintf(`ALTER TABLE %s ON CLUSTER %s MODIFY COLUMN _retention_days UInt16 DEFAULT %s`,
-			distributedTableNames[1], r.cluster, resourceMultiIfExpr),
+		fmt.Sprintf(`ALTER TABLE %s MODIFY COLUMN _retention_days UInt16 DEFAULT %s`,
+			distributedTableNames[1], resourceMultiIfExpr),
 	}
 
 	if len(params.ColdStorageVolume) > 0 && coldStorageDuration > 0 {
-		resourceQueries = append(resourceQueries, fmt.Sprintf(`ALTER TABLE %s ON CLUSTER %s MODIFY COLUMN _retention_days_cold UInt16 DEFAULT %d`,
-			tableNames[1], r.cluster, coldStorageDuration))
+		resourceQueries = append(resourceQueries, fmt.Sprintf(`ALTER TABLE %s MODIFY COLUMN _retention_days_cold UInt16 DEFAULT %d`,
+			tableNames[1], coldStorageDuration))
 		// for distributed table
-		resourceQueries = append(resourceQueries, fmt.Sprintf(`ALTER TABLE %s ON CLUSTER %s MODIFY COLUMN _retention_days_cold UInt16 DEFAULT %d`,
-			distributedTableNames[1], r.cluster, coldStorageDuration))
-		resourceQueries = append(resourceQueries, fmt.Sprintf(`ALTER TABLE %s ON CLUSTER %s MODIFY TTL toDateTime(seen_at_ts_bucket_start) + toIntervalSecond(1800) + toIntervalDay(_retention_days) DELETE, toDateTime(seen_at_ts_bucket_start) + toIntervalSecond(1800) + toIntervalDay(_retention_days_cold) TO VOLUME '%s' SETTINGS materialize_ttl_after_modify=0`,
-			tableNames[1], r.cluster, params.ColdStorageVolume))
+		resourceQueries = append(resourceQueries, fmt.Sprintf(`ALTER TABLE %s MODIFY COLUMN _retention_days_cold UInt16 DEFAULT %d`,
+			distributedTableNames[1], coldStorageDuration))
+		resourceQueries = append(resourceQueries, fmt.Sprintf(`ALTER TABLE %s MODIFY TTL toDateTime(seen_at_ts_bucket_start) + toIntervalSecond(1800) + toIntervalDay(_retention_days) DELETE, toDateTime(seen_at_ts_bucket_start) + toIntervalSecond(1800) + toIntervalDay(_retention_days_cold) TO VOLUME '%s' SETTINGS materialize_ttl_after_modify=0`,
+			tableNames[1], params.ColdStorageVolume))
 	}
 
 	ttlPayload[tableNames[1]] = resourceQueries
@@ -1810,13 +1801,13 @@ func (r *ClickHouseReader) SetTTLV2(ctx context.Context, orgID string, params *m
 	}
 
 	ttlPayload[tableNames[2]] = []string{
-		fmt.Sprintf("ALTER TABLE %s ON CLUSTER %s MODIFY TTL timestamp + toIntervalDay(%d) DELETE SETTINGS materialize_ttl_after_modify=0",
-			tableNames[2], r.cluster, maxRetentionTTL),
+		fmt.Sprintf("ALTER TABLE %s MODIFY TTL timestamp + toIntervalDay(%d) DELETE SETTINGS materialize_ttl_after_modify=0",
+			tableNames[2], maxRetentionTTL),
 	}
 
 	ttlPayload[tableNames[3]] = []string{
-		fmt.Sprintf("ALTER TABLE %s ON CLUSTER %s MODIFY TTL timestamp + toIntervalDay(%d) DELETE SETTINGS materialize_ttl_after_modify=0",
-			tableNames[3], r.cluster, maxRetentionTTL),
+		fmt.Sprintf("ALTER TABLE %s MODIFY TTL timestamp + toIntervalDay(%d) DELETE SETTINGS materialize_ttl_after_modify=0",
+			tableNames[3], maxRetentionTTL),
 	}
 
 	ttlConditionsJSON, err := json.Marshal(params.TTLConditions)
@@ -2253,8 +2244,8 @@ func (r *ClickHouseReader) setTTLMetrics(ctx context.Context, orgID string, para
 		}
 
 		req := fmt.Sprintf(
-			"ALTER TABLE %v ON CLUSTER %s MODIFY TTL toDateTime(toUInt32(%s / 1000), 'UTC') + "+
-				"INTERVAL %v SECOND DELETE", tableName, r.cluster, timeColumn, params.DelDuration)
+			"ALTER TABLE %v MODIFY TTL toDateTime(toUInt32(%s / 1000), 'UTC') + "+
+				"INTERVAL %v SECOND DELETE", tableName, timeColumn, params.DelDuration)
 		if len(params.ColdStorageVolume) > 0 {
 			req += fmt.Sprintf(", toDateTime(toUInt32(%s / 1000), 'UTC')"+
 				" + INTERVAL %v SECOND TO VOLUME '%s'",
@@ -2409,7 +2400,7 @@ func (r *ClickHouseReader) setColdStorage(ctx context.Context, tableName string,
 	// Set the storage policy for the required table. If it is already set, then setting it again
 	// will not a problem.
 	if len(coldStorageVolume) > 0 {
-		policyReq := fmt.Sprintf("ALTER TABLE %s ON CLUSTER %s MODIFY SETTING storage_policy='tiered'", tableName, r.cluster)
+		policyReq := fmt.Sprintf("ALTER TABLE %s MODIFY SETTING storage_policy='tiered'", tableName)
 
 		r.logger.Info("Executing Storage policy request: ", "request", policyReq)
 		if err := r.db.Exec(ctx, policyReq); err != nil {
@@ -3109,10 +3100,9 @@ func (r *ClickHouseReader) UpdateLogField(ctx context.Context, field *model.Upda
 
 	attrColName := fmt.Sprintf("%s_%s", field.Type, dataType)
 	for _, table := range []string{r.logsLocalTableV2, r.logsTableV2} {
-		q := "ALTER TABLE %s.%s ON CLUSTER %s ADD COLUMN IF NOT EXISTS `%s` %s DEFAULT %s['%s'] CODEC(ZSTD(1))"
+		q := "ALTER TABLE %s.%s ADD COLUMN IF NOT EXISTS `%s` %s DEFAULT %s['%s'] CODEC(ZSTD(1))"
 		query := fmt.Sprintf(q,
 			r.logsDB, table,
-			r.cluster,
 			colname, chDataType,
 			attrColName,
 			field.Name,
@@ -3122,9 +3112,8 @@ func (r *ClickHouseReader) UpdateLogField(ctx context.Context, field *model.Upda
 			return &model.ApiError{Err: err, Typ: model.ErrorInternal}
 		}
 
-		query = fmt.Sprintf("ALTER TABLE %s.%s ON CLUSTER %s ADD COLUMN IF NOT EXISTS `%s_exists` bool DEFAULT if(mapContains(%s, '%s') != 0, true, false) CODEC(ZSTD(1))",
+		query = fmt.Sprintf("ALTER TABLE %s.%s ADD COLUMN IF NOT EXISTS `%s_exists` bool DEFAULT if(mapContains(%s, '%s') != 0, true, false) CODEC(ZSTD(1))",
 			r.logsDB, table,
-			r.cluster,
 			colname,
 			attrColName,
 			field.Name,
@@ -3147,9 +3136,8 @@ func (r *ClickHouseReader) UpdateLogField(ctx context.Context, field *model.Upda
 	if field.IndexGranularity == 0 {
 		field.IndexGranularity = constants.DefaultLogSkipIndexGranularity
 	}
-	query := fmt.Sprintf("ALTER TABLE %s.%s ON CLUSTER %s ADD INDEX IF NOT EXISTS `%s_idx` (`%s`) TYPE %s  GRANULARITY %d",
+	query := fmt.Sprintf("ALTER TABLE %s.%s ADD INDEX IF NOT EXISTS `%s_idx` (`%s`) TYPE %s  GRANULARITY %d",
 		r.logsDB, r.logsLocalTableV2,
-		r.cluster,
 		colname,
 		colname,
 		field.IndexType,
@@ -3250,10 +3238,9 @@ func (r *ClickHouseReader) UpdateTraceField(ctx context.Context, field *model.Up
 
 	attrColName := fmt.Sprintf("%s_%s", typeName, dataType)
 	for _, table := range []string{r.traceLocalTableName, r.traceTableName} {
-		q := "ALTER TABLE %s.%s ON CLUSTER %s ADD COLUMN IF NOT EXISTS `%s` %s DEFAULT %s['%s'] CODEC(ZSTD(1))"
+		q := "ALTER TABLE %s.%s ADD COLUMN IF NOT EXISTS `%s` %s DEFAULT %s['%s'] CODEC(ZSTD(1))"
 		query := fmt.Sprintf(q,
 			r.TraceDB, table,
-			r.cluster,
 			colname, chDataType,
 			attrColName,
 			field.Name,
@@ -3263,9 +3250,8 @@ func (r *ClickHouseReader) UpdateTraceField(ctx context.Context, field *model.Up
 			return &model.ApiError{Err: err, Typ: model.ErrorInternal}
 		}
 
-		query = fmt.Sprintf("ALTER TABLE %s.%s ON CLUSTER %s ADD COLUMN IF NOT EXISTS `%s_exists` bool DEFAULT if(mapContains(%s, '%s') != 0, true, false) CODEC(ZSTD(1))",
+		query = fmt.Sprintf("ALTER TABLE %s.%s ADD COLUMN IF NOT EXISTS `%s_exists` bool DEFAULT if(mapContains(%s, '%s') != 0, true, false) CODEC(ZSTD(1))",
 			r.TraceDB, table,
-			r.cluster,
 			colname,
 			attrColName,
 			field.Name,
@@ -3288,9 +3274,8 @@ func (r *ClickHouseReader) UpdateTraceField(ctx context.Context, field *model.Up
 	if field.IndexGranularity == 0 {
 		field.IndexGranularity = constants.DefaultLogSkipIndexGranularity
 	}
-	query := fmt.Sprintf("ALTER TABLE %s.%s ON CLUSTER %s ADD INDEX IF NOT EXISTS `%s_idx` (`%s`) TYPE %s  GRANULARITY %d",
+	query := fmt.Sprintf("ALTER TABLE %s.%s ADD INDEX IF NOT EXISTS `%s_idx` (`%s`) TYPE %s  GRANULARITY %d",
 		r.TraceDB, r.traceLocalTableName,
-		r.cluster,
 		colname,
 		colname,
 		field.IndexType,
@@ -3303,9 +3288,8 @@ func (r *ClickHouseReader) UpdateTraceField(ctx context.Context, field *model.Up
 
 	// add a default minmax index for numbers
 	if dataType == "number" {
-		query = fmt.Sprintf("ALTER TABLE %s.%s ON CLUSTER %s ADD INDEX IF NOT EXISTS `%s_minmax_idx` (`%s`) TYPE minmax  GRANULARITY 1",
+		query = fmt.Sprintf("ALTER TABLE %s.%s ADD INDEX IF NOT EXISTS `%s_minmax_idx` (`%s`) TYPE minmax  GRANULARITY 1",
 			r.TraceDB, r.traceLocalTableName,
-			r.cluster,
 			colname,
 			colname,
 		)
@@ -4559,7 +4543,7 @@ func (r *ClickHouseReader) GetListResultV3(ctx context.Context, query string) ([
 }
 
 // GetHostMetricsExistenceAndEarliestTime returns (count, minFirstReportedUnixMilli, error) for the given host metric names
-// from distributed_metadata. When count is 0, minFirstReportedUnixMilli is 0.
+// from metadata. When count is 0, minFirstReportedUnixMilli is 0.
 func (r *ClickHouseReader) GetMetricsExistenceAndEarliestTime(ctx context.Context, metricNames []string) (uint64, uint64, error) {
 	ctx = ctxtypes.NewContextWithCommentVals(ctx, map[string]string{
 		instrumentationtypes.TelemetrySignal:  telemetrytypes.SignalMetrics.StringValue(),
@@ -6509,7 +6493,7 @@ func (r *ClickHouseReader) GetInspectMetrics(ctx context.Context, req *metrics_e
                 unix_milli,
                 value as per_series_value
         FROM
-                signoz_metrics.distributed_samples_v4
+                signoz_metrics.samples_v4
         INNER JOIN (
                 SELECT DISTINCT
                         fingerprint,

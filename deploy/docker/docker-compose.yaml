@@ -17,8 +17,6 @@ x-clickhouse-defaults: &clickhouse-defaults
   depends_on:
     init-clickhouse:
       condition: service_completed_successfully
-    keeper-1:
-      condition: service_healthy
   healthcheck:
     test:
       - CMD
@@ -36,31 +34,6 @@ x-clickhouse-defaults: &clickhouse-defaults
       hard: 262144
   environment:
     - CLICKHOUSE_SKIP_USER_SETUP=1
-x-keeper-defaults: &keeper-defaults
-  !!merge <<: *common
-  image: clickhouse/clickhouse-server:25.5.6
-  command:
-    - /bin/bash
-    - -ec
-    - |
-      mkdir -p /var/lib/clickhouse-keeper/coordination/log /var/lib/clickhouse-keeper/coordination/snapshots
-      chown clickhouse:clickhouse /var/lib/clickhouse-keeper /var/lib/clickhouse-keeper/coordination /var/lib/clickhouse-keeper/coordination/log /var/lib/clickhouse-keeper/coordination/snapshots
-      exec clickhouse su clickhouse:clickhouse clickhouse-keeper --config-file=/etc/clickhouse-keeper/keeper_config.xml
-  labels:
-    siginsight.io/scrape: "true"
-    siginsight.io/port: "9363"
-    siginsight.io/path: "/metrics"
-  healthcheck:
-    test:
-      - CMD
-      - clickhouse-keeper-client
-      - --host=localhost
-      - --port=9181
-      - --query=ls
-    interval: 10s
-    timeout: 5s
-    retries: 10
-    start_period: 10s
 x-db-depend: &db-depend
   !!merge <<: *common
   depends_on:
@@ -82,29 +55,17 @@ services:
     restart: on-failure
     volumes:
       - ../common/clickhouse/user_scripts:/var/lib/clickhouse/user_scripts/
-  keeper-1:
-    !!merge <<: *keeper-defaults
-    container_name: siginsight-keeper-1
-    # ports:
-    #   - "9181:9181"
-    #   - "9234:9234"
-    #   - "9363:9363"
-    volumes:
-      - ../common/clickhouse/keeper/keeper.xml:/etc/clickhouse-keeper/keeper_config.xml:ro
-      - keeper-1:/var/lib/clickhouse-keeper
   clickhouse:
     !!merge <<: *clickhouse-defaults
     container_name: siginsight-clickhouse
     # ports:
     #   - "9000:9000"
     #   - "8123:8123"
-    #   - "9181:9181"
     volumes:
       - ../common/clickhouse/config.xml:/etc/clickhouse-server/config.xml
       - ../common/clickhouse/users.xml:/etc/clickhouse-server/users.xml
       - ../common/clickhouse/custom-function.xml:/etc/clickhouse-server/custom-function.xml
       - ../common/clickhouse/user_scripts:/var/lib/clickhouse/user_scripts/
-      - ../common/clickhouse/cluster.xml:/etc/clickhouse-server/config.d/cluster.xml
       - clickhouse:/var/lib/clickhouse/
       # - ../common/clickhouse/storage.xml:/etc/clickhouse-server/config.d/storage.xml
   siginsight:
@@ -148,8 +109,6 @@ services:
       - OTEL_RESOURCE_ATTRIBUTES=host.name=siginsight-host,os.type=linux
       - LOW_CARDINAL_EXCEPTION_GROUPING=false
       - SIGINSIGHT_OTEL_COLLECTOR_CLICKHOUSE_DSN=tcp://clickhouse:9000
-      - SIGINSIGHT_OTEL_COLLECTOR_CLICKHOUSE_CLUSTER=cluster
-      - SIGINSIGHT_OTEL_COLLECTOR_CLICKHOUSE_REPLICATION=true
       - SIGINSIGHT_OTEL_COLLECTOR_TIMEOUT=10m
     ports:
       # - "1777:1777"     # pprof extension
@@ -161,8 +120,6 @@ services:
     container_name: siginsight-telemetrystore-migrator
     environment:
       - SIGINSIGHT_OTEL_COLLECTOR_CLICKHOUSE_DSN=tcp://clickhouse:9000
-      - SIGINSIGHT_OTEL_COLLECTOR_CLICKHOUSE_CLUSTER=cluster
-      - SIGINSIGHT_OTEL_COLLECTOR_CLICKHOUSE_REPLICATION=true
       - SIGINSIGHT_OTEL_COLLECTOR_TIMEOUT=10m
     entrypoint:
       - /bin/sh
@@ -181,5 +138,3 @@ volumes:
     name: siginsight-clickhouse
   sqlite:
     name: siginsight-sqlite
-  keeper-1:
-    name: siginsight-keeper-1

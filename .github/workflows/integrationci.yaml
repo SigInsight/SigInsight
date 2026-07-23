@@ -47,8 +47,6 @@ jobs:
           - sqlite
         clickhouse-version:
           - 25.5.6
-        keeper-version:
-          - 25.5.6
         schema-migrator-version:
           - v1.0.4
     # Re-enabled for community edition: now builds from cmd/community/Dockerfile.integration
@@ -76,5 +74,4 @@ jobs:
             src/${{matrix.src}} \
             --sqlstore-provider ${{matrix.sqlstore-provider}} \
             --clickhouse-version ${{matrix.clickhouse-version}} \
-            --keeper-version ${{matrix.keeper-version}} \
             --schema-migrator-version ${{matrix.schema-migrator-version}}

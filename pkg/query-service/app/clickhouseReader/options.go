@@ -17,40 +17,37 @@ const (
 
 const (
 	defaultTraceDB                 string        = "signoz_traces"
-	defaultOperationsTable         string        = "distributed_signoz_operations"
-	defaultIndexTable              string        = "distributed_signoz_index_v2"
+	defaultIndexTable              string        = "signoz_index_v2"
 	defaultLocalIndexTable         string        = "signoz_index_v2"
-	defaultErrorTable              string        = "distributed_signoz_error_index_v2"
-	defaultDurationTable           string        = "distributed_durationSort"
-	defaultUsageExplorerTable      string        = "distributed_usage_explorer"
-	defaultSpansTable              string        = "distributed_signoz_spans"
-	defaultDependencyGraphTable    string        = "distributed_dependency_graph_minutes_v2"
-	defaultTopLevelOperationsTable string        = "distributed_top_level_operations"
-	defaultSpanAttributeTableV2    string        = "distributed_tag_attributes_v2"
-	defaultSpanAttributeKeysTable  string        = "distributed_span_attributes_keys"
+	defaultErrorTable              string        = "signoz_error_index_v2"
+	defaultDurationTable           string        = "durationSort"
+	defaultUsageExplorerTable      string        = "usage_explorer"
+	defaultSpansTable              string        = "signoz_spans"
+	defaultDependencyGraphTable    string        = "dependency_graph_minutes_v2"
+	defaultTopLevelOperationsTable string        = "top_level_operations"
+	defaultSpanAttributeTableV2    string        = "tag_attributes_v2"
+	defaultSpanAttributeKeysTable  string        = "span_attributes_keys"
 	defaultLogsDB                  string        = "signoz_logs"
-	defaultLogsTable               string        = "distributed_logs"
-	defaultLogsLocalTable          string        = "logs"
-	defaultLogAttributeKeysTable   string        = "distributed_logs_attribute_keys"
-	defaultLogResourceKeysTable    string        = "distributed_logs_resource_keys"
-	defaultLogTagAttributeTableV2  string        = "distributed_tag_attributes_v2"
+	defaultLogAttributeKeysTable   string        = "logs_attribute_keys"
+	defaultLogResourceKeysTable    string        = "logs_resource_keys"
+	defaultLogTagAttributeTableV2  string        = "tag_attributes_v2"
 	defaultLiveTailRefreshSeconds  int           = 5
 	defaultWriteBatchDelay         time.Duration = 5 * time.Second
 	defaultWriteBatchSize          int           = 10000
 	defaultEncoding                Encoding      = EncodingJSON
 
 	defaultLogsLocalTableV2         string = "logs_v2"
-	defaultLogsTableV2              string = "distributed_logs_v2"
+	defaultLogsTableV2              string = "logs_v2"
 	defaultLogsResourceLocalTableV2 string = "logs_v2_resource"
-	defaultLogsResourceTableV2      string = "distributed_logs_v2_resource"
+	defaultLogsResourceTableV2      string = "logs_v2_resource"
 
-	defaultTraceIndexTableV3    string = "distributed_signoz_index_v3"
+	defaultTraceIndexTableV3    string = "signoz_index_v3"
 	defaultTraceLocalTableName  string = "signoz_index_v3"
-	defaultTraceResourceTableV3 string = "distributed_traces_v3_resource"
-	defaultTraceSummaryTable    string = "distributed_trace_summary"
+	defaultTraceResourceTableV3 string = "traces_v3_resource"
+	defaultTraceSummaryTable    string = "trace_summary"
 
 	defaultMetadataDB    string = "signoz_metadata"
-	defaultMetadataTable string = "distributed_attributes_metadata"
+	defaultMetadataTable string = "attributes_metadata"
 )
 
 // NamespaceConfig is Clickhouse's internal configuration data
@@ -59,7 +56,6 @@ type namespaceConfig struct {
 	Enabled                 bool
 	Datasource              string
 	TraceDB                 string
-	OperationsTable         string
 	IndexTable              string
 	LocalIndexTable         string
 	DurationTable           string
@@ -71,8 +67,6 @@ type namespaceConfig struct {
 	DependencyGraphTable    string
 	TopLevelOperationsTable string
 	LogsDB                  string
-	LogsTable               string
-	LogsLocalTable          string
 	LogsAttributeKeysTable  string
 	LogsResourceKeysTable   string
 	LogsTagAttributeTableV2 string
@@ -115,7 +109,6 @@ func NewOptions(
 			namespace:               primaryNamespace,
 			Enabled:                 true,
 			TraceDB:                 defaultTraceDB,
-			OperationsTable:         defaultOperationsTable,
 			IndexTable:              defaultIndexTable,
 			LocalIndexTable:         defaultLocalIndexTable,
 			ErrorTable:              defaultErrorTable,
@@ -127,8 +120,6 @@ func NewOptions(
 			DependencyGraphTable:    defaultDependencyGraphTable,
 			TopLevelOperationsTable: defaultTopLevelOperationsTable,
 			LogsDB:                  defaultLogsDB,
-			LogsTable:               defaultLogsTable,
-			LogsLocalTable:          defaultLogsLocalTable,
 			LogsAttributeKeysTable:  defaultLogAttributeKeysTable,
 			LogsResourceKeysTable:   defaultLogResourceKeysTable,
 			LogsTagAttributeTableV2: defaultLogTagAttributeTableV2,
@@ -157,12 +148,9 @@ func NewOptions(
 			options.others[namespace] = &namespaceConfig{
 				namespace:              namespace,
 				TraceDB:                "",
-				OperationsTable:        "",
 				IndexTable:             "",
 				ErrorTable:             "",
 				LogsDB:                 "",
-				LogsTable:              "",
-				LogsLocalTable:         "",
 				LogsAttributeKeysTable: "",
 				LogsResourceKeysTable:  "",
 				LiveTailRefreshSeconds: defaultLiveTailRefreshSeconds,

@@ -94,7 +94,7 @@ func (b *traceOperatorCTEBuilder) build(ctx context.Context, requestType qbtypes
 		cteArgs = append(cteArgs, cte.args)
 	}
 
-	finalSQL := querybuilder.CombineCTEs(cteFragments) + finalStmt.Query + " SETTINGS distributed_product_mode='allow', max_memory_usage=10000000000"
+	finalSQL := querybuilder.CombineCTEs(cteFragments) + finalStmt.Query + " SETTINGS max_memory_usage=10000000000"
 	finalArgs := querybuilder.PrependArgs(cteArgs, finalStmt.Args)
 
 	b.stmtBuilder.logger.DebugContext(ctx, "Final trace operator query built",

@@ -92,7 +92,6 @@ func NewServer(config signoz.Config, signoz *signoz.SigNoz) (*Server, error) {
 		signoz.SQLStore,
 		signoz.TelemetryStore,
 		signoz.Prometheus,
-		signoz.TelemetryStore.Cluster(),
 		config.Querier.FluxInterval,
 		cacheForTraceDetail,
 		signoz.Cache,

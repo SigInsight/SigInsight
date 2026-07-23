@@ -47,7 +47,7 @@ help() {
   printf "OPTIONS:\n"
   printf "\t-d\tDeployment type (standalone, swarm)\n"
   printf "\t-m\tMigration component (all, siginsight, alertmanager)\n"
-  printf "\t\tall excludes ClickHouse; deploy ClickHouse and Keeper with empty volumes.\n"
+  printf "\t\tall excludes ClickHouse; deploy ClickHouse with empty volumes.\n"
   printf "\t-o\tOperation (migrate, post-migrate)\n"
   printf "\t-p\tSigInsight root directory (default: ~/siginsight)\n"
   printf "\t-s\tSilent mode (true, false)\n"
@@ -494,7 +494,7 @@ parse_args() {
   fi
 
   if [[ "${MIGRATION_COMPONENT}" == "clickhouse" ]]; then
-    err "ClickHouse data cannot be migrated to a fresh Keeper deployment. Start with empty ClickHouse and Keeper volumes."
+    err "ClickHouse data cannot be migrated to a fresh single-node deployment. Start with empty ClickHouse volumes."
     return 1
   fi
 

@@ -14,9 +14,8 @@ import (
 )
 
 type instrumentation struct {
-	clickhouseCluster string
-	tracer            trace.Tracer
-	meter             metric.Meter
+	tracer trace.Tracer
+	meter  metric.Meter
 }
 
 func NewInstrumentationFactory() factory.ProviderFactory[telemetrystore.TelemetryStoreHook, telemetrystore.Config] {
@@ -29,9 +28,8 @@ func NewInstrumentation(ctx context.Context, providerSettings factory.ProviderSe
 	meter := providerSettings.MeterProvider.Meter("github.com/SigNoz/signoz/pkg/telemetrystore")
 
 	return &instrumentation{
-		clickhouseCluster: config.Clickhouse.Cluster,
-		tracer:            providerSettings.TracerProvider.Tracer("github.com/SigNoz/signoz/pkg/telemetrystore"),
-		meter:             meter,
+		tracer: providerSettings.TracerProvider.Tracer("github.com/SigNoz/signoz/pkg/telemetrystore"),
+		meter:  meter,
 	}, nil
 }
 
@@ -62,7 +60,6 @@ func (hook *instrumentation) AfterQuery(ctx context.Context, event *telemetrysto
 		semconv.DBStatementKey.String(event.Query),
 		semconv.DBSystemKey.String("clickhouse"),
 		semconv.DBOperationKey.String(event.Operation),
-		attribute.String("clickhouse.cluster", hook.clickhouseCluster),
 	)
 
 	if event.Err != nil {
