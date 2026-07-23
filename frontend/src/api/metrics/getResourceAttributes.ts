@@ -1,4 +1,4 @@
-import { ApiV3Instance as axios } from 'api';
+import { ApiV5Instance as axios } from 'api';
 import { ErrorResponseHandler } from 'api/ErrorResponseHandler';
 import { AxiosError } from 'axios';
 import createQueryParams from 'lib/createQueryParams';

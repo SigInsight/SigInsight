@@ -309,7 +309,7 @@ function FullView({
 							<>
 								<QueryBuilderV2
 									panelType={selectedPanelType}
-									version={selectedDashboard?.data?.version || 'v3'}
+									version={selectedDashboard?.data?.version || 'v5'}
 									isListViewPanel={selectedPanelType === PANEL_TYPES.LIST}
 									signalSourceChangeEnabled
 									// filterConfigs={filterConfigs}

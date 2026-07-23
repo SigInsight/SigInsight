@@ -314,29 +314,16 @@ func writeHttpResponse(w http.ResponseWriter, data interface{}) {
 	}
 }
 
-func (aH *APIHandler) RegisterQueryRangeV3Routes(router *mux.Router, am *middleware.AuthZ) {
-	subRouter := router.PathPrefix("/api/v3").Subrouter()
+func (aH *APIHandler) RegisterQueryRangeV5Routes(router *mux.Router, am *middleware.AuthZ) {
+	subRouter := router.PathPrefix("/api/v5").Subrouter()
 	subRouter.HandleFunc("/autocomplete/aggregate_attributes", am.ViewAccess(
 		withCacheControl(AutoCompleteCacheControlAge, aH.autocompleteAggregateAttributes))).Methods(http.MethodGet)
 	subRouter.HandleFunc("/autocomplete/attribute_keys", am.ViewAccess(
 		withCacheControl(AutoCompleteCacheControlAge, aH.autoCompleteAttributeKeys))).Methods(http.MethodGet)
 	subRouter.HandleFunc("/autocomplete/attribute_values", am.ViewAccess(
 		withCacheControl(AutoCompleteCacheControlAge, aH.autoCompleteAttributeValues))).Methods(http.MethodGet)
-
-	// autocomplete with filters using new endpoints
-	// Note: eventually all autocomplete APIs should be migrated to new endpoint with appropriate filters, deprecating the older ones
-
 	subRouter.HandleFunc("/auto_complete/attribute_values", am.ViewAccess(aH.autoCompleteAttributeValuesPost)).Methods(http.MethodPost)
-
-	subRouter.HandleFunc("/query_range", am.ViewAccess(aH.QueryRangeV3)).Methods(http.MethodPost)
-	subRouter.HandleFunc("/query_range/format", am.ViewAccess(aH.QueryRangeV3Format)).Methods(http.MethodPost)
-
 	subRouter.HandleFunc("/filter_suggestions", am.ViewAccess(aH.getQueryBuilderSuggestions)).Methods(http.MethodGet)
-
-	// TODO(Raj): Remove this handler after /ws based path has been completely rolled out.
-	subRouter.HandleFunc("/query_progress", am.ViewAccess(aH.GetQueryProgressUpdates)).Methods(http.MethodGet)
-
-	// live logs
 	subRouter.HandleFunc("/logs/livetail", am.ViewAccess(aH.Signoz.Handlers.QuerierHandler.QueryRawStream)).Methods(http.MethodGet)
 }
 
@@ -2936,159 +2923,6 @@ func (aH *APIHandler) getSpanKeysV3(ctx context.Context, queryRangeParams *v3.Qu
 	return data, nil
 }
 
-func (aH *APIHandler) QueryRangeV3Format(w http.ResponseWriter, r *http.Request) {
-	queryRangeParams, apiErrorObj := ParseQueryRangeParams(r)
-
-	if apiErrorObj != nil {
-		aH.logger.ErrorContext(r.Context(), "error parsing query range params", errors.Attr(apiErrorObj.Err))
-		RespondError(w, apiErrorObj, nil)
-		return
-	}
-	queryRangeParams.Version = "v3"
-
-	aH.Respond(w, queryRangeParams)
-}
-
-func (aH *APIHandler) queryRangeV3(ctx context.Context, queryRangeParams *v3.QueryRangeParamsV3, w http.ResponseWriter, r *http.Request) {
-	claims, err := authtypes.ClaimsFromContext(r.Context())
-	if err != nil {
-		render.Error(w, err)
-		return
-	}
-	orgID, err := valuer.NewUUID(claims.OrgID)
-	if err != nil {
-		render.Error(w, err)
-		return
-	}
-
-	var result []*v3.Result
-	var errQueriesByName map[string]error
-	var spanKeys map[string]v3.AttributeKey
-	if queryRangeParams.CompositeQuery.QueryType == v3.QueryTypeBuilder {
-		hasLogsQuery := false
-		hasTracesQuery := false
-		for _, query := range queryRangeParams.CompositeQuery.BuilderQueries {
-			if query.DataSource == v3.DataSourceLogs {
-				hasLogsQuery = true
-			}
-			if query.DataSource == v3.DataSourceTraces {
-				hasTracesQuery = true
-			}
-		}
-		// check if any enrichment is required for logs if yes then enrich them
-		if logsv3.EnrichmentRequired(queryRangeParams) && hasLogsQuery {
-			logsFields, apiErr := aH.reader.GetLogFieldsFromNames(ctx, logsv3.GetFieldNames(queryRangeParams.CompositeQuery))
-			if apiErr != nil {
-				RespondError(w, apiErr, errQueriesByName)
-				return
-			}
-			// get the fields if any logs query is present
-			fields := model.GetLogFieldsV3(ctx, queryRangeParams, logsFields)
-			logsv3.Enrich(queryRangeParams, fields)
-		}
-		if hasTracesQuery {
-			spanKeys, err = aH.getSpanKeysV3(ctx, queryRangeParams)
-			if err != nil {
-				apiErrObj := &model.ApiError{Typ: model.ErrorInternal, Err: err}
-				RespondError(w, apiErrObj, errQueriesByName)
-				return
-			}
-			tracesV4.Enrich(queryRangeParams, spanKeys)
-		}
-	}
-
-	// WARN: Only works for AND operator in traces query
-	if queryRangeParams.CompositeQuery.QueryType == v3.QueryTypeBuilder {
-		// check if traceID is used as filter (with equal/similar operator) in traces query if yes add timestamp filter to queryRange params
-		isUsed, traceIDs := tracesV3.TraceIdFilterUsedWithEqual(queryRangeParams)
-		if isUsed && len(traceIDs) > 0 {
-			aH.logger.DebugContext(ctx, "trace_id used as filter in traces query")
-			// query signoz_spans table with traceID to get min and max timestamp
-			min, max, err := aH.reader.GetMinAndMaxTimestampForTraceID(ctx, traceIDs)
-			if err == nil {
-				// add timestamp filter to queryRange params
-				tracesV3.AddTimestampFilters(min, max, queryRangeParams)
-				aH.logger.DebugContext(ctx, "post adding timestamp filter in traces query", "query_range_params", queryRangeParams)
-			}
-		}
-	}
-
-	// Hook up query progress tracking if requested
-	queryIdHeader := r.Header.Get("X-SIGNOZ-QUERY-ID")
-	if len(queryIdHeader) > 0 {
-		onQueryFinished, apiErr := aH.reader.ReportQueryStartForProgressTracking(queryIdHeader)
-
-		if apiErr != nil {
-			aH.logger.ErrorContext(ctx, "failed to report query start for progress tracking",
-				"query_id", queryIdHeader, errors.Attr(apiErr),
-			)
-
-		} else {
-			// Adding queryId to the context signals clickhouse queries to report progress
-			//lint:ignore SA1029 ignore for now
-			ctx = context.WithValue(ctx, "queryId", queryIdHeader)
-
-			defer func() {
-				go onQueryFinished()
-			}()
-		}
-	}
-
-	ctx = ctxtypes.NewContextWithCommentVals(ctx, map[string]string{
-		instrumentationtypes.CodeNamespace:    "app",
-		instrumentationtypes.CodeFunctionName: "QueryRange",
-	})
-	result, errQueriesByName, err = aH.querier.QueryRange(ctx, orgID, queryRangeParams)
-
-	if err != nil {
-		queryErrors := map[string]string{}
-		for name, err := range errQueriesByName {
-			queryErrors[fmt.Sprintf("Query-%s", name)] = err.Error()
-		}
-		apiErrObj := &model.ApiError{Typ: model.ErrorInternal, Err: err}
-		RespondError(w, apiErrObj, queryErrors)
-		return
-	}
-
-	postprocess.ApplyHavingClause(result, queryRangeParams)
-	postprocess.ApplyMetricLimit(result, queryRangeParams)
-
-	aH.sendQueryResultEvents(r, result, queryRangeParams, "v3")
-	// only adding applyFunctions instead of postProcess since experssion are
-	// are executed in clickhouse directly and we wanted to add support for timeshift
-	if queryRangeParams.CompositeQuery.QueryType == v3.QueryTypeBuilder {
-		postprocess.ApplyFunctions(result, queryRangeParams)
-	}
-
-	if queryRangeParams.CompositeQuery.FillGaps {
-		postprocess.FillGaps(result, queryRangeParams)
-	}
-
-	if queryRangeParams.CompositeQuery.PanelType == v3.PanelTypeTable && queryRangeParams.FormatForWeb {
-		if queryRangeParams.CompositeQuery.QueryType == v3.QueryTypeClickHouseSQL {
-			result = postprocess.TransformToTableForClickHouseQueries(result)
-		} else if queryRangeParams.CompositeQuery.QueryType == v3.QueryTypeBuilder {
-			result = postprocess.TransformToTableForBuilderQueries(result, queryRangeParams)
-		}
-	}
-
-	resp := v3.QueryRangeResponse{
-		Result: result,
-	}
-
-	// This checks if the time for context to complete has exceeded.
-	// it adds flag to notify the user of incomplete response
-	select {
-	case <-ctx.Done():
-		resp.ContextTimeout = true
-		resp.ContextTimeoutMessage = "result might contain incomplete data due to context timeout, for custom timeout set the timeout header eg:- timeout:120"
-	default:
-		break
-	}
-
-	aH.Respond(w, resp)
-}
-
 func (aH *APIHandler) sendQueryResultEvents(r *http.Request, result []*v3.Result, queryRangeParams *v3.QueryRangeParamsV3, version string) {
 	claims, err := authtypes.ClaimsFromContext(r.Context())
 	if err != nil {
@@ -3161,37 +2995,6 @@ func (aH *APIHandler) sendQueryResultEvents(r *http.Request, result []*v3.Result
 
 	aH.Signoz.Analytics.TrackUser(r.Context(), claims.OrgID, claims.UserID, "Telemetry Query Returned Results", properties)
 
-}
-
-func (aH *APIHandler) QueryRangeV3(w http.ResponseWriter, r *http.Request) {
-	claims, err := authtypes.ClaimsFromContext(r.Context())
-	if err != nil {
-		render.Error(w, err)
-		return
-	}
-	orgID, err := valuer.NewUUID(claims.OrgID)
-	if err != nil {
-		render.Error(w, err)
-		return
-	}
-
-	queryRangeParams, apiErrorObj := ParseQueryRangeParams(r)
-
-	if apiErrorObj != nil {
-		aH.logger.ErrorContext(r.Context(), "error parsing metric query range params", errors.Attr(apiErrorObj.Err))
-		RespondError(w, apiErrorObj, nil)
-		return
-	}
-
-	// add temporality for each metric
-	temporalityErr := aH.PopulateTemporality(r.Context(), orgID, queryRangeParams)
-	if temporalityErr != nil {
-		aH.logger.ErrorContext(r.Context(), "error adding temporality for metrics", errors.Attr(temporalityErr))
-		RespondError(w, &model.ApiError{Typ: model.ErrorInternal, Err: temporalityErr}, nil)
-		return
-	}
-
-	aH.queryRangeV3(r.Context(), queryRangeParams, w, r)
 }
 
 func (aH *APIHandler) GetQueryProgressUpdates(w http.ResponseWriter, r *http.Request) {

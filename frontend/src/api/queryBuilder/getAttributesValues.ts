@@ -1,4 +1,4 @@
-import { ApiV3Instance } from 'api';
+import { ApiV5Instance } from 'api';
 import { ErrorResponseHandler } from 'api/ErrorResponseHandler';
 import { AxiosError } from 'axios';
 import createQueryParams from 'lib/createQueryParams';
@@ -20,7 +20,7 @@ export const getAttributesValues = async ({
 	SuccessResponse<IAttributeValuesResponse> | ErrorResponse
 > => {
 	try {
-		const response = await ApiV3Instance.get(
+		const response = await ApiV5Instance.get(
 			`/autocomplete/attribute_values?${createQueryParams({
 				aggregateOperator,
 				dataSource,

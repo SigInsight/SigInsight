@@ -294,7 +294,7 @@ export const QueryV2 = forwardRef(function QueryV2(
 								<QueryAddOns
 									index={index}
 									query={query}
-									version="v3"
+									version="v5"
 									isListViewPanel={isListViewPanel}
 									showReduceTo={showReduceTo}
 									panelType={panelType}

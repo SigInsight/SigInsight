@@ -1,4 +1,4 @@
-import { ApiV3Instance } from 'api';
+import { ApiV5Instance } from 'api';
 import { ErrorResponseHandler } from 'api/ErrorResponseHandler';
 import { AxiosError, AxiosResponse } from 'axios';
 import { baseAutoCompleteIdKeysOrder } from 'constants/queryBuilder';
@@ -34,7 +34,7 @@ export const getAttributeSuggestions = async ({
 		}
 		const response: AxiosResponse<{
 			data: IGetAttributeSuggestionsSuccessResponse;
-		}> = await ApiV3Instance.get(
+		}> = await ApiV5Instance.get(
 			`/filter_suggestions?${createQueryParams({
 				searchText,
 				dataSource,

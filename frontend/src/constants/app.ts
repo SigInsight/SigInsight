@@ -12,6 +12,6 @@ export const INVITE_MEMBERS_HASH = '#invite-team-members';
 
 export const AUTO_REFRESH_INTERVAL = 'refreshInterval';
 
-export const DEFAULT_ENTITY_VERSION = 'v3';
+export const DEFAULT_ENTITY_VERSION = 'v5';
 export const ENTITY_VERSION_V4 = 'v4';
 export const ENTITY_VERSION_V5 = 'v5';

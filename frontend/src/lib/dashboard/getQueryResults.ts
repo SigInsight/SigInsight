@@ -6,7 +6,7 @@ import {
 	getQueryRangeV5,
 	prepareQueryRangePayloadV5,
 } from 'api/v5/v5';
-import { ENTITY_VERSION_V5 } from 'constants/app';
+import { ENTITY_VERSION_V4, ENTITY_VERSION_V5 } from 'constants/app';
 import { PANEL_TYPES } from 'constants/queryBuilder';
 import { timePreferenceType } from 'container/NewWidget/RightContainer/timeItems';
 import {
@@ -192,7 +192,7 @@ export async function GetMetricQueryRange(
 
 	// Validate metric name for METRICS data source before making the API call
 	if (
-		version === ENTITY_VERSION_V5 &&
+		version !== ENTITY_VERSION_V4 &&
 		!validateMetricNameForMetricsDataSource(props.query)
 	) {
 		// Return empty response to avoid 400 error when metric name is missing
@@ -218,7 +218,7 @@ export async function GetMetricQueryRange(
 		};
 	}
 
-	if (version === ENTITY_VERSION_V5) {
+	if (version !== ENTITY_VERSION_V4) {
 		const v5Result = prepareQueryRangePayloadV5({
 			...props,
 			dynamicVariables,
@@ -251,7 +251,7 @@ export async function GetMetricQueryRange(
 
 		const v5Response = await getQueryRangeV5(
 			v5Result.queryPayload,
-			version,
+			ENTITY_VERSION_V5,
 			signal,
 			headers,
 		);
@@ -273,13 +273,13 @@ export async function GetMetricQueryRange(
 
 		response = await getMetricsQueryRange(
 			legacyResult.queryPayload,
-			version || 'v3',
+			version || 'v5',
 			signal,
 			headers,
 		);
 	}
 
-	if (response.statusCode >= 400 && version !== ENTITY_VERSION_V5) {
+	if (response.statusCode >= 400 && version === ENTITY_VERSION_V4) {
 		let error = `API responded with ${response.statusCode} -  ${response.error} status: ${response.message}`;
 		if (response.body && !isEmpty(response.body)) {
 			error = `${error}, errors: ${response.body}`;
