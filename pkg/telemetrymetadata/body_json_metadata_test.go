@@ -28,7 +28,7 @@ func TestBuildGetBodyJSONPathsQuery(t *testing.T) {
 					SelectorMatchType: telemetrytypes.FieldSelectorMatchTypeExact,
 				},
 			},
-			expectedSQL:   "SELECT path, groupArray(DISTINCT type) AS types, max(last_seen) AS last_seen FROM signoz_metadata.distributed_json_path_types WHERE (path = ?) GROUP BY path ORDER BY last_seen DESC LIMIT ?",
+			expectedSQL:   "SELECT path, groupArray(DISTINCT type) AS types, max(last_seen) AS last_seen FROM signoz_metadata.json_path_types WHERE (path = ?) GROUP BY path ORDER BY last_seen DESC LIMIT ?",
 			expectedArgs:  []any{"user.name", defaultPathLimit},
 			expectedLimit: defaultPathLimit,
 		},
@@ -40,7 +40,7 @@ func TestBuildGetBodyJSONPathsQuery(t *testing.T) {
 					SelectorMatchType: telemetrytypes.FieldSelectorMatchTypeFuzzy,
 				},
 			},
-			expectedSQL:   "SELECT path, groupArray(DISTINCT type) AS types, max(last_seen) AS last_seen FROM signoz_metadata.distributed_json_path_types WHERE (LOWER(path) LIKE LOWER(?)) GROUP BY path ORDER BY last_seen DESC LIMIT ?",
+			expectedSQL:   "SELECT path, groupArray(DISTINCT type) AS types, max(last_seen) AS last_seen FROM signoz_metadata.json_path_types WHERE (LOWER(path) LIKE LOWER(?)) GROUP BY path ORDER BY last_seen DESC LIMIT ?",
 			expectedArgs:  []any{"%user%", 100},
 			expectedLimit: 100,
 		},
@@ -56,7 +56,7 @@ func TestBuildGetBodyJSONPathsQuery(t *testing.T) {
 					SelectorMatchType: telemetrytypes.FieldSelectorMatchTypeExact,
 				},
 			},
-			expectedSQL:   "SELECT path, groupArray(DISTINCT type) AS types, max(last_seen) AS last_seen FROM signoz_metadata.distributed_json_path_types WHERE (path = ? OR path = ?) GROUP BY path ORDER BY last_seen DESC LIMIT ?",
+			expectedSQL:   "SELECT path, groupArray(DISTINCT type) AS types, max(last_seen) AS last_seen FROM signoz_metadata.json_path_types WHERE (path = ? OR path = ?) GROUP BY path ORDER BY last_seen DESC LIMIT ?",
 			expectedArgs:  []any{"user.name", "user.age", defaultPathLimit},
 			expectedLimit: defaultPathLimit,
 		},
@@ -72,7 +72,7 @@ func TestBuildGetBodyJSONPathsQuery(t *testing.T) {
 					SelectorMatchType: telemetrytypes.FieldSelectorMatchTypeFuzzy,
 				},
 			},
-			expectedSQL:   "SELECT path, groupArray(DISTINCT type) AS types, max(last_seen) AS last_seen FROM signoz_metadata.distributed_json_path_types WHERE (LOWER(path) LIKE LOWER(?) OR LOWER(path) LIKE LOWER(?)) GROUP BY path ORDER BY last_seen DESC LIMIT ?",
+			expectedSQL:   "SELECT path, groupArray(DISTINCT type) AS types, max(last_seen) AS last_seen FROM signoz_metadata.json_path_types WHERE (LOWER(path) LIKE LOWER(?) OR LOWER(path) LIKE LOWER(?)) GROUP BY path ORDER BY last_seen DESC LIMIT ?",
 			expectedArgs:  []any{"%user%", "%admin%", defaultPathLimit},
 			expectedLimit: defaultPathLimit,
 		},
@@ -84,7 +84,7 @@ func TestBuildGetBodyJSONPathsQuery(t *testing.T) {
 					SelectorMatchType: telemetrytypes.FieldSelectorMatchTypeFuzzy,
 				},
 			},
-			expectedSQL:   "SELECT path, groupArray(DISTINCT type) AS types, max(last_seen) AS last_seen FROM signoz_metadata.distributed_json_path_types WHERE (LOWER(path) LIKE LOWER(?)) GROUP BY path ORDER BY last_seen DESC LIMIT ?",
+			expectedSQL:   "SELECT path, groupArray(DISTINCT type) AS types, max(last_seen) AS last_seen FROM signoz_metadata.json_path_types WHERE (LOWER(path) LIKE LOWER(?)) GROUP BY path ORDER BY last_seen DESC LIMIT ?",
 			expectedArgs:  []any{"%test%", defaultPathLimit},
 			expectedLimit: defaultPathLimit,
 		},
@@ -103,16 +103,14 @@ func TestBuildGetBodyJSONPathsQuery(t *testing.T) {
 func TestBuildListLogsJSONIndexesQuery(t *testing.T) {
 	testCases := []struct {
 		name         string
-		cluster      string
 		filters      []string
 		expectedSQL  string
 		expectedArgs []any
 	}{
 		{
 			name:    "No filters",
-			cluster: "test-cluster",
 			filters: nil,
-			expectedSQL: "SELECT name, type_full, expr, granularity FROM clusterAllReplicas('test-cluster', system.data_skipping_indices) " +
+			expectedSQL: "SELECT name, type_full, expr, granularity FROM system.data_skipping_indices " +
 				"WHERE database = ? AND table = ? AND (LOWER(expr) LIKE LOWER(?) OR LOWER(expr) LIKE LOWER(?))",
 			expectedArgs: []any{
 				telemetrylogs.DBName,
@@ -123,9 +121,8 @@ func TestBuildListLogsJSONIndexesQuery(t *testing.T) {
 		},
 		{
 			name:    "With filters",
-			cluster: "test-cluster",
 			filters: []string{"foo", "bar"},
-			expectedSQL: "SELECT name, type_full, expr, granularity FROM clusterAllReplicas('test-cluster', system.data_skipping_indices) " +
+			expectedSQL: "SELECT name, type_full, expr, granularity FROM system.data_skipping_indices " +
 				"WHERE database = ? AND table = ? AND (LOWER(expr) LIKE LOWER(?) OR LOWER(expr) LIKE LOWER(?)) AND (LOWER(expr) LIKE LOWER(?) OR LOWER(expr) LIKE LOWER(?))",
 			expectedArgs: []any{
 				telemetrylogs.DBName,
@@ -140,7 +137,7 @@ func TestBuildListLogsJSONIndexesQuery(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			query, args := buildListLogsJSONIndexesQuery(tc.cluster, tc.filters...)
+			query, args := buildListLogsJSONIndexesQuery(tc.filters...)
 
 			require.Equal(t, tc.expectedSQL, query)
 			require.Equal(t, tc.expectedArgs, args)

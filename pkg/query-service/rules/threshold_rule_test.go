@@ -779,7 +779,7 @@ func TestThresholdRuleUnitCombinations(t *testing.T) {
 			},
 		)
 		require.NoError(t, err)
-		reader := clickhouseReader.NewReader(slog.Default(), nil, telemetryStore, prometheustest.New(context.Background(), instrumentationtest.New().ToProviderSettings(), prometheus.Config{Timeout: 2 * time.Minute}, telemetryStore), "", time.Duration(time.Second), nil, readerCache, options)
+		reader := clickhouseReader.NewReader(slog.Default(), nil, telemetryStore, prometheustest.New(context.Background(), instrumentationtest.New().ToProviderSettings(), prometheus.Config{Timeout: 2 * time.Minute}, telemetryStore), time.Duration(time.Second), nil, readerCache, options)
 		rule, err := NewThresholdRule("69", valuer.GenerateUUID(), &postableRule, reader, nil, logger)
 		rule.TemporalityMap = map[string]map[v3.Temporality]bool{
 			"signoz_calls_total": {
@@ -894,7 +894,7 @@ func TestThresholdRuleNoData(t *testing.T) {
 		)
 		assert.NoError(t, err)
 		options := clickhouseReader.NewOptions("", "", "archiveNamespace")
-		reader := clickhouseReader.NewReader(slog.Default(), nil, telemetryStore, prometheustest.New(context.Background(), instrumentationtest.New().ToProviderSettings(), prometheus.Config{Timeout: 2 * time.Minute}, telemetryStore), "", time.Duration(time.Second), nil, readerCache, options)
+		reader := clickhouseReader.NewReader(slog.Default(), nil, telemetryStore, prometheustest.New(context.Background(), instrumentationtest.New().ToProviderSettings(), prometheus.Config{Timeout: 2 * time.Minute}, telemetryStore), time.Duration(time.Second), nil, readerCache, options)
 
 		rule, err := NewThresholdRule("69", valuer.GenerateUUID(), &postableRule, reader, nil, logger)
 		rule.TemporalityMap = map[string]map[v3.Temporality]bool{
@@ -981,7 +981,7 @@ func TestThresholdRuleTracesLink(t *testing.T) {
 			WillReturnRows(metaRows)
 
 		telemetryStore.Mock().
-			ExpectSelect("SHOW CREATE TABLE signoz_traces.distributed_signoz_index_v3").WillReturnRows(&cmock.Rows{})
+			ExpectSelect("SHOW CREATE TABLE signoz_traces.signoz_index_v3").WillReturnRows(&cmock.Rows{})
 
 		rows := cmock.NewRows(cols, c.values)
 
@@ -1014,7 +1014,7 @@ func TestThresholdRuleTracesLink(t *testing.T) {
 		}
 
 		options := clickhouseReader.NewOptions("", "", "archiveNamespace")
-		reader := clickhouseReader.NewReader(slog.Default(), nil, telemetryStore, prometheustest.New(context.Background(), instrumentationtest.New().ToProviderSettings(), prometheus.Config{Timeout: 2 * time.Minute}, telemetryStore), "", time.Duration(time.Second), nil, nil, options)
+		reader := clickhouseReader.NewReader(slog.Default(), nil, telemetryStore, prometheustest.New(context.Background(), instrumentationtest.New().ToProviderSettings(), prometheus.Config{Timeout: 2 * time.Minute}, telemetryStore), time.Duration(time.Second), nil, nil, options)
 
 		rule, err := NewThresholdRule("69", valuer.GenerateUUID(), &postableRule, reader, nil, logger)
 		rule.TemporalityMap = map[string]map[v3.Temporality]bool{
@@ -1107,12 +1107,12 @@ func TestThresholdRuleLogsLink(t *testing.T) {
 	for idx, c := range testCases {
 		attrMetaRows := cmock.NewRows(attrMetaCols, c.attrMetaValues)
 		telemetryStore.Mock().
-			ExpectSelect("SELECT DISTINCT name, datatype from signoz_logs.distributed_logs_attribute_keys where name in ('component','k8s.container.name') group by name, datatype").
+			ExpectSelect("SELECT DISTINCT name, datatype from signoz_logs.logs_attribute_keys where name in ('component','k8s.container.name') group by name, datatype").
 			WillReturnRows(attrMetaRows)
 
 		resourceMetaRows := cmock.NewRows(resourceMetaCols, c.resourceMetaValues)
 		telemetryStore.Mock().
-			ExpectSelect("SELECT DISTINCT name, datatype from signoz_logs.distributed_logs_resource_keys where name in ('component','k8s.container.name') group by name, datatype").
+			ExpectSelect("SELECT DISTINCT name, datatype from signoz_logs.logs_resource_keys where name in ('component','k8s.container.name') group by name, datatype").
 			WillReturnRows(resourceMetaRows)
 
 		createTableRows := cmock.NewRows(createTableCols, c.createTableValues)
@@ -1151,7 +1151,7 @@ func TestThresholdRuleLogsLink(t *testing.T) {
 		}
 
 		options := clickhouseReader.NewOptions("", "", "archiveNamespace")
-		reader := clickhouseReader.NewReader(slog.Default(), nil, telemetryStore, prometheustest.New(context.Background(), instrumentationtest.New().ToProviderSettings(), prometheus.Config{Timeout: 2 * time.Minute}, telemetryStore), "", time.Duration(time.Second), nil, nil, options)
+		reader := clickhouseReader.NewReader(slog.Default(), nil, telemetryStore, prometheustest.New(context.Background(), instrumentationtest.New().ToProviderSettings(), prometheus.Config{Timeout: 2 * time.Minute}, telemetryStore), time.Duration(time.Second), nil, nil, options)
 
 		rule, err := NewThresholdRule("69", valuer.GenerateUUID(), &postableRule, reader, nil, logger)
 		rule.TemporalityMap = map[string]map[v3.Temporality]bool{
@@ -1418,7 +1418,7 @@ func TestMultipleThresholdRule(t *testing.T) {
 			},
 		)
 		require.NoError(t, err)
-		reader := clickhouseReader.NewReader(slog.Default(), nil, telemetryStore, prometheustest.New(context.Background(), instrumentationtest.New().ToProviderSettings(), prometheus.Config{Timeout: 2 * time.Minute}, telemetryStore), "", time.Second, nil, readerCache, options)
+		reader := clickhouseReader.NewReader(slog.Default(), nil, telemetryStore, prometheustest.New(context.Background(), instrumentationtest.New().ToProviderSettings(), prometheus.Config{Timeout: 2 * time.Minute}, telemetryStore), time.Second, nil, readerCache, options)
 		rule, err := NewThresholdRule("69", valuer.GenerateUUID(), &postableRule, reader, nil, logger)
 		rule.TemporalityMap = map[string]map[v3.Temporality]bool{
 			"signoz_calls_total": {
@@ -2221,7 +2221,7 @@ func TestThresholdEval_RequireMinPoints(t *testing.T) {
 			require.NoError(t, err)
 
 			prometheusProvider := prometheustest.New(context.Background(), instrumentationtest.New().ToProviderSettings(), prometheus.Config{Timeout: 2 * time.Minute}, telemetryStore)
-			reader := clickhouseReader.NewReader(slog.Default(), nil, telemetryStore, prometheusProvider, "", time.Second, nil, readerCache, options)
+			reader := clickhouseReader.NewReader(slog.Default(), nil, telemetryStore, prometheusProvider, time.Second, nil, readerCache, options)
 
 			rule, err := NewThresholdRule("some-id", valuer.GenerateUUID(), &postableRule, reader, nil, logger)
 			t.Run(fmt.Sprintf("%d Version=%s, %s", idx, version, c.description), func(t *testing.T) {

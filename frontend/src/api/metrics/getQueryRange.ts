@@ -1,4 +1,4 @@
-import { ApiV3Instance, ApiV4Instance } from 'api';
+import { ApiV4Instance } from 'api';
 import { ErrorResponseHandler } from 'api/ErrorResponseHandler';
 import { AxiosError } from 'axios';
 import { ENTITY_VERSION_V4 } from 'constants/app';
@@ -12,7 +12,7 @@ export const getMetricsQueryRange = async (
 	props: QueryRangePayload,
 	version: string,
 	signal: AbortSignal,
-	headers?: Record<string, string>,
+	_headers?: Record<string, string>,
 ): Promise<
 	(SuccessResponse<MetricRangePayloadV3> & { warning?: Warning }) | ErrorResponse
 > => {
@@ -31,18 +31,7 @@ export const getMetricsQueryRange = async (
 			};
 		}
 
-		const response = await ApiV3Instance.post('/query_range', props, {
-			signal,
-			headers,
-		});
-
-		return {
-			statusCode: 200,
-			error: null,
-			message: response.data.status,
-			payload: response.data,
-			params: props,
-		};
+		throw new Error('only v4 legacy queries are supported');
 	} catch (error) {
 		return ErrorResponseHandler(error as AxiosError);
 	}

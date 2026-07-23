@@ -40,6 +40,13 @@ def test_telemetry_databases_exist(signoz: types.SigNoz) -> None:
         ), f"Database {db_name} not found"
 
 
+def test_single_node_telemetry_schema(signoz: types.SigNoz) -> None:
+    rows = signoz.telemetrystore.conn.query(
+        "SELECT database, name, engine FROM system.tables WHERE database LIKE 'signoz_%' AND (engine LIKE 'Replicated%' OR engine = 'Distributed' OR create_table_query LIKE '%ON CLUSTER%')"
+    ).result_rows
+    assert rows == [], f"unexpected coordinated telemetry tables: {rows}"
+
+
 def test_teardown(
     signoz: types.SigNoz,  # pylint: disable=unused-argument
     create_user_admin: types.Operation,  # pylint: disable=unused-argument

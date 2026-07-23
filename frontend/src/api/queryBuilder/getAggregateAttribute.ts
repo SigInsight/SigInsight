@@ -1,4 +1,4 @@
-import { ApiV3Instance } from 'api';
+import { ApiV5Instance } from 'api';
 import { ErrorResponseHandler } from 'api/ErrorResponseHandler';
 import { AxiosError, AxiosResponse } from 'axios';
 import { baseAutoCompleteIdKeysOrder } from 'constants/queryBuilder';
@@ -24,7 +24,7 @@ export const getAggregateAttribute = async ({
 	try {
 		const response: AxiosResponse<{
 			data: IQueryAutocompleteResponse;
-		}> = await ApiV3Instance.get(
+		}> = await ApiV5Instance.get(
 			`/autocomplete/aggregate_attributes?${createQueryParams({
 				aggregateOperator,
 				searchText,

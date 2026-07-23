@@ -13,7 +13,7 @@ import { Events } from 'constants/events';
 import { LOCALSTORAGE } from 'constants/localStorage';
 import { eventEmitter } from 'utils/getEventEmitter';
 
-import apiV1, { apiAlertManager, apiV2, apiV3, apiV4, apiV5 } from './apiV1';
+import apiV1, { apiAlertManager, apiV2, apiV4, apiV5 } from './apiV1';
 import { Logout } from './utils';
 
 const RESPONSE_TIMEOUT_THRESHOLD = 5000; // 5 seconds
@@ -147,18 +147,6 @@ ApiV2Instance.interceptors.response.use(
 	interceptorRejected,
 );
 ApiV2Instance.interceptors.request.use(interceptorsRequestResponse);
-
-// axios V3
-export const ApiV3Instance = axios.create({
-	baseURL: `${ENVIRONMENT.baseURL}${apiV3}`,
-});
-
-ApiV3Instance.interceptors.response.use(
-	interceptorsResponse,
-	interceptorRejected,
-);
-ApiV3Instance.interceptors.request.use(interceptorsRequestResponse);
-//
 
 // axios V4
 export const ApiV4Instance = axios.create({

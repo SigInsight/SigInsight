@@ -130,7 +130,7 @@ function Explorer(): JSX.Element {
 							panelType={PANEL_TYPES.TIME_SERIES}
 							queryComponents={queryComponents}
 							showFunctions={false}
-							version="v3"
+							version="v5"
 						/>
 
 						<div className="explore-content">

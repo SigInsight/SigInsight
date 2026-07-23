@@ -11,7 +11,7 @@ import { topLevelOperationSuccessResponse } from './__mockdata__/top_level_opera
 import { traceDetailResponse } from './__mockdata__/tracedetail';
 
 export const handlers = [
-	rest.post('http://localhost/api/v3/query_range', (req, res, ctx) =>
+	rest.post('http://localhost/api/v5/query_range', (req, res, ctx) =>
 		res(ctx.status(200), ctx.json(queryRangeSuccessResponse)),
 	),
 
@@ -36,7 +36,7 @@ export const handlers = [
 		res(ctx.status(200), ctx.json({ status: '200', data: membersResponse })),
 	),
 	rest.get(
-		'http://localhost/api/v3/autocomplete/attribute_keys',
+		'http://localhost/api/v5/autocomplete/attribute_keys',
 		(req, res, ctx) => {
 			const metricName = req.url.searchParams.get('metricName');
 			const match = req.url.searchParams.get('match');
@@ -53,7 +53,7 @@ export const handlers = [
 	),
 
 	rest.get(
-		'http://localhost/api/v3/autocomplete/attribute_values',
+		'http://localhost/api/v5/autocomplete/attribute_values',
 		(req, res, ctx) => {
 			// ?metricName=signoz_calls_total&tagKey=resource_signoz_collector_id
 			const metricName = req.url.searchParams.get('metricName');
@@ -181,7 +181,7 @@ export const handlers = [
 	),
 
 	rest.get(
-		'http://localhost/api/v3/autocomplete/aggregate_attributes',
+		'http://localhost/api/v5/autocomplete/aggregate_attributes',
 		(req, res, ctx) =>
 			res(
 				ctx.status(200),

@@ -425,9 +425,9 @@ def insert_metrics(
         """
         Insert metrics into ClickHouse tables.
         This function handles insertion into:
-        - distributed_time_series_v4 (time series metadata)
-        - distributed_samples_v4 (actual sample values)
-        - distributed_metadata (metric attribute metadata)
+        - time_series_v4 (time series metadata)
+        - samples_v4 (actual sample values)
+        - metadata (metric attribute metadata)
         """
         time_series_map: dict[int, MetricsTimeSeries] = {}
         for metric in metrics:
@@ -438,7 +438,7 @@ def insert_metrics(
         if len(time_series_map) > 0:
             clickhouse.conn.insert(
                 database="signoz_metrics",
-                table="distributed_time_series_v4",
+                table="time_series_v4",
                 column_names=[
                     "env",
                     "temporality",
@@ -462,7 +462,7 @@ def insert_metrics(
         if len(samples) > 0:
             clickhouse.conn.insert(
                 database="signoz_metrics",
-                table="distributed_samples_v4",
+                table="samples_v4",
                 column_names=[
                     "env",
                     "temporality",
@@ -531,7 +531,7 @@ def insert_metrics(
         if len(metadata_map) > 0:
             clickhouse.conn.insert(
                 database="signoz_metrics",
-                table="distributed_metadata",
+                table="metadata",
                 column_names=[
                     "temporality",
                     "metric_name",
@@ -550,8 +550,6 @@ def insert_metrics(
             )
 
     yield _insert_metrics
-
-    cluster = clickhouse.env["SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_CLUSTER"]
     tables_to_truncate = [
         "time_series_v4",
         "samples_v4",
@@ -559,9 +557,7 @@ def insert_metrics(
         "metadata",
     ]
     for table in tables_to_truncate:
-        clickhouse.conn.query(
-            f"TRUNCATE TABLE signoz_metrics.{table} ON CLUSTER '{cluster}' SYNC"
-        )
+        clickhouse.conn.query(f"TRUNCATE TABLE signoz_metrics.{table}")
 
 
 @pytest.fixture(name="remove_metrics_ttl_and_storage_settings", scope="function")
@@ -581,15 +577,13 @@ def remove_metrics_ttl_and_storage_settings(signoz: types.SigNoz):
         "exp_hist",
         "metadata",
     ]
-
-    cluster = signoz.telemetrystore.env["SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_CLUSTER"]
     for table in tables:
         try:
             signoz.telemetrystore.conn.query(
-                f"ALTER TABLE signoz_metrics.{table} ON CLUSTER '{cluster}' REMOVE TTL"
+                f"ALTER TABLE signoz_metrics.{table} REMOVE TTL"
             )
             signoz.telemetrystore.conn.query(
-                f"ALTER TABLE signoz_metrics.{table} ON CLUSTER '{cluster}' RESET SETTING storage_policy;"
+                f"ALTER TABLE signoz_metrics.{table} RESET SETTING storage_policy;"
             )
         except Exception as e:  # pylint: disable=broad-exception-caught
             print(f"ttl and storage policy reset failed for {table}: {e}")

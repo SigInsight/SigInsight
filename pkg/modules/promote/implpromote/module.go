@@ -122,7 +122,7 @@ func (m *module) createIndexes(ctx context.Context, indexes []schemamigrator.Ind
 			Table:    telemetrylogs.LogsV2LocalTableName,
 			Index:    index,
 		}
-		op := alterStmt.OnCluster(m.telemetryStore.Cluster())
+		op := alterStmt
 		if err := m.telemetryStore.ClickhouseDB().Exec(ctx, op.ToSQL()); err != nil {
 			return errors.WrapInternalf(err, CodeFailedToCreateIndex, "failed to create index")
 		}

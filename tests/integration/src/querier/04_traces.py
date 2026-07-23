@@ -392,7 +392,7 @@ def test_traces_list(
 
     # Query values of http.request.method attribute from the autocomplete API
     response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v3/autocomplete/attribute_values"),
+        signoz.self.host_configs["8080"].get("/api/v5/autocomplete/attribute_values"),
         timeout=2,
         headers={
             "authorization": f"Bearer {token}",

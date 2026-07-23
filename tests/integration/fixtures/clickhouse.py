@@ -51,7 +51,6 @@ def _ensure_image_pulled(image: str) -> None:
 def clickhouse(
     tmpfs: Generator[types.LegacyPath, Any, None],
     network: Network,
-    zookeeper: types.TestContainerDocker,
     request: pytest.FixtureRequest,
     pytestconfig: pytest.Config,
 ) -> types.TestContainerClickhouse:
@@ -79,7 +78,7 @@ def clickhouse(
             password="password",
         )
 
-        cluster_config = f"""
+        cluster_config = """
         <clickhouse>
             <logger>
                 <level>information</level>
@@ -93,36 +92,8 @@ def clickhouse(
                 <console>1</console>
             </logger>
 
-            <macros>
-                <shard>01</shard>
-                <replica>01</replica>
-            </macros>
-
-            <zookeeper>
-                <node>
-                    <host>{zookeeper.container_configs["2181"].address}</host>
-                    <port>{zookeeper.container_configs["2181"].port}</port>
-                </node>
-            </zookeeper>
-
-            <remote_servers>
-                <cluster>
-                    <shard>
-                        <replica>
-                            <host>127.0.0.1</host>
-                            <port>9000</port>
-                        </replica>
-                    </shard>
-                </cluster>
-            </remote_servers>
-
             <user_defined_executable_functions_config>*function.xml</user_defined_executable_functions_config>
             <user_scripts_path>/var/lib/clickhouse/user_scripts/</user_scripts_path>
-
-            <distributed_ddl>
-                <path>/clickhouse/task_queue/ddl</path>
-                <profile>default</profile>
-            </distributed_ddl>
 
             <storage_configuration>
                 <disks>
@@ -274,7 +245,6 @@ def clickhouse(
                 "SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN": f"tcp://{container.username}:{container.password}@{container.get_wrapped_container().name}:{9000}",
                 "SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_USERNAME": container.username,
                 "SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_PASSWORD": container.password,
-                "SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_CLUSTER": "cluster",
             },
         )
 

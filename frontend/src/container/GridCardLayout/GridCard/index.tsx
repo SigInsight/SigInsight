@@ -349,7 +349,7 @@ GridCardGraph.defaultProps = {
 	isQueryEnabled: true,
 	threshold: undefined,
 	headerMenuList: [MenuItemKeys.View],
-	version: 'v3',
+	version: 'v5',
 	analyticsEvent: undefined,
 	fetchWhenHidden: false,
 	customTimeRangeWindowForCoRelation: undefined,

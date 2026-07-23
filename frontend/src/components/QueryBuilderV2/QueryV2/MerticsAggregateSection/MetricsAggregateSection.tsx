@@ -193,7 +193,7 @@ const MetricsAggregateSection = memo(function MetricsAggregateSection({
 										disabled={disableOperatorSelector}
 										onSelect={handleSpaceAggregationChange}
 										operators={spaceAggregationOptions}
-										qbVersion="v3"
+										qbVersion="v5"
 									/>
 								</div>
 							</div>
@@ -230,7 +230,7 @@ const MetricsAggregateSection = memo(function MetricsAggregateSection({
 									disabled={disableOperatorSelector}
 									onSelect={handleSpaceAggregationChange}
 									operators={spaceAggregationOptions}
-									qbVersion="v3"
+									qbVersion="v5"
 								/>
 							</div>
 						</div>

@@ -253,10 +253,10 @@ func (t *telemetryMetaStore) getJSONPathIndexes(ctx context.Context, paths ...st
 	return cleanIndexes, nil
 }
 
-func buildListLogsJSONIndexesQuery(cluster string, filters ...string) (string, []any) {
+func buildListLogsJSONIndexesQuery(filters ...string) (string, []any) {
 	sb := sqlbuilder.Select(
 		"name", "type_full", "expr", "granularity",
-	).From(fmt.Sprintf("clusterAllReplicas('%s', %s)", cluster, SkipIndexTableName))
+	).From(SkipIndexTableName)
 
 	sb.Where(sb.Equal("database", telemetrylogs.DBName))
 	sb.Where(sb.Equal("table", telemetrylogs.LogsV2LocalTableName))
@@ -276,7 +276,7 @@ func buildListLogsJSONIndexesQuery(cluster string, filters ...string) (string, [
 
 func (t *telemetryMetaStore) ListLogsJSONIndexes(ctx context.Context, filters ...string) (map[string][]schemamigrator.Index, error) {
 	ctx = withTelemetryContext(ctx, "ListLogsJSONIndexes")
-	query, args := buildListLogsJSONIndexesQuery(t.telemetrystore.Cluster(), filters...)
+	query, args := buildListLogsJSONIndexesQuery(filters...)
 	rows, err := t.telemetrystore.ClickhouseDB().Query(ctx, query, args...)
 	if err != nil {
 		return nil, errors.WrapInternalf(err, CodeFailLoadLogsJSONIndexes, "failed to load string indexed columns")

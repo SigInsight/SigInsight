@@ -1,3 +1,5 @@
+import os
+
 import docker
 import pytest
 from testcontainers.core.container import Network
@@ -21,12 +23,16 @@ def migrator(
 
     def create() -> None:
         version = request.config.getoption("--schema-migrator-version")
+        image = os.getenv(
+            "SIGINSIGHT_OTEL_COLLECTOR_IMAGE",
+            f"ghcr.io/siginsight/siginsight-otel-collector:{version}",
+        )
         client = docker.from_env()
         dsn = clickhouse.env["SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN"]
 
         container = client.containers.run(
-            image=f"ghcr.io/siginsight/siginsight-otel-collector:{version}",
-            command=f"migrate bootstrap --clickhouse-replication=true --clickhouse-cluster=cluster --clickhouse-dsn={dsn}",
+            image=image,
+            command=f"migrate bootstrap --clickhouse-dsn={dsn}",
             detach=True,
             auto_remove=False,
             network=network.id,
@@ -43,8 +49,8 @@ def migrator(
         container.remove()
 
         container = client.containers.run(
-            image=f"ghcr.io/siginsight/siginsight-otel-collector:{version}",
-            command=f"migrate sync up --clickhouse-replication=true --clickhouse-cluster=cluster --clickhouse-dsn={dsn}",
+            image=image,
+            command=f"migrate sync up --clickhouse-dsn={dsn}",
             detach=True,
             auto_remove=False,
             network=network.id,
@@ -59,8 +65,8 @@ def migrator(
         container.remove()
 
         container = client.containers.run(
-            image=f"ghcr.io/siginsight/siginsight-otel-collector:{version}",
-            command=f"migrate async up --clickhouse-replication=true --clickhouse-cluster=cluster --clickhouse-dsn={dsn}",
+            image=image,
+            command=f"migrate async up --clickhouse-dsn={dsn}",
             detach=True,
             auto_remove=False,
             network=network.id,
@@ -75,8 +81,8 @@ def migrator(
         container.remove()
 
         check = client.containers.run(
-            image=f"ghcr.io/siginsight/siginsight-otel-collector:{version}",
-            command=f"migrate sync check --clickhouse-replication=true --clickhouse-cluster=cluster --clickhouse-dsn={dsn}",
+            image=image,
+            command=f"migrate sync check --clickhouse-dsn={dsn}",
             detach=True,
             auto_remove=False,
             network=network.id,

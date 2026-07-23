@@ -11,7 +11,7 @@ import {
 	useState,
 } from 'react';
 import { useQueryClient } from 'react-query';
-import { apiV3 } from 'api/apiV1';
+import { apiV5 } from 'api/apiV1';
 import getLocalStorageApi from 'api/browser/localstorage/get';
 import { Logout } from 'api/utils';
 import post from 'api/v2/sessions/rotate/post';
@@ -131,7 +131,7 @@ export function EventSourceProvider({
 		(filterExpression?: string): void => {
 			const eventSourceUrl = `${
 				ENVIRONMENT.baseURL
-			}${apiV3}logs/livetail?filter=${encodeURIComponent(filterExpression || '')}`;
+			}${apiV5}logs/livetail?filter=${encodeURIComponent(filterExpression || '')}`;
 
 			eventSourceRef.current = new EventSourcePolyfill(eventSourceUrl, {
 				headers: {

@@ -66,7 +66,7 @@ func TestGetKeys(t *testing.T) {
 	}, [][]any{{"CREATE TABLE signoz_traces.signoz_index_v3"}})
 
 	mock.
-		ExpectSelect("SHOW CREATE TABLE signoz_traces.distributed_signoz_index_v3").
+		ExpectSelect("SHOW CREATE TABLE signoz_traces.signoz_index_v3").
 		WillReturnRows(rows)
 
 	query := `SELECT.*`
@@ -182,7 +182,7 @@ func TestApplyBackwardCompatibleKeys(t *testing.T) {
 			}
 
 			if hasTraces {
-				mock.ExpectSelect("SHOW CREATE TABLE signoz_traces.distributed_signoz_index_v3").
+				mock.ExpectSelect("SHOW CREATE TABLE signoz_traces.signoz_index_v3").
 					WillReturnRows(cmock.NewRows([]cmock.ColumnType{
 						{Name: "statement", Type: "String"},
 					}, [][]any{{"CREATE TABLE signoz_traces.signoz_index_v3"}}))
@@ -334,7 +334,7 @@ func TestGetMetricFieldValuesIntrinsicMetricName(t *testing.T) {
 		{Name: "attr_string_value", Type: "String"},
 	}, [][]any{})
 
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT DISTINCT attr_string_value FROM signoz_metrics.distributed_metadata WHERE attr_name = ? LIMIT ?")).
+	mock.ExpectQuery(regexp.QuoteMeta("SELECT DISTINCT attr_string_value FROM signoz_metrics.metadata WHERE attr_name = ? LIMIT ?")).
 		WithArgs("metric_name", 49).
 		WillReturnRows(metadataRows)
 
@@ -363,7 +363,7 @@ func TestGetMetricFieldValuesIntrinsicBoolReturnsEmpty(t *testing.T) {
 		{Name: "attr_string_value", Type: "String"},
 	}, [][]any{})
 
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT DISTINCT attr_string_value FROM signoz_metrics.distributed_metadata WHERE attr_name = ? AND attr_datatype = ? AND attr_string_value = ? LIMIT ?")).
+	mock.ExpectQuery(regexp.QuoteMeta("SELECT DISTINCT attr_string_value FROM signoz_metrics.metadata WHERE attr_name = ? AND attr_datatype = ? AND attr_string_value = ? LIMIT ?")).
 		WithArgs("is_monotonic", telemetrytypes.FieldDataTypeBool.TagDataType(), "true", 11).
 		WillReturnRows(metadataRows)
 

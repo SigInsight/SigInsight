@@ -49,7 +49,7 @@ export const buildDependenciesMock = {
 			multiSelect: false,
 			order: 0,
 			queryValue:
-				"SELECT DISTINCT JSONExtractString(labels, 'deployment_environment') AS deployment_environment\nFROM signoz_metrics.distributed_time_series_v4_1day\nWHERE metric_name = 'signoz_calls_total'",
+				"SELECT DISTINCT JSONExtractString(labels, 'deployment_environment') AS deployment_environment\nFROM signoz_metrics.time_series_v4_1day\nWHERE metric_name = 'signoz_calls_total'",
 			selectedValue: 'production',
 			showALLOption: false,
 			sort: 'DISABLED',
@@ -67,7 +67,7 @@ export const buildDependenciesMock = {
 			multiSelect: true,
 			order: 1,
 			queryValue:
-				"SELECT DISTINCT JSONExtractString(labels, 'service_name') FROM signoz_metrics.distributed_time_series_v4_1day\n WHERE metric_name = 'signoz_calls_total' and JSONExtractString(labels, 'deployment_environment') = {{.deployment_environment}}",
+				"SELECT DISTINCT JSONExtractString(labels, 'service_name') FROM signoz_metrics.time_series_v4_1day\n WHERE metric_name = 'signoz_calls_total' and JSONExtractString(labels, 'deployment_environment') = {{.deployment_environment}}",
 			selectedValue: ['otelgateway'],
 			showALLOption: true,
 			sort: 'ASC',
@@ -85,7 +85,7 @@ export const buildDependenciesMock = {
 			multiSelect: true,
 			order: 2,
 			queryValue:
-				"SELECT DISTINCT JSONExtractString(labels, 'operation') FROM signoz_metrics.distributed_time_series_v4_1day\n WHERE metric_name = 'signoz_calls_total' AND JSONExtractString(labels, 'service_name') IN {{.service_name}} and JSONExtractString(labels, 'deployment_environment') = {{.deployment_environment}}",
+				"SELECT DISTINCT JSONExtractString(labels, 'operation') FROM signoz_metrics.time_series_v4_1day\n WHERE metric_name = 'signoz_calls_total' AND JSONExtractString(labels, 'service_name') IN {{.service_name}} and JSONExtractString(labels, 'deployment_environment') = {{.deployment_environment}}",
 			selectedValue: [
 				'//v1/traces',
 				'/logs/heroku',
@@ -134,7 +134,7 @@ export const buildDependenciesMock = {
 			multiSelect: true,
 			order: 3,
 			queryValue:
-				"SELECT DISTINCT JSONExtractString(labels, 'http_status_code') FROM signoz_metrics.distributed_time_series_v4_1day\n WHERE metric_name = 'signoz_calls_total' AND JSONExtractString(labels, 'operation') IN {{.endpoint}}",
+				"SELECT DISTINCT JSONExtractString(labels, 'http_status_code') FROM signoz_metrics.time_series_v4_1day\n WHERE metric_name = 'signoz_calls_total' AND JSONExtractString(labels, 'operation') IN {{.endpoint}}",
 			showALLOption: true,
 			sort: 'ASC',
 			textboxValue: '',
@@ -153,7 +153,7 @@ export const buildDependenciesMock = {
 			multiSelect: false,
 			order: 4,
 			queryValue:
-				"SELECT JSONExtractString(labels, 'k8s_cluster_name') AS k8s_cluster_name\nFROM signoz_metrics.distributed_time_series_v4_1day\nWHERE metric_name = 'k8s_node_cpu_time'\nGROUP BY k8s_cluster_name",
+				"SELECT JSONExtractString(labels, 'k8s_cluster_name') AS k8s_cluster_name\nFROM signoz_metrics.time_series_v4_1day\nWHERE metric_name = 'k8s_node_cpu_time'\nGROUP BY k8s_cluster_name",
 			selectedValue: 'saasmonitor-cluster',
 			showALLOption: false,
 			sort: 'DISABLED',
@@ -171,7 +171,7 @@ export const buildDependenciesMock = {
 			multiSelect: false,
 			order: 5,
 			queryValue:
-				"SELECT DISTINCT JSONExtractString(labels, 'deployment_environment') AS environment\nFROM signoz_metrics.distributed_time_series_v4_1day\nWHERE metric_name = 'signoz_calls_total'",
+				"SELECT DISTINCT JSONExtractString(labels, 'deployment_environment') AS environment\nFROM signoz_metrics.time_series_v4_1day\nWHERE metric_name = 'signoz_calls_total'",
 			selectedValue: 'production',
 			showALLOption: false,
 			sort: 'DISABLED',
@@ -189,7 +189,7 @@ export const buildDependenciesMock = {
 			multiSelect: false,
 			order: 6,
 			queryValue:
-				"SELECT JSONExtractString(labels, 'k8s_node_name') AS k8s_node_name\nFROM signoz_metrics.distributed_time_series_v4_1day\nWHERE metric_name = 'k8s_node_cpu_time' AND JSONExtractString(labels, 'k8s_cluster_name') = {{.k8s_cluster_name}}\nGROUP BY k8s_node_name",
+				"SELECT JSONExtractString(labels, 'k8s_node_name') AS k8s_node_name\nFROM signoz_metrics.time_series_v4_1day\nWHERE metric_name = 'k8s_node_cpu_time' AND JSONExtractString(labels, 'k8s_cluster_name') = {{.k8s_cluster_name}}\nGROUP BY k8s_node_name",
 			selectedValue: 'gke-signoz-saas-si-consumer-bsc-e2sd4-a6d430fa-gvm2',
 			showALLOption: false,
 			sort: 'DISABLED',
@@ -206,7 +206,7 @@ export const buildDependenciesMock = {
 			multiSelect: false,
 			order: 7,
 			queryValue:
-				"SELECT JSONExtractString(labels, 'k8s_namespace_name') AS k8s_namespace_name\nFROM signoz_metrics.distributed_time_series_v4_1day\nWHERE metric_name = 'k8s_pod_cpu_time' AND JSONExtractString(labels, 'k8s_cluster_name') = {{.k8s_cluster_name}} AND JSONExtractString(labels, 'k8s_node_name') IN {{.k8s_node_name}}\nGROUP BY k8s_namespace_name",
+				"SELECT JSONExtractString(labels, 'k8s_namespace_name') AS k8s_namespace_name\nFROM signoz_metrics.time_series_v4_1day\nWHERE metric_name = 'k8s_pod_cpu_time' AND JSONExtractString(labels, 'k8s_cluster_name') = {{.k8s_cluster_name}} AND JSONExtractString(labels, 'k8s_node_name') IN {{.k8s_node_name}}\nGROUP BY k8s_namespace_name",
 			showALLOption: false,
 			sort: 'DISABLED',
 			textboxValue: '',

@@ -51,8 +51,7 @@ make devenv-clickhouse
 ```
 
 This command:
-- Starts ClickHouse in a single-shard, single-replica cluster
-- Sets up Zookeeper
+- Starts ClickHouse as a single node
 - Runs the latest schema migrations
 
 ### 2. Setting up SigInsight OpenTelemetry Collector

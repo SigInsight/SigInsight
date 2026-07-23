@@ -10,25 +10,25 @@ import (
 
 const (
 	DBName                           = "signoz_metrics"
-	UpdatedMetadataTableName         = "distributed_updated_metadata"
+	UpdatedMetadataTableName         = "updated_metadata"
 	UpdatedMetadataLocalTableName    = "updated_metadata"
-	SamplesV4TableName               = "distributed_samples_v4"
+	SamplesV4TableName               = "samples_v4"
 	SamplesV4LocalTableName          = "samples_v4"
-	SamplesV4Agg5mTableName          = "distributed_samples_v4_agg_5m"
+	SamplesV4Agg5mTableName          = "samples_v4_agg_5m"
 	SamplesV4Agg5mLocalTableName     = "samples_v4_agg_5m"
-	SamplesV4Agg30mTableName         = "distributed_samples_v4_agg_30m"
+	SamplesV4Agg30mTableName         = "samples_v4_agg_30m"
 	SamplesV4Agg30mLocalTableName    = "samples_v4_agg_30m"
-	ExpHistogramTableName            = "distributed_exp_hist"
+	ExpHistogramTableName            = "exp_hist"
 	ExpHistogramLocalTableName       = "exp_hist"
-	TimeseriesV4TableName            = "distributed_time_series_v4"
+	TimeseriesV4TableName            = "time_series_v4"
 	TimeseriesV4LocalTableName       = "time_series_v4"
-	TimeseriesV46hrsTableName        = "distributed_time_series_v4_6hrs"
+	TimeseriesV46hrsTableName        = "time_series_v4_6hrs"
 	TimeseriesV46hrsLocalTableName   = "time_series_v4_6hrs"
-	TimeseriesV41dayTableName        = "distributed_time_series_v4_1day"
+	TimeseriesV41dayTableName        = "time_series_v4_1day"
 	TimeseriesV41dayLocalTableName   = "time_series_v4_1day"
-	TimeseriesV41weekTableName       = "distributed_time_series_v4_1week"
+	TimeseriesV41weekTableName       = "time_series_v4_1week"
 	TimeseriesV41weekLocalTableName  = "time_series_v4_1week"
-	AttributesMetadataTableName      = "distributed_metadata"
+	AttributesMetadataTableName      = "metadata"
 	AttributesMetadataLocalTableName = "metadata"
 )
 
@@ -110,8 +110,8 @@ func WhichTSTableToUse(
 }
 
 // CountExpressionForSamplesTable returns the count expression for a given samples table name.
-// For non-aggregated tables (distributed_samples_v4, exp_hist), it returns "count(*)".
-// For aggregated tables (distributed_samples_v4_agg_5m, distributed_samples_v4_agg_30m), it returns "sum(count)".
+// For non-aggregated tables (samples_v4, exp_hist), it returns "count(*)".
+// For aggregated tables (samples_v4_agg_5m, samples_v4_agg_30m), it returns "sum(count)".
 func CountExpressionForSamplesTable(tableName string) string {
 	// Non-aggregated tables use count(*)
 	if tableName == SamplesV4TableName ||
@@ -126,9 +126,9 @@ func CountExpressionForSamplesTable(tableName string) string {
 
 // start and end are in milliseconds
 // we have three tables for samples
-// 1. distributed_samples_v4
-// 2. distributed_samples_v4_agg_5m - for queries with time range above or equal to 1 day and less than 1 week
-// 3. distributed_samples_v4_agg_30m - for queries with time range above or equal to 1 week
+// 1. samples_v4
+// 2. samples_v4_agg_5m - for queries with time range above or equal to 1 day and less than 1 week
+// 3. samples_v4_agg_30m - for queries with time range above or equal to 1 week
 // if the `timeAggregation` is `count_distinct` we can't use the aggregated tables because they don't support it
 func WhichSamplesTableToUse(
 	start, end uint64,
@@ -149,7 +149,7 @@ func WhichSamplesTableToUse(
 		return ExpHistogramLocalTableName
 	}
 
-	// if the time aggregation is count_distinct, we need to use the distributed_samples_v4 table
+	// if the time aggregation is count_distinct, we need to use the samples_v4 table
 	// because the aggregated tables don't support count_distinct
 	if timeAggregation == metrictypes.TimeAggregationCountDistinct {
 		return SamplesV4TableName

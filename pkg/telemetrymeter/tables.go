@@ -9,9 +9,9 @@ import (
 
 const (
 	DBName                     = "signoz_meter"
-	SamplesTableName           = "distributed_samples"
+	SamplesTableName           = "samples"
 	SamplesLocalTableName      = "samples"
-	SamplesAgg1dTableName      = "distributed_samples_agg_1d"
+	SamplesAgg1dTableName      = "samples_agg_1d"
 	SamplesAgg1dLocalTableName = "samples_agg_1d"
 )
 
@@ -27,8 +27,8 @@ var (
 
 // start and end are in milliseconds
 // we have two tables for samples
-// 1. distributed_samples
-// 2. distributed_samples_agg_1d - for queries with time range above or equal to 30 days
+// 1. samples
+// 2. samples_agg_1d - for queries with time range above or equal to 30 days
 // if the `timeAggregation` is `count_distinct` we can't use the aggregated tables because they don't support it
 func WhichSamplesTableToUse(
 	start, end uint64,
@@ -45,7 +45,7 @@ func WhichSamplesTableToUse(
 		}
 	}
 
-	// if the time aggregation is count_distinct, we need to use the distributed_samples table
+	// if the time aggregation is count_distinct, we need to use the samples table
 	// because the aggregated tables don't support count_distinct
 	if timeAggregation == metrictypes.TimeAggregationCountDistinct {
 		return SamplesTableName

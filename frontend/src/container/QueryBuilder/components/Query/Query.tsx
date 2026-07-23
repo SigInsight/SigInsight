@@ -375,7 +375,7 @@ export const Query = memo(function Query({
 							{isMetricsDataSource && (
 								<Col span={12}>
 									<Row gutter={[11, 5]}>
-										{version && version === 'v3' && (
+										{version && version === 'v5' && (
 											<Col flex="5.93rem">
 												<Tooltip
 													title={

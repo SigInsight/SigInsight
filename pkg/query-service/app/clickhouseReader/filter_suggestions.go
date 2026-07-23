@@ -139,14 +139,14 @@ func (r *ClickHouseReader) getValuesForLogAttributes(
 			select * from (
 				(
 					select tag_key, string_value, number_value
-					from signoz_logs.distributed_tag_attributes_v2
+					from signoz_logs.tag_attributes_v2
 					where tag_key = $1 and (
 						string_value != '' or number_value is not null
 					)
 					limit 2
 				) UNION DISTINCT (
 					select tag_key, string_value, number_value
-					from signoz_logs.distributed_tag_attributes_v2
+					from signoz_logs.tag_attributes_v2
 					where tag_key = $2 and (
 						string_value != '' or number_value is not null
 					)

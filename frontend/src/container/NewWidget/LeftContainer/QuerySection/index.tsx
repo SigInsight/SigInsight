@@ -96,7 +96,7 @@ function QuerySection({
 							panelType={selectedGraph}
 							filterConfigs={filterConfigs}
 							showTraceOperator={selectedGraph !== PANEL_TYPES.LIST}
-							version={dashboardVersion || 'v3'}
+							version={dashboardVersion === 'v4' ? dashboardVersion : 'v5'}
 							isListViewPanel={selectedGraph === PANEL_TYPES.LIST}
 							queryComponents={queryComponents}
 							signalSourceChangeEnabled

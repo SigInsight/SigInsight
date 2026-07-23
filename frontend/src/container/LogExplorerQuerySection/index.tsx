@@ -73,7 +73,7 @@ function LogExplorerQuerySection({
 			filterConfigs={filterConfigs}
 			queryComponents={queryComponents}
 			showOnlyWhereClause={selectedView === ExplorerViews.LIST}
-			version="v3" // setting this to v3 as we this is rendered in logs explorer
+			version="v5"
 		/>
 	);
 }

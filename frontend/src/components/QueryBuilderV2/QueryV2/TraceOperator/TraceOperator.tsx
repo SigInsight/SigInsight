@@ -96,7 +96,7 @@ export default function TraceOperator({
 							<QueryAddOns
 								index={0}
 								query={traceOperator}
-								version="v3"
+								version="v5"
 								isForTraceOperator
 								isListViewPanel={false}
 								showReduceTo={false}

@@ -43,8 +43,8 @@ var skipExistsFilter = map[v3.FilterOperator]struct{}{
 
 const (
 	BODY                         = "body"
-	DISTRIBUTED_LOGS_V2          = "distributed_logs_v2"
-	DISTRIBUTED_LOGS_V2_RESOURCE = "distributed_logs_v2_resource"
+	DISTRIBUTED_LOGS_V2          = "logs_v2"
+	DISTRIBUTED_LOGS_V2_RESOURCE = "logs_v2_resource"
 	DB_NAME                      = "signoz_logs"
 	NANOSECOND                   = 1000000000
 )

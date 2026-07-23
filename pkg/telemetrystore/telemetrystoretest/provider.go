@@ -31,11 +31,6 @@ func (p *Provider) ClickhouseDB() clickhouse.Conn {
 	return p.clickhouseDB.(clickhouse.Conn)
 }
 
-// Cluster returns the cluster name
-func (p *Provider) Cluster() string {
-	return "cluster"
-}
-
 // Mock returns the underlying Clickhouse mock instance for setting expectations
 func (p *Provider) Mock() cmock.ClickConnMockCommon {
 	return p.clickhouseDB

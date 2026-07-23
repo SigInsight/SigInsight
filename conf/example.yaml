@@ -100,7 +100,7 @@ apiserver:
     # List of routes to exclude from request timeout.
     excluded_routes:
       - /api/v1/logs/tail
-      - /api/v3/logs/livetail
+      - /api/v5/logs/livetail
   logging:
     # List of routes to exclude from request responselogging.
     excluded_routes:
@@ -130,8 +130,6 @@ telemetrystore:
   clickhouse:
     # The DSN to use for clickhouse.
     dsn: tcp://localhost:9000
-    # The cluster name to use for clickhouse.
-    cluster: cluster
     # The query settings for clickhouse.
     settings:
       max_execution_time: 0

@@ -32,9 +32,6 @@ type ClickhouseConfig struct {
 	// DSN is the database source name.
 	DSN string `mapstructure:"dsn"`
 
-	// Cluster is the cluster name to use for clickhouse.
-	Cluster string `mapstructure:"cluster"`
-
 	// QuerySettings is the query settings for clickhouse.
 	QuerySettings QuerySettings `mapstructure:"settings"`
 }
@@ -62,8 +59,7 @@ func newConfig() factory.Config {
 			DialTimeout:  5 * time.Second,
 		},
 		Clickhouse: ClickhouseConfig{
-			DSN:     "tcp://localhost:9000",
-			Cluster: "cluster",
+			DSN: "tcp://localhost:9000",
 		},
 	}
 

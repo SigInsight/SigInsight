@@ -52,7 +52,7 @@ func (migration *queryBuilderV5Migration) Register(migrations *migrate.Migration
 func (migration *queryBuilderV5Migration) getTraceDuplicateKeys(ctx context.Context) ([]string, error) {
 	query := `
 		SELECT tagKey
-		FROM signoz_traces.distributed_span_attributes_keys
+		FROM signoz_traces.span_attributes_keys
 		WHERE tagType IN ('tag', 'resource')
 		GROUP BY tagKey
 		HAVING COUNT(DISTINCT tagType) > 1
@@ -83,9 +83,9 @@ func (migration *queryBuilderV5Migration) getLogDuplicateKeys(ctx context.Contex
 	query := `
 		SELECT name
 		FROM (
-			SELECT DISTINCT name FROM signoz_logs.distributed_logs_attribute_keys
+			SELECT DISTINCT name FROM signoz_logs.logs_attribute_keys
 			INTERSECT
-			SELECT DISTINCT name FROM signoz_logs.distributed_logs_resource_keys
+			SELECT DISTINCT name FROM signoz_logs.logs_resource_keys
 		)
 		ORDER BY name
 	`
@@ -132,10 +132,6 @@ func (migration *queryBuilderV5Migration) Up(ctx context.Context, db *bun.DB) er
 		_ = tx.Rollback()
 	}()
 
-	if err := migration.migrateDashboards(ctx, tx, logsKeys, tracesKeys); err != nil {
-		return err
-	}
-
 	if err := migration.migrateSavedViews(ctx, tx, logsKeys, tracesKeys); err != nil {
 		return err
 	}
@@ -149,54 +145,6 @@ func (migration *queryBuilderV5Migration) Up(ctx context.Context, db *bun.DB) er
 
 func (migration *queryBuilderV5Migration) Down(ctx context.Context, db *bun.DB) error {
 	// this migration is not reversible as we're transforming the structure
-	return nil
-}
-
-func (migration *queryBuilderV5Migration) migrateDashboards(
-	ctx context.Context,
-	tx bun.Tx,
-	logsKeys []string,
-	tracesKeys []string,
-) error {
-	var dashboards []struct {
-		ID   string         `bun:"id"`
-		Data map[string]any `bun:"data"`
-	}
-
-	err := tx.NewSelect().
-		Table("dashboard").
-		Column("id", "data").
-		Scan(ctx, &dashboards)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil
-		}
-		return err
-	}
-
-	dashboardMigrator := transition.NewDashboardMigrateV5(migration.logger, logsKeys, tracesKeys)
-
-	for _, dashboard := range dashboards {
-
-		updated := dashboardMigrator.Migrate(ctx, dashboard.Data)
-
-		if updated {
-			dataJSON, err := json.Marshal(dashboard.Data)
-			if err != nil {
-				return err
-			}
-
-			_, err = tx.NewUpdate().
-				Table("dashboard").
-				Set("data = ?", string(dataJSON)).
-				Where("id = ?", dashboard.ID).
-				Exec(ctx)
-			if err != nil {
-				return err
-			}
-		}
-	}
-
 	return nil
 }
 

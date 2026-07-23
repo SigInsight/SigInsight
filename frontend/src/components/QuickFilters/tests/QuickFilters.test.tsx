@@ -36,8 +36,8 @@ const BASE_URL = ENVIRONMENT.baseURL;
 const SIGNAL = SignalType.LOGS;
 const quickFiltersListURL = `${BASE_URL}/api/v1/orgs/me/filters/${SIGNAL}`;
 const saveQuickFiltersURL = `${BASE_URL}/api/v1/orgs/me/filters`;
-const quickFiltersSuggestionsURL = `${BASE_URL}/api/v3/filter_suggestions`;
-const quickFiltersAttributeValuesURL = `${BASE_URL}/api/v3/autocomplete/attribute_values`;
+const quickFiltersSuggestionsURL = `${BASE_URL}/api/v5/filter_suggestions`;
+const quickFiltersAttributeValuesURL = `${BASE_URL}/api/v5/autocomplete/attribute_values`;
 const fieldsValuesURL = `${BASE_URL}/api/v1/fields/values`;
 
 const FILTER_OS_DESCRIPTION = 'os.description';

@@ -36,8 +36,8 @@
     </remote_servers>
     <zookeeper>
         <node>
-            <host>zookeeper</host>
-            <port>2181</port>
+            <host>keeper-1</host>
+            <port>9181</port>
         </node>
     </zookeeper>
     <macros>

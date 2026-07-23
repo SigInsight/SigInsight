@@ -279,7 +279,7 @@ function Explorer(): JSX.Element {
 					panelType={PANEL_TYPES.TIME_SERIES}
 					queryComponents={queryComponents}
 					showFunctions={false}
-					version="v3"
+					version="v5"
 				/>
 				{/* TODO: Enable once we have resolved all related metrics issues */}
 				{/* <Button.Group className="explore-tabs">

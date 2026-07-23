@@ -452,7 +452,7 @@ func (b *traceQueryStatementBuilder) buildTraceQuery(
 	mainSQL, mainArgs := mainSB.BuildWithFlavor(sqlbuilder.ClickHouse)
 
 	// combine it all together:  WITH … SELECT …
-	finalSQL := querybuilder.CombineCTEs(cteFragments) + mainSQL + " SETTINGS distributed_product_mode='allow', max_memory_usage=10000000000"
+	finalSQL := querybuilder.CombineCTEs(cteFragments) + mainSQL + " SETTINGS max_memory_usage=10000000000"
 	finalArgs := querybuilder.PrependArgs(cteArgs, mainArgs)
 
 	stmt := &qbtypes.Statement{

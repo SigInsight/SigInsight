@@ -37,7 +37,7 @@ func newConfig() factory.Config {
 			Max:     600 * time.Second,
 			ExcludedRoutes: []string{
 				"/api/v1/logs/tail",
-				"/api/v3/logs/livetail",
+				"/api/v5/logs/livetail",
 				"/api/v1/export_raw_data",
 			},
 		},
