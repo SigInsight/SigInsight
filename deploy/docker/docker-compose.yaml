@@ -1,4 +1,3 @@
-version: "3"
 x-common: &common
   networks:
     - siginsight-net
@@ -105,10 +104,10 @@ services:
       # - ../common/clickhouse/storage.xml:/etc/clickhouse-server/config.d/storage.xml
   siginsight:
     !!merge <<: *db-depend
-    image: ${SIGINSIGHT_IMAGE:-ghcr.io/siginsight/siginsight:${VERSION:-v1.5.0}}
+    image: ${SIGINSIGHT_IMAGE:-ghcr.io/siginsight/siginsight:${VERSION:-v1.6.0}}
     container_name: siginsight
     ports:
-      - "8080:8080"
+      - "8081:8080"
     volumes:
       - sqlite:/var/lib/siginsight/
     environment:
@@ -128,7 +127,7 @@ services:
       retries: 3
   otel-collector:
     !!merge <<: *db-depend
-    image: ghcr.io/siginsight/siginsight-otel-collector:${OTELCOL_TAG:-v1.0.4}
+    image: ghcr.io/siginsight/siginsight-otel-collector:${OTELCOL_TAG:-staging-v1.1.0}
     container_name: siginsight-otel-collector
     entrypoint:
       - /bin/sh
@@ -153,7 +152,7 @@ services:
       - "4318:4318" # OTLP HTTP receiver
   siginsight-telemetrystore-migrator:
     !!merge <<: *db-depend
-    image: ghcr.io/siginsight/siginsight-otel-collector:${OTELCOL_TAG:-v1.0.4}
+    image: ghcr.io/siginsight/siginsight-otel-collector:${OTELCOL_TAG:-staging-v1.1.0}
     container_name: siginsight-telemetrystore-migrator
     environment:
       - SIGINSIGHT_OTEL_COLLECTOR_CLICKHOUSE_DSN=tcp://clickhouse:9000
