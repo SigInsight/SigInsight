@@ -478,11 +478,11 @@ def insert_logs(
 
     yield _insert_logs
 
-    clickhouse.conn.query(f"TRUNCATE TABLE signoz_logs.logs_v2")
-    clickhouse.conn.query(f"TRUNCATE TABLE signoz_logs.logs_v2_resource")
-    clickhouse.conn.query(f"TRUNCATE TABLE signoz_logs.tag_attributes_v2")
-    clickhouse.conn.query(f"TRUNCATE TABLE signoz_logs.logs_attribute_keys")
-    clickhouse.conn.query(f"TRUNCATE TABLE signoz_logs.logs_resource_keys")
+    clickhouse.conn.query("TRUNCATE TABLE signoz_logs.logs_v2")
+    clickhouse.conn.query("TRUNCATE TABLE signoz_logs.logs_v2_resource")
+    clickhouse.conn.query("TRUNCATE TABLE signoz_logs.tag_attributes_v2")
+    clickhouse.conn.query("TRUNCATE TABLE signoz_logs.logs_attribute_keys")
+    clickhouse.conn.query("TRUNCATE TABLE signoz_logs.logs_resource_keys")
 
 
 @pytest.fixture(name="ttl_legacy_logs_v2_table_setup", scope="function")
@@ -495,19 +495,19 @@ def ttl_legacy_logs_v2_table_setup(request, signoz: types.SigNoz):
 
     # Setup code
     result = signoz.telemetrystore.conn.query(
-        f"RENAME TABLE signoz_logs.logs_v2 TO signoz_logs.logs_v2_backup"
+        "RENAME TABLE signoz_logs.logs_v2 TO signoz_logs.logs_v2_backup"
     ).result_rows
     assert result is not None
     # Add cleanup to restore original table
     request.addfinalizer(
         lambda: signoz.telemetrystore.conn.query(
-            f"RENAME TABLE signoz_logs.logs_v2_backup TO signoz_logs.logs_v2"
+            "RENAME TABLE signoz_logs.logs_v2_backup TO signoz_logs.logs_v2"
         )
     )
 
     # Create new test tables
     result = signoz.telemetrystore.conn.query(
-        f"""CREATE TABLE signoz_logs.logs_v2
+        """CREATE TABLE signoz_logs.logs_v2
                                                 (
                                                     `id` String,
                                                     `timestamp` UInt64 CODEC(DoubleDelta, LZ4)
@@ -521,7 +521,7 @@ def ttl_legacy_logs_v2_table_setup(request, signoz: types.SigNoz):
     # Add cleanup to drop test table
     request.addfinalizer(
         lambda: signoz.telemetrystore.conn.query(
-            f"DROP TABLE IF EXISTS signoz_logs.logs_v2"
+            "DROP TABLE IF EXISTS signoz_logs.logs_v2"
         )
     )
 
@@ -538,19 +538,19 @@ def ttl_legacy_logs_v2_resource_table_setup(request, signoz: types.SigNoz):
 
     # Setup code
     result = signoz.telemetrystore.conn.query(
-        f"RENAME TABLE signoz_logs.logs_v2_resource TO signoz_logs.logs_v2_resource_backup"
+        "RENAME TABLE signoz_logs.logs_v2_resource TO signoz_logs.logs_v2_resource_backup"
     ).result_rows
     assert result is not None
     # Add cleanup to restore original table
     request.addfinalizer(
         lambda: signoz.telemetrystore.conn.query(
-            f"RENAME TABLE signoz_logs.logs_v2_resource_backup TO signoz_logs.logs_v2_resource"
+            "RENAME TABLE signoz_logs.logs_v2_resource_backup TO signoz_logs.logs_v2_resource"
         )
     )
 
     # Create new test tables
     result = signoz.telemetrystore.conn.query(
-        f"""CREATE TABLE signoz_logs.logs_v2_resource
+        """CREATE TABLE signoz_logs.logs_v2_resource
                                                 (
                                                     `id` String,
                                                     `seen_at_ts_bucket_start` Int64 CODEC(Delta(8), ZSTD(1))
@@ -563,7 +563,7 @@ def ttl_legacy_logs_v2_resource_table_setup(request, signoz: types.SigNoz):
     # Add cleanup to drop test table
     request.addfinalizer(
         lambda: signoz.telemetrystore.conn.query(
-            f"DROP TABLE IF EXISTS signoz_logs.logs_v2_resource;"
+            "DROP TABLE IF EXISTS signoz_logs.logs_v2_resource;"
         )
     )
 

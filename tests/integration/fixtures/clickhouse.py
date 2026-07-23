@@ -78,7 +78,7 @@ def clickhouse(
             password="password",
         )
 
-        cluster_config = f"""
+        cluster_config = """
         <clickhouse>
             <logger>
                 <level>information</level>

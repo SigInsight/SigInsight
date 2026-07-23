@@ -802,11 +802,11 @@ def insert_traces(
 
     yield _insert_traces
 
-    clickhouse.conn.query(f"TRUNCATE TABLE signoz_traces.signoz_index_v3")
-    clickhouse.conn.query(f"TRUNCATE TABLE signoz_traces.traces_v3_resource")
-    clickhouse.conn.query(f"TRUNCATE TABLE signoz_traces.tag_attributes_v2")
-    clickhouse.conn.query(f"TRUNCATE TABLE signoz_traces.span_attributes_keys")
-    clickhouse.conn.query(f"TRUNCATE TABLE signoz_traces.signoz_error_index_v2")
+    clickhouse.conn.query("TRUNCATE TABLE signoz_traces.signoz_index_v3")
+    clickhouse.conn.query("TRUNCATE TABLE signoz_traces.traces_v3_resource")
+    clickhouse.conn.query("TRUNCATE TABLE signoz_traces.tag_attributes_v2")
+    clickhouse.conn.query("TRUNCATE TABLE signoz_traces.span_attributes_keys")
+    clickhouse.conn.query("TRUNCATE TABLE signoz_traces.signoz_error_index_v2")
 
 
 @pytest.fixture(name="remove_traces_ttl_and_storage_settings", scope="function")
