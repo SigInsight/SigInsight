@@ -46,7 +46,8 @@ help() {
   printf "\t%s [-d deployment-type] [-m migration-component] [-o operation] [-p siginsight-root-dir] [-s silent] [-h]\n\n" "${NAME}"
   printf "OPTIONS:\n"
   printf "\t-d\tDeployment type (standalone, swarm)\n"
-  printf "\t-m\tMigration component (all, clickhouse, zookeeper, siginsight, alertmanager)\n"
+  printf "\t-m\tMigration component (all, siginsight, alertmanager)\n"
+  printf "\t\tall excludes ClickHouse; deploy ClickHouse and Keeper with empty volumes.\n"
   printf "\t-o\tOperation (migrate, post-migrate)\n"
   printf "\t-p\tSigInsight root directory (default: ~/siginsight)\n"
   printf "\t-s\tSilent mode (true, false)\n"
@@ -272,30 +273,6 @@ get_siginsight_data_dir() {
 ## Component Functions
 ################################################################################
 
-migrate_clickhouse() {
-  local data_dir=$1
-  local uidgid="101:101"
-  migrate "clickhouse" "${data_dir}/clickhouse" "siginsight-clickhouse" "${uidgid}"
-  if [[ -f "${data_dir}/clickhouse-2/uuid" ]]; then
-    migrate "clickhouse-2" "${data_dir}/clickhouse-2" "siginsight-clickhouse-2" "${uidgid}"
-  fi
-  if [[ -f "${data_dir}/clickhouse-3/uuid" ]]; then
-    migrate "clickhouse-3" "${data_dir}/clickhouse-3" "siginsight-clickhouse-3" "${uidgid}"
-  fi
-}
-
-migrate_zookeeper() {
-  local data_dir=$1
-  local uidgid="1000:1000"
-  migrate "zookeeper" "${data_dir}/zookeeper-1" "siginsight-zookeeper-1" "${uidgid}"
-  if [[ -d "${data_dir}/zookeeper-2/data" ]]; then
-    migrate "zookeeper-2" "${data_dir}/zookeeper-2" "siginsight-zookeeper-2" "${uidgid}"
-  fi
-  if [[ -d "${data_dir}/zookeeper-3/data" ]]; then
-    migrate "zookeeper-3" "${data_dir}/zookeeper-3" "siginsight-zookeeper-3" "${uidgid}"
-  fi
-}
-
 migrate_siginsight() {
   local data_dir=$1
   # The legacy bind-mount layout used a signoz directory.
@@ -305,30 +282,6 @@ migrate_siginsight() {
 migrate_alertmanager() {
   local data_dir=$1
   migrate "alertmanager" "${data_dir}/alertmanager" "siginsight-alertmanager" ""
-}
-
-post_migrate_clickhouse() {
-  local data_dir=$1
-
-  post_migrate "clickhouse" "${data_dir}/clickhouse"
-  if [[ -d "${data_dir}/clickhouse-2" ]]; then
-    post_migrate "clickhouse-2" "${data_dir}/clickhouse-2"
-  fi
-  if [[ -d "${data_dir}/clickhouse-3" ]]; then
-    post_migrate "clickhouse-3" "${data_dir}/clickhouse-3"
-  fi
-}
-
-post_migrate_zookeeper() {
-  local data_dir=$1
-
-  post_migrate "zookeeper" "${data_dir}/zookeeper-1"
-  if [[ -d "${data_dir}/zookeeper-2" ]]; then
-    post_migrate "zookeeper-2" "${data_dir}/zookeeper-2"
-  fi
-  if [[ -d "${data_dir}/zookeeper-3" ]]; then
-    post_migrate "zookeeper-3" "${data_dir}/zookeeper-3"
-  fi
 }
 
 post_migrate_siginsight() {
@@ -349,7 +302,7 @@ post_migrate_alertmanager() {
 ##############################################################################
 # Migrate data from bind mounts to new volume
 # Arguments:
-#   migration_component component name: all, clickhouse, zookeeper, siginsight, alertmanager
+#   migration_component component name: all, siginsight, alertmanager
 #   bind_mounts path to the directory of the bind mounts
 #   new_volume name of the new volume
 # Returns:
@@ -366,9 +319,6 @@ migrate() {
   docker volume create "${new_volume}" --label "com.docker.compose.project=siginsight" >/dev/null 2>&1
 
   echo "Migrating ${migration_component} from bind mounts to the new volume ${new_volume}"
-  if [[ "${migration_component}" == "clickhouse" ]]; then
-    echo "Please be patient, this may take a while for clickhouse migration..."
-  fi
   if [[ -n "${owner_uidgid}" ]]; then
     commands="cp -rp /data/* /volume; chown -R ${owner_uidgid} /volume"
   else
@@ -385,7 +335,7 @@ migrate() {
 ##############################################################################
 # Post-migration cleanup
 # Arguments:
-#   migration_component component name: clickhouse, zookeeper, siginsight, alertmanager
+#   migration_component component name: siginsight, alertmanager
 #   data_dir path to the directory of the data
 # Returns:
 #   None
@@ -409,7 +359,7 @@ post_migrate() {
 # Run the migration
 # Arguments:
 #   deployment_type deployment type (standalone, swarm)
-#   migration_component migration component (all, clickhouse, zookeeper, siginsight, alertmanager)
+#   migration_component migration component (all, siginsight, alertmanager)
 #   siginsight_root_dir SigInsight root directory (default: ~/siginsight)
 # Returns:
 #   None
@@ -426,16 +376,8 @@ run_migration() {
 
   case "${migration_component}" in
     "all")
-      migrate_clickhouse "${data_dir}"
-      migrate_zookeeper "${data_dir}"
       migrate_siginsight "${data_dir}"
       migrate_alertmanager "${data_dir}"
-      ;;
-    "clickhouse")
-      migrate_clickhouse "${data_dir}"
-      ;;
-    "zookeeper")
-      migrate_zookeeper "${data_dir}"
       ;;
     "siginsight")
       migrate_siginsight "${data_dir}"
@@ -456,7 +398,7 @@ run_migration() {
 # Run post-migration cleanup
 # Arguments:
 #   deployment_type deployment type (standalone, swarm)
-#   migration_component migration component (all, clickhouse, zookeeper, siginsight, alertmanager)
+#   migration_component migration component (all, siginsight, alertmanager)
 #   siginsight_root_dir SigInsight root directory (default: ~/siginsight)
 # Returns:
 #   None
@@ -470,16 +412,8 @@ run_post_migration() {
 
   case "${migration_component}" in
     "all")
-      post_migrate_clickhouse "${data_dir}"
-      post_migrate_zookeeper "${data_dir}"
       post_migrate_siginsight "${data_dir}"
       post_migrate_alertmanager "${data_dir}"
-      ;;
-    "clickhouse")
-      post_migrate_clickhouse "${data_dir}"
-      ;;
-    "zookeeper")
-      post_migrate_zookeeper "${data_dir}"
       ;;
     "siginsight")
       post_migrate_siginsight "${data_dir}"
@@ -559,6 +493,11 @@ parse_args() {
     return 1
   fi
 
+  if [[ "${MIGRATION_COMPONENT}" == "clickhouse" ]]; then
+    err "ClickHouse data cannot be migrated to a fresh Keeper deployment. Start with empty ClickHouse and Keeper volumes."
+    return 1
+  fi
+
   # Validate argument values
   if [[ "${DEPLOYMENT_TYPE}" != "standalone" && "${DEPLOYMENT_TYPE}" != "swarm" ]]; then
     err "Invalid deployment type: ${DEPLOYMENT_TYPE}. Must be one of: standalone, swarm"
@@ -566,11 +505,9 @@ parse_args() {
   fi
 
   if [[ "${MIGRATION_COMPONENT}" != "all" &&
-    "${MIGRATION_COMPONENT}" != "clickhouse" &&
-    "${MIGRATION_COMPONENT}" != "zookeeper" &&
     "${MIGRATION_COMPONENT}" != "siginsight" &&
     "${MIGRATION_COMPONENT}" != "alertmanager" ]]; then
-    err "Invalid migration type: ${MIGRATION_COMPONENT}. Must be one of: all, clickhouse, zookeeper, siginsight, alertmanager"
+    err "Invalid migration type: ${MIGRATION_COMPONENT}. Must be one of: all, siginsight, alertmanager"
     return 1
   fi
 

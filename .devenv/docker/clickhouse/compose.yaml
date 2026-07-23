@@ -39,26 +39,36 @@ services:
     depends_on:
       init-clickhouse:
         condition: service_completed_successfully
-      zookeeper:
+      keeper-1:
         condition: service_healthy
     environment:
       - CLICKHOUSE_SKIP_USER_SETUP=1
-  zookeeper:
-    image: signoz/zookeeper:3.7.1
-    container_name: zookeeper
+  keeper-1:
+    image: clickhouse/clickhouse-server:25.5.6
+    container_name: keeper-1
+    command:
+      - /bin/bash
+      - -ec
+      - |
+        mkdir -p /var/lib/clickhouse-keeper/coordination/log /var/lib/clickhouse-keeper/coordination/snapshots
+        chown clickhouse:clickhouse /var/lib/clickhouse-keeper /var/lib/clickhouse-keeper/coordination /var/lib/clickhouse-keeper/coordination/log /var/lib/clickhouse-keeper/coordination/snapshots
+        exec clickhouse su clickhouse:clickhouse clickhouse-keeper --config-file=/etc/clickhouse-keeper/keeper_config.xml
     volumes:
-      - ${PWD}/fs/tmp/zookeeper:/bitnami/zookeeper
+      - ${PWD}/../../../deploy/common/clickhouse/keeper/keeper.xml:/etc/clickhouse-keeper/keeper_config.xml:ro
+      - ${PWD}/fs/tmp/keeper:/var/lib/clickhouse-keeper
     ports:
-      - '127.0.0.1:2181:2181'
-    environment:
-      - ALLOW_ANONYMOUS_LOGIN=yes
+      - 127.0.0.1:9181:9181
     healthcheck:
       test:
-        - CMD-SHELL
-        - curl -s -m 2 http://localhost:8080/commands/ruok | grep error | grep null
-      interval: 30s
+        - CMD
+        - clickhouse-keeper-client
+        - --host=localhost
+        - --port=9181
+        - --query=ls
+      interval: 10s
       timeout: 5s
-      retries: 3
+      retries: 10
+      start_period: 10s
   telemetrystore-migrator:
     image: ghcr.io/siginsight/siginsight-otel-collector:${OTELCOL_TAG:-v1.0.4}
     container_name: telemetrystore-migrator

@@ -17,7 +17,7 @@ x-clickhouse-defaults: &clickhouse-defaults
   depends_on:
     init-clickhouse:
       condition: service_completed_successfully
-    zookeeper-1:
+    keeper-1:
       condition: service_healthy
   healthcheck:
     test:
@@ -36,21 +36,31 @@ x-clickhouse-defaults: &clickhouse-defaults
       hard: 262144
   environment:
     - CLICKHOUSE_SKIP_USER_SETUP=1
-x-zookeeper-defaults: &zookeeper-defaults
+x-keeper-defaults: &keeper-defaults
   !!merge <<: *common
-  image: signoz/zookeeper:3.7.1
-  user: root
+  image: clickhouse/clickhouse-server:25.5.6
+  command:
+    - /bin/bash
+    - -ec
+    - |
+      mkdir -p /var/lib/clickhouse-keeper/coordination/log /var/lib/clickhouse-keeper/coordination/snapshots
+      chown clickhouse:clickhouse /var/lib/clickhouse-keeper /var/lib/clickhouse-keeper/coordination /var/lib/clickhouse-keeper/coordination/log /var/lib/clickhouse-keeper/coordination/snapshots
+      exec clickhouse su clickhouse:clickhouse clickhouse-keeper --config-file=/etc/clickhouse-keeper/keeper_config.xml
   labels:
     siginsight.io/scrape: "true"
-    siginsight.io/port: "9141"
+    siginsight.io/port: "9363"
     siginsight.io/path: "/metrics"
   healthcheck:
     test:
-      - CMD-SHELL
-      - curl -s -m 2 http://localhost:8080/commands/ruok | grep error | grep null
-    interval: 30s
+      - CMD
+      - clickhouse-keeper-client
+      - --host=localhost
+      - --port=9181
+      - --query=ls
+    interval: 10s
     timeout: 5s
-    retries: 3
+    retries: 10
+    start_period: 10s
 x-db-depend: &db-depend
   !!merge <<: *common
   depends_on:
@@ -72,21 +82,16 @@ services:
     restart: on-failure
     volumes:
       - ../common/clickhouse/user_scripts:/var/lib/clickhouse/user_scripts/
-  zookeeper-1:
-    !!merge <<: *zookeeper-defaults
-    container_name: siginsight-zookeeper-1
+  keeper-1:
+    !!merge <<: *keeper-defaults
+    container_name: siginsight-keeper-1
     # ports:
-    #   - "2181:2181"
-    #   - "2888:2888"
-    #   - "3888:3888"
+    #   - "9181:9181"
+    #   - "9234:9234"
+    #   - "9363:9363"
     volumes:
-      - zookeeper-1:/bitnami/zookeeper
-    environment:
-      - ZOO_SERVER_ID=1
-      - ALLOW_ANONYMOUS_LOGIN=yes
-      - ZOO_AUTOPURGE_INTERVAL=1
-      - ZOO_ENABLE_PROMETHEUS_METRICS=yes
-      - ZOO_PROMETHEUS_METRICS_PORT_NUMBER=9141
+      - ../common/clickhouse/keeper/keeper.xml:/etc/clickhouse-keeper/keeper_config.xml:ro
+      - keeper-1:/var/lib/clickhouse-keeper
   clickhouse:
     !!merge <<: *clickhouse-defaults
     container_name: siginsight-clickhouse
@@ -127,7 +132,7 @@ services:
       retries: 3
   otel-collector:
     !!merge <<: *db-depend
-    image: ghcr.io/siginsight/siginsight-otel-collector:${OTELCOL_TAG:-staging-v1.1.0}
+    image: ghcr.io/siginsight/siginsight-otel-collector:${OTELCOL_TAG:-v1.1.0}
     container_name: siginsight-otel-collector
     entrypoint:
       - /bin/sh
@@ -152,7 +157,7 @@ services:
       - "4318:4318" # OTLP HTTP receiver
   siginsight-telemetrystore-migrator:
     !!merge <<: *db-depend
-    image: ghcr.io/siginsight/siginsight-otel-collector:${OTELCOL_TAG:-staging-v1.1.0}
+    image: ghcr.io/siginsight/siginsight-otel-collector:${OTELCOL_TAG:-v1.1.0}
     container_name: siginsight-telemetrystore-migrator
     environment:
       - SIGINSIGHT_OTEL_COLLECTOR_CLICKHOUSE_DSN=tcp://clickhouse:9000
@@ -176,5 +181,5 @@ volumes:
     name: siginsight-clickhouse
   sqlite:
     name: siginsight-sqlite
-  zookeeper-1:
-    name: siginsight-zookeeper-1
+  keeper-1:
+    name: siginsight-keeper-1

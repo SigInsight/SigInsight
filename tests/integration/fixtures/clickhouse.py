@@ -51,7 +51,7 @@ def _ensure_image_pulled(image: str) -> None:
 def clickhouse(
     tmpfs: Generator[types.LegacyPath, Any, None],
     network: Network,
-    zookeeper: types.TestContainerDocker,
+    keeper: types.TestContainerDocker,
     request: pytest.FixtureRequest,
     pytestconfig: pytest.Config,
 ) -> types.TestContainerClickhouse:
@@ -100,8 +100,8 @@ def clickhouse(
 
             <zookeeper>
                 <node>
-                    <host>{zookeeper.container_configs["2181"].address}</host>
-                    <port>{zookeeper.container_configs["2181"].port}</port>
+                    <host>{keeper.container_configs["9181"].address}</host>
+                    <port>{keeper.container_configs["9181"].port}</port>
                 </node>
             </zookeeper>
 
