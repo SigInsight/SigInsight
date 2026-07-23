@@ -434,6 +434,7 @@ def insert_logs(
                 database="signoz_logs",
                 table="logs_attribute_keys",
                 data=[attribute_key.np_arr() for attribute_key in attribute_keys],
+                column_names=["name", "datatype"],
             )
 
         resource_keys: List[LogsResourceOrAttributeKeys] = []
@@ -445,6 +446,7 @@ def insert_logs(
                 database="signoz_logs",
                 table="logs_resource_keys",
                 data=[resource_key.np_arr() for resource_key in resource_keys],
+                column_names=["name", "datatype"],
             )
 
         clickhouse.conn.insert(

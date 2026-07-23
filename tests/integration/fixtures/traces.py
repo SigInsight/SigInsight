@@ -736,6 +736,7 @@ def insert_traces(
                 database="signoz_traces",
                 table="span_attributes_keys",
                 data=[attribute_key.np_arr() for attribute_key in attribute_keys],
+                column_names=["tagKey", "tagType", "dataType", "isColumn"],
             )
 
         if len(resource_keys) > 0:
@@ -743,6 +744,7 @@ def insert_traces(
                 database="signoz_traces",
                 table="span_attributes_keys",
                 data=[resource_key.np_arr() for resource_key in resource_keys],
+                column_names=["tagKey", "tagType", "dataType", "isColumn"],
             )
 
         # Insert main traces
