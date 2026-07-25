@@ -2,90 +2,51 @@ package ruletypes
 
 import (
 	"encoding/json"
+	"github.com/SigNoz/signoz/pkg/types/timeseriestypes"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 
-	v3 "github.com/SigNoz/signoz/pkg/query-service/model/v3"
+	qbtypes "github.com/SigNoz/signoz/pkg/types/querybuildertypes/querybuildertypesv5"
 )
 
 func TestIsAllQueriesDisabled(t *testing.T) {
-	testCases := []*v3.CompositeQuery{
+	testCases := []struct {
+		name           string
+		compositeQuery *CompositeQuery
+		expected       bool
+	}{
+		{name: "nil composite query", expected: false},
+		{name: "empty query list", compositeQuery: &CompositeQuery{}, expected: false},
 		{
-			BuilderQueries: map[string]*v3.BuilderQuery{
-				"query1": {
-					Disabled: true,
-				},
-				"query2": {
-					Disabled: true,
-				},
-			},
-			QueryType: v3.QueryTypeBuilder,
-		},
-		nil,
-		{
-			QueryType: v3.QueryTypeBuilder,
-		},
-		{
-			QueryType: v3.QueryTypeBuilder,
-			BuilderQueries: map[string]*v3.BuilderQuery{
-				"query1": {
-					Disabled: true,
-				},
-				"query2": {
-					Disabled: false,
-				},
-			},
+			name: "all supported queries disabled",
+			compositeQuery: &CompositeQuery{Queries: []qbtypes.QueryEnvelope{
+				{Spec: qbtypes.QueryBuilderQuery[qbtypes.MetricAggregation]{Disabled: true}},
+				{Spec: qbtypes.QueryBuilderQuery[qbtypes.LogAggregation]{Disabled: true}},
+				{Spec: qbtypes.QueryBuilderQuery[qbtypes.TraceAggregation]{Disabled: true}},
+				{Spec: qbtypes.QueryBuilderFormula{Disabled: true}},
+				{Spec: qbtypes.QueryBuilderJoin{Disabled: true}},
+				{Spec: qbtypes.QueryBuilderTraceOperator{Disabled: true}},
+				{Spec: qbtypes.PromQuery{Disabled: true}},
+				{Spec: qbtypes.ClickHouseQuery{Disabled: true}},
+			}},
+			expected: true,
 		},
 		{
-			QueryType: v3.QueryTypePromQL,
-		},
-		{
-			QueryType: v3.QueryTypePromQL,
-			PromQueries: map[string]*v3.PromQuery{
-				"query3": {
-					Disabled: false,
-				},
-			},
-		},
-		{
-			QueryType: v3.QueryTypePromQL,
-			PromQueries: map[string]*v3.PromQuery{
-				"query3": {
-					Disabled: true,
-				},
-			},
-		},
-		{
-			QueryType: v3.QueryTypeClickHouseSQL,
-		},
-		{
-			QueryType: v3.QueryTypeClickHouseSQL,
-			ClickHouseQueries: map[string]*v3.ClickHouseQuery{
-				"query4": {
-					Disabled: false,
-				},
-			},
-		},
-		{
-			QueryType: v3.QueryTypeClickHouseSQL,
-			ClickHouseQueries: map[string]*v3.ClickHouseQuery{
-				"query4": {
-					Disabled: true,
-				},
-			},
+			name: "one query enabled",
+			compositeQuery: &CompositeQuery{Queries: []qbtypes.QueryEnvelope{
+				{Spec: qbtypes.PromQuery{Disabled: true}},
+				{Spec: qbtypes.QueryBuilderFormula{Disabled: false}},
+			}},
+			expected: false,
 		},
 	}
 
-	expectedResult := []bool{true, false, false, false, false, false, true, false, false, true}
-
-	for index, compositeQuery := range testCases {
-		expected := expectedResult[index]
-		actual := isAllQueriesDisabled(compositeQuery)
-		if actual != expected {
-			t.Errorf("Expected %v, but got %v", expected, actual)
-		}
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			assert.Equal(t, testCase.expected, isAllQueriesDisabled(testCase.compositeQuery))
+		})
 	}
 }
 
@@ -112,15 +73,15 @@ func TestParseIntoRule(t *testing.T) {
 				"condition": {
 					"compositeQuery": {
 						"queryType": "builder",
-						"builderQueries": {
-							"A": {
-								"expression": "A",
-								"disabled": false,
-								"aggregateAttribute": {
-									"key": "test_metric"
-								}
+						"queries": [{
+							"type": "builder_query",
+							"spec": {
+								"name": "A",
+								"signal": "metrics",
+								"aggregations": [{"metricName": "test_metric", "spaceAggregation": "sum"}],
+								"stepInterval": "1m"
 							}
-						}
+						}]
 					},
 					"target": 10.0,
 					"matchType": "1",
@@ -155,14 +116,15 @@ func TestParseIntoRule(t *testing.T) {
 				"condition": {
 					"compositeQuery": {
 						"queryType": "builder",
-						"builderQueries": {
-							"A": {
-								"disabled": false,
-								"aggregateAttribute": {
-									"key": "test_metric"
-								}
+						"queries": [{
+							"type": "builder_query",
+							"spec": {
+								"name": "A",
+								"signal": "metrics",
+								"aggregations": [{"metricName": "test_metric", "spaceAggregation": "sum"}],
+								"stepInterval": "1m"
 							}
-						}
+						}]
 					},
 					"target": 5.0,
 					"matchType": "1",
@@ -179,8 +141,9 @@ func TestParseIntoRule(t *testing.T) {
 				if rule.Frequency.Duration() != time.Minute {
 					t.Errorf("Expected default frequency '1m', got '%v'", rule.Frequency)
 				}
-				if rule.RuleCondition.CompositeQuery.BuilderQueries["A"].Expression != "A" {
-					t.Errorf("Expected expression 'A', got '%s'", rule.RuleCondition.CompositeQuery.BuilderQueries["A"].Expression)
+				queries := rule.RuleCondition.CompositeQuery.Queries
+				if len(queries) != 1 || queries[0].GetQueryName() != "A" {
+					t.Errorf("Expected V5 query 'A', got %#v", queries)
 				}
 			},
 		},
@@ -193,12 +156,10 @@ func TestParseIntoRule(t *testing.T) {
 				"condition": {
 					"compositeQuery": {
 						"queryType": "promql",
-						"promQueries": {
-							"A": {
-								"query": "rate(http_requests_total[5m])",
-								"disabled": false
-							}
-						}
+						"queries": [{
+							"type": "promql",
+							"spec": {"name": "A", "query": "rate(http_requests_total[5m])", "disabled": false}
+						}]
 					},
 					"target": 10.0,
 					"matchType": "1",
@@ -263,13 +224,15 @@ func TestParseIntoRuleSchemaVersioning(t *testing.T) {
 				"condition": {
 					"compositeQuery": {
 						"queryType": "builder",
-						"builderQueries": {
-							"A": {
-								"aggregateAttribute": {
-									"key": "cpu_usage"
-								}
+						"queries": [{
+							"type": "builder_query",
+							"spec": {
+								"name": "A",
+								"signal": "metrics",
+								"aggregations": [{"metricName": "cpu_usage", "spaceAggregation": "sum"}],
+								"stepInterval": "1m"
 							}
-						},
+						}],
 						"unit": "percent"
 					},
 					"target": 85.0,
@@ -352,13 +315,15 @@ func TestParseIntoRuleSchemaVersioning(t *testing.T) {
 				"condition": {
 					"compositeQuery": {
 						"queryType": "builder",
-						"builderQueries": {
-							"A": {
-								"aggregateAttribute": {
-									"key": "memory_usage"
-								}
+						"queries": [{
+							"type": "builder_query",
+							"spec": {
+								"name": "A",
+								"signal": "metrics",
+								"aggregations": [{"metricName": "memory_usage", "spaceAggregation": "sum"}],
+								"stepInterval": "1m"
 							}
-						}
+						}]
 					},
 					"target": 90.0,
 					"matchType": "1",
@@ -393,13 +358,15 @@ func TestParseIntoRuleSchemaVersioning(t *testing.T) {
 				"condition": {
 					"compositeQuery": {
 						"queryType": "builder",
-						"builderQueries": {
-							"A": {
-								"aggregateAttribute": {
-									"key": "cpu_usage"
-								}
+						"queries": [{
+							"type": "builder_query",
+							"spec": {
+								"name": "A",
+								"signal": "metrics",
+								"aggregations": [{"metricName": "cpu_usage", "spaceAggregation": "sum"}],
+								"stepInterval": "1m"
 							}
-						},
+						}],
 						"unit": "percent"
 					},
 					"target": 80.0,
@@ -484,13 +451,15 @@ func TestParseIntoRuleSchemaVersioning(t *testing.T) {
 				"condition": {
 					"compositeQuery": {
 						"queryType": "builder",
-						"builderQueries": {
-							"A": {
-								"aggregateAttribute": {
-									"key": "test_metric"
-								}
+						"queries": [{
+							"type": "builder_query",
+							"spec": {
+								"name": "A",
+								"signal": "metrics",
+								"aggregations": [{"metricName": "test_metric", "spaceAggregation": "sum"}],
+								"stepInterval": "1m"
 							}
-						}
+						}]
 					},
 					"target": 100.0,
 					"matchType": "1",
@@ -528,13 +497,15 @@ func TestParseIntoRuleSchemaVersioning(t *testing.T) {
 				"condition": {
 					"compositeQuery": {
 						"queryType": "builder",
-						"builderQueries": {
-							"A": {
-								"aggregateAttribute": {
-									"key": "test_metric"
-								}
+						"queries": [{
+							"type": "builder_query",
+							"spec": {
+								"name": "A",
+								"signal": "metrics",
+								"aggregations": [{"metricName": "test_metric", "spaceAggregation": "sum"}],
+								"stepInterval": "1m"
 							}
-						}
+						}]
 					},
 					"target": 75.0,
 					"matchType": "1",
@@ -581,15 +552,15 @@ func TestParseIntoRuleThresholdGeneration(t *testing.T) {
 		"condition": {
 			"compositeQuery": {
 				"queryType": "builder",
-				"builderQueries": {
-					"A": {
-						"expression": "A",
-						"disabled": false,
-						"aggregateAttribute": {
-							"key": "response_time"
-						}
-					}
-				}
+				"queries": [{
+							"type": "builder_query",
+							"spec": {
+								"name": "A",
+								"signal": "metrics",
+								"aggregations": [{"metricName": "response_time", "spaceAggregation": "sum"}],
+								"stepInterval": "1m"
+							}
+						}]
 			},
 			"target": 100.0,
 			"matchType": "1",
@@ -630,8 +601,8 @@ func TestParseIntoRuleThresholdGeneration(t *testing.T) {
 	}
 
 	// Test that threshold can evaluate properly
-	vector, err := threshold.Eval(v3.Series{
-		Points: []v3.Point{{Value: 0.15, Timestamp: 1000}}, // 150ms in seconds
+	vector, err := threshold.Eval(timeseriestypes.Series{
+		Points: []timeseriestypes.Point{{Value: 0.15, Timestamp: 1000}}, // 150ms in seconds
 		Labels: map[string]string{"test": "label"},
 	}, "", EvalData{})
 	if err != nil {
@@ -653,15 +624,15 @@ func TestParseIntoRuleMultipleThresholds(t *testing.T) {
 			"compositeQuery": {
 				"queryType": "builder",
 				"unit": "%",
-				"builderQueries": {
-					"A": {
-						"expression": "A",
-						"disabled": false,
-						"aggregateAttribute": {
-							"key": "cpu_usage"
-						}
-					}
-				}
+				"queries": [{
+							"type": "builder_query",
+							"spec": {
+								"name": "A",
+								"signal": "metrics",
+								"aggregations": [{"metricName": "cpu_usage", "spaceAggregation": "sum"}],
+								"stepInterval": "1m"
+							}
+						}]
 			},
 			"target": 90.0,
 			"matchType": "1",
@@ -708,8 +679,8 @@ func TestParseIntoRuleMultipleThresholds(t *testing.T) {
 	}
 
 	// Test with a value that should trigger both WARNING and CRITICAL thresholds
-	vector, err := threshold.Eval(v3.Series{
-		Points: []v3.Point{{Value: 95.0, Timestamp: 1000}}, // 95% CPU usage
+	vector, err := threshold.Eval(timeseriestypes.Series{
+		Points: []timeseriestypes.Point{{Value: 95.0, Timestamp: 1000}}, // 95% CPU usage
 		Labels: map[string]string{"service": "test"},
 	}, "", EvalData{})
 	if err != nil {
@@ -718,8 +689,8 @@ func TestParseIntoRuleMultipleThresholds(t *testing.T) {
 
 	assert.Equal(t, 2, len(vector))
 
-	vector, err = threshold.Eval(v3.Series{
-		Points: []v3.Point{{Value: 75.0, Timestamp: 1000}}, // 75% CPU usage
+	vector, err = threshold.Eval(timeseriestypes.Series{
+		Points: []timeseriestypes.Point{{Value: 75.0, Timestamp: 1000}}, // 75% CPU usage
 		Labels: map[string]string{"service": "test"},
 	}, "", EvalData{})
 	if err != nil {
@@ -733,7 +704,7 @@ func TestAnomalyNegationEval(t *testing.T) {
 	tests := []struct {
 		name          string
 		ruleJSON      []byte
-		series        v3.Series
+		series        timeseriestypes.Series
 		shouldAlert   bool
 		expectedValue float64
 	}{
@@ -762,9 +733,9 @@ func TestAnomalyNegationEval(t *testing.T) {
 					"selectedQuery": "A"
 				}
 			}`),
-			series: v3.Series{
+			series: timeseriestypes.Series{
 				Labels: map[string]string{"host": "server1"},
-				Points: []v3.Point{
+				Points: []timeseriestypes.Point{
 					{Timestamp: 1000, Value: -2.1}, // below & at least once, should alert
 					{Timestamp: 2000, Value: -2.3},
 				},
@@ -797,9 +768,9 @@ func TestAnomalyNegationEval(t *testing.T) {
 					"selectedQuery": "A"
 				}
 			}`), // below & at least once, no value below -2.0
-			series: v3.Series{
+			series: timeseriestypes.Series{
 				Labels: map[string]string{"host": "server1"},
-				Points: []v3.Point{
+				Points: []timeseriestypes.Point{
 					{Timestamp: 1000, Value: -1.9},
 					{Timestamp: 2000, Value: -1.8},
 				},
@@ -831,9 +802,9 @@ func TestAnomalyNegationEval(t *testing.T) {
 					"selectedQuery": "A"
 				}
 			}`), // above & at least once, should alert
-			series: v3.Series{
+			series: timeseriestypes.Series{
 				Labels: map[string]string{"host": "server1"},
-				Points: []v3.Point{
+				Points: []timeseriestypes.Point{
 					{Timestamp: 1000, Value: 2.1}, // above 2.0, should alert
 					{Timestamp: 2000, Value: 2.2},
 				},
@@ -866,9 +837,9 @@ func TestAnomalyNegationEval(t *testing.T) {
 					"selectedQuery": "A"
 				}
 			}`),
-			series: v3.Series{
+			series: timeseriestypes.Series{
 				Labels: map[string]string{"host": "server1"},
-				Points: []v3.Point{
+				Points: []timeseriestypes.Point{
 					{Timestamp: 1000, Value: 1.1},
 					{Timestamp: 2000, Value: 1.2},
 				},
@@ -900,9 +871,9 @@ func TestAnomalyNegationEval(t *testing.T) {
 					"selectedQuery": "A"
 				}
 			}`), // below and all the times
-			series: v3.Series{
+			series: timeseriestypes.Series{
 				Labels: map[string]string{"host": "server1"},
-				Points: []v3.Point{
+				Points: []timeseriestypes.Point{
 					{Timestamp: 1000, Value: -2.1}, // all below -2
 					{Timestamp: 2000, Value: -2.2},
 					{Timestamp: 3000, Value: -2.5},
@@ -936,9 +907,9 @@ func TestAnomalyNegationEval(t *testing.T) {
 					"selectedQuery": "A"
 				}
 			}`),
-			series: v3.Series{
+			series: timeseriestypes.Series{
 				Labels: map[string]string{"host": "server1"},
-				Points: []v3.Point{
+				Points: []timeseriestypes.Point{
 					{Timestamp: 1000, Value: -3.0},
 					{Timestamp: 2000, Value: -1.0}, // above -2, breaks condition
 					{Timestamp: 3000, Value: -2.5},
@@ -971,9 +942,9 @@ func TestAnomalyNegationEval(t *testing.T) {
 					"selectedQuery": "A"
 				}
 			}`),
-			series: v3.Series{
+			series: timeseriestypes.Series{
 				Labels: map[string]string{"host": "server1"},
-				Points: []v3.Point{
+				Points: []timeseriestypes.Point{
 					{Timestamp: 1000, Value: -8.0}, // abs(−8) >= 7, alert
 					{Timestamp: 2000, Value: 5.0},
 				},
@@ -1006,9 +977,9 @@ func TestAnomalyNegationEval(t *testing.T) {
 					"selectedQuery": "A"
 				}
 			}`),
-			series: v3.Series{
+			series: timeseriestypes.Series{
 				Labels: map[string]string{"host": "server1"},
-				Points: []v3.Point{
+				Points: []timeseriestypes.Point{
 					{Timestamp: 1000, Value: 80.0}, // below 90, should alert
 					{Timestamp: 2000, Value: 85.0},
 				},
@@ -1041,9 +1012,9 @@ func TestAnomalyNegationEval(t *testing.T) {
 					"selectedQuery": "A"
 				}
 			}`),
-			series: v3.Series{
+			series: timeseriestypes.Series{
 				Labels: map[string]string{"host": "server1"},
-				Points: []v3.Point{
+				Points: []timeseriestypes.Point{
 					{Timestamp: 1000, Value: 60.0}, // below, should alert
 					{Timestamp: 2000, Value: 90.0},
 				},

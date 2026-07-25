@@ -30,7 +30,8 @@ python_files = "src/**/**.py"
 log_cli = true
 log_format = "%(asctime)s [%(levelname)s] (%(filename)s:%(lineno)s) %(message)s"
 log_date_format = "%Y-%m-%d %H:%M:%S"
-addopts = "-ra -p no:warnings"
+addopts = "-ra -p no:warnings --import-mode=importlib"
+pythonpath = ["."]
 
 [tool.pylint.main]
 ignore = [".venv"]

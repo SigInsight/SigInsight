@@ -11,7 +11,7 @@ import { useGetRoutingPolicies } from 'hooks/routingPolicies/useGetRoutingPolici
 import { useUpdateRoutingPolicy } from 'hooks/routingPolicies/useUpdateRoutingPolicy';
 import useDebouncedFn from 'hooks/useDebouncedFunction';
 import useUrlQuery from 'hooks/useUrlQuery';
-import { SuccessResponseV2 } from 'types/api';
+import { HttpSuccessResponse } from 'types/api';
 import { Channels } from 'types/api/channels/getAll';
 import APIError from 'types/api/error';
 
@@ -76,7 +76,7 @@ function useRoutingPolicies(): UseRoutingPoliciesReturn {
 
 	const routingPoliciesData = useMemo(() => {
 		const unfilteredRoutingPolicies = mapApiResponseToRoutingPolicies(
-			routingPolicies as SuccessResponseV2<GetRoutingPoliciesResponse>,
+			routingPolicies as HttpSuccessResponse<GetRoutingPoliciesResponse>,
 		);
 		return unfilteredRoutingPolicies.filter(
 			(routingPolicy) =>
@@ -91,7 +91,7 @@ function useRoutingPolicies(): UseRoutingPoliciesReturn {
 		isLoading: isLoadingChannels,
 		isError: isErrorChannels,
 		refetch: refetchChannels,
-	} = useQuery<SuccessResponseV2<Channels[]>, APIError>(['getChannels'], {
+	} = useQuery<HttpSuccessResponse<Channels[]>, APIError>(['getChannels'], {
 		queryFn: () => getAllChannels(),
 	});
 	const channels = data?.data || [];

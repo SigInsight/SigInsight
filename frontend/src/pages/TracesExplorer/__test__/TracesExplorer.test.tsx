@@ -29,7 +29,7 @@ import { QueryRangePayloadV5 } from 'types/api/v5/queryRange';
 
 import TracesExplorer from '..';
 import { Filter } from '../Filter/Filter';
-import { AllTraceFilterKeyValue } from '../Filter/filterUtils';
+import { AllTraceFilterKeyValue, traceFilterKeys } from '../Filter/filterUtils';
 import {
 	checkForSectionContent,
 	checkIfSectionIsNotOpen,
@@ -178,6 +178,32 @@ const renderWithTracesExplorerRouter = (
 	);
 
 describe('TracesExplorer - Filters', () => {
+	it('defines autocomplete metadata for every canonical filter field', () => {
+		expect(Object.keys(traceFilterKeys).sort()).toEqual(
+			Object.keys(AllTraceFilterKeyValue).sort(),
+		);
+		expect(traceFilterKeys).toMatchObject({
+			duration_nano: { key: 'duration_nano', dataType: 'float64', type: 'tag' },
+			has_error: { key: 'has_error', dataType: 'bool', type: 'tag' },
+			'service.name': {
+				key: 'service.name',
+				dataType: 'string',
+				type: 'resource',
+			},
+			'rpc.method': { key: 'rpc.method', dataType: 'string', type: 'tag' },
+			response_status_code: {
+				key: 'response_status_code',
+				dataType: 'string',
+				type: 'tag',
+			},
+			http_host: { key: 'http_host', dataType: 'string', type: 'tag' },
+			http_method: { key: 'http_method', dataType: 'string', type: 'tag' },
+			'http.route': { key: 'http.route', dataType: 'string', type: 'tag' },
+			http_url: { key: 'http_url', dataType: 'string', type: 'tag' },
+			trace_id: { key: 'trace_id', dataType: 'string', type: 'tag' },
+		});
+	});
+
 	// Initial filter panel rendering
 	// Test the initial state like which filters section are opened, default state of duration slider, etc.
 	it('should render the Trace filter', async () => {
@@ -259,6 +285,36 @@ describe('TracesExplorer - Filters', () => {
 		await waitFor(() => checkIfSectionIsNotOpen(getByTestId, 'name'));
 	});
 
+	it('loads HTTP method values from the canonical trace field', async () => {
+		const { getByTestId, findByText } = renderWithTracesExplorerRouter(
+			<Filter setOpen={jest.fn()} />,
+			[
+				`${process.env.FRONTEND_API_ENDPOINT}${ROUTES.TRACES_EXPLORER}/?panelType=list&selectedExplorerView=list`,
+			],
+		);
+
+		const httpMethodSection = getByTestId('collapse-http_method');
+		fireEvent.click(within(httpMethodSection).getByText('HTTP Method'));
+
+		expect(await findByText('GET')).toBeInTheDocument();
+		expect(await findByText('POST')).toBeInTheDocument();
+	});
+
+	it('loads HTTP route values from the canonical trace field', async () => {
+		const { getByTestId, findByText } = renderWithTracesExplorerRouter(
+			<Filter setOpen={jest.fn()} />,
+			[
+				`${process.env.FRONTEND_API_ENDPOINT}${ROUTES.TRACES_EXPLORER}/?panelType=list&selectedExplorerView=list`,
+			],
+		);
+
+		const httpRouteSection = getByTestId('collapse-http.route');
+		fireEvent.click(within(httpRouteSection).getByText('HTTP Route'));
+
+		expect(await findByText('/health')).toBeInTheDocument();
+		expect(await findByText('/v1/orders')).toBeInTheDocument();
+	});
+
 	it('checking filters should update the query', async () => {
 		const { getByText } = render(
 			<Filter setOpen={jest.fn()} />,
@@ -288,7 +344,7 @@ describe('TracesExplorer - Filters', () => {
 				expect.objectContaining({
 					key: {
 						id: expect.any(String),
-						key: 'hasError',
+						key: 'has_error',
 						type: 'tag',
 						dataType: 'bool',
 					},
@@ -310,7 +366,7 @@ describe('TracesExplorer - Filters', () => {
 				expect.objectContaining({
 					key: {
 						id: expect.any(String),
-						key: 'hasError',
+						key: 'has_error',
 						type: 'tag',
 						dataType: 'bool',
 					},
@@ -328,9 +384,9 @@ describe('TracesExplorer - Filters', () => {
 
 		const { findByText, getByTestId } = render(<Filter setOpen={jest.fn()} />);
 
-		// check if the default query is applied - composite query has filters - serviceName : demo-app and name : HTTP GET /customer
+		// check if the default query is applied - composite query has filters - service.name : demo-app and name : HTTP GET /customer
 		expect(await findByText('demo-app')).toBeInTheDocument();
-		expect(getByTestId('serviceName-demo-app')).toBeChecked();
+		expect(getByTestId('service.name-demo-app')).toBeChecked();
 		expect(await findByText('HTTP GET /customer')).toBeInTheDocument();
 		expect(getByTestId('name-HTTP GET /customer')).toBeChecked();
 	});
@@ -435,7 +491,7 @@ describe('TracesExplorer - Filters', () => {
 				expect.objectContaining({
 					key: {
 						id: expect.any(String),
-						key: 'hasError',
+						key: 'has_error',
 						type: 'tag',
 						dataType: 'bool',
 					},
@@ -444,9 +500,9 @@ describe('TracesExplorer - Filters', () => {
 				}),
 				expect.objectContaining({
 					key: {
-						key: 'serviceName',
+						key: 'service.name',
 						dataType: 'string',
-						type: 'tag',
+						type: 'resource',
 						id: expect.any(String),
 					},
 					op: 'in',
@@ -455,7 +511,7 @@ describe('TracesExplorer - Filters', () => {
 			]),
 		);
 
-		const clearButton = getByTestId('collapse-serviceName-clearBtn');
+		const clearButton = getByTestId('collapse-service.name-clearBtn');
 		expect(clearButton).toBeInTheDocument();
 		fireEvent.click(clearButton);
 
@@ -468,9 +524,9 @@ describe('TracesExplorer - Filters', () => {
 			expect.arrayContaining([
 				expect.objectContaining({
 					key: {
-						key: 'serviceName',
+						key: 'service.name',
 						dataType: 'string',
-						type: 'tag',
+						type: 'resource',
 						id: expect.any(String),
 					},
 					op: 'in',
@@ -503,7 +559,7 @@ jest.mock('hooks/useHandleExplorerTabChange', () => ({
 let capturedPayload: QueryRangePayloadV5;
 
 describe('TracesExplorer - ', () => {
-	const quickFiltersListURL = `${BASE_URL}/api/v1/orgs/me/filters/traces`;
+	const quickFiltersListURL = `${BASE_URL}/api/v5/orgs/me/filters/traces`;
 
 	const setupServer = (): void => {
 		server.use(

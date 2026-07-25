@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { updateSeriesVisibilityToLocalStorage } from 'container/DashboardContainer/visualization/panels/utils/legendVisibilityUtils';
+import { updateSeriesVisibilityToLocalStorage } from 'container/PanelVisualization/panels/utils/legendVisibilityUtils';
 import {
 	PlotContextProvider,
 	usePlotContext,
@@ -8,7 +8,7 @@ import {
 import type uPlot from 'uplot';
 
 jest.mock(
-	'container/DashboardContainer/visualization/panels/utils/legendVisibilityUtils',
+	'container/PanelVisualization/panels/utils/legendVisibilityUtils',
 	() => ({
 		updateSeriesVisibilityToLocalStorage: jest.fn(),
 	}),

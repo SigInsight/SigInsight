@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import QuerySearch from 'components/QueryBuilderV2/QueryV2/QuerySearch/QuerySearch';
+import QuerySearch from 'components/QueryBuilder/Query/QuerySearch/QuerySearch';
 import RunQueryBtn from 'container/QueryBuilder/components/RunQueryBtn/RunQueryBtn';
 import DateTimeSelectionV2 from 'container/TopNav/DateTimeSelectionV2';
 import { DataSource } from 'types/common/queryBuilder';

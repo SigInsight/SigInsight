@@ -60,7 +60,7 @@ export interface Column {
 	id?: string;
 }
 
-export interface QueryDataV3 {
+export interface QueryRangeResult {
 	list: ListItem[] | null;
 	queryName: string;
 	legend?: string;

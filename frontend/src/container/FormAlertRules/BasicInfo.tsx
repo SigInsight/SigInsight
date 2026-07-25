@@ -9,7 +9,7 @@ import { ALERTS_DATA_SOURCE_MAP } from 'constants/alerts';
 import ROUTES from 'constants/routes';
 import useComponentPermission from 'hooks/useComponentPermission';
 import { useAppContext } from 'providers/App/App';
-import { SuccessResponseV2 } from 'types/api';
+import { HttpSuccessResponse } from 'types/api';
 import { AlertTypes } from 'types/api/alerts/alertTypes';
 import { AlertDef, Labels } from 'types/api/alerts/def';
 import { Channels } from 'types/api/channels/getAll';
@@ -46,7 +46,7 @@ function BasicInfo({
 	const { t } = useTranslation('alerts');
 
 	const { isLoading, data, error, isError, refetch } = useQuery<
-		SuccessResponseV2<Channels[]>,
+		HttpSuccessResponse<Channels[]>,
 		APIError
 	>(['getChannels'], {
 		queryFn: () => getAll(),

@@ -11,7 +11,7 @@ jest.mock('@signozhq/sonner', () => ({
 
 const mockToast = jest.mocked(toast);
 
-const SA_KEYS_ENDPOINT = '*/api/v1/service_accounts/sa-1/keys';
+const SA_KEYS_ENDPOINT = '*/api/v5/service_accounts/sa-1/keys';
 
 const createdKeyResponse = {
 	data: {

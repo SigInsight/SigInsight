@@ -3,17 +3,17 @@ import createAlertRule, {
 	CreateAlertRuleResponse,
 } from 'api/alerts/createAlertRule';
 import { ErrorResponse, SuccessResponse } from 'types/api';
-import { PostableAlertRuleV2 } from 'types/api/alerts/alertTypesV2';
+import { PostableAlertRule } from 'types/api/alerts/alertRule';
 
 export function useCreateAlertRule(): UseMutationResult<
 	SuccessResponse<CreateAlertRuleResponse> | ErrorResponse,
 	Error,
-	PostableAlertRuleV2
+	PostableAlertRule
 > {
 	return useMutation<
 		SuccessResponse<CreateAlertRuleResponse> | ErrorResponse,
 		Error,
-		PostableAlertRuleV2
+		PostableAlertRule
 	>({
 		mutationFn: (alertData) => createAlertRule(alertData),
 	});

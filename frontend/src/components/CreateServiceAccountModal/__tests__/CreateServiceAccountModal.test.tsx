@@ -12,8 +12,8 @@ jest.mock('@signozhq/sonner', () => ({
 
 const mockToast = jest.mocked(toast);
 
-const ROLES_ENDPOINT = '*/api/v1/roles';
-const SERVICE_ACCOUNTS_ENDPOINT = '*/api/v1/service_accounts';
+const ROLES_ENDPOINT = '*/api/v5/roles';
+const SERVICE_ACCOUNTS_ENDPOINT = '*/api/v5/service_accounts';
 
 function renderModal(): ReturnType<typeof render> {
 	return render(

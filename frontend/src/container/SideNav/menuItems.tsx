@@ -1,4 +1,3 @@
-import { RocketOutlined } from '@ant-design/icons';
 import { Style } from '@signozhq/design-tokens';
 import { MenuProps } from 'antd';
 import ROUTES from 'constants/routes';
@@ -29,7 +28,6 @@ import {
 	Settings,
 	Shield,
 	Slack,
-	Unplug,
 	User,
 	UserPlus,
 	Users,
@@ -40,18 +38,6 @@ import {
 	SettingsNavSection,
 	SidebarItem,
 } from './sideNav.types';
-
-export const getStartedMenuItem = {
-	key: ROUTES.GET_STARTED,
-	label: 'Get Started',
-	icon: <RocketOutlined rotate={45} />,
-};
-
-export const getStartedV3MenuItem = {
-	key: ROUTES.GET_STARTED_WITH_CLOUD,
-	label: 'Get Started',
-	icon: <RocketOutlined rotate={45} />,
-};
 
 export const homeMenuItem = {
 	key: ROUTES.HOME,
@@ -129,12 +115,6 @@ const menuItems: SidebarItem[] = [
 		itemKey: 'alerts',
 	},
 	{
-		key: ROUTES.INTEGRATIONS,
-		label: 'Integrations',
-		icon: <Unplug size={16} />,
-		itemKey: 'integrations',
-	},
-	{
 		key: ROUTES.ALL_ERROR,
 		label: 'Exceptions',
 		icon: <BugIcon size={16} />,
@@ -202,13 +182,6 @@ export const defaultMoreMenuItems: SidebarItem[] = [
 		isNew: false,
 		isEnabled: true,
 		itemKey: 'metrics',
-	},
-	{
-		key: ROUTES.INTEGRATIONS,
-		label: 'Integrations',
-		icon: <Unplug size={16} />,
-		isEnabled: true,
-		itemKey: 'integrations',
 	},
 	{
 		key: ROUTES.ALL_ERROR,
@@ -301,26 +274,6 @@ export const settingsNavSections: SettingsNavSection[] = [
 				icon: <Key size={16} />,
 				isEnabled: false,
 				itemKey: 'api-keys',
-			},
-			{
-				key: ROUTES.INGESTION_SETTINGS,
-				label: 'Ingestion',
-				icon: <RocketOutlined rotate={45} />,
-				isEnabled: false,
-				itemKey: 'ingestion',
-			},
-		],
-	},
-	{
-		key: 'authentication',
-		title: 'Authentication',
-		items: [
-			{
-				key: ROUTES.ORG_SETTINGS,
-				label: 'Single Sign-on',
-				icon: <User size={16} />,
-				isEnabled: false,
-				itemKey: 'sso',
 			},
 		],
 	},

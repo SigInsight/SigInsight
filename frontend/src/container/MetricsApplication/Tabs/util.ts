@@ -58,8 +58,6 @@ interface OnViewAPIMonitoringPopupClickProps {
 export function generateExplorerPath(
 	isViewLogsClicked: boolean | undefined,
 	urlParams: URLSearchParams,
-	servicename: string | undefined,
-	selectedTraceTags: string,
 	JSONCompositeQuery: string,
 	queryString: string[],
 ): string {
@@ -67,9 +65,10 @@ export function generateExplorerPath(
 		? ROUTES.LOGS_EXPLORER
 		: ROUTES.TRACES_EXPLORER;
 
-	return `${basePath}?${urlParams.toString()}&selected={"serviceName":["${servicename}"]}&filterToFetchData=["duration","status","serviceName"]&spanAggregateCurrentPage=1&selectedTags=${selectedTraceTags}&${
+	const querySuffix = queryString.length ? `&${queryString.join('&')}` : '';
+	return `${basePath}?${urlParams.toString()}&${
 		QueryParams.compositeQuery
-	}=${JSONCompositeQuery}&${queryString.join('&')}`;
+	}=${JSONCompositeQuery}${querySuffix}`;
 }
 
 // TODO(@rahul-signoz): update the name of this function once we have view logs button in every panel
@@ -86,8 +85,6 @@ export function generateExplorerPath(
  
  */
 export function onViewTracePopupClick({
-	selectedTraceTags,
-	servicename,
 	timestamp,
 	apmToTraceQuery,
 	isViewLogsClicked,
@@ -112,8 +109,6 @@ export function onViewTracePopupClick({
 		const newPath = generateExplorerPath(
 			isViewLogsClicked,
 			urlParams,
-			servicename,
-			selectedTraceTags,
 			JSONCompositeQuery,
 			queryString,
 		);
@@ -390,7 +385,7 @@ export function useGetAPMToTracesQueries({
 
 		return handleQueryChange(
 			updatedQuery,
-			traceFilterKeys.serviceName,
+			traceFilterKeys['service.name'],
 			servicename,
 			finalFilters,
 		);

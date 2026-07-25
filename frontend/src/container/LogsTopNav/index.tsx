@@ -58,7 +58,7 @@ function LogsTopNav(): JSX.Element {
 						: [],
 				listQueryPayload:
 					listQuery && listQuery[1]
-						? listQuery[1].payload?.data?.newResult?.data?.result || []
+						? listQuery[1].payload?.data?.queryResult?.data?.result || []
 						: [],
 			};
 		}

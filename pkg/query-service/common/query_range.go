@@ -8,25 +8,26 @@ import (
 	"unicode"
 
 	"github.com/SigNoz/signoz/pkg/query-service/constants"
-	v3 "github.com/SigNoz/signoz/pkg/query-service/model/v3"
+	"github.com/SigNoz/signoz/pkg/query-service/model/querytypes"
 	"github.com/SigNoz/signoz/pkg/query-service/querycache"
 	"github.com/SigNoz/signoz/pkg/query-service/utils/labels"
+	"github.com/SigNoz/signoz/pkg/types/timeseriestypes"
 )
 
-func AdjustedMetricTimeRange(start, end, step int64, mq v3.BuilderQuery) (int64, int64) {
+func AdjustedMetricTimeRange(start, end, step int64, mq querytypes.BuilderQuery) (int64, int64) {
 	// align the start to the step interval
 	start = start - (start % (step * 1000))
 	// if the query is a rate query, we adjust the start time by one more step
 	// so that we can calculate the rate for the first data point
 	hasRunningDiff := false
 	for _, fn := range mq.Functions {
-		if fn.Name == v3.FunctionNameRunningDiff {
+		if fn.Name == querytypes.FunctionNameRunningDiff {
 			hasRunningDiff = true
 			break
 		}
 	}
 	if (mq.AggregateOperator.IsRateOperator() || mq.TimeAggregation.IsRateOperator()) &&
-		mq.Temporality != v3.Delta {
+		mq.Temporality != querytypes.Delta {
 		start -= step * 1000
 	}
 	if hasRunningDiff {
@@ -93,18 +94,18 @@ func NormalizeLabelName(name string) string {
 	return normalized
 }
 
-func GetSeriesFromCachedData(data []querycache.CachedSeriesData, start, end int64) []*v3.Series {
-	series := make(map[uint64]*v3.Series)
+func GetSeriesFromCachedData(data []querycache.CachedSeriesData, start, end int64) []*timeseriestypes.Series {
+	series := make(map[uint64]*timeseriestypes.Series)
 
 	for _, cachedData := range data {
 		for _, data := range cachedData.Data {
 			h := labels.FromMap(data.Labels).Hash()
 
 			if _, ok := series[h]; !ok {
-				series[h] = &v3.Series{
+				series[h] = &timeseriestypes.Series{
 					Labels:      data.Labels,
 					LabelsArray: data.LabelsArray,
-					Points:      make([]v3.Point, 0),
+					Points:      make([]timeseriestypes.Point, 0),
 				}
 			}
 
@@ -116,7 +117,7 @@ func GetSeriesFromCachedData(data []querycache.CachedSeriesData, start, end int6
 		}
 	}
 
-	newSeries := make([]*v3.Series, 0, len(series))
+	newSeries := make([]*timeseriestypes.Series, 0, len(series))
 	for _, s := range series {
 		s.SortPoints()
 		s.RemoveDuplicatePoints()
@@ -126,18 +127,18 @@ func GetSeriesFromCachedData(data []querycache.CachedSeriesData, start, end int6
 }
 
 // It is different from GetSeriesFromCachedData because doesn't remove a point if it is >= (start - (start % step*1000))
-func GetSeriesFromCachedDataV2(data []querycache.CachedSeriesData, start, end, step int64) []*v3.Series {
-	series := make(map[uint64]*v3.Series)
+func GetSeriesFromCachedDataV2(data []querycache.CachedSeriesData, start, end, step int64) []*timeseriestypes.Series {
+	series := make(map[uint64]*timeseriestypes.Series)
 
 	for _, cachedData := range data {
 		for _, data := range cachedData.Data {
 			h := labels.FromMap(data.Labels).Hash()
 
 			if _, ok := series[h]; !ok {
-				series[h] = &v3.Series{
+				series[h] = &timeseriestypes.Series{
 					Labels:      data.Labels,
 					LabelsArray: data.LabelsArray,
-					Points:      make([]v3.Point, 0),
+					Points:      make([]timeseriestypes.Point, 0),
 				}
 			}
 
@@ -149,7 +150,7 @@ func GetSeriesFromCachedDataV2(data []querycache.CachedSeriesData, start, end, s
 		}
 	}
 
-	newSeries := make([]*v3.Series, 0, len(series))
+	newSeries := make([]*timeseriestypes.Series, 0, len(series))
 	for _, s := range series {
 		s.SortPoints()
 		s.RemoveDuplicatePoints()
@@ -159,8 +160,8 @@ func GetSeriesFromCachedDataV2(data []querycache.CachedSeriesData, start, end, s
 }
 
 // filter series points for storing in cache
-func FilterSeriesPoints(seriesList []*v3.Series, missStart, missEnd int64, stepInterval int64) ([]*v3.Series, int64, int64) {
-	filteredSeries := make([]*v3.Series, 0)
+func FilterSeriesPoints(seriesList []*timeseriestypes.Series, missStart, missEnd int64, stepInterval int64) ([]*timeseriestypes.Series, int64, int64) {
+	filteredSeries := make([]*timeseriestypes.Series, 0)
 	startTime := missStart
 	endTime := missEnd
 
@@ -168,7 +169,7 @@ func FilterSeriesPoints(seriesList []*v3.Series, missStart, missEnd int64, stepI
 
 	// return empty series if the interval is not complete
 	if missStart+stepMs > missEnd {
-		return []*v3.Series{}, missStart, missEnd
+		return []*timeseriestypes.Series{}, missStart, missEnd
 	}
 
 	// if the end time is not a complete aggregation window, then we will have to adjust the end time
@@ -187,10 +188,10 @@ func FilterSeriesPoints(seriesList []*v3.Series, missStart, missEnd int64, stepI
 	for _, series := range seriesList {
 		// if data for the series is empty, then we will add it to the cache
 		if len(series.Points) == 0 {
-			filteredSeries = append(filteredSeries, &v3.Series{
+			filteredSeries = append(filteredSeries, &timeseriestypes.Series{
 				Labels:      series.Labels,
 				LabelsArray: series.LabelsArray,
-				Points:      make([]v3.Point, 0),
+				Points:      make([]timeseriestypes.Point, 0),
 			})
 			continue
 		}
@@ -200,7 +201,7 @@ func FilterSeriesPoints(seriesList []*v3.Series, missStart, missEnd int64, stepI
 			return series.Points[i].Timestamp < series.Points[j].Timestamp
 		})
 
-		points := make([]v3.Point, len(series.Points))
+		points := make([]timeseriestypes.Point, len(series.Points))
 		copy(points, series.Points)
 
 		// Filter the first point that is not a complete aggregation window
@@ -219,7 +220,7 @@ func FilterSeriesPoints(seriesList []*v3.Series, missStart, missEnd int64, stepI
 
 		// making sure that empty range doesn't enter the cache
 		if len(points) > 0 {
-			filteredSeries = append(filteredSeries, &v3.Series{
+			filteredSeries = append(filteredSeries, &timeseriestypes.Series{
 				Labels:      series.Labels,
 				LabelsArray: series.LabelsArray,
 				Points:      points,

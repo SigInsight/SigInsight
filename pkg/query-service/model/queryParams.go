@@ -4,31 +4,12 @@ import (
 	"time"
 )
 
-type InstantQueryMetricsParams struct {
-	Time  time.Time
-	Query string
-	Stats string
-}
-
-type QueryRangeParams struct {
-	Start time.Time
-	End   time.Time
-	Step  time.Duration
-	Query string
-	Stats string
-}
-
 const (
 	StringTagMapCol   = "stringTagMap"
 	NumberTagMapCol   = "numberTagMap"
 	BoolTagMapCol     = "boolTagMap"
 	ResourceTagMapCol = "resourceTagsMap"
 )
-
-type DashboardVars struct {
-	Query     string                 `json:"query"`
-	Variables map[string]interface{} `json:"variables,omitempty"`
-}
 
 // Metric auto complete types
 type metricTags map[string]string
@@ -38,16 +19,6 @@ type MetricAutocompleteTagParams struct {
 	MetricTags metricTags
 	Match      string
 	TagKey     string
-}
-
-type GetTopOperationsParams struct {
-	StartTime   string `json:"start"`
-	EndTime     string `json:"end"`
-	ServiceName string `json:"service"`
-	Start       *time.Time
-	End         *time.Time
-	Tags        []TagQueryParam `json:"tags"`
-	Limit       int             `json:"limit"`
 }
 
 type EventType string

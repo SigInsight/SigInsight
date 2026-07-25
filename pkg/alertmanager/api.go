@@ -106,19 +106,6 @@ func (api *API) ListChannels(rw http.ResponseWriter, req *http.Request) {
 	render.Success(rw, http.StatusOK, channels)
 }
 
-func (api *API) ListAllChannels(rw http.ResponseWriter, req *http.Request) {
-	ctx, cancel := context.WithTimeout(req.Context(), 30*time.Second)
-	defer cancel()
-
-	channels, err := api.alertmanager.ListAllChannels(ctx)
-	if err != nil {
-		render.Error(rw, err)
-		return
-	}
-
-	render.Success(rw, http.StatusOK, channels)
-}
-
 func (api *API) GetChannelByID(rw http.ResponseWriter, req *http.Request) {
 	ctx, cancel := context.WithTimeout(req.Context(), 30*time.Second)
 	defer cancel()

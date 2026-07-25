@@ -28,7 +28,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { Button, Dropdown, MenuProps, Modal, Tooltip } from 'antd';
 import logEvent from 'api/common/logEvent';
 import { Logout } from 'api/utils';
-import updateUserPreference from 'api/v1/user/preferences/name/update';
+import updateUserPreference from 'api/v5/user/preferences/name/update';
 import cx from 'classnames';
 import ROUTES from 'constants/routes';
 import { GlobalShortcuts } from 'constants/shortcuts/globalShortcuts';
@@ -578,9 +578,6 @@ function SideNav({ isPinned }: { isPinned: boolean }): JSX.Element {
 		registerShortcut(GlobalShortcuts.NavigateToSettings, () =>
 			onClickHandler(ROUTES.SETTINGS, null),
 		);
-		registerShortcut(GlobalShortcuts.NavigateToSettingsIngestion, () =>
-			onClickHandler(ROUTES.INGESTION_SETTINGS, null),
-		);
 		registerShortcut(GlobalShortcuts.NavigateToSettingsAPIKeys, () =>
 			onClickHandler(ROUTES.API_KEYS, null),
 		);
@@ -602,7 +599,6 @@ function SideNav({ isPinned }: { isPinned: boolean }): JSX.Element {
 			deregisterShortcut(GlobalShortcuts.NavigateToMetricsExplorer);
 			deregisterShortcut(GlobalShortcuts.NavigateToMetricsViews);
 			deregisterShortcut(GlobalShortcuts.NavigateToSettings);
-			deregisterShortcut(GlobalShortcuts.NavigateToSettingsIngestion);
 			deregisterShortcut(GlobalShortcuts.NavigateToSettingsAPIKeys);
 			deregisterShortcut(GlobalShortcuts.NavigateToSettingsNotificationChannels);
 			deregisterShortcut(GlobalShortcuts.NavigateToLogsViews);

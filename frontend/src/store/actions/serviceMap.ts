@@ -1,4 +1,4 @@
-import api from 'api';
+import { ApiV5Instance as api } from 'api';
 import { IResourceAttribute } from 'hooks/useResourceAttribute/types';
 import { convertRawQueriesToTraceSelectedTags } from 'hooks/useResourceAttribute/utils';
 // eslint-disable-next-line no-restricted-imports
@@ -46,7 +46,7 @@ export const getDetailedServiceMapItems = (
 		tags: convertRawQueriesToTraceSelectedTags(queries),
 	};
 	const [dependencyGraphResponse] = await Promise.all([
-		api.post<ServicesMapItem[]>(`/dependency_graph`, serviceMapPayload),
+		api.post<ServicesMapItem[]>(`/services/dependency_graph`, serviceMapPayload),
 	]);
 
 	dispatch<ServiceMapItemAction>({

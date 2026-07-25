@@ -19,13 +19,10 @@ import (
 	"github.com/SigNoz/signoz/pkg/factory"
 	"github.com/SigNoz/signoz/pkg/flagger"
 	"github.com/SigNoz/signoz/pkg/flagger/configflagger"
-	"github.com/SigNoz/signoz/pkg/global"
-	"github.com/SigNoz/signoz/pkg/global/signozglobal"
 	"github.com/SigNoz/signoz/pkg/identn"
 	"github.com/SigNoz/signoz/pkg/identn/apikeyidentn"
 	"github.com/SigNoz/signoz/pkg/identn/impersonationidentn"
 	"github.com/SigNoz/signoz/pkg/identn/tokenizeridentn"
-	"github.com/SigNoz/signoz/pkg/modules/authdomain/implauthdomain"
 	"github.com/SigNoz/signoz/pkg/modules/organization"
 	"github.com/SigNoz/signoz/pkg/modules/organization/implorganization"
 	"github.com/SigNoz/signoz/pkg/modules/preference/implpreference"
@@ -192,6 +189,7 @@ func NewSQLMigrationProviderFactories(
 		sqlmigration.NewUpdateTraceHTTPMethodQuickFilterFactory(),
 		sqlmigration.NewDropLogPipelinesFactory(),
 		sqlmigration.NewDropDashboardTablesFactory(),
+		sqlmigration.NewConsolidateV5SchemaFactory(),
 	)
 }
 
@@ -265,9 +263,7 @@ func NewAPIServerProviderFactories(orgGetter organization.Getter, authz authz.Au
 			implorganization.NewHandler(modules.OrgGetter, modules.OrgSetter),
 			impluser.NewHandler(modules.UserSetter, modules.UserGetter),
 			implsession.NewHandler(modules.Session),
-			implauthdomain.NewHandler(modules.AuthDomain),
 			implpreference.NewHandler(modules.Preference),
-			handlers.Global,
 			implpromote.NewHandler(modules.Promote),
 			handlers.FlaggerHandler,
 			handlers.MetricsExplorer,
@@ -277,7 +273,6 @@ func NewAPIServerProviderFactories(orgGetter organization.Getter, authz authz.Au
 			handlers.QuerierHandler,
 			handlers.ServiceAccountHandler,
 			handlers.RegistryHandler,
-			handlers.CloudIntegrationHandler,
 			handlers.Assistant,
 		),
 	)
@@ -296,12 +291,6 @@ func NewIdentNProviderFactories(sqlstore sqlstore.SQLStore, tokenizer tokenizer.
 		impersonationidentn.NewFactory(orgGetter, userGetter, userConfig),
 		tokenizeridentn.NewFactory(tokenizer),
 		apikeyidentn.NewFactory(sqlstore),
-	)
-}
-
-func NewGlobalProviderFactories(identNConfig identn.Config) factory.NamedMap[factory.ProviderFactory[global.Global, global.Config]] {
-	return factory.MustNewNamedMap(
-		signozglobal.NewFactory(identNConfig),
 	)
 }
 

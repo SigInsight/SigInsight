@@ -428,10 +428,7 @@ describe('Footer utils', () => {
 				condition: {
 					alertOnAbsent: false,
 					compositeQuery: {
-						builderQueries: undefined,
-						chQueries: undefined,
 						panelType: 'graph',
-						promQueries: undefined,
 						queries: [
 							{
 								spec: {

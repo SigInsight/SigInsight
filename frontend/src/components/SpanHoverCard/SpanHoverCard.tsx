@@ -4,7 +4,7 @@ import { DATE_TIME_FORMATS } from 'constants/dateTimeFormats';
 import { convertTimeToRelevantUnit } from 'container/TraceDetail/utils';
 import dayjs from 'dayjs';
 import { useTimezone } from 'providers/Timezone';
-import { Span } from 'types/api/trace/getTraceV2';
+import { Span } from 'types/api/trace/getTraceWaterfall';
 import { toFixed } from 'utils/toFixed';
 
 import './SpanHoverCard.styles.scss';

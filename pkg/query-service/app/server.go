@@ -27,8 +27,6 @@ import (
 	"github.com/SigNoz/signoz/pkg/querier"
 	"github.com/SigNoz/signoz/pkg/query-service/agentConf"
 	"github.com/SigNoz/signoz/pkg/query-service/app/clickhouseReader"
-	"github.com/SigNoz/signoz/pkg/query-service/app/cloudintegrations"
-	"github.com/SigNoz/signoz/pkg/query-service/app/integrations"
 	"github.com/SigNoz/signoz/pkg/query-service/app/opamp"
 	opAmpModel "github.com/SigNoz/signoz/pkg/query-service/app/opamp/model"
 	"github.com/SigNoz/signoz/pkg/query-service/interfaces"
@@ -66,16 +64,6 @@ type Server struct {
 
 // NewServer creates and initializes Server
 func NewServer(config signoz.Config, signoz *signoz.SigNoz) (*Server, error) {
-	integrationsController, err := integrations.NewController(signoz.SQLStore)
-	if err != nil {
-		return nil, err
-	}
-
-	cloudIntegrationsController, err := cloudintegrations.NewController(signoz.SQLStore)
-	if err != nil {
-		return nil, err
-	}
-
 	cacheForTraceDetail, err := memorycache.New(context.TODO(), signoz.Instrumentation.ToProviderSettings(), cache.Config{
 		Provider: "memory",
 		Memory: cache.Memory{
@@ -116,14 +104,10 @@ func NewServer(config signoz.Config, signoz *signoz.SigNoz) (*Server, error) {
 	}
 
 	apiHandler, err := NewAPIHandler(APIHandlerOpts{
-		Reader:                      reader,
-		RuleManager:                 rm,
-		IntegrationsController:      integrationsController,
-		CloudIntegrationsController: cloudIntegrationsController,
-		FluxInterval:                config.Querier.FluxInterval,
-		AlertmanagerAPI:             alertmanager.NewAPI(signoz.Alertmanager),
-		Signoz:                      signoz,
-		QueryParserAPI:              queryparser.NewAPI(signoz.Instrumentation.ToProviderSettings(), signoz.QueryParser),
+		Reader:          reader,
+		RuleManager:     rm,
+		AlertmanagerAPI: alertmanager.NewAPI(signoz.Alertmanager),
+		Signoz:          signoz,
 	}, config)
 	if err != nil {
 		return nil, err
@@ -180,7 +164,7 @@ func (s *Server) createPublicServer(api *APIHandler, web web.Web) (*http.Server,
 		otelmux.WithTracerProvider(s.signoz.Instrumentation.TracerProvider()),
 		otelmux.WithPropagators(propagation.NewCompositeTextMapPropagator(propagation.Baggage{}, propagation.TraceContext{})),
 		otelmux.WithFilter(func(r *http.Request) bool {
-			return !slices.Contains([]string{"/api/v1/health"}, r.URL.Path)
+			return !slices.Contains([]string{"/api/v5/health"}, r.URL.Path)
 		}),
 	))
 	r.Use(middleware.NewIdentN(s.signoz.IdentNResolver, s.signoz.Sharder, s.signoz.Instrumentation.Logger()).Wrap)
@@ -195,13 +179,9 @@ func (s *Server) createPublicServer(api *APIHandler, web web.Web) (*http.Server,
 	am := middleware.NewAuthZ(s.signoz.Instrumentation.Logger(), s.signoz.Modules.OrgGetter, s.signoz.Authz)
 
 	api.RegisterRoutes(r, am)
-	api.RegisterLogsRoutes(r, am)
-	api.RegisterIntegrationRoutes(r, am)
-	api.RegisterCloudIntegrationsRoutes(r, am)
 	api.RegisterQueryRangeV5Routes(r, am)
 	api.RegisterWebSocketPaths(r, am)
-	api.RegisterQueryRangeV4Routes(r, am)
-	api.RegisterThirdPartyApiRoutes(r, am)
+	api.RegisterAPIMonitoringRoutes(r, am)
 	api.MetricExplorerRoutes(r, am)
 	api.RegisterTraceFunnelsRoutes(r, am)
 

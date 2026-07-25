@@ -1,6 +1,6 @@
 package utils
 
-import v3 "github.com/SigNoz/signoz/pkg/query-service/model/v3"
+import "github.com/SigNoz/signoz/pkg/query-service/model/querytypes"
 
 const HOUR_NANO = int64(3600000000000)
 
@@ -43,24 +43,24 @@ func GetListTsRanges(start, end int64) []LogsListTsRange {
 
 // This tries to see all possible fields that it can fall back to if some meta is missing
 // check Test_GenerateEnrichmentKeys for example
-func GenerateEnrichmentKeys(field v3.AttributeKey) []string {
+func GenerateEnrichmentKeys(field querytypes.AttributeKey) []string {
 	names := []string{}
-	if field.Type != v3.AttributeKeyTypeUnspecified && field.DataType != v3.AttributeKeyDataTypeUnspecified {
+	if field.Type != querytypes.AttributeKeyTypeUnspecified && field.DataType != querytypes.AttributeKeyDataTypeUnspecified {
 		names = append(names, field.Key+"##"+field.Type.String()+"##"+field.DataType.String())
 		return names
 	}
 
-	types := []v3.AttributeKeyType{}
-	dTypes := []v3.AttributeKeyDataType{}
-	if field.Type != v3.AttributeKeyTypeUnspecified {
+	types := []querytypes.AttributeKeyType{}
+	dTypes := []querytypes.AttributeKeyDataType{}
+	if field.Type != querytypes.AttributeKeyTypeUnspecified {
 		types = append(types, field.Type)
 	} else {
-		types = append(types, v3.AttributeKeyTypeTag, v3.AttributeKeyTypeResource)
+		types = append(types, querytypes.AttributeKeyTypeTag, querytypes.AttributeKeyTypeResource)
 	}
-	if field.DataType != v3.AttributeKeyDataTypeUnspecified {
+	if field.DataType != querytypes.AttributeKeyDataTypeUnspecified {
 		dTypes = append(dTypes, field.DataType)
 	} else {
-		dTypes = append(dTypes, v3.AttributeKeyDataTypeFloat64, v3.AttributeKeyDataTypeInt64, v3.AttributeKeyDataTypeString, v3.AttributeKeyDataTypeBool)
+		dTypes = append(dTypes, querytypes.AttributeKeyDataTypeFloat64, querytypes.AttributeKeyDataTypeInt64, querytypes.AttributeKeyDataTypeString, querytypes.AttributeKeyDataTypeBool)
 	}
 
 	for _, t := range types {

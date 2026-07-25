@@ -1,6 +1,5 @@
 import { TelemetryFieldKey } from 'api/v5/v5';
 import { LOCALSTORAGE } from 'constants/localStorage';
-import { LogViewMode } from 'container/LogsTable';
 import { defaultOptionsQuery } from 'container/OptionsMenu/constants';
 import { FontSize } from 'container/OptionsMenu/types';
 import {
@@ -9,6 +8,7 @@ import {
 	Preferences,
 } from 'providers/preferences/types';
 import { DataTypes } from 'types/api/queryBuilder/queryAutocompleteResponse';
+import { LogViewMode } from 'types/logs';
 
 import getLogsUpdaterConfig from '../configs/logsUpdaterConfig';
 

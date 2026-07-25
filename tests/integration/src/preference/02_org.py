@@ -18,7 +18,7 @@ def test_get_org_preference(
     admin_token = get_token(USER_ADMIN_EMAIL, USER_ADMIN_PASSWORD)
 
     response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v1/org/preferences"),
+        signoz.self.host_configs["8080"].get("/api/v5/org/preferences"),
         headers={"Authorization": f"Bearer {admin_token}"},
         timeout=2,
     )
@@ -37,7 +37,7 @@ def test_get_set_org_preference_by_name(
     # preference does not exist
     response = requests.get(
         signoz.self.host_configs["8080"].get(
-            "/api/v1/org/preferences/somenonexistentpreference"
+            "/api/v5/org/preferences/somenonexistentpreference"
         ),
         headers={"Authorization": f"Bearer {admin_token}"},
         timeout=2,
@@ -48,7 +48,7 @@ def test_get_set_org_preference_by_name(
 
     # get preference by name
     response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v1/org/preferences/org_onboarding"),
+        signoz.self.host_configs["8080"].get("/api/v5/org/preferences/org_onboarding"),
         headers={"Authorization": f"Bearer {admin_token}"},
         timeout=2,
     )
@@ -60,7 +60,7 @@ def test_get_set_org_preference_by_name(
 
     # play with org_onboarding preference
     response = requests.put(
-        signoz.self.host_configs["8080"].get("/api/v1/org/preferences/org_onboarding"),
+        signoz.self.host_configs["8080"].get("/api/v5/org/preferences/org_onboarding"),
         headers={"Authorization": f"Bearer {admin_token}"},
         json={"value": True},
         timeout=2,
@@ -70,7 +70,7 @@ def test_get_set_org_preference_by_name(
 
     # get preference by name
     response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v1/org/preferences/org_onboarding"),
+        signoz.self.host_configs["8080"].get("/api/v5/org/preferences/org_onboarding"),
         headers={"Authorization": f"Bearer {admin_token}"},
         timeout=2,
     )

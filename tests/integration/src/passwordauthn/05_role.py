@@ -15,7 +15,7 @@ def test_change_role(
 
     # Create a new user as VIEWER
     response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v1/invite"),
+        signoz.self.host_configs["8080"].get("/api/v5/invite"),
         json={"email": "admin+rolechange@integration.test", "role": "VIEWER"},
         timeout=2,
         headers={"Authorization": f"Bearer {admin_token}"},
@@ -28,7 +28,7 @@ def test_change_role(
 
     # Activate user via reset password
     response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v1/resetPassword"),
+        signoz.self.host_configs["8080"].get("/api/v5/resetPassword"),
         json={"password": "password123Z$", "token": reset_token},
         timeout=2,
     )
@@ -40,7 +40,7 @@ def test_change_role(
     )
 
     response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v1/user/me"),
+        signoz.self.host_configs["8080"].get("/api/v5/users/me"),
         timeout=2,
         headers={"Authorization": f"Bearer {new_user_token}"},
     )
@@ -51,7 +51,7 @@ def test_change_role(
 
     # Make some API call which is protected
     response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v1/org/preferences"),
+        signoz.self.host_configs["8080"].get("/api/v5/users"),
         timeout=2,
         headers={"Authorization": f"Bearer {new_user_token}"},
     )
@@ -59,12 +59,9 @@ def test_change_role(
     assert response.status_code == HTTPStatus.FORBIDDEN
 
     # Change the new user's role - move to ADMIN
-    response = requests.put(
-        signoz.self.host_configs["8080"].get(f"/api/v1/user/{new_user_id}"),
-        json={
-            "displayName": "role change user",
-            "role": "ADMIN",
-        },
+    response = requests.post(
+        signoz.self.host_configs["8080"].get(f"/api/v5/users/{new_user_id}/roles"),
+        json={"name": "signoz-admin"},
         headers={"Authorization": f"Bearer {admin_token}"},
         timeout=2,
     )
@@ -73,7 +70,7 @@ def test_change_role(
 
     # Make some API calls again
     response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v1/user/me"),
+        signoz.self.host_configs["8080"].get("/api/v5/users"),
         timeout=2,
         headers={"Authorization": f"Bearer {new_user_token}"},
     )
@@ -82,7 +79,7 @@ def test_change_role(
 
     # Rotate token for new user
     response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v2/sessions/rotate"),
+        signoz.self.host_configs["8080"].get("/api/v5/sessions/rotate"),
         json={
             "refreshToken": new_user_refresh_token,
         },
@@ -100,7 +97,7 @@ def test_change_role(
     )
 
     response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v1/org/preferences"),
+        signoz.self.host_configs["8080"].get("/api/v5/users"),
         timeout=2,
         headers={"Authorization": f"Bearer {new_user_token}"},
     )

@@ -62,15 +62,15 @@ export function Filter(props: FilterProps): JSX.Element {
 			)
 			.filter(
 				(item) =>
-					(item.op === 'in' && item.key?.key !== 'durationNano') ||
-					(item.key?.key === 'durationNano' && ['>=', '<='].includes(item.op)),
+					(item.op === 'in' && item.key?.key !== 'duration_nano') ||
+					(item.key?.key === 'duration_nano' && ['>=', '<='].includes(item.op)),
 			)
 			.reduce((acc, item) => {
 				const keys = item.key as BaseAutocompleteData;
 				const attributeName = item.key?.key || '';
 				const values = item.value as string[];
 
-				if ((attributeName as AllTraceFilterKeys) === 'durationNano') {
+				if ((attributeName as AllTraceFilterKeys) === 'duration_nano') {
 					if (item.op === '>=') {
 						acc.durationNanoMin = {
 							values: getMs(String(values)),
@@ -116,7 +116,7 @@ export function Filter(props: FilterProps): JSX.Element {
 		const items = Object.keys(selectedFilters)?.flatMap((attribute) => {
 			const { keys, values } = selectedFilters[attribute as AllTraceFilterKeys];
 			if (
-				['durationNanoMax', 'durationNanoMin', 'durationNano'].includes(
+				['durationNanoMax', 'durationNanoMin', 'duration_nano'].includes(
 					attribute as AllTraceFilterKeys,
 				)
 			) {

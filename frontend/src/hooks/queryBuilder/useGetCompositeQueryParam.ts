@@ -3,7 +3,7 @@ import {
 	convertAggregationToExpression,
 	convertFiltersToExpressionWithExistingQuery,
 	convertHavingToExpression,
-} from 'components/QueryBuilderV2/utils';
+} from 'components/QueryBuilder/utils';
 import { QueryParams } from 'constants/query';
 import useUrlQuery from 'hooks/useUrlQuery';
 import { BaseAutocompleteData } from 'types/api/queryBuilder/queryAutocompleteResponse';

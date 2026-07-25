@@ -1,14 +1,14 @@
 import { useQuery, UseQueryResult } from 'react-query';
-import list from 'api/v1/pats/list';
-import { SuccessResponseV2 } from 'types/api';
+import list from 'api/v5/pats/list';
+import { HttpSuccessResponse } from 'types/api';
 import APIError from 'types/api/error';
 import { APIKeyProps } from 'types/api/pat/types';
 
 export const useGetAllAPIKeys = (): UseQueryResult<
-	SuccessResponseV2<APIKeyProps[]>,
+	HttpSuccessResponse<APIKeyProps[]>,
 	APIError
 > =>
-	useQuery<SuccessResponseV2<APIKeyProps[]>, APIError>({
+	useQuery<HttpSuccessResponse<APIKeyProps[]>, APIError>({
 		queryKey: ['APIKeys'],
 		queryFn: () => list(),
 	});

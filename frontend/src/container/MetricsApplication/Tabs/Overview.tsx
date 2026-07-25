@@ -254,8 +254,6 @@ function Application(): JSX.Element {
 			const newPath = generateExplorerPath(
 				isViewLogsClicked,
 				urlParams,
-				servicename,
-				selectedTraceTags,
 				JSONCompositeQuery,
 				queryString,
 			);

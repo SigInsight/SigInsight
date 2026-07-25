@@ -418,7 +418,7 @@ def test_traces_list(
 
     # Query values of http.request.method attribute from the fields API
     response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v1/fields/values"),
+        signoz.self.host_configs["8080"].get("/api/v5/fields/values"),
         timeout=2,
         headers={
             "authorization": f"Bearer {token}",
@@ -440,7 +440,7 @@ def test_traces_list(
 
     # Query keys from the fields API with context specified in the key
     response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v1/fields/keys"),
+        signoz.self.host_configs["8080"].get("/api/v5/fields/keys"),
         timeout=2,
         headers={
             "authorization": f"Bearer {token}",
@@ -460,7 +460,7 @@ def test_traces_list(
 
     # Query values of service.name resource attribute using context-prefixed key
     response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v1/fields/values"),
+        signoz.self.host_configs["8080"].get("/api/v5/fields/values"),
         timeout=2,
         headers={
             "authorization": f"Bearer {token}",

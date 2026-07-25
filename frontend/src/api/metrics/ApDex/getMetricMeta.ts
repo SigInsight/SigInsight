@@ -1,4 +1,4 @@
-import { ApiV4Instance } from 'api';
+import { ApiV5Instance } from 'api';
 import { AxiosResponse } from 'axios';
 import { MetricMetaProps } from 'types/api/metrics/getApDex';
 
@@ -6,6 +6,6 @@ export const getMetricMeta = (
 	metricName: string,
 	servicename: string,
 ): Promise<AxiosResponse<MetricMetaProps>> =>
-	ApiV4Instance.get(
+	ApiV5Instance.get(
 		`/metric/metric_metadata?metricName=${metricName}&serviceName=${servicename}`,
 	);

@@ -42,7 +42,7 @@ const mockApiResponse = {
 			},
 		],
 		resultType: 'time_series',
-		newResult: {
+		queryResult: {
 			data: {
 				result: [],
 				resultType: 'time_series',

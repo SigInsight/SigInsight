@@ -1,5 +1,5 @@
 import { memo, useCallback, useMemo } from 'react';
-import { QueryBuilderV2 } from 'components/QueryBuilderV2/QueryBuilderV2';
+import { QueryBuilder } from 'components/QueryBuilder/QueryBuilder';
 import {
 	initialQueriesMap,
 	OPERATORS,
@@ -66,7 +66,7 @@ function LogExplorerQuerySection({
 	);
 
 	return (
-		<QueryBuilderV2
+		<QueryBuilder
 			isListViewPanel={panelTypes === PANEL_TYPES.LIST}
 			config={{ initialDataSource: DataSource.LOGS, queryVariant: 'static' }}
 			panelType={panelTypes}

@@ -7,7 +7,7 @@ import {
 	server,
 } from 'mocks-server/server';
 import { render, screen, userEvent, waitFor } from 'tests/test-utils';
-import { OrgSessionContext } from 'types/api/v2/sessions/context/get';
+import { OrgSessionContext } from 'types/api/v5/sessions/context/get';
 
 import ForgotPassword, { ForgotPasswordRouteState } from '../index';
 
@@ -26,7 +26,7 @@ const mockHistoryPush = history.push as jest.MockedFunction<
 	typeof history.push
 >;
 
-const FORGOT_PASSWORD_ENDPOINT = '*/api/v2/factor_password/forgot';
+const FORGOT_PASSWORD_ENDPOINT = '*/api/v5/factor_password/forgot';
 
 // Mock data
 const mockSingleOrg: OrgSessionContext[] = [
@@ -35,7 +35,6 @@ const mockSingleOrg: OrgSessionContext[] = [
 		name: 'Test Organization',
 		authNSupport: {
 			password: [{ provider: 'email_password' }],
-			callback: [],
 		},
 	},
 ];
@@ -46,7 +45,6 @@ const mockMultipleOrgs: OrgSessionContext[] = [
 		name: 'Organization One',
 		authNSupport: {
 			password: [{ provider: 'email_password' }],
-			callback: [],
 		},
 	},
 	{
@@ -54,7 +52,6 @@ const mockMultipleOrgs: OrgSessionContext[] = [
 		name: 'Organization Two',
 		authNSupport: {
 			password: [{ provider: 'email_password' }],
-			callback: [],
 		},
 	},
 ];

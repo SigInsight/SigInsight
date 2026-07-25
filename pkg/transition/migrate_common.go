@@ -139,7 +139,7 @@ func (migration *migrateCommon) WrapInV5Envelope(name string, queryMap map[strin
 }
 
 func (mc *migrateCommon) updateQueryData(ctx context.Context, queryData map[string]any, version, widgetType string) bool {
-	updated := false
+	updated := mc.canonicalizeTraceFields(queryData)
 
 	aggregateOp, _ := queryData["aggregateOperator"].(string)
 	hasAggregation := aggregateOp != "" && aggregateOp != "noop"
@@ -293,6 +293,125 @@ func (mc *migrateCommon) updateQueryData(ctx context.Context, queryData map[stri
 	delete(queryData, "seriesAggregation")
 
 	return updated
+}
+
+func (mc *migrateCommon) canonicalizeTraceFields(queryData map[string]any) bool {
+	if queryData["dataSource"] != "traces" {
+		return false
+	}
+
+	updated := false
+	canonicalizeName := func(name string) string {
+		canonical := canonicalTraceFieldName(name)
+		if canonical != name {
+			updated = true
+		}
+		return canonical
+	}
+	canonicalize := func(value any) any {
+		name, ok := value.(string)
+		if !ok {
+			return value
+		}
+		return canonicalizeName(name)
+	}
+
+	if aggregateAttribute, ok := queryData["aggregateAttribute"].(map[string]any); ok {
+		aggregateAttribute["key"] = canonicalize(aggregateAttribute["key"])
+	}
+	for _, fieldName := range []string{"groupBy", "selectColumns"} {
+		if fields, ok := queryData[fieldName].([]any); ok {
+			for _, field := range fields {
+				if fieldMap, ok := field.(map[string]any); ok {
+					fieldMap["key"] = canonicalize(fieldMap["key"])
+				}
+			}
+		}
+	}
+	if orderBy, ok := queryData["orderBy"].([]any); ok {
+		for _, order := range orderBy {
+			if orderMap, ok := order.(map[string]any); ok {
+				orderMap["columnName"] = canonicalize(orderMap["columnName"])
+			}
+		}
+	}
+	if filters, ok := queryData["filters"].(map[string]any); ok {
+		if items, ok := filters["items"].([]any); ok {
+			for _, item := range items {
+				if itemMap, ok := item.(map[string]any); ok {
+					if key, ok := itemMap["key"].(map[string]any); ok {
+						key["key"] = canonicalize(key["key"])
+					}
+				}
+			}
+		}
+	}
+	for _, fieldName := range []string{"filter", "having"} {
+		if field, ok := queryData[fieldName].(map[string]any); ok {
+			field["expression"] = canonicalizeTraceFieldExpression(field["expression"], canonicalizeName)
+		}
+	}
+	if aggregations, ok := queryData["aggregations"].([]any); ok {
+		for _, aggregation := range aggregations {
+			if aggregationMap, ok := aggregation.(map[string]any); ok {
+				aggregationMap["expression"] = canonicalizeTraceFieldExpression(aggregationMap["expression"], canonicalizeName)
+			}
+		}
+	}
+
+	return updated
+}
+
+func canonicalizeTraceFieldExpression(value any, canonicalize func(string) string) any {
+	expression, ok := value.(string)
+	if !ok {
+		return value
+	}
+
+	var result strings.Builder
+	for index := 0; index < len(expression); {
+		if expression[index] == '\'' || expression[index] == '"' {
+			quote := expression[index]
+			end := index + 1
+			for end < len(expression) {
+				if expression[end] == '\\' {
+					end += 2
+					continue
+				}
+				if expression[end] == quote {
+					end++
+					break
+				}
+				end++
+			}
+			result.WriteString(expression[index:end])
+			index = end
+			continue
+		}
+
+		if !isTraceFieldIdentifierStart(expression[index]) {
+			result.WriteByte(expression[index])
+			index++
+			continue
+		}
+
+		end := index + 1
+		for end < len(expression) && isTraceFieldIdentifierPart(expression[end]) {
+			end++
+		}
+		result.WriteString(canonicalize(expression[index:end]))
+		index = end
+	}
+
+	return result.String()
+}
+
+func isTraceFieldIdentifierStart(char byte) bool {
+	return char >= 'a' && char <= 'z' || char >= 'A' && char <= 'Z' || char == '_'
+}
+
+func isTraceFieldIdentifierPart(char byte) bool {
+	return isTraceFieldIdentifierStart(char) || char >= '0' && char <= '9' || char == '.'
 }
 
 func (mc *migrateCommon) orderByExpr(queryData map[string]any) (string, bool) {
@@ -513,7 +632,7 @@ func (mc *migrateCommon) createFilterExpression(ctx context.Context, queryData m
 	if expression != "" {
 		if groupByExists := mc.groupByExistsExpr(queryData); groupByExists != "" && dataSource != "metrics" {
 			mc.logger.InfoContext(ctx, "adding default exists for old qb", slog.String("group_by_exists", groupByExists))
-			expression += " " + groupByExists
+			expression += " AND " + groupByExists
 		}
 
 		queryData["filter"] = map[string]any{
@@ -550,12 +669,6 @@ func (mc *migrateCommon) groupByExistsExpr(queryData map[string]any) string {
 		if _, ok := telemetrytraces.CalculatedFields[key]; ok {
 			delete(item, "type")
 		}
-		if _, ok := telemetrytraces.IntrinsicFieldsDeprecated[key]; ok {
-			delete(item, "type")
-		}
-		if _, ok := telemetrytraces.CalculatedFieldsDeprecated[key]; ok {
-			delete(item, "type")
-		}
 	}
 
 	return strings.Join(expr, " AND ")
@@ -580,12 +693,6 @@ func (mc *migrateCommon) fixGroupBy(queryData map[string]any) bool {
 			delete(item, "type")
 		}
 		if _, ok := telemetrytraces.CalculatedFields[key]; ok {
-			delete(item, "type")
-		}
-		if _, ok := telemetrytraces.IntrinsicFieldsDeprecated[key]; ok {
-			delete(item, "type")
-		}
-		if _, ok := telemetrytraces.CalculatedFieldsDeprecated[key]; ok {
 			delete(item, "type")
 		}
 	}

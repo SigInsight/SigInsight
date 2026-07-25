@@ -47,14 +47,14 @@ import type {
  */
 export const listServiceAccounts = (signal?: AbortSignal) => {
 	return GeneratedAPIInstance<ListServiceAccounts200>({
-		url: `/api/v1/service_accounts`,
+		url: `/api/v5/service_accounts`,
 		method: 'GET',
 		signal,
 	});
 };
 
 export const getListServiceAccountsQueryKey = () => {
-	return [`/api/v1/service_accounts`] as const;
+	return [`/api/v5/service_accounts`] as const;
 };
 
 export const getListServiceAccountsQueryOptions = <
@@ -136,7 +136,7 @@ export const createServiceAccount = (
 	signal?: AbortSignal,
 ) => {
 	return GeneratedAPIInstance<CreateServiceAccount201>({
-		url: `/api/v1/service_accounts`,
+		url: `/api/v5/service_accounts`,
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		data: serviceaccounttypesPostableServiceAccountDTO,
@@ -218,7 +218,7 @@ export const deleteServiceAccount = ({
 	id,
 }: DeleteServiceAccountPathParameters) => {
 	return GeneratedAPIInstance<string>({
-		url: `/api/v1/service_accounts/${id}`,
+		url: `/api/v5/service_accounts/${id}`,
 		method: 'DELETE',
 	});
 };
@@ -298,7 +298,7 @@ export const getServiceAccount = (
 	signal?: AbortSignal,
 ) => {
 	return GeneratedAPIInstance<GetServiceAccount200>({
-		url: `/api/v1/service_accounts/${id}`,
+		url: `/api/v5/service_accounts/${id}`,
 		method: 'GET',
 		signal,
 	});
@@ -307,7 +307,7 @@ export const getServiceAccount = (
 export const getGetServiceAccountQueryKey = ({
 	id,
 }: GetServiceAccountPathParameters) => {
-	return [`/api/v1/service_accounts/${id}`] as const;
+	return [`/api/v5/service_accounts/${id}`] as const;
 };
 
 export const getGetServiceAccountQueryOptions = <
@@ -402,7 +402,7 @@ export const updateServiceAccount = (
 	serviceaccounttypesUpdatableServiceAccountDTO: BodyType<ServiceaccounttypesUpdatableServiceAccountDTO>,
 ) => {
 	return GeneratedAPIInstance<string>({
-		url: `/api/v1/service_accounts/${id}`,
+		url: `/api/v5/service_accounts/${id}`,
 		method: 'PUT',
 		headers: { 'Content-Type': 'application/json' },
 		data: serviceaccounttypesUpdatableServiceAccountDTO,
@@ -499,7 +499,7 @@ export const listServiceAccountKeys = (
 	signal?: AbortSignal,
 ) => {
 	return GeneratedAPIInstance<ListServiceAccountKeys200>({
-		url: `/api/v1/service_accounts/${id}/keys`,
+		url: `/api/v5/service_accounts/${id}/keys`,
 		method: 'GET',
 		signal,
 	});
@@ -508,7 +508,7 @@ export const listServiceAccountKeys = (
 export const getListServiceAccountKeysQueryKey = ({
 	id,
 }: ListServiceAccountKeysPathParameters) => {
-	return [`/api/v1/service_accounts/${id}/keys`] as const;
+	return [`/api/v5/service_accounts/${id}/keys`] as const;
 };
 
 export const getListServiceAccountKeysQueryOptions = <
@@ -604,7 +604,7 @@ export const createServiceAccountKey = (
 	signal?: AbortSignal,
 ) => {
 	return GeneratedAPIInstance<CreateServiceAccountKey201>({
-		url: `/api/v1/service_accounts/${id}/keys`,
+		url: `/api/v5/service_accounts/${id}/keys`,
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		data: serviceaccounttypesPostableFactorAPIKeyDTO,
@@ -702,7 +702,7 @@ export const revokeServiceAccountKey = ({
 	fid,
 }: RevokeServiceAccountKeyPathParameters) => {
 	return GeneratedAPIInstance<string>({
-		url: `/api/v1/service_accounts/${id}/keys/${fid}`,
+		url: `/api/v5/service_accounts/${id}/keys/${fid}`,
 		method: 'DELETE',
 	});
 };
@@ -782,7 +782,7 @@ export const updateServiceAccountKey = (
 	serviceaccounttypesUpdatableFactorAPIKeyDTO: BodyType<ServiceaccounttypesUpdatableFactorAPIKeyDTO>,
 ) => {
 	return GeneratedAPIInstance<string>({
-		url: `/api/v1/service_accounts/${id}/keys/${fid}`,
+		url: `/api/v5/service_accounts/${id}/keys/${fid}`,
 		method: 'PUT',
 		headers: { 'Content-Type': 'application/json' },
 		data: serviceaccounttypesUpdatableFactorAPIKeyDTO,
@@ -879,7 +879,7 @@ export const updateServiceAccountStatus = (
 	serviceaccounttypesUpdatableServiceAccountStatusDTO: BodyType<ServiceaccounttypesUpdatableServiceAccountStatusDTO>,
 ) => {
 	return GeneratedAPIInstance<string>({
-		url: `/api/v1/service_accounts/${id}/status`,
+		url: `/api/v5/service_accounts/${id}/status`,
 		method: 'PUT',
 		headers: { 'Content-Type': 'application/json' },
 		data: serviceaccounttypesUpdatableServiceAccountStatusDTO,

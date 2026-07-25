@@ -5,7 +5,7 @@ import { PANEL_TYPES } from 'constants/queryBuilder';
 import {
 	ItemsProps,
 	PanelTypesWithData,
-} from 'container/DashboardContainer/PanelTypeSelectionModal/menuItems';
+} from 'container/PanelWrapper/panelTypes';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
 import { LayoutDashboard } from 'lucide-react';
 import { DataSource } from 'types/common/queryBuilder';

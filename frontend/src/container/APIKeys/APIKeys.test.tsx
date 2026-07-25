@@ -8,7 +8,7 @@ import { act, fireEvent, render, screen, waitFor } from 'tests/test-utils';
 
 import APIKeys from './APIKeys';
 
-const apiKeysURL = 'http://localhost/api/v1/pats';
+const apiKeysURL = 'http://localhost/api/v5/pats';
 
 describe('APIKeys component', () => {
 	beforeEach(() => {

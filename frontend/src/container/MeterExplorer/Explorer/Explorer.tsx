@@ -3,7 +3,7 @@ import * as Sentry from '@sentry/react';
 import { Button, Tooltip } from 'antd';
 import logEvent from 'api/common/logEvent';
 import cx from 'classnames';
-import { QueryBuilderV2 } from 'components/QueryBuilderV2/QueryBuilderV2';
+import { QueryBuilder } from 'components/QueryBuilder/QueryBuilder';
 import QuickFilters from 'components/QuickFilters/QuickFilters';
 import { QuickFiltersSource, SignalType } from 'components/QuickFilters/types';
 import { initialQueryMeterWithType, PANEL_TYPES } from 'constants/queryBuilder';
@@ -121,7 +121,7 @@ function Explorer(): JSX.Element {
 								<RightToolbarActions onStageRunQuery={(): void => handleRunQuery()} />
 							</div>
 						</div>
-						<QueryBuilderV2
+						<QueryBuilder
 							config={{
 								initialDataSource: DataSource.METRICS,
 								queryVariant: 'static',

@@ -2,10 +2,7 @@ import { UniversalYAxisUnit } from 'components/YAxisUnitSelector/types';
 import { PANEL_TYPES } from 'constants/queryBuilder';
 import { AlertDetectionTypes } from 'container/FormAlertRules';
 import { mapQueryDataToApi } from 'lib/newQueryBuilder/queryBuilderMappers/mapQueryDataToApi';
-import {
-	BasicThreshold,
-	PostableAlertRuleV2,
-} from 'types/api/alerts/alertTypesV2';
+import { BasicThreshold, PostableAlertRule } from 'types/api/alerts/alertRule';
 import { EQueryType } from 'types/common/dashboard';
 import { compositeQueryToQueryEnvelope } from 'utils/compositeQueryToQueryEnvelope';
 
@@ -55,8 +52,8 @@ export function validateCreateAlertState(
 // Get notification settings props for create alert api payload
 export function getNotificationSettingsProps(
 	notificationSettings: NotificationSettingsState,
-): PostableAlertRuleV2['notificationSettings'] {
-	const notificationSettingsProps: PostableAlertRuleV2['notificationSettings'] = {
+): PostableAlertRule['notificationSettings'] {
+	const notificationSettingsProps: PostableAlertRule['notificationSettings'] = {
 		groupBy: notificationSettings.multipleNotifications || [],
 		usePolicy: notificationSettings.routingPolicies,
 		renotify: {
@@ -75,7 +72,7 @@ export function getNotificationSettingsProps(
 // Get alert on absent props for create alert api payload
 export function getAlertOnAbsentProps(
 	advancedOptions: AdvancedOptionsState,
-): Partial<PostableAlertRuleV2['condition']> {
+): Partial<PostableAlertRule['condition']> {
 	if (advancedOptions.sendNotificationIfDataIsMissing.enabled) {
 		return {
 			alertOnAbsent: true,
@@ -90,7 +87,7 @@ export function getAlertOnAbsentProps(
 // Get enforce minimum datapoints props for create alert api payload
 export function getEnforceMinimumDatapointsProps(
 	advancedOptions: AdvancedOptionsState,
-): Partial<PostableAlertRuleV2['condition']> {
+): Partial<PostableAlertRule['condition']> {
 	if (advancedOptions.enforceMinimumDatapoints.enabled) {
 		return {
 			requireMinPoints: true,
@@ -107,7 +104,7 @@ export function getEnforceMinimumDatapointsProps(
 export function getEvaluationProps(
 	evaluationWindow: EvaluationWindowState,
 	advancedOptions: AdvancedOptionsState,
-): PostableAlertRuleV2['evaluation'] {
+): PostableAlertRule['evaluation'] {
 	const frequency = getFormattedTimeValue(
 		advancedOptions.evaluationCadence.default.value,
 		advancedOptions.evaluationCadence.default.timeUnit,
@@ -204,7 +201,7 @@ export function getEvaluationProps(
 // Build Create Threshold Alert Rule Payload
 export function buildCreateThresholdAlertRulePayload(
 	args: BuildCreateAlertRulePayloadArgs,
-): PostableAlertRuleV2 {
+): PostableAlertRule {
 	const {
 		alertType,
 		basicAlertState,
@@ -291,7 +288,7 @@ export function buildCreateThresholdAlertRulePayload(
 // TODO: Update this function before enabling anomaly alert rule creation
 export function buildCreateAnomalyAlertRulePayload(
 	args: BuildCreateAlertRulePayloadArgs,
-): PostableAlertRuleV2 {
+): PostableAlertRule {
 	const {
 		alertType,
 		basicAlertState,

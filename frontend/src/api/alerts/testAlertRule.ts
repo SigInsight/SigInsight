@@ -1,6 +1,6 @@
-import axios from 'api';
+import { ApiV5Instance as axios } from 'api';
 import { ErrorResponse, SuccessResponse } from 'types/api';
-import { PostableAlertRuleV2 } from 'types/api/alerts/alertTypesV2';
+import { PostableAlertRule } from 'types/api/alerts/alertRule';
 
 export interface TestAlertRuleResponse {
 	data: {
@@ -11,7 +11,7 @@ export interface TestAlertRuleResponse {
 }
 
 const testAlertRule = async (
-	props: PostableAlertRuleV2,
+	props: PostableAlertRule,
 ): Promise<SuccessResponse<TestAlertRuleResponse> | ErrorResponse> => {
 	const response = await axios.post(`/testRule`, {
 		...props,

@@ -5,8 +5,8 @@ import { TestAlertRuleResponse } from 'api/alerts/testAlertRule';
 import { UpdateAlertRuleResponse } from 'api/alerts/updateAlertRule';
 import { Dayjs } from 'dayjs';
 import { ErrorResponse, SuccessResponse } from 'types/api';
+import { PostableAlertRule } from 'types/api/alerts/alertRule';
 import { AlertTypes } from 'types/api/alerts/alertTypes';
-import { PostableAlertRuleV2 } from 'types/api/alerts/alertTypesV2';
 import { Labels } from 'types/api/alerts/def';
 
 export interface ICreateAlertContextProps {
@@ -26,14 +26,14 @@ export interface ICreateAlertContextProps {
 	createAlertRule: UseMutateFunction<
 		SuccessResponse<CreateAlertRuleResponse, unknown> | ErrorResponse,
 		Error,
-		PostableAlertRuleV2,
+		PostableAlertRule,
 		unknown
 	>;
 	isTestingAlertRule: boolean;
 	testAlertRule: UseMutateFunction<
 		SuccessResponse<TestAlertRuleResponse, unknown> | ErrorResponse,
 		Error,
-		PostableAlertRuleV2,
+		PostableAlertRule,
 		unknown
 	>;
 	discardAlertRule: () => void;
@@ -41,7 +41,7 @@ export interface ICreateAlertContextProps {
 	updateAlertRule: UseMutateFunction<
 		SuccessResponse<UpdateAlertRuleResponse, unknown> | ErrorResponse,
 		Error,
-		PostableAlertRuleV2,
+		PostableAlertRule,
 		unknown
 	>;
 	isEditMode: boolean;

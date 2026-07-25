@@ -14,8 +14,8 @@ import useUrlQuery from 'hooks/useUrlQuery';
 import history from 'lib/history';
 import {
 	NEW_ALERT_SCHEMA_VERSION,
-	PostableAlertRuleV2,
-} from 'types/api/alerts/alertTypesV2';
+	PostableAlertRule,
+} from 'types/api/alerts/alertRule';
 
 import {
 	errorMessageReceivedFromBackend,
@@ -92,9 +92,9 @@ function EditRules(): JSX.Element {
 		return <Spinner tip="Loading Rules..." />;
 	}
 
-	let initialV2AlertValue: PostableAlertRuleV2 | null = null;
+	let initialAlertValue: PostableAlertRule | null = null;
 	if (data.payload.data.schemaVersion === NEW_ALERT_SCHEMA_VERSION) {
-		initialV2AlertValue = data.payload.data as PostableAlertRuleV2;
+		initialAlertValue = data.payload.data as PostableAlertRule;
 	}
 
 	return (
@@ -102,7 +102,7 @@ function EditRules(): JSX.Element {
 			<EditRulesContainer
 				ruleId={ruleId || ''}
 				initialValue={data.payload.data}
-				initialV2AlertValue={initialV2AlertValue}
+				initialAlertValue={initialAlertValue}
 			/>
 		</div>
 	);

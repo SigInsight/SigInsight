@@ -35,7 +35,7 @@ export const authzCheck = (
 	signal?: AbortSignal,
 ) => {
 	return GeneratedAPIInstance<AuthzCheck200>({
-		url: `/api/v1/authz/check`,
+		url: `/api/v5/authz/check`,
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		data: authtypesTransactionDTO,
@@ -115,14 +115,14 @@ export const useAuthzCheck = <
  */
 export const authzResources = (signal?: AbortSignal) => {
 	return GeneratedAPIInstance<AuthzResources200>({
-		url: `/api/v1/authz/resources`,
+		url: `/api/v5/authz/resources`,
 		method: 'GET',
 		signal,
 	});
 };
 
 export const getAuthzResourcesQueryKey = () => {
-	return [`/api/v1/authz/resources`] as const;
+	return [`/api/v5/authz/resources`] as const;
 };
 
 export const getAuthzResourcesQueryOptions = <

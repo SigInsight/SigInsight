@@ -125,7 +125,7 @@ func TestStatementBuilder(t *testing.T) {
 			expectedErr: nil,
 		},
 		{
-			name:        "legacy httpRoute in group by",
+			name:        "legacy http.route in group by",
 			requestType: qbtypes.RequestTypeTimeSeries,
 			query: qbtypes.QueryBuilderQuery[qbtypes.TraceAggregation]{
 				Signal:       telemetrytypes.SignalTraces,
@@ -142,7 +142,7 @@ func TestStatementBuilder(t *testing.T) {
 				GroupBy: []qbtypes.GroupByKey{
 					{
 						TelemetryFieldKey: telemetrytypes.TelemetryFieldKey{
-							Name:          "httpRoute",
+							Name:          "http.route",
 							FieldDataType: telemetrytypes.FieldDataTypeString,
 							FieldContext:  telemetrytypes.FieldContextAttribute,
 						},
@@ -150,46 +150,8 @@ func TestStatementBuilder(t *testing.T) {
 				},
 			},
 			expected: qbtypes.Statement{
-				Query: "WITH __resource_filter AS (SELECT fingerprint FROM signoz_traces.traces_v3_resource WHERE (simpleJSONExtractString(labels, 'service.name') = ? AND labels LIKE ? AND labels LIKE ?) AND seen_at_ts_bucket_start >= ? AND seen_at_ts_bucket_start <= ?), __limit_cte AS (SELECT toString(multiIf(attribute_string_http$$route <> ?, attribute_string_http$$route, NULL)) AS `httpRoute`, count() AS __result_0 FROM signoz_traces.signoz_index_v3 WHERE resource_fingerprint GLOBAL IN (SELECT fingerprint FROM __resource_filter) AND true AND timestamp >= ? AND timestamp < ? AND ts_bucket_start >= ? AND ts_bucket_start <= ? GROUP BY `httpRoute` ORDER BY __result_0 DESC LIMIT ?) SELECT toStartOfInterval(timestamp, INTERVAL 30 SECOND) AS ts, toString(multiIf(attribute_string_http$$route <> ?, attribute_string_http$$route, NULL)) AS `httpRoute`, count() AS __result_0 FROM signoz_traces.signoz_index_v3 WHERE resource_fingerprint GLOBAL IN (SELECT fingerprint FROM __resource_filter) AND true AND timestamp >= ? AND timestamp < ? AND ts_bucket_start >= ? AND ts_bucket_start <= ? AND (`httpRoute`) GLOBAL IN (SELECT `httpRoute` FROM __limit_cte) GROUP BY ts, `httpRoute`",
+				Query: "WITH __resource_filter AS (SELECT fingerprint FROM signoz_traces.traces_v3_resource WHERE (simpleJSONExtractString(labels, 'service.name') = ? AND labels LIKE ? AND labels LIKE ?) AND seen_at_ts_bucket_start >= ? AND seen_at_ts_bucket_start <= ?), __limit_cte AS (SELECT toString(multiIf(attribute_string_http$$route <> ?, attribute_string_http$$route, NULL)) AS `http.route`, count() AS __result_0 FROM signoz_traces.signoz_index_v3 WHERE resource_fingerprint GLOBAL IN (SELECT fingerprint FROM __resource_filter) AND true AND timestamp >= ? AND timestamp < ? AND ts_bucket_start >= ? AND ts_bucket_start <= ? GROUP BY `http.route` ORDER BY __result_0 DESC LIMIT ?) SELECT toStartOfInterval(timestamp, INTERVAL 30 SECOND) AS ts, toString(multiIf(attribute_string_http$$route <> ?, attribute_string_http$$route, NULL)) AS `http.route`, count() AS __result_0 FROM signoz_traces.signoz_index_v3 WHERE resource_fingerprint GLOBAL IN (SELECT fingerprint FROM __resource_filter) AND true AND timestamp >= ? AND timestamp < ? AND ts_bucket_start >= ? AND ts_bucket_start <= ? AND (`http.route`) GLOBAL IN (SELECT `http.route` FROM __limit_cte) GROUP BY ts, `http.route`",
 				Args:  []any{"redis-manual", "%service.name%", "%service.name\":\"redis-manual%", uint64(1747945619), uint64(1747983448), "", "1747947419000000000", "1747983448000000000", uint64(1747945619), uint64(1747983448), 10, "", "1747947419000000000", "1747983448000000000", uint64(1747945619), uint64(1747983448)},
-			},
-			expectedErr: nil,
-		},
-		{
-			name:        "legacy fields in search and group by",
-			requestType: qbtypes.RequestTypeTimeSeries,
-			query: qbtypes.QueryBuilderQuery[qbtypes.TraceAggregation]{
-				Signal:       telemetrytypes.SignalTraces,
-				StepInterval: qbtypes.Step{Duration: 30 * time.Second},
-				Aggregations: []qbtypes.TraceAggregation{
-					{
-						Expression: "count()",
-					},
-				},
-				Filter: &qbtypes.Filter{
-					Expression: "serviceName = $service.name AND httpMethod EXISTS AND spanKind = 'Server'",
-				},
-				Limit: 10,
-				GroupBy: []qbtypes.GroupByKey{
-					{
-						TelemetryFieldKey: telemetrytypes.TelemetryFieldKey{
-							Name:          "httpRoute",
-							FieldDataType: telemetrytypes.FieldDataTypeString,
-							FieldContext:  telemetrytypes.FieldContextAttribute,
-						},
-					},
-					{
-						TelemetryFieldKey: telemetrytypes.TelemetryFieldKey{
-							Name:          "httpMethod",
-							FieldDataType: telemetrytypes.FieldDataTypeString,
-							FieldContext:  telemetrytypes.FieldContextAttribute,
-						},
-					},
-				},
-			},
-			expected: qbtypes.Statement{
-				Query: "WITH __resource_filter AS (SELECT fingerprint FROM signoz_traces.traces_v3_resource WHERE true AND seen_at_ts_bucket_start >= ? AND seen_at_ts_bucket_start <= ?), __limit_cte AS (SELECT toString(multiIf(attribute_string_http$$route <> ?, attribute_string_http$$route, NULL)) AS `httpRoute`, toString(multiIf(http_method <> ?, http_method, NULL)) AS `httpMethod`, count() AS __result_0 FROM signoz_traces.signoz_index_v3 WHERE resource_fingerprint GLOBAL IN (SELECT fingerprint FROM __resource_filter) AND ((resource_string_service$$name = ? AND resource_string_service$$name <> ?) AND http_method <> ? AND kind_string = ?) AND timestamp >= ? AND timestamp < ? AND ts_bucket_start >= ? AND ts_bucket_start <= ? GROUP BY `httpRoute`, `httpMethod` ORDER BY __result_0 DESC LIMIT ?) SELECT toStartOfInterval(timestamp, INTERVAL 30 SECOND) AS ts, toString(multiIf(attribute_string_http$$route <> ?, attribute_string_http$$route, NULL)) AS `httpRoute`, toString(multiIf(http_method <> ?, http_method, NULL)) AS `httpMethod`, count() AS __result_0 FROM signoz_traces.signoz_index_v3 WHERE resource_fingerprint GLOBAL IN (SELECT fingerprint FROM __resource_filter) AND ((resource_string_service$$name = ? AND resource_string_service$$name <> ?) AND http_method <> ? AND kind_string = ?) AND timestamp >= ? AND timestamp < ? AND ts_bucket_start >= ? AND ts_bucket_start <= ? AND (`httpRoute`, `httpMethod`) GLOBAL IN (SELECT `httpRoute`, `httpMethod` FROM __limit_cte) GROUP BY ts, `httpRoute`, `httpMethod`",
-				Args:  []any{uint64(1747945619), uint64(1747983448), "", "", "redis-manual", "", "", "Server", "1747947419000000000", "1747983448000000000", uint64(1747945619), uint64(1747983448), 10, "", "", "redis-manual", "", "", "Server", "1747947419000000000", "1747983448000000000", uint64(1747945619), uint64(1747983448)},
 			},
 			expectedErr: nil,
 		},
@@ -320,7 +282,7 @@ func TestStatementBuilder(t *testing.T) {
 				GroupBy: []qbtypes.GroupByKey{
 					{
 						TelemetryFieldKey: telemetrytypes.TelemetryFieldKey{
-							Name:          "responseStatusCode",
+							Name:          "response_status_code",
 							FieldContext:  telemetrytypes.FieldContextAttribute,
 							FieldDataType: telemetrytypes.FieldDataTypeString,
 						},
@@ -328,7 +290,7 @@ func TestStatementBuilder(t *testing.T) {
 				},
 			},
 			expected: qbtypes.Statement{
-				Query: "WITH __resource_filter AS (SELECT fingerprint FROM signoz_traces.traces_v3_resource WHERE (simpleJSONExtractString(labels, 'service.name') = ? AND labels LIKE ? AND labels LIKE ?) AND seen_at_ts_bucket_start >= ? AND seen_at_ts_bucket_start <= ?), __limit_cte AS (SELECT toString(multiIf(response_status_code <> ?, response_status_code, NULL)) AS `responseStatusCode`, count() AS __result_0 FROM signoz_traces.signoz_index_v3 WHERE resource_fingerprint GLOBAL IN (SELECT fingerprint FROM __resource_filter) AND true AND timestamp >= ? AND timestamp < ? AND ts_bucket_start >= ? AND ts_bucket_start <= ? GROUP BY `responseStatusCode` ORDER BY __result_0 DESC LIMIT ?) SELECT toStartOfInterval(timestamp, INTERVAL 30 SECOND) AS ts, toString(multiIf(response_status_code <> ?, response_status_code, NULL)) AS `responseStatusCode`, count() AS __result_0 FROM signoz_traces.signoz_index_v3 WHERE resource_fingerprint GLOBAL IN (SELECT fingerprint FROM __resource_filter) AND true AND timestamp >= ? AND timestamp < ? AND ts_bucket_start >= ? AND ts_bucket_start <= ? AND (`responseStatusCode`) GLOBAL IN (SELECT `responseStatusCode` FROM __limit_cte) GROUP BY ts, `responseStatusCode`",
+				Query: "WITH __resource_filter AS (SELECT fingerprint FROM signoz_traces.traces_v3_resource WHERE (simpleJSONExtractString(labels, 'service.name') = ? AND labels LIKE ? AND labels LIKE ?) AND seen_at_ts_bucket_start >= ? AND seen_at_ts_bucket_start <= ?), __limit_cte AS (SELECT toString(multiIf(response_status_code <> ?, response_status_code, NULL)) AS `response_status_code`, count() AS __result_0 FROM signoz_traces.signoz_index_v3 WHERE resource_fingerprint GLOBAL IN (SELECT fingerprint FROM __resource_filter) AND true AND timestamp >= ? AND timestamp < ? AND ts_bucket_start >= ? AND ts_bucket_start <= ? GROUP BY `response_status_code` ORDER BY __result_0 DESC LIMIT ?) SELECT toStartOfInterval(timestamp, INTERVAL 30 SECOND) AS ts, toString(multiIf(response_status_code <> ?, response_status_code, NULL)) AS `response_status_code`, count() AS __result_0 FROM signoz_traces.signoz_index_v3 WHERE resource_fingerprint GLOBAL IN (SELECT fingerprint FROM __resource_filter) AND true AND timestamp >= ? AND timestamp < ? AND ts_bucket_start >= ? AND ts_bucket_start <= ? AND (`response_status_code`) GLOBAL IN (SELECT `response_status_code` FROM __limit_cte) GROUP BY ts, `response_status_code`",
 				Args:  []any{"redis-manual", "%service.name%", "%service.name\":\"redis-manual%", uint64(1747945619), uint64(1747983448), "", "1747947419000000000", "1747983448000000000", uint64(1747945619), uint64(1747983448), 10, "", "1747947419000000000", "1747983448000000000", uint64(1747945619), uint64(1747983448)},
 			},
 			expectedErr: nil,
@@ -341,7 +303,7 @@ func TestStatementBuilder(t *testing.T) {
 				StepInterval: qbtypes.Step{Duration: 30 * time.Second},
 				Aggregations: []qbtypes.TraceAggregation{
 					{
-						Expression: "p90(durationNano)",
+						Expression: "p90(duration_nano)",
 					},
 				},
 				Filter: &qbtypes.Filter{
@@ -351,7 +313,7 @@ func TestStatementBuilder(t *testing.T) {
 				GroupBy: []qbtypes.GroupByKey{
 					{
 						TelemetryFieldKey: telemetrytypes.TelemetryFieldKey{
-							Name:          "responseStatusCode",
+							Name:          "response_status_code",
 							FieldContext:  telemetrytypes.FieldContextAttribute,
 							FieldDataType: telemetrytypes.FieldDataTypeString,
 						},
@@ -359,7 +321,7 @@ func TestStatementBuilder(t *testing.T) {
 				},
 			},
 			expected: qbtypes.Statement{
-				Query: "WITH __resource_filter AS (SELECT fingerprint FROM signoz_traces.traces_v3_resource WHERE (simpleJSONExtractString(labels, 'service.name') = ? AND labels LIKE ? AND labels LIKE ?) AND seen_at_ts_bucket_start >= ? AND seen_at_ts_bucket_start <= ?), __limit_cte AS (SELECT toString(multiIf(response_status_code <> ?, response_status_code, NULL)) AS `responseStatusCode`, quantile(0.90)(multiIf(duration_nano <> ?, duration_nano, NULL)) AS __result_0 FROM signoz_traces.signoz_index_v3 WHERE resource_fingerprint GLOBAL IN (SELECT fingerprint FROM __resource_filter) AND true AND timestamp >= ? AND timestamp < ? AND ts_bucket_start >= ? AND ts_bucket_start <= ? GROUP BY `responseStatusCode` ORDER BY __result_0 DESC LIMIT ?) SELECT toStartOfInterval(timestamp, INTERVAL 30 SECOND) AS ts, toString(multiIf(response_status_code <> ?, response_status_code, NULL)) AS `responseStatusCode`, quantile(0.90)(multiIf(duration_nano <> ?, duration_nano, NULL)) AS __result_0 FROM signoz_traces.signoz_index_v3 WHERE resource_fingerprint GLOBAL IN (SELECT fingerprint FROM __resource_filter) AND true AND timestamp >= ? AND timestamp < ? AND ts_bucket_start >= ? AND ts_bucket_start <= ? AND (`responseStatusCode`) GLOBAL IN (SELECT `responseStatusCode` FROM __limit_cte) GROUP BY ts, `responseStatusCode`",
+				Query: "WITH __resource_filter AS (SELECT fingerprint FROM signoz_traces.traces_v3_resource WHERE (simpleJSONExtractString(labels, 'service.name') = ? AND labels LIKE ? AND labels LIKE ?) AND seen_at_ts_bucket_start >= ? AND seen_at_ts_bucket_start <= ?), __limit_cte AS (SELECT toString(multiIf(response_status_code <> ?, response_status_code, NULL)) AS `response_status_code`, quantile(0.90)(multiIf(duration_nano <> ?, duration_nano, NULL)) AS __result_0 FROM signoz_traces.signoz_index_v3 WHERE resource_fingerprint GLOBAL IN (SELECT fingerprint FROM __resource_filter) AND true AND timestamp >= ? AND timestamp < ? AND ts_bucket_start >= ? AND ts_bucket_start <= ? GROUP BY `response_status_code` ORDER BY __result_0 DESC LIMIT ?) SELECT toStartOfInterval(timestamp, INTERVAL 30 SECOND) AS ts, toString(multiIf(response_status_code <> ?, response_status_code, NULL)) AS `response_status_code`, quantile(0.90)(multiIf(duration_nano <> ?, duration_nano, NULL)) AS __result_0 FROM signoz_traces.signoz_index_v3 WHERE resource_fingerprint GLOBAL IN (SELECT fingerprint FROM __resource_filter) AND true AND timestamp >= ? AND timestamp < ? AND ts_bucket_start >= ? AND ts_bucket_start <= ? AND (`response_status_code`) GLOBAL IN (SELECT `response_status_code` FROM __limit_cte) GROUP BY ts, `response_status_code`",
 				Args:  []any{"redis-manual", "%service.name%", "%service.name\":\"redis-manual%", uint64(1747945619), uint64(1747983448), "", 0, "1747947419000000000", "1747983448000000000", uint64(1747945619), uint64(1747983448), 10, "", 0, "1747947419000000000", "1747983448000000000", uint64(1747945619), uint64(1747983448)},
 			},
 			expectedErr: nil,
@@ -487,178 +449,6 @@ func TestStatementBuilderListQuery(t *testing.T) {
 				Args:  []any{"redis-manual", "%service.name%", "%service.name\":\"redis-manual%", uint64(1747945619), uint64(1747983448), "1747947419000000000", "1747983448000000000", uint64(1747945619), uint64(1747983448), 10},
 			},
 			expectedErr: nil,
-		},
-		{
-			name:        "List query with legacy fields",
-			requestType: qbtypes.RequestTypeRaw,
-			query: qbtypes.QueryBuilderQuery[qbtypes.TraceAggregation]{
-				Signal:       telemetrytypes.SignalTraces,
-				StepInterval: qbtypes.Step{Duration: 30 * time.Second},
-				Filter: &qbtypes.Filter{
-					Expression: "service.name = 'redis-manual'",
-				},
-				SelectFields: []telemetrytypes.TelemetryFieldKey{
-					{
-						Name:          "name",
-						FieldContext:  telemetrytypes.FieldContextAttribute,
-						FieldDataType: telemetrytypes.FieldDataTypeString,
-					},
-					{
-						Name:          "serviceName",
-						FieldContext:  telemetrytypes.FieldContextAttribute,
-						FieldDataType: telemetrytypes.FieldDataTypeString,
-					},
-					{
-						Name:          "durationNano",
-						FieldContext:  telemetrytypes.FieldContextAttribute,
-						FieldDataType: telemetrytypes.FieldDataTypeNumber,
-					},
-					{
-						Name:          "httpMethod",
-						FieldContext:  telemetrytypes.FieldContextAttribute,
-						FieldDataType: telemetrytypes.FieldDataTypeString,
-					},
-					{
-						Name:          "responseStatusCode",
-						FieldContext:  telemetrytypes.FieldContextAttribute,
-						FieldDataType: telemetrytypes.FieldDataTypeString,
-					},
-				},
-				Limit: 10,
-			},
-			expected: qbtypes.Statement{
-				Query: "WITH __resource_filter AS (SELECT fingerprint FROM signoz_traces.traces_v3_resource WHERE (simpleJSONExtractString(labels, 'service.name') = ? AND labels LIKE ? AND labels LIKE ?) AND seen_at_ts_bucket_start >= ? AND seen_at_ts_bucket_start <= ?) SELECT name AS `name`, resource_string_service$$name AS `serviceName`, duration_nano AS `durationNano`, http_method AS `httpMethod`, response_status_code AS `responseStatusCode`, timestamp AS `timestamp`, span_id AS `span_id`, trace_id AS `trace_id` FROM signoz_traces.signoz_index_v3 WHERE resource_fingerprint GLOBAL IN (SELECT fingerprint FROM __resource_filter) AND true AND timestamp >= ? AND timestamp < ? AND ts_bucket_start >= ? AND ts_bucket_start <= ? LIMIT ?",
-				Args:  []any{"redis-manual", "%service.name%", "%service.name\":\"redis-manual%", uint64(1747945619), uint64(1747983448), "1747947419000000000", "1747983448000000000", uint64(1747945619), uint64(1747983448), 10},
-			},
-			expectedErr: nil,
-		},
-		{
-			name:        "List query with legacy fields with mixed materialization field",
-			requestType: qbtypes.RequestTypeRaw,
-			query: qbtypes.QueryBuilderQuery[qbtypes.TraceAggregation]{
-				Signal:       telemetrytypes.SignalTraces,
-				StepInterval: qbtypes.Step{Duration: 30 * time.Second},
-				Filter: &qbtypes.Filter{
-					Expression: "service.name = 'redis-manual'",
-				},
-				SelectFields: []telemetrytypes.TelemetryFieldKey{
-					{
-						Name:          "name",
-						FieldContext:  telemetrytypes.FieldContextAttribute,
-						FieldDataType: telemetrytypes.FieldDataTypeString,
-					},
-					{
-						Name:          "serviceName",
-						FieldContext:  telemetrytypes.FieldContextAttribute,
-						FieldDataType: telemetrytypes.FieldDataTypeString,
-					},
-					{
-						Name:          "durationNano",
-						FieldContext:  telemetrytypes.FieldContextAttribute,
-						FieldDataType: telemetrytypes.FieldDataTypeNumber,
-					},
-					{
-						Name:          "httpMethod",
-						FieldContext:  telemetrytypes.FieldContextAttribute,
-						FieldDataType: telemetrytypes.FieldDataTypeString,
-					},
-					{
-						// "mixed.materialization.key" exists in both attribute and resource,
-						// attribute being materialized and resource being non-materialized.
-						Name: "mixed.materialization.key",
-					},
-				},
-				Limit: 10,
-			},
-			expected: qbtypes.Statement{
-				Query: "WITH __resource_filter AS (SELECT fingerprint FROM signoz_traces.traces_v3_resource WHERE (simpleJSONExtractString(labels, 'service.name') = ? AND labels LIKE ? AND labels LIKE ?) AND seen_at_ts_bucket_start >= ? AND seen_at_ts_bucket_start <= ?) SELECT name AS `name`, resource_string_service$$name AS `serviceName`, duration_nano AS `durationNano`, http_method AS `httpMethod`, multiIf(toString(`attribute_string_mixed$$materialization$$key`) != '', toString(`attribute_string_mixed$$materialization$$key`), toString(multiIf(resource.`mixed.materialization.key` IS NOT NULL, resource.`mixed.materialization.key`::String, mapContains(resources_string, 'mixed.materialization.key'), resources_string['mixed.materialization.key'], NULL)) != '', toString(multiIf(resource.`mixed.materialization.key` IS NOT NULL, resource.`mixed.materialization.key`::String, mapContains(resources_string, 'mixed.materialization.key'), resources_string['mixed.materialization.key'], NULL)), NULL) AS `mixed.materialization.key`, timestamp AS `timestamp`, span_id AS `span_id`, trace_id AS `trace_id` FROM signoz_traces.signoz_index_v3 WHERE resource_fingerprint GLOBAL IN (SELECT fingerprint FROM __resource_filter) AND true AND timestamp >= ? AND timestamp < ? AND ts_bucket_start >= ? AND ts_bucket_start <= ? LIMIT ?",
-				Args:  []any{"redis-manual", "%service.name%", "%service.name\":\"redis-manual%", uint64(1747945619), uint64(1747983448), "1747947419000000000", "1747983448000000000", uint64(1747945619), uint64(1747983448), 10},
-			},
-			expectedErr: nil,
-		},
-		{
-			name:        "List query with legacy fields with mixed materialization field with context provided",
-			requestType: qbtypes.RequestTypeRaw,
-			query: qbtypes.QueryBuilderQuery[qbtypes.TraceAggregation]{
-				Signal:       telemetrytypes.SignalTraces,
-				StepInterval: qbtypes.Step{Duration: 30 * time.Second},
-				Filter: &qbtypes.Filter{
-					Expression: "service.name = 'redis-manual'",
-				},
-				SelectFields: []telemetrytypes.TelemetryFieldKey{
-					{
-						Name:          "name",
-						FieldContext:  telemetrytypes.FieldContextAttribute,
-						FieldDataType: telemetrytypes.FieldDataTypeString,
-					},
-					{
-						Name:          "serviceName",
-						FieldContext:  telemetrytypes.FieldContextAttribute,
-						FieldDataType: telemetrytypes.FieldDataTypeString,
-					},
-					{
-						Name:          "durationNano",
-						FieldContext:  telemetrytypes.FieldContextAttribute,
-						FieldDataType: telemetrytypes.FieldDataTypeNumber,
-					},
-					{
-						Name:          "httpMethod",
-						FieldContext:  telemetrytypes.FieldContextAttribute,
-						FieldDataType: telemetrytypes.FieldDataTypeString,
-					},
-					{
-						// "mixed.materialization.key" exists in both attribute and resource,
-						// attribute being materialized and resource being non-materialized.
-						Name:         "mixed.materialization.key",
-						FieldContext: telemetrytypes.FieldContextAttribute,
-					},
-				},
-				Limit: 10,
-			},
-			expected: qbtypes.Statement{
-				Query: "WITH __resource_filter AS (SELECT fingerprint FROM signoz_traces.traces_v3_resource WHERE (simpleJSONExtractString(labels, 'service.name') = ? AND labels LIKE ? AND labels LIKE ?) AND seen_at_ts_bucket_start >= ? AND seen_at_ts_bucket_start <= ?) SELECT name AS `name`, resource_string_service$$name AS `serviceName`, duration_nano AS `durationNano`, http_method AS `httpMethod`, `attribute_string_mixed$$materialization$$key` AS `mixed.materialization.key`, timestamp AS `timestamp`, span_id AS `span_id`, trace_id AS `trace_id` FROM signoz_traces.signoz_index_v3 WHERE resource_fingerprint GLOBAL IN (SELECT fingerprint FROM __resource_filter) AND true AND timestamp >= ? AND timestamp < ? AND ts_bucket_start >= ? AND ts_bucket_start <= ? LIMIT ?",
-				Args:  []any{"redis-manual", "%service.name%", "%service.name\":\"redis-manual%", uint64(1747945619), uint64(1747983448), "1747947419000000000", "1747983448000000000", uint64(1747945619), uint64(1747983448), 10},
-			},
-			expectedErr: nil,
-		},
-		{
-			name:        "List query with legacy fields with field that doesn't exist",
-			requestType: qbtypes.RequestTypeRaw,
-			query: qbtypes.QueryBuilderQuery[qbtypes.TraceAggregation]{
-				Signal:       telemetrytypes.SignalTraces,
-				StepInterval: qbtypes.Step{Duration: 30 * time.Second},
-				Filter: &qbtypes.Filter{
-					Expression: "service.name = 'redis-manual'",
-				},
-				SelectFields: []telemetrytypes.TelemetryFieldKey{
-					{
-						Name:          "name",
-						FieldContext:  telemetrytypes.FieldContextAttribute,
-						FieldDataType: telemetrytypes.FieldDataTypeString,
-					},
-					{
-						Name:          "serviceName",
-						FieldContext:  telemetrytypes.FieldContextAttribute,
-						FieldDataType: telemetrytypes.FieldDataTypeString,
-					},
-					{
-						Name:          "durationNano",
-						FieldContext:  telemetrytypes.FieldContextAttribute,
-						FieldDataType: telemetrytypes.FieldDataTypeNumber,
-					},
-					{
-						Name:          "httpMethod",
-						FieldContext:  telemetrytypes.FieldContextAttribute,
-						FieldDataType: telemetrytypes.FieldDataTypeString,
-					},
-					{
-						Name: "non-existent.key",
-					},
-				},
-				Limit: 10,
-			},
-			expected:    qbtypes.Statement{},
-			expectedErr: errors.NewInvalidInputf(errors.CodeInvalidInput, "field not found"),
 		},
 	}
 
@@ -908,20 +698,16 @@ func TestStatementBuilderTraceQuery(t *testing.T) {
 			expectedErr: nil,
 		},
 		{
-			name:        "list query with deprecated filter field",
+			name:        "reject deprecated filter field",
 			requestType: qbtypes.RequestTypeTrace,
 			query: qbtypes.QueryBuilderQuery[qbtypes.TraceAggregation]{
 				Signal: telemetrytypes.SignalTraces,
 				Filter: &qbtypes.Filter{
-					Expression: "kind = 2 or spanKind = 'Server'",
+					Expression: "kind = 2 or kind_string = 'Server'",
 				},
 				Limit: 10,
 			},
-			expected: qbtypes.Statement{
-				Query: "WITH __resource_filter AS (SELECT fingerprint FROM signoz_traces.traces_v3_resource WHERE true AND seen_at_ts_bucket_start >= ? AND seen_at_ts_bucket_start <= ?), __toe AS (SELECT trace_id FROM signoz_traces.signoz_index_v3 WHERE resource_fingerprint GLOBAL IN (SELECT fingerprint FROM __resource_filter) AND (toFloat64(kind) = ? OR kind_string = ?) AND timestamp >= ? AND timestamp < ? AND ts_bucket_start >= ? AND ts_bucket_start <= ?), __toe_duration_sorted AS (SELECT trace_id, duration_nano, resource_string_service$$name as `service.name`, name FROM signoz_traces.signoz_index_v3 WHERE parent_span_id = '' AND trace_id GLOBAL IN __toe AND timestamp >= ? AND timestamp < ? AND ts_bucket_start >= ? AND ts_bucket_start <= ? ORDER BY duration_nano DESC LIMIT 1 BY trace_id) SELECT __toe_duration_sorted.`service.name` AS `service.name`, __toe_duration_sorted.name AS `name`, count() AS span_count, __toe_duration_sorted.duration_nano AS `duration_nano`, __toe_duration_sorted.trace_id AS `trace_id` FROM __toe INNER JOIN __toe_duration_sorted ON __toe.trace_id = __toe_duration_sorted.trace_id GROUP BY trace_id, duration_nano, name, `service.name` ORDER BY duration_nano DESC LIMIT 1 BY trace_id LIMIT ? SETTINGS max_memory_usage=10000000000",
-				Args:  []any{uint64(1747945619), uint64(1747983448), float64(2), "Server", "1747947419000000000", "1747983448000000000", uint64(1747945619), uint64(1747983448), "1747947419000000000", "1747983448000000000", uint64(1747945619), uint64(1747983448), 10},
-			},
-			expectedErr: nil,
+			expectedErr: errors.NewInvalidInputf(errors.CodeInvalidInput, "Found 1 errors while parsing the search expression."),
 		},
 	}
 
@@ -1178,13 +964,12 @@ func TestAdjustKey(t *testing.T) {
 
 func TestAdjustKeys(t *testing.T) {
 	cases := []struct {
-		name                      string
-		query                     qbtypes.QueryBuilderQuery[qbtypes.TraceAggregation]
-		keysMap                   map[string][]*telemetrytypes.TelemetryFieldKey
-		expectedSelectFields      []telemetrytypes.TelemetryFieldKey
-		expectedGroupBy           []qbtypes.GroupByKey
-		expectedOrder             []qbtypes.OrderBy
-		expectDeprecatedFieldsAdd bool
+		name                 string
+		query                qbtypes.QueryBuilderQuery[qbtypes.TraceAggregation]
+		keysMap              map[string][]*telemetrytypes.TelemetryFieldKey
+		expectedSelectFields []telemetrytypes.TelemetryFieldKey
+		expectedGroupBy      []qbtypes.GroupByKey
+		expectedOrder        []qbtypes.OrderBy
 	}{
 		{
 			name: "adjust select fields",
@@ -1217,7 +1002,6 @@ func TestAdjustKeys(t *testing.T) {
 					Materialized:  true,
 				},
 			},
-			expectDeprecatedFieldsAdd: true,
 		},
 		{
 			name: "adjust group by fields",
@@ -1258,7 +1042,6 @@ func TestAdjustKeys(t *testing.T) {
 					},
 				},
 			},
-			expectDeprecatedFieldsAdd: true,
 		},
 		{
 			name: "adjust order by fields",
@@ -1311,7 +1094,6 @@ func TestAdjustKeys(t *testing.T) {
 					Direction: qbtypes.OrderDirectionDesc,
 				},
 			},
-			expectDeprecatedFieldsAdd: true,
 		},
 		{
 			name: "adjust all field types together",
@@ -1377,7 +1159,6 @@ func TestAdjustKeys(t *testing.T) {
 					Direction: qbtypes.OrderDirectionDesc,
 				},
 			},
-			expectDeprecatedFieldsAdd: true,
 		},
 		{
 			name: "adjust keys for alias expressions in aggregations - order by",
@@ -1414,7 +1195,6 @@ func TestAdjustKeys(t *testing.T) {
 					Direction: qbtypes.OrderDirectionDesc,
 				},
 			},
-			expectDeprecatedFieldsAdd: true,
 		},
 	}
 
@@ -1480,26 +1260,6 @@ func TestAdjustKeys(t *testing.T) {
 				}
 			}
 
-			// Verify deprecated fields were added to the keys map
-			if c.expectDeprecatedFieldsAdd {
-				// Check that at least some deprecated fields were added
-				foundDeprecatedField := false
-				for fieldName := range IntrinsicFieldsDeprecated {
-					if _, ok := keysMapCopy[fieldName]; ok {
-						foundDeprecatedField = true
-						break
-					}
-				}
-				if !foundDeprecatedField {
-					for fieldName := range CalculatedFieldsDeprecated {
-						if _, ok := keysMapCopy[fieldName]; ok {
-							foundDeprecatedField = true
-							break
-						}
-					}
-				}
-				require.True(t, foundDeprecatedField, "at least one deprecated field should be added to keys map")
-			}
 		})
 	}
 }

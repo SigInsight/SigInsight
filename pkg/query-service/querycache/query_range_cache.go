@@ -3,6 +3,7 @@ package querycache
 import (
 	"context"
 	"encoding/json"
+	"github.com/SigNoz/signoz/pkg/types/timeseriestypes"
 	"math"
 	"sort"
 	"time"
@@ -11,7 +12,6 @@ import (
 
 	"github.com/SigNoz/signoz/pkg/cache"
 	"github.com/SigNoz/signoz/pkg/errors"
-	v3 "github.com/SigNoz/signoz/pkg/query-service/model/v3"
 
 	"github.com/SigNoz/signoz/pkg/query-service/utils/labels"
 	"github.com/SigNoz/signoz/pkg/types/cachetypes"
@@ -28,9 +28,9 @@ type MissInterval struct {
 }
 
 type CachedSeriesData struct {
-	Start int64        `json:"start"`
-	End   int64        `json:"end"`
-	Data  []*v3.Series `json:"data"`
+	Start int64                     `json:"start"`
+	End   int64                     `json:"end"`
+	Data  []*timeseriestypes.Series `json:"data"`
 }
 
 var _ cachetypes.Cacheable = (*CacheableSeriesData)(nil)
@@ -249,10 +249,10 @@ func (q *queryCache) getCachedSeriesData(orgID valuer.UUID, cacheKey string) []*
 	return cachedSeriesData
 }
 
-func (q *queryCache) mergeSeries(cachedSeries, missedSeries []*v3.Series) []*v3.Series {
+func (q *queryCache) mergeSeries(cachedSeries, missedSeries []*timeseriestypes.Series) []*timeseriestypes.Series {
 	// Merge the missed series with the cached series by timestamp
-	mergedSeries := make([]*v3.Series, 0)
-	seriesesByLabels := make(map[uint64]*v3.Series)
+	mergedSeries := make([]*timeseriestypes.Series, 0)
+	seriesesByLabels := make(map[uint64]*timeseriestypes.Series)
 	for idx := range cachedSeries {
 		series := cachedSeries[idx]
 		seriesesByLabels[labels.FromMap(series.Labels).Hash()] = series

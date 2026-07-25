@@ -685,23 +685,23 @@ func (_c *MockAlertmanager_DeleteRoutePolicyByID_Call) RunAndReturn(run func(ctx
 }
 
 // GetAlerts provides a mock function for the type MockAlertmanager
-func (_mock *MockAlertmanager) GetAlerts(context1 context.Context, s string, gettableAlertsParams alertmanagertypes.GettableAlertsParams) (alertmanagertypes.DeprecatedGettableAlerts, error) {
+func (_mock *MockAlertmanager) GetAlerts(context1 context.Context, s string, gettableAlertsParams alertmanagertypes.GettableAlertsParams) (alertmanagertypes.GettableAlerts, error) {
 	ret := _mock.Called(context1, s, gettableAlertsParams)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetAlerts")
 	}
 
-	var r0 alertmanagertypes.DeprecatedGettableAlerts
+	var r0 alertmanagertypes.GettableAlerts
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, alertmanagertypes.GettableAlertsParams) (alertmanagertypes.DeprecatedGettableAlerts, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, alertmanagertypes.GettableAlertsParams) (alertmanagertypes.GettableAlerts, error)); ok {
 		return returnFunc(context1, s, gettableAlertsParams)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, alertmanagertypes.GettableAlertsParams) alertmanagertypes.DeprecatedGettableAlerts); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, alertmanagertypes.GettableAlertsParams) alertmanagertypes.GettableAlerts); ok {
 		r0 = returnFunc(context1, s, gettableAlertsParams)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(alertmanagertypes.DeprecatedGettableAlerts)
+			r0 = ret.Get(0).(alertmanagertypes.GettableAlerts)
 		}
 	}
 	if returnFunc, ok := ret.Get(1).(func(context.Context, string, alertmanagertypes.GettableAlertsParams) error); ok {
@@ -748,12 +748,12 @@ func (_c *MockAlertmanager_GetAlerts_Call) Run(run func(context1 context.Context
 	return _c
 }
 
-func (_c *MockAlertmanager_GetAlerts_Call) Return(v alertmanagertypes.DeprecatedGettableAlerts, err error) *MockAlertmanager_GetAlerts_Call {
+func (_c *MockAlertmanager_GetAlerts_Call) Return(v alertmanagertypes.GettableAlerts, err error) *MockAlertmanager_GetAlerts_Call {
 	_c.Call.Return(v, err)
 	return _c
 }
 
-func (_c *MockAlertmanager_GetAlerts_Call) RunAndReturn(run func(context1 context.Context, s string, gettableAlertsParams alertmanagertypes.GettableAlertsParams) (alertmanagertypes.DeprecatedGettableAlerts, error)) *MockAlertmanager_GetAlerts_Call {
+func (_c *MockAlertmanager_GetAlerts_Call) RunAndReturn(run func(context1 context.Context, s string, gettableAlertsParams alertmanagertypes.GettableAlertsParams) (alertmanagertypes.GettableAlerts, error)) *MockAlertmanager_GetAlerts_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1026,68 +1026,6 @@ func (_c *MockAlertmanager_GetRoutePolicyByID_Call) Return(gettableRoutePolicy *
 }
 
 func (_c *MockAlertmanager_GetRoutePolicyByID_Call) RunAndReturn(run func(ctx context.Context, routeID string) (*alertmanagertypes.GettableRoutePolicy, error)) *MockAlertmanager_GetRoutePolicyByID_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// ListAllChannels provides a mock function for the type MockAlertmanager
-func (_mock *MockAlertmanager) ListAllChannels(context1 context.Context) ([]*alertmanagertypes.Channel, error) {
-	ret := _mock.Called(context1)
-
-	if len(ret) == 0 {
-		panic("no return value specified for ListAllChannels")
-	}
-
-	var r0 []*alertmanagertypes.Channel
-	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context) ([]*alertmanagertypes.Channel, error)); ok {
-		return returnFunc(context1)
-	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context) []*alertmanagertypes.Channel); ok {
-		r0 = returnFunc(context1)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*alertmanagertypes.Channel)
-		}
-	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context) error); ok {
-		r1 = returnFunc(context1)
-	} else {
-		r1 = ret.Error(1)
-	}
-	return r0, r1
-}
-
-// MockAlertmanager_ListAllChannels_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListAllChannels'
-type MockAlertmanager_ListAllChannels_Call struct {
-	*mock.Call
-}
-
-// ListAllChannels is a helper method to define mock.On call
-//   - context1 context.Context
-func (_e *MockAlertmanager_Expecter) ListAllChannels(context1 interface{}) *MockAlertmanager_ListAllChannels_Call {
-	return &MockAlertmanager_ListAllChannels_Call{Call: _e.mock.On("ListAllChannels", context1)}
-}
-
-func (_c *MockAlertmanager_ListAllChannels_Call) Run(run func(context1 context.Context)) *MockAlertmanager_ListAllChannels_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		run(
-			arg0,
-		)
-	})
-	return _c
-}
-
-func (_c *MockAlertmanager_ListAllChannels_Call) Return(channels []*alertmanagertypes.Channel, err error) *MockAlertmanager_ListAllChannels_Call {
-	_c.Call.Return(channels, err)
-	return _c
-}
-
-func (_c *MockAlertmanager_ListAllChannels_Call) RunAndReturn(run func(context1 context.Context) ([]*alertmanagertypes.Channel, error)) *MockAlertmanager_ListAllChannels_Call {
 	_c.Call.Return(run)
 	return _c
 }

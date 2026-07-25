@@ -4,7 +4,7 @@ import { Typography } from 'antd';
 import { ExecStats } from 'api/v5/v5';
 import { PrecisionOption, PrecisionOptionsEnum } from 'components/Graph/types';
 import { PANEL_TYPES, PanelDisplay } from 'constants/queryBuilder';
-import { PanelTypesWithData } from 'container/DashboardContainer/PanelTypeSelectionModal/menuItems';
+import { PanelTypesWithData } from 'container/PanelWrapper/panelTypes';
 import { useDashboardVariables } from 'hooks/dashboard/useDashboardVariables';
 import useCreateAlerts from 'hooks/queryBuilder/useCreateAlerts';
 import {
@@ -196,7 +196,7 @@ function RightContainer({
 	const stepInterval = useMemo(() => {
 		const stepIntervals: ExecStats['stepIntervals'] = get(
 			queryResponse,
-			'data.payload.data.newResult.meta.stepIntervals',
+			'data.payload.data.queryResult.meta.stepIntervals',
 			{},
 		);
 		return Math.min(...Object.values(stepIntervals));

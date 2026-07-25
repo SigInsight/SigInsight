@@ -17,7 +17,7 @@ def test_change_password(
 
     # Create another admin user
     response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v1/invite"),
+        signoz.self.host_configs["8080"].get("/api/v5/invite"),
         json={"email": "admin+password@integration.test", "role": "ADMIN"},
         timeout=2,
         headers={"Authorization": f"Bearer {admin_token}"},
@@ -28,7 +28,7 @@ def test_change_password(
 
     # Reset password to activate user
     response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v1/resetPassword"),
+        signoz.self.host_configs["8080"].get("/api/v5/resetPassword"),
         json={"password": "password123Z$", "token": reset_token},
         timeout=2,
     )
@@ -36,7 +36,7 @@ def test_change_password(
 
     # Get the user id
     response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v1/user"),
+        signoz.self.host_configs["8080"].get("/api/v5/users"),
         timeout=2,
         headers={"Authorization": f"Bearer {admin_token}"},
     )
@@ -60,7 +60,7 @@ def test_change_password(
     # Try changing the password with a bad old password which should fail
     response = requests.post(
         signoz.self.host_configs["8080"].get(
-            f"/api/v1/changePassword/{found_user['id']}"
+            f"/api/v5/changePassword/{found_user['id']}"
         ),
         json={
             "userId": f"{found_user['id']}",
@@ -76,7 +76,7 @@ def test_change_password(
     # Try changing the password with a good old password
     response = requests.post(
         signoz.self.host_configs["8080"].get(
-            f"/api/v1/changePassword/{found_user['id']}"
+            f"/api/v5/changePassword/{found_user['id']}"
         ),
         json={
             "userId": f"{found_user['id']}",
@@ -101,7 +101,7 @@ def test_reset_password(
 
     # Get the user id for admin+password@integration.test
     response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v1/user"),
+        signoz.self.host_configs["8080"].get("/api/v5/users"),
         timeout=2,
         headers={"Authorization": f"Bearer {admin_token}"},
     )
@@ -120,7 +120,7 @@ def test_reset_password(
 
     response = requests.get(
         signoz.self.host_configs["8080"].get(
-            f"/api/v1/getResetPasswordToken/{found_user['id']}"
+            f"/api/v5/getResetPasswordToken/{found_user['id']}"
         ),
         headers={"Authorization": f"Bearer {admin_token}"},
         timeout=2,
@@ -132,7 +132,7 @@ def test_reset_password(
 
     # Reset the password with a bad password which should fail
     response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v1/resetPassword"),
+        signoz.self.host_configs["8080"].get("/api/v5/resetPassword"),
         json={"password": "password", "token": token},
         timeout=2,
     )
@@ -141,7 +141,7 @@ def test_reset_password(
 
     # Reset the password with a good password
     response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v1/resetPassword"),
+        signoz.self.host_configs["8080"].get("/api/v5/resetPassword"),
         json={"password": "password123Z$NEWNEW#!", "token": token},
         timeout=2,
     )
@@ -159,7 +159,7 @@ def test_reset_password_with_no_password(
 
     # Get the user id for admin+password@integration.test
     response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v1/user"),
+        signoz.self.host_configs["8080"].get("/api/v5/users"),
         timeout=2,
         headers={"Authorization": f"Bearer {admin_token}"},
     )
@@ -186,7 +186,7 @@ def test_reset_password_with_no_password(
     # Generate a new reset password token
     response = requests.get(
         signoz.self.host_configs["8080"].get(
-            f"/api/v1/getResetPasswordToken/{found_user['id']}"
+            f"/api/v5/getResetPasswordToken/{found_user['id']}"
         ),
         headers={"Authorization": f"Bearer {admin_token}"},
         timeout=2,
@@ -198,7 +198,7 @@ def test_reset_password_with_no_password(
 
     # Reset the password with a good password
     response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v1/resetPassword"),
+        signoz.self.host_configs["8080"].get("/api/v5/resetPassword"),
         json={"password": "FINALPASSword123!#[", "token": token},
         timeout=2,
     )
@@ -218,7 +218,7 @@ def test_forgot_password_returns_204_for_nonexistent_email(
     """
     # Get org ID first (needed for the forgot password request)
     response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v2/sessions/context"),
+        signoz.self.host_configs["8080"].get("/api/v5/sessions/context"),
         params={
             "email": "admin@integration.test",
             "ref": f"{signoz.self.host_configs['8080'].base()}",
@@ -230,7 +230,7 @@ def test_forgot_password_returns_204_for_nonexistent_email(
 
     # Call forgot password with a non-existent email
     response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v2/factor_password/forgot"),
+        signoz.self.host_configs["8080"].get("/api/v5/factor_password/forgot"),
         json={
             "email": "nonexistent@integration.test",
             "orgId": org_id,
@@ -257,7 +257,7 @@ def test_forgot_password_creates_reset_token(
 
     # Create a user specifically for testing forgot password
     response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v1/invite"),
+        signoz.self.host_configs["8080"].get("/api/v5/invite"),
         json={
             "email": "forgot@integration.test",
             "role": "EDITOR",
@@ -273,7 +273,7 @@ def test_forgot_password_creates_reset_token(
 
     # Activate user via reset password
     response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v1/resetPassword"),
+        signoz.self.host_configs["8080"].get("/api/v5/resetPassword"),
         json={"password": "originalPassword123Z$", "token": reset_token},
         timeout=2,
     )
@@ -281,7 +281,7 @@ def test_forgot_password_creates_reset_token(
 
     # Get org ID
     response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v2/sessions/context"),
+        signoz.self.host_configs["8080"].get("/api/v5/sessions/context"),
         params={
             "email": "forgot@integration.test",
             "ref": f"{signoz.self.host_configs['8080'].base()}",
@@ -293,7 +293,7 @@ def test_forgot_password_creates_reset_token(
 
     # Call forgot password endpoint
     response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v2/factor_password/forgot"),
+        signoz.self.host_configs["8080"].get("/api/v5/factor_password/forgot"),
         json={
             "email": "forgot@integration.test",
             "orgId": org_id,
@@ -306,7 +306,7 @@ def test_forgot_password_creates_reset_token(
     # Verify reset password token was created by querying the database
     # First, get the user ID
     response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v1/user"),
+        signoz.self.host_configs["8080"].get("/api/v5/users"),
         timeout=2,
         headers={"Authorization": f"Bearer {admin_token}"},
     )
@@ -344,7 +344,7 @@ def test_forgot_password_creates_reset_token(
 
     # Reset password with a valid strong password
     response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v1/resetPassword"),
+        signoz.self.host_configs["8080"].get("/api/v5/resetPassword"),
         json={"password": "newSecurePassword123Z$!", "token": reset_token},
         timeout=2,
     )
@@ -372,7 +372,7 @@ def test_reset_password_with_expired_token(
 
     # Get user ID for the forgot@integration.test user
     response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v1/user"),
+        signoz.self.host_configs["8080"].get("/api/v5/users"),
         timeout=2,
         headers={"Authorization": f"Bearer {admin_token}"},
     )
@@ -386,7 +386,7 @@ def test_reset_password_with_expired_token(
 
     # Get org ID
     response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v2/sessions/context"),
+        signoz.self.host_configs["8080"].get("/api/v5/sessions/context"),
         params={
             "email": "forgot@integration.test",
             "ref": f"{signoz.self.host_configs['8080'].base()}",
@@ -398,7 +398,7 @@ def test_reset_password_with_expired_token(
 
     # Call forgot password to generate a new token
     response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v2/factor_password/forgot"),
+        signoz.self.host_configs["8080"].get("/api/v5/factor_password/forgot"),
         json={
             "email": "forgot@integration.test",
             "orgId": org_id,
@@ -448,7 +448,7 @@ def test_reset_password_with_expired_token(
 
     # Try to use the expired token - should fail with 401 Unauthorized
     response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v1/resetPassword"),
+        signoz.self.host_configs["8080"].get("/api/v5/resetPassword"),
         json={"password": "expiredTokenPassword123Z$!", "token": reset_token},
         timeout=2,
     )

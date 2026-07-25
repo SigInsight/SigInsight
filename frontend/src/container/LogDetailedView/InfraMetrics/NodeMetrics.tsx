@@ -3,7 +3,7 @@ import { useQueries, UseQueryResult } from 'react-query';
 import { Card, Col, Row, Skeleton, Typography } from 'antd';
 import cx from 'classnames';
 import Uplot from 'components/Uplot';
-import { ENTITY_VERSION_V4 } from 'constants/app';
+import { ENTITY_VERSION_V5 } from 'constants/app';
 import dayjs from 'dayjs';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
 import { useIsDarkMode } from 'hooks/useDarkMode';
@@ -73,9 +73,9 @@ function NodeMetrics({
 	const widgetInfo = nodeName ? nodeWidgetInfo : hostWidgetInfo;
 	const queries = useQueries(
 		queryPayloads.map((payload) => ({
-			queryKey: ['metrics', payload, ENTITY_VERSION_V4, 'NODE'],
+			queryKey: ['metrics', payload, ENTITY_VERSION_V5, 'NODE'],
 			queryFn: (): Promise<SuccessResponse<MetricRangePayloadProps>> =>
-				GetMetricQueryRange(payload, ENTITY_VERSION_V4),
+				GetMetricQueryRange(payload),
 			enabled: !!payload,
 		})),
 	);

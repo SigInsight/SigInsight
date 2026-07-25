@@ -7,13 +7,13 @@ import { RowData } from 'lib/query/createTableColumnsFromQuery';
 import { ContextLinksData } from 'types/api/dashboard/getAll';
 import { Query } from 'types/api/queryBuilder/queryBuilderData';
 import { QueryRangeRequestV5 } from 'types/api/v5/queryRange';
-import { QueryDataV3 } from 'types/api/widgets/getQuery';
+import { QueryRangeResult } from 'types/api/widgets/getQuery';
 
 export type QueryTableProps = Omit<
 	TableProps<RowData>,
 	'columns' | 'dataSource'
 > & {
-	queryTableData: QueryDataV3[];
+	queryTableData: QueryRangeResult[];
 	query: Query;
 	renderActionCell?: (record: RowData) => ReactNode;
 	modifyColumns?: (columns: ColumnsType<RowData>) => ColumnsType<RowData>;

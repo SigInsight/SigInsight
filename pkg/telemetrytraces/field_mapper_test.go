@@ -79,6 +79,24 @@ func TestGetFieldKeyName(t *testing.T) {
 			expectedError:  nil,
 		},
 		{
+			name: "Canonical materialized HTTP route",
+			key: telemetrytypes.TelemetryFieldKey{
+				Name:         "http.route",
+				FieldContext: telemetrytypes.FieldContextSpan,
+			},
+			expectedResult: "attribute_string_http$$route",
+			expectedError:  nil,
+		},
+		{
+			name: "Canonical materialized RPC method",
+			key: telemetrytypes.TelemetryFieldKey{
+				Name:         "rpc.method",
+				FieldContext: telemetrytypes.FieldContextSpan,
+			},
+			expectedResult: "attribute_string_rpc$$method",
+			expectedError:  nil,
+		},
+		{
 			name: "Non-existent column",
 			key: telemetrytypes.TelemetryFieldKey{
 				Name:         "nonexistent_field",

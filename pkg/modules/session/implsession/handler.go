@@ -6,7 +6,6 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/SigNoz/signoz/pkg/errors"
 	"github.com/SigNoz/signoz/pkg/http/binding"
 	"github.com/SigNoz/signoz/pkg/http/render"
 	"github.com/SigNoz/signoz/pkg/modules/session"
@@ -66,21 +65,6 @@ func (handler *handler) CreateSessionByEmailPassword(rw http.ResponseWriter, req
 	render.Success(rw, http.StatusOK, authtypes.NewGettableTokenFromToken(token, handler.module.GetRotationInterval(ctx)))
 }
 
-func (handler *handler) CreateSessionByGoogleCallback(rw http.ResponseWriter, req *http.Request) {
-	ctx, cancel := context.WithTimeout(req.Context(), 15*time.Second)
-	defer cancel()
-
-	values := req.URL.Query()
-
-	redirectURL, err := handler.module.CreateCallbackAuthNSession(ctx, authtypes.AuthNProviderGoogleAuth, values)
-	if err != nil {
-		http.Redirect(rw, req, handler.getRedirectURLFromErr(err), http.StatusSeeOther)
-		return
-	}
-
-	http.Redirect(rw, req, redirectURL, http.StatusSeeOther)
-}
-
 func (handler *handler) RotateSession(rw http.ResponseWriter, req *http.Request) {
 	ctx, cancel := context.WithTimeout(req.Context(), 10*time.Second)
 	defer cancel()
@@ -123,15 +107,4 @@ func (handler *handler) DeleteSession(rw http.ResponseWriter, req *http.Request)
 	}
 
 	render.Success(rw, http.StatusNoContent, nil)
-}
-
-func (*handler) getRedirectURLFromErr(err error) string {
-	values := errors.AsURLValues(err)
-	values.Add("callbackauthnerr", "true")
-
-	return (&url.URL{
-		// When UI is being served on a prefix, we need to redirect to the login page on the prefix.
-		Path:     "/login",
-		RawQuery: values.Encode(),
-	}).String()
 }

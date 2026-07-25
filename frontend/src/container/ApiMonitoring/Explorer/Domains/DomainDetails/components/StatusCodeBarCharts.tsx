@@ -9,10 +9,10 @@ import {
 	getStatusCodeBarChartWidgetData,
 	statusCodeWidgetInfo,
 } from 'container/ApiMonitoring/utils';
-import BarChart from 'container/DashboardContainer/visualization/charts/BarChart/BarChart';
 import { handleGraphClick } from 'container/GridCardLayout/GridCard/utils';
 import { useGraphClickToShowButton } from 'container/GridCardLayout/useGraphClickToShowButton';
 import useNavigateToExplorerPages from 'container/GridCardLayout/useNavigateToExplorerPages';
+import BarChart from 'container/PanelVisualization/charts/BarChart/BarChart';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
 import { useIsDarkMode } from 'hooks/useDarkMode';
 import { useResizeObserver } from 'hooks/useDimensions';

@@ -6,10 +6,10 @@ import { render, screen, userEvent } from 'tests/test-utils';
 
 import ServiceAccountsSettings from '../ServiceAccountsSettings';
 
-const SA_LIST_ENDPOINT = '*/api/v1/service_accounts';
-const SA_ENDPOINT = '*/api/v1/service_accounts/:id';
-const SA_KEYS_ENDPOINT = '*/api/v1/service_accounts/:id/keys';
-const ROLES_ENDPOINT = '*/api/v1/roles';
+const SA_LIST_ENDPOINT = '*/api/v5/service_accounts';
+const SA_ENDPOINT = '*/api/v5/service_accounts/:id';
+const SA_KEYS_ENDPOINT = '*/api/v5/service_accounts/:id/keys';
+const ROLES_ENDPOINT = '*/api/v5/roles';
 
 jest.mock('@signozhq/drawer', () => ({
 	DrawerWrapper: ({

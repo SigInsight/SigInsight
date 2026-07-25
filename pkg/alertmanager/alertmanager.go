@@ -19,7 +19,7 @@ var (
 type Alertmanager interface {
 	factory.Service
 	// GetAlerts gets the alerts from the alertmanager per organization.
-	GetAlerts(context.Context, string, alertmanagertypes.GettableAlertsParams) (alertmanagertypes.DeprecatedGettableAlerts, error)
+	GetAlerts(context.Context, string, alertmanagertypes.GettableAlertsParams) (alertmanagertypes.GettableAlerts, error)
 
 	// PutAlerts puts the alerts into the alertmanager per organization.
 	PutAlerts(context.Context, string, alertmanagertypes.PostableAlerts) error
@@ -32,9 +32,6 @@ type Alertmanager interface {
 
 	// ListChannels lists all channels for the organization.
 	ListChannels(context.Context, string) ([]*alertmanagertypes.Channel, error)
-
-	// ListAllChannels lists all channels for all organizations. It is used by the legacy alertmanager only.
-	ListAllChannels(context.Context) ([]*alertmanagertypes.Channel, error)
 
 	// GetChannelByID gets a channel for the organization.
 	GetChannelByID(context.Context, string, valuer.UUID) (*alertmanagertypes.Channel, error)

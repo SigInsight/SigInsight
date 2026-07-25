@@ -46,7 +46,7 @@ function getBackendUrlFromDocker() {
 async function checkBackendHealth(url, maxAttempts = 3, delayMs = 1000) {
 	for (let attempt = 1; attempt <= maxAttempts; attempt++) {
 		try {
-			await axios.get(`${url}/api/v1/health`, {
+			await axios.get(`${url}/api/v5/health`, {
 				timeout: 5000,
 				validateStatus: (status) => status === 200,
 			});
@@ -84,7 +84,7 @@ async function discoverBackendUrl() {
 
 async function fetchResources(backendUrl) {
 	log('Fetching resources from API...');
-	const resourcesUrl = `${backendUrl}/api/v1/authz/resources`;
+	const resourcesUrl = `${backendUrl}/api/v5/authz/resources`;
 
 	const { data: response } = await axios.get(resourcesUrl);
 

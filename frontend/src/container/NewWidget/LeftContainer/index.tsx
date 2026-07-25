@@ -49,7 +49,7 @@ function LeftContainer({
 		],
 		[globalSelectedInterval, requestData, minTime, maxTime],
 	);
-	const queryResponse = useGetQueryRange(requestData, ENTITY_VERSION_V5, {
+	const queryResponse = useGetQueryRange(requestData, {
 		enabled: !!stagedQuery,
 		queryKey: queryRangeKey,
 		keepPreviousData: true,

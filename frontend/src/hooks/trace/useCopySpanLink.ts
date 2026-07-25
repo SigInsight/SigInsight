@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { useCopyToClipboard } from 'react-use';
 import { useNotifications } from 'hooks/useNotifications';
 import useUrlQuery from 'hooks/useUrlQuery';
-import { Span } from 'types/api/trace/getTraceV2';
+import { Span } from 'types/api/trace/getTraceWaterfall';
 
 export const useCopySpanLink = (
 	span?: Span,

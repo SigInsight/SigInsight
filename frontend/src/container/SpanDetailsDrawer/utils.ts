@@ -1,4 +1,4 @@
-import { Span } from 'types/api/trace/getTraceV2';
+import { Span } from 'types/api/trace/getTraceWaterfall';
 
 /**
  * Infrastructure metadata keys that indicate infra signals are available

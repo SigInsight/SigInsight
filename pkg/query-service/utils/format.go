@@ -11,15 +11,15 @@ import (
 
 	"github.com/SigNoz/signoz/pkg/query-service/constants"
 	"github.com/SigNoz/signoz/pkg/query-service/metrics"
-	v3 "github.com/SigNoz/signoz/pkg/query-service/model/v3"
+	"github.com/SigNoz/signoz/pkg/query-service/model/querytypes"
 )
 
 // ValidateAndCastValue validates and casts the value of a key to the corresponding data type of the key
-func ValidateAndCastValue(v interface{}, dataType v3.AttributeKeyDataType) (interface{}, error) {
+func ValidateAndCastValue(v interface{}, dataType querytypes.AttributeKeyDataType) (interface{}, error) {
 	// get the actual value if it's a pointer
 	v = getPointerValue(v)
 	switch dataType {
-	case v3.AttributeKeyDataTypeString:
+	case querytypes.AttributeKeyDataTypeString:
 		switch x := v.(type) {
 		case string, int, int64, float32, float64, bool:
 			return fmt.Sprintf("%v", x), nil
@@ -48,7 +48,7 @@ func ValidateAndCastValue(v interface{}, dataType v3.AttributeKeyDataType) (inte
 		default:
 			return nil, fmt.Errorf("invalid data type, expected string, got %v", reflect.TypeOf(v))
 		}
-	case v3.AttributeKeyDataTypeBool:
+	case querytypes.AttributeKeyDataTypeBool:
 		switch x := v.(type) {
 		case []interface{}:
 			for i, val := range x {
@@ -76,7 +76,7 @@ func ValidateAndCastValue(v interface{}, dataType v3.AttributeKeyDataType) (inte
 		default:
 			return nil, fmt.Errorf("invalid data type, expected bool, got %v", reflect.TypeOf(v))
 		}
-	case v3.AttributeKeyDataTypeInt64:
+	case querytypes.AttributeKeyDataTypeInt64:
 		switch x := v.(type) {
 		case []interface{}:
 			for i, val := range x {
@@ -110,7 +110,7 @@ func ValidateAndCastValue(v interface{}, dataType v3.AttributeKeyDataType) (inte
 		default:
 			return nil, fmt.Errorf("invalid data type, expected int, got %v", reflect.TypeOf(v))
 		}
-	case v3.AttributeKeyDataTypeFloat64:
+	case querytypes.AttributeKeyDataTypeFloat64:
 		switch x := v.(type) {
 		case []interface{}:
 			for i, val := range x {
@@ -305,11 +305,11 @@ func getPointerValue(v interface{}) interface{} {
 }
 
 func GetClickhouseColumnName(typeName string, dataType, field string) string {
-	if typeName == string(v3.AttributeKeyTypeTag) {
+	if typeName == string(querytypes.AttributeKeyTypeTag) {
 		typeName = constants.Attributes
 	}
 
-	if typeName != string(v3.AttributeKeyTypeResource) && len(typeName) > 0 {
+	if typeName != string(querytypes.AttributeKeyTypeResource) && len(typeName) > 0 {
 		typeName = typeName[:len(typeName)-1]
 	}
 
@@ -321,11 +321,11 @@ func GetClickhouseColumnName(typeName string, dataType, field string) string {
 }
 
 func GetClickhouseColumnNameV2(typeName string, dataType, field string) string {
-	if typeName == string(v3.AttributeKeyTypeTag) {
+	if typeName == string(querytypes.AttributeKeyTypeTag) {
 		typeName = constants.Attributes
 	}
 
-	if typeName != string(v3.AttributeKeyTypeResource) && len(typeName) > 0 {
+	if typeName != string(querytypes.AttributeKeyTypeResource) && len(typeName) > 0 {
 		typeName = typeName[:len(typeName)-1]
 	}
 

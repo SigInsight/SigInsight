@@ -20,7 +20,11 @@ import {
 	IPromQLQuery,
 	Query,
 } from 'types/api/queryBuilder/queryBuilderData';
-import { ListItem, QueryDataV3, SeriesItem } from 'types/api/widgets/getQuery';
+import {
+	ListItem,
+	QueryRangeResult,
+	SeriesItem,
+} from 'types/api/widgets/getQuery';
 import { EQueryType } from 'types/common/dashboard';
 import { QueryBuilderData } from 'types/common/queryBuilder';
 import { v4 as uuid } from 'uuid';
@@ -57,12 +61,12 @@ type CreateTableDataFromQuery = (
 };
 
 type FillColumnData = (
-	queryTableData: QueryDataV3[],
+	queryTableData: QueryRangeResult[],
 	dynamicColumns: DynamicColumns,
 ) => { filledDynamicColumns: DynamicColumns; rowsLength: number };
 
 type GetDynamicColumns = (
-	queryTableData: QueryDataV3[],
+	queryTableData: QueryRangeResult[],
 	query: Query,
 ) => DynamicColumns;
 
@@ -242,7 +246,7 @@ const addOperatorFormulaColumns = (
 };
 
 const processTableColumns = (
-	table: NonNullable<QueryDataV3['table']>,
+	table: NonNullable<QueryRangeResult['table']>,
 	currentStagedQuery:
 		| IBuilderQuery
 		| IBuilderFormula
@@ -269,7 +273,7 @@ const processTableColumns = (
 };
 
 const processSeriesColumns = (
-	series: NonNullable<QueryDataV3['series']>,
+	series: NonNullable<QueryRangeResult['series']>,
 	currentStagedQuery:
 		| IBuilderQuery
 		| IBuilderFormula
@@ -277,7 +281,7 @@ const processSeriesColumns = (
 		| IPromQLQuery,
 	dynamicColumns: DynamicColumns,
 	queryType: EQueryType,
-	currentQuery: QueryDataV3,
+	currentQuery: QueryRangeResult,
 ): void => {
 	const isValuesColumnExist = series.some((item) => item.values.length > 0);
 	const isEveryValuesExist = series.every((item) => item.values.length > 0);
@@ -366,7 +370,7 @@ const fillEmptyRowCells = (
 
 const findSeriaValueFromAnotherQuery = (
 	currentLabels: Record<string, string>,
-	nextQuery: QueryDataV3 | null,
+	nextQuery: QueryRangeResult | null,
 ): SeriesItem | null => {
 	if (!nextQuery || !nextQuery.series) {
 		return null;
@@ -408,7 +412,7 @@ const fillAggregationData = (
 
 const fillRestAggregationData = (
 	column: DynamicColumn,
-	queryTableData: QueryDataV3[],
+	queryTableData: QueryRangeResult[],
 	seria: SeriesItem,
 	equalQueriesByLabels: string[],
 	isEqualQuery: boolean,
@@ -448,8 +452,8 @@ const fillLabelsData = (
 };
 
 const fillDataFromSeries = (
-	currentQuery: QueryDataV3,
-	queryTableData: QueryDataV3[],
+	currentQuery: QueryRangeResult,
+	queryTableData: QueryRangeResult[],
 	columns: DynamicColumns,
 	equalQueriesByLabels: string[],
 ): void => {
@@ -545,7 +549,7 @@ const processTableRowValue = (value: any, column: DynamicColumn): void => {
 };
 
 const fillDataFromTable = (
-	currentQuery: QueryDataV3,
+	currentQuery: QueryRangeResult,
 	columns: DynamicColumns,
 ): void => {
 	const { table } = currentQuery;

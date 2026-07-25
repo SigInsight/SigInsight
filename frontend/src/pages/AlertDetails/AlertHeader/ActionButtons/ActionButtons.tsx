@@ -12,7 +12,7 @@ import {
 import CopyToClipboard from 'periscope/components/CopyToClipboard';
 import { useAlertRule } from 'providers/Alert';
 import { CSSProperties } from 'styled-components';
-import { NEW_ALERT_SCHEMA_VERSION } from 'types/api/alerts/alertTypesV2';
+import { NEW_ALERT_SCHEMA_VERSION } from 'types/api/alerts/alertRule';
 import { AlertDef } from 'types/api/alerts/def';
 
 import { AlertHeaderProps } from '../AlertHeader';

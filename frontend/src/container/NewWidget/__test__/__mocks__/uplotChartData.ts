@@ -38,7 +38,7 @@ export const BarNonStackedChartData = {
 				},
 			],
 			resultType: 'time_series',
-			newResult: {
+			queryResult: {
 				data: {
 					resultType: 'time_series',
 					result: [

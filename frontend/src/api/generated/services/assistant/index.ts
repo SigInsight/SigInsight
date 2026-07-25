@@ -31,14 +31,14 @@ import type {
  */
 export const getAssistantConfig = (signal?: AbortSignal) => {
 	return GeneratedAPIInstance<GetAssistantConfig200>({
-		url: `/api/v1/assistant/config`,
+		url: `/api/v5/assistant/config`,
 		method: 'GET',
 		signal,
 	});
 };
 
 export const getGetAssistantConfigQueryKey = () => {
-	return [`/api/v1/assistant/config`] as const;
+	return [`/api/v5/assistant/config`] as const;
 };
 
 export const getGetAssistantConfigQueryOptions = <
@@ -119,7 +119,7 @@ export const updateAssistantConfig = (
 	assistantUpdatableConfigDTO: BodyType<AssistantUpdatableConfigDTO>,
 ) => {
 	return GeneratedAPIInstance<void>({
-		url: `/api/v1/assistant/config`,
+		url: `/api/v5/assistant/config`,
 		method: 'PUT',
 		headers: { 'Content-Type': 'application/json' },
 		data: assistantUpdatableConfigDTO,

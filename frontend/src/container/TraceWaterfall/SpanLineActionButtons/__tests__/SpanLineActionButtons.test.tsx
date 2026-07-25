@@ -1,7 +1,7 @@
 import { fireEvent, screen } from '@testing-library/react';
 import { useCopySpanLink } from 'hooks/trace/useCopySpanLink';
 import { render } from 'tests/test-utils';
-import { Span } from 'types/api/trace/getTraceV2';
+import { Span } from 'types/api/trace/getTraceWaterfall';
 
 import SpanLineActionButtons from '../index';
 

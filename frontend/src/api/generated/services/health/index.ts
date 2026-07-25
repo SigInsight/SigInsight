@@ -30,14 +30,14 @@ import type {
  */
 export const healthz = (signal?: AbortSignal) => {
 	return GeneratedAPIInstance<Healthz200>({
-		url: `/api/v2/healthz`,
+		url: `/api/v5/healthz`,
 		method: 'GET',
 		signal,
 	});
 };
 
 export const getHealthzQueryKey = () => {
-	return [`/api/v2/healthz`] as const;
+	return [`/api/v5/healthz`] as const;
 };
 
 export const getHealthzQueryOptions = <
@@ -107,14 +107,14 @@ export const invalidateHealthz = async (
  */
 export const livez = (signal?: AbortSignal) => {
 	return GeneratedAPIInstance<Livez200>({
-		url: `/api/v2/livez`,
+		url: `/api/v5/livez`,
 		method: 'GET',
 		signal,
 	});
 };
 
 export const getLivezQueryKey = () => {
-	return [`/api/v2/livez`] as const;
+	return [`/api/v5/livez`] as const;
 };
 
 export const getLivezQueryOptions = <
@@ -179,14 +179,14 @@ export const invalidateLivez = async (
  */
 export const readyz = (signal?: AbortSignal) => {
 	return GeneratedAPIInstance<Readyz200>({
-		url: `/api/v2/readyz`,
+		url: `/api/v5/readyz`,
 		method: 'GET',
 		signal,
 	});
 };
 
 export const getReadyzQueryKey = () => {
-	return [`/api/v2/readyz`] as const;
+	return [`/api/v5/readyz`] as const;
 };
 
 export const getReadyzQueryOptions = <

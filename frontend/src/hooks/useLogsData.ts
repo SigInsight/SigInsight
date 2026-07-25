@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 // eslint-disable-next-line no-restricted-imports
 import { useSelector } from 'react-redux';
-import { DEFAULT_ENTITY_VERSION } from 'constants/app';
 import { QueryParams } from 'constants/query';
 import {
 	initialQueryBuilderFormValues,
@@ -17,7 +16,7 @@ import {
 	Query,
 	TagFilter,
 } from 'types/api/queryBuilder/queryBuilderData';
-import { QueryDataV3 } from 'types/api/widgets/getQuery';
+import { QueryRangeResult } from 'types/api/widgets/getQuery';
 import { GlobalReducer } from 'types/reducer/globalTime';
 
 import { useCopyLogLink } from './logs/useCopyLogLink';
@@ -29,7 +28,7 @@ export const useLogsData = ({
 	panelType,
 	stagedQuery,
 }: {
-	result: QueryDataV3[] | undefined;
+	result: QueryRangeResult[] | undefined;
 	panelType: PANEL_TYPES;
 	stagedQuery: Query | null;
 }): {
@@ -141,7 +140,6 @@ export const useLogsData = ({
 	const { data, isFetching } = useGetExplorerQueryRange(
 		requestData,
 		panelType,
-		DEFAULT_ENTITY_VERSION,
 		{
 			keepPreviousData: true,
 			enabled: !isLimit && !!requestData,
@@ -157,7 +155,7 @@ export const useLogsData = ({
 	);
 
 	useEffect(() => {
-		const currentData = data?.payload?.data?.newResult?.data?.result || [];
+		const currentData = data?.payload?.data?.queryResult?.data?.result || [];
 		if (currentData.length > 0 && currentData[0].list) {
 			const currentLogs: ILog[] = currentData[0].list.map((item) => ({
 				...item.data,

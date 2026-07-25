@@ -3,13 +3,13 @@ package ruletypes
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/SigNoz/signoz/pkg/types/timeseriestypes"
 	"net/url"
-	"sort"
 	"strings"
 	"time"
 
 	"github.com/SigNoz/signoz/pkg/query-service/model"
-	v3 "github.com/SigNoz/signoz/pkg/query-service/model/v3"
+	"github.com/SigNoz/signoz/pkg/query-service/model/querytypes"
 	"github.com/SigNoz/signoz/pkg/query-service/utils/labels"
 	qbtypes "github.com/SigNoz/signoz/pkg/types/querybuildertypes/querybuildertypesv5"
 )
@@ -106,7 +106,7 @@ const (
 )
 
 type RuleCondition struct {
-	CompositeQuery    *v3.CompositeQuery `json:"compositeQuery,omitempty"`
+	CompositeQuery    *CompositeQuery    `json:"compositeQuery,omitempty"`
 	CompareOp         CompareOp          `json:"op,omitempty"`
 	Target            *float64           `json:"target,omitempty"`
 	AlertOnAbsent     bool               `json:"alertOnAbsent,omitempty"`
@@ -121,81 +121,53 @@ type RuleCondition struct {
 	Thresholds        *RuleThresholdData `json:"thresholds,omitempty"`
 }
 
-func (rc *RuleCondition) GetSelectedQueryName() string {
-	if rc != nil {
-		if rc.SelectedQuery != "" {
-			return rc.SelectedQuery
-		}
+// CompositeQuery is the alert-rule query entity. Query execution is V5-only,
+// while the remaining metadata controls alert formatting and presentation.
+type CompositeQuery struct {
+	Queries   []qbtypes.QueryEnvelope `json:"queries"`
+	PanelType querytypes.PanelType    `json:"panelType"`
+	QueryType querytypes.QueryType    `json:"queryType"`
+	Unit      string                  `json:"unit,omitempty"`
+	FillGaps  bool                    `json:"fillGaps,omitempty"`
+}
 
-		queryNames := map[string]struct{}{}
-
-		if rc.CompositeQuery != nil {
-			if rc.QueryType() == v3.QueryTypeBuilder {
-				for name := range rc.CompositeQuery.BuilderQueries {
-					queryNames[name] = struct{}{}
-				}
-
-				for _, query := range rc.CompositeQuery.Queries {
-					switch spec := query.Spec.(type) {
-					case qbtypes.QueryBuilderQuery[qbtypes.TraceAggregation]:
-						queryNames[spec.Name] = struct{}{}
-					case qbtypes.QueryBuilderQuery[qbtypes.LogAggregation]:
-						queryNames[spec.Name] = struct{}{}
-					case qbtypes.QueryBuilderQuery[qbtypes.MetricAggregation]:
-						queryNames[spec.Name] = struct{}{}
-					case qbtypes.QueryBuilderFormula:
-						queryNames[spec.Name] = struct{}{}
-					}
-				}
-			} else if rc.QueryType() == v3.QueryTypeClickHouseSQL {
-				for name := range rc.CompositeQuery.ClickHouseQueries {
-					queryNames[name] = struct{}{}
-				}
-
-				for _, query := range rc.CompositeQuery.Queries {
-					switch spec := query.Spec.(type) {
-					case qbtypes.ClickHouseQuery:
-						queryNames[spec.Name] = struct{}{}
-					}
-				}
-			}
-		}
-
-		// The following logic exists for backward compatibility
-		// If there is no selected query, then
-		// - check if F1 is present, if yes, return F1
-		// - else return the query with max ascii value
-		// this logic is not really correct. we should be considering
-		// whether the query is enabled or not. but this is a temporary
-		// fix to support backward compatibility
-		if _, ok := queryNames["F1"]; ok {
-			return "F1"
-		}
-		keys := make([]string, 0, len(queryNames))
-		for k := range queryNames {
-			keys = append(keys, k)
-		}
-		sort.Strings(keys)
-		return keys[len(keys)-1]
+func (c *CompositeQuery) UnmarshalJSON(data []byte) error {
+	var fields map[string]json.RawMessage
+	if err := json.Unmarshal(data, &fields); err != nil {
+		return err
 	}
-	// This should never happen
-	return ""
+
+	validFields := map[string]struct{}{
+		"queries":   {},
+		"panelType": {},
+		"queryType": {},
+		"unit":      {},
+		"fillGaps":  {},
+	}
+	for field := range fields {
+		if _, ok := validFields[field]; !ok {
+			return fmt.Errorf("unsupported alert composite query field %q", field)
+		}
+	}
+
+	type alias CompositeQuery
+	return json.Unmarshal(data, (*alias)(c))
+}
+
+func (rc *RuleCondition) GetSelectedQueryName() string {
+	if rc == nil {
+		return ""
+	}
+	return rc.SelectedQuery
 }
 
 func (rc *RuleCondition) IsValid() bool {
-
-	if rc.CompositeQuery == nil {
+	if rc == nil || rc.CompositeQuery == nil || len(rc.CompositeQuery.Queries) == 0 {
 		return false
 	}
 
-	if rc.QueryType() == v3.QueryTypeBuilder {
+	if rc.QueryType() == querytypes.QueryTypeBuilder {
 		if rc.Thresholds == nil {
-			return false
-		}
-	}
-	if rc.QueryType() == v3.QueryTypePromQL {
-
-		if len(rc.CompositeQuery.PromQueries) == 0 && len(rc.CompositeQuery.Queries) == 0 {
 			return false
 		}
 	}
@@ -203,7 +175,7 @@ func (rc *RuleCondition) IsValid() bool {
 }
 
 // ShouldEval checks if the further series should be evaluated at all for alerts.
-func (rc *RuleCondition) ShouldEval(series *v3.Series) bool {
+func (rc *RuleCondition) ShouldEval(series *timeseriestypes.Series) bool {
 	if rc == nil {
 		return true
 	}
@@ -211,11 +183,11 @@ func (rc *RuleCondition) ShouldEval(series *v3.Series) bool {
 }
 
 // QueryType is a shorthand method to get query type
-func (rc *RuleCondition) QueryType() v3.QueryType {
+func (rc *RuleCondition) QueryType() querytypes.QueryType {
 	if rc.CompositeQuery != nil {
 		return rc.CompositeQuery.QueryType
 	}
-	return v3.QueryTypeUnknown
+	return querytypes.QueryTypeUnknown
 }
 
 // String is useful in printing rule condition in logs

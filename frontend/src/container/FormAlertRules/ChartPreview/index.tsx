@@ -6,7 +6,6 @@ import { useLocation } from 'react-router-dom';
 import ErrorInPlace from 'components/ErrorInPlace/ErrorInPlace';
 import Spinner from 'components/Spinner';
 import WarningPopover from 'components/WarningPopover/WarningPopover';
-import { ENTITY_VERSION_V5 } from 'constants/app';
 import { FeatureKeys } from 'constants/features';
 import { QueryParams } from 'constants/query';
 import { initialQueriesMap, PANEL_TYPES } from 'constants/queryBuilder';
@@ -181,8 +180,6 @@ function ChartPreview({
 			},
 			originalGraphType: graphType,
 		},
-		// alertDef?.version || DEFAULT_ENTITY_VERSION,
-		ENTITY_VERSION_V5,
 		{
 			queryKey: [
 				'chartPreview',
@@ -370,7 +367,7 @@ function ChartPreview({
 							data={chartData}
 							name={name || 'Chart Preview'}
 							panelData={
-								queryResponse.data?.payload?.data?.newResult?.data?.result || []
+								queryResponse.data?.payload?.data?.queryResult?.data?.result || []
 							}
 							query={query || initialQueriesMap.metrics}
 							yAxisUnit={yAxisUnit}

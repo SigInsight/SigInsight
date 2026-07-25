@@ -30,7 +30,7 @@ jest.mock('hooks/useNotifications', () => ({
 	}),
 }));
 
-const INVITE_USERS_ENDPOINT = '*/api/v1/invite/bulk';
+const INVITE_USERS_ENDPOINT = '*/api/v5/invite/bulk';
 
 interface TeamMember {
 	email: string;

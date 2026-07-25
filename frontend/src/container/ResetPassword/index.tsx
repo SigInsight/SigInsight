@@ -5,7 +5,7 @@ import { Button } from '@signozhq/button';
 import { Callout } from '@signozhq/callout';
 import { Form, Input as AntdInput, Typography } from 'antd';
 import { Logout } from 'api/utils';
-import resetPasswordApi from 'api/v1/factor_password/resetPassword';
+import resetPasswordApi from 'api/v5/factor_password/resetPassword';
 import AuthError from 'components/AuthError/AuthError';
 import AuthPageContainer from 'components/AuthPageContainer';
 import ROUTES from 'constants/routes';

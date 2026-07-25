@@ -34,9 +34,9 @@ export function Section(props: SectionProps): JSX.Element {
 			Array.from(
 				new Set([
 					...Object.keys(selectedFilters || {}),
-					'hasError',
-					'durationNano',
-					'serviceName',
+					'has_error',
+					'duration_nano',
+					'service.name',
 					'deployment.environment',
 				]),
 			),
@@ -72,7 +72,7 @@ export function Section(props: SectionProps): JSX.Element {
 					activeKey={activeKeys}
 					onChange={(keys): void => setActiveKeys(keys as string[])}
 					items={[
-						panelName === 'durationNano'
+						panelName === 'duration_nano'
 							? {
 									key: panelName,
 									children: (

@@ -7,63 +7,63 @@ import (
 	"strconv"
 	"strings"
 
-	v3 "github.com/SigNoz/signoz/pkg/query-service/model/v3"
+	"github.com/SigNoz/signoz/pkg/query-service/model/querytypes"
 )
 
-func AddMetricValueFilter(mq *v3.BuilderQuery) *v3.MetricValueFilter {
+func AddMetricValueFilter(mq *querytypes.BuilderQuery) *querytypes.MetricValueFilter {
 
-	var metricValueFilter *v3.MetricValueFilter = nil
+	var metricValueFilter *querytypes.MetricValueFilter = nil
 
 	if mq != nil && mq.Filters != nil && mq.Filters.Items != nil {
 		for _, item := range mq.Filters.Items {
 			if item.Key.Key == "__value" {
 				switch v := item.Value.(type) {
 				case float64:
-					metricValueFilter = &v3.MetricValueFilter{
+					metricValueFilter = &querytypes.MetricValueFilter{
 						Value: v,
 					}
 				case float32:
-					metricValueFilter = &v3.MetricValueFilter{
+					metricValueFilter = &querytypes.MetricValueFilter{
 						Value: float64(v),
 					}
 				case int:
-					metricValueFilter = &v3.MetricValueFilter{
+					metricValueFilter = &querytypes.MetricValueFilter{
 						Value: float64(v),
 					}
 				case int8:
-					metricValueFilter = &v3.MetricValueFilter{
+					metricValueFilter = &querytypes.MetricValueFilter{
 						Value: float64(v),
 					}
 				case int16:
-					metricValueFilter = &v3.MetricValueFilter{
+					metricValueFilter = &querytypes.MetricValueFilter{
 						Value: float64(v),
 					}
 				case int32:
-					metricValueFilter = &v3.MetricValueFilter{
+					metricValueFilter = &querytypes.MetricValueFilter{
 						Value: float64(v),
 					}
 				case int64:
-					metricValueFilter = &v3.MetricValueFilter{
+					metricValueFilter = &querytypes.MetricValueFilter{
 						Value: float64(v),
 					}
 				case uint:
-					metricValueFilter = &v3.MetricValueFilter{
+					metricValueFilter = &querytypes.MetricValueFilter{
 						Value: float64(v),
 					}
 				case uint8:
-					metricValueFilter = &v3.MetricValueFilter{
+					metricValueFilter = &querytypes.MetricValueFilter{
 						Value: float64(v),
 					}
 				case uint16:
-					metricValueFilter = &v3.MetricValueFilter{
+					metricValueFilter = &querytypes.MetricValueFilter{
 						Value: float64(v),
 					}
 				case uint32:
-					metricValueFilter = &v3.MetricValueFilter{
+					metricValueFilter = &querytypes.MetricValueFilter{
 						Value: float64(v),
 					}
 				case uint64:
-					metricValueFilter = &v3.MetricValueFilter{
+					metricValueFilter = &querytypes.MetricValueFilter{
 						Value: float64(v),
 					}
 				case string:
@@ -72,7 +72,7 @@ func AddMetricValueFilter(mq *v3.BuilderQuery) *v3.MetricValueFilter {
 						slog.Warn("invalid type for metric value filter, ignoring", "type", reflect.TypeOf(v), "value", v)
 						continue
 					}
-					metricValueFilter = &v3.MetricValueFilter{
+					metricValueFilter = &querytypes.MetricValueFilter{
 						Value: numericValue,
 					}
 				}

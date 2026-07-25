@@ -59,7 +59,7 @@ function createAutocompleteData(
 //      the dropdown. If the name differs from the current metric, it's resolved
 //      and committed. If the input is empty, it resets to the current metric name.
 //   - Cmd/Ctrl+Enter: resolves the typed name and commits it using flushSync
-//      so the state update is processed synchronously before QueryBuilderV2's
+//      so the state update is processed synchronously before QueryBuilder's
 //      onKeyDownCapture fires handleRunQuery. Uses document-level capture phase
 //      to run before React's root-level event dispatch. However, there is still one
 //      need to be handled here. TODO(srikanthccv): enter before n/w req completion

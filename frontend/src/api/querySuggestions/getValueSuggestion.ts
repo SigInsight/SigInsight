@@ -1,4 +1,4 @@
-import axios from 'api';
+import { ApiV5Instance as axios } from 'api';
 import { AxiosResponse } from 'axios';
 import {
 	QueryKeyValueRequestProps,

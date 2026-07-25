@@ -17,7 +17,7 @@ import _noop from 'lodash-es/noop';
 import { LegendPosition } from 'types/api/dashboard/getAll';
 import { MetricRangePayloadProps } from 'types/api/metrics/getQueryRange';
 import { Query } from 'types/api/queryBuilder/queryBuilderData';
-import { QueryData, QueryDataV3 } from 'types/api/widgets/getQuery';
+import { QueryData, QueryRangeResult } from 'types/api/widgets/getQuery';
 import uPlot from 'uplot';
 
 import onClickPlugin, { OnClickPluginOpts } from './plugins/onClickPlugin';
@@ -139,7 +139,9 @@ function getStackedSeriesQueryFormat(apiResponse: QueryData[]): QueryData[] {
 	return series;
 }
 
-function getStackedSeriesYAxis(apiResponse: QueryDataV3[]): QueryDataV3[] {
+function getStackedSeriesYAxis(
+	apiResponse: QueryRangeResult[],
+): QueryRangeResult[] {
 	const series = cloneDeep(apiResponse);
 	if (!series) {
 		return apiResponse;
@@ -223,7 +225,7 @@ export const getUPlotChartOptions = ({
 	const stackBarChart = stackChart && isUndefined(hiddenGraph);
 
 	const isAnomalyRule =
-		apiResponse?.data?.newResult?.data?.result[0]?.isAnomaly || false;
+		apiResponse?.data?.queryResult?.data?.result[0]?.isAnomaly || false;
 
 	const series = getStackedSeries(apiResponse?.data?.result || []);
 
@@ -325,8 +327,10 @@ export const getUPlotChartOptions = ({
 					const yAxisConfig = getYAxisScale({
 						thresholds,
 						series: stackBarChart
-							? getStackedSeriesYAxis(apiResponse?.data?.newResult?.data?.result || [])
-							: apiResponse?.data?.newResult?.data?.result || [],
+							? getStackedSeriesYAxis(
+									apiResponse?.data?.queryResult?.data?.result || [],
+							  )
+							: apiResponse?.data?.queryResult?.data?.result || [],
 						yAxisUnit,
 						softMax,
 						softMin,

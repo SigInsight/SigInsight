@@ -90,7 +90,7 @@ func (provider *provider) Stop(ctx context.Context) error {
 	return provider.service.Stop(ctx)
 }
 
-func (provider *provider) GetAlerts(ctx context.Context, orgID string, params alertmanagertypes.GettableAlertsParams) (alertmanagertypes.DeprecatedGettableAlerts, error) {
+func (provider *provider) GetAlerts(ctx context.Context, orgID string, params alertmanagertypes.GettableAlertsParams) (alertmanagertypes.GettableAlerts, error) {
 	return provider.service.GetAlerts(ctx, orgID, params)
 }
 
@@ -129,10 +129,6 @@ func (provider *provider) TestAlert(ctx context.Context, orgID string, ruleID st
 
 func (provider *provider) ListChannels(ctx context.Context, orgID string) ([]*alertmanagertypes.Channel, error) {
 	return provider.configStore.ListChannels(ctx, orgID)
-}
-
-func (provider *provider) ListAllChannels(ctx context.Context) ([]*alertmanagertypes.Channel, error) {
-	return nil, errors.Newf(errors.TypeUnsupported, errors.CodeUnsupported, "not supported by provider signoz")
 }
 
 func (provider *provider) GetChannelByID(ctx context.Context, orgID string, channelID valuer.UUID) (*alertmanagertypes.Channel, error) {

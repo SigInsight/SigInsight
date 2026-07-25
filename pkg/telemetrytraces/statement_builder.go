@@ -179,18 +179,12 @@ func getKeySelectors(query qbtypes.QueryBuilderQuery[qbtypes.TraceAggregation]) 
 }
 
 func (b *traceQueryStatementBuilder) adjustKeys(ctx context.Context, keys map[string][]*telemetrytypes.TelemetryFieldKey, query qbtypes.QueryBuilderQuery[qbtypes.TraceAggregation], requestType qbtypes.RequestType) qbtypes.QueryBuilderQuery[qbtypes.TraceAggregation] {
-
-	// add deprecated fields only during statement building
-	// why?
-	// 1. to not fail filter expression that use deprecated cols
-	// 2. this could have been moved to metadata fetching itself, however, that
-	// would mean, they also show up in suggestions we we don't want to do
-	// 3. reason for not doing a simple append is to keep intrinsic/calculated field first so that it gets
-	// priority in multi_if sql expression
-	for fieldKeyName, fieldKey := range IntrinsicFieldsDeprecated {
+	// Prefer canonical static fields when metadata contains an attribute with the
+	// same name. The request schema only exposes these canonical names.
+	for fieldKeyName, fieldKey := range IntrinsicFields {
 		keys[fieldKeyName] = append([]*telemetrytypes.TelemetryFieldKey{&fieldKey}, keys[fieldKeyName]...)
 	}
-	for fieldKeyName, fieldKey := range CalculatedFieldsDeprecated {
+	for fieldKeyName, fieldKey := range CalculatedFields {
 		keys[fieldKeyName] = append([]*telemetrytypes.TelemetryFieldKey{&fieldKey}, keys[fieldKeyName]...)
 	}
 
@@ -255,12 +249,6 @@ func (b *traceQueryStatementBuilder) adjustKey(key *telemetrytypes.TelemetryFiel
 	} else if _, ok := CalculatedFields[key.Name]; ok {
 		isIntrinsicOrCalculatedField = true
 		intrinsicOrCalculatedField = CalculatedFields[key.Name]
-	} else if _, ok := IntrinsicFieldsDeprecated[key.Name]; ok {
-		isIntrinsicOrCalculatedField = true
-		intrinsicOrCalculatedField = IntrinsicFieldsDeprecated[key.Name]
-	} else if _, ok := CalculatedFieldsDeprecated[key.Name]; ok {
-		isIntrinsicOrCalculatedField = true
-		intrinsicOrCalculatedField = CalculatedFieldsDeprecated[key.Name]
 	}
 
 	if isIntrinsicOrCalculatedField {

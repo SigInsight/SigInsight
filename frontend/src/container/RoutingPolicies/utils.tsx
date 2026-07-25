@@ -1,12 +1,12 @@
 import { CreateRoutingPolicyBody } from 'api/routingPolicies/createRoutingPolicy';
 import { GetRoutingPoliciesResponse } from 'api/routingPolicies/getRoutingPolicies';
 import { UpdateRoutingPolicyBody } from 'api/routingPolicies/updateRoutingPolicy';
-import { SuccessResponseV2 } from 'types/api';
+import { HttpSuccessResponse } from 'types/api';
 
 import { RoutingPolicy } from './types';
 
 export function mapApiResponseToRoutingPolicies(
-	response: SuccessResponseV2<GetRoutingPoliciesResponse>,
+	response: HttpSuccessResponse<GetRoutingPoliciesResponse>,
 ): RoutingPolicy[] {
 	return (
 		response?.data?.data?.map((policyData) => ({

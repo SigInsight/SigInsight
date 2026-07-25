@@ -162,17 +162,6 @@ export function createShortcutActions(deps: ActionDeps): CmdAction[] {
 			perform: (): void => navigate(ROUTES.MY_SETTINGS),
 		},
 		{
-			id: 'my-settings-ingestion',
-			name: 'Go to Account Settings Ingestion',
-			shortcut: [GlobalShortcutsName.NavigateToSettingsIngestion],
-			keywords: 'account settings',
-			section: 'Settings',
-			icon: <Settings size={14} />,
-			roles: ['ADMIN', 'EDITOR'],
-			perform: (): void => navigate(ROUTES.INGESTION_SETTINGS),
-		},
-
-		{
 			id: 'my-settings-api-keys',
 			name: 'Go to Account Settings API Keys',
 			shortcut: [GlobalShortcutsName.NavigateToSettingsAPIKeys],

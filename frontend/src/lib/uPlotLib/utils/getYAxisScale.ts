@@ -1,10 +1,10 @@
 import { ThresholdProps } from 'container/NewWidget/RightContainer/Threshold/types';
 import { convertValue } from 'lib/getConvertedValue';
 import { isFinite } from 'lodash-es';
-import { QueryDataV3 } from 'types/api/widgets/getQuery';
+import { QueryRangeResult } from 'types/api/widgets/getQuery';
 import uPlot from 'uplot';
 
-function findMinMaxValues(data: QueryDataV3[]): [number, number] {
+function findMinMaxValues(data: QueryRangeResult[]): [number, number] {
 	let min = Number.MAX_SAFE_INTEGER;
 	let max = Number.MIN_SAFE_INTEGER;
 	data?.forEach((entry) => {
@@ -49,7 +49,7 @@ function findMinMaxThresholdValues(
 
 function getRange(
 	thresholds: ThresholdProps[],
-	series: QueryDataV3[],
+	series: QueryRangeResult[],
 	yAxisUnit?: string,
 ): [number, number] {
 	const [minThresholdValue, maxThresholdValue] = findMinMaxThresholdValues(
@@ -69,7 +69,7 @@ function getRange(
 	return [min, max];
 }
 
-function areAllSeriesEmpty(series: QueryDataV3[]): boolean {
+function areAllSeriesEmpty(series: QueryRangeResult[]): boolean {
 	return series.every((entry) => {
 		if (!entry.series) {
 			return true;
@@ -321,7 +321,7 @@ export const getYAxisScaleForAnomalyDetection = ({
 
 export type GetYAxisScale = {
 	thresholds?: ThresholdProps[];
-	series?: QueryDataV3[];
+	series?: QueryRangeResult[];
 	yAxisUnit?: string;
 	softMin: number | null;
 	softMax: number | null;

@@ -12,11 +12,8 @@ export const getErrorRate = (list: TopOperationList): number => {
 };
 
 export const navigateToTrace = ({
-	servicename,
-	operation,
 	minTime,
 	maxTime,
-	selectedTraceTags,
 	apmToTraceQuery,
 	safeNavigate,
 	openInNewTab = false,
@@ -32,9 +29,7 @@ export const navigateToTrace = ({
 
 	const newTraceExplorerPath = `${
 		ROUTES.TRACES_EXPLORER
-	}?${urlParams.toString()}&selected={"serviceName":["${servicename}"],"operation":["${operation}"]}&filterToFetchData=["duration","status","serviceName","operation"]&spanAggregateCurrentPage=1&selectedTags=${selectedTraceTags}&${
-		QueryParams.compositeQuery
-	}=${JSONCompositeQuery}`;
+	}?${urlParams.toString()}&${QueryParams.compositeQuery}=${JSONCompositeQuery}`;
 
 	if (openInNewTab) {
 		window.open(newTraceExplorerPath, '_blank');

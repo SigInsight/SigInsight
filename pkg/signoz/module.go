@@ -12,8 +12,6 @@ import (
 	"github.com/SigNoz/signoz/pkg/factory"
 	"github.com/SigNoz/signoz/pkg/modules/apdex"
 	"github.com/SigNoz/signoz/pkg/modules/apdex/implapdex"
-	"github.com/SigNoz/signoz/pkg/modules/authdomain"
-	"github.com/SigNoz/signoz/pkg/modules/authdomain/implauthdomain"
 	"github.com/SigNoz/signoz/pkg/modules/metricsexplorer"
 	"github.com/SigNoz/signoz/pkg/modules/metricsexplorer/implmetricsexplorer"
 	"github.com/SigNoz/signoz/pkg/modules/organization"
@@ -63,7 +61,6 @@ type Modules struct {
 	QuickFilter     quickfilter.Module
 	TraceFunnel     tracefunnel.Module
 	RawDataExport   rawdataexport.Module
-	AuthDomain      authdomain.Module
 	Session         session.Module
 	Services        services.Module
 	SpanPercentile  spanpercentile.Module
@@ -108,8 +105,7 @@ func NewModules(
 		QuickFilter:     quickfilter,
 		TraceFunnel:     impltracefunnel.NewModule(impltracefunnel.NewStore(sqlstore)),
 		RawDataExport:   implrawdataexport.NewModule(querier),
-		AuthDomain:      implauthdomain.NewModule(implauthdomain.NewStore(sqlstore), authNs),
-		Session:         implsession.NewModule(providerSettings, authNs, userSetter, userGetter, implauthdomain.NewModule(implauthdomain.NewStore(sqlstore), authNs), tokenizer, orgGetter),
+		Session:         implsession.NewModule(providerSettings, authNs, userSetter, userGetter, tokenizer, orgGetter),
 		SpanPercentile:  implspanpercentile.NewModule(querier, providerSettings),
 		Services:        implservices.NewModule(querier, telemetryStore),
 		MetricsExplorer: implmetricsexplorer.NewModule(telemetryStore, telemetryMetadataStore, cache, ruleStore, providerSettings, config.MetricsExplorer),

@@ -13,7 +13,7 @@ import {
 	WebhookChannel,
 } from 'container/CreateAlertChannels/config';
 import EditAlertChannels from 'container/EditAlertChannels';
-import { SuccessResponseV2 } from 'types/api';
+import { HttpSuccessResponse } from 'types/api';
 import { Channels } from 'types/api/channels/getAll';
 import APIError from 'types/api/error';
 
@@ -28,7 +28,7 @@ function ChannelsEdit(): JSX.Element {
 	const channelId = channelIdMatch ? channelIdMatch[1] : undefined;
 
 	const { isFetching, isError, data, error } = useQuery<
-		SuccessResponseV2<Channels>,
+		HttpSuccessResponse<Channels>,
 		APIError
 	>(['getChannel', channelId], {
 		queryFn: () =>

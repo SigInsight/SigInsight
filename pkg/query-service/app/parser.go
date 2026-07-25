@@ -1,70 +1,26 @@
 package app
 
 import (
-	"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
 
-	"math"
 	"net/http"
-	"sort"
 	"strconv"
-	"strings"
-	"text/template"
 	"time"
-
-	signozerrors "github.com/SigNoz/signoz/pkg/errors"
 
 	"github.com/SigNoz/signoz/pkg/types/thirdpartyapitypes"
 
-	"log/slog"
-
-	"github.com/SigNoz/govaluate"
-
 	"github.com/gorilla/mux"
-	promModel "github.com/prometheus/common/model"
-	"go.uber.org/multierr"
 
 	errorsV2 "github.com/SigNoz/signoz/pkg/errors"
-	"github.com/SigNoz/signoz/pkg/query-service/app/metrics"
-	"github.com/SigNoz/signoz/pkg/query-service/app/queryBuilder"
-	"github.com/SigNoz/signoz/pkg/query-service/common"
 	baseconstants "github.com/SigNoz/signoz/pkg/query-service/constants"
 	"github.com/SigNoz/signoz/pkg/query-service/model"
-	v3 "github.com/SigNoz/signoz/pkg/query-service/model/v3"
-	"github.com/SigNoz/signoz/pkg/query-service/postprocess"
-	"github.com/SigNoz/signoz/pkg/query-service/utils"
-	querytemplate "github.com/SigNoz/signoz/pkg/query-service/utils/queryTemplate"
-	chVariables "github.com/SigNoz/signoz/pkg/variables/clickhouse"
+	"github.com/SigNoz/signoz/pkg/query-service/model/querytypes"
 )
 
 var allowedFunctions = []string{"count", "ratePerSec", "sum", "avg", "min", "max", "p50", "p90", "p95", "p99"}
-
-func parseGetTopOperationsRequest(r *http.Request) (*model.GetTopOperationsParams, error) {
-	var postData *model.GetTopOperationsParams
-	err := json.NewDecoder(r.Body).Decode(&postData)
-
-	if err != nil {
-		return nil, err
-	}
-
-	postData.Start, err = parseTimeStr(postData.StartTime, "start")
-	if err != nil {
-		return nil, err
-	}
-	postData.End, err = parseTimeMinusBufferStr(postData.EndTime, "end")
-	if err != nil {
-		return nil, err
-	}
-
-	if len(postData.ServiceName) == 0 {
-		return nil, errors.New("serviceName param missing in query")
-	}
-
-	return postData, nil
-}
 
 func parseRegisterEventRequest(r *http.Request) (*model.RegisterEventParams, error) {
 	var postData *model.RegisterEventParams
@@ -82,95 +38,6 @@ func parseRegisterEventRequest(r *http.Request) (*model.RegisterEventParams, err
 	}
 
 	return postData, nil
-}
-
-func parseMetricsTime(s string) (time.Time, error) {
-	if t, err := strconv.ParseFloat(s, 64); err == nil {
-		s, ns := math.Modf(t)
-		return time.Unix(int64(s), int64(ns*float64(time.Second))), nil
-		// return time.Unix(0, t), nil
-	}
-	if t, err := time.Parse(time.RFC3339Nano, s); err == nil {
-		return t, nil
-	}
-	return time.Time{}, fmt.Errorf("cannot parse %q to a valid timestamp", s)
-}
-
-func parseMetricsDuration(s string) (time.Duration, error) {
-	if d, err := strconv.ParseFloat(s, 64); err == nil {
-		ts := d * float64(time.Second)
-		if ts > float64(math.MaxInt64) || ts < float64(math.MinInt64) {
-			return 0, fmt.Errorf("cannot parse %q to a valid duration. It overflows int64", s)
-		}
-		return time.Duration(ts), nil
-	}
-	if d, err := promModel.ParseDuration(s); err == nil {
-		return time.Duration(d), nil
-	}
-	return 0, fmt.Errorf("cannot parse %q to a valid duration", s)
-}
-
-func parseInstantQueryMetricsRequest(r *http.Request) (*model.InstantQueryMetricsParams, *model.ApiError) {
-	var ts time.Time
-	if t := r.FormValue("time"); t != "" {
-		var err error
-		ts, err = parseMetricsTime(t)
-		if err != nil {
-			return nil, &model.ApiError{Typ: model.ErrorBadData, Err: err}
-		}
-	} else {
-		ts = time.Now()
-	}
-
-	return &model.InstantQueryMetricsParams{
-		Time:  ts,
-		Query: r.FormValue("query"),
-		Stats: r.FormValue("stats"),
-	}, nil
-
-}
-
-func parseQueryRangeRequest(r *http.Request) (*model.QueryRangeParams, *model.ApiError) {
-
-	start, err := parseMetricsTime(r.FormValue("start"))
-	if err != nil {
-		return nil, &model.ApiError{Typ: model.ErrorBadData, Err: err}
-	}
-	end, err := parseMetricsTime(r.FormValue("end"))
-	if err != nil {
-		return nil, &model.ApiError{Typ: model.ErrorBadData, Err: err}
-	}
-	if end.Before(start) {
-		err := errors.New("end timestamp must not be before start time")
-		return nil, &model.ApiError{Typ: model.ErrorBadData, Err: err}
-	}
-
-	step, err := parseMetricsDuration(r.FormValue("step"))
-	if err != nil {
-		return nil, &model.ApiError{Typ: model.ErrorBadData, Err: err}
-	}
-
-	if step <= 0 {
-		err := errors.New("zero or negative query resolution step widths are not accepted. Try a positive integer")
-		return nil, &model.ApiError{Typ: model.ErrorBadData, Err: err}
-	}
-
-	// For safety, limit the number of returned points per timeseries.
-	// This is sufficient for 60s resolution for a week or 1h resolution for a year.
-	if end.Sub(start)/step > 11000 {
-		err := errors.New("exceeded maximum resolution of 11,000 points per timeseries. Try decreasing the query resolution (?step=XX)")
-		return nil, &model.ApiError{Typ: model.ErrorBadData, Err: err}
-	}
-
-	queryRangeParams := model.QueryRangeParams{
-		Start: start,
-		End:   end,
-		Step:  step,
-		Query: r.FormValue("query"),
-		Stats: r.FormValue("stats"),
-	}
-
-	return &queryRangeParams, nil
 }
 
 func parseGetUsageRequest(r *http.Request) (*model.GetUsageParams, error) {
@@ -476,11 +343,11 @@ func parseGetTTL(r *http.Request) (*model.GetTTLParams, error) {
 	return &model.GetTTLParams{Type: typeTTL}, nil
 }
 
-func parseAggregateAttributeRequest(r *http.Request) (*v3.AggregateAttributeRequest, error) {
-	var req v3.AggregateAttributeRequest
+func parseAggregateAttributeRequest(r *http.Request) (*querytypes.AggregateAttributeRequest, error) {
+	var req querytypes.AggregateAttributeRequest
 
-	aggregateOperator := v3.AggregateOperator(r.URL.Query().Get("aggregateOperator"))
-	dataSource := v3.DataSource(r.URL.Query().Get("dataSource"))
+	aggregateOperator := querytypes.AggregateOperator(r.URL.Query().Get("aggregateOperator"))
+	dataSource := querytypes.DataSource(r.URL.Query().Get("dataSource"))
 	aggregateAttribute := r.URL.Query().Get("searchText")
 
 	limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
@@ -488,7 +355,7 @@ func parseAggregateAttributeRequest(r *http.Request) (*v3.AggregateAttributeRequ
 		limit = 50
 	}
 
-	if dataSource != v3.DataSourceMetrics && dataSource != v3.DataSourceMeter {
+	if dataSource != querytypes.DataSourceMetrics && dataSource != querytypes.DataSourceMeter {
 		if err := aggregateOperator.Validate(); err != nil {
 			return nil, err
 		}
@@ -498,7 +365,7 @@ func parseAggregateAttributeRequest(r *http.Request) (*v3.AggregateAttributeRequ
 		return nil, err
 	}
 
-	req = v3.AggregateAttributeRequest{
+	req = querytypes.AggregateAttributeRequest{
 		Operator:   aggregateOperator,
 		SearchText: aggregateAttribute,
 		Limit:      limit,
@@ -508,9 +375,9 @@ func parseAggregateAttributeRequest(r *http.Request) (*v3.AggregateAttributeRequ
 }
 
 func parseQBFilterSuggestionsRequest(r *http.Request) (
-	*v3.QBFilterSuggestionsRequest, *model.ApiError,
+	*querytypes.QBFilterSuggestionsRequest, *model.ApiError,
 ) {
-	dataSource := v3.DataSource(r.URL.Query().Get("dataSource"))
+	dataSource := querytypes.DataSource(r.URL.Query().Get("dataSource"))
 	if err := dataSource.Validate(); err != nil {
 		return nil, model.BadRequest(err)
 	}
@@ -552,7 +419,7 @@ func parseQBFilterSuggestionsRequest(r *http.Request) (
 		return nil, err
 	}
 
-	var existingFilter *v3.FilterSet
+	var existingFilter *querytypes.FilterSet
 	existingFilterB64 := r.URL.Query().Get("existingFilter")
 	if len(existingFilterB64) > 0 {
 		decodedFilterJson, err := base64.RawURLEncoding.DecodeString(existingFilterB64)
@@ -560,7 +427,7 @@ func parseQBFilterSuggestionsRequest(r *http.Request) (
 			return nil, model.BadRequest(fmt.Errorf("couldn't base64 decode existingFilter: %w", err))
 		}
 
-		existingFilter = &v3.FilterSet{}
+		existingFilter = &querytypes.FilterSet{}
 		err = json.Unmarshal(decodedFilterJson, existingFilter)
 		if err != nil {
 			return nil, model.BadRequest(fmt.Errorf("couldn't JSON decode existingFilter: %w", err))
@@ -569,7 +436,7 @@ func parseQBFilterSuggestionsRequest(r *http.Request) (
 
 	searchText := r.URL.Query().Get("searchText")
 
-	return &v3.QBFilterSuggestionsRequest{
+	return &querytypes.QBFilterSuggestionsRequest{
 		DataSource:      dataSource,
 		SearchText:      searchText,
 		ExistingFilter:  existingFilter,
@@ -578,14 +445,14 @@ func parseQBFilterSuggestionsRequest(r *http.Request) (
 	}, nil
 }
 
-func parseFilterAttributeKeyRequest(r *http.Request) (*v3.FilterAttributeKeyRequest, error) {
-	var req v3.FilterAttributeKeyRequest
+func parseFilterAttributeKeyRequest(r *http.Request) (*querytypes.FilterAttributeKeyRequest, error) {
+	var req querytypes.FilterAttributeKeyRequest
 
-	dataSource := v3.DataSource(r.URL.Query().Get("dataSource"))
-	aggregateOperator := v3.AggregateOperator(r.URL.Query().Get("aggregateOperator"))
+	dataSource := querytypes.DataSource(r.URL.Query().Get("dataSource"))
+	aggregateOperator := querytypes.AggregateOperator(r.URL.Query().Get("aggregateOperator"))
 	aggregateAttribute := r.URL.Query().Get("aggregateAttribute")
 	limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
-	tagType := v3.TagType(r.URL.Query().Get("tagType"))
+	tagType := querytypes.TagType(r.URL.Query().Get("tagType"))
 
 	// empty string is a valid tagType
 	// i.e retrieve all attributes
@@ -608,13 +475,13 @@ func parseFilterAttributeKeyRequest(r *http.Request) (*v3.FilterAttributeKeyRequ
 		return nil, err
 	}
 
-	if dataSource != v3.DataSourceMetrics && dataSource != v3.DataSourceMeter {
+	if dataSource != querytypes.DataSourceMetrics && dataSource != querytypes.DataSourceMeter {
 		if err := aggregateOperator.Validate(); err != nil {
 			return nil, err
 		}
 	}
 
-	req = v3.FilterAttributeKeyRequest{
+	req = querytypes.FilterAttributeKeyRequest{
 		DataSource:         dataSource,
 		AggregateOperator:  aggregateOperator,
 		AggregateAttribute: aggregateAttribute,
@@ -625,9 +492,9 @@ func parseFilterAttributeKeyRequest(r *http.Request) (*v3.FilterAttributeKeyRequ
 	return &req, nil
 }
 
-func parseFilterAttributeValueRequestBody(r *http.Request) (*v3.FilterAttributeValueRequest, error) {
+func parseFilterAttributeValueRequestBody(r *http.Request) (*querytypes.FilterAttributeValueRequest, error) {
 
-	var req v3.FilterAttributeValueRequest
+	var req querytypes.FilterAttributeValueRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return nil, err
@@ -644,15 +511,15 @@ func parseFilterAttributeValueRequestBody(r *http.Request) (*v3.FilterAttributeV
 	return &req, nil
 }
 
-func parseFilterAttributeValueRequest(r *http.Request) (*v3.FilterAttributeValueRequest, error) {
+func parseFilterAttributeValueRequest(r *http.Request) (*querytypes.FilterAttributeValueRequest, error) {
 
-	var req v3.FilterAttributeValueRequest
+	var req querytypes.FilterAttributeValueRequest
 
-	dataSource := v3.DataSource(r.URL.Query().Get("dataSource"))
-	aggregateOperator := v3.AggregateOperator(r.URL.Query().Get("aggregateOperator"))
-	filterAttributeKeyDataType := v3.AttributeKeyDataType(r.URL.Query().Get("filterAttributeKeyDataType")) // can be empty
+	dataSource := querytypes.DataSource(r.URL.Query().Get("dataSource"))
+	aggregateOperator := querytypes.AggregateOperator(r.URL.Query().Get("aggregateOperator"))
+	filterAttributeKeyDataType := querytypes.AttributeKeyDataType(r.URL.Query().Get("filterAttributeKeyDataType")) // can be empty
 	aggregateAttribute := r.URL.Query().Get("aggregateAttribute")
-	tagType := v3.TagType(r.URL.Query().Get("tagType")) // can be empty
+	tagType := querytypes.TagType(r.URL.Query().Get("tagType")) // can be empty
 
 	limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
 	if err != nil {
@@ -663,13 +530,13 @@ func parseFilterAttributeValueRequest(r *http.Request) (*v3.FilterAttributeValue
 		return nil, err
 	}
 
-	if dataSource != v3.DataSourceMetrics {
+	if dataSource != querytypes.DataSourceMetrics {
 		if err := aggregateOperator.Validate(); err != nil {
 			return nil, err
 		}
 	}
 
-	req = v3.FilterAttributeValueRequest{
+	req = querytypes.FilterAttributeValueRequest{
 		DataSource:                 dataSource,
 		AggregateOperator:          aggregateOperator,
 		AggregateAttribute:         aggregateAttribute,
@@ -680,290 +547,6 @@ func parseFilterAttributeValueRequest(r *http.Request) (*v3.FilterAttributeValue
 		FilterAttributeKeyDataType: filterAttributeKeyDataType,
 	}
 	return &req, nil
-}
-
-func validateQueryRangeParamsV3(qp *v3.QueryRangeParamsV3) error {
-	err := qp.CompositeQuery.Validate()
-	if err != nil {
-		return err
-	}
-
-	var expressions []string
-	for _, q := range qp.CompositeQuery.BuilderQueries {
-		expressions = append(expressions, q.Expression)
-	}
-	errs := validateExpressions(expressions, queryBuilder.EvalFuncs, qp.CompositeQuery)
-	if len(errs) > 0 {
-		return multierr.Combine(errs...)
-	}
-	return nil
-}
-
-// validateExpressions validates the math expressions using the list of
-// allowed functions.
-func validateExpressions(expressions []string, funcs map[string]govaluate.ExpressionFunction, cq *v3.CompositeQuery) []error {
-	var errs []error
-	for _, exp := range expressions {
-		evalExp, err := govaluate.NewEvaluableExpressionWithFunctions(exp, funcs)
-		if err != nil {
-			errs = append(errs, fmt.Errorf("invalid expression %s: %v", exp, err))
-			continue
-		}
-		for _, v := range evalExp.Vars() {
-			var hasVariable bool
-			for _, q := range cq.BuilderQueries {
-				if q.Expression == v {
-					hasVariable = true
-					break
-				}
-			}
-			if !hasVariable {
-				errs = append(errs, fmt.Errorf("unknown variable %s", v))
-			}
-		}
-	}
-	return errs
-}
-
-// chTransformQuery transforms the clickhouse query with the given variables
-// it is used to check what would be the query if variables are selected as __all__.
-// for now, this is just a pass through, but in the future, we will use it to
-// dashboard variables
-// TODO(srikanthccv): version based query replacement
-func chTransformQuery(query string, variables map[string]interface{}) {
-	varsForTransform := make([]chVariables.VariableValue, 0, len(variables))
-	for name := range variables {
-		varsForTransform = append(varsForTransform, chVariables.VariableValue{
-			Name:        name,
-			Values:      []string{"__all__"},
-			IsSelectAll: true,
-			FieldType:   "scalar",
-		})
-	}
-	transformer := chVariables.NewQueryTransformer(query, varsForTransform)
-	transformedQuery, err := transformer.Transform()
-	if err != nil {
-		slog.Warn("failed to transform clickhouse query", "query", query, signozerrors.Attr(err))
-	}
-	slog.Info("transformed clickhouse query", "transformed_query", transformedQuery, "original_query", query)
-}
-
-func ParseQueryRangeParams(r *http.Request) (*v3.QueryRangeParamsV3, *model.ApiError) {
-
-	var queryRangeParams *v3.QueryRangeParamsV3
-
-	// parse the request body
-	if err := json.NewDecoder(r.Body).Decode(&queryRangeParams); err != nil {
-		return nil, &model.ApiError{Typ: model.ErrorBadData, Err: fmt.Errorf("cannot parse the request body: %v", err)}
-	}
-
-	// sanitize the request body
-	queryRangeParams.CompositeQuery.Sanitize()
-
-	// validate the request body
-	if err := validateQueryRangeParamsV3(queryRangeParams); err != nil {
-		return nil, &model.ApiError{Typ: model.ErrorBadData, Err: err}
-	}
-
-	// prepare the variables for the corresponding query type
-	formattedVars := make(map[string]interface{})
-	for name, value := range queryRangeParams.Variables {
-		if queryRangeParams.CompositeQuery.QueryType == v3.QueryTypePromQL {
-			formattedVars[name] = metrics.PromFormattedValue(value)
-		} else if queryRangeParams.CompositeQuery.QueryType == v3.QueryTypeClickHouseSQL {
-			formattedVars[name] = utils.ClickHouseFormattedValue(value)
-		}
-	}
-
-	// replace the variables in metrics builder filter item with actual value
-	// example: {"key": "host", "value": "{{ .host }}", "operator": "equals"} with
-	// variables {"host": "test"} will be replaced with {"key": "host", "value": "test", "operator": "equals"}
-
-	if queryRangeParams.CompositeQuery.QueryType == v3.QueryTypeBuilder {
-		for _, query := range queryRangeParams.CompositeQuery.BuilderQueries {
-			// Formula query
-			// Check if the queries used in the expression can be joined
-			if query.QueryName != query.Expression {
-				expression, err := govaluate.NewEvaluableExpressionWithFunctions(query.Expression, postprocess.EvalFuncs())
-				if err != nil {
-					return nil, &model.ApiError{Typ: model.ErrorBadData, Err: err}
-				}
-
-				// get the group keys for the vars
-				groupKeys := make(map[string][]string)
-				for _, v := range expression.Vars() {
-					if varQuery, ok := queryRangeParams.CompositeQuery.BuilderQueries[v]; ok {
-						groupKeys[v] = []string{}
-						for _, key := range varQuery.GroupBy {
-							groupKeys[v] = append(groupKeys[v], key.Key)
-						}
-					} else {
-						return nil, &model.ApiError{Typ: model.ErrorBadData, Err: fmt.Errorf("unknown variable %s", v)}
-					}
-				}
-
-				params := make(map[string]interface{})
-				for k, v := range groupKeys {
-					params[k] = v
-				}
-
-				can, _, err := expression.CanJoin(params)
-				if err != nil {
-					return nil, &model.ApiError{Typ: model.ErrorBadData, Err: err}
-				}
-
-				if !can {
-					return nil, &model.ApiError{Typ: model.ErrorBadData, Err: fmt.Errorf("cannot join the given group keys")}
-				}
-			}
-
-			// If the step interval is less than the minimum allowed step interval, set it to the minimum allowed step interval
-			if minStep := common.MinAllowedStepInterval(queryRangeParams.Start, queryRangeParams.End); query.StepInterval < minStep {
-				query.StepInterval = minStep
-			}
-
-			if query.DataSource == v3.DataSourceMetrics {
-				// if the time range is greater than 1 day, and less than 1 week set the step interval to be multiple of 5 minutes
-				// if the time range is greater than 1 week, set the step interval to be multiple of 30 mins
-				start, end := queryRangeParams.Start, queryRangeParams.End
-				if end-start >= 24*time.Hour.Milliseconds() && end-start < 7*24*time.Hour.Milliseconds() {
-					query.StepInterval = int64(math.Round(float64(query.StepInterval)/300)) * 300
-				} else if end-start >= 7*24*time.Hour.Milliseconds() {
-					query.StepInterval = int64(math.Round(float64(query.StepInterval)/1800)) * 1800
-				}
-			}
-
-			query.SetShiftByFromFunc()
-
-			if query.Filters == nil || len(query.Filters.Items) == 0 {
-				continue
-			}
-
-			for idx := range query.Filters.Items {
-				item := &query.Filters.Items[idx]
-				value := item.Value
-				if value != nil {
-					switch x := value.(type) {
-					case string:
-						variableName := strings.Trim(x, "{[.$]}")
-						if _, ok := queryRangeParams.Variables[variableName]; ok {
-							item.Value = queryRangeParams.Variables[variableName]
-						}
-					case []interface{}:
-						if len(x) > 0 {
-							switch x[0].(type) {
-							case string:
-								variableName := strings.Trim(x[0].(string), "{[.$]}")
-								if _, ok := queryRangeParams.Variables[variableName]; ok {
-									item.Value = queryRangeParams.Variables[variableName]
-								}
-							}
-						}
-					}
-				}
-
-				if v3.FilterOperator(strings.ToLower((string(item.Operator)))) != v3.FilterOperatorIn && v3.FilterOperator(strings.ToLower((string(item.Operator)))) != v3.FilterOperatorNotIn {
-					// the value type should not be multiple values
-					if _, ok := item.Value.([]interface{}); ok {
-						return nil, &model.ApiError{Typ: model.ErrorBadData, Err: fmt.Errorf("multiple values %s are not allowed for operator `%s` for key `%s`", item.Value, item.Operator, item.Key.Key)}
-					}
-				}
-			}
-		}
-	}
-	queryRangeParams.Variables = formattedVars
-
-	// prometheus instant query needs same timestamp
-	if queryRangeParams.CompositeQuery.PanelType == v3.PanelTypeValue &&
-		queryRangeParams.CompositeQuery.QueryType == v3.QueryTypePromQL {
-		queryRangeParams.Start = queryRangeParams.End
-	}
-
-	// replace go template variables in clickhouse query
-	if queryRangeParams.CompositeQuery.QueryType == v3.QueryTypeClickHouseSQL {
-		for _, chQuery := range queryRangeParams.CompositeQuery.ClickHouseQueries {
-			if chQuery.Disabled {
-				continue
-			}
-
-			chTransformQuery(chQuery.Query, queryRangeParams.Variables)
-
-			keys := make([]string, 0, len(queryRangeParams.Variables))
-
-			querytemplate.AssignReservedVarsV3(queryRangeParams)
-
-			for k := range queryRangeParams.Variables {
-				keys = append(keys, k)
-			}
-
-			sort.Slice(keys, func(i, j int) bool {
-				return len(keys[i]) > len(keys[j])
-			})
-
-			for _, k := range keys {
-				chQuery.Query = strings.Replace(chQuery.Query, fmt.Sprintf("{{%s}}", k), fmt.Sprint(queryRangeParams.Variables[k]), -1)
-				chQuery.Query = strings.Replace(chQuery.Query, fmt.Sprintf("[[%s]]", k), fmt.Sprint(queryRangeParams.Variables[k]), -1)
-				chQuery.Query = strings.Replace(chQuery.Query, fmt.Sprintf("$%s", k), fmt.Sprint(queryRangeParams.Variables[k]), -1)
-			}
-
-			tmpl := template.New("clickhouse-query")
-			tmpl, err := tmpl.Parse(chQuery.Query)
-			if err != nil {
-				return nil, &model.ApiError{Typ: model.ErrorBadData, Err: err}
-			}
-			var query bytes.Buffer
-
-			// replace go template variables
-
-			err = tmpl.Execute(&query, queryRangeParams.Variables)
-			if err != nil {
-				return nil, &model.ApiError{Typ: model.ErrorBadData, Err: err}
-			}
-			chQuery.Query = query.String()
-		}
-	}
-
-	// replace go template variables in prometheus query
-	if queryRangeParams.CompositeQuery.QueryType == v3.QueryTypePromQL {
-		for _, promQuery := range queryRangeParams.CompositeQuery.PromQueries {
-			if promQuery.Disabled {
-				continue
-			}
-
-			querytemplate.AssignReservedVarsV3(queryRangeParams)
-
-			keys := make([]string, 0, len(queryRangeParams.Variables))
-
-			for k := range queryRangeParams.Variables {
-				keys = append(keys, k)
-			}
-
-			sort.Slice(keys, func(i, j int) bool {
-				return len(keys[i]) > len(keys[j])
-			})
-
-			for _, k := range keys {
-				promQuery.Query = strings.Replace(promQuery.Query, fmt.Sprintf("{{%s}}", k), fmt.Sprint(queryRangeParams.Variables[k]), -1)
-				promQuery.Query = strings.Replace(promQuery.Query, fmt.Sprintf("[[%s]]", k), fmt.Sprint(queryRangeParams.Variables[k]), -1)
-				promQuery.Query = strings.Replace(promQuery.Query, fmt.Sprintf("$%s", k), fmt.Sprint(queryRangeParams.Variables[k]), -1)
-			}
-
-			tmpl := template.New("prometheus-query")
-			tmpl, err := tmpl.Parse(promQuery.Query)
-			if err != nil {
-				return nil, &model.ApiError{Typ: model.ErrorBadData, Err: err}
-			}
-			var query bytes.Buffer
-
-			err = tmpl.Execute(&query, queryRangeParams.Variables)
-			if err != nil {
-				return nil, &model.ApiError{Typ: model.ErrorBadData, Err: err}
-			}
-			promQuery.Query = query.String()
-		}
-	}
-
-	return queryRangeParams, nil
 }
 
 // ParseRequestBody for third party APIs

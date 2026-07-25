@@ -13,7 +13,6 @@ import { Typography } from 'antd';
 import logEvent from 'api/common/logEvent';
 import ErrorInPlace from 'components/ErrorInPlace/ErrorInPlace';
 import { ResizeTable } from 'components/ResizeTable';
-import { ENTITY_VERSION_V5 } from 'constants/app';
 import { QueryParams } from 'constants/query';
 import { initialQueriesMap, PANEL_TYPES } from 'constants/queryBuilder';
 import { REACT_QUERY_KEY } from 'constants/reactQueryKeys';
@@ -102,7 +101,6 @@ function TracesView({
 				pagination: paginationQueryData,
 			},
 		},
-		ENTITY_VERSION_V5,
 		{
 			queryKey,
 			enabled: panelType === PANEL_TYPES.TRACE,
@@ -116,7 +114,7 @@ function TracesView({
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [data?.payload, data?.warning]);
 
-	const responseData = data?.payload?.data?.newResult?.data?.result[0]?.list;
+	const responseData = data?.payload?.data?.queryResult?.data?.result[0]?.list;
 	const tableData = useMemo(
 		() => responseData?.map((listItem) => listItem.data),
 		[responseData],

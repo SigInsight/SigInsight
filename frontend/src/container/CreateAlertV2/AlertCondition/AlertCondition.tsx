@@ -3,7 +3,7 @@ import { Button, Tooltip } from 'antd';
 import getAllChannels from 'api/channels/getAll';
 import classNames from 'classnames';
 import { ChartLine } from 'lucide-react';
-import { SuccessResponseV2 } from 'types/api';
+import { HttpSuccessResponse } from 'types/api';
 import { AlertTypes } from 'types/api/alerts/alertTypes';
 import { Channels } from 'types/api/channels/getAll';
 import APIError from 'types/api/error';
@@ -25,7 +25,7 @@ function AlertCondition(): JSX.Element {
 		isLoading: isLoadingChannels,
 		isError: isErrorChannels,
 		refetch: refreshChannels,
-	} = useQuery<SuccessResponseV2<Channels[]>, APIError>(['getChannels'], {
+	} = useQuery<HttpSuccessResponse<Channels[]>, APIError>(['getChannels'], {
 		queryFn: () => getAllChannels(),
 	});
 	const channels = data?.data || [];

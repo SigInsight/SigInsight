@@ -19,7 +19,6 @@ function CreateRules(): JSX.Element {
 
 	const ruleTypeFromURL = queryParams.get(QueryParams.ruleType);
 	const alertTypeFromURL = queryParams.get(QueryParams.alertType);
-	const version = queryParams.get(QueryParams.version);
 	const showClassicCreateAlertsPageFlag =
 		queryParams.get(QueryParams.showClassicCreateAlertsPage) === 'true';
 
@@ -40,9 +39,9 @@ function CreateRules(): JSX.Element {
 	const initialAlertValue: AlertDef = useMemo(
 		() => ({
 			...ALERTS_VALUES_MAP[alertType],
-			version: version || ENTITY_VERSION_V5,
+			version: ENTITY_VERSION_V5,
 		}),
-		[alertType, version],
+		[alertType],
 	);
 
 	// Load old alerts flow always for anomaly based alerts and when showClassicCreateAlertsPage is true

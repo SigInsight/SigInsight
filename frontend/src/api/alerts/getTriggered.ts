@@ -1,4 +1,4 @@
-import axios from 'api';
+import { ApiV5Instance as axios } from 'api';
 import { ErrorResponseHandler } from 'api/ErrorResponseHandler';
 import { AxiosError } from 'axios';
 import convertObjectIntoParams from 'lib/query/convertObjectIntoParams';

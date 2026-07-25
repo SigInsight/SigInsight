@@ -153,7 +153,7 @@ export const isDataAvailableByPanelType = (
 			case PANEL_TYPES.TABLE:
 				return (data?.result?.[0] as any)?.table?.rows;
 			case PANEL_TYPES.LIST:
-				return data?.newResult?.data?.result?.[0]?.list as any[];
+				return data?.queryResult?.data?.result?.[0]?.list as any[];
 			default:
 				return data?.result;
 		}

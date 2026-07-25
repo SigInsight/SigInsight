@@ -7,7 +7,7 @@ import { timePreferance } from 'container/NewWidget/RightContainer/timeItems';
 import { OnClickPluginOpts } from 'lib/uPlotLib/plugins/onClickPlugin';
 import { Widgets } from 'types/api/dashboard/getAll';
 import { Query } from 'types/api/queryBuilder/queryBuilderData';
-import { QueryDataV3 } from 'types/api/widgets/getQuery';
+import { QueryRangeResult } from 'types/api/widgets/getQuery';
 import { DataSource } from 'types/common/queryBuilder';
 import uPlot from 'uplot';
 
@@ -22,7 +22,7 @@ export type GridPanelSwitchProps = {
 	yAxisUnit?: string;
 	staticLine?: StaticLineProps;
 	onDragSelect?: (start: number, end: number) => void;
-	panelData: QueryDataV3[];
+	panelData: QueryRangeResult[];
 	query: Query;
 	thresholds?: Widgets['thresholds'];
 	dataSource?: DataSource;

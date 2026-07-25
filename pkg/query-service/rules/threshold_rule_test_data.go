@@ -3,12 +3,12 @@ package rules
 import (
 	"time"
 
-	v3 "github.com/SigNoz/signoz/pkg/query-service/model/v3"
+	"github.com/SigNoz/signoz/pkg/types/timeseriestypes"
 )
 
 type recoveryTestCase struct {
 	description          string
-	values               v3.Series
+	values               timeseriestypes.Series
 	expectAlert          bool
 	expectRecovery       bool // IsRecovering flag check
 	compareOp            string
@@ -23,7 +23,7 @@ type recoveryTestCase struct {
 		matchType      string
 		compareOp      string
 	}
-	expectedAlertSample    v3.Point
+	expectedAlertSample    timeseriestypes.Point
 	expectedTarget         float64
 	expectedRecoveryTarget float64
 	thresholdName          string // for hash calculation
@@ -174,8 +174,8 @@ var (
 	tcThresholdRuleEvalNoRecoveryTarget = []recoveryTestCase{
 		// Test cases for Equals Always
 		{
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 0.0},
 					{Value: 0.0},
 					{Value: 0.0},
@@ -187,11 +187,11 @@ var (
 			compareOp:           "3", // Equals
 			matchType:           "2", // Always
 			target:              0.0,
-			expectedAlertSample: v3.Point{Value: 0.0},
+			expectedAlertSample: timeseriestypes.Point{Value: 0.0},
 		},
 		{
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 0.0},
 					{Value: 0.0},
 					{Value: 0.0},
@@ -205,8 +205,8 @@ var (
 			target:      0.0,
 		},
 		{
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 0.0},
 					{Value: 1.0},
 					{Value: 0.0},
@@ -220,8 +220,8 @@ var (
 			target:      0.0,
 		},
 		{
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 1.0},
 					{Value: 1.0},
 					{Value: 1.0},
@@ -236,8 +236,8 @@ var (
 		},
 		// Test cases for Equals Once
 		{
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 0.0},
 					{Value: 0.0},
 					{Value: 0.0},
@@ -249,11 +249,11 @@ var (
 			compareOp:           "3", // Equals
 			matchType:           "1", // Once
 			target:              0.0,
-			expectedAlertSample: v3.Point{Value: 0.0},
+			expectedAlertSample: timeseriestypes.Point{Value: 0.0},
 		},
 		{
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 0.0},
 					{Value: 0.0},
 					{Value: 0.0},
@@ -265,11 +265,11 @@ var (
 			compareOp:           "3", // Equals
 			matchType:           "1", // Once
 			target:              0.0,
-			expectedAlertSample: v3.Point{Value: 0.0},
+			expectedAlertSample: timeseriestypes.Point{Value: 0.0},
 		},
 		{
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 0.0},
 					{Value: 1.0},
 					{Value: 0.0},
@@ -281,11 +281,11 @@ var (
 			compareOp:           "3", // Equals
 			matchType:           "1", // Once
 			target:              0.0,
-			expectedAlertSample: v3.Point{Value: 0.0},
+			expectedAlertSample: timeseriestypes.Point{Value: 0.0},
 		},
 		{
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 1.0},
 					{Value: 1.0},
 					{Value: 1.0},
@@ -300,8 +300,8 @@ var (
 		},
 		// Test cases for Greater Than Always
 		{
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 10.0},
 					{Value: 4.0},
 					{Value: 6.0},
@@ -313,11 +313,11 @@ var (
 			compareOp:           "1", // Greater Than
 			matchType:           "2", // Always
 			target:              1.5,
-			expectedAlertSample: v3.Point{Value: 2.0},
+			expectedAlertSample: timeseriestypes.Point{Value: 2.0},
 		},
 		{
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 10.0},
 					{Value: 4.0},
 					{Value: 6.0},
@@ -332,8 +332,8 @@ var (
 		},
 		// Test cases for Greater Than Once
 		{
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 10.0},
 					{Value: 4.0},
 					{Value: 6.0},
@@ -345,11 +345,11 @@ var (
 			compareOp:           "1", // Greater Than
 			matchType:           "1", // Once
 			target:              4.5,
-			expectedAlertSample: v3.Point{Value: 10.0},
+			expectedAlertSample: timeseriestypes.Point{Value: 10.0},
 		},
 		{
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 4.0},
 					{Value: 4.0},
 					{Value: 4.0},
@@ -364,8 +364,8 @@ var (
 		},
 		// Test cases for Not Equals Always
 		{
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 0.0},
 					{Value: 1.0},
 					{Value: 0.0},
@@ -379,8 +379,8 @@ var (
 			target:      0.0,
 		},
 		{
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 1.0},
 					{Value: 1.0},
 					{Value: 1.0},
@@ -394,8 +394,8 @@ var (
 			target:      0.0,
 		},
 		{
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 1.0},
 					{Value: 1.0},
 					{Value: 1.0},
@@ -407,11 +407,11 @@ var (
 			compareOp:           "4", // Not Equals
 			matchType:           "2", // Always
 			target:              0.0,
-			expectedAlertSample: v3.Point{Value: 1.0},
+			expectedAlertSample: timeseriestypes.Point{Value: 1.0},
 		},
 		{
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 1.0},
 					{Value: 0.0},
 					{Value: 1.0},
@@ -426,8 +426,8 @@ var (
 		},
 		// Test cases for Not Equals Once
 		{
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 0.0},
 					{Value: 1.0},
 					{Value: 0.0},
@@ -439,11 +439,11 @@ var (
 			compareOp:           "4", // Not Equals
 			matchType:           "1", // Once
 			target:              0.0,
-			expectedAlertSample: v3.Point{Value: 1.0},
+			expectedAlertSample: timeseriestypes.Point{Value: 1.0},
 		},
 		{
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 0.0},
 					{Value: 0.0},
 					{Value: 0.0},
@@ -457,8 +457,8 @@ var (
 			target:      0.0,
 		},
 		{
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 0.0},
 					{Value: 0.0},
 					{Value: 1.0},
@@ -470,11 +470,11 @@ var (
 			compareOp:           "4", // Not Equals
 			matchType:           "1", // Once
 			target:              0.0,
-			expectedAlertSample: v3.Point{Value: 1.0},
+			expectedAlertSample: timeseriestypes.Point{Value: 1.0},
 		},
 		{
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 1.0},
 					{Value: 1.0},
 					{Value: 1.0},
@@ -486,12 +486,12 @@ var (
 			compareOp:           "4", // Not Equals
 			matchType:           "1", // Once
 			target:              0.0,
-			expectedAlertSample: v3.Point{Value: 1.0},
+			expectedAlertSample: timeseriestypes.Point{Value: 1.0},
 		},
 		// Test cases for Less Than Always
 		{
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 1.5},
 					{Value: 1.5},
 					{Value: 1.5},
@@ -503,11 +503,11 @@ var (
 			compareOp:           "2", // Less Than
 			matchType:           "2", // Always
 			target:              4,
-			expectedAlertSample: v3.Point{Value: 1.5},
+			expectedAlertSample: timeseriestypes.Point{Value: 1.5},
 		},
 		{
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 1.5},
 					{Value: 2.5},
 					{Value: 1.5},
@@ -519,11 +519,11 @@ var (
 			compareOp:           "2", // Less Than
 			matchType:           "2", // Always
 			target:              4,
-			expectedAlertSample: v3.Point{Value: 3.5},
+			expectedAlertSample: timeseriestypes.Point{Value: 3.5},
 		},
 		{
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 4.5},
 					{Value: 4.5},
 					{Value: 4.5},
@@ -538,8 +538,8 @@ var (
 		},
 		// Test cases for Less Than Once
 		{
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 4.5},
 					{Value: 4.5},
 					{Value: 4.5},
@@ -551,11 +551,11 @@ var (
 			compareOp:           "2", // Less Than
 			matchType:           "1", // Once
 			target:              4,
-			expectedAlertSample: v3.Point{Value: 2.5},
+			expectedAlertSample: timeseriestypes.Point{Value: 2.5},
 		},
 		{
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 4.5},
 					{Value: 4.5},
 					{Value: 4.5},
@@ -570,8 +570,8 @@ var (
 		},
 		// Test cases for OnAverage
 		{
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 10.0},
 					{Value: 4.0},
 					{Value: 6.0},
@@ -583,11 +583,11 @@ var (
 			compareOp:           "3", // Equals
 			matchType:           "3", // OnAverage
 			target:              6.0,
-			expectedAlertSample: v3.Point{Value: 6.0},
+			expectedAlertSample: timeseriestypes.Point{Value: 6.0},
 		},
 		{
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 10.0},
 					{Value: 4.0},
 					{Value: 6.0},
@@ -601,8 +601,8 @@ var (
 			target:      4.5,
 		},
 		{
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 10.0},
 					{Value: 4.0},
 					{Value: 6.0},
@@ -614,11 +614,11 @@ var (
 			compareOp:           "4", // Not Equals
 			matchType:           "3", // OnAverage
 			target:              4.5,
-			expectedAlertSample: v3.Point{Value: 6.0},
+			expectedAlertSample: timeseriestypes.Point{Value: 6.0},
 		},
 		{
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 10.0},
 					{Value: 4.0},
 					{Value: 6.0},
@@ -632,8 +632,8 @@ var (
 			target:      6.0,
 		},
 		{
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 10.0},
 					{Value: 4.0},
 					{Value: 6.0},
@@ -645,11 +645,11 @@ var (
 			compareOp:           "1", // Greater Than
 			matchType:           "3", // OnAverage
 			target:              4.5,
-			expectedAlertSample: v3.Point{Value: 6.0},
+			expectedAlertSample: timeseriestypes.Point{Value: 6.0},
 		},
 		{
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 11.0},
 					{Value: 4.0},
 					{Value: 3.0},
@@ -661,11 +661,11 @@ var (
 			compareOp:           "1", // Above
 			matchType:           "2", // Always
 			target:              2.0,
-			expectedAlertSample: v3.Point{Value: 3.0},
+			expectedAlertSample: timeseriestypes.Point{Value: 3.0},
 		},
 		{
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 11.0},
 					{Value: 4.0},
 					{Value: 3.0},
@@ -677,11 +677,11 @@ var (
 			compareOp:           "2", // Below
 			matchType:           "2", // Always
 			target:              13.0,
-			expectedAlertSample: v3.Point{Value: 12.0},
+			expectedAlertSample: timeseriestypes.Point{Value: 12.0},
 		},
 		{
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 10.0},
 					{Value: 4.0},
 					{Value: 6.0},
@@ -693,12 +693,12 @@ var (
 			compareOp:           "2", // Less Than
 			matchType:           "3", // OnAverage
 			target:              12.0,
-			expectedAlertSample: v3.Point{Value: 6.0},
+			expectedAlertSample: timeseriestypes.Point{Value: 6.0},
 		},
 		// Test cases for InTotal
 		{
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 10.0},
 					{Value: 4.0},
 					{Value: 6.0},
@@ -710,11 +710,11 @@ var (
 			compareOp:           "3", // Equals
 			matchType:           "4", // InTotal
 			target:              30.0,
-			expectedAlertSample: v3.Point{Value: 30.0},
+			expectedAlertSample: timeseriestypes.Point{Value: 30.0},
 		},
 		{
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 10.0},
 					{Value: 4.0},
 					{Value: 6.0},
@@ -728,8 +728,8 @@ var (
 			target:      20.0,
 		},
 		{
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 10.0},
 				},
 			},
@@ -737,11 +737,11 @@ var (
 			compareOp:           "4", // Not Equals
 			matchType:           "4", // InTotal
 			target:              9.0,
-			expectedAlertSample: v3.Point{Value: 10.0},
+			expectedAlertSample: timeseriestypes.Point{Value: 10.0},
 		},
 		{
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 10.0},
 				},
 			},
@@ -751,8 +751,8 @@ var (
 			target:      10.0,
 		},
 		{
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 10.0},
 					{Value: 10.0},
 				},
@@ -761,11 +761,11 @@ var (
 			compareOp:           "1", // Greater Than
 			matchType:           "4", // InTotal
 			target:              10.0,
-			expectedAlertSample: v3.Point{Value: 20.0},
+			expectedAlertSample: timeseriestypes.Point{Value: 20.0},
 		},
 		{
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 10.0},
 					{Value: 10.0},
 				},
@@ -776,8 +776,8 @@ var (
 			target:      20.0,
 		},
 		{
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 10.0},
 					{Value: 10.0},
 				},
@@ -786,11 +786,11 @@ var (
 			compareOp:           "2", // Less Than
 			matchType:           "4", // InTotal
 			target:              30.0,
-			expectedAlertSample: v3.Point{Value: 20.0},
+			expectedAlertSample: timeseriestypes.Point{Value: 20.0},
 		},
 		{
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 10.0},
 					{Value: 10.0},
 				},
@@ -803,8 +803,8 @@ var (
 		// Test cases for Last
 		// greater than last
 		{
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 10.0},
 					{Value: 10.0},
 				},
@@ -813,11 +813,11 @@ var (
 			compareOp:           "1", // Greater Than
 			matchType:           "5", // Last
 			target:              5.0,
-			expectedAlertSample: v3.Point{Value: 10.0},
+			expectedAlertSample: timeseriestypes.Point{Value: 10.0},
 		},
 		{
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 10.0},
 					{Value: 10.0},
 				},
@@ -829,8 +829,8 @@ var (
 		},
 		// less than last
 		{
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 10.0},
 					{Value: 10.0},
 				},
@@ -839,11 +839,11 @@ var (
 			compareOp:           "2", // Less Than
 			matchType:           "5", // Last
 			target:              15.0,
-			expectedAlertSample: v3.Point{Value: 10.0},
+			expectedAlertSample: timeseriestypes.Point{Value: 10.0},
 		},
 		{
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 10.0},
 					{Value: 10.0},
 				},
@@ -855,8 +855,8 @@ var (
 		},
 		// equals last
 		{
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 10.0},
 					{Value: 10.0},
 				},
@@ -865,11 +865,11 @@ var (
 			compareOp:           "3", // Equals
 			matchType:           "5", // Last
 			target:              10.0,
-			expectedAlertSample: v3.Point{Value: 10.0},
+			expectedAlertSample: timeseriestypes.Point{Value: 10.0},
 		},
 		{
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 10.0},
 					{Value: 10.0},
 				},
@@ -881,8 +881,8 @@ var (
 		},
 		// not equals last
 		{
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 10.0},
 					{Value: 10.0},
 				},
@@ -891,11 +891,11 @@ var (
 			compareOp:           "4", // Not Equals
 			matchType:           "5", // Last
 			target:              5.0,
-			expectedAlertSample: v3.Point{Value: 10.0},
+			expectedAlertSample: timeseriestypes.Point{Value: 10.0},
 		},
 		{
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 10.0},
 					{Value: 10.0},
 				},
@@ -917,8 +917,8 @@ var (
 		// Expected: expectAlert=false, expectRecovery=false for all cases
 		{
 			description: "Cat1: Above operator - value in recovery zone, no active alert → no alert returned",
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 90.0},
 				},
 				Labels: map[string]string{
@@ -936,8 +936,8 @@ var (
 		},
 		{
 			description: "Cat1: Below operator - value in recovery zone, no active alert → no alert returned",
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 60.0},
 				},
 				Labels: map[string]string{
@@ -955,8 +955,8 @@ var (
 		},
 		{
 			description: "Cat1: NotEq operator - value in recovery zone, no active alert → no alert returned",
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 1.0},
 				},
 				Labels: map[string]string{
@@ -982,8 +982,8 @@ var (
 		//           Sample uses recovery target value, not main target
 		{
 			description: "Cat2: Above operator - active alert, value below target but above recovery → IsRecovering=true",
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 90.0},
 				},
 				Labels: map[string]string{
@@ -997,15 +997,15 @@ var (
 			target:                 100.0,
 			recoveryTarget:         func() *float64 { v := 80.0; return &v }(),
 			activeAlerts:           nil, // Auto-calculate from labels+thresholdName
-			expectedAlertSample:    v3.Point{Value: 90.0},
+			expectedAlertSample:    timeseriestypes.Point{Value: 90.0},
 			expectedTarget:         100.0,
 			expectedRecoveryTarget: 80.0,
 			thresholdName:          "test_threshold_above",
 		},
 		{
 			description: "Cat2: Below operator - active alert, value above target but below recovery → IsRecovering=true",
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 60.0},
 				},
 				Labels: map[string]string{
@@ -1019,15 +1019,15 @@ var (
 			target:                 50.0,
 			recoveryTarget:         func() *float64 { v := 70.0; return &v }(),
 			activeAlerts:           nil, // Auto-calculate from labels+thresholdName
-			expectedAlertSample:    v3.Point{Value: 60.0},
+			expectedAlertSample:    timeseriestypes.Point{Value: 60.0},
 			expectedTarget:         50.0,
 			expectedRecoveryTarget: 70.0,
 			thresholdName:          "test_threshold_below",
 		},
 		{
 			description: "Cat2: NotEq operator - active alert, value equals target but not recovery → IsRecovering=true",
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 1.0},
 				},
 				Labels: map[string]string{
@@ -1041,7 +1041,7 @@ var (
 			target:                 1.0,
 			recoveryTarget:         func() *float64 { v := 0.0; return &v }(),
 			activeAlerts:           nil, // Auto-calculate from labels+thresholdName
-			expectedAlertSample:    v3.Point{Value: 1.0},
+			expectedAlertSample:    timeseriestypes.Point{Value: 1.0},
 			expectedTarget:         1.0,
 			expectedRecoveryTarget: 0.0,
 			thresholdName:          "test_threshold_noteq",
@@ -1056,8 +1056,8 @@ var (
 		//           Sample uses main target value, not recovery target
 		{
 			description: "Cat3: Above operator - active alert, value still above target → normal firing alert",
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 110.0},
 				},
 				Labels: map[string]string{
@@ -1071,15 +1071,15 @@ var (
 			target:                 100.0,
 			recoveryTarget:         func() *float64 { v := 80.0; return &v }(),
 			activeAlerts:           nil, // Auto-calculate from labels+thresholdName
-			expectedAlertSample:    v3.Point{Value: 110.0},
+			expectedAlertSample:    timeseriestypes.Point{Value: 110.0},
 			expectedTarget:         100.0,
 			expectedRecoveryTarget: 80.0,
 			thresholdName:          "test_threshold_still_alerting_above",
 		},
 		{
 			description: "Cat3: Below operator - active alert, value still below target → normal firing alert",
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 40.0},
 				},
 				Labels: map[string]string{
@@ -1093,15 +1093,15 @@ var (
 			target:                 50.0,
 			recoveryTarget:         func() *float64 { v := 70.0; return &v }(),
 			activeAlerts:           nil, // Auto-calculate from labels+thresholdName
-			expectedAlertSample:    v3.Point{Value: 40.0},
+			expectedAlertSample:    timeseriestypes.Point{Value: 40.0},
 			expectedTarget:         50.0,
 			expectedRecoveryTarget: 70.0,
 			thresholdName:          "test_threshold_still_alerting_below",
 		},
 		{
 			description: "Cat3: Above operator - active alert, value fully recovered (below recovery) → alert resolved",
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 75.0},
 				},
 				Labels: map[string]string{
@@ -1126,8 +1126,8 @@ var (
 		// Expected: Recovery only triggers when alert fingerprint matches active alert
 		{
 			description: "Cat4: Wrong alert fingerprint - value in recovery zone but different active alert → no recovery",
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 90.0},
 				},
 				Labels: map[string]string{
@@ -1145,8 +1145,8 @@ var (
 		},
 		{
 			description: "Cat4: Correct alert fingerprint - value in recovery zone and matching active alert → IsRecovering=true",
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 90.0},
 				},
 				Labels: map[string]string{
@@ -1160,15 +1160,15 @@ var (
 			target:                 100.0,
 			recoveryTarget:         func() *float64 { v := 80.0; return &v }(),
 			activeAlerts:           nil, // Auto-calculate from labels+thresholdName
-			expectedAlertSample:    v3.Point{Value: 90.0},
+			expectedAlertSample:    timeseriestypes.Point{Value: 90.0},
 			expectedTarget:         100.0,
 			expectedRecoveryTarget: 80.0,
 			thresholdName:          "test_threshold_correct_hash",
 		},
 		{
 			description: "Cat4: Multiple thresholds - each tracks recovery independently based on its own fingerprint",
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 90.0},
 				},
 				Labels: map[string]string{
@@ -1198,7 +1198,7 @@ var (
 					compareOp:      "1", // Above
 				},
 			},
-			expectedAlertSample:    v3.Point{Value: 90.0},
+			expectedAlertSample:    timeseriestypes.Point{Value: 90.0},
 			expectedTarget:         100.0,
 			expectedRecoveryTarget: 80.0,
 			thresholdName:          "test_threshold_multiple",
@@ -1206,8 +1206,8 @@ var (
 		// Test fully recovered (value past recovery threshold)
 		{
 			description: "Cat4: Above operator - active alert, value fully recovered (below recovery) → alert resolves",
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 75.0}, // below recovery threshold
 				},
 				Labels: map[string]string{"service": "test30"},
@@ -1223,8 +1223,8 @@ var (
 		},
 		{
 			description: "Cat4: Below operator - active alert, value fully recovered (above recovery) → alert resolves",
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 75.0}, // above recovery threshold
 				},
 				Labels: map[string]string{"service": "test31"},
@@ -1250,8 +1250,8 @@ var (
 
 		{
 			description: "Cat1: AtleastOnce + Above - active alert, one value in recovery zone → IsRecovering=true",
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 75.0}, // below recovery
 					{Value: 85.0}, // in recovery zone (between 80 and 100)
 					{Value: 70.0}, // below recovery
@@ -1265,15 +1265,15 @@ var (
 			target:                 100.0,
 			recoveryTarget:         func() *float64 { v := 80.0; return &v }(),
 			activeAlerts:           nil,
-			expectedAlertSample:    v3.Point{Value: 85.0}, // first matching value
+			expectedAlertSample:    timeseriestypes.Point{Value: 85.0}, // first matching value
 			expectedTarget:         100.0,
 			expectedRecoveryTarget: 80.0,
 			thresholdName:          "cat1_atleastonce_above_recovery",
 		},
 		{
 			description: "Cat1: AtleastOnce + Below - active alert, one value in recovery zone → IsRecovering=true",
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 80.0}, // above recovery
 					{Value: 60.0}, // in recovery zone (between 50 and 70)
 					{Value: 75.0}, // above recovery
@@ -1287,15 +1287,15 @@ var (
 			target:                 50.0,
 			recoveryTarget:         func() *float64 { v := 70.0; return &v }(),
 			activeAlerts:           nil,
-			expectedAlertSample:    v3.Point{Value: 60.0},
+			expectedAlertSample:    timeseriestypes.Point{Value: 60.0},
 			expectedTarget:         50.0,
 			expectedRecoveryTarget: 70.0,
 			thresholdName:          "cat1_atleastonce_below_recovery",
 		},
 		{
 			description: "Cat1: AtleastOnce + Equals - active alert, one value equals recovery → IsRecovering=true",
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 1.0}, // doesn't equal recovery (5.0)
 					{Value: 5.0}, // equals recovery
 					{Value: 2.0}, // doesn't equal recovery
@@ -1309,15 +1309,15 @@ var (
 			target:                 10.0,
 			recoveryTarget:         func() *float64 { v := 5.0; return &v }(),
 			activeAlerts:           nil,
-			expectedAlertSample:    v3.Point{Value: 5.0},
+			expectedAlertSample:    timeseriestypes.Point{Value: 5.0},
 			expectedTarget:         10.0,
 			expectedRecoveryTarget: 5.0,
 			thresholdName:          "cat1_atleastonce_equals_recovery",
 		},
 		{
 			description: "Cat1: AtleastOnce + NotEquals - active alert, values equal target but not recovery → IsRecovering=true",
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 10.0}, // equals target (doesn't breach target)
 					{Value: 10.0}, // equals target (doesn't breach target)
 					{Value: 10.0}, // equals target (doesn't breach target)
@@ -1331,15 +1331,15 @@ var (
 			target:                 10.0,
 			recoveryTarget:         func() *float64 { v := 5.0; return &v }(),
 			activeAlerts:           nil,
-			expectedAlertSample:    v3.Point{Value: 10.0}, // All values = 10, which != 5 (recovery condition met)
+			expectedAlertSample:    timeseriestypes.Point{Value: 10.0}, // All values = 10, which != 5 (recovery condition met)
 			expectedTarget:         10.0,
 			expectedRecoveryTarget: 5.0,
 			thresholdName:          "cat1_atleastonce_noteq_recovery",
 		},
 		{
 			description: "Cat1: AtleastOnce + OutsideBounds - active alert, |value| in recovery zone → IsRecovering=true",
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 85.0}, // |85| >= recovery (80)
 				},
 				Labels: map[string]string{"service": "test26"},
@@ -1351,15 +1351,15 @@ var (
 			target:                 100.0,
 			recoveryTarget:         func() *float64 { v := 80.0; return &v }(),
 			activeAlerts:           nil,
-			expectedAlertSample:    v3.Point{Value: 85.0},
+			expectedAlertSample:    timeseriestypes.Point{Value: 85.0},
 			expectedTarget:         100.0,
 			expectedRecoveryTarget: 80.0,
 			thresholdName:          "cat1_atleastonce_outsidebounds_recovery",
 		},
 		{
 			description: "Cat1: AtleastOnce + OutsideBounds - active alert, negative value in recovery zone → IsRecovering=true",
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: -85.0}, // |-85| = 85 >= recovery (80)
 				},
 				Labels: map[string]string{"service": "test27"},
@@ -1371,7 +1371,7 @@ var (
 			target:                 100.0,
 			recoveryTarget:         func() *float64 { v := 80.0; return &v }(),
 			activeAlerts:           nil,
-			expectedAlertSample:    v3.Point{Value: -85.0},
+			expectedAlertSample:    timeseriestypes.Point{Value: -85.0},
 			expectedTarget:         100.0,
 			expectedRecoveryTarget: 80.0,
 			thresholdName:          "cat1_atleastonce_outsidebounds_negative_recovery",
@@ -1386,8 +1386,8 @@ var (
 
 		{
 			description: "Cat2: AllTheTimes + Above - active alert, all values in recovery zone → IsRecovering=true",
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 85.0}, // in recovery zone
 					{Value: 90.0}, // in recovery zone
 					{Value: 82.0}, // in recovery zone
@@ -1401,15 +1401,15 @@ var (
 			target:                 100.0,
 			recoveryTarget:         func() *float64 { v := 80.0; return &v }(),
 			activeAlerts:           nil,
-			expectedAlertSample:    v3.Point{Value: 82.0}, // min value for Above + AllTheTimes
+			expectedAlertSample:    timeseriestypes.Point{Value: 82.0}, // min value for Above + AllTheTimes
 			expectedTarget:         100.0,
 			expectedRecoveryTarget: 80.0,
 			thresholdName:          "cat2_allthetimes_above_recovery",
 		},
 		{
 			description: "Cat2: AllTheTimes + Above - active alert, one value below recovery → no recovery",
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 85.0}, // in recovery zone
 					{Value: 75.0}, // below recovery (breaks AllTheTimes)
 					{Value: 90.0}, // in recovery zone
@@ -1427,8 +1427,8 @@ var (
 		},
 		{
 			description: "Cat2: AllTheTimes + Below - active alert, all values in recovery zone → IsRecovering=true",
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 60.0}, // in recovery zone
 					{Value: 55.0}, // in recovery zone
 					{Value: 65.0}, // in recovery zone
@@ -1442,15 +1442,15 @@ var (
 			target:                 50.0,
 			recoveryTarget:         func() *float64 { v := 70.0; return &v }(),
 			activeAlerts:           nil,
-			expectedAlertSample:    v3.Point{Value: 65.0}, // max value for Below + AllTheTimes
+			expectedAlertSample:    timeseriestypes.Point{Value: 65.0}, // max value for Below + AllTheTimes
 			expectedTarget:         50.0,
 			expectedRecoveryTarget: 70.0,
 			thresholdName:          "cat2_allthetimes_below_recovery",
 		},
 		{
 			description: "Cat2: AllTheTimes + Equals - active alert, all values equal recovery → IsRecovering=true",
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 5.0},
 					{Value: 5.0},
 					{Value: 5.0},
@@ -1464,15 +1464,15 @@ var (
 			target:                 10.0,
 			recoveryTarget:         func() *float64 { v := 5.0; return &v }(),
 			activeAlerts:           nil,
-			expectedAlertSample:    v3.Point{Value: 5.0},
+			expectedAlertSample:    timeseriestypes.Point{Value: 5.0},
 			expectedTarget:         10.0,
 			expectedRecoveryTarget: 5.0,
 			thresholdName:          "cat2_allthetimes_equals_recovery",
 		},
 		{
 			description: "Cat2: AllTheTimes + NotEquals - active alert, all values equal target but not recovery → IsRecovering=true",
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 10.0}, // equals target (doesn't breach)
 					{Value: 10.0}, // equals target (doesn't breach)
 					{Value: 10.0}, // equals target (doesn't breach)
@@ -1486,7 +1486,7 @@ var (
 			target:                 10.0,
 			recoveryTarget:         func() *float64 { v := 5.0; return &v }(),
 			activeAlerts:           nil,
-			expectedAlertSample:    v3.Point{Value: 10.0}, // All equal target, all != recovery
+			expectedAlertSample:    timeseriestypes.Point{Value: 10.0}, // All equal target, all != recovery
 			expectedTarget:         10.0,
 			expectedRecoveryTarget: 5.0,
 			thresholdName:          "cat2_allthetimes_noteq_recovery",
@@ -1501,8 +1501,8 @@ var (
 
 		{
 			description: "Cat3: OnAverage + Above - active alert, avg in recovery zone → IsRecovering=true",
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 85.0},
 					{Value: 90.0},
 					{Value: 85.0},
@@ -1516,15 +1516,15 @@ var (
 			target:                 100.0,
 			recoveryTarget:         func() *float64 { v := 80.0; return &v }(),
 			activeAlerts:           nil,
-			expectedAlertSample:    v3.Point{Value: 86.66666666666667},
+			expectedAlertSample:    timeseriestypes.Point{Value: 86.66666666666667},
 			expectedTarget:         100.0,
 			expectedRecoveryTarget: 80.0,
 			thresholdName:          "cat3_onaverage_above_recovery",
 		},
 		{
 			description: "Cat3: OnAverage + Below - active alert, avg in recovery zone → IsRecovering=true",
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 60.0},
 					{Value: 65.0},
 					{Value: 55.0},
@@ -1538,15 +1538,15 @@ var (
 			target:                 50.0,
 			recoveryTarget:         func() *float64 { v := 70.0; return &v }(),
 			activeAlerts:           nil,
-			expectedAlertSample:    v3.Point{Value: 60.0},
+			expectedAlertSample:    timeseriestypes.Point{Value: 60.0},
 			expectedTarget:         50.0,
 			expectedRecoveryTarget: 70.0,
 			thresholdName:          "cat3_onaverage_below_recovery",
 		},
 		{
 			description: "Cat3: OnAverage + Equals - active alert, avg equals recovery → IsRecovering=true",
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 4.0},
 					{Value: 5.0},
 					{Value: 6.0},
@@ -1560,15 +1560,15 @@ var (
 			target:                 10.0,
 			recoveryTarget:         func() *float64 { v := 5.0; return &v }(),
 			activeAlerts:           nil,
-			expectedAlertSample:    v3.Point{Value: 5.0},
+			expectedAlertSample:    timeseriestypes.Point{Value: 5.0},
 			expectedTarget:         10.0,
 			expectedRecoveryTarget: 5.0,
 			thresholdName:          "cat3_onaverage_equals_recovery",
 		},
 		{
 			description: "Cat3: OnAverage + NotEquals - active alert, avg equals target but not recovery → IsRecovering=true",
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 8.0},
 					{Value: 10.0},
 					{Value: 12.0},
@@ -1582,15 +1582,15 @@ var (
 			target:                 10.0,
 			recoveryTarget:         func() *float64 { v := 5.0; return &v }(),
 			activeAlerts:           nil,
-			expectedAlertSample:    v3.Point{Value: 10.0}, // avg = 10.0
+			expectedAlertSample:    timeseriestypes.Point{Value: 10.0}, // avg = 10.0
 			expectedTarget:         10.0,
 			expectedRecoveryTarget: 5.0,
 			thresholdName:          "cat3_onaverage_noteq_recovery",
 		},
 		{
 			description: "Cat3: OnAverage + OutsideBounds - active alert, avg |value| in recovery zone → IsRecovering=false",
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: -90.0},
 					{Value: 85.0},
 					{Value: -80.0},
@@ -1616,8 +1616,8 @@ var (
 
 		{
 			description: "Cat4: InTotal + Above - active alert, sum in recovery zone → IsRecovering=true",
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 30.0},
 					{Value: 35.0},
 					{Value: 25.0},
@@ -1631,15 +1631,15 @@ var (
 			target:                 100.0,
 			recoveryTarget:         func() *float64 { v := 80.0; return &v }(),
 			activeAlerts:           nil,
-			expectedAlertSample:    v3.Point{Value: 90.0},
+			expectedAlertSample:    timeseriestypes.Point{Value: 90.0},
 			expectedTarget:         100.0,
 			expectedRecoveryTarget: 80.0,
 			thresholdName:          "cat4_intotal_above_recovery",
 		},
 		{
 			description: "Cat4: InTotal + Below - active alert, sum in recovery zone → IsRecovering=true",
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 20.0},
 					{Value: 25.0},
 					{Value: 15.0},
@@ -1653,15 +1653,15 @@ var (
 			target:                 50.0,
 			recoveryTarget:         func() *float64 { v := 70.0; return &v }(),
 			activeAlerts:           nil,
-			expectedAlertSample:    v3.Point{Value: 60.0},
+			expectedAlertSample:    timeseriestypes.Point{Value: 60.0},
 			expectedTarget:         50.0,
 			expectedRecoveryTarget: 70.0,
 			thresholdName:          "cat4_intotal_below_recovery",
 		},
 		{
 			description: "Cat4: InTotal + Equals - active alert, sum equals recovery → IsRecovering=true",
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 1.0},
 					{Value: 2.0},
 					{Value: 2.0},
@@ -1675,15 +1675,15 @@ var (
 			target:                 10.0,
 			recoveryTarget:         func() *float64 { v := 5.0; return &v }(),
 			activeAlerts:           nil,
-			expectedAlertSample:    v3.Point{Value: 5.0},
+			expectedAlertSample:    timeseriestypes.Point{Value: 5.0},
 			expectedTarget:         10.0,
 			expectedRecoveryTarget: 5.0,
 			thresholdName:          "cat4_intotal_equals_recovery",
 		},
 		{
 			description: "Cat4: InTotal + NotEquals - active alert, sum equals target but not recovery → IsRecovering=true",
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 3.0},
 					{Value: 3.0},
 					{Value: 4.0},
@@ -1697,7 +1697,7 @@ var (
 			target:                 10.0,
 			recoveryTarget:         func() *float64 { v := 5.0; return &v }(),
 			activeAlerts:           nil,
-			expectedAlertSample:    v3.Point{Value: 10.0}, // sum = 10.0
+			expectedAlertSample:    timeseriestypes.Point{Value: 10.0}, // sum = 10.0
 			expectedTarget:         10.0,
 			expectedRecoveryTarget: 5.0,
 			thresholdName:          "cat4_intotal_noteq_recovery",
@@ -1712,8 +1712,8 @@ var (
 
 		{
 			description: "Cat5: Last + Above - active alert, last value in recovery zone → IsRecovering=true",
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 110.0}, // above target (ignored)
 					{Value: 75.0},  // below recovery (ignored)
 					{Value: 85.0},  // last: in recovery zone
@@ -1727,15 +1727,15 @@ var (
 			target:                 100.0,
 			recoveryTarget:         func() *float64 { v := 80.0; return &v }(),
 			activeAlerts:           nil,
-			expectedAlertSample:    v3.Point{Value: 85.0},
+			expectedAlertSample:    timeseriestypes.Point{Value: 85.0},
 			expectedTarget:         100.0,
 			expectedRecoveryTarget: 80.0,
 			thresholdName:          "cat5_last_above_recovery",
 		},
 		{
 			description: "Cat5: Last + Below - active alert, last value in recovery zone → IsRecovering=true",
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 40.0}, // below target (ignored)
 					{Value: 80.0}, // above recovery (ignored)
 					{Value: 60.0}, // last: in recovery zone
@@ -1749,15 +1749,15 @@ var (
 			target:                 50.0,
 			recoveryTarget:         func() *float64 { v := 70.0; return &v }(),
 			activeAlerts:           nil,
-			expectedAlertSample:    v3.Point{Value: 60.0},
+			expectedAlertSample:    timeseriestypes.Point{Value: 60.0},
 			expectedTarget:         50.0,
 			expectedRecoveryTarget: 70.0,
 			thresholdName:          "cat5_last_below_recovery",
 		},
 		{
 			description: "Cat5: Last + Equals - active alert, last value equals recovery → IsRecovering=true",
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 10.0}, // equals target (ignored)
 					{Value: 1.0},  // not equal (ignored)
 					{Value: 5.0},  // last: equals recovery
@@ -1771,15 +1771,15 @@ var (
 			target:                 10.0,
 			recoveryTarget:         func() *float64 { v := 5.0; return &v }(),
 			activeAlerts:           nil,
-			expectedAlertSample:    v3.Point{Value: 5.0},
+			expectedAlertSample:    timeseriestypes.Point{Value: 5.0},
 			expectedTarget:         10.0,
 			expectedRecoveryTarget: 5.0,
 			thresholdName:          "cat5_last_equals_recovery",
 		},
 		{
 			description: "Cat5: Last + NotEquals - active alert, last value equals target but not recovery → IsRecovering=true",
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 5.0},  // equals recovery (ignored)
 					{Value: 3.0},  // not equal to either (ignored)
 					{Value: 10.0}, // last: equals target, not equal recovery
@@ -1793,7 +1793,7 @@ var (
 			target:                 10.0,
 			recoveryTarget:         func() *float64 { v := 5.0; return &v }(),
 			activeAlerts:           nil,
-			expectedAlertSample:    v3.Point{Value: 10.0}, // last = 10.0
+			expectedAlertSample:    timeseriestypes.Point{Value: 10.0}, // last = 10.0
 			expectedTarget:         10.0,
 			expectedRecoveryTarget: 5.0,
 			thresholdName:          "cat5_last_noteq_recovery",
@@ -1806,8 +1806,8 @@ var (
 		// Test no recovery target (backward compatibility)
 		{
 			description: "Cat6: No recovery target - Below operator, normal alert behavior",
-			values: v3.Series{
-				Points: []v3.Point{
+			values: timeseriestypes.Series{
+				Points: []timeseriestypes.Point{
 					{Value: 40.0},
 				},
 				Labels: map[string]string{"service": "test29"},
@@ -1819,7 +1819,7 @@ var (
 			target:                 50.0,
 			recoveryTarget:         nil, // No recovery target
 			activeAlerts:           nil,
-			expectedAlertSample:    v3.Point{Value: 40.0},
+			expectedAlertSample:    timeseriestypes.Point{Value: 40.0},
 			expectedTarget:         50.0,
 			expectedRecoveryTarget: 0,
 			thresholdName:          "cat6_no_recovery_target",
@@ -1843,8 +1843,8 @@ var (
 		{
 			recoveryTestCase: recoveryTestCase{
 				description: "MultiThreshold: Critical recovering, Warning recovering, Info firing - demonstrates independent state tracking",
-				values: v3.Series{
-					Points: []v3.Point{{Value: 85.0}},
+				values: timeseriestypes.Series{
+					Points: []timeseriestypes.Point{{Value: 85.0}},
 					Labels: map[string]string{"service": "payment"},
 				},
 				compareOp:      "1", // Above
@@ -1912,8 +1912,8 @@ var (
 		{
 			recoveryTestCase: recoveryTestCase{
 				description: "MultiThreshold: Above - value 95 matches Critical recovery and Warning firing, verify sorting order",
-				values: v3.Series{
-					Points: []v3.Point{{Value: 95.0}},
+				values: timeseriestypes.Series{
+					Points: []timeseriestypes.Point{{Value: 95.0}},
 					Labels: map[string]string{"service": "api"},
 				},
 				compareOp:      "1", // Above
@@ -1967,8 +1967,8 @@ var (
 		{
 			recoveryTestCase: recoveryTestCase{
 				description: "MultiThreshold: Below - value 15 matches both Critical and Warning recovery zones, verify ascending sort",
-				values: v3.Series{
-					Points: []v3.Point{{Value: 15.0}},
+				values: timeseriestypes.Series{
+					Points: []timeseriestypes.Point{{Value: 15.0}},
 					Labels: map[string]string{"service": "database"},
 				},
 				compareOp:      "2", // Below
@@ -2023,8 +2023,8 @@ var (
 		{
 			recoveryTestCase: recoveryTestCase{
 				description: "MultiThreshold: Critical firing, Warning recovering, Info resolved - independent state tracking",
-				values: v3.Series{
-					Points: []v3.Point{{Value: 85.0}},
+				values: timeseriestypes.Series{
+					Points: []timeseriestypes.Point{{Value: 85.0}},
 					Labels: map[string]string{"service": "payment"},
 				},
 				compareOp:      "1", // CompareOp: ValueIsAbove (1) - alerts when value > target
@@ -2092,8 +2092,8 @@ var (
 		{
 			recoveryTestCase: recoveryTestCase{
 				description: "MultiThreshold: Nested recovery zones - value 85 in both Critical and Warning recovery zones",
-				values: v3.Series{
-					Points: []v3.Point{{Value: 85.0}},
+				values: timeseriestypes.Series{
+					Points: []timeseriestypes.Point{{Value: 85.0}},
 					Labels: map[string]string{"service": "checkout"},
 				},
 				compareOp:      "1", // CompareOp: ValueIsAbove (1) - alerts when value > target
@@ -2147,8 +2147,8 @@ var (
 		{
 			recoveryTestCase: recoveryTestCase{
 				description: "MultiThreshold: Non-overlapping zones - value 75 only in Warning recovery, Critical fully recovered",
-				values: v3.Series{
-					Points: []v3.Point{{Value: 75.0}},
+				values: timeseriestypes.Series{
+					Points: []timeseriestypes.Point{{Value: 75.0}},
 					Labels: map[string]string{"service": "inventory"},
 				},
 				compareOp:      "1", // CompareOp: ValueIsAbove (1) - alerts when value > target
@@ -2207,8 +2207,8 @@ var (
 		{
 			recoveryTestCase: recoveryTestCase{
 				description: "MultiThreshold: Different MatchTypes - Critical(Once) and Warning(Always) both recovering",
-				values: v3.Series{
-					Points: []v3.Point{
+				values: timeseriestypes.Series{
+					Points: []timeseriestypes.Point{
 						{Value: 85.0},
 						{Value: 95.0},
 						{Value: 88.0},
@@ -2266,8 +2266,8 @@ var (
 		{
 			recoveryTestCase: recoveryTestCase{
 				description: "MultiThreshold: Mixed recovery config - Critical has recovery target, Warning doesn't",
-				values: v3.Series{
-					Points: []v3.Point{{Value: 85.0}},
+				values: timeseriestypes.Series{
+					Points: []timeseriestypes.Point{{Value: 85.0}},
 					Labels: map[string]string{"service": "notification"},
 				},
 				compareOp:      "1", // CompareOp: ValueIsAbove (1) - alerts when value > target
@@ -2322,8 +2322,8 @@ var (
 		{
 			recoveryTestCase: recoveryTestCase{
 				description: "MultiThreshold: All firing - value 150 breaches all three thresholds",
-				values: v3.Series{
-					Points: []v3.Point{{Value: 150.0}},
+				values: timeseriestypes.Series{
+					Points: []timeseriestypes.Point{{Value: 150.0}},
 					Labels: map[string]string{"service": "cache"},
 				},
 				compareOp:      "1", // CompareOp: ValueIsAbove (1) - alerts when value > target
@@ -2392,8 +2392,8 @@ var (
 		{
 			recoveryTestCase: recoveryTestCase{
 				description: "MultiThreshold: Two recovering, one firing - value 75 in recovery zones",
-				values: v3.Series{
-					Points: []v3.Point{{Value: 75.0}},
+				values: timeseriestypes.Series{
+					Points: []timeseriestypes.Point{{Value: 75.0}},
 					Labels: map[string]string{"service": "queue"},
 				},
 				compareOp:      "1", // CompareOp: ValueIsAbove (1) - alerts when value > target
@@ -2461,8 +2461,8 @@ var (
 		{
 			recoveryTestCase: recoveryTestCase{
 				description: "MultiThreshold: Mixed operators - CPU Above 90 (high) and Below 10 (low) thresholds",
-				values: v3.Series{
-					Points: []v3.Point{{Value: 85.0}},
+				values: timeseriestypes.Series{
+					Points: []timeseriestypes.Point{{Value: 85.0}},
 					Labels: map[string]string{"service": "worker"},
 				},
 				compareOp:      "1", // Above
@@ -2516,8 +2516,8 @@ var (
 		{
 			recoveryTestCase: recoveryTestCase{
 				description: "MultiThreshold: OnAverage vs AtleastOnce - Critical(OnAverage) recovering, Warning(Once) firing",
-				values: v3.Series{
-					Points: []v3.Point{
+				values: timeseriestypes.Series{
+					Points: []timeseriestypes.Point{
 						{Value: 70.0},
 						{Value: 90.0},
 						{Value: 100.0},
@@ -2575,8 +2575,8 @@ var (
 		{
 			recoveryTestCase: recoveryTestCase{
 				description: "MultiThreshold: Last MatchType - Critical(Last) recovering, Warning(Last) firing",
-				values: v3.Series{
-					Points: []v3.Point{
+				values: timeseriestypes.Series{
+					Points: []timeseriestypes.Point{
 						{Value: 100.0},
 						{Value: 90.0},
 						{Value: 15.0},
@@ -2634,8 +2634,8 @@ var (
 		{
 			recoveryTestCase: recoveryTestCase{
 				description: "MultiThreshold: Boundary value - both recovering at exact target value",
-				values: v3.Series{
-					Points: []v3.Point{{Value: 90.0}},
+				values: timeseriestypes.Series{
+					Points: []timeseriestypes.Point{{Value: 90.0}},
 					Labels: map[string]string{"service": "boundary"},
 				},
 				compareOp:      "1", // CompareOp: ValueIsAbove (1)
@@ -2689,8 +2689,8 @@ var (
 		{
 			recoveryTestCase: recoveryTestCase{
 				description: "MultiThreshold: InTotal MatchType - Critical recovering, Warning firing based on sum",
-				values: v3.Series{
-					Points: []v3.Point{
+				values: timeseriestypes.Series{
+					Points: []timeseriestypes.Point{
 						{Value: 30.0},
 						{Value: 40.0},
 						{Value: 50.0},
@@ -2749,8 +2749,8 @@ var (
 		{
 			recoveryTestCase: recoveryTestCase{
 				description: "MultiThreshold: Mixed MatchTypes - OnAverage recovering, Last firing, AllTheTimes firing",
-				values: v3.Series{
-					Points: []v3.Point{
+				values: timeseriestypes.Series{
+					Points: []timeseriestypes.Point{
 						{Value: 60.0},
 						{Value: 80.0},
 						{Value: 100.0},
@@ -2823,8 +2823,8 @@ var (
 		{
 			recoveryTestCase: recoveryTestCase{
 				description: "MultiThreshold: ValueIsEq operator - Critical(Once) firing, Warning(Always) resolved",
-				values: v3.Series{
-					Points: []v3.Point{
+				values: timeseriestypes.Series{
+					Points: []timeseriestypes.Point{
 						{Value: 90.0},
 						{Value: 90.0},
 						{Value: 85.0},
@@ -2884,8 +2884,8 @@ var (
 		{
 			recoveryTestCase: recoveryTestCase{
 				description: "MultiThreshold: ValueIsNotEq operator - Critical firing, Warning recovering",
-				values: v3.Series{
-					Points: []v3.Point{{Value: 85.0}},
+				values: timeseriestypes.Series{
+					Points: []timeseriestypes.Point{{Value: 85.0}},
 					Labels: map[string]string{"service": "inequality"},
 				},
 				compareOp:      "4", // CompareOp: ValueIsNotEq (4)

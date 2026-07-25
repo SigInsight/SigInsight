@@ -5,12 +5,12 @@ import (
 	"testing"
 
 	"github.com/SigNoz/signoz/pkg/query-service/constants"
-	v3 "github.com/SigNoz/signoz/pkg/query-service/model/v3"
+	"github.com/SigNoz/signoz/pkg/query-service/model/querytypes"
 )
 
 type args struct {
 	v        interface{}
-	dataType v3.AttributeKeyDataType
+	dataType querytypes.AttributeKeyDataType
 }
 
 var testValidateAndCastValueData = []struct {
@@ -19,276 +19,276 @@ var testValidateAndCastValueData = []struct {
 	want    interface{}
 	wantErr bool
 }{
-	// Test cases for v3.AttributeKeyDataTypeString
+	// Test cases for querytypes.AttributeKeyDataTypeString
 	{
-		name: "v3.AttributeKeyDataTypeString: Valid string",
+		name: "querytypes.AttributeKeyDataTypeString: Valid string",
 		args: args{
 			v:        "test",
-			dataType: v3.AttributeKeyDataTypeString,
+			dataType: querytypes.AttributeKeyDataTypeString,
 		},
 		want:    "test",
 		wantErr: false,
 	},
 	{
-		name: "v3.AttributeKeyDataTypeString: Valid int",
+		name: "querytypes.AttributeKeyDataTypeString: Valid int",
 		args: args{
 			v:        1,
-			dataType: v3.AttributeKeyDataTypeString,
+			dataType: querytypes.AttributeKeyDataTypeString,
 		},
 		want:    "1",
 		wantErr: false,
 	},
 	{
-		name: "v3.AttributeKeyDataTypeString: Valid float32",
+		name: "querytypes.AttributeKeyDataTypeString: Valid float32",
 		args: args{
 			v:        float32(1.1),
-			dataType: v3.AttributeKeyDataTypeString,
+			dataType: querytypes.AttributeKeyDataTypeString,
 		},
 		want:    "1.1",
 		wantErr: false,
 	},
 	{
-		name: "v3.AttributeKeyDataTypeString: Valid float64",
+		name: "querytypes.AttributeKeyDataTypeString: Valid float64",
 		args: args{
 			v:        float64(1.1),
-			dataType: v3.AttributeKeyDataTypeString,
+			dataType: querytypes.AttributeKeyDataTypeString,
 		},
 		want:    "1.1",
 		wantErr: false,
 	},
 	{
-		name: "v3.AttributeKeyDataTypeString: Valid bool",
+		name: "querytypes.AttributeKeyDataTypeString: Valid bool",
 		args: args{
 			v:        true,
-			dataType: v3.AttributeKeyDataTypeString,
+			dataType: querytypes.AttributeKeyDataTypeString,
 		},
 		want:    "true",
 		wantErr: false,
 	},
 	{
-		name: "v3.AttributeKeyDataTypeString: Valid []interface{}",
+		name: "querytypes.AttributeKeyDataTypeString: Valid []interface{}",
 		args: args{
 			v:        []interface{}{"test", "test2"},
-			dataType: v3.AttributeKeyDataTypeString,
+			dataType: querytypes.AttributeKeyDataTypeString,
 		},
 		want:    []interface{}{"test", "test2"},
 		wantErr: false,
 	},
 	{
-		name: "v3.AttributeKeyDataTypeString: Valid []interface{}",
+		name: "querytypes.AttributeKeyDataTypeString: Valid []interface{}",
 		args: args{
 			v:        []interface{}{"test", 1},
-			dataType: v3.AttributeKeyDataTypeString,
+			dataType: querytypes.AttributeKeyDataTypeString,
 		},
 		want:    []interface{}{"test", "1"},
 		wantErr: false,
 	},
 	{
-		name: "v3.AttributeKeyDataTypeString: Invalid []interface{}",
+		name: "querytypes.AttributeKeyDataTypeString: Invalid []interface{}",
 		args: args{
 			v:        []interface{}{"test", [1]string{"string Array"}},
-			dataType: v3.AttributeKeyDataTypeString,
+			dataType: querytypes.AttributeKeyDataTypeString,
 		},
 		want:    nil,
 		wantErr: true,
 	},
 	{
-		name: "v3.AttributeKeyDataTypeString: Invalid type",
+		name: "querytypes.AttributeKeyDataTypeString: Invalid type",
 		args: args{
 			v:        map[string]interface{}{"test": "test"},
-			dataType: v3.AttributeKeyDataTypeString,
+			dataType: querytypes.AttributeKeyDataTypeString,
 		},
 		want:    nil,
 		wantErr: true,
 	},
-	// Test cases for v3.AttributeKeyDataTypeBool
+	// Test cases for querytypes.AttributeKeyDataTypeBool
 	{
-		name: "v3.AttributeKeyDataTypeBool: Valid bool",
+		name: "querytypes.AttributeKeyDataTypeBool: Valid bool",
 		args: args{
 			v:        true,
-			dataType: v3.AttributeKeyDataTypeBool,
+			dataType: querytypes.AttributeKeyDataTypeBool,
 		},
 		want:    true,
 		wantErr: false,
 	},
 	{
-		name: "v3.AttributeKeyDataTypeBool: Valid string",
+		name: "querytypes.AttributeKeyDataTypeBool: Valid string",
 		args: args{
 			v:        "true",
-			dataType: v3.AttributeKeyDataTypeBool,
+			dataType: querytypes.AttributeKeyDataTypeBool,
 		},
 		want:    true,
 		wantErr: false,
 	},
 	{
-		name: "v3.AttributeKeyDataTypeBool: Valid []interface{}",
+		name: "querytypes.AttributeKeyDataTypeBool: Valid []interface{}",
 		args: args{
 			v:        []interface{}{"true", false},
-			dataType: v3.AttributeKeyDataTypeBool,
+			dataType: querytypes.AttributeKeyDataTypeBool,
 		},
 		want:    []interface{}{true, false},
 		wantErr: false,
 	},
 	{
-		name: "v3.AttributeKeyDataTypeBool: Invalid type",
+		name: "querytypes.AttributeKeyDataTypeBool: Invalid type",
 		args: args{
 			v:        1,
-			dataType: v3.AttributeKeyDataTypeBool,
+			dataType: querytypes.AttributeKeyDataTypeBool,
 		},
 		want:    nil,
 		wantErr: true,
 	},
 	{
-		name: "v3.AttributeKeyDataTypeBool: Invalid []interface{}",
+		name: "querytypes.AttributeKeyDataTypeBool: Invalid []interface{}",
 		args: args{
 			v:        []interface{}{1, false},
-			dataType: v3.AttributeKeyDataTypeBool,
+			dataType: querytypes.AttributeKeyDataTypeBool,
 		},
 		want:    nil,
 		wantErr: true,
 	},
-	// Test cases for v3.AttributeKeyDataTypeInt64
+	// Test cases for querytypes.AttributeKeyDataTypeInt64
 	{
-		name: "v3.AttributeKeyDataTypeInt64: Valid int",
+		name: "querytypes.AttributeKeyDataTypeInt64: Valid int",
 		args: args{
 			v:        1,
-			dataType: v3.AttributeKeyDataTypeInt64,
+			dataType: querytypes.AttributeKeyDataTypeInt64,
 		},
 		want:    1,
 		wantErr: false,
 	},
 	{
-		name: "v3.AttributeKeyDataTypeInt64: Valid int64",
+		name: "querytypes.AttributeKeyDataTypeInt64: Valid int64",
 		args: args{
 			v:        int64(1),
-			dataType: v3.AttributeKeyDataTypeInt64,
+			dataType: querytypes.AttributeKeyDataTypeInt64,
 		},
 		want:    int64(1),
 		wantErr: false,
 	},
 	{
-		name: "v3.AttributeKeyDataTypeInt64: Valid string",
+		name: "querytypes.AttributeKeyDataTypeInt64: Valid string",
 		args: args{
 			v:        "1",
-			dataType: v3.AttributeKeyDataTypeInt64,
+			dataType: querytypes.AttributeKeyDataTypeInt64,
 		},
 		want:    int64(1),
 		wantErr: false,
 	},
 	{
-		name: "v3.AttributeKeyDataTypeInt64: Valid []interface{}",
+		name: "querytypes.AttributeKeyDataTypeInt64: Valid []interface{}",
 		args: args{
 			v:        []interface{}{"1", 2},
-			dataType: v3.AttributeKeyDataTypeInt64,
+			dataType: querytypes.AttributeKeyDataTypeInt64,
 		},
 		want:    []interface{}{int64(1), int64(2)},
 		wantErr: false,
 	},
 	{
-		name: "v3.AttributeKeyDataTypeInt64: Invalid []interface{}",
+		name: "querytypes.AttributeKeyDataTypeInt64: Invalid []interface{}",
 		args: args{
 			v:        []interface{}{"1", false},
-			dataType: v3.AttributeKeyDataTypeInt64,
+			dataType: querytypes.AttributeKeyDataTypeInt64,
 		},
 		want:    nil,
 		wantErr: true,
 	},
 	{
-		name: "v3.AttributeKeyDataTypeInt64: Invalid type",
+		name: "querytypes.AttributeKeyDataTypeInt64: Invalid type",
 		args: args{
 			v:        true,
-			dataType: v3.AttributeKeyDataTypeInt64,
+			dataType: querytypes.AttributeKeyDataTypeInt64,
 		},
 		want:    nil,
 		wantErr: true,
 	},
-	// Test cases for v3.AttributeKeyDataTypeFloat64
+	// Test cases for querytypes.AttributeKeyDataTypeFloat64
 	{
-		name: "v3.AttributeKeyDataTypeFloat64: Valid float32",
+		name: "querytypes.AttributeKeyDataTypeFloat64: Valid float32",
 		args: args{
 			v:        float32(1.1),
-			dataType: v3.AttributeKeyDataTypeFloat64,
+			dataType: querytypes.AttributeKeyDataTypeFloat64,
 		},
 		want:    float32(1.1),
 		wantErr: false,
 	},
 	{
-		name: "v3.AttributeKeyDataTypeFloat64: Valid float64",
+		name: "querytypes.AttributeKeyDataTypeFloat64: Valid float64",
 		args: args{
 			v:        float64(1.1),
-			dataType: v3.AttributeKeyDataTypeFloat64,
+			dataType: querytypes.AttributeKeyDataTypeFloat64,
 		},
 		want:    float64(1.1),
 		wantErr: false,
 	},
 	{
-		name: "v3.AttributeKeyDataTypeFloat64: Valid int",
+		name: "querytypes.AttributeKeyDataTypeFloat64: Valid int",
 		args: args{
 			v:        1,
-			dataType: v3.AttributeKeyDataTypeFloat64,
+			dataType: querytypes.AttributeKeyDataTypeFloat64,
 		},
 		want:    float64(1),
 		wantErr: false,
 	},
 	{
-		name: "v3.AttributeKeyDataTypeFloat64: Valid string",
+		name: "querytypes.AttributeKeyDataTypeFloat64: Valid string",
 		args: args{
 			v:        "1.1",
-			dataType: v3.AttributeKeyDataTypeFloat64,
+			dataType: querytypes.AttributeKeyDataTypeFloat64,
 		},
 		want:    float64(1.1),
 		wantErr: false,
 	},
 	{
-		name: "v3.AttributeKeyDataTypeFloat: Valid []interface{}",
+		name: "querytypes.AttributeKeyDataTypeFloat: Valid []interface{}",
 		args: args{
 			v:        []interface{}{4, 3},
-			dataType: v3.AttributeKeyDataTypeFloat64,
+			dataType: querytypes.AttributeKeyDataTypeFloat64,
 		},
 		want:    []interface{}{float64(4), float64(3)},
 		wantErr: false,
 	},
 	{
-		name: "v3.AttributeKeyDataTypeFloat: Valid []interface{}",
+		name: "querytypes.AttributeKeyDataTypeFloat: Valid []interface{}",
 		args: args{
 			v:        []interface{}{4, "3"},
-			dataType: v3.AttributeKeyDataTypeFloat64,
+			dataType: querytypes.AttributeKeyDataTypeFloat64,
 		},
 		want:    []interface{}{float64(4), float64(3)},
 		wantErr: false,
 	},
 	{
-		name: "v3.AttributeKeyDataTypeFloat: Invalid []interface{}",
+		name: "querytypes.AttributeKeyDataTypeFloat: Invalid []interface{}",
 		args: args{
 			v:        []interface{}{4, "true"},
-			dataType: v3.AttributeKeyDataTypeFloat64,
+			dataType: querytypes.AttributeKeyDataTypeFloat64,
 		},
 		want:    nil,
 		wantErr: true,
 	},
 	{
-		name: "v3.AttributeKeyDataTypeFloat64: Invalid type",
+		name: "querytypes.AttributeKeyDataTypeFloat64: Invalid type",
 		args: args{
 			v:        true,
-			dataType: v3.AttributeKeyDataTypeFloat64,
+			dataType: querytypes.AttributeKeyDataTypeFloat64,
 		},
 		want:    nil,
 		wantErr: true,
 	},
 	{
-		name: "v3.AttributeKeyDataTypeInt64: valid float32",
+		name: "querytypes.AttributeKeyDataTypeInt64: valid float32",
 		args: args{
 			v:        float32(1000),
-			dataType: v3.AttributeKeyDataTypeInt64,
+			dataType: querytypes.AttributeKeyDataTypeInt64,
 		},
 		want:    int64(1000),
 		wantErr: false,
 	},
 	{
-		name: "v3.AttributeKeyDataTypeInt64: valid float64",
+		name: "querytypes.AttributeKeyDataTypeInt64: valid float64",
 		args: args{
 			v:        float64(1000),
-			dataType: v3.AttributeKeyDataTypeInt64,
+			dataType: querytypes.AttributeKeyDataTypeInt64,
 		},
 		want:    int64(1000),
 		wantErr: false,
@@ -416,29 +416,29 @@ var testGetClickhouseColumnName = []struct {
 }{
 	{
 		name:     "tag",
-		typeName: string(v3.AttributeKeyTypeTag),
-		dataType: string(v3.AttributeKeyDataTypeInt64),
+		typeName: string(querytypes.AttributeKeyTypeTag),
+		dataType: string(querytypes.AttributeKeyDataTypeInt64),
 		field:    "tag1",
 		want:     "`attribute_int64_tag1`",
 	},
 	{
 		name:     "resource",
-		typeName: string(v3.AttributeKeyTypeResource),
-		dataType: string(v3.AttributeKeyDataTypeInt64),
+		typeName: string(querytypes.AttributeKeyTypeResource),
+		dataType: string(querytypes.AttributeKeyDataTypeInt64),
 		field:    "tag1",
 		want:     "`resource_int64_tag1`",
 	},
 	{
 		name:     "attribute old parser",
 		typeName: constants.Attributes,
-		dataType: string(v3.AttributeKeyDataTypeInt64),
+		dataType: string(querytypes.AttributeKeyDataTypeInt64),
 		field:    "tag1",
 		want:     "`attribute_int64_tag1`",
 	},
 	{
 		name:     "resource old parser",
 		typeName: constants.Resources,
-		dataType: string(v3.AttributeKeyDataTypeInt64),
+		dataType: string(querytypes.AttributeKeyDataTypeInt64),
 		field:    "tag1",
 		want:     "`resource_int64_tag1`",
 	},

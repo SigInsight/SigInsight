@@ -1,5 +1,3 @@
-import { ReduceOperators } from 'types/common/queryBuilder';
-
 export const explorerView = {
 	status: 'success',
 	data: [
@@ -14,60 +12,35 @@ export const explorerView = {
 			sourcePage: 'traces',
 			tags: [''],
 			compositeQuery: {
-				builderQueries: {
-					A: {
-						queryName: 'A',
-						stepInterval: 60,
-						dataSource: 'traces',
-						aggregateOperator: 'count',
-						aggregateAttribute: {
-							key: 'component',
-							dataType: 'string',
-							type: 'tag',
-						},
-						filters: {
-							op: 'AND',
-							items: [
-								{
-									key: {
-										key: 'component',
-										dataType: 'string',
-										type: 'tag',
-									},
-									value: 'test-component',
-									op: '!=',
-								},
-							],
-						},
-						groupBy: [
-							{
-								key: 'component',
-								dataType: 'string',
-								type: 'tag',
-							},
-							{
-								key: 'client-uuid',
-								dataType: 'string',
-								type: 'resource',
-							},
-						],
-						expression: 'A',
-						disabled: false,
-						limit: 0,
-						offset: 0,
-						pageSize: 0,
-						orderBy: [
-							{
-								columnName: 'timestamp',
-								order: 'desc',
-							},
-						],
-						reduceTo: ReduceOperators.SUM,
-						ShiftBy: 0,
-					},
-				},
 				panelType: 'table',
 				queryType: 'builder',
+				unit: undefined,
+				queries: [
+					{
+						type: 'builder_query',
+						spec: {
+							name: 'A',
+							signal: 'traces',
+							stepInterval: 60,
+							filter: { expression: "component != 'test-component'" },
+							groupBy: [
+								{
+									name: 'component',
+									fieldDataType: 'string',
+									fieldContext: 'attribute',
+								},
+								{
+									name: 'client-uuid',
+									fieldDataType: 'string',
+									fieldContext: 'resource',
+								},
+							],
+							order: [{ key: { name: 'timestamp' }, direction: 'desc' }],
+							aggregations: [{ expression: 'count()' }],
+							disabled: false,
+						},
+					},
+				],
 			},
 			extraData: '{"color":"#00ffd0"}',
 		},
@@ -82,50 +55,23 @@ export const explorerView = {
 			sourcePage: 'traces',
 			tags: [''],
 			compositeQuery: {
-				builderQueries: {
-					A: {
-						queryName: 'A',
-						stepInterval: 60,
-						dataSource: 'traces',
-						aggregateOperator: 'noop',
-						aggregateAttribute: {
-							key: '',
-							dataType: '',
-							type: '',
-						},
-						filters: {
-							op: 'AND',
-							items: [
-								{
-									key: {
-										key: 'httpMethod',
-										dataType: 'string',
-										type: 'tag',
-									},
-									value: 'GET',
-									op: '=',
-								},
-							],
-						},
-						expression: 'A',
-						disabled: false,
-						limit: 0,
-						offset: 0,
-						pageSize: 0,
-						orderBy: [
-							{
-								columnName: 'timestamp',
-								order: 'desc',
-							},
-						],
-						reduceTo: ReduceOperators.AVG,
-						timeAggregation: 'rate',
-						spaceAggregation: 'sum',
-						ShiftBy: 0,
-					},
-				},
 				panelType: 'list',
 				queryType: 'builder',
+				unit: undefined,
+				queries: [
+					{
+						type: 'builder_query',
+						spec: {
+							name: 'A',
+							signal: 'traces',
+							stepInterval: 60,
+							filter: { expression: "httpMethod = 'GET'" },
+							order: [{ key: { name: 'timestamp' }, direction: 'desc' }],
+							aggregations: [{ expression: 'count()' }],
+							disabled: false,
+						},
+					},
+				],
 			},
 			extraData: '{"color":"#AD7F58"}',
 		},

@@ -1,8 +1,8 @@
 import { ApiV5Instance } from 'api';
-import { ErrorResponseHandlerV2 } from 'api/ErrorResponseHandlerV2';
+import { HttpErrorResponseHandler } from 'api/HttpErrorResponseHandler';
 import { QueryRangePayloadV5 } from 'api/v5/v5';
 import { AxiosError } from 'axios';
-import { ErrorV2Resp, SuccessResponseV2 } from 'types/api';
+import { HttpErrorPayload, HttpSuccessResponse } from 'types/api';
 import { ICompositeMetricQuery } from 'types/api/alerts/compositeQuery';
 
 interface ISubstituteVars {
@@ -13,7 +13,7 @@ export const getSubstituteVars = async (
 	props?: Partial<QueryRangePayloadV5>,
 	signal?: AbortSignal,
 	headers?: Record<string, string>,
-): Promise<SuccessResponseV2<ISubstituteVars>> => {
+): Promise<HttpSuccessResponse<ISubstituteVars>> => {
 	try {
 		const response = await ApiV5Instance.post<{ data: ISubstituteVars }>(
 			'/substitute_vars',
@@ -29,6 +29,6 @@ export const getSubstituteVars = async (
 			data: response.data.data,
 		};
 	} catch (error) {
-		ErrorResponseHandlerV2(error as AxiosError<ErrorV2Resp>);
+		HttpErrorResponseHandler(error as AxiosError<HttpErrorPayload>);
 	}
 };

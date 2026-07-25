@@ -1,15 +1,19 @@
 import { SuccessResponse } from 'types/api';
 import { MetricRangePayloadProps } from 'types/api/metrics/getQueryRange';
-import { Column, QueryData, QueryDataV3 } from 'types/api/widgets/getQuery';
+import {
+	Column,
+	QueryData,
+	QueryRangeResult,
+} from 'types/api/widgets/getQuery';
 
 // eslint-disable-next-line sonarjs/cognitive-complexity
 export function populateMultipleResults(
 	responseData: SuccessResponse<MetricRangePayloadProps, unknown>,
 ): SuccessResponse<MetricRangePayloadProps, unknown> {
-	const queryResults = responseData?.payload?.data?.newResult?.data?.result;
+	const queryResults = responseData?.payload?.data?.queryResult?.data?.result;
 	const allFormattedResults: QueryData[] = [];
 
-	queryResults?.forEach((query: QueryDataV3) => {
+	queryResults?.forEach((query: QueryRangeResult) => {
 		const { queryName, legend, table } = query;
 		if (!table) {
 			return;

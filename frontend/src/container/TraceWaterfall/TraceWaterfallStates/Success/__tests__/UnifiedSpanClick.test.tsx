@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, userEvent, waitFor } from 'tests/test-utils';
-import { Span } from 'types/api/trace/getTraceV2';
+import { Span } from 'types/api/trace/getTraceWaterfall';
 
 import Success from '../Success';
 

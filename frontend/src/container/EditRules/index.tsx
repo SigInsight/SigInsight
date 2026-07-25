@@ -1,27 +1,27 @@
 import { Form } from 'antd';
 import EditAlertV2 from 'container/EditAlertV2';
 import FormAlertRules from 'container/FormAlertRules';
-import { AlertTypes } from 'types/api/alerts/alertTypes';
 import {
 	NEW_ALERT_SCHEMA_VERSION,
-	PostableAlertRuleV2,
-} from 'types/api/alerts/alertTypesV2';
+	PostableAlertRule,
+} from 'types/api/alerts/alertRule';
+import { AlertTypes } from 'types/api/alerts/alertTypes';
 import { AlertDef } from 'types/api/alerts/def';
 
 function EditRules({
 	initialValue,
 	ruleId,
-	initialV2AlertValue,
+	initialAlertValue,
 }: EditRulesProps): JSX.Element {
 	const [formInstance] = Form.useForm();
 
 	if (
-		initialV2AlertValue !== null &&
-		initialV2AlertValue.schemaVersion === NEW_ALERT_SCHEMA_VERSION
+		initialAlertValue !== null &&
+		initialAlertValue.schemaVersion === NEW_ALERT_SCHEMA_VERSION
 	) {
 		return (
 			<EditAlertV2
-				initialAlert={initialV2AlertValue}
+				initialAlert={initialAlertValue}
 				alertType={initialValue.alertType as AlertTypes}
 			/>
 		);
@@ -44,7 +44,7 @@ function EditRules({
 interface EditRulesProps {
 	initialValue: AlertDef;
 	ruleId: string;
-	initialV2AlertValue: PostableAlertRuleV2 | null;
+	initialAlertValue: PostableAlertRule | null;
 }
 
 export default EditRules;

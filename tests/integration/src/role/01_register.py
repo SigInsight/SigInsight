@@ -20,7 +20,7 @@ def test_managed_roles_create_on_register(
 
     # get the list of all roles.
     response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v1/roles"),
+        signoz.self.host_configs["8080"].get("/api/v5/roles"),
         headers={"Authorization": f"Bearer {admin_token}"},
         timeout=2,
     )
@@ -52,7 +52,7 @@ def test_root_user_signoz_admin_assignment(
 
     # Get the user from the /user/me endpoint and extract the id
     user_response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v1/user/me"),
+        signoz.self.host_configs["8080"].get("/api/v5/user/me"),
         headers={"Authorization": f"Bearer {admin_token}"},
         timeout=2,
     )
@@ -60,7 +60,7 @@ def test_root_user_signoz_admin_assignment(
     user_id = user_response.json()["data"]["id"]
 
     response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v1/roles"),
+        signoz.self.host_configs["8080"].get("/api/v5/roles"),
         headers={"Authorization": f"Bearer {admin_token}"},
         timeout=2,
     )
@@ -112,7 +112,7 @@ def test_anonymous_user_signoz_anonymous_assignment(
     admin_token = get_token(USER_ADMIN_EMAIL, USER_ADMIN_PASSWORD)
 
     response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v1/roles"),
+        signoz.self.host_configs["8080"].get("/api/v5/roles"),
         headers={"Authorization": f"Bearer {admin_token}"},
         timeout=2,
     )

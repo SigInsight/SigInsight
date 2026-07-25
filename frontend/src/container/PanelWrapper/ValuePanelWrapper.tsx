@@ -11,11 +11,11 @@ function ValuePanelWrapper({
 	const { yAxisUnit, thresholds } = widget;
 	const data = getUPlotChartData(queryResponse?.data?.payload);
 	const dataNew = Object.values(
-		queryResponse?.data?.payload?.data?.newResult?.data?.result[0]?.table
+		queryResponse?.data?.payload?.data?.queryResult?.data?.result[0]?.table
 			?.rows?.[0]?.data || {},
 	);
 
-	// this is for handling both query_range v3 and v5 responses
+	// Time-series and scalar V5 results use different result containers.
 	const gridValueData = data?.[0].length > 0 ? data : [[0], dataNew];
 
 	return (

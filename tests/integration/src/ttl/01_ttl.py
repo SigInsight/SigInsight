@@ -125,7 +125,7 @@ def test_set_ttl_traces_success(
     }
 
     response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v1/settings/ttl"),
+        signoz.self.host_configs["8080"].get("/api/v5/settings/ttl"),
         params=payload,
         headers=headers,
         timeout=30,
@@ -175,7 +175,7 @@ def test_set_ttl_traces_with_cold_storage(
     }
 
     response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v1/settings/ttl"),
+        signoz.self.host_configs["8080"].get("/api/v5/settings/ttl"),
         params=payload,
         headers=headers,
         timeout=30,
@@ -237,7 +237,7 @@ def test_set_ttl_metrics_success(
     }
 
     response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v1/settings/ttl"),
+        signoz.self.host_configs["8080"].get("/api/v5/settings/ttl"),
         params=payload,
         headers=headers,
         timeout=30,
@@ -289,7 +289,7 @@ def test_set_ttl_metrics_with_cold_storage(
     }
 
     response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v1/settings/ttl"),
+        signoz.self.host_configs["8080"].get("/api/v5/settings/ttl"),
         params=payload,
         headers=headers,
         timeout=30,
@@ -354,7 +354,7 @@ def test_set_ttl_invalid_type(
     }
 
     response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v1/settings/ttl"),
+        signoz.self.host_configs["8080"].get("/api/v5/settings/ttl"),
         params=payload,
         headers=headers,
         timeout=30,
@@ -386,7 +386,7 @@ def test_set_custom_retention_ttl_basic(
     }
 
     response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v2/settings/ttl"),
+        signoz.self.host_configs["8080"].get("/api/v5/settings/logs/ttl"),
         json=payload,
         headers=headers,
         timeout=30,
@@ -448,7 +448,7 @@ def test_set_custom_retention_ttl_basic_with_cold_storage(
     }
 
     response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v2/settings/ttl"),
+        signoz.self.host_configs["8080"].get("/api/v5/settings/logs/ttl"),
         json=payload,
         headers=headers,
         timeout=30,
@@ -516,7 +516,7 @@ def test_set_custom_retention_ttl_basic_fallback(
     }
 
     response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v2/settings/ttl"),
+        signoz.self.host_configs["8080"].get("/api/v5/settings/logs/ttl"),
         json=payload,
         headers=headers,
         timeout=30,
@@ -580,7 +580,7 @@ def test_set_custom_retention_ttl_basic_101_times(
         }
 
         response = requests.post(
-            signoz.self.host_configs["8080"].get("/api/v2/settings/ttl"),
+            signoz.self.host_configs["8080"].get("/api/v5/settings/logs/ttl"),
             json=payload,
             headers=headers,
             timeout=30,
@@ -632,7 +632,7 @@ def test_set_custom_retention_ttl_with_conditions(
     }
 
     response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v2/settings/ttl"),
+        signoz.self.host_configs["8080"].get("/api/v5/settings/logs/ttl"),
         json=payload,
         headers=headers,
         timeout=30,
@@ -648,7 +648,7 @@ def test_set_custom_retention_ttl_with_conditions(
     ]
     insert_logs(logs)
     response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v2/settings/ttl"),
+        signoz.self.host_configs["8080"].get("/api/v5/settings/logs/ttl"),
         json=payload,
         headers=headers,
         timeout=30,
@@ -743,7 +743,7 @@ def test_set_custom_retention_ttl_with_invalid_cold_storage(
     }
 
     response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v2/settings/ttl"),
+        signoz.self.host_configs["8080"].get("/api/v5/settings/logs/ttl"),
         json=payload,
         headers=headers,
         timeout=30,
@@ -787,7 +787,7 @@ def test_set_custom_retention_ttl_duplicate_conditions(
     }
 
     response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v2/settings/ttl"),
+        signoz.self.host_configs["8080"].get("/api/v5/settings/logs/ttl"),
         json=payload,
         headers=headers,
         timeout=30,
@@ -824,7 +824,7 @@ def test_set_custom_retention_ttl_invalid_condition(
     }
 
     response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v2/settings/ttl"),
+        signoz.self.host_configs["8080"].get("/api/v5/settings/logs/ttl"),
         json=payload,
         headers=headers,
         timeout=30,
@@ -862,7 +862,7 @@ def test_get_custom_retention_ttl(
         "Authorization": f"Bearer {get_token(USER_ADMIN_EMAIL, USER_ADMIN_PASSWORD)}"
     }
     set_response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v2/settings/ttl"),
+        signoz.self.host_configs["8080"].get("/api/v5/settings/logs/ttl"),
         json=set_payload,
         headers=headers,
         timeout=30,
@@ -878,8 +878,7 @@ def test_get_custom_retention_ttl(
     }
 
     get_response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v2/settings/ttl"),
-        params={"type": "logs"},
+        signoz.self.host_configs["8080"].get("/api/v5/settings/logs/ttl"),
         headers=headers,
         timeout=30,
     )
@@ -916,7 +915,7 @@ def test_set_ttl_logs_success(
     }
 
     response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v1/settings/ttl"),
+        signoz.self.host_configs["8080"].get("/api/v5/settings/ttl"),
         params=payload,
         headers=headers,
         timeout=30,
@@ -958,7 +957,7 @@ def test_get_ttl_traces_success(
     }
 
     set_response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v1/settings/ttl"),
+        signoz.self.host_configs["8080"].get("/api/v5/settings/ttl"),
         params=set_payload,
         headers=headers,
         timeout=30,
@@ -971,7 +970,7 @@ def test_get_ttl_traces_success(
 
     # Now get the TTL configuration for traces
     get_response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v1/settings/ttl"),
+        signoz.self.host_configs["8080"].get("/api/v5/settings/ttl"),
         params={"type": "traces"},
         headers=headers,
         timeout=30,
@@ -1028,7 +1027,7 @@ def test_large_ttl_conditions_list(
     }
 
     response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v2/settings/ttl"),
+        signoz.self.host_configs["8080"].get("/api/v5/settings/logs/ttl"),
         json=payload,
         headers=headers,
         timeout=30,

@@ -19,8 +19,10 @@ import { convertToApiError } from 'api/ErrorResponseHandlerForGeneratedAPIs';
 import { RenderErrorResponseDTO } from 'api/generated/services/sigNoz.schemas';
 import {
 	getResetPasswordToken,
+	removeUserRoleByUserIDAndRoleID,
+	setRoleByUserID,
+	updateUser,
 	useDeleteUser,
-	useUpdateUserDeprecated,
 } from 'api/generated/services/users';
 import { AxiosError } from 'axios';
 import { MemberRow } from 'components/MembersTable/MembersTable';
@@ -30,6 +32,12 @@ import { capitalize } from 'lodash-es';
 import { useTimezone } from 'providers/Timezone';
 import { ROLES } from 'types/roles';
 import { popupContainer } from 'utils/selectPopupContainer';
+
+const roleNameByLegacyRole: Partial<Record<ROLES, string>> = {
+	ADMIN: 'signoz-admin',
+	EDITOR: 'signoz-editor',
+	VIEWER: 'signoz-viewer',
+};
 
 import './EditMemberDrawer.styles.scss';
 
@@ -59,25 +67,7 @@ function EditMemberDrawer({
 	const [linkType, setLinkType] = useState<'invite' | 'reset' | null>(null);
 
 	const isInvited = member?.status === MemberStatus.Invited;
-
-	const { mutate: updateUser, isLoading: isSaving } = useUpdateUserDeprecated({
-		mutation: {
-			onSuccess: (): void => {
-				toast.success('Member details updated successfully', { richColors: true });
-				onComplete();
-				onClose();
-			},
-			onError: (err): void => {
-				const errMessage =
-					convertToApiError(
-						err as AxiosError<RenderErrorResponseDTO, unknown> | null,
-					)?.getErrorMessage() || 'An error occurred';
-				toast.error(`Failed to update member details: ${errMessage}`, {
-					richColors: true,
-				});
-			},
-		},
-	});
+	const [isSaving, setIsSaving] = useState(false);
 
 	const { mutate: deleteUser, isLoading: isDeleting } = useDeleteUser({
 		mutation: {
@@ -95,10 +85,12 @@ function EditMemberDrawer({
 					convertToApiError(
 						err as AxiosError<RenderErrorResponseDTO, unknown> | null,
 					)?.getErrorMessage() || 'An error occurred';
-				const prefix = isInvited
-					? 'Failed to revoke invite'
-					: 'Failed to delete member';
-				toast.error(`${prefix}: ${errMessage}`, { richColors: true });
+				toast.error(
+					`${
+						isInvited ? 'Failed to revoke invite' : 'Failed to delete member'
+					}: ${errMessage}`,
+					{ richColors: true },
+				);
 			},
 		},
 	});
@@ -116,11 +108,7 @@ function EditMemberDrawer({
 
 	const formatTimestamp = useCallback(
 		(ts: string | null | undefined): string => {
-			if (!ts) {
-				return '—';
-			}
-			const d = new Date(ts);
-			if (Number.isNaN(d.getTime())) {
+			if (!ts || Number.isNaN(new Date(ts).getTime())) {
 				return '—';
 			}
 			return formatTimezoneAdjustedTimestamp(ts, DATE_TIME_FORMATS.DASH_DATETIME);
@@ -128,23 +116,48 @@ function EditMemberDrawer({
 		[formatTimezoneAdjustedTimestamp],
 	);
 
-	const handleSave = useCallback((): void => {
+	const handleSave = useCallback(async (): Promise<void> => {
 		if (!member || !isDirty) {
 			return;
 		}
-		updateUser({
-			pathParams: { id: member.id },
-			data: { id: member.id, displayName, role: selectedRole },
-		});
-	}, [member, isDirty, displayName, selectedRole, updateUser]);
+		setIsSaving(true);
+		try {
+			const requests: Promise<unknown>[] = [];
+			if (displayName !== (member.name ?? '')) {
+				requests.push(updateUser({ id: member.id }, { displayName }));
+			}
+			if (selectedRole !== member.role) {
+				const roleName = roleNameByLegacyRole[selectedRole];
+				if (roleName) {
+					await Promise.all(
+						(member.roleIds ?? []).map((roleId) =>
+							removeUserRoleByUserIDAndRoleID({ id: member.id, roleId }),
+						),
+					);
+					requests.push(setRoleByUserID({ id: member.id }, { name: roleName }));
+				}
+			}
+			await Promise.all(requests);
+			toast.success('Member details updated successfully', { richColors: true });
+			onComplete();
+			onClose();
+		} catch (err) {
+			const errMessage =
+				convertToApiError(
+					err as AxiosError<RenderErrorResponseDTO, unknown> | null,
+				)?.getErrorMessage() || 'An error occurred';
+			toast.error(`Failed to update member details: ${errMessage}`, {
+				richColors: true,
+			});
+		} finally {
+			setIsSaving(false);
+		}
+	}, [member, isDirty, displayName, selectedRole, onComplete, onClose]);
 
 	const handleDelete = useCallback((): void => {
-		if (!member) {
-			return;
+		if (member) {
+			deleteUser({ pathParams: { id: member.id } });
 		}
-		deleteUser({
-			pathParams: { id: member.id },
-		});
 	}, [member, deleteUser]);
 
 	const handleGenerateResetLink = useCallback(async (): Promise<void> => {
@@ -154,19 +167,16 @@ function EditMemberDrawer({
 		setIsGeneratingLink(true);
 		try {
 			const response = await getResetPasswordToken({ id: member.id });
-			if (response?.data?.token) {
-				const link = `${window.location.origin}/password-reset?token=${response.data.token}`;
-				setResetLink(link);
-				setHasCopiedResetLink(false);
-				setLinkType(isInvited ? 'invite' : 'reset');
-				setShowResetLinkDialog(true);
-				onClose();
-			} else {
-				toast.error('Failed to generate password reset link', {
-					richColors: true,
-					position: 'top-right',
-				});
+			if (!response?.data?.token) {
+				throw new Error('missing reset token');
 			}
+			setResetLink(
+				`${window.location.origin}/password-reset?token=${response.data.token}`,
+			);
+			setHasCopiedResetLink(false);
+			setLinkType(isInvited ? 'invite' : 'reset');
+			setShowResetLinkDialog(true);
+			onClose();
 		} catch {
 			toast.error('Failed to generate password reset link', {
 				richColors: true,
@@ -175,7 +185,7 @@ function EditMemberDrawer({
 		} finally {
 			setIsGeneratingLink(false);
 		}
-	}, [member, isInvited, setLinkType, onClose]);
+	}, [member, isInvited, onClose]);
 
 	const handleCopyResetLink = useCallback(async (): Promise<void> => {
 		if (!resetLink) {

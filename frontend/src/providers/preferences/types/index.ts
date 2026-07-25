@@ -1,6 +1,6 @@
 import { TelemetryFieldKey } from 'api/v5/v5';
-import { LogViewMode } from 'container/LogsTable';
 import { FontSize } from 'container/OptionsMenu/types';
+import { LogViewMode } from 'types/logs';
 
 export enum PreferenceMode {
 	SAVED_VIEW = 'savedView',

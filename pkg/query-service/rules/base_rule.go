@@ -3,6 +3,7 @@ package rules
 import (
 	"context"
 	"fmt"
+	"github.com/SigNoz/signoz/pkg/types/timeseriestypes"
 	"log/slog"
 	"sync"
 	"time"
@@ -11,7 +12,7 @@ import (
 	"github.com/SigNoz/signoz/pkg/query-service/constants"
 	"github.com/SigNoz/signoz/pkg/query-service/interfaces"
 	"github.com/SigNoz/signoz/pkg/query-service/model"
-	v3 "github.com/SigNoz/signoz/pkg/query-service/model/v3"
+	"github.com/SigNoz/signoz/pkg/query-service/model/querytypes"
 	"github.com/SigNoz/signoz/pkg/query-service/utils/labels"
 	qslabels "github.com/SigNoz/signoz/pkg/query-service/utils/labels"
 	"github.com/SigNoz/signoz/pkg/queryparser"
@@ -79,12 +80,6 @@ type BaseRule struct {
 
 	// sendAlways will send alert irrespective of resendDelay or other params
 	sendAlways bool
-
-	// TemporalityMap is a map of metric name to temporality to avoid fetching
-	// temporality for the same metric multiple times.
-	// Querying the v4 table on low cardinal temporality column should be fast,
-	// but we can still avoid the query if we have the data in memory.
-	TemporalityMap map[string]map[v3.Temporality]bool
 
 	sqlstore sqlstore.SQLStore
 
@@ -169,7 +164,6 @@ func NewBaseRule(id string, orgID valuer.UUID, p *ruletypes.PostableRule, reader
 		health:            ruletypes.HealthUnknown,
 		Active:            map[uint64]*ruletypes.Alert{},
 		reader:            reader,
-		TemporalityMap:    make(map[string]map[v3.Temporality]bool),
 		Threshold:         threshold,
 		evaluation:        evaluation,
 	}
@@ -493,61 +487,6 @@ func (r *BaseRule) RecordRuleStateHistory(ctx context.Context, prevState, curren
 	return nil
 }
 
-func (r *BaseRule) PopulateTemporality(ctx context.Context, orgID valuer.UUID, qp *v3.QueryRangeParamsV3) error {
-	missingTemporality := make([]string, 0)
-	metricNameToTemporality := make(map[string]map[v3.Temporality]bool)
-	if qp.CompositeQuery != nil && len(qp.CompositeQuery.BuilderQueries) > 0 {
-		for _, query := range qp.CompositeQuery.BuilderQueries {
-			// if there is no temporality specified in the query but we have it in the map
-			// then use the value from the map
-			if query.Temporality == "" && r.TemporalityMap[query.AggregateAttribute.Key] != nil {
-				// We prefer delta if it is available
-				if r.TemporalityMap[query.AggregateAttribute.Key][v3.Delta] {
-					query.Temporality = v3.Delta
-				} else if r.TemporalityMap[query.AggregateAttribute.Key][v3.Cumulative] {
-					query.Temporality = v3.Cumulative
-				} else {
-					query.Temporality = v3.Unspecified
-				}
-			}
-			// we don't have temporality for this metric
-			if query.DataSource == v3.DataSourceMetrics && query.Temporality == "" {
-				missingTemporality = append(missingTemporality, query.AggregateAttribute.Key)
-			}
-			if _, ok := metricNameToTemporality[query.AggregateAttribute.Key]; !ok {
-				metricNameToTemporality[query.AggregateAttribute.Key] = make(map[v3.Temporality]bool)
-			}
-		}
-	}
-
-	var nameToTemporality map[string]map[v3.Temporality]bool
-	var err error
-
-	if len(missingTemporality) > 0 {
-		nameToTemporality, err = r.reader.FetchTemporality(ctx, orgID, missingTemporality)
-		if err != nil {
-			return err
-		}
-	}
-
-	if qp.CompositeQuery != nil && len(qp.CompositeQuery.BuilderQueries) > 0 {
-		for name := range qp.CompositeQuery.BuilderQueries {
-			query := qp.CompositeQuery.BuilderQueries[name]
-			if query.DataSource == v3.DataSourceMetrics && query.Temporality == "" {
-				if nameToTemporality[query.AggregateAttribute.Key][v3.Delta] {
-					query.Temporality = v3.Delta
-				} else if nameToTemporality[query.AggregateAttribute.Key][v3.Cumulative] {
-					query.Temporality = v3.Cumulative
-				} else {
-					query.Temporality = v3.Unspecified
-				}
-				r.TemporalityMap[query.AggregateAttribute.Key] = nameToTemporality[query.AggregateAttribute.Key]
-			}
-		}
-	}
-	return nil
-}
-
 // ShouldSkipNewGroups returns true if new group filtering should be applied
 func (r *BaseRule) ShouldSkipNewGroups() bool {
 	return r.newGroupEvalDelay.IsPositive()
@@ -555,7 +494,7 @@ func (r *BaseRule) ShouldSkipNewGroups() bool {
 
 // isFilterNewSeriesSupported checks if the query is supported for new series filtering
 func (r *BaseRule) isFilterNewSeriesSupported() bool {
-	if r.ruleCondition.CompositeQuery.QueryType == v3.QueryTypeBuilder {
+	if r.ruleCondition.CompositeQuery.QueryType == querytypes.QueryTypeBuilder {
 		for _, query := range r.ruleCondition.CompositeQuery.Queries {
 			if query.Type != qbtypes.QueryTypeBuilder {
 				continue
@@ -624,7 +563,7 @@ func (r *BaseRule) extractMetricAndGroupBys(ctx context.Context) (map[string][]s
 
 // FilterNewSeries filters out items that are too new based on metadata first_seen timestamps.
 // Returns the filtered series (old ones) excluding new series that are still within the grace period.
-func (r *BaseRule) FilterNewSeries(ctx context.Context, ts time.Time, series []*v3.Series) ([]*v3.Series, error) {
+func (r *BaseRule) FilterNewSeries(ctx context.Context, ts time.Time, series []*timeseriestypes.Series) ([]*timeseriestypes.Series, error) {
 	// Extract metric names and groupBy keys
 	metricToGroupedFields, err := r.extractMetricAndGroupBys(ctx)
 	if err != nil {
@@ -688,7 +627,7 @@ func (r *BaseRule) FilterNewSeries(ctx context.Context, ts time.Time, series []*
 	}
 
 	// Filter series based on first_seen + delay
-	filteredSeries := make([]*v3.Series, 0, len(series))
+	filteredSeries := make([]*timeseriestypes.Series, 0, len(series))
 	evalTimeMs := ts.UnixMilli()
 	newGroupEvalDelayMs := r.newGroupEvalDelay.Milliseconds()
 

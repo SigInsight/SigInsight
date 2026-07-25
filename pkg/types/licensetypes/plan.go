@@ -10,7 +10,7 @@ var (
 )
 
 // Feature represents a single feature flag entry returned by the
-// /api/v1/features endpoint. The community build returns a small static
+// /api/v5/features/ui endpoint. The community build returns a small static
 // set assembled in pkg/query-service/app/http_handler.go:getFeatureFlags.
 type Feature struct {
 	Name       valuer.String `json:"name"`

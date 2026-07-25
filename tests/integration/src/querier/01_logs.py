@@ -204,7 +204,7 @@ def test_logs_list(
 
     # Query values of severity_text attribute from the fields API
     response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v1/fields/values"),
+        signoz.self.host_configs["8080"].get("/api/v5/fields/values"),
         timeout=2,
         headers={
             "authorization": f"Bearer {token}",
@@ -252,7 +252,7 @@ def test_logs_list(
 
     # Query values of code.file attribute from the fields API
     response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v1/fields/values"),
+        signoz.self.host_configs["8080"].get("/api/v5/fields/values"),
         timeout=2,
         headers={
             "authorization": f"Bearer {token}",
@@ -299,7 +299,7 @@ def test_logs_list(
 
     # Query values of code.line attribute from the fields API
     response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v1/fields/values"),
+        signoz.self.host_configs["8080"].get("/api/v5/fields/values"),
         timeout=2,
         headers={
             "authorization": f"Bearer {token}",
@@ -320,7 +320,7 @@ def test_logs_list(
 
     # Query keys from the fields API with context specified in the key
     response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v1/fields/keys"),
+        signoz.self.host_configs["8080"].get("/api/v5/fields/keys"),
         timeout=2,
         headers={
             "authorization": f"Bearer {token}",
@@ -340,7 +340,7 @@ def test_logs_list(
 
     # Do not treat `metric.` as a context prefix for logs
     response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v1/fields/keys"),
+        signoz.self.host_configs["8080"].get("/api/v5/fields/keys"),
         timeout=2,
         headers={
             "authorization": f"Bearer {token}",
@@ -359,7 +359,7 @@ def test_logs_list(
 
     # Query values of service.name resource attribute using context-prefixed key
     response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v1/fields/values"),
+        signoz.self.host_configs["8080"].get("/api/v5/fields/values"),
         timeout=2,
         headers={
             "authorization": f"Bearer {token}",
@@ -380,7 +380,7 @@ def test_logs_list(
 
     # Query values of metric.domain_id (string attribute) and ensure context collision doesn't break it
     response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v1/fields/values"),
+        signoz.self.host_configs["8080"].get("/api/v5/fields/values"),
         timeout=2,
         headers={
             "authorization": f"Bearer {token}",

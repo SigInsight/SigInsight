@@ -1,17 +1,17 @@
 import { useMutation, UseMutationResult } from 'react-query';
 import testAlertRule, { TestAlertRuleResponse } from 'api/alerts/testAlertRule';
 import { ErrorResponse, SuccessResponse } from 'types/api';
-import { PostableAlertRuleV2 } from 'types/api/alerts/alertTypesV2';
+import { PostableAlertRule } from 'types/api/alerts/alertRule';
 
 export function useTestAlertRule(): UseMutationResult<
 	SuccessResponse<TestAlertRuleResponse> | ErrorResponse,
 	Error,
-	PostableAlertRuleV2
+	PostableAlertRule
 > {
 	return useMutation<
 		SuccessResponse<TestAlertRuleResponse> | ErrorResponse,
 		Error,
-		PostableAlertRuleV2
+		PostableAlertRule
 	>({
 		mutationFn: (alertData) => testAlertRule(alertData),
 	});

@@ -3,7 +3,7 @@ import { useMutation } from 'react-query';
 import { Switch } from 'antd';
 import setLocalStorageApi from 'api/browser/localstorage/set';
 import logEvent from 'api/common/logEvent';
-import updateUserPreference from 'api/v1/user/preferences/name/update';
+import updateUserPreference from 'api/v5/user/preferences/name/update';
 import { AxiosError } from 'axios';
 import { USER_PREFERENCES } from 'constants/userPreferences';
 import { useNotifications } from 'hooks/useNotifications';

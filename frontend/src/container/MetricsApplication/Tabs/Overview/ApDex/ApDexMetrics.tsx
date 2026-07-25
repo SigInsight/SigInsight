@@ -7,7 +7,7 @@ import {
 	apDexToolTipUrl,
 	apDexToolTipUrlText,
 } from 'constants/apDex';
-import { ENTITY_VERSION_V4 } from 'constants/app';
+import { ENTITY_VERSION_V5 } from 'constants/app';
 import { PANEL_TYPES } from 'constants/queryBuilder';
 import Graph from 'container/GridCardLayout/GridCard';
 import DisplayThreshold from 'container/GridCardLayout/WidgetHeader/DisplayThreshold';
@@ -103,7 +103,7 @@ function ApDexMetrics({
 			onClickHandler={handleGraphClick('ApDex')}
 			threshold={threshold}
 			isQueryEnabled={isQueryEnabled}
-			version={ENTITY_VERSION_V4}
+			version={ENTITY_VERSION_V5}
 		/>
 	);
 }

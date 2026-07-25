@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { useQueryClient } from 'react-query';
 import { useCopyToClipboard } from 'react-use';
 import { getAggregateKeys } from 'api/queryBuilder/getAttributeKeys';
-import { convertFiltersToExpressionWithExistingQuery } from 'components/QueryBuilderV2/utils';
+import { convertFiltersToExpressionWithExistingQuery } from 'components/QueryBuilder/utils';
 import { SOMETHING_WENT_WRONG } from 'constants/api';
 import { QueryBuilderKeys } from 'constants/queryBuilder';
 import ROUTES from 'constants/routes';

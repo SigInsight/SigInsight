@@ -68,18 +68,15 @@ function TimeSeries(): JSX.Element {
 				index,
 			],
 			queryFn: (): Promise<SuccessResponse<MetricRangePayloadProps>> =>
-				GetMetricQueryRange(
-					{
-						query: payload,
-						graphType: PANEL_TYPES.BAR,
-						selectedTime: 'GLOBAL_TIME',
-						globalSelectedInterval: globalSelectedTime,
-						params: {
-							dataSource: DataSource.METRICS,
-						},
+				GetMetricQueryRange({
+					query: payload,
+					graphType: PANEL_TYPES.BAR,
+					selectedTime: 'GLOBAL_TIME',
+					globalSelectedInterval: globalSelectedTime,
+					params: {
+						dataSource: DataSource.METRICS,
 					},
-					ENTITY_VERSION_V5,
-				),
+				}),
 			enabled: !!payload,
 			retry: (failureCount: number, error: Error): boolean => {
 				let status: number | undefined;

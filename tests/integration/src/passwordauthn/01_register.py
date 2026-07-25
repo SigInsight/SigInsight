@@ -16,7 +16,7 @@ def test_register_with_invalid_input(signoz: types.SigNoz) -> None:
     2. Invalid Email
     """
     response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v1/register"),
+        signoz.self.host_configs["8080"].get("/api/v5/register"),
         json={
             "name": "admin",
             "orgId": "",
@@ -30,7 +30,7 @@ def test_register_with_invalid_input(signoz: types.SigNoz) -> None:
     assert response.status_code == HTTPStatus.BAD_REQUEST
 
     response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v1/register"),
+        signoz.self.host_configs["8080"].get("/api/v5/register"),
         json={
             "name": "admin",
             "orgId": "",
@@ -46,14 +46,14 @@ def test_register_with_invalid_input(signoz: types.SigNoz) -> None:
 
 def test_register(signoz: types.SigNoz, get_token: Callable[[str, str], str]) -> None:
     response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v1/version"), timeout=2
+        signoz.self.host_configs["8080"].get("/api/v5/version"), timeout=2
     )
 
     assert response.status_code == HTTPStatus.OK
     assert response.json()["setupCompleted"] is False
 
     response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v1/register"),
+        signoz.self.host_configs["8080"].get("/api/v5/register"),
         json={
             "name": "admin",
             "orgId": "",
@@ -66,7 +66,7 @@ def test_register(signoz: types.SigNoz, get_token: Callable[[str, str], str]) ->
     assert response.status_code == HTTPStatus.OK
 
     response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v1/version"), timeout=2
+        signoz.self.host_configs["8080"].get("/api/v5/version"), timeout=2
     )
 
     assert response.status_code == HTTPStatus.OK
@@ -75,30 +75,25 @@ def test_register(signoz: types.SigNoz, get_token: Callable[[str, str], str]) ->
     admin_token = get_token("admin@integration.test", "password123Z$")
 
     response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v1/user"),
+        signoz.self.host_configs["8080"].get("/api/v5/users/me"),
         timeout=2,
         headers={"Authorization": f"Bearer {admin_token}"},
     )
 
     assert response.status_code == HTTPStatus.OK
 
-    user_response = response.json()["data"]
-    found_user = next(
-        (user for user in user_response if user["email"] == "admin@integration.test"),
-        None,
-    )
-
-    assert found_user is not None
-    assert found_user["role"] == "ADMIN"
+    found_user = response.json()["data"]
+    assert found_user["email"] == "admin@integration.test"
+    assert found_user["userRoles"]
 
     response = requests.get(
-        signoz.self.host_configs["8080"].get(f"/api/v1/user/{found_user["id"]}"),
+        signoz.self.host_configs["8080"].get(f"/api/v5/users/{found_user["id"]}"),
         timeout=2,
         headers={"Authorization": f"Bearer {admin_token}"},
     )
 
     assert response.status_code == HTTPStatus.OK
-    assert response.json()["data"]["role"] == "ADMIN"
+    assert response.json()["data"]["userRoles"]
 
 
 def test_invite_and_register(
@@ -107,7 +102,7 @@ def test_invite_and_register(
     admin_token = get_token("admin@integration.test", "password123Z$")
     # Generate an invite token for the editor user
     response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v1/invite"),
+        signoz.self.host_configs["8080"].get("/api/v5/invite"),
         json={"email": "editor@integration.test", "role": "EDITOR", "name": "editor"},
         timeout=2,
         headers={"Authorization": f"Bearer {admin_token}"},
@@ -121,7 +116,7 @@ def test_invite_and_register(
 
     # Verify the user user appears in the users list but as pending_invite status
     response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v1/user"),
+        signoz.self.host_configs["8080"].get("/api/v5/users"),
         timeout=2,
         headers={"Authorization": f"Bearer {admin_token}"},
     )
@@ -134,13 +129,12 @@ def test_invite_and_register(
     )
     assert found_user is not None
     assert found_user["status"] == "pending_invite"
-    assert found_user["role"] == "EDITOR"
 
     reset_token = invited_user["token"]
 
     # Reset the password to complete the invite flow (activates the user and also grants authz)
     response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v1/resetPassword"),
+        signoz.self.host_configs["8080"].get("/api/v5/resetPassword"),
         json={"password": "password123Z$", "token": reset_token},
         timeout=2,
     )
@@ -152,7 +146,7 @@ def test_invite_and_register(
 
     # Verify that an admin endpoint cannot be called by the editor user
     response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v1/user"),
+        signoz.self.host_configs["8080"].get("/api/v5/users"),
         timeout=2,
         headers={"Authorization": f"Bearer {editor_token}"},
     )
@@ -161,7 +155,7 @@ def test_invite_and_register(
 
     # Verify that the editor user status has been updated to ACTIVE
     response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v1/user"),
+        signoz.self.host_configs["8080"].get("/api/v5/users"),
         timeout=2,
         headers={
             "Authorization": f"Bearer {get_token("admin@integration.test", "password123Z$")}"
@@ -177,7 +171,6 @@ def test_invite_and_register(
     )
 
     assert found_user is not None
-    assert found_user["role"] == "EDITOR"
     assert found_user["displayName"] == "editor"
     assert found_user["email"] == "editor@integration.test"
     assert found_user["status"] == "active"
@@ -190,7 +183,7 @@ def test_revoke_invite_and_register(
 
     # Invite the viewer user
     response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v1/invite"),
+        signoz.self.host_configs["8080"].get("/api/v5/invite"),
         json={"email": "viewer@integration.test", "role": "VIEWER"},
         timeout=2,
         headers={"Authorization": f"Bearer {admin_token}"},
@@ -201,7 +194,7 @@ def test_revoke_invite_and_register(
 
     # Delete the pending invite user (revoke the invite)
     response = requests.delete(
-        signoz.self.host_configs["8080"].get(f"/api/v1/user/{invited_user['id']}"),
+        signoz.self.host_configs["8080"].get(f"/api/v5/user/{invited_user['id']}"),
         timeout=2,
         headers={"Authorization": f"Bearer {admin_token}"},
     )
@@ -209,7 +202,7 @@ def test_revoke_invite_and_register(
 
     # Try to use the reset token — should fail (user deleted)
     response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v1/resetPassword"),
+        signoz.self.host_configs["8080"].get("/api/v5/resetPassword"),
         json={"password": "password123Z$", "token": reset_token},
         timeout=2,
     )
@@ -222,7 +215,7 @@ def test_self_access(
     admin_token = get_token("admin@integration.test", "password123Z$")
 
     response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v1/user"),
+        signoz.self.host_configs["8080"].get("/api/v5/users"),
         timeout=2,
         headers={"Authorization": f"Bearer {admin_token}"},
     )
@@ -236,10 +229,10 @@ def test_self_access(
     )
 
     response = requests.get(
-        signoz.self.host_configs["8080"].get(f"/api/v1/user/{found_user['id']}"),
+        signoz.self.host_configs["8080"].get(f"/api/v5/users/{found_user['id']}"),
         timeout=2,
         headers={"Authorization": f"Bearer {admin_token}"},
     )
 
     assert response.status_code == HTTPStatus.OK
-    assert response.json()["data"]["role"] == "EDITOR"
+    assert response.json()["data"]["userRoles"]

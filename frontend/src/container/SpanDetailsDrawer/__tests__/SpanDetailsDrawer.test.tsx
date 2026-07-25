@@ -1,5 +1,5 @@
 import getSpanPercentiles from 'api/trace/getSpanPercentiles';
-import getUserPreference from 'api/v1/user/preferences/name/get';
+import getUserPreference from 'api/v5/user/preferences/name/get';
 import { QueryParams } from 'constants/query';
 import ROUTES from 'constants/routes';
 import { SPAN_ATTRIBUTES } from 'container/ApiMonitoring/Explorer/Domains/DomainDetails/constants';
@@ -13,7 +13,7 @@ import {
 	userEvent,
 	waitFor,
 } from 'tests/test-utils';
-import { SuccessResponseV2 } from 'types/api';
+import { HttpSuccessResponse } from 'types/api';
 import { GetSpanPercentilesResponseDataProps } from 'types/api/trace/getSpanPercentiles';
 
 import SpanDetailsDrawer from '../SpanDetailsDrawer';
@@ -167,7 +167,7 @@ jest.mock('api/trace/getSpanPercentiles', () => ({
 }));
 
 // Mock getUserPreference API
-jest.mock('api/v1/user/preferences/name/get', () => ({
+jest.mock('api/v5/user/preferences/name/get', () => ({
 	__esModule: true,
 	default: jest.fn(),
 }));
@@ -334,7 +334,7 @@ const mockUserPreferenceResponse = {
 const mockSpanPercentileErrorResponse = ({
 	httpStatusCode: 500,
 	data: null,
-} as unknown) as SuccessResponseV2<GetSpanPercentilesResponseDataProps>;
+} as unknown) as HttpSuccessResponse<GetSpanPercentilesResponseDataProps>;
 
 describe('SpanDetailsDrawer', () => {
 	let apiCallHistory: any = {};

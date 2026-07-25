@@ -12,7 +12,7 @@ import useComponentPermission from 'hooks/useComponentPermission';
 import history from 'lib/history';
 import { isUndefined } from 'lodash-es';
 import { useAppContext } from 'providers/App/App';
-import { SuccessResponseV2 } from 'types/api';
+import { HttpSuccessResponse } from 'types/api';
 import { Channels } from 'types/api/channels/getAll';
 import APIError from 'types/api/error';
 
@@ -35,7 +35,7 @@ function AlertChannels(): JSX.Element {
 	}, []);
 
 	const { isLoading, data, error } = useQuery<
-		SuccessResponseV2<Channels[]>,
+		HttpSuccessResponse<Channels[]>,
 		APIError
 	>(['getChannels'], {
 		queryFn: () => getAll(),

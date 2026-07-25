@@ -1,6 +1,5 @@
 import {
 	AppAction,
-	UPDATE_CONFIGS,
 	UPDATE_CURRENT_ERROR,
 	UPDATE_CURRENT_VERSION,
 	UPDATE_LATEST_VERSION,
@@ -13,7 +12,6 @@ const InitialValue: InitialValueTypes = {
 	latestVersion: '',
 	isCurrentVersionError: false,
 	isLatestVersionError: false,
-	configs: {},
 	ee: 'Y',
 	setupCompleted: true,
 };
@@ -44,12 +42,6 @@ const appReducer = (
 			return {
 				...state,
 				isLatestVersionError: true,
-			};
-		}
-		case UPDATE_CONFIGS: {
-			return {
-				...state,
-				configs: action.payload.configs,
 			};
 		}
 		default:

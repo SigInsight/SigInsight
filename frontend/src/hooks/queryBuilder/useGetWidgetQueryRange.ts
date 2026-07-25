@@ -19,7 +19,6 @@ export const useGetWidgetQueryRange = (
 		graphType,
 		selectedTime,
 	}: Pick<GetQueryResultsProps, 'graphType' | 'selectedTime'>,
-	version: string,
 	options?: UseQueryOptions<SuccessResponse<MetricRangePayloadProps>, Error>,
 ): UseQueryResult<SuccessResponse<MetricRangePayloadProps>, Error> => {
 	const { selectedTime: globalSelectedInterval } = useSelector<
@@ -39,7 +38,6 @@ export const useGetWidgetQueryRange = (
 			query: stagedQuery || initialQueriesMap.metrics,
 			variables: getDashboardVariables(dashboardVariables),
 		},
-		version,
 		{
 			enabled: !!stagedQuery,
 			queryKey: [

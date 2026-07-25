@@ -4,7 +4,7 @@ import logEvent from 'api/common/logEvent';
 import { PlusIcon, Undo2 } from 'lucide-react';
 import { useFunnelContext } from 'pages/TracesFunnels/FunnelContext';
 import { useAppContext } from 'providers/App/App';
-import { Span } from 'types/api/trace/getTraceV2';
+import { Span } from 'types/api/trace/getTraceWaterfall';
 
 import FunnelStep from './FunnelStep';
 import InterStepConfig from './InterStepConfig';

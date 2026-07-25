@@ -22,9 +22,9 @@ import {
 	Typography,
 } from 'antd';
 import type { NotificationInstance } from 'antd/es/notification/interface';
-import createAPIKeyApi from 'api/v1/pats/create';
-import deleteAPIKeyApi from 'api/v1/pats/delete';
-import updateAPIKeyApi from 'api/v1/pats/update';
+import createAPIKeyApi from 'api/v5/pats/create';
+import deleteAPIKeyApi from 'api/v5/pats/delete';
+import updateAPIKeyApi from 'api/v5/pats/update';
 import cx from 'classnames';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';

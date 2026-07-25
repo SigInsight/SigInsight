@@ -1,6 +1,5 @@
 import { TelemetryFieldKey } from 'api/v5/v5';
 import { LOCALSTORAGE } from 'constants/localStorage';
-import { LogViewMode } from 'container/LogsTable';
 import {
 	defaultLogsSelectedColumns,
 	defaultTraceSelectedColumns,
@@ -8,6 +7,7 @@ import {
 import { FontSize } from 'container/OptionsMenu/types';
 import { render, screen, userEvent } from 'tests/test-utils';
 import { DataSource } from 'types/common/queryBuilder';
+import { LogViewMode } from 'types/logs';
 
 import { usePreferenceContext } from '../context/PreferenceContextProvider';
 

@@ -10,7 +10,7 @@ import (
 )
 
 func (provider *provider) addRoleRoutes(router *mux.Router) error {
-	if err := router.Handle("/api/v1/roles", handler.New(provider.authZ.AdminAccess(provider.authzHandler.Create), handler.OpenAPIDef{
+	if err := router.Handle("/api/v5/roles", handler.New(provider.authZ.AdminAccess(provider.authzHandler.Create), handler.OpenAPIDef{
 		ID:                  "CreateRole",
 		Tags:                []string{"role"},
 		Summary:             "Create role",
@@ -27,7 +27,7 @@ func (provider *provider) addRoleRoutes(router *mux.Router) error {
 		return err
 	}
 
-	if err := router.Handle("/api/v1/roles", handler.New(provider.authZ.AdminAccess(provider.authzHandler.List), handler.OpenAPIDef{
+	if err := router.Handle("/api/v5/roles", handler.New(provider.authZ.AdminAccess(provider.authzHandler.List), handler.OpenAPIDef{
 		ID:                  "ListRoles",
 		Tags:                []string{"role"},
 		Summary:             "List roles",
@@ -44,7 +44,7 @@ func (provider *provider) addRoleRoutes(router *mux.Router) error {
 		return err
 	}
 
-	if err := router.Handle("/api/v1/roles/{id}", handler.New(provider.authZ.AdminAccess(provider.authzHandler.Get), handler.OpenAPIDef{
+	if err := router.Handle("/api/v5/roles/{id}", handler.New(provider.authZ.AdminAccess(provider.authzHandler.Get), handler.OpenAPIDef{
 		ID:                  "GetRole",
 		Tags:                []string{"role"},
 		Summary:             "Get role",
@@ -61,7 +61,7 @@ func (provider *provider) addRoleRoutes(router *mux.Router) error {
 		return err
 	}
 
-	if err := router.Handle("/api/v1/roles/{id}/relation/{relation}/objects", handler.New(provider.authZ.AdminAccess(provider.authzHandler.GetObjects), handler.OpenAPIDef{
+	if err := router.Handle("/api/v5/roles/{id}/relation/{relation}/objects", handler.New(provider.authZ.AdminAccess(provider.authzHandler.GetObjects), handler.OpenAPIDef{
 		ID:                  "GetObjects",
 		Tags:                []string{"role"},
 		Summary:             "Get objects for a role by relation",
@@ -78,7 +78,7 @@ func (provider *provider) addRoleRoutes(router *mux.Router) error {
 		return err
 	}
 
-	if err := router.Handle("/api/v1/roles/{id}", handler.New(provider.authZ.AdminAccess(provider.authzHandler.Patch), handler.OpenAPIDef{
+	if err := router.Handle("/api/v5/roles/{id}", handler.New(provider.authZ.AdminAccess(provider.authzHandler.Patch), handler.OpenAPIDef{
 		ID:                  "PatchRole",
 		Tags:                []string{"role"},
 		Summary:             "Patch role",
@@ -95,7 +95,7 @@ func (provider *provider) addRoleRoutes(router *mux.Router) error {
 		return err
 	}
 
-	if err := router.Handle("/api/v1/roles/{id}/relation/{relation}/objects", handler.New(provider.authZ.AdminAccess(provider.authzHandler.PatchObjects), handler.OpenAPIDef{
+	if err := router.Handle("/api/v5/roles/{id}/relation/{relation}/objects", handler.New(provider.authZ.AdminAccess(provider.authzHandler.PatchObjects), handler.OpenAPIDef{
 		ID:                  "PatchObjects",
 		Tags:                []string{"role"},
 		Summary:             "Patch objects for a role by relation",
@@ -112,7 +112,7 @@ func (provider *provider) addRoleRoutes(router *mux.Router) error {
 		return err
 	}
 
-	if err := router.Handle("/api/v1/roles/{id}", handler.New(provider.authZ.AdminAccess(provider.authzHandler.Delete), handler.OpenAPIDef{
+	if err := router.Handle("/api/v5/roles/{id}", handler.New(provider.authZ.AdminAccess(provider.authzHandler.Delete), handler.OpenAPIDef{
 		ID:                  "DeleteRole",
 		Tags:                []string{"role"},
 		Summary:             "Delete role",

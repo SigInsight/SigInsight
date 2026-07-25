@@ -7,11 +7,11 @@ import (
 
 	"github.com/SigNoz/signoz/pkg/query-service/constants"
 	"github.com/SigNoz/signoz/pkg/query-service/model/metrics_explorer"
-	v3 "github.com/SigNoz/signoz/pkg/query-service/model/v3"
+	"github.com/SigNoz/signoz/pkg/query-service/model/querytypes"
 )
 
 // skipKey is an optional parameter to skip processing of a specific key
-func BuildFilterConditions(fs *v3.FilterSet, skipKey string) ([]string, error) {
+func BuildFilterConditions(fs *querytypes.FilterSet, skipKey string) ([]string, error) {
 	if fs == nil || len(fs.Items) == 0 {
 		return nil, nil
 	}
@@ -24,8 +24,8 @@ func BuildFilterConditions(fs *v3.FilterSet, skipKey string) ([]string, error) {
 		}
 
 		toFormat := item.Value
-		op := v3.FilterOperator(strings.ToLower(strings.TrimSpace(string(item.Operator))))
-		if op == v3.FilterOperatorContains || op == v3.FilterOperatorNotContains {
+		op := querytypes.FilterOperator(strings.ToLower(strings.TrimSpace(string(item.Operator))))
+		if op == querytypes.FilterOperatorContains || op == querytypes.FilterOperatorNotContains {
 			toFormat = fmt.Sprintf("%%%s%%", toFormat)
 		}
 		fmtVal := ClickHouseFormattedValue(toFormat)
@@ -48,7 +48,7 @@ func BuildFilterConditions(fs *v3.FilterSet, skipKey string) ([]string, error) {
 	return conditions, nil
 }
 
-func buildSingleFilterCondition(key string, op v3.FilterOperator, fmtVal string, isJSONKey bool) (string, error) {
+func buildSingleFilterCondition(key string, op querytypes.FilterOperator, fmtVal string, isJSONKey bool) (string, error) {
 	var keyCondition string
 	if isJSONKey {
 		keyCondition = fmt.Sprintf("JSONExtractString(labels, '%s')", key)
@@ -63,37 +63,37 @@ func buildSingleFilterCondition(key string, op v3.FilterOperator, fmtVal string,
 	}
 
 	switch op {
-	case v3.FilterOperatorEqual:
+	case querytypes.FilterOperatorEqual:
 		return fmt.Sprintf("%s = %s", keyCondition, fmtVal), nil
-	case v3.FilterOperatorNotEqual:
+	case querytypes.FilterOperatorNotEqual:
 		return fmt.Sprintf("%s != %s", keyCondition, fmtVal), nil
-	case v3.FilterOperatorIn:
+	case querytypes.FilterOperatorIn:
 		return fmt.Sprintf("%s IN %s", keyCondition, fmtVal), nil
-	case v3.FilterOperatorNotIn:
+	case querytypes.FilterOperatorNotIn:
 		return fmt.Sprintf("%s NOT IN %s", keyCondition, fmtVal), nil
-	case v3.FilterOperatorLike:
+	case querytypes.FilterOperatorLike:
 		return fmt.Sprintf("like(%s, %s)", keyCondition, fmtVal), nil
-	case v3.FilterOperatorNotLike:
+	case querytypes.FilterOperatorNotLike:
 		return fmt.Sprintf("notLike(%s, %s)", keyCondition, fmtVal), nil
-	case v3.FilterOperatorRegex:
+	case querytypes.FilterOperatorRegex:
 		return fmt.Sprintf("match(%s, %s)", keyCondition, fmtVal), nil
-	case v3.FilterOperatorNotRegex:
+	case querytypes.FilterOperatorNotRegex:
 		return fmt.Sprintf("not match(%s, %s)", keyCondition, fmtVal), nil
-	case v3.FilterOperatorGreaterThan:
+	case querytypes.FilterOperatorGreaterThan:
 		return fmt.Sprintf("%s > %s", keyCondition, fmtVal), nil
-	case v3.FilterOperatorGreaterThanOrEq:
+	case querytypes.FilterOperatorGreaterThanOrEq:
 		return fmt.Sprintf("%s >= %s", keyCondition, fmtVal), nil
-	case v3.FilterOperatorLessThan:
+	case querytypes.FilterOperatorLessThan:
 		return fmt.Sprintf("%s < %s", keyCondition, fmtVal), nil
-	case v3.FilterOperatorLessThanOrEq:
+	case querytypes.FilterOperatorLessThanOrEq:
 		return fmt.Sprintf("%s <= %s", keyCondition, fmtVal), nil
-	case v3.FilterOperatorContains:
+	case querytypes.FilterOperatorContains:
 		return fmt.Sprintf("ilike(%s, %s)", keyCondition, fmtVal), nil
-	case v3.FilterOperatorNotContains:
+	case querytypes.FilterOperatorNotContains:
 		return fmt.Sprintf("notILike(%s, %s)", keyCondition, fmtVal), nil
-	case v3.FilterOperatorExists:
+	case querytypes.FilterOperatorExists:
 		return fmt.Sprintf("has(JSONExtractKeys(labels), '%s')", key), nil
-	case v3.FilterOperatorNotExists:
+	case querytypes.FilterOperatorNotExists:
 		return fmt.Sprintf("not has(JSONExtractKeys(labels), '%s')", key), nil
 	default:
 		return "", fmt.Errorf("unsupported filter operator: %s", op)

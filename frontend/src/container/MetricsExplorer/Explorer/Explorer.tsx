@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom-v5-compat';
 import * as Sentry from '@sentry/react';
 import { Switch, Tooltip } from 'antd';
 import logEvent from 'api/common/logEvent';
-import { QueryBuilderV2 } from 'components/QueryBuilderV2/QueryBuilderV2';
+import { QueryBuilder } from 'components/QueryBuilder/QueryBuilder';
 import WarningPopover from 'components/WarningPopover/WarningPopover';
 import { initialQueriesMap, PANEL_TYPES } from 'constants/queryBuilder';
 import ExplorerOptionWrapper from 'container/ExplorerOptions/ExplorerOptionWrapper';
@@ -274,7 +274,7 @@ function Explorer(): JSX.Element {
 						<RightToolbarActions onStageRunQuery={(): void => handleRunQuery()} />
 					</div>
 				</div>
-				<QueryBuilderV2
+				<QueryBuilder
 					config={{ initialDataSource: DataSource.METRICS, queryVariant: 'static' }}
 					panelType={PANEL_TYPES.TIME_SERIES}
 					queryComponents={queryComponents}

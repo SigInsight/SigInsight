@@ -19,9 +19,9 @@ import getLocalStorageApi from 'api/browser/localstorage/get';
 import setLocalStorageApi from 'api/browser/localstorage/set';
 import getChangelogByVersion from 'api/changelog/getChangelogByVersion';
 import logEvent from 'api/common/logEvent';
-import updateUserPreference from 'api/v1/user/preferences/name/update';
-import getUserVersion from 'api/v1/version/get';
-import getUserLatestVersion from 'api/v1/version/getLatestVersion';
+import updateUserPreference from 'api/v5/user/preferences/name/update';
+import getUserVersion from 'api/v5/version/get';
+import getUserLatestVersion from 'api/version/getLatestVersion';
 import { AxiosError } from 'axios';
 import cx from 'classnames';
 import ChangelogModal from 'components/ChangelogModal/ChangelogModal';
@@ -260,14 +260,7 @@ function AppLayout(props: AppLayoutProps): JSX.Element {
 	const routeKey = useMemo(() => getRouteKey(pathname), [pathname]);
 	const pageTitle = t(routeKey);
 
-	const renderFullScreen =
-		pathname === ROUTES.GET_STARTED ||
-		pathname === ROUTES.ONBOARDING ||
-		pathname === ROUTES.GET_STARTED_WITH_CLOUD ||
-		pathname === ROUTES.GET_STARTED_APPLICATION_MONITORING ||
-		pathname === ROUTES.GET_STARTED_LOGS_MANAGEMENT ||
-		pathname === ROUTES.GET_STARTED_AWS_MONITORING ||
-		pathname === ROUTES.GET_STARTED_AZURE_MONITORING;
+	const renderFullScreen = pathname === ROUTES.ONBOARDING;
 
 	useEffect(() => {
 		if (isDarkMode) {

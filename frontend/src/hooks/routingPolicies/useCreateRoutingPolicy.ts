@@ -3,19 +3,19 @@ import createRoutingPolicy, {
 	CreateRoutingPolicyBody,
 	CreateRoutingPolicyResponse,
 } from 'api/routingPolicies/createRoutingPolicy';
-import { ErrorResponseV2, SuccessResponseV2 } from 'types/api';
+import { HttpErrorResponse, HttpSuccessResponse } from 'types/api';
 
 interface UseCreateRoutingPolicyProps {
 	payload: CreateRoutingPolicyBody;
 }
 
 export function useCreateRoutingPolicy(): UseMutationResult<
-	SuccessResponseV2<CreateRoutingPolicyResponse> | ErrorResponseV2,
+	HttpSuccessResponse<CreateRoutingPolicyResponse> | HttpErrorResponse,
 	Error,
 	UseCreateRoutingPolicyProps
 > {
 	return useMutation<
-		SuccessResponseV2<CreateRoutingPolicyResponse> | ErrorResponseV2,
+		HttpSuccessResponse<CreateRoutingPolicyResponse> | HttpErrorResponse,
 		Error,
 		UseCreateRoutingPolicyProps
 	>({

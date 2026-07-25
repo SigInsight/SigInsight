@@ -28,7 +28,7 @@ def test_reinvite_deleted_user(
 
     # invite the user
     response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v1/invite"),
+        signoz.self.host_configs["8080"].get("/api/v5/invite"),
         json={
             "email": reinvite_user_email,
             "role": reinvite_user_role,
@@ -43,7 +43,7 @@ def test_reinvite_deleted_user(
 
     # reset the password to make it active
     response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v1/resetPassword"),
+        signoz.self.host_configs["8080"].get("/api/v5/resetPassword"),
         json={"password": reinvite_user_password, "token": reset_token},
         timeout=2,
     )
@@ -51,7 +51,7 @@ def test_reinvite_deleted_user(
 
     # call the delete api which now soft deletes the user
     response = requests.delete(
-        signoz.self.host_configs["8080"].get(f"/api/v1/user/{invited_user['id']}"),
+        signoz.self.host_configs["8080"].get(f"/api/v5/user/{invited_user['id']}"),
         headers={"Authorization": f"Bearer {admin_token}"},
         timeout=2,
     )
@@ -59,7 +59,7 @@ def test_reinvite_deleted_user(
 
     # Re-invite the same email — should succeed
     response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v1/invite"),
+        signoz.self.host_configs["8080"].get("/api/v5/invite"),
         json={
             "email": reinvite_user_email,
             "role": "VIEWER",
@@ -76,7 +76,7 @@ def test_reinvite_deleted_user(
     reinvited_user_reset_password_token = reinvited_user["token"]
 
     response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v1/resetPassword"),
+        signoz.self.host_configs["8080"].get("/api/v5/resetPassword"),
         json={
             "password": "newPassword123Z$",
             "token": reinvited_user_reset_password_token,
@@ -100,7 +100,7 @@ def test_bulk_invite(
     admin_token = get_token(USER_ADMIN_EMAIL, USER_ADMIN_PASSWORD)
 
     response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v1/invite/bulk"),
+        signoz.self.host_configs["8080"].get("/api/v5/invite/bulk"),
         json={
             "invites": [
                 {

@@ -1,7 +1,7 @@
 package contextlinks
 
 import (
-	v3 "github.com/SigNoz/signoz/pkg/query-service/model/v3"
+	"github.com/SigNoz/signoz/pkg/query-service/model/querytypes"
 	"github.com/SigNoz/signoz/pkg/types/ruletypes"
 )
 
@@ -21,7 +21,7 @@ type Aggregation struct {
 }
 
 type LinkQuery struct {
-	v3.BuilderQuery
+	querytypes.BuilderQuery
 	Filter       *FilterExpression `json:"filter,omitempty"`
 	Aggregations []*Aggregation    `json:"aggregations,omitempty"`
 }
@@ -37,9 +37,9 @@ type URLShareableCompositeQuery struct {
 }
 
 type URLShareableOptions struct {
-	MaxLines      int               `json:"maxLines"`
-	Format        string            `json:"format"`
-	SelectColumns []v3.AttributeKey `json:"selectColumns"`
+	MaxLines      int                       `json:"maxLines"`
+	Format        string                    `json:"format"`
+	SelectColumns []querytypes.AttributeKey `json:"selectColumns"`
 }
 
 var PredefinedAlertLabels = []string{ruletypes.LabelThresholdName, ruletypes.LabelSeverityName, ruletypes.LabelLastSeen}

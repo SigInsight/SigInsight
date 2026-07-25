@@ -13,7 +13,7 @@ export const getHttpStatusCode = (error: any): number | undefined => {
 		return undefined;
 	}
 
-	// Try to get status code from APIError instance (transformed by ErrorResponseHandlerV2)
+	// Try to get status code from APIError instance (transformed by HttpErrorResponseHandler)
 	if (typeof error.getHttpStatusCode === 'function') {
 		return error.getHttpStatusCode();
 	}

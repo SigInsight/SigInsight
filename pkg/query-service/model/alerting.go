@@ -4,8 +4,9 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+	"github.com/SigNoz/signoz/pkg/types/timeseriestypes"
 
-	v3 "github.com/SigNoz/signoz/pkg/query-service/model/v3"
+	"github.com/SigNoz/signoz/pkg/query-service/model/querytypes"
 	"github.com/pkg/errors"
 )
 
@@ -147,13 +148,13 @@ type RuleStateHistory struct {
 }
 
 type QueryRuleStateHistory struct {
-	Start   int64         `json:"start"`
-	End     int64         `json:"end"`
-	State   string        `json:"state"`
-	Filters *v3.FilterSet `json:"filters"`
-	Offset  int64         `json:"offset"`
-	Limit   int64         `json:"limit"`
-	Order   string        `json:"order"`
+	Start   int64                 `json:"start"`
+	End     int64                 `json:"end"`
+	State   string                `json:"state"`
+	Filters *querytypes.FilterSet `json:"filters"`
+	Offset  int64                 `json:"offset"`
+	Limit   int64                 `json:"limit"`
+	Order   string                `json:"order"`
 }
 
 func (r *QueryRuleStateHistory) Validate() error {
@@ -191,12 +192,12 @@ type ReleStateItem struct {
 }
 
 type Stats struct {
-	TotalCurrentTriggers           uint64     `json:"totalCurrentTriggers"`
-	TotalPastTriggers              uint64     `json:"totalPastTriggers"`
-	CurrentTriggersSeries          *v3.Series `json:"currentTriggersSeries"`
-	PastTriggersSeries             *v3.Series `json:"pastTriggersSeries"`
-	CurrentAvgResolutionTime       string     `json:"currentAvgResolutionTime"`
-	PastAvgResolutionTime          string     `json:"pastAvgResolutionTime"`
-	CurrentAvgResolutionTimeSeries *v3.Series `json:"currentAvgResolutionTimeSeries"`
-	PastAvgResolutionTimeSeries    *v3.Series `json:"pastAvgResolutionTimeSeries"`
+	TotalCurrentTriggers           uint64                  `json:"totalCurrentTriggers"`
+	TotalPastTriggers              uint64                  `json:"totalPastTriggers"`
+	CurrentTriggersSeries          *timeseriestypes.Series `json:"currentTriggersSeries"`
+	PastTriggersSeries             *timeseriestypes.Series `json:"pastTriggersSeries"`
+	CurrentAvgResolutionTime       string                  `json:"currentAvgResolutionTime"`
+	PastAvgResolutionTime          string                  `json:"pastAvgResolutionTime"`
+	CurrentAvgResolutionTimeSeries *timeseriestypes.Series `json:"currentAvgResolutionTimeSeries"`
+	PastAvgResolutionTimeSeries    *timeseriestypes.Series `json:"pastAvgResolutionTimeSeries"`
 }

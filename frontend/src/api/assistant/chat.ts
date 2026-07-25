@@ -15,7 +15,7 @@ export const streamAssistantChat = async (
 	signal?: AbortSignal,
 ): Promise<void> => {
 	const token = getLocalStorageApi(LOCALSTORAGE.AUTH_TOKEN);
-	const response = await fetch(`${ENVIRONMENT.baseURL}/api/v1/assistant/chat`, {
+	const response = await fetch(`${ENVIRONMENT.baseURL}/api/v5/assistant/chat`, {
 		body: JSON.stringify(request),
 		headers: {
 			Authorization: token ? `Bearer ${token}` : '',

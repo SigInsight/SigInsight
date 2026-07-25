@@ -32,7 +32,7 @@ func TestEditAccessAPIKeyRoles(t *testing.T) {
 				rw.WriteHeader(http.StatusNoContent)
 			})
 
-			request := httptest.NewRequest(http.MethodPost, "/api/v1/integrations/install", nil)
+			request := httptest.NewRequest(http.MethodPost, "/api/v5/integrations/install", nil)
 			request = request.WithContext(authtypes.NewContextWithClaims(request.Context(), authtypes.Claims{
 				Role:           test.role,
 				IdentNProvider: authtypes.IdentNProviderAPIKey.StringValue(),

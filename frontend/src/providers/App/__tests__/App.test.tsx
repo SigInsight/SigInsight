@@ -14,7 +14,7 @@ import { USER_ROLES } from 'types/roles';
 
 import { AppProvider, useAppContext } from '../App';
 
-const AUTHZ_CHECK_URL = 'http://localhost/api/v1/authz/check';
+const AUTHZ_CHECK_URL = 'http://localhost/api/v5/authz/check';
 
 jest.mock('constants/env', () => ({
 	ENVIRONMENT: { baseURL: 'http://localhost', wsURL: '' },

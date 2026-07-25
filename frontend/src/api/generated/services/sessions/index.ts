@@ -23,100 +23,10 @@ import type {
 	AuthtypesPostableEmailPasswordSessionDTO,
 	AuthtypesPostableRotateTokenDTO,
 	CreateSessionByEmailPassword200,
-	CreateSessionByGoogleCallback303,
 	GetSessionContext200,
 	RenderErrorResponseDTO,
 	RotateSession200,
 } from '../sigNoz.schemas';
-
-/**
- * This endpoint creates a session for a user using google callback
- * @summary Create session by google callback
- */
-export const createSessionByGoogleCallback = (signal?: AbortSignal) => {
-	return GeneratedAPIInstance<unknown>({
-		url: `/api/v1/complete/google`,
-		method: 'GET',
-		signal,
-	});
-};
-
-export const getCreateSessionByGoogleCallbackQueryKey = () => {
-	return [`/api/v1/complete/google`] as const;
-};
-
-export const getCreateSessionByGoogleCallbackQueryOptions = <
-	TData = Awaited<ReturnType<typeof createSessionByGoogleCallback>>,
-	TError = ErrorType<CreateSessionByGoogleCallback303 | RenderErrorResponseDTO>
->(options?: {
-	query?: UseQueryOptions<
-		Awaited<ReturnType<typeof createSessionByGoogleCallback>>,
-		TError,
-		TData
-	>;
-}) => {
-	const { query: queryOptions } = options ?? {};
-
-	const queryKey =
-		queryOptions?.queryKey ?? getCreateSessionByGoogleCallbackQueryKey();
-
-	const queryFn: QueryFunction<
-		Awaited<ReturnType<typeof createSessionByGoogleCallback>>
-	> = ({ signal }) => createSessionByGoogleCallback(signal);
-
-	return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-		Awaited<ReturnType<typeof createSessionByGoogleCallback>>,
-		TError,
-		TData
-	> & { queryKey: QueryKey };
-};
-
-export type CreateSessionByGoogleCallbackQueryResult = NonNullable<
-	Awaited<ReturnType<typeof createSessionByGoogleCallback>>
->;
-export type CreateSessionByGoogleCallbackQueryError = ErrorType<
-	CreateSessionByGoogleCallback303 | RenderErrorResponseDTO
->;
-
-/**
- * @summary Create session by google callback
- */
-
-export function useCreateSessionByGoogleCallback<
-	TData = Awaited<ReturnType<typeof createSessionByGoogleCallback>>,
-	TError = ErrorType<CreateSessionByGoogleCallback303 | RenderErrorResponseDTO>
->(options?: {
-	query?: UseQueryOptions<
-		Awaited<ReturnType<typeof createSessionByGoogleCallback>>,
-		TError,
-		TData
-	>;
-}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-	const queryOptions = getCreateSessionByGoogleCallbackQueryOptions(options);
-
-	const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
-		queryKey: QueryKey;
-	};
-
-	query.queryKey = queryOptions.queryKey;
-
-	return query;
-}
-
-/**
- * @summary Create session by google callback
- */
-export const invalidateCreateSessionByGoogleCallback = async (
-	queryClient: QueryClient,
-	options?: InvalidateOptions,
-): Promise<QueryClient> => {
-	await queryClient.invalidateQueries(
-		{ queryKey: getCreateSessionByGoogleCallbackQueryKey() },
-		options,
-	);
-
-	return queryClient;
-};
 
 /**
  * This endpoint deletes the session
@@ -124,7 +34,7 @@ export const invalidateCreateSessionByGoogleCallback = async (
  */
 export const deleteSession = () => {
 	return GeneratedAPIInstance<void>({
-		url: `/api/v2/sessions`,
+		url: `/api/v5/sessions`,
 		method: 'DELETE',
 	});
 };
@@ -199,14 +109,14 @@ export const useDeleteSession = <
  */
 export const getSessionContext = (signal?: AbortSignal) => {
 	return GeneratedAPIInstance<GetSessionContext200>({
-		url: `/api/v2/sessions/context`,
+		url: `/api/v5/sessions/context`,
 		method: 'GET',
 		signal,
 	});
 };
 
 export const getGetSessionContextQueryKey = () => {
-	return [`/api/v2/sessions/context`] as const;
+	return [`/api/v5/sessions/context`] as const;
 };
 
 export const getGetSessionContextQueryOptions = <
@@ -288,7 +198,7 @@ export const createSessionByEmailPassword = (
 	signal?: AbortSignal,
 ) => {
 	return GeneratedAPIInstance<CreateSessionByEmailPassword200>({
-		url: `/api/v2/sessions/email_password`,
+		url: `/api/v5/sessions/email_password`,
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		data: authtypesPostableEmailPasswordSessionDTO,
@@ -373,7 +283,7 @@ export const rotateSession = (
 	signal?: AbortSignal,
 ) => {
 	return GeneratedAPIInstance<RotateSession200>({
-		url: `/api/v2/sessions/rotate`,
+		url: `/api/v5/sessions/rotate`,
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		data: authtypesPostableRotateTokenDTO,

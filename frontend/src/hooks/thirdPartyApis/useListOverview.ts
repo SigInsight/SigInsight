@@ -1,7 +1,7 @@
 import { useQuery, UseQueryResult } from 'react-query';
 import listOverview from 'api/thirdPartyApis/listOverview';
 import { REACT_QUERY_KEY } from 'constants/reactQueryKeys';
-import { SuccessResponseV2 } from 'types/api';
+import { HttpSuccessResponse } from 'types/api';
 import APIError from 'types/api/error';
 import {
 	PayloadProps,
@@ -10,9 +10,9 @@ import {
 
 export const useListOverview = (
 	props: ListOverviewProps,
-): UseQueryResult<SuccessResponseV2<PayloadProps>, APIError> => {
+): UseQueryResult<HttpSuccessResponse<PayloadProps>, APIError> => {
 	const { start, end, show_ip: showIp, filter } = props;
-	return useQuery<SuccessResponseV2<PayloadProps>, APIError>({
+	return useQuery<HttpSuccessResponse<PayloadProps>, APIError>({
 		queryKey: [
 			REACT_QUERY_KEY.GET_DOMAINS_LIST,
 			start,

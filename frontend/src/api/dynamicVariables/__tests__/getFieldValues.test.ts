@@ -1,10 +1,12 @@
-import axios from 'api';
+import { ApiV5Instance as axios } from 'api';
 
 import { getFieldValues } from '../getFieldValues';
 
 // Mock the API instance
 jest.mock('api', () => ({
-	get: jest.fn(),
+	ApiV5Instance: {
+		get: jest.fn(),
+	},
 }));
 
 describe('getFieldValues API', () => {
@@ -198,7 +200,7 @@ describe('getFieldValues API', () => {
 		// Call the function
 		const result = await getFieldValues('traces', 'service.name');
 
-		// Verify the returned structure matches SuccessResponseV2 format
+		// Verify the returned structure matches HttpSuccessResponse format
 		expect(result).toEqual({
 			httpStatusCode: 200,
 			data: expect.objectContaining({

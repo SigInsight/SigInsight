@@ -28,6 +28,7 @@ import (
 	"github.com/SigNoz/signoz/pkg/types"
 	"github.com/SigNoz/signoz/pkg/types/alertmanagertypes"
 	"github.com/SigNoz/signoz/pkg/types/authtypes"
+	qbtypes "github.com/SigNoz/signoz/pkg/types/querybuildertypes/querybuildertypesv5"
 	"github.com/SigNoz/signoz/pkg/types/ruletypes"
 	"github.com/SigNoz/signoz/pkg/types/telemetrytypes"
 	"github.com/SigNoz/signoz/pkg/valuer"
@@ -1045,26 +1046,23 @@ func (m *Manager) GetAlertDetailsForMetricNames(ctx context.Context, metricNames
 		rule.UpdatedAt = &storedRule.UpdatedAt
 		rule.UpdatedBy = &storedRule.UpdatedBy
 
-		for _, query := range rule.RuleCondition.CompositeQuery.BuilderQueries {
-			if query.AggregateAttribute.Key != "" {
-				metricRulesMap[query.AggregateAttribute.Key] = append(metricRulesMap[query.AggregateAttribute.Key], rule)
-			}
-		}
-
-		for _, query := range rule.RuleCondition.CompositeQuery.PromQueries {
-			if query.Query != "" {
+		for _, query := range rule.RuleCondition.CompositeQuery.Queries {
+			switch spec := query.Spec.(type) {
+			case qbtypes.QueryBuilderQuery[qbtypes.MetricAggregation]:
+				for _, aggregation := range spec.Aggregations {
+					if aggregation.MetricName != "" {
+						metricRulesMap[aggregation.MetricName] = append(metricRulesMap[aggregation.MetricName], rule)
+					}
+				}
+			case qbtypes.PromQuery:
 				for _, metricName := range metricNames {
-					if strings.Contains(query.Query, metricName) {
+					if strings.Contains(spec.Query, metricName) {
 						metricRulesMap[metricName] = append(metricRulesMap[metricName], rule)
 					}
 				}
-			}
-		}
-
-		for _, query := range rule.RuleCondition.CompositeQuery.ClickHouseQueries {
-			if query.Query != "" {
+			case qbtypes.ClickHouseQuery:
 				for _, metricName := range metricNames {
-					if strings.Contains(query.Query, metricName) {
+					if strings.Contains(spec.Query, metricName) {
 						metricRulesMap[metricName] = append(metricRulesMap[metricName], rule)
 					}
 				}

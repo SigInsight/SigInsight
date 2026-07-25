@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button, Input, Modal, Typography } from 'antd';
 import logEvent from 'api/common/logEvent';
-import changeMyPassword from 'api/v1/factor_password/changeMyPassword';
-import editUser from 'api/v1/user/id/update';
+import { updateMyUser } from 'api/generated/services/users';
+import changeMyPassword from 'api/v5/factor_password/changeMyPassword';
 import { useNotifications } from 'hooks/useNotifications';
 import { Check, FileTerminal, MailIcon, UserIcon } from 'lucide-react';
 import { useAppContext } from 'providers/App/App';
@@ -92,10 +92,7 @@ function UserInfo(): JSX.Element {
 		);
 		try {
 			setIsLoading(true);
-			await editUser({
-				displayName: changedName,
-				userId: user.id,
-			});
+			await updateMyUser({ displayName: changedName });
 
 			notifications.success({
 				message: t('success', {

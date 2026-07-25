@@ -352,17 +352,6 @@ func New(
 		telemetrymetadata.AttributesMetadataLocalTableName,
 	)
 
-	global, err := factory.NewProviderFromNamedMap(
-		ctx,
-		providerSettings,
-		config.Global,
-		NewGlobalProviderFactories(config.IdentN),
-		"signoz",
-	)
-	if err != nil {
-		return nil, err
-	}
-
 	// Initialize all modules
 	modules := NewModules(sqlstore, tokenizer, emailing, providerSettings, orgGetter, alertmanager, analytics, querier, telemetrystore, telemetryMetadataStore, authNs, authz, cache, queryParser, config, userGetter, userRoleStore)
 
@@ -386,7 +375,6 @@ func New(
 		modules.UserSetter,
 		tokenizer,
 		config,
-		modules.AuthDomain,
 	}
 
 	// Initialize stats reporter from the available stats reporter provider factories
@@ -419,7 +407,7 @@ func New(
 
 	// Initialize all handlers for the modules
 	registryHandler := factory.NewHandler(registry)
-	handlers := NewHandlers(modules, providerSettings, analytics, querierHandler, global, flagger, telemetryMetadataStore, authz, registryHandler)
+	handlers := NewHandlers(modules, providerSettings, analytics, querierHandler, flagger, telemetryMetadataStore, authz, registryHandler)
 
 	// Initialize the API server (after registry so it can access service health)
 	apiserverInstance, err := factory.NewProviderFromNamedMap(

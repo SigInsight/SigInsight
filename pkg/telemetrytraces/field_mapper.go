@@ -77,38 +77,8 @@ var (
 		"attribute_string_rpc$$service":         {Name: "attribute_string_rpc$$service", Type: schema.ColumnTypeString},
 		"attribute_string_rpc$$method":          {Name: "attribute_string_rpc$$method", Type: schema.ColumnTypeString},
 		"attribute_string_peer$$service":        {Name: "attribute_string_peer$$service", Type: schema.ColumnTypeString},
-
-		// deprecated intrinsic columns
-		"traceID":          {Name: "traceID", Type: schema.FixedStringColumnType{Length: 32}},
-		"spanID":           {Name: "spanID", Type: schema.ColumnTypeString},
-		"parentSpanID":     {Name: "parentSpanID", Type: schema.ColumnTypeString},
-		"spanKind":         {Name: "spanKind", Type: schema.ColumnTypeString},
-		"durationNano":     {Name: "durationNano", Type: schema.ColumnTypeUInt64},
-		"statusCode":       {Name: "statusCode", Type: schema.ColumnTypeInt16},
-		"statusMessage":    {Name: "statusMessage", Type: schema.ColumnTypeString},
-		"statusCodeString": {Name: "statusCodeString", Type: schema.ColumnTypeString},
-
-		// deprecated derived columns
-		"references":         {Name: "references", Type: schema.ColumnTypeString},
-		"responseStatusCode": {Name: "responseStatusCode", Type: schema.ColumnTypeString},
-		"externalHttpUrl":    {Name: "externalHttpUrl", Type: schema.ColumnTypeString},
-		"httpUrl":            {Name: "httpUrl", Type: schema.ColumnTypeString},
-		"externalHttpMethod": {Name: "externalHttpMethod", Type: schema.ColumnTypeString},
-		"httpMethod":         {Name: "httpMethod", Type: schema.LowCardinalityColumnType{ElementType: schema.ColumnTypeString}},
-		"httpHost":           {Name: "httpHost", Type: schema.LowCardinalityColumnType{ElementType: schema.ColumnTypeString}},
-		"dbName":             {Name: "dbName", Type: schema.LowCardinalityColumnType{ElementType: schema.ColumnTypeString}},
-		"dbOperation":        {Name: "dbOperation", Type: schema.LowCardinalityColumnType{ElementType: schema.ColumnTypeString}},
-		"hasError":           {Name: "hasError", Type: schema.ColumnTypeBool},
-		"isRemote":           {Name: "isRemote", Type: schema.LowCardinalityColumnType{ElementType: schema.ColumnTypeString}},
-		"serviceName":        {Name: "serviceName", Type: schema.LowCardinalityColumnType{ElementType: schema.ColumnTypeString}},
-		"httpRoute":          {Name: "httpRoute", Type: schema.LowCardinalityColumnType{ElementType: schema.ColumnTypeString}},
-		"msgSystem":          {Name: "msgSystem", Type: schema.LowCardinalityColumnType{ElementType: schema.ColumnTypeString}},
-		"msgOperation":       {Name: "msgOperation", Type: schema.LowCardinalityColumnType{ElementType: schema.ColumnTypeString}},
-		"dbSystem":           {Name: "dbSystem", Type: schema.LowCardinalityColumnType{ElementType: schema.ColumnTypeString}},
-		"rpcSystem":          {Name: "rpcSystem", Type: schema.LowCardinalityColumnType{ElementType: schema.ColumnTypeString}},
-		"rpcService":         {Name: "rpcService", Type: schema.LowCardinalityColumnType{ElementType: schema.ColumnTypeString}},
-		"rpcMethod":          {Name: "rpcMethod", Type: schema.LowCardinalityColumnType{ElementType: schema.ColumnTypeString}},
-		"peerService":        {Name: "peerService", Type: schema.LowCardinalityColumnType{ElementType: schema.ColumnTypeString}},
+		"http.route":                            {Name: "attribute_string_http$$route", Type: schema.ColumnTypeString},
+		"rpc.method":                            {Name: "attribute_string_rpc$$method", Type: schema.ColumnTypeString},
 
 		// materialized exists columns
 		"resource_string_service$$name_exists":         {Name: "resource_string_service$$name_exists", Type: schema.ColumnTypeBool},
@@ -120,41 +90,6 @@ var (
 		"attribute_string_rpc$$service_exists":         {Name: "attribute_string_rpc$$service_exists", Type: schema.ColumnTypeBool},
 		"attribute_string_rpc$$method_exists":          {Name: "attribute_string_rpc$$method_exists", Type: schema.ColumnTypeBool},
 		"attribute_string_peer$$service_exists":        {Name: "attribute_string_peer$$service_exists", Type: schema.ColumnTypeBool},
-	}
-
-	// TODO(srikanthccv): remove this mapping
-	oldToNew = map[string]string{
-		// deprecated intrinsic -> new intrinsic
-		"traceID":          "trace_id",
-		"spanID":           "span_id",
-		"parentSpanID":     "parent_span_id",
-		"spanKind":         "kind_string",
-		"durationNano":     "duration_nano",
-		"statusCode":       "status_code",
-		"statusMessage":    "status_message",
-		"statusCodeString": "status_code_string",
-
-		// deprecated derived -> new derived / materialized
-		"references":         "links",
-		"responseStatusCode": "response_status_code",
-		"externalHttpUrl":    "external_http_url",
-		"httpUrl":            "http_url",
-		"externalHttpMethod": "external_http_method",
-		"httpMethod":         "http_method",
-		"httpHost":           "http_host",
-		"dbName":             "db_name",
-		"dbOperation":        "db_operation",
-		"hasError":           "has_error",
-		"isRemote":           "is_remote",
-		"serviceName":        "resource_string_service$$name",
-		"httpRoute":          "attribute_string_http$$route",
-		"msgSystem":          "attribute_string_messaging$$system",
-		"msgOperation":       "attribute_string_messaging$$operation",
-		"dbSystem":           "attribute_string_db$$system",
-		"rpcSystem":          "attribute_string_rpc$$system",
-		"rpcService":         "attribute_string_rpc$$service",
-		"rpcMethod":          "attribute_string_rpc$$method",
-		"peerService":        "attribute_string_peer$$service",
 	}
 )
 
@@ -197,27 +132,6 @@ func (m *defaultFieldMapper) getColumn(
 		if strings.ToLower(key.Name) == SpanSearchScopeRoot || strings.ToLower(key.Name) == SpanSearchScopeEntryPoint {
 			// The actual SQL will be generated in the condition builder
 			return &schema.Column{Name: key.Name, Type: schema.ColumnTypeBool}, nil
-		}
-
-		// TODO(srikanthccv): remove this when it's safe to remove
-		// issue with CH aliasing
-
-		/*
-			NOTE: There are fields which are deprecated for only to not show up as user suggestion and is possible that
-			they don't have a mapping in oldToNew map. So we need to look up in indexV3Columns directly for those fields.
-			For example: kind, timestamp etc.
-		*/
-		if _, ok := CalculatedFieldsDeprecated[key.Name]; ok {
-			// Check if we have a mapping for the deprecated calculated field
-			if col, ok := indexV3Columns[oldToNew[key.Name]]; ok {
-				return col, nil
-			}
-		}
-		if _, ok := IntrinsicFieldsDeprecated[key.Name]; ok {
-			// Check if we have a mapping for the deprecated intrinsic field
-			if col, ok := indexV3Columns[oldToNew[key.Name]]; ok {
-				return col, nil
-			}
 		}
 
 		if col, ok := indexV3Columns[key.Name]; ok {

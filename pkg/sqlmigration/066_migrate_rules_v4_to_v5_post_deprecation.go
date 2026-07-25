@@ -148,7 +148,8 @@ func (migration *migrateRulesV4ToV5) Up(ctx context.Context, db *bun.DB) error {
 	for _, rule := range rules {
 		version, _ := rule.Data["version"].(string)
 
-		if version == "v5" {
+		selectedQueryUpdated := transition.EnsureAlertSelectedQuery(rule.Data)
+		if version == "v5" && !selectedQueryUpdated {
 			continue
 		}
 

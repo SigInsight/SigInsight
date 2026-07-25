@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import { useShareBuilderUrl } from 'hooks/queryBuilder/useShareBuilderUrl';
 import { mapQueryDataFromApi } from 'lib/newQueryBuilder/queryBuilderMappers/mapQueryDataFromApi';
+import { PostableAlertRule } from 'types/api/alerts/alertRule';
 import { AlertTypes } from 'types/api/alerts/alertTypes';
-import { PostableAlertRuleV2 } from 'types/api/alerts/alertTypesV2';
 
 import AlertCondition from '../CreateAlertV2/AlertCondition';
 import { buildInitialAlertDef } from '../CreateAlertV2/context/utils';
@@ -15,7 +15,7 @@ import '../CreateAlertV2/CreateAlertV2.styles.scss';
 
 interface EditAlertV2Props {
 	alertType?: AlertTypes;
-	initialAlert: PostableAlertRuleV2;
+	initialAlert: PostableAlertRule;
 }
 
 function EditAlertV2({

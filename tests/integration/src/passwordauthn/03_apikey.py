@@ -10,7 +10,7 @@ def test_api_key(signoz: types.SigNoz, get_token: Callable[[str, str], str]) -> 
     admin_token = get_token("admin@integration.test", "password123Z$")
 
     response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v1/pats"),
+        signoz.self.host_configs["8080"].get("/api/v5/pats"),
         headers={"Authorization": f"Bearer {admin_token}"},
         json={
             "name": "admin",
@@ -26,25 +26,18 @@ def test_api_key(signoz: types.SigNoz, get_token: Callable[[str, str], str]) -> 
     assert "token" in pat_response["data"]
 
     response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v1/user"),
+        signoz.self.host_configs["8080"].get("/api/v5/users/me"),
         timeout=2,
         headers={"SIGNOZ-API-KEY": f"{pat_response["data"]["token"]}"},
     )
 
     assert response.status_code == HTTPStatus.OK
 
-    user_response = response.json()
-    found_user = next(
-        (
-            user
-            for user in user_response["data"]
-            if user["email"] == "admin@integration.test"
-        ),
-        None,
-    )
+    found_user = response.json()["data"]
+    assert found_user["email"] == "admin@integration.test"
 
     response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v1/pats"),
+        signoz.self.host_configs["8080"].get("/api/v5/pats"),
         headers={"SIGNOZ-API-KEY": f"{pat_response["data"]["token"]}"},
         timeout=2,
     )
@@ -69,7 +62,7 @@ def test_api_key_role(
     admin_token = get_token("admin@integration.test", "password123Z$")
 
     response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v1/pats"),
+        signoz.self.host_configs["8080"].get("/api/v5/pats"),
         headers={"Authorization": f"Bearer {admin_token}"},
         json={
             "name": "viewer",
@@ -85,7 +78,7 @@ def test_api_key_role(
     assert "token" in pat_response["data"]
 
     response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v1/user"),
+        signoz.self.host_configs["8080"].get("/api/v5/users"),
         timeout=2,
         headers={"SIGNOZ-API-KEY": f"{pat_response["data"]["token"]}"},
     )
@@ -93,7 +86,7 @@ def test_api_key_role(
     assert response.status_code == HTTPStatus.FORBIDDEN
 
     response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v1/pats"),
+        signoz.self.host_configs["8080"].get("/api/v5/pats"),
         headers={"Authorization": f"Bearer {admin_token}"},
         json={
             "name": "editor",
@@ -109,7 +102,7 @@ def test_api_key_role(
     assert "token" in pat_response["data"]
 
     response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v1/user"),
+        signoz.self.host_configs["8080"].get("/api/v5/users"),
         timeout=2,
         headers={"SIGNOZ-API-KEY": f"{pat_response["data"]["token"]}"},
     )

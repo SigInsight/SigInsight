@@ -15,6 +15,7 @@ import {
 	defaultSeasonality,
 } from 'types/api/alerts/def';
 import { EQueryType } from 'types/common/dashboard';
+import { compositeQueryToQueryEnvelope } from 'utils/compositeQueryToQueryEnvelope';
 
 const defaultAlertDescription =
 	'This alert is fired when the defined metric (current value: {{$value}}) crosses the threshold ({{$threshold}})';
@@ -30,7 +31,7 @@ export const alertDefaults: AlertDef = {
 	alertType: AlertTypes.METRICS_BASED_ALERT,
 	version: ENTITY_VERSION_V5,
 	condition: {
-		compositeQuery: {
+		compositeQuery: compositeQueryToQueryEnvelope({
 			builderQueries: {
 				A: initialQueryBuilderFormValuesMap.metrics,
 			},
@@ -46,7 +47,7 @@ export const alertDefaults: AlertDef = {
 			queryType: EQueryType.QUERY_BUILDER,
 			panelType: PANEL_TYPES.TIME_SERIES,
 			unit: undefined,
-		},
+		}),
 		op: defaultCompareOp,
 		matchType: defaultMatchType,
 		algorithm: defaultAlgorithm,
@@ -65,7 +66,7 @@ export const anamolyAlertDefaults: AlertDef = {
 	version: ENTITY_VERSION_V5,
 	ruleType: AlertDetectionTypes.ANOMALY_DETECTION_ALERT,
 	condition: {
-		compositeQuery: {
+		compositeQuery: compositeQueryToQueryEnvelope({
 			builderQueries: {
 				A: {
 					...initialQueryBuilderFormValuesMap.metrics,
@@ -90,7 +91,7 @@ export const anamolyAlertDefaults: AlertDef = {
 			queryType: EQueryType.QUERY_BUILDER,
 			panelType: PANEL_TYPES.TIME_SERIES,
 			unit: undefined,
-		},
+		}),
 		op: defaultCompareOp,
 		matchType: defaultMatchType,
 		algorithm: defaultAlgorithm,
@@ -109,7 +110,7 @@ export const logAlertDefaults: AlertDef = {
 	alertType: AlertTypes.LOGS_BASED_ALERT,
 	version: ENTITY_VERSION_V5,
 	condition: {
-		compositeQuery: {
+		compositeQuery: compositeQueryToQueryEnvelope({
 			builderQueries: {
 				A: initialQueryBuilderFormValuesMap.logs,
 			},
@@ -125,7 +126,7 @@ export const logAlertDefaults: AlertDef = {
 			queryType: EQueryType.QUERY_BUILDER,
 			panelType: PANEL_TYPES.TIME_SERIES,
 			unit: undefined,
-		},
+		}),
 		op: defaultCompareOp,
 		matchType: '4',
 	},
@@ -141,7 +142,7 @@ export const traceAlertDefaults: AlertDef = {
 	alertType: AlertTypes.TRACES_BASED_ALERT,
 	version: ENTITY_VERSION_V5,
 	condition: {
-		compositeQuery: {
+		compositeQuery: compositeQueryToQueryEnvelope({
 			builderQueries: {
 				A: initialQueryBuilderFormValuesMap.traces,
 			},
@@ -157,7 +158,7 @@ export const traceAlertDefaults: AlertDef = {
 			queryType: EQueryType.QUERY_BUILDER,
 			panelType: PANEL_TYPES.TIME_SERIES,
 			unit: undefined,
-		},
+		}),
 		op: defaultCompareOp,
 		matchType: '4',
 	},
@@ -173,7 +174,7 @@ export const exceptionAlertDefaults: AlertDef = {
 	alertType: AlertTypes.EXCEPTIONS_BASED_ALERT,
 	version: ENTITY_VERSION_V5,
 	condition: {
-		compositeQuery: {
+		compositeQuery: compositeQueryToQueryEnvelope({
 			builderQueries: {
 				A: initialQueryBuilderFormValuesMap.traces,
 			},
@@ -189,7 +190,7 @@ export const exceptionAlertDefaults: AlertDef = {
 			queryType: EQueryType.CLICKHOUSE,
 			panelType: PANEL_TYPES.TIME_SERIES,
 			unit: undefined,
-		},
+		}),
 		op: defaultCompareOp,
 		matchType: '4',
 	},

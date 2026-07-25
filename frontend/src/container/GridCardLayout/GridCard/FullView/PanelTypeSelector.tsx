@@ -2,8 +2,8 @@ import { useCallback } from 'react';
 import { Select, Typography } from 'antd';
 import { QueryParams } from 'constants/query';
 import { PANEL_TYPES } from 'constants/queryBuilder';
-import { PanelTypesWithData } from 'container/DashboardContainer/PanelTypeSelectionModal/menuItems';
 import { handleQueryChange } from 'container/NewWidget/utils';
+import { PanelTypesWithData } from 'container/PanelWrapper/panelTypes';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
 import { Query } from 'types/api/queryBuilder/queryBuilderData';
 

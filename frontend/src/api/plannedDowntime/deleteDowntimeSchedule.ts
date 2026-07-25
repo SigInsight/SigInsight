@@ -1,5 +1,5 @@
 import { useMutation, UseMutationResult } from 'react-query';
-import axios from 'api';
+import { ApiV5Instance as axios } from 'api';
 
 export interface DeleteDowntimeScheduleProps {
 	id?: number;

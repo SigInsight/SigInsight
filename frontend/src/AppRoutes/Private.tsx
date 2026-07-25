@@ -2,7 +2,6 @@ import { ReactChild, useEffect, useMemo } from 'react';
 import { matchPath, Redirect, useLocation } from 'react-router-dom';
 import getLocalStorageApi from 'api/browser/localstorage/get';
 import setLocalStorageApi from 'api/browser/localstorage/set';
-import { FeatureKeys } from 'constants/features';
 import { LOCALSTORAGE } from 'constants/localStorage';
 import ROUTES from 'constants/routes';
 import history from 'lib/history';
@@ -14,7 +13,7 @@ import routes, { oldNewRoutesMapping, oldRoutes } from './routes';
 function PrivateRoute({ children }: PrivateRouteProps): JSX.Element {
 	const location = useLocation();
 	const { pathname } = location;
-	const { user, isLoggedIn: isLoggedInState, featureFlags } = useAppContext();
+	const { user, isLoggedIn: isLoggedInState } = useAppContext();
 
 	const mapRoutes = useMemo(
 		() =>
@@ -30,16 +29,6 @@ function PrivateRoute({ children }: PrivateRouteProps): JSX.Element {
 	);
 	const isOldRoute = oldRoutes.indexOf(pathname) > -1;
 	const currentRoute = mapRoutes.get('current');
-
-	// if the feature flag is enabled and the current route is /get-started then redirect to /get-started-with-signoz-cloud
-	useEffect(() => {
-		if (
-			currentRoute?.path === ROUTES.GET_STARTED &&
-			featureFlags?.find((e) => e.name === FeatureKeys.ONBOARDING_V3)?.active
-		) {
-			history.push(ROUTES.GET_STARTED_WITH_CLOUD);
-		}
-	}, [currentRoute, featureFlags]);
 
 	// eslint-disable-next-line sonarjs/cognitive-complexity
 	useEffect(() => {

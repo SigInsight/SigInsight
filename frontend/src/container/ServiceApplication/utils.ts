@@ -4,7 +4,7 @@ import { updateStepInterval } from 'hooks/queryBuilder/useStepInterval';
 import { GetQueryResultsProps } from 'lib/dashboard/getQueryResults';
 import { getDashboardVariables } from 'lib/dashboardVariables/getDashboardVariables';
 import { ServicesList } from 'types/api/metrics/getService';
-import { QueryDataV3 } from 'types/api/widgets/getQuery';
+import { QueryRangeResult } from 'types/api/widgets/getQuery';
 import { EQueryType } from 'types/common/dashboard';
 import { v4 as uuid } from 'uuid';
 
@@ -15,7 +15,7 @@ import {
 } from './types';
 
 export function getSeriesValue(
-	queryArray: QueryDataV3[] | undefined,
+	queryArray: QueryRangeResult[] | undefined,
 	queryName: string,
 ): string {
 	const queryObject = queryArray?.find((item) => item?.queryName === queryName);
@@ -81,7 +81,7 @@ export const getServiceListFromQuery = ({
 				services.push(serviceData);
 			}
 			if (query.data) {
-				const queryArray = query.data?.payload?.data?.newResult?.data?.result;
+				const queryArray = query.data?.payload?.data?.queryResult?.data?.result;
 				const serviceData: ServicesList = {
 					serviceName: topLevelOperation[0].toString(),
 					p99: parseFloat(getSeriesValue(queryArray, 'A')),

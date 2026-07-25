@@ -1,6 +1,6 @@
 import { Button, Flex, SelectProps, Switch, Typography } from 'antd';
 import type { BaseOptionType, DefaultOptionType } from 'antd/es/select';
-import { getInvolvedQueriesInTraceOperator } from 'components/QueryBuilderV2/QueryV2/TraceOperator/utils/utils';
+import { getInvolvedQueriesInTraceOperator } from 'components/QueryBuilder/Query/TraceOperator/utils/utils';
 import { YAxisSource } from 'components/YAxisUnitSelector/types';
 import { getYAxisCategories } from 'components/YAxisUnitSelector/utils';
 import ROUTES from 'constants/routes';

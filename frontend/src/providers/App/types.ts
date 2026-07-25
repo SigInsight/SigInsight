@@ -6,7 +6,7 @@ import {
 } from 'types/api/preferences/preference';
 import { Organization } from 'types/api/user/getOrganization';
 import { UserResponse as User } from 'types/api/user/getUser';
-import { Info } from 'types/api/v1/version/get';
+import { Info } from 'types/api/v5/version/get';
 
 export interface IAppContext {
 	user: IUser;

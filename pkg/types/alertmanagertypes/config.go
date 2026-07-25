@@ -427,9 +427,6 @@ type ConfigStore interface {
 	// ListChannels returns the list of channels.
 	ListChannels(context.Context, string) ([]*Channel, error)
 
-	// ListAllChannels returns the list of channels for all organizations.
-	ListAllChannels(context.Context) ([]*Channel, error)
-
 	// GetMatchers gets a list of matchers per organization.
 	// Matchers is an array of ruleId to receiver names.
 	GetMatchers(context.Context, string) (map[string][]string, error)

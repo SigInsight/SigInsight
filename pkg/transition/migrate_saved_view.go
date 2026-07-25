@@ -24,13 +24,21 @@ func (m *savedViewMigrateV5) Migrate(ctx context.Context, data map[string]any) b
 	if _, ok := data["version"].(string); ok {
 		version = data["version"].(string)
 	}
+	_, hasBuilderQueries := data["builderQueries"]
+	_, hasPromQueries := data["promQueries"]
+	_, hasClickHouseQueries := data["chQueries"]
+	hasLegacyQueries := hasBuilderQueries || hasPromQueries || hasClickHouseQueries
 
-	if version == "v5" {
+	if version == "v5" && !hasLegacyQueries {
 		m.logger.InfoContext(ctx, "saved view is already migrated to v5, skipping")
 		return false
 	}
 
-	data["queries"] = make([]any, 0)
+	queries, ok := data["queries"].([]any)
+	if !ok {
+		queries = make([]any, 0)
+		data["queries"] = queries
+	}
 
 	if builderQueries, ok := data["builderQueries"].(map[string]any); ok {
 		for name, query := range builderQueries {
@@ -48,13 +56,53 @@ func (m *savedViewMigrateV5) Migrate(ctx context.Context, data map[string]any) b
 				// wrap it in the v5 envelope
 				envelope := m.WrapInV5Envelope(name, queryMap, "builder_query")
 				m.logger.InfoContext(ctx, "envelope after wrap", slog.Any("envelope", envelope))
-				data["queries"] = append(data["queries"].([]any), envelope)
+				queries = append(queries, envelope)
 			}
 		}
 	}
 	delete(data, "builderQueries")
 
+	if promQueries, ok := data["promQueries"].(map[string]any); ok {
+		for name, query := range promQueries {
+			queryMap, ok := query.(map[string]any)
+			if !ok {
+				continue
+			}
+			queries = append(queries, map[string]any{
+				"type": "promql",
+				"spec": map[string]any{
+					"name":     name,
+					"query":    queryMap["query"],
+					"disabled": queryMap["disabled"],
+					"legend":   queryMap["legend"],
+				},
+			})
+		}
+	}
+	delete(data, "promQueries")
+
+	if clickHouseQueries, ok := data["chQueries"].(map[string]any); ok {
+		for name, query := range clickHouseQueries {
+			queryMap, ok := query.(map[string]any)
+			if !ok {
+				continue
+			}
+			queries = append(queries, map[string]any{
+				"type": "clickhouse_sql",
+				"spec": map[string]any{
+					"name":     name,
+					"query":    queryMap["query"],
+					"disabled": queryMap["disabled"],
+					"legend":   queryMap["legend"],
+				},
+			})
+		}
+	}
+	delete(data, "chQueries")
+
+	data["queries"] = queries
 	data["version"] = "v5"
+	updated = updated || hasLegacyQueries || version != "v5"
 
 	return updated
 }

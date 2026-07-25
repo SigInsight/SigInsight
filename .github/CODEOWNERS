@@ -96,7 +96,6 @@ go.mod @therealpandey
 /pkg/modules/user/ @vikrantgupta25
 /pkg/modules/session/ @vikrantgupta25
 /pkg/modules/organization/ @vikrantgupta25
-/pkg/modules/authdomain/ @vikrantgupta25
 /pkg/modules/role/ @vikrantgupta25
 
 # IdentN Owners 

@@ -14,7 +14,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import getFromLocalstorage from 'api/browser/localstorage/get';
 import setToLocalstorage from 'api/browser/localstorage/set';
 import logEvent from 'api/common/logEvent';
-import { ENTITY_VERSION_V5 } from 'constants/app';
 import { LOCALSTORAGE } from 'constants/localStorage';
 import { QueryParams } from 'constants/query';
 import { initialFilters, PANEL_TYPES } from 'constants/queryBuilder';
@@ -47,7 +46,7 @@ import APIError from 'types/api/error';
 import { ILog } from 'types/api/logs/log';
 import { Query, TagFilter } from 'types/api/queryBuilder/queryBuilderData';
 import { Filter } from 'types/api/v5/queryRange';
-import { QueryDataV3 } from 'types/api/widgets/getQuery';
+import { QueryRangeResult } from 'types/api/widgets/getQuery';
 import { DataSource } from 'types/common/queryBuilder';
 import { GlobalReducer } from 'types/reducer/globalTime';
 import { v4 } from 'uuid';
@@ -140,7 +139,6 @@ function LogsExplorerViewsContainer({
 	} = useGetExplorerQueryRange(
 		listChartQuery,
 		PANEL_TYPES.TIME_SERIES,
-		ENTITY_VERSION_V5,
 		{
 			enabled:
 				showFrequencyChart &&
@@ -164,7 +162,6 @@ function LogsExplorerViewsContainer({
 	} = useGetExplorerQueryRange(
 		requestData,
 		selectedPanelType,
-		ENTITY_VERSION_V5,
 		{
 			keepPreviousData: true,
 			enabled: !isLimit && !!requestData,
@@ -253,7 +250,7 @@ function LogsExplorerViewsContainer({
 	const logEventCalledRef = useRef(false);
 	useEffect(() => {
 		if (!logEventCalledRef.current && !isUndefined(data?.payload)) {
-			const currentData = data?.payload?.data?.newResult?.data?.result || [];
+			const currentData = data?.payload?.data?.queryResult?.data?.result || [];
 			logEvent('Logs Explorer: Page visited', {
 				panelType: selectedPanelType,
 				isEmpty: !currentData?.[0]?.list,
@@ -264,7 +261,7 @@ function LogsExplorerViewsContainer({
 	}, [data?.payload]);
 
 	useEffect(() => {
-		const currentData = data?.payload?.data?.newResult?.data?.result || [];
+		const currentData = data?.payload?.data?.queryResult?.data?.result || [];
 		if (currentData.length > 0 && currentData[0].list) {
 			const currentLogs: ILog[] = currentData[0].list.map((item) => ({
 				...item.data,
@@ -460,9 +457,9 @@ function LogsExplorerViewsContainer({
 					{selectedPanelType === PANEL_TYPES.TABLE && !showLiveLogs && (
 						<LogsExplorerTable
 							data={
-								(data?.payload?.data?.newResult?.data?.result ||
+								(data?.payload?.data?.queryResult?.data?.result ||
 									data?.payload?.data?.result ||
-									[]) as QueryDataV3[]
+									[]) as QueryRangeResult[]
 							}
 							isLoading={isLoading || isFetching}
 							isError={isError}

@@ -1,4 +1,4 @@
-import axios from 'api';
+import { ApiV5Instance as axios } from 'api';
 import { AxiosError } from 'axios';
 import { SuccessResponse } from 'types/api';
 import { UpdateCustomFiltersProps } from 'types/api/quickFilters/updateCustomFilters';

@@ -37,7 +37,7 @@ export const handleExportRawDataPOST = (
 	signal?: AbortSignal,
 ) => {
 	return GeneratedAPIInstance<string>({
-		url: `/api/v1/export_raw_data`,
+		url: `/api/v5/export_raw_data`,
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		data: querybuildertypesv5QueryRangeRequestDTO,
@@ -133,14 +133,14 @@ export const useHandleExportRawDataPOST = <
  */
 export const listPromotedAndIndexedPaths = (signal?: AbortSignal) => {
 	return GeneratedAPIInstance<ListPromotedAndIndexedPaths200>({
-		url: `/api/v1/logs/promote_paths`,
+		url: `/api/v5/logs/promote_paths`,
 		method: 'GET',
 		signal,
 	});
 };
 
 export const getListPromotedAndIndexedPathsQueryKey = () => {
-	return [`/api/v1/logs/promote_paths`] as const;
+	return [`/api/v5/logs/promote_paths`] as const;
 };
 
 export const getListPromotedAndIndexedPathsQueryOptions = <
@@ -225,7 +225,7 @@ export const handlePromoteAndIndexPaths = (
 	signal?: AbortSignal,
 ) => {
 	return GeneratedAPIInstance<void>({
-		url: `/api/v1/logs/promote_paths`,
+		url: `/api/v5/logs/promote_paths`,
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		data: promotetypesPromotePathDTONull,

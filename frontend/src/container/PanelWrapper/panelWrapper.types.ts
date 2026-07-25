@@ -1,8 +1,8 @@
 import { Dispatch, SetStateAction } from 'react';
 import { UseQueryResult } from 'react-query';
 import { PANEL_TYPES } from 'constants/queryBuilder';
-import { PanelMode } from 'container/DashboardContainer/visualization/panels/types';
 import { WidgetGraphComponentProps } from 'container/GridCardLayout/GridCard/types';
+import { PanelMode } from 'container/PanelVisualization/panels/types';
 import { RowData } from 'lib/query/createTableColumnsFromQuery';
 import { OnClickPluginOpts } from 'lib/uPlotLib/plugins/onClickPlugin';
 import { Widgets } from 'types/api/dashboard/getAll';

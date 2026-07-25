@@ -2,11 +2,11 @@ import MySettingsContainer from 'container/MySettings';
 import { act, fireEvent, render, screen, waitFor } from 'tests/test-utils';
 
 const logEventFunction = jest.fn();
-const editUserFn = jest.fn();
+const updateMyUser = jest.fn();
 
-jest.mock('api/v1/user/id/update', () => ({
+jest.mock('api/generated/services/users', () => ({
 	__esModule: true,
-	default: (...args: unknown[]): Promise<unknown> => editUserFn(...args),
+	updateMyUser: (...args: unknown[]): Promise<unknown> => updateMyUser(...args),
 }));
 
 jest.mock('api/common/logEvent', () => ({
@@ -37,7 +37,7 @@ const PASSWORD_VALIDATION_MESSAGE_TEST_ID = 'password-validation-message';
 describe('MySettings Flows', () => {
 	beforeEach(() => {
 		jest.clearAllMocks();
-		editUserFn.mockResolvedValue({});
+		updateMyUser.mockResolvedValue({});
 		render(<MySettingsContainer />);
 	});
 

@@ -1,4 +1,4 @@
-import axios from 'api';
+import { ApiV5Instance as axios } from 'api';
 import { ErrorResponseHandler } from 'api/ErrorResponseHandler';
 import { AxiosError } from 'axios';
 import { ErrorResponse, SuccessResponse } from 'types/api';
@@ -8,7 +8,7 @@ const getErrorCounts = async (
 	props: Props,
 ): Promise<SuccessResponse<PayloadProps> | ErrorResponse> => {
 	try {
-		const response = await axios.post(`/countErrors`, {
+		const response = await axios.post(`/exceptions/count`, {
 			start: `${props.start}`,
 			end: `${props.end}`,
 			exceptionType: props.exceptionType,

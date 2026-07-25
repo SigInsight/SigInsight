@@ -1,14 +1,17 @@
-import axios from 'api';
-import { ErrorResponseHandlerV2 } from 'api/ErrorResponseHandlerV2';
+import { ApiV5Instance as axios } from 'api';
+import { HttpErrorResponseHandler } from 'api/HttpErrorResponseHandler';
 import { AxiosError } from 'axios';
-import { ErrorV2Resp, SuccessResponseV2 } from 'types/api';
-import { PayloadPropsV2, Props } from 'types/api/settings/setRetention';
+import { HttpErrorPayload, HttpSuccessResponse } from 'types/api';
+import {
+	Props,
+	RetentionUpdateResponse,
+} from 'types/api/settings/setRetention';
 
 const setRetention = async (
 	props: Props,
-): Promise<SuccessResponseV2<PayloadPropsV2>> => {
+): Promise<HttpSuccessResponse<RetentionUpdateResponse>> => {
 	try {
-		const response = await axios.post<PayloadPropsV2>(
+		const response = await axios.post<RetentionUpdateResponse>(
 			`/settings/ttl?duration=${props.totalDuration}&type=${props.type}${
 				props.coldStorage
 					? `&coldStorage=${props.coldStorage}&toColdDuration=${props.toColdDuration}`
@@ -21,7 +24,7 @@ const setRetention = async (
 			data: response.data,
 		};
 	} catch (error) {
-		ErrorResponseHandlerV2(error as AxiosError<ErrorV2Resp>);
+		HttpErrorResponseHandler(error as AxiosError<HttpErrorPayload>);
 	}
 };
 

@@ -1,7 +1,11 @@
-import axios from 'api';
-import { ErrorResponseHandlerV2 } from 'api/ErrorResponseHandlerV2';
+import { ApiV5Instance as axios } from 'api';
+import { HttpErrorResponseHandler } from 'api/HttpErrorResponseHandler';
 import { AxiosError } from 'axios';
-import { ErrorResponseV2, ErrorV2Resp, SuccessResponseV2 } from 'types/api';
+import {
+	HttpErrorPayload,
+	HttpErrorResponse,
+	HttpSuccessResponse,
+} from 'types/api';
 
 export interface CreateRoutingPolicyBody {
 	name: string;
@@ -18,7 +22,7 @@ export interface CreateRoutingPolicyResponse {
 const createRoutingPolicy = async (
 	props: CreateRoutingPolicyBody,
 ): Promise<
-	SuccessResponseV2<CreateRoutingPolicyResponse> | ErrorResponseV2
+	HttpSuccessResponse<CreateRoutingPolicyResponse> | HttpErrorResponse
 > => {
 	try {
 		const response = await axios.post(`/route_policies`, props);
@@ -27,7 +31,7 @@ const createRoutingPolicy = async (
 			data: response.data,
 		};
 	} catch (error) {
-		return ErrorResponseHandlerV2(error as AxiosError<ErrorV2Resp>);
+		return HttpErrorResponseHandler(error as AxiosError<HttpErrorPayload>);
 	}
 };
 

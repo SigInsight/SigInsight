@@ -9,7 +9,7 @@ import { EQueryType } from 'types/common/dashboard';
 
 import { useGetQueryLabels } from './useGetQueryLabels';
 
-jest.mock('components/QueryBuilderV2/utils', () => ({
+jest.mock('components/QueryBuilder/utils', () => ({
 	getQueryLabelWithAggregation: jest.fn(() => []),
 }));
 

@@ -5,17 +5,17 @@ import {
 	GetRoutingPoliciesResponse,
 } from 'api/routingPolicies/getRoutingPolicies';
 import { REACT_QUERY_KEY } from 'constants/reactQueryKeys';
-import { ErrorResponseV2, SuccessResponseV2 } from 'types/api';
+import { HttpErrorResponse, HttpSuccessResponse } from 'types/api';
 
 type UseGetRoutingPolicies = (
 	options?: UseQueryOptions<
-		SuccessResponseV2<GetRoutingPoliciesResponse> | ErrorResponseV2,
+		HttpSuccessResponse<GetRoutingPoliciesResponse> | HttpErrorResponse,
 		Error
 	>,
 
 	headers?: Record<string, string>,
 ) => UseQueryResult<
-	SuccessResponseV2<GetRoutingPoliciesResponse> | ErrorResponseV2,
+	HttpSuccessResponse<GetRoutingPoliciesResponse> | HttpErrorResponse,
 	Error
 >;
 
@@ -29,7 +29,7 @@ export const useGetRoutingPolicies: UseGetRoutingPolicies = (
 	);
 
 	return useQuery<
-		SuccessResponseV2<GetRoutingPoliciesResponse> | ErrorResponseV2,
+		HttpSuccessResponse<GetRoutingPoliciesResponse> | HttpErrorResponse,
 		Error
 	>({
 		queryFn: ({ signal }) => getRoutingPolicies(signal, headers),

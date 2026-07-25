@@ -3,19 +3,19 @@ package common
 import (
 	"testing"
 
-	v3 "github.com/SigNoz/signoz/pkg/query-service/model/v3"
 	"github.com/SigNoz/signoz/pkg/query-service/querycache"
+	"github.com/SigNoz/signoz/pkg/types/timeseriestypes"
 )
 
 func TestFilterSeriesPoints(t *testing.T) {
 	// Define test cases
 	testCases := []struct {
 		name           string
-		seriesList     []*v3.Series
+		seriesList     []*timeseriestypes.Series
 		missStart      int64 // in milliseconds
 		missEnd        int64 // in milliseconds
 		stepInterval   int64 // in seconds
-		expectedPoints []*v3.Series
+		expectedPoints []*timeseriestypes.Series
 		expectedStart  int64 // in milliseconds
 		expectedEnd    int64 // in milliseconds
 	}{
@@ -24,18 +24,18 @@ func TestFilterSeriesPoints(t *testing.T) {
 			missStart:    1609459200000, // 01 Jan 2021 00:00:00 UTC
 			missEnd:      1609466400000, // 01 Jan 2021 02:00:00 UTC
 			stepInterval: 3600,          // 1 hour
-			seriesList: []*v3.Series{
+			seriesList: []*timeseriestypes.Series{
 				{
-					Points: []v3.Point{
+					Points: []timeseriestypes.Point{
 						{Timestamp: 1609459200000, Value: 1.0}, // 01 Jan 2021 00:00:00 UTC
 						{Timestamp: 1609462800000, Value: 2.0}, // 01 Jan 2021 01:00:00 UTC
 						{Timestamp: 1609466400000, Value: 3.0}, // 01 Jan 2021 02:00:00 UTC
 					},
 				},
 			},
-			expectedPoints: []*v3.Series{
+			expectedPoints: []*timeseriestypes.Series{
 				{
-					Points: []v3.Point{
+					Points: []timeseriestypes.Point{
 						{Timestamp: 1609459200000, Value: 1.0},
 						{Timestamp: 1609462800000, Value: 2.0},
 					},
@@ -49,17 +49,17 @@ func TestFilterSeriesPoints(t *testing.T) {
 			missStart:    1609464600000, // 01 Jan 2021 01:30:00 UTC
 			missEnd:      1609470000000, // 01 Jan 2021 03:00:00 UTC
 			stepInterval: 3600,          // 1 hour
-			seriesList: []*v3.Series{
+			seriesList: []*timeseriestypes.Series{
 				{
-					Points: []v3.Point{
+					Points: []timeseriestypes.Point{
 						{Timestamp: 1609462800000, Value: 2.0}, // 01 Jan 2021 01:00:00 UTC
 						{Timestamp: 1609466400000, Value: 3.0}, // 01 Jan 2021 02:00:00 UTC
 					},
 				},
 			},
-			expectedPoints: []*v3.Series{
+			expectedPoints: []*timeseriestypes.Series{
 				{
-					Points: []v3.Point{
+					Points: []timeseriestypes.Point{
 						{Timestamp: 1609466400000, Value: 3.0},
 					},
 				},
@@ -72,17 +72,17 @@ func TestFilterSeriesPoints(t *testing.T) {
 			missStart:    1609466400000, // 01 Jan 2021 02:00:00 UTC
 			missEnd:      1609471800000, // 01 Jan 2021 03:30:00 UTC
 			stepInterval: 3600,          // 1 hour
-			seriesList: []*v3.Series{
+			seriesList: []*timeseriestypes.Series{
 				{
-					Points: []v3.Point{
+					Points: []timeseriestypes.Point{
 						{Timestamp: 1609466400000, Value: 3.0}, // 01 Jan 2021 02:00:00 UTC
 						{Timestamp: 1609470000000, Value: 3.0}, // 01 Jan 2021 03:00:00 UTC
 					},
 				},
 			},
-			expectedPoints: []*v3.Series{
+			expectedPoints: []*timeseriestypes.Series{
 				{
-					Points: []v3.Point{
+					Points: []timeseriestypes.Point{
 						{Timestamp: 1609466400000, Value: 3.0},
 					},
 				},
@@ -95,12 +95,12 @@ func TestFilterSeriesPoints(t *testing.T) {
 			missStart:    1609470000000, // 01 Jan 2021 03:00:00 UTC
 			missEnd:      1609471800000, // 01 Jan 2021 03:30:00 UTC
 			stepInterval: 3600,          // 1 hour
-			seriesList: []*v3.Series{
+			seriesList: []*timeseriestypes.Series{
 				{
-					Points: []v3.Point{},
+					Points: []timeseriestypes.Point{},
 				},
 			},
-			expectedPoints: []*v3.Series{},
+			expectedPoints: []*timeseriestypes.Series{},
 			expectedStart:  1609470000000,
 			expectedEnd:    1609471800000,
 		},
@@ -109,9 +109,9 @@ func TestFilterSeriesPoints(t *testing.T) {
 			missStart:    1609464600000, // 01 Jan 2021 01:30:00 UTC
 			missEnd:      1609477200000, // 01 Jan 2021 05:00:00 UTC
 			stepInterval: 3600,          // 1 hour
-			seriesList: []*v3.Series{
+			seriesList: []*timeseriestypes.Series{
 				{
-					Points: []v3.Point{
+					Points: []timeseriestypes.Point{
 						{Timestamp: 1609462800000, Value: 2.0}, // 01 Jan 2021 01:00:00 UTC
 						{Timestamp: 1609466400000, Value: 3.0}, // 01 Jan 2021 02:00:00 UTC
 						{Timestamp: 1609470000000, Value: 4.0}, // 01 Jan 2021 03:00:00 UTC
@@ -119,37 +119,37 @@ func TestFilterSeriesPoints(t *testing.T) {
 					},
 				},
 				{
-					Points: []v3.Point{
+					Points: []timeseriestypes.Point{
 						{Timestamp: 1609466400000, Value: 6.0}, // 01 Jan 2021 02:00:00 UTC
 						{Timestamp: 1609470000000, Value: 7.0}, // 01 Jan 2021 03:00:00 UTC
 						{Timestamp: 1609473600000, Value: 8.0}, // 01 Jan 2021 04:00:00 UTC
 					},
 				},
 				{
-					Points: []v3.Point{
+					Points: []timeseriestypes.Point{
 						{Timestamp: 1609466400000, Value: 9.0},  // 01 Jan 2021 02:00:00 UTC
 						{Timestamp: 1609470000000, Value: 10.0}, // 01 Jan 2021 03:00:00 UTC
 						{Timestamp: 1609473600000, Value: 11.0}, // 01 Jan 2021 04:00:00 UTC
 					},
 				},
 			},
-			expectedPoints: []*v3.Series{
+			expectedPoints: []*timeseriestypes.Series{
 				{
-					Points: []v3.Point{
+					Points: []timeseriestypes.Point{
 						{Timestamp: 1609466400000, Value: 3.0}, // 01 Jan 2021 02:00:00 UTC
 						{Timestamp: 1609470000000, Value: 4.0}, // 01 Jan 2021 03:00:00 UTC
 						{Timestamp: 1609473600000, Value: 5.0}, // 01 Jan 2021 04:00:00 UTC
 					},
 				},
 				{
-					Points: []v3.Point{
+					Points: []timeseriestypes.Point{
 						{Timestamp: 1609466400000, Value: 6.0}, // 01 Jan 2021 02:00:00 UTC
 						{Timestamp: 1609470000000, Value: 7.0}, // 01 Jan 2021 03:00:00 UTC
 						{Timestamp: 1609473600000, Value: 8.0}, // 01 Jan 2021 04:00:00 UTC
 					},
 				},
 				{
-					Points: []v3.Point{
+					Points: []timeseriestypes.Point{
 						{Timestamp: 1609466400000, Value: 9.0},  // 01 Jan 2021 02:00:00 UTC
 						{Timestamp: 1609470000000, Value: 10.0}, // 01 Jan 2021 03:00:00 UTC
 						{Timestamp: 1609473600000, Value: 11.0}, // 01 Jan 2021 04:00:00 UTC
@@ -164,40 +164,40 @@ func TestFilterSeriesPoints(t *testing.T) {
 			missStart:    1609466400000, // 01 Jan 2021 02:00:00 UTC
 			missEnd:      1609475400000, // 01 Jan 2021 04:30:00 UTC
 			stepInterval: 3600,          // 1 hour
-			seriesList: []*v3.Series{
+			seriesList: []*timeseriestypes.Series{
 				{
-					Points: []v3.Point{
+					Points: []timeseriestypes.Point{
 						{Timestamp: 1609466400000, Value: 3.0}, // 01 Jan 2021 02:00:00 UTC
 						{Timestamp: 1609470000000, Value: 4.0}, // 01 Jan 2021 03:00:00 UTC
 						{Timestamp: 1609473600000, Value: 5.0}, // 01 Jan 2021 04:00:00 UTC
 					},
 				},
 				{
-					Points: []v3.Point{
+					Points: []timeseriestypes.Point{
 						{Timestamp: 1609466400000, Value: 6.0}, // 01 Jan 2021 02:00:00 UTC
 					},
 				},
 				{
-					Points: []v3.Point{
+					Points: []timeseriestypes.Point{
 						{Timestamp: 1609466400000, Value: 9.0},  // 01 Jan 2021 02:00:00 UTC
 						{Timestamp: 1609470000000, Value: 10.0}, // 01 Jan 2021 03:00:00 UTC
 					},
 				},
 			},
-			expectedPoints: []*v3.Series{
+			expectedPoints: []*timeseriestypes.Series{
 				{
-					Points: []v3.Point{
+					Points: []timeseriestypes.Point{
 						{Timestamp: 1609466400000, Value: 3.0}, // 01 Jan 2021 02:00:00 UTC
 						{Timestamp: 1609470000000, Value: 4.0}, // 01 Jan 2021 03:00:00 UTC
 					},
 				},
 				{
-					Points: []v3.Point{
+					Points: []timeseriestypes.Point{
 						{Timestamp: 1609466400000, Value: 6.0}, // 01 Jan 2021 02:00:00 UTC
 					},
 				},
 				{
-					Points: []v3.Point{
+					Points: []timeseriestypes.Point{
 						{Timestamp: 1609466400000, Value: 9.0},  // 01 Jan 2021 02:00:00 UTC
 						{Timestamp: 1609470000000, Value: 10.0}, // 01 Jan 2021 03:00:00 UTC
 					},
@@ -211,14 +211,14 @@ func TestFilterSeriesPoints(t *testing.T) {
 			missStart:    1609473600000, // 01 Jan 2021 04:00:00 UTC
 			missEnd:      1609475400000, // 01 Jan 2021 04:30:00 UTC
 			stepInterval: 3600,          // 1 hour
-			seriesList: []*v3.Series{
+			seriesList: []*timeseriestypes.Series{
 				{
-					Points: []v3.Point{
+					Points: []timeseriestypes.Point{
 						{Timestamp: 1609473600000, Value: 1.0}, // 01 Jan 2021 04:00:00 UTC
 					},
 				},
 			},
-			expectedPoints: []*v3.Series{},
+			expectedPoints: []*timeseriestypes.Series{},
 			expectedStart:  1609473600000,
 			expectedEnd:    1609475400000,
 		},
@@ -227,14 +227,14 @@ func TestFilterSeriesPoints(t *testing.T) {
 			missStart:    1609466400000, // 01 Jan 2021 02:00:00 UTC
 			missEnd:      1609475400000, // 01 Jan 2021 04:30:00 UTC
 			stepInterval: 3600,          // 1 hour
-			seriesList: []*v3.Series{
+			seriesList: []*timeseriestypes.Series{
 				{
-					Points: []v3.Point{},
+					Points: []timeseriestypes.Point{},
 				},
 			},
-			expectedPoints: []*v3.Series{
+			expectedPoints: []*timeseriestypes.Series{
 				{
-					Points: []v3.Point{},
+					Points: []timeseriestypes.Point{},
 				},
 			},
 			expectedStart: 1609466400000,
@@ -245,17 +245,17 @@ func TestFilterSeriesPoints(t *testing.T) {
 			missStart:    1609466400000, // 01 Jan 2021 02:00:00 UTC
 			missEnd:      1609470000000, // 01 Jan 2021 03:00:00 UTC
 			stepInterval: 3600,          // 1 hour
-			seriesList: []*v3.Series{
+			seriesList: []*timeseriestypes.Series{
 				{
-					Points: []v3.Point{
+					Points: []timeseriestypes.Point{
 						{Timestamp: 1609466400000, Value: 2.0}, // 01 Jan 2021 02:00:00 UTC
 						{Timestamp: 1609470000000, Value: 3.0}, // 01 Jan 2021 03:00:00 UTC
 					},
 				},
 			},
-			expectedPoints: []*v3.Series{
+			expectedPoints: []*timeseriestypes.Series{
 				{
-					Points: []v3.Point{
+					Points: []timeseriestypes.Point{
 						{Timestamp: 1609466400000, Value: 2.0},
 					},
 				},
@@ -318,10 +318,10 @@ func TestGetSeriesFromCachedData(t *testing.T) {
 			name: "Single point outside range",
 			data: []querycache.CachedSeriesData{
 				{
-					Data: []*v3.Series{
+					Data: []*timeseriestypes.Series{
 						{
 							Labels: map[string]string{"label1": "value1"},
-							Points: []v3.Point{
+							Points: []timeseriestypes.Point{
 								{Timestamp: 1609473600000, Value: 1.0},
 							},
 						},
@@ -337,10 +337,10 @@ func TestGetSeriesFromCachedData(t *testing.T) {
 			name: "Single point inside range",
 			data: []querycache.CachedSeriesData{
 				{
-					Data: []*v3.Series{
+					Data: []*timeseriestypes.Series{
 						{
 							Labels: map[string]string{"label1": "value1"},
-							Points: []v3.Point{
+							Points: []timeseriestypes.Point{
 								{Timestamp: 1609476000000, Value: 1.0},
 							},
 						},
@@ -382,10 +382,10 @@ func TestGetSeriesFromCachedDataV2(t *testing.T) {
 			name: "Single point outside range",
 			data: []querycache.CachedSeriesData{
 				{
-					Data: []*v3.Series{
+					Data: []*timeseriestypes.Series{
 						{
 							Labels: map[string]string{"label1": "value1"},
-							Points: []v3.Point{
+							Points: []timeseriestypes.Point{
 								{Timestamp: 1609473600000, Value: 1.0},
 							},
 						},
@@ -402,10 +402,10 @@ func TestGetSeriesFromCachedDataV2(t *testing.T) {
 			name: "Single point inside range",
 			data: []querycache.CachedSeriesData{
 				{
-					Data: []*v3.Series{
+					Data: []*timeseriestypes.Series{
 						{
 							Labels: map[string]string{"label1": "value1"},
-							Points: []v3.Point{
+							Points: []timeseriestypes.Point{
 								{Timestamp: 1609476000000, Value: 1.0},
 							},
 						},

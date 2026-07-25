@@ -1,8 +1,8 @@
 import { PANEL_TYPES } from 'constants/queryBuilder';
-import BarPanel from 'container/DashboardContainer/visualization/panels/BarPanel/BarPanel';
-import HistogramPanel from 'container/DashboardContainer/visualization/panels/HistogramPanel/HistogramPanel';
+import BarPanel from 'container/PanelVisualization/panels/BarPanel/BarPanel';
+import HistogramPanel from 'container/PanelVisualization/panels/HistogramPanel/HistogramPanel';
 
-import TimeSeriesPanel from '../DashboardContainer/visualization/panels/TimeSeriesPanel/TimeSeriesPanel';
+import TimeSeriesPanel from '../PanelVisualization/panels/TimeSeriesPanel/TimeSeriesPanel';
 import ListPanelWrapper from './ListPanelWrapper';
 import PiePanelWrapper from './PiePanelWrapper';
 import TablePanelWrapper from './TablePanelWrapper';

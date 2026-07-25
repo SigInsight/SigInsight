@@ -1,6 +1,10 @@
 import { CSSProperties } from 'react';
 
-import { ViewModeOption } from './types';
+interface ViewModeOption {
+	key: string;
+	label: string;
+	value: string;
+}
 
 export const viewModeOptionList: ViewModeOption[] = [
 	{

@@ -1,7 +1,7 @@
 import { ExecStats } from 'api/v5/v5';
 import { Timezone } from 'components/CustomTimePicker/timezoneUtils';
 import { PANEL_TYPES } from 'constants/queryBuilder';
-import { buildBaseConfig } from 'container/DashboardContainer/visualization/panels/utils/baseConfigBuilder';
+import { buildBaseConfig } from 'container/PanelVisualization/panels/utils/baseConfigBuilder';
 import { getLegend } from 'lib/dashboard/getQueryResults';
 import getLabelName from 'lib/getLabelName';
 import { OnClickPluginOpts } from 'lib/uPlotLib/plugins/onClickPlugin';
@@ -38,7 +38,7 @@ export const prepareStatusCodeBarChartsConfig = ({
 }): UPlotConfigBuilder => {
 	const stepIntervals: ExecStats['stepIntervals'] = get(
 		apiResponse,
-		'data.newResult.meta.stepIntervals',
+		'data.queryResult.meta.stepIntervals',
 		{},
 	);
 	const minStepInterval = Math.min(...Object.values(stepIntervals));

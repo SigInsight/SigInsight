@@ -141,10 +141,10 @@ export const compositeQuery: Query = {
 						{
 							id: '3337951c',
 							key: {
-								key: 'serviceName',
+								key: 'service.name',
 								dataType: DataTypes.String,
-								type: 'tag',
-								id: 'serviceName--string--tag--true',
+								type: 'resource',
+								id: 'service.name--string--resource--false',
 							},
 							op: 'in',
 							value: ['demo-app'],
@@ -211,9 +211,9 @@ export function checkIfSectionIsNotOpen(
 }
 
 export const defaultOpenSections = [
-	'hasError',
-	'durationNano',
-	'serviceName',
+	'has_error',
+	'duration_nano',
+	'service.name',
 	'deployment.environment',
 ];
 

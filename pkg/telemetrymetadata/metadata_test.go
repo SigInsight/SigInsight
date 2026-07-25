@@ -94,6 +94,40 @@ func TestGetKeys(t *testing.T) {
 	t.Logf("Keys: %v", keys)
 }
 
+func TestGetTraceStaticCalculatedFieldKey(t *testing.T) {
+	mockTelemetryStore := telemetrystoretest.New(telemetrystore.Config{}, &regexMatcher{})
+	mock := mockTelemetryStore.Mock()
+	metadata := newTestTelemetryMetaStoreTestHelper(mockTelemetryStore)
+
+	mock.ExpectSelect("SHOW CREATE TABLE signoz_traces.signoz_index_v3").
+		WillReturnRows(cmock.NewRows([]cmock.ColumnType{
+			{Name: "statement", Type: "String"},
+		}, [][]any{{"CREATE TABLE signoz_traces.signoz_index_v3"}}))
+	mock.ExpectQuery(`SELECT.*`).
+		WithArgs("http.route", telemetrytypes.FieldDataTypeString.TagDataType(), 2).
+		WillReturnRows(cmock.NewRows([]cmock.ColumnType{
+			{Name: "tag_key", Type: "String"},
+			{Name: "tag_type", Type: "String"},
+			{Name: "tag_data_type", Type: "String"},
+			{Name: "priority", Type: "UInt8"},
+		}, nil))
+
+	keys, _, err := metadata.GetKeys(context.Background(), &telemetrytypes.FieldKeySelector{
+		Signal:            telemetrytypes.SignalTraces,
+		Name:              "http.route",
+		FieldContext:      telemetrytypes.FieldContextSpan,
+		FieldDataType:     telemetrytypes.FieldDataTypeString,
+		SelectorMatchType: telemetrytypes.FieldSelectorMatchTypeExact,
+		Limit:             1,
+	})
+
+	require.NoError(t, err)
+	require.Contains(t, keys, "http.route")
+	require.Len(t, keys["http.route"], 1)
+	assert.Equal(t, telemetrytraces.CalculatedFields["http.route"], *keys["http.route"][0])
+	require.NoError(t, mock.ExpectationsWereMet())
+}
+
 func TestApplyBackwardCompatibleKeys(t *testing.T) {
 	tests := []struct {
 		name           string

@@ -34,11 +34,11 @@ const mockUseApiMonitoringParams = jest.mocked(useApiMonitoringParams);
 
 const BASE_URL = ENVIRONMENT.baseURL;
 const SIGNAL = SignalType.LOGS;
-const quickFiltersListURL = `${BASE_URL}/api/v1/orgs/me/filters/${SIGNAL}`;
-const saveQuickFiltersURL = `${BASE_URL}/api/v1/orgs/me/filters`;
+const quickFiltersListURL = `${BASE_URL}/api/v5/orgs/me/filters/${SIGNAL}`;
+const saveQuickFiltersURL = `${BASE_URL}/api/v5/orgs/me/filters`;
 const quickFiltersSuggestionsURL = `${BASE_URL}/api/v5/filter_suggestions`;
 const quickFiltersAttributeValuesURL = `${BASE_URL}/api/v5/autocomplete/attribute_values`;
-const fieldsValuesURL = `${BASE_URL}/api/v1/fields/values`;
+const fieldsValuesURL = `${BASE_URL}/api/v5/fields/values`;
 
 const FILTER_OS_DESCRIPTION = 'os.description';
 const FILTER_K8S_DEPLOYMENT_NAME = 'k8s.deployment.name';
@@ -501,12 +501,12 @@ describe('Quick Filters with custom filters', () => {
 								filters: expect.objectContaining({
 									items: expect.arrayContaining([
 										expect.objectContaining({
-											key: expect.objectContaining({ key: 'durationNano' }),
+											key: expect.objectContaining({ key: 'duration_nano' }),
 											op: '>=',
 											value: 10000000000,
 										}),
 										expect.objectContaining({
-											key: expect.objectContaining({ key: 'durationNano' }),
+											key: expect.objectContaining({ key: 'duration_nano' }),
 											op: '<=',
 											value: 20000000000,
 										}),

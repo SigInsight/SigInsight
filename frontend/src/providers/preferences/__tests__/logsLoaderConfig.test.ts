@@ -1,5 +1,4 @@
 import { LOCALSTORAGE } from 'constants/localStorage';
-import { LogViewMode } from 'container/LogsTable';
 import { defaultLogsSelectedColumns } from 'container/OptionsMenu/constants';
 import { FontSize } from 'container/OptionsMenu/types';
 import { FormattingOptions } from 'providers/preferences/types';
@@ -7,6 +6,7 @@ import {
 	BaseAutocompleteData,
 	DataTypes,
 } from 'types/api/queryBuilder/queryAutocompleteResponse';
+import { LogViewMode } from 'types/logs';
 
 import logsLoaderConfig from '../configs/logsLoaderConfig';
 

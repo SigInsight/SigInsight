@@ -1,4 +1,4 @@
-import axios from 'api';
+import { ApiV5Instance as axios } from 'api';
 import { ErrorResponseHandler } from 'api/ErrorResponseHandler';
 import { AxiosError } from 'axios';
 import { ErrorResponse, SuccessResponse } from 'types/api';
@@ -56,12 +56,35 @@ export const getMetricDetails = async (
 			signal,
 			headers,
 		});
+		const metadata = response.data.data;
+		const payload: MetricDetailsResponse = {
+			status: response.data.status,
+			data: {
+				name: metricName,
+				description: metadata.description,
+				type: metadata.type,
+				unit: metadata.unit,
+				timeseries: 0,
+				samples: 0,
+				timeSeriesTotal: 0,
+				timeSeriesActive: 0,
+				lastReceived: '',
+				attributes: null,
+				metadata: {
+					metric_type: metadata.type,
+					description: metadata.description,
+					unit: metadata.unit,
+					temporality: metadata.temporality,
+				},
+				alerts: null,
+			},
+		};
 
 		return {
 			statusCode: 200,
 			error: null,
 			message: 'Success',
-			payload: response.data,
+			payload,
 		};
 	} catch (error) {
 		return ErrorResponseHandler(error as AxiosError);

@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import { Color } from '@signozhq/design-tokens';
 import { Progress, TableColumnType as ColumnType, Tag, Tooltip } from 'antd';
-import { convertFiltersToExpressionWithExistingQuery } from 'components/QueryBuilderV2/utils';
+import { convertFiltersToExpressionWithExistingQuery } from 'components/QueryBuilder/utils';
 import {
 	FiltersType,
 	IQuickFiltersConfig,
@@ -2792,7 +2792,7 @@ export const getStatusCodeBarChartWidgetData = (
 interface EndPointStatusCodePayloadData {
 	data: {
 		result: QueryData[];
-		newResult: any;
+		queryResult: any;
 		resultType: string;
 	};
 }
@@ -2805,7 +2805,7 @@ export const getFormattedEndPointStatusCodeChartData = (
 		return {
 			data: {
 				result: [],
-				newResult: [],
+				queryResult: [],
 				resultType: 'matrix',
 			},
 		};
@@ -2813,7 +2813,7 @@ export const getFormattedEndPointStatusCodeChartData = (
 	return {
 		data: {
 			result: groupStatusCodes(data?.data?.result, aggregationType),
-			newResult: data?.data?.newResult,
+			queryResult: data?.data?.queryResult,
 			resultType: data?.data?.resultType,
 		},
 	};

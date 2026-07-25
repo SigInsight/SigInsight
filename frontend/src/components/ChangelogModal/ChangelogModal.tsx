@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useMutation } from 'react-query';
 import { CheckOutlined, CloseOutlined } from '@ant-design/icons';
 import { Button, Modal } from 'antd';
-import updateUserPreference from 'api/v1/user/preferences/name/update';
+import updateUserPreference from 'api/v5/user/preferences/name/update';
 import cx from 'classnames';
 import { USER_PREFERENCES } from 'constants/userPreferences';
 import dayjs from 'dayjs';

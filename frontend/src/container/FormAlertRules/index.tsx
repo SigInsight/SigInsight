@@ -9,7 +9,7 @@ import { Button, FormInstance, Modal, SelectProps, Typography } from 'antd';
 import saveAlertApi from 'api/alerts/save';
 import testAlertApi from 'api/alerts/testAlert';
 import logEvent from 'api/common/logEvent';
-import { getInvolvedQueriesInTraceOperator } from 'components/QueryBuilderV2/QueryV2/TraceOperator/utils/utils';
+import { getInvolvedQueriesInTraceOperator } from 'components/QueryBuilder/Query/TraceOperator/utils/utils';
 import YAxisUnitSelector from 'components/YAxisUnitSelector';
 import { YAxisSource } from 'components/YAxisUnitSelector/types';
 import { ALERTS_DATA_SOURCE_MAP } from 'constants/alerts';

@@ -14,8 +14,8 @@ import RoleDetailsPage from '../RoleDetailsPage';
 const CUSTOM_ROLE_ID = '019c24aa-3333-0001-aaaa-111111111111';
 const MANAGED_ROLE_ID = '019c24aa-2248-756f-9833-984f1ab63819';
 
-const rolesApiBase = 'http://localhost/api/v1/roles';
-const authzResourcesUrl = 'http://localhost/api/v1/authz/resources';
+const rolesApiBase = 'http://localhost/api/v5/roles';
+const authzResourcesUrl = 'http://localhost/api/v5/authz/resources';
 
 const authzResourcesResponse = {
 	status: 'success',

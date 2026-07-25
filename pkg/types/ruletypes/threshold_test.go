@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	v3 "github.com/SigNoz/signoz/pkg/query-service/model/v3"
+	"github.com/SigNoz/signoz/pkg/types/timeseriestypes"
 )
 
 func TestBasicRuleThresholdEval_UnitConversion(t *testing.T) {
@@ -15,7 +15,7 @@ func TestBasicRuleThresholdEval_UnitConversion(t *testing.T) {
 	tests := []struct {
 		name        string
 		threshold   BasicRuleThreshold
-		series      v3.Series
+		series      timeseriestypes.Series
 		ruleUnit    string
 		shouldAlert bool
 	}{
@@ -28,9 +28,9 @@ func TestBasicRuleThresholdEval_UnitConversion(t *testing.T) {
 				MatchType:   AtleastOnce,
 				CompareOp:   ValueIsAbove,
 			},
-			series: v3.Series{
+			series: timeseriestypes.Series{
 				Labels: map[string]string{"service": "test"},
-				Points: []v3.Point{
+				Points: []timeseriestypes.Point{
 					{Value: 0.15, Timestamp: 1000}, // 150ms in seconds
 				},
 			},
@@ -46,9 +46,9 @@ func TestBasicRuleThresholdEval_UnitConversion(t *testing.T) {
 				MatchType:   AtleastOnce,
 				CompareOp:   ValueIsAbove,
 			},
-			series: v3.Series{
+			series: timeseriestypes.Series{
 				Labels: map[string]string{"service": "test"},
-				Points: []v3.Point{
+				Points: []timeseriestypes.Point{
 					{Value: 0.05, Timestamp: 1000}, // 50ms in seconds
 				},
 			},
@@ -64,9 +64,9 @@ func TestBasicRuleThresholdEval_UnitConversion(t *testing.T) {
 				MatchType:   AtleastOnce,
 				CompareOp:   ValueIsAbove,
 			},
-			series: v3.Series{
+			series: timeseriestypes.Series{
 				Labels: map[string]string{"service": "test"},
-				Points: []v3.Point{
+				Points: []timeseriestypes.Point{
 					{Value: 150000, Timestamp: 1000}, // 150000ms = 150s
 				},
 			},
@@ -83,9 +83,9 @@ func TestBasicRuleThresholdEval_UnitConversion(t *testing.T) {
 				MatchType:   AtleastOnce,
 				CompareOp:   ValueIsAbove,
 			},
-			series: v3.Series{
+			series: timeseriestypes.Series{
 				Labels: map[string]string{"service": "test"},
-				Points: []v3.Point{
+				Points: []timeseriestypes.Point{
 					{Value: 0.15, Timestamp: 1000}, // 0.15KiB ≈ 153.6 bytes
 				},
 			},
@@ -101,9 +101,9 @@ func TestBasicRuleThresholdEval_UnitConversion(t *testing.T) {
 				MatchType:   AtleastOnce,
 				CompareOp:   ValueIsAbove,
 			},
-			series: v3.Series{
+			series: timeseriestypes.Series{
 				Labels: map[string]string{"service": "test"},
-				Points: []v3.Point{
+				Points: []timeseriestypes.Point{
 					{Value: 0.15, Timestamp: 1000},
 				},
 			},
@@ -120,9 +120,9 @@ func TestBasicRuleThresholdEval_UnitConversion(t *testing.T) {
 				MatchType:   AtleastOnce,
 				CompareOp:   ValueIsBelow,
 			},
-			series: v3.Series{
+			series: timeseriestypes.Series{
 				Labels: map[string]string{"service": "test"},
-				Points: []v3.Point{
+				Points: []timeseriestypes.Point{
 					{Value: 0.05, Timestamp: 1000}, // 50ms in seconds
 				},
 			},
@@ -138,9 +138,9 @@ func TestBasicRuleThresholdEval_UnitConversion(t *testing.T) {
 				MatchType:   OnAverage,
 				CompareOp:   ValueIsAbove,
 			},
-			series: v3.Series{
+			series: timeseriestypes.Series{
 				Labels: map[string]string{"service": "test"},
-				Points: []v3.Point{
+				Points: []timeseriestypes.Point{
 					{Value: 0.08, Timestamp: 1000}, // 80ms
 					{Value: 0.12, Timestamp: 2000}, // 120ms
 					{Value: 0.15, Timestamp: 3000}, // 150ms
@@ -158,9 +158,9 @@ func TestBasicRuleThresholdEval_UnitConversion(t *testing.T) {
 				MatchType:   InTotal,
 				CompareOp:   ValueIsAbove,
 			},
-			series: v3.Series{
+			series: timeseriestypes.Series{
 				Labels: map[string]string{"service": "test"},
-				Points: []v3.Point{
+				Points: []timeseriestypes.Point{
 					{Value: 0.04, Timestamp: 1000}, // 40MB
 					{Value: 0.05, Timestamp: 2000}, // 50MB
 					{Value: 0.03, Timestamp: 3000}, // 30MB
@@ -178,9 +178,9 @@ func TestBasicRuleThresholdEval_UnitConversion(t *testing.T) {
 				MatchType:   AllTheTimes,
 				CompareOp:   ValueIsAbove,
 			},
-			series: v3.Series{
+			series: timeseriestypes.Series{
 				Labels: map[string]string{"service": "test"},
-				Points: []v3.Point{
+				Points: []timeseriestypes.Point{
 					{Value: 0.11, Timestamp: 1000}, // 110ms
 					{Value: 0.12, Timestamp: 2000}, // 120ms
 					{Value: 0.15, Timestamp: 3000}, // 150ms
@@ -198,9 +198,9 @@ func TestBasicRuleThresholdEval_UnitConversion(t *testing.T) {
 				MatchType:   Last,
 				CompareOp:   ValueIsAbove,
 			},
-			series: v3.Series{
+			series: timeseriestypes.Series{
 				Labels: map[string]string{"service": "test"},
-				Points: []v3.Point{
+				Points: []timeseriestypes.Point{
 					{Value: 0.15, Timestamp: 1000}, // 150kB
 					{Value: 0.05, Timestamp: 2000}, // 50kB (last value)
 				},
@@ -218,9 +218,9 @@ func TestBasicRuleThresholdEval_UnitConversion(t *testing.T) {
 				MatchType:   AtleastOnce,
 				CompareOp:   ValueIsAbove,
 			},
-			series: v3.Series{
+			series: timeseriestypes.Series{
 				Labels: map[string]string{"service": "test"},
-				Points: []v3.Point{
+				Points: []timeseriestypes.Point{
 					{Value: 0.15, Timestamp: 1000},
 				},
 			},
@@ -237,9 +237,9 @@ func TestBasicRuleThresholdEval_UnitConversion(t *testing.T) {
 				MatchType:   AtleastOnce,
 				CompareOp:   ValueIsAbove,
 			},
-			series: v3.Series{
+			series: timeseriestypes.Series{
 				Labels: map[string]string{"service": "test"},
-				Points: []v3.Point{
+				Points: []timeseriestypes.Point{
 					{Value: 150, Timestamp: 1000}, // 150ms
 				},
 			},
@@ -256,9 +256,9 @@ func TestBasicRuleThresholdEval_UnitConversion(t *testing.T) {
 				MatchType:   AtleastOnce,
 				CompareOp:   ValueIsAbove,
 			},
-			series: v3.Series{
+			series: timeseriestypes.Series{
 				Labels: map[string]string{"service": "test"},
-				Points: []v3.Point{
+				Points: []timeseriestypes.Point{
 					{Value: 150, Timestamp: 1000}, // 150 (unitless)
 				},
 			},
@@ -276,9 +276,9 @@ func TestBasicRuleThresholdEval_UnitConversion(t *testing.T) {
 				MatchType:   AtleastOnce,
 				CompareOp:   ValueIsBelow,
 			},
-			series: v3.Series{
+			series: timeseriestypes.Series{
 				Labels: map[string]string{"service": "test"},
-				Points: []v3.Point{
+				Points: []timeseriestypes.Point{
 					{Value: 70 * 1024 * 1024 * 1024, Timestamp: 1000}, // 70 Gibibytes
 				},
 			},
@@ -296,9 +296,9 @@ func TestBasicRuleThresholdEval_UnitConversion(t *testing.T) {
 				MatchType:   AtleastOnce,
 				CompareOp:   ValueIsBelow,
 			},
-			series: v3.Series{
+			series: timeseriestypes.Series{
 				Labels: map[string]string{"service": "test"},
-				Points: []v3.Point{
+				Points: []timeseriestypes.Point{
 					{Value: 30 * 1024 * 1024, Timestamp: 1000}, // 30 MiB/s
 				},
 			},

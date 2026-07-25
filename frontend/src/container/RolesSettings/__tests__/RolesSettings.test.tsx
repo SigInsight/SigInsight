@@ -8,7 +8,7 @@ import { render, screen, userEvent } from 'tests/test-utils';
 
 import RolesSettings from '../RolesSettings';
 
-const rolesApiURL = 'http://localhost/api/v1/roles';
+const rolesApiURL = 'http://localhost/api/v5/roles';
 
 describe('RolesSettings', () => {
 	afterEach(() => {

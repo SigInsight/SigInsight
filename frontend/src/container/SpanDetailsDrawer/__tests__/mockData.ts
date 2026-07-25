@@ -1,6 +1,6 @@
 import { SPAN_ATTRIBUTES } from 'container/ApiMonitoring/Explorer/Domains/DomainDetails/constants';
 import { ILog } from 'types/api/logs/log';
-import { Span } from 'types/api/trace/getTraceV2';
+import { Span } from 'types/api/trace/getTraceWaterfall';
 
 // Constants
 const TEST_SPAN_ID = 'test-span-id';
@@ -147,7 +147,7 @@ export const mockAllLogs: ILog[] = [
 export const mockSpanLogsResponse = {
 	payload: {
 		data: {
-			newResult: {
+			queryResult: {
 				data: {
 					result: [
 						{
@@ -166,7 +166,7 @@ export const mockSpanLogsResponse = {
 export const mockBeforeLogsResponse = {
 	payload: {
 		data: {
-			newResult: {
+			queryResult: {
 				data: {
 					result: [
 						{
@@ -185,7 +185,7 @@ export const mockBeforeLogsResponse = {
 export const mockAfterLogsResponse = {
 	payload: {
 		data: {
-			newResult: {
+			queryResult: {
 				data: {
 					result: [
 						{
@@ -204,7 +204,7 @@ export const mockAfterLogsResponse = {
 export const mockEmptyLogsResponse = {
 	payload: {
 		data: {
-			newResult: {
+			queryResult: {
 				data: {
 					result: [
 						{

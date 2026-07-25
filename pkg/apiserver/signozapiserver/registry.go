@@ -51,7 +51,7 @@ func (handler *healthOpenAPIHandler) ServeOpenAPI(opCtx openapi.OperationContext
 }
 
 func (provider *provider) addRegistryRoutes(router *mux.Router) error {
-	if err := router.Handle("/api/v2/healthz", newHealthOpenAPIHandler(
+	if err := router.Handle("/api/v5/healthz", newHealthOpenAPIHandler(
 		provider.authZ.OpenAccess(provider.factoryHandler.Healthz),
 		"Healthz",
 		"Health check",
@@ -59,7 +59,7 @@ func (provider *provider) addRegistryRoutes(router *mux.Router) error {
 		return err
 	}
 
-	if err := router.Handle("/api/v2/readyz", newHealthOpenAPIHandler(
+	if err := router.Handle("/api/v5/readyz", newHealthOpenAPIHandler(
 		provider.authZ.OpenAccess(provider.factoryHandler.Readyz),
 		"Readyz",
 		"Readiness check",
@@ -67,7 +67,7 @@ func (provider *provider) addRegistryRoutes(router *mux.Router) error {
 		return err
 	}
 
-	if err := router.Handle("/api/v2/livez", pkghandler.New(provider.authZ.OpenAccess(provider.factoryHandler.Livez),
+	if err := router.Handle("/api/v5/livez", pkghandler.New(provider.authZ.OpenAccess(provider.factoryHandler.Livez),
 		pkghandler.OpenAPIDef{
 			ID:                  "Livez",
 			Tags:                []string{"health"},

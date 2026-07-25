@@ -1,1 +1,0 @@
-# SigInsight integrations

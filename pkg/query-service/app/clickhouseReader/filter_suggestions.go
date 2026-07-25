@@ -11,23 +11,23 @@ import (
 	"github.com/SigInsight/OtelCollector/utils/fingerprint"
 	errorsV2 "github.com/SigNoz/signoz/pkg/errors"
 	"github.com/SigNoz/signoz/pkg/query-service/model"
-	v3 "github.com/SigNoz/signoz/pkg/query-service/model/v3"
+	"github.com/SigNoz/signoz/pkg/query-service/model/querytypes"
 )
 
 func (r *ClickHouseReader) GetQBFilterSuggestionsForLogs(
 	ctx context.Context,
-	req *v3.QBFilterSuggestionsRequest,
-) (*v3.QBFilterSuggestionsResponse, *model.ApiError) {
-	suggestions := v3.QBFilterSuggestionsResponse{
-		AttributeKeys:  []v3.AttributeKey{},
-		ExampleQueries: []v3.FilterSet{},
+	req *querytypes.QBFilterSuggestionsRequest,
+) (*querytypes.QBFilterSuggestionsResponse, *model.ApiError) {
+	suggestions := querytypes.QBFilterSuggestionsResponse{
+		AttributeKeys:  []querytypes.AttributeKey{},
+		ExampleQueries: []querytypes.FilterSet{},
 	}
 
 	// Use existing autocomplete logic for generating attribute suggestions
 	attribKeysResp, err := r.GetLogAttributeKeys(
-		ctx, &v3.FilterAttributeKeyRequest{
+		ctx, &querytypes.FilterAttributeKeyRequest{
 			SearchText: req.SearchText,
-			DataSource: v3.DataSourceLogs,
+			DataSource: querytypes.DataSourceLogs,
 			Limit:      int(req.AttributesLimit),
 		})
 	if err != nil {
@@ -41,27 +41,27 @@ func (r *ClickHouseReader) GetQBFilterSuggestionsForLogs(
 
 	// Put together suggested example queries.
 
-	newExampleQuery := func() v3.FilterSet {
+	newExampleQuery := func() querytypes.FilterSet {
 		// Include existing filter in example query if specified.
 		if req.ExistingFilter != nil {
 			return *req.ExistingFilter
 		}
 
-		return v3.FilterSet{
+		return querytypes.FilterSet{
 			Operator: "AND",
-			Items:    []v3.FilterItem{},
+			Items:    []querytypes.FilterItem{},
 		}
 	}
 
 	// Suggest example queries for top suggested log attributes and resource attributes
-	exampleAttribs := []v3.AttributeKey{}
+	exampleAttribs := []querytypes.AttributeKey{}
 	for _, attrib := range suggestions.AttributeKeys {
-		isAttributeOrResource := slices.Contains([]v3.AttributeKeyType{
-			v3.AttributeKeyTypeResource, v3.AttributeKeyTypeTag,
+		isAttributeOrResource := slices.Contains([]querytypes.AttributeKeyType{
+			querytypes.AttributeKeyTypeResource, querytypes.AttributeKeyTypeTag,
 		}, attrib.Type)
 
-		isNumOrStringType := slices.Contains([]v3.AttributeKeyDataType{
-			v3.AttributeKeyDataTypeInt64, v3.AttributeKeyDataTypeFloat64, v3.AttributeKeyDataTypeString,
+		isNumOrStringType := slices.Contains([]querytypes.AttributeKeyDataType{
+			querytypes.AttributeKeyDataTypeInt64, querytypes.AttributeKeyDataTypeFloat64, querytypes.AttributeKeyDataTypeString,
 		}, attrib.DataType)
 
 		if isAttributeOrResource && isNumOrStringType {
@@ -91,7 +91,7 @@ func (r *ClickHouseReader) GetQBFilterSuggestionsForLogs(
 
 					if needMoreExamples && valueIdx < len(exampleAttribValues[attrIdx]) {
 						exampleQuery := newExampleQuery()
-						exampleQuery.Items = append(exampleQuery.Items, v3.FilterItem{
+						exampleQuery.Items = append(exampleQuery.Items, querytypes.FilterItem{
 							Key:      attr,
 							Operator: "=",
 							Value:    exampleAttribValues[attrIdx][valueIdx],
@@ -109,11 +109,11 @@ func (r *ClickHouseReader) GetQBFilterSuggestionsForLogs(
 	// Suggest static example queries for standard log attributes if needed.
 	if len(suggestions.ExampleQueries) < int(req.ExamplesLimit) {
 		exampleQuery := newExampleQuery()
-		exampleQuery.Items = append(exampleQuery.Items, v3.FilterItem{
-			Key: v3.AttributeKey{
+		exampleQuery.Items = append(exampleQuery.Items, querytypes.FilterItem{
+			Key: querytypes.AttributeKey{
 				Key:      "body",
-				DataType: v3.AttributeKeyDataTypeString,
-				Type:     v3.AttributeKeyTypeUnspecified,
+				DataType: querytypes.AttributeKeyDataTypeString,
+				Type:     querytypes.AttributeKeyTypeUnspecified,
 				IsColumn: true,
 			},
 			Operator: "contains",
@@ -128,7 +128,7 @@ func (r *ClickHouseReader) GetQBFilterSuggestionsForLogs(
 // Get up to `limit` values seen for each attribute in `attributes`
 // Returns a slice of slices where the ith slice has values for ith entry in `attributes`
 func (r *ClickHouseReader) getValuesForLogAttributes(
-	ctx context.Context, attributes []v3.AttributeKey, limit uint64,
+	ctx context.Context, attributes []querytypes.AttributeKey, limit uint64,
 ) ([][]any, *model.ApiError) {
 	/*
 		The query used here needs to be as cheap as possible, and while uncommon, it is possible for
@@ -194,8 +194,8 @@ func (r *ClickHouseReader) getValuesForLogAttributes(
 	result := make([][]any, len(attributes))
 
 	// Helper for getting hold of the result slice to append to for each scanned row
-	resultIdxForAttrib := func(key string, dataType v3.AttributeKeyDataType) int {
-		return slices.IndexFunc(attributes, func(attrib v3.AttributeKey) bool {
+	resultIdxForAttrib := func(key string, dataType querytypes.AttributeKeyDataType) int {
+		return slices.IndexFunc(attributes, func(attrib querytypes.AttributeKey) bool {
 			return attrib.Key == key && attrib.DataType == dataType
 		})
 	}
@@ -216,13 +216,13 @@ func (r *ClickHouseReader) getValuesForLogAttributes(
 		}
 
 		if len(stringValue) > 0 {
-			attrResultIdx := resultIdxForAttrib(tagKey, v3.AttributeKeyDataTypeString)
+			attrResultIdx := resultIdxForAttrib(tagKey, querytypes.AttributeKeyDataTypeString)
 			if attrResultIdx >= 0 {
 				result[attrResultIdx] = append(result[attrResultIdx], stringValue)
 			}
 
 		} else if float64Value.Valid {
-			attrResultIdx := resultIdxForAttrib(tagKey, v3.AttributeKeyDataTypeFloat64)
+			attrResultIdx := resultIdxForAttrib(tagKey, querytypes.AttributeKeyDataTypeFloat64)
 			if attrResultIdx >= 0 {
 				result[attrResultIdx] = append(result[attrResultIdx], float64Value.Float64)
 			}
@@ -274,21 +274,21 @@ type attribRankingStrategy struct {
 }
 
 // The higher the score, the higher the rank
-func (s *attribRankingStrategy) score(attrib v3.AttributeKey) int {
-	if attrib.Type == v3.AttributeKeyTypeResource {
+func (s *attribRankingStrategy) score(attrib querytypes.AttributeKey) int {
+	if attrib.Type == querytypes.AttributeKeyTypeResource {
 		// 3 + (-1) if attrib.Key is not an interesting resource attribute
 		return 3 + slices.Index(s.interestingResourceAttrsInAscRank, attrib.Key)
 	}
 
-	if attrib.Type == v3.AttributeKeyTypeTag {
+	if attrib.Type == querytypes.AttributeKeyTypeTag {
 		return 1
 	}
 
 	return 0
 }
 
-func (s *attribRankingStrategy) sort(attribKeys []v3.AttributeKey) {
-	slices.SortFunc(attribKeys, func(a v3.AttributeKey, b v3.AttributeKey) int {
+func (s *attribRankingStrategy) sort(attribKeys []querytypes.AttributeKey) {
+	slices.SortFunc(attribKeys, func(a querytypes.AttributeKey, b querytypes.AttributeKey) int {
 		// To sort in descending order of score the return value must be negative when a > b
 		return s.score(b) - s.score(a)
 	})

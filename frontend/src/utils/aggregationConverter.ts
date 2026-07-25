@@ -12,7 +12,7 @@ import { DataSource } from 'types/common/queryBuilder';
 import { v4 as uuid } from 'uuid';
 
 /**
- * Converts QueryV2 aggregations to BaseAutocompleteData format
+ * Converts Query aggregations to BaseAutocompleteData format
  * for compatibility with existing OrderByFilter component
  */
 export function convertAggregationsToBaseAutocompleteData(

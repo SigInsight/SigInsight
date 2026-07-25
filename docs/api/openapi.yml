@@ -136,69 +136,13 @@ components:
           nullable: true
           type: integer
       type: object
-    AuthtypesAuthDomainConfig:
-      properties:
-        googleAuthConfig:
-          $ref: '#/components/schemas/AuthtypesGoogleConfig'
-        roleMapping:
-          $ref: '#/components/schemas/AuthtypesRoleMapping'
-        ssoEnabled:
-          type: boolean
-        ssoType:
-          type: string
-      type: object
-    AuthtypesAuthNProviderInfo:
-      properties:
-        relayStatePath:
-          nullable: true
-          type: string
-      type: object
     AuthtypesAuthNSupport:
       properties:
-        callback:
-          items:
-            $ref: '#/components/schemas/AuthtypesCallbackAuthNSupport'
-          nullable: true
-          type: array
         password:
           items:
             $ref: '#/components/schemas/AuthtypesPasswordAuthNSupport'
           nullable: true
           type: array
-      type: object
-    AuthtypesCallbackAuthNSupport:
-      properties:
-        provider:
-          type: string
-        url:
-          type: string
-      type: object
-    AuthtypesGettableAuthDomain:
-      properties:
-        authNProviderInfo:
-          $ref: '#/components/schemas/AuthtypesAuthNProviderInfo'
-        createdAt:
-          format: date-time
-          type: string
-        googleAuthConfig:
-          $ref: '#/components/schemas/AuthtypesGoogleConfig'
-        id:
-          type: string
-        name:
-          type: string
-        orgId:
-          type: string
-        roleMapping:
-          $ref: '#/components/schemas/AuthtypesRoleMapping'
-        ssoEnabled:
-          type: boolean
-        ssoType:
-          type: string
-        updatedAt:
-          format: date-time
-          type: string
-      required:
-      - id
       type: object
     AuthtypesGettableObjects:
       properties:
@@ -253,31 +197,6 @@ components:
       - object
       - authorized
       type: object
-    AuthtypesGoogleConfig:
-      properties:
-        allowedGroups:
-          items:
-            type: string
-          type: array
-        clientId:
-          type: string
-        clientSecret:
-          type: string
-        domainToAdminEmail:
-          additionalProperties:
-            type: string
-          type: object
-        fetchGroups:
-          type: boolean
-        fetchTransitiveGroupMembership:
-          type: boolean
-        insecureSkipEmailVerified:
-          type: boolean
-        redirectURI:
-          type: string
-        serviceAccountJson:
-          type: string
-      type: object
     AuthtypesObject:
       properties:
         resource:
@@ -326,13 +245,6 @@ components:
           type: string
       required:
       - description
-      type: object
-    AuthtypesPostableAuthDomain:
-      properties:
-        config:
-          $ref: '#/components/schemas/AuthtypesAuthDomainConfig'
-        name:
-          type: string
       type: object
     AuthtypesPostableEmailPasswordSession:
       properties:
@@ -392,18 +304,6 @@ components:
       - type
       - orgId
       type: object
-    AuthtypesRoleMapping:
-      properties:
-        defaultRole:
-          type: string
-        groupMappings:
-          additionalProperties:
-            type: string
-          nullable: true
-          type: object
-        useRoleAttribute:
-          type: boolean
-      type: object
     AuthtypesSessionContext:
       properties:
         exists:
@@ -444,11 +344,6 @@ components:
       required:
       - relation
       - object
-      type: object
-    AuthtypesUpdateableAuthDomain:
-      properties:
-        config:
-          $ref: '#/components/schemas/AuthtypesAuthDomainConfig'
       type: object
     AuthtypesUserRole:
       properties:
@@ -496,387 +391,6 @@ components:
           type: array
       required:
       - id
-      type: object
-    CloudintegrationtypesAWSAccountConfig:
-      properties:
-        regions:
-          items:
-            type: string
-          type: array
-      required:
-      - regions
-      type: object
-    CloudintegrationtypesAWSCollectionStrategy:
-      properties:
-        aws_logs:
-          $ref: '#/components/schemas/CloudintegrationtypesAWSLogsStrategy'
-        aws_metrics:
-          $ref: '#/components/schemas/CloudintegrationtypesAWSMetricsStrategy'
-        s3_buckets:
-          additionalProperties:
-            items:
-              type: string
-            type: array
-          type: object
-      type: object
-    CloudintegrationtypesAWSConnectionArtifact:
-      properties:
-        connectionURL:
-          type: string
-      required:
-      - connectionURL
-      type: object
-    CloudintegrationtypesAWSConnectionArtifactRequest:
-      properties:
-        deploymentRegion:
-          type: string
-        regions:
-          items:
-            type: string
-          type: array
-      required:
-      - deploymentRegion
-      - regions
-      type: object
-    CloudintegrationtypesAWSIntegrationConfig:
-      properties:
-        enabledRegions:
-          items:
-            type: string
-          type: array
-        telemetry:
-          $ref: '#/components/schemas/CloudintegrationtypesAWSCollectionStrategy'
-      required:
-      - enabledRegions
-      - telemetry
-      type: object
-    CloudintegrationtypesAWSLogsStrategy:
-      properties:
-        cloudwatch_logs_subscriptions:
-          items:
-            properties:
-              filter_pattern:
-                type: string
-              log_group_name_prefix:
-                type: string
-            type: object
-          nullable: true
-          type: array
-      type: object
-    CloudintegrationtypesAWSMetricsStrategy:
-      properties:
-        cloudwatch_metric_stream_filters:
-          items:
-            properties:
-              MetricNames:
-                items:
-                  type: string
-                type: array
-              Namespace:
-                type: string
-            type: object
-          nullable: true
-          type: array
-      type: object
-    CloudintegrationtypesAWSServiceConfig:
-      properties:
-        logs:
-          $ref: '#/components/schemas/CloudintegrationtypesAWSServiceLogsConfig'
-        metrics:
-          $ref: '#/components/schemas/CloudintegrationtypesAWSServiceMetricsConfig'
-      type: object
-    CloudintegrationtypesAWSServiceLogsConfig:
-      properties:
-        enabled:
-          type: boolean
-        s3_buckets:
-          additionalProperties:
-            items:
-              type: string
-            type: array
-          type: object
-      type: object
-    CloudintegrationtypesAWSServiceMetricsConfig:
-      properties:
-        enabled:
-          type: boolean
-      type: object
-    CloudintegrationtypesAccount:
-      properties:
-        agentReport:
-          $ref: '#/components/schemas/CloudintegrationtypesAgentReport'
-        config:
-          $ref: '#/components/schemas/CloudintegrationtypesAccountConfig'
-        createdAt:
-          format: date-time
-          type: string
-        id:
-          type: string
-        orgId:
-          type: string
-        provider:
-          type: string
-        providerAccountId:
-          nullable: true
-          type: string
-        removedAt:
-          format: date-time
-          nullable: true
-          type: string
-        updatedAt:
-          format: date-time
-          type: string
-      required:
-      - id
-      - providerAccountId
-      - provider
-      - removedAt
-      - agentReport
-      - orgId
-      - config
-      type: object
-    CloudintegrationtypesAccountConfig:
-      properties:
-        aws:
-          $ref: '#/components/schemas/CloudintegrationtypesAWSAccountConfig'
-      required:
-      - aws
-      type: object
-    CloudintegrationtypesAgentReport:
-      nullable: true
-      properties:
-        data:
-          additionalProperties: {}
-          nullable: true
-          type: object
-        timestampMillis:
-          format: int64
-          type: integer
-      required:
-      - timestampMillis
-      - data
-      type: object
-    CloudintegrationtypesCollectedLogAttribute:
-      properties:
-        name:
-          type: string
-        path:
-          type: string
-        type:
-          type: string
-      type: object
-    CloudintegrationtypesCollectedMetric:
-      properties:
-        description:
-          type: string
-        name:
-          type: string
-        type:
-          type: string
-        unit:
-          type: string
-      type: object
-    CloudintegrationtypesCollectionStrategy:
-      properties:
-        aws:
-          $ref: '#/components/schemas/CloudintegrationtypesAWSCollectionStrategy'
-      required:
-      - aws
-      type: object
-    CloudintegrationtypesConnectionArtifact:
-      properties:
-        aws:
-          $ref: '#/components/schemas/CloudintegrationtypesAWSConnectionArtifact'
-      required:
-      - aws
-      type: object
-    CloudintegrationtypesConnectionArtifactRequest:
-      properties:
-        aws:
-          $ref: '#/components/schemas/CloudintegrationtypesAWSConnectionArtifactRequest'
-      required:
-      - aws
-      type: object
-    CloudintegrationtypesDataCollected:
-      properties:
-        logs:
-          items:
-            $ref: '#/components/schemas/CloudintegrationtypesCollectedLogAttribute'
-          nullable: true
-          type: array
-        metrics:
-          items:
-            $ref: '#/components/schemas/CloudintegrationtypesCollectedMetric'
-          nullable: true
-          type: array
-      type: object
-    CloudintegrationtypesGettableAccountWithArtifact:
-      properties:
-        connectionArtifact:
-          $ref: '#/components/schemas/CloudintegrationtypesConnectionArtifact'
-        id:
-          type: string
-      required:
-      - id
-      - connectionArtifact
-      type: object
-    CloudintegrationtypesGettableAccounts:
-      properties:
-        accounts:
-          items:
-            $ref: '#/components/schemas/CloudintegrationtypesAccount'
-          type: array
-      required:
-      - accounts
-      type: object
-    CloudintegrationtypesGettableAgentCheckInResponse:
-      properties:
-        account_id:
-          type: string
-        cloud_account_id:
-          type: string
-        cloudIntegrationId:
-          type: string
-        integration_config:
-          $ref: '#/components/schemas/CloudintegrationtypesIntegrationConfig'
-        integrationConfig:
-          $ref: '#/components/schemas/CloudintegrationtypesProviderIntegrationConfig'
-        providerAccountId:
-          type: string
-        removed_at:
-          format: date-time
-          nullable: true
-          type: string
-        removedAt:
-          format: date-time
-          nullable: true
-          type: string
-      required:
-      - account_id
-      - cloud_account_id
-      - integration_config
-      - removed_at
-      - cloudIntegrationId
-      - providerAccountId
-      - integrationConfig
-      - removedAt
-      type: object
-    CloudintegrationtypesGettableServicesMetadata:
-      properties:
-        services:
-          items:
-            $ref: '#/components/schemas/CloudintegrationtypesServiceMetadata'
-          type: array
-      required:
-      - services
-      type: object
-    CloudintegrationtypesIntegrationConfig:
-      nullable: true
-      properties:
-        enabled_regions:
-          items:
-            type: string
-          type: array
-        telemetry:
-          $ref: '#/components/schemas/CloudintegrationtypesAWSCollectionStrategy'
-      required:
-      - enabled_regions
-      - telemetry
-      type: object
-    CloudintegrationtypesPostableAgentCheckInRequest:
-      properties:
-        account_id:
-          type: string
-        cloud_account_id:
-          type: string
-        cloudIntegrationId:
-          type: string
-        data:
-          additionalProperties: {}
-          nullable: true
-          type: object
-        providerAccountId:
-          type: string
-      required:
-      - data
-      type: object
-    CloudintegrationtypesProviderIntegrationConfig:
-      properties:
-        aws:
-          $ref: '#/components/schemas/CloudintegrationtypesAWSIntegrationConfig'
-      required:
-      - aws
-      type: object
-    CloudintegrationtypesService:
-      properties:
-        dataCollected:
-          $ref: '#/components/schemas/CloudintegrationtypesDataCollected'
-        icon:
-          type: string
-        id:
-          type: string
-        overview:
-          type: string
-        serviceConfig:
-          $ref: '#/components/schemas/CloudintegrationtypesServiceConfig'
-        supported_signals:
-          $ref: '#/components/schemas/CloudintegrationtypesSupportedSignals'
-        telemetryCollectionStrategy:
-          $ref: '#/components/schemas/CloudintegrationtypesCollectionStrategy'
-        title:
-          type: string
-      required:
-      - id
-      - title
-      - icon
-      - overview
-      - supported_signals
-      - dataCollected
-      - telemetryCollectionStrategy
-      type: object
-    CloudintegrationtypesServiceConfig:
-      properties:
-        aws:
-          $ref: '#/components/schemas/CloudintegrationtypesAWSServiceConfig'
-      required:
-      - aws
-      type: object
-    CloudintegrationtypesServiceMetadata:
-      properties:
-        enabled:
-          type: boolean
-        icon:
-          type: string
-        id:
-          type: string
-        title:
-          type: string
-      required:
-      - id
-      - title
-      - icon
-      - enabled
-      type: object
-    CloudintegrationtypesSupportedSignals:
-      properties:
-        logs:
-          type: boolean
-        metrics:
-          type: boolean
-      type: object
-    CloudintegrationtypesUpdatableAccount:
-      properties:
-        config:
-          $ref: '#/components/schemas/CloudintegrationtypesAccountConfig'
-      required:
-      - config
-      type: object
-    CloudintegrationtypesUpdatableService:
-      properties:
-        config:
-          $ref: '#/components/schemas/CloudintegrationtypesServiceConfig'
-      required:
-      - config
       type: object
     ErrorsJSON:
       properties:
@@ -928,39 +442,6 @@ components:
           additionalProperties: {}
           nullable: true
           type: object
-      type: object
-    GlobaltypesAPIKeyConfig:
-      properties:
-        enabled:
-          type: boolean
-      type: object
-    GlobaltypesConfig:
-      properties:
-        external_url:
-          type: string
-        identN:
-          $ref: '#/components/schemas/GlobaltypesIdentNConfig'
-        ingestion_url:
-          type: string
-      type: object
-    GlobaltypesIdentNConfig:
-      properties:
-        apikey:
-          $ref: '#/components/schemas/GlobaltypesAPIKeyConfig'
-        impersonation:
-          $ref: '#/components/schemas/GlobaltypesImpersonationConfig'
-        tokenizer:
-          $ref: '#/components/schemas/GlobaltypesTokenizerConfig'
-      type: object
-    GlobaltypesImpersonationConfig:
-      properties:
-        enabled:
-          type: boolean
-      type: object
-    GlobaltypesTokenizerConfig:
-      properties:
-        enabled:
-          type: boolean
       type: object
     MetricsexplorertypesListMetric:
       properties:
@@ -2331,31 +1812,6 @@ components:
         userId:
           type: string
       type: object
-    TypesDeprecatedUser:
-      properties:
-        createdAt:
-          format: date-time
-          type: string
-        displayName:
-          type: string
-        email:
-          type: string
-        id:
-          type: string
-        isRoot:
-          type: boolean
-        orgId:
-          type: string
-        role:
-          type: string
-        status:
-          type: string
-        updatedAt:
-          format: date-time
-          type: string
-      required:
-      - id
-      type: object
     TypesGettableAPIKey:
       properties:
         createdAt:
@@ -2591,7 +2047,7 @@ info:
   version: ""
 openapi: 3.0.3
 paths:
-  /api/v1/assistant/chat:
+  /api/v5/assistant/chat:
     post:
       deprecated: false
       description: Streams Server-Sent Events. Token events contain a delta, error
@@ -2641,7 +2097,7 @@ paths:
       summary: Chat with AI assistant
       tags:
       - assistant-stream
-  /api/v1/assistant/config:
+  /api/v5/assistant/config:
     get:
       deprecated: false
       description: Returns the configured OpenAI-compatible endpoint without exposing
@@ -2726,7 +2182,7 @@ paths:
       summary: Update AI assistant configuration
       tags:
       - assistant
-  /api/v1/authz/check:
+  /api/v5/authz/check:
     post:
       deprecated: false
       description: Checks if the authenticated user has permissions for given transactions
@@ -2764,7 +2220,7 @@ paths:
       summary: Check permissions
       tags:
       - authz
-  /api/v1/authz/resources:
+  /api/v5/authz/resources:
     get:
       deprecated: false
       description: Gets all the available resources
@@ -2793,7 +2249,7 @@ paths:
       summary: Get resources
       tags:
       - authz
-  /api/v1/changePassword/{id}:
+  /api/v5/changePassword/{id}:
     post:
       deprecated: false
       description: This endpoint changes the password by id
@@ -2850,805 +2306,7 @@ paths:
       summary: Change password
       tags:
       - users
-  /api/v1/cloud-integrations/{cloud_provider}/agent-check-in:
-    post:
-      deprecated: true
-      description: '[Deprecated] This endpoint is called by the deployed agent to
-        check in'
-      operationId: AgentCheckInDeprecated
-      parameters:
-      - in: path
-        name: cloud_provider
-        required: true
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CloudintegrationtypesPostableAgentCheckInRequest'
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    $ref: '#/components/schemas/CloudintegrationtypesGettableAgentCheckInResponse'
-                  status:
-                    type: string
-                required:
-                - status
-                - data
-                type: object
-          description: OK
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - VIEWER
-      - tokenizer:
-        - VIEWER
-      summary: Agent check-in
-      tags:
-      - cloudintegration
-  /api/v1/cloud_integrations/{cloud_provider}/accounts:
-    get:
-      deprecated: false
-      description: This endpoint lists the accounts for the specified cloud provider
-      operationId: ListAccounts
-      parameters:
-      - in: path
-        name: cloud_provider
-        required: true
-        schema:
-          type: string
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    $ref: '#/components/schemas/CloudintegrationtypesGettableAccounts'
-                  status:
-                    type: string
-                required:
-                - status
-                - data
-                type: object
-          description: OK
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: List accounts
-      tags:
-      - cloudintegration
-    post:
-      deprecated: false
-      description: This endpoint creates a new cloud integration account for the specified
-        cloud provider
-      operationId: CreateAccount
-      parameters:
-      - in: path
-        name: cloud_provider
-        required: true
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CloudintegrationtypesConnectionArtifactRequest'
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    $ref: '#/components/schemas/CloudintegrationtypesGettableAccountWithArtifact'
-                  status:
-                    type: string
-                required:
-                - status
-                - data
-                type: object
-          description: OK
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: Create account
-      tags:
-      - cloudintegration
-  /api/v1/cloud_integrations/{cloud_provider}/accounts/{id}:
-    delete:
-      deprecated: false
-      description: This endpoint disconnects an account for the specified cloud provider
-      operationId: DisconnectAccount
-      parameters:
-      - in: path
-        name: cloud_provider
-        required: true
-        schema:
-          type: string
-      - in: path
-        name: id
-        required: true
-        schema:
-          type: string
-      responses:
-        "204":
-          description: No Content
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: Disconnect account
-      tags:
-      - cloudintegration
-    get:
-      deprecated: false
-      description: This endpoint gets an account for the specified cloud provider
-      operationId: GetAccount
-      parameters:
-      - in: path
-        name: cloud_provider
-        required: true
-        schema:
-          type: string
-      - in: path
-        name: id
-        required: true
-        schema:
-          type: string
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    $ref: '#/components/schemas/CloudintegrationtypesAccount'
-                  status:
-                    type: string
-                required:
-                - status
-                - data
-                type: object
-          description: OK
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Bad Request
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Not Found
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: Get account
-      tags:
-      - cloudintegration
-    put:
-      deprecated: false
-      description: This endpoint updates an account for the specified cloud provider
-      operationId: UpdateAccount
-      parameters:
-      - in: path
-        name: cloud_provider
-        required: true
-        schema:
-          type: string
-      - in: path
-        name: id
-        required: true
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CloudintegrationtypesUpdatableAccount'
-      responses:
-        "204":
-          description: No Content
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: Update account
-      tags:
-      - cloudintegration
-  /api/v1/cloud_integrations/{cloud_provider}/accounts/check_in:
-    post:
-      deprecated: false
-      description: This endpoint is called by the deployed agent to check in
-      operationId: AgentCheckIn
-      parameters:
-      - in: path
-        name: cloud_provider
-        required: true
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CloudintegrationtypesPostableAgentCheckInRequest'
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    $ref: '#/components/schemas/CloudintegrationtypesGettableAgentCheckInResponse'
-                  status:
-                    type: string
-                required:
-                - status
-                - data
-                type: object
-          description: OK
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - VIEWER
-      - tokenizer:
-        - VIEWER
-      summary: Agent check-in
-      tags:
-      - cloudintegration
-  /api/v1/cloud_integrations/{cloud_provider}/services:
-    get:
-      deprecated: false
-      description: This endpoint lists the services metadata for the specified cloud
-        provider
-      operationId: ListServicesMetadata
-      parameters:
-      - in: path
-        name: cloud_provider
-        required: true
-        schema:
-          type: string
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    $ref: '#/components/schemas/CloudintegrationtypesGettableServicesMetadata'
-                  status:
-                    type: string
-                required:
-                - status
-                - data
-                type: object
-          description: OK
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: List services metadata
-      tags:
-      - cloudintegration
-  /api/v1/cloud_integrations/{cloud_provider}/services/{service_id}:
-    get:
-      deprecated: false
-      description: This endpoint gets a service for the specified cloud provider
-      operationId: GetService
-      parameters:
-      - in: path
-        name: cloud_provider
-        required: true
-        schema:
-          type: string
-      - in: path
-        name: service_id
-        required: true
-        schema:
-          type: string
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    $ref: '#/components/schemas/CloudintegrationtypesService'
-                  status:
-                    type: string
-                required:
-                - status
-                - data
-                type: object
-          description: OK
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: Get service
-      tags:
-      - cloudintegration
-    put:
-      deprecated: false
-      description: This endpoint updates a service for the specified cloud provider
-      operationId: UpdateService
-      parameters:
-      - in: path
-        name: cloud_provider
-        required: true
-        schema:
-          type: string
-      - in: path
-        name: service_id
-        required: true
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CloudintegrationtypesUpdatableService'
-      responses:
-        "204":
-          description: No Content
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: Update service
-      tags:
-      - cloudintegration
-  /api/v1/complete/google:
-    get:
-      deprecated: false
-      description: This endpoint creates a session for a user using google callback
-      operationId: CreateSessionByGoogleCallback
-      responses:
-        "303":
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    $ref: '#/components/schemas/AuthtypesGettableToken'
-                  status:
-                    type: string
-                required:
-                - status
-                - data
-                type: object
-          description: See Other
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Bad Request
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Not Found
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      summary: Create session by google callback
-      tags:
-      - sessions
-  /api/v1/domains:
-    get:
-      deprecated: false
-      description: This endpoint lists all auth domains
-      operationId: ListAuthDomains
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    items:
-                      $ref: '#/components/schemas/AuthtypesGettableAuthDomain'
-                    type: array
-                  status:
-                    type: string
-                required:
-                - status
-                - data
-                type: object
-          description: OK
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: List all auth domains
-      tags:
-      - authdomains
-    post:
-      deprecated: false
-      description: This endpoint creates an auth domain
-      operationId: CreateAuthDomain
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AuthtypesPostableAuthDomain'
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    $ref: '#/components/schemas/AuthtypesGettableAuthDomain'
-                  status:
-                    type: string
-                required:
-                - status
-                - data
-                type: object
-          description: OK
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Bad Request
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "409":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Conflict
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: Create auth domain
-      tags:
-      - authdomains
-  /api/v1/domains/{id}:
-    delete:
-      deprecated: false
-      description: This endpoint deletes an auth domain
-      operationId: DeleteAuthDomain
-      parameters:
-      - in: path
-        name: id
-        required: true
-        schema:
-          type: string
-      responses:
-        "204":
-          description: No Content
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Bad Request
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: Delete auth domain
-      tags:
-      - authdomains
-    put:
-      deprecated: false
-      description: This endpoint updates an auth domain
-      operationId: UpdateAuthDomain
-      parameters:
-      - in: path
-        name: id
-        required: true
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AuthtypesUpdateableAuthDomain'
-      responses:
-        "204":
-          description: No Content
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Bad Request
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "409":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Conflict
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: Update auth domain
-      tags:
-      - authdomains
-  /api/v1/export_raw_data:
+  /api/v5/export_raw_data:
     post:
       deprecated: false
       description: This endpoints allows complex query exporting raw data for traces
@@ -3710,7 +2368,90 @@ paths:
       tags:
       - logs
       - traces
-  /api/v1/fields/keys:
+  /api/v5/factor_password/forgot:
+    post:
+      deprecated: false
+      description: This endpoint initiates the forgot password flow by sending a reset
+        password email
+      operationId: ForgotPassword
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TypesPostableForgotPassword'
+      responses:
+        "204":
+          description: No Content
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Bad Request
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Unprocessable Entity
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Internal Server Error
+      summary: Forgot password
+      tags:
+      - users
+  /api/v5/features:
+    get:
+      deprecated: false
+      description: This endpoint returns the supported features and their details
+      operationId: GetFeatures
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    items:
+                      $ref: '#/components/schemas/FeaturetypesGettableFeature'
+                    type: array
+                  status:
+                    type: string
+                required:
+                - status
+                - data
+                type: object
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Forbidden
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Internal Server Error
+      security:
+      - api_key:
+        - VIEWER
+      - tokenizer:
+        - VIEWER
+      summary: Get features
+      tags:
+      - features
+  /api/v5/fields/keys:
     get:
       deprecated: false
       description: This endpoint returns field keys
@@ -3795,7 +2536,7 @@ paths:
       summary: Get field keys
       tags:
       - fields
-  /api/v1/fields/values:
+  /api/v5/fields/values:
     get:
       deprecated: false
       description: This endpoint returns field values
@@ -3888,7 +2629,7 @@ paths:
       summary: Get field values
       tags:
       - fields
-  /api/v1/getResetPasswordToken/{id}:
+  /api/v5/getResetPasswordToken/{id}:
     get:
       deprecated: false
       description: This endpoint returns the reset password token by id
@@ -3952,11 +2693,9 @@ paths:
       summary: Get reset password token
       tags:
       - users
-  /api/v1/global/config:
+  /api/v5/healthz:
     get:
-      deprecated: false
-      description: This endpoint returns global config
-      operationId: GetGlobalConfig
+      operationId: Healthz
       responses:
         "200":
           content:
@@ -3964,7 +2703,7 @@ paths:
               schema:
                 properties:
                   data:
-                    $ref: '#/components/schemas/GlobaltypesConfig'
+                    $ref: '#/components/schemas/FactoryResponse'
                   status:
                     type: string
                 required:
@@ -3972,16 +2711,24 @@ paths:
                 - data
                 type: object
           description: OK
-        "500":
+        "503":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      summary: Get global config
+                properties:
+                  data:
+                    $ref: '#/components/schemas/FactoryResponse'
+                  status:
+                    type: string
+                required:
+                - status
+                - data
+                type: object
+          description: Service Unavailable
+      summary: Health check
       tags:
-      - global
-  /api/v1/invite:
+      - health
+  /api/v5/invite:
     post:
       deprecated: false
       description: This endpoint creates an invite for a user
@@ -4044,7 +2791,7 @@ paths:
       summary: Create invite
       tags:
       - users
-  /api/v1/invite/bulk:
+  /api/v5/invite/bulk:
     post:
       deprecated: false
       description: This endpoint creates a bulk invite for a user
@@ -4095,7 +2842,36 @@ paths:
       summary: Create bulk invite
       tags:
       - users
-  /api/v1/logs/promote_paths:
+  /api/v5/livez:
+    get:
+      deprecated: false
+      description: ""
+      operationId: Livez
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: '#/components/schemas/FactoryResponse'
+                  status:
+                    type: string
+                required:
+                - status
+                - data
+                type: object
+          description: OK
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Internal Server Error
+      summary: Liveness check
+      tags:
+      - health
+  /api/v5/logs/promote_paths:
     get:
       deprecated: false
       description: This endpoints promotes and indexes paths
@@ -4197,2033 +2973,7 @@ paths:
       summary: Promote and index paths
       tags:
       - logs
-  /api/v1/org/preferences:
-    get:
-      deprecated: false
-      description: This endpoint lists all org preferences
-      operationId: ListOrgPreferences
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    items:
-                      $ref: '#/components/schemas/PreferencetypesPreference'
-                    type: array
-                  status:
-                    type: string
-                required:
-                - status
-                - data
-                type: object
-          description: OK
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: List org preferences
-      tags:
-      - preferences
-  /api/v1/org/preferences/{name}:
-    get:
-      deprecated: false
-      description: This endpoint returns the org preference by name
-      operationId: GetOrgPreference
-      parameters:
-      - in: path
-        name: name
-        required: true
-        schema:
-          type: string
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    $ref: '#/components/schemas/PreferencetypesPreference'
-                  status:
-                    type: string
-                required:
-                - status
-                - data
-                type: object
-          description: OK
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Bad Request
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Not Found
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: Get org preference
-      tags:
-      - preferences
-    put:
-      deprecated: false
-      description: This endpoint updates the org preference by name
-      operationId: UpdateOrgPreference
-      parameters:
-      - in: path
-        name: name
-        required: true
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PreferencetypesUpdatablePreference'
-      responses:
-        "204":
-          description: No Content
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Bad Request
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Not Found
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: Update org preference
-      tags:
-      - preferences
-  /api/v1/pats:
-    get:
-      deprecated: false
-      description: This endpoint lists all api keys
-      operationId: ListAPIKeys
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    items:
-                      $ref: '#/components/schemas/TypesGettableAPIKey'
-                    type: array
-                  status:
-                    type: string
-                required:
-                - status
-                - data
-                type: object
-          description: OK
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: List api keys
-      tags:
-      - users
-    post:
-      deprecated: false
-      description: This endpoint creates an api key
-      operationId: CreateAPIKey
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TypesPostableAPIKey'
-      responses:
-        "201":
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    $ref: '#/components/schemas/TypesGettableAPIKey'
-                  status:
-                    type: string
-                required:
-                - status
-                - data
-                type: object
-          description: Created
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Bad Request
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "409":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Conflict
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: Create api key
-      tags:
-      - users
-  /api/v1/pats/{id}:
-    delete:
-      deprecated: false
-      description: This endpoint revokes an api key
-      operationId: RevokeAPIKey
-      parameters:
-      - in: path
-        name: id
-        required: true
-        schema:
-          type: string
-      responses:
-        "204":
-          description: No Content
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Not Found
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: Revoke api key
-      tags:
-      - users
-    put:
-      deprecated: false
-      description: This endpoint updates an api key
-      operationId: UpdateAPIKey
-      parameters:
-      - in: path
-        name: id
-        required: true
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TypesStorableAPIKey'
-      responses:
-        "204":
-          content:
-            application/json:
-              schema:
-                type: string
-          description: No Content
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Bad Request
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Not Found
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: Update api key
-      tags:
-      - users
-  /api/v1/resetPassword:
-    post:
-      deprecated: false
-      description: This endpoint resets the password by token
-      operationId: ResetPassword
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TypesPostableResetPassword'
-      responses:
-        "204":
-          description: No Content
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Bad Request
-        "409":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Conflict
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      summary: Reset password
-      tags:
-      - users
-  /api/v1/roles:
-    get:
-      deprecated: false
-      description: This endpoint lists all roles
-      operationId: ListRoles
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    items:
-                      $ref: '#/components/schemas/AuthtypesRole'
-                    type: array
-                  status:
-                    type: string
-                required:
-                - status
-                - data
-                type: object
-          description: OK
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: List roles
-      tags:
-      - role
-    post:
-      deprecated: false
-      description: This endpoint creates a role
-      operationId: CreateRole
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AuthtypesPostableRole'
-      responses:
-        "201":
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    $ref: '#/components/schemas/TypesIdentifiable'
-                  status:
-                    type: string
-                required:
-                - status
-                - data
-                type: object
-          description: Created
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Bad Request
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "409":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Conflict
-        "451":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unavailable For Legal Reasons
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-        "501":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Not Implemented
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: Create role
-      tags:
-      - role
-  /api/v1/roles/{id}:
-    delete:
-      deprecated: false
-      description: This endpoint deletes a role
-      operationId: DeleteRole
-      parameters:
-      - in: path
-        name: id
-        required: true
-        schema:
-          type: string
-      responses:
-        "204":
-          content:
-            application/json:
-              schema:
-                type: string
-          description: No Content
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Not Found
-        "451":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unavailable For Legal Reasons
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-        "501":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Not Implemented
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: Delete role
-      tags:
-      - role
-    get:
-      deprecated: false
-      description: This endpoint gets a role
-      operationId: GetRole
-      parameters:
-      - in: path
-        name: id
-        required: true
-        schema:
-          type: string
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    $ref: '#/components/schemas/AuthtypesRole'
-                  status:
-                    type: string
-                required:
-                - status
-                - data
-                type: object
-          description: OK
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: Get role
-      tags:
-      - role
-    patch:
-      deprecated: false
-      description: This endpoint patches a role
-      operationId: PatchRole
-      parameters:
-      - in: path
-        name: id
-        required: true
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AuthtypesPatchableRole'
-      responses:
-        "204":
-          content:
-            application/json:
-              schema:
-                type: string
-          description: No Content
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Not Found
-        "451":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unavailable For Legal Reasons
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-        "501":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Not Implemented
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: Patch role
-      tags:
-      - role
-  /api/v1/roles/{id}/relation/{relation}/objects:
-    get:
-      deprecated: false
-      description: Gets all objects connected to the specified role via a given relation
-        type
-      operationId: GetObjects
-      parameters:
-      - in: path
-        name: id
-        required: true
-        schema:
-          type: string
-      - in: path
-        name: relation
-        required: true
-        schema:
-          type: string
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    items:
-                      $ref: '#/components/schemas/AuthtypesGettableObjects'
-                    type: array
-                  status:
-                    type: string
-                required:
-                - status
-                - data
-                type: object
-          description: OK
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Not Found
-        "451":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unavailable For Legal Reasons
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-        "501":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Not Implemented
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: Get objects for a role by relation
-      tags:
-      - role
-    patch:
-      deprecated: false
-      description: Patches the objects connected to the specified role via a given
-        relation type
-      operationId: PatchObjects
-      parameters:
-      - in: path
-        name: id
-        required: true
-        schema:
-          type: string
-      - in: path
-        name: relation
-        required: true
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AuthtypesPatchableObjects'
-      responses:
-        "204":
-          content:
-            application/json:
-              schema:
-                type: string
-          description: No Content
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Bad Request
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Not Found
-        "451":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unavailable For Legal Reasons
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-        "501":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Not Implemented
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: Patch objects for a role by relation
-      tags:
-      - role
-  /api/v1/service_accounts:
-    get:
-      deprecated: false
-      description: This endpoint lists the service accounts for an organisation
-      operationId: ListServiceAccounts
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    items:
-                      $ref: '#/components/schemas/ServiceaccounttypesServiceAccount'
-                    type: array
-                  status:
-                    type: string
-                required:
-                - status
-                - data
-                type: object
-          description: OK
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: List service accounts
-      tags:
-      - serviceaccount
-    post:
-      deprecated: false
-      description: This endpoint creates a service account
-      operationId: CreateServiceAccount
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ServiceaccounttypesPostableServiceAccount'
-      responses:
-        "201":
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    $ref: '#/components/schemas/TypesIdentifiable'
-                  status:
-                    type: string
-                required:
-                - status
-                - data
-                type: object
-          description: Created
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Bad Request
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "409":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Conflict
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: Create service account
-      tags:
-      - serviceaccount
-  /api/v1/service_accounts/{id}:
-    delete:
-      deprecated: false
-      description: This endpoint deletes an existing service account
-      operationId: DeleteServiceAccount
-      parameters:
-      - in: path
-        name: id
-        required: true
-        schema:
-          type: string
-      responses:
-        "204":
-          content:
-            application/json:
-              schema:
-                type: string
-          description: No Content
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Not Found
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: Deletes a service account
-      tags:
-      - serviceaccount
-    get:
-      deprecated: false
-      description: This endpoint gets an existing service account
-      operationId: GetServiceAccount
-      parameters:
-      - in: path
-        name: id
-        required: true
-        schema:
-          type: string
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    $ref: '#/components/schemas/ServiceaccounttypesServiceAccount'
-                  status:
-                    type: string
-                required:
-                - status
-                - data
-                type: object
-          description: OK
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Not Found
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: Gets a service account
-      tags:
-      - serviceaccount
-    put:
-      deprecated: false
-      description: This endpoint updates an existing service account
-      operationId: UpdateServiceAccount
-      parameters:
-      - in: path
-        name: id
-        required: true
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ServiceaccounttypesUpdatableServiceAccount'
-      responses:
-        "204":
-          content:
-            application/json:
-              schema:
-                type: string
-          description: No Content
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Bad Request
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Not Found
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: Updates a service account
-      tags:
-      - serviceaccount
-  /api/v1/service_accounts/{id}/keys:
-    get:
-      deprecated: false
-      description: This endpoint lists the service account keys
-      operationId: ListServiceAccountKeys
-      parameters:
-      - in: path
-        name: id
-        required: true
-        schema:
-          type: string
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    items:
-                      $ref: '#/components/schemas/ServiceaccounttypesFactorAPIKey'
-                    type: array
-                  status:
-                    type: string
-                required:
-                - status
-                - data
-                type: object
-          description: OK
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: List service account keys
-      tags:
-      - serviceaccount
-    post:
-      deprecated: false
-      description: This endpoint creates a service account key
-      operationId: CreateServiceAccountKey
-      parameters:
-      - in: path
-        name: id
-        required: true
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ServiceaccounttypesPostableFactorAPIKey'
-      responses:
-        "201":
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    $ref: '#/components/schemas/ServiceaccounttypesGettableFactorAPIKeyWithKey'
-                  status:
-                    type: string
-                required:
-                - status
-                - data
-                type: object
-          description: Created
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Bad Request
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "409":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Conflict
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: Create a service account key
-      tags:
-      - serviceaccount
-  /api/v1/service_accounts/{id}/keys/{fid}:
-    delete:
-      deprecated: false
-      description: This endpoint revokes an existing service account key
-      operationId: RevokeServiceAccountKey
-      parameters:
-      - in: path
-        name: id
-        required: true
-        schema:
-          type: string
-      - in: path
-        name: fid
-        required: true
-        schema:
-          type: string
-      responses:
-        "204":
-          content:
-            application/json:
-              schema:
-                type: string
-          description: No Content
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Not Found
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: Revoke a service account key
-      tags:
-      - serviceaccount
-    put:
-      deprecated: false
-      description: This endpoint updates an existing service account key
-      operationId: UpdateServiceAccountKey
-      parameters:
-      - in: path
-        name: id
-        required: true
-        schema:
-          type: string
-      - in: path
-        name: fid
-        required: true
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ServiceaccounttypesUpdatableFactorAPIKey'
-      responses:
-        "204":
-          content:
-            application/json:
-              schema:
-                type: string
-          description: No Content
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Bad Request
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Not Found
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: Updates a service account key
-      tags:
-      - serviceaccount
-  /api/v1/service_accounts/{id}/status:
-    put:
-      deprecated: false
-      description: This endpoint updates an existing service account status
-      operationId: UpdateServiceAccountStatus
-      parameters:
-      - in: path
-        name: id
-        required: true
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ServiceaccounttypesUpdatableServiceAccountStatus'
-      responses:
-        "204":
-          content:
-            application/json:
-              schema:
-                type: string
-          description: No Content
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Bad Request
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Not Found
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: Updates a service account status
-      tags:
-      - serviceaccount
-  /api/v1/user:
-    get:
-      deprecated: false
-      description: This endpoint lists all users
-      operationId: ListUsersDeprecated
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    items:
-                      $ref: '#/components/schemas/TypesDeprecatedUser'
-                    type: array
-                  status:
-                    type: string
-                required:
-                - status
-                - data
-                type: object
-          description: OK
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: List users
-      tags:
-      - users
-  /api/v1/user/{id}:
-    delete:
-      deprecated: false
-      description: This endpoint deletes the user by id
-      operationId: DeleteUser
-      parameters:
-      - in: path
-        name: id
-        required: true
-        schema:
-          type: string
-      responses:
-        "204":
-          description: No Content
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Not Found
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: Delete user
-      tags:
-      - users
-    get:
-      deprecated: false
-      description: This endpoint returns the user by id
-      operationId: GetUserDeprecated
-      parameters:
-      - in: path
-        name: id
-        required: true
-        schema:
-          type: string
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    $ref: '#/components/schemas/TypesDeprecatedUser'
-                  status:
-                    type: string
-                required:
-                - status
-                - data
-                type: object
-          description: OK
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Not Found
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: Get user
-      tags:
-      - users
-    put:
-      deprecated: false
-      description: This endpoint updates the user by id
-      operationId: UpdateUserDeprecated
-      parameters:
-      - in: path
-        name: id
-        required: true
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TypesDeprecatedUser'
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    $ref: '#/components/schemas/TypesDeprecatedUser'
-                  status:
-                    type: string
-                required:
-                - status
-                - data
-                type: object
-          description: OK
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Bad Request
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Not Found
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: Update user
-      tags:
-      - users
-  /api/v1/user/me:
-    get:
-      deprecated: false
-      description: This endpoint returns the user I belong to
-      operationId: GetMyUserDeprecated
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    $ref: '#/components/schemas/TypesDeprecatedUser'
-                  status:
-                    type: string
-                required:
-                - status
-                - data
-                type: object
-          description: OK
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - tokenizer: []
-      summary: Get my user
-      tags:
-      - users
-  /api/v1/user/preferences:
-    get:
-      deprecated: false
-      description: This endpoint lists all user preferences
-      operationId: ListUserPreferences
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    items:
-                      $ref: '#/components/schemas/PreferencetypesPreference'
-                    type: array
-                  status:
-                    type: string
-                required:
-                - status
-                - data
-                type: object
-          description: OK
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - VIEWER
-      - tokenizer:
-        - VIEWER
-      summary: List user preferences
-      tags:
-      - preferences
-  /api/v1/user/preferences/{name}:
-    get:
-      deprecated: false
-      description: This endpoint returns the user preference by name
-      operationId: GetUserPreference
-      parameters:
-      - in: path
-        name: name
-        required: true
-        schema:
-          type: string
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    $ref: '#/components/schemas/PreferencetypesPreference'
-                  status:
-                    type: string
-                required:
-                - status
-                - data
-                type: object
-          description: OK
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Not Found
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - VIEWER
-      - tokenizer:
-        - VIEWER
-      summary: Get user preference
-      tags:
-      - preferences
-    put:
-      deprecated: false
-      description: This endpoint updates the user preference by name
-      operationId: UpdateUserPreference
-      parameters:
-      - in: path
-        name: name
-        required: true
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PreferencetypesUpdatablePreference'
-      responses:
-        "204":
-          description: No Content
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Bad Request
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Not Found
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - VIEWER
-      - tokenizer:
-        - VIEWER
-      summary: Update user preference
-      tags:
-      - preferences
-  /api/v2/factor_password/forgot:
-    post:
-      deprecated: false
-      description: This endpoint initiates the forgot password flow by sending a reset
-        password email
-      operationId: ForgotPassword
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TypesPostableForgotPassword'
-      responses:
-        "204":
-          description: No Content
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Bad Request
-        "422":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unprocessable Entity
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      summary: Forgot password
-      tags:
-      - users
-  /api/v2/features:
-    get:
-      deprecated: false
-      description: This endpoint returns the supported features and their details
-      operationId: GetFeatures
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    items:
-                      $ref: '#/components/schemas/FeaturetypesGettableFeature'
-                    type: array
-                  status:
-                    type: string
-                required:
-                - status
-                - data
-                type: object
-          description: OK
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - VIEWER
-      - tokenizer:
-        - VIEWER
-      summary: Get features
-      tags:
-      - features
-  /api/v2/healthz:
-    get:
-      operationId: Healthz
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    $ref: '#/components/schemas/FactoryResponse'
-                  status:
-                    type: string
-                required:
-                - status
-                - data
-                type: object
-          description: OK
-        "503":
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    $ref: '#/components/schemas/FactoryResponse'
-                  status:
-                    type: string
-                required:
-                - status
-                - data
-                type: object
-          description: Service Unavailable
-      summary: Health check
-      tags:
-      - health
-  /api/v2/livez:
-    get:
-      deprecated: false
-      description: ""
-      operationId: Livez
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    $ref: '#/components/schemas/FactoryResponse'
-                  status:
-                    type: string
-                required:
-                - status
-                - data
-                type: object
-          description: OK
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      summary: Liveness check
-      tags:
-      - health
-  /api/v2/metrics:
+  /api/v5/metrics:
     get:
       deprecated: false
       description: This endpoint returns a list of distinct metric names within the
@@ -6299,7 +3049,7 @@ paths:
       summary: List metric names
       tags:
       - metrics
-  /api/v2/metrics/{metric_name}/alerts:
+  /api/v5/metrics/{metric_name}/alerts:
     get:
       deprecated: false
       description: This endpoint returns associated alerts for a specified metric
@@ -6363,7 +3113,7 @@ paths:
       summary: Get metric alerts
       tags:
       - metrics
-  /api/v2/metrics/{metric_name}/attributes:
+  /api/v5/metrics/{metric_name}/attributes:
     get:
       deprecated: false
       description: This endpoint returns attribute keys and their unique values for
@@ -6438,7 +3188,7 @@ paths:
       summary: Get metric attributes
       tags:
       - metrics
-  /api/v2/metrics/{metric_name}/highlights:
+  /api/v5/metrics/{metric_name}/highlights:
     get:
       deprecated: false
       description: This endpoint returns highlights like number of datapoints, totaltimeseries,
@@ -6503,7 +3253,7 @@ paths:
       summary: Get metric highlights
       tags:
       - metrics
-  /api/v2/metrics/{metric_name}/metadata:
+  /api/v5/metrics/{metric_name}/metadata:
     get:
       deprecated: false
       description: This endpoint returns metadata information like metric description,
@@ -6623,7 +3373,7 @@ paths:
       summary: Update metric metadata
       tags:
       - metrics
-  /api/v2/metrics/stats:
+  /api/v5/metrics/stats:
     post:
       deprecated: false
       description: This endpoint provides list of metrics with their number of samples
@@ -6681,7 +3431,7 @@ paths:
       summary: Get metrics statistics
       tags:
       - metrics
-  /api/v2/metrics/treemap:
+  /api/v5/metrics/treemap:
     post:
       deprecated: false
       description: This endpoint returns a treemap visualization showing the proportional
@@ -6739,7 +3489,175 @@ paths:
       summary: Get metrics treemap
       tags:
       - metrics
-  /api/v2/orgs/me:
+  /api/v5/org/preferences:
+    get:
+      deprecated: false
+      description: This endpoint lists all org preferences
+      operationId: ListOrgPreferences
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    items:
+                      $ref: '#/components/schemas/PreferencetypesPreference'
+                    type: array
+                  status:
+                    type: string
+                required:
+                - status
+                - data
+                type: object
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Forbidden
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Internal Server Error
+      security:
+      - api_key:
+        - ADMIN
+      - tokenizer:
+        - ADMIN
+      summary: List org preferences
+      tags:
+      - preferences
+  /api/v5/org/preferences/{name}:
+    get:
+      deprecated: false
+      description: This endpoint returns the org preference by name
+      operationId: GetOrgPreference
+      parameters:
+      - in: path
+        name: name
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: '#/components/schemas/PreferencetypesPreference'
+                  status:
+                    type: string
+                required:
+                - status
+                - data
+                type: object
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Internal Server Error
+      security:
+      - api_key:
+        - ADMIN
+      - tokenizer:
+        - ADMIN
+      summary: Get org preference
+      tags:
+      - preferences
+    put:
+      deprecated: false
+      description: This endpoint updates the org preference by name
+      operationId: UpdateOrgPreference
+      parameters:
+      - in: path
+        name: name
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PreferencetypesUpdatablePreference'
+      responses:
+        "204":
+          description: No Content
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Internal Server Error
+      security:
+      - api_key:
+        - ADMIN
+      - tokenizer:
+        - ADMIN
+      summary: Update org preference
+      tags:
+      - preferences
+  /api/v5/orgs/me:
     get:
       deprecated: false
       description: This endpoint returns the organization I belong to
@@ -6835,52 +3753,11 @@ paths:
       summary: Update my organization
       tags:
       - orgs
-  /api/v2/readyz:
-    get:
-      operationId: Readyz
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    $ref: '#/components/schemas/FactoryResponse'
-                  status:
-                    type: string
-                required:
-                - status
-                - data
-                type: object
-          description: OK
-        "503":
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    $ref: '#/components/schemas/FactoryResponse'
-                  status:
-                    type: string
-                required:
-                - status
-                - data
-                type: object
-          description: Service Unavailable
-      summary: Readiness check
-      tags:
-      - health
-  /api/v2/roles/{id}/users:
+  /api/v5/pats:
     get:
       deprecated: false
-      description: This endpoint returns the users having the role by role id
-      operationId: GetUsersByRoleID
-      parameters:
-      - in: path
-        name: id
-        required: true
-        schema:
-          type: string
+      description: This endpoint lists all api keys
+      operationId: ListAPIKeys
       responses:
         "200":
           content:
@@ -6889,7 +3766,7 @@ paths:
                 properties:
                   data:
                     items:
-                      $ref: '#/components/schemas/TypesUser'
+                      $ref: '#/components/schemas/TypesGettableAPIKey'
                     type: array
                   status:
                     type: string
@@ -6910,12 +3787,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/RenderErrorResponse'
           description: Forbidden
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Not Found
         "500":
           content:
             application/json:
@@ -6927,241 +3798,85 @@ paths:
         - ADMIN
       - tokenizer:
         - ADMIN
-      summary: Get users by role id
+      summary: List api keys
       tags:
       - users
-  /api/v2/sessions:
+    post:
+      deprecated: false
+      description: This endpoint creates an api key
+      operationId: CreateAPIKey
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TypesPostableAPIKey'
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: '#/components/schemas/TypesGettableAPIKey'
+                  status:
+                    type: string
+                required:
+                - status
+                - data
+                type: object
+          description: Created
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Forbidden
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Conflict
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Internal Server Error
+      security:
+      - api_key:
+        - ADMIN
+      - tokenizer:
+        - ADMIN
+      summary: Create api key
+      tags:
+      - users
+  /api/v5/pats/{id}:
     delete:
       deprecated: false
-      description: This endpoint deletes the session
-      operationId: DeleteSession
+      description: This endpoint revokes an api key
+      operationId: RevokeAPIKey
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
       responses:
         "204":
           description: No Content
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Bad Request
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - tokenizer: []
-      summary: Delete session
-      tags:
-      - sessions
-  /api/v2/sessions/context:
-    get:
-      deprecated: false
-      description: This endpoint returns the context for the session
-      operationId: GetSessionContext
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    $ref: '#/components/schemas/AuthtypesSessionContext'
-                  status:
-                    type: string
-                required:
-                - status
-                - data
-                type: object
-          description: OK
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Bad Request
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      summary: Get session context
-      tags:
-      - sessions
-  /api/v2/sessions/email_password:
-    post:
-      deprecated: false
-      description: This endpoint creates a session for a user using email and password.
-      operationId: CreateSessionByEmailPassword
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AuthtypesPostableEmailPasswordSession'
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    $ref: '#/components/schemas/AuthtypesGettableToken'
-                  status:
-                    type: string
-                required:
-                - status
-                - data
-                type: object
-          description: OK
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Bad Request
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Not Found
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      summary: Create session by email and password
-      tags:
-      - sessions
-  /api/v2/sessions/rotate:
-    post:
-      deprecated: false
-      description: This endpoint rotates the session
-      operationId: RotateSession
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AuthtypesPostableRotateToken'
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    $ref: '#/components/schemas/AuthtypesGettableToken'
-                  status:
-                    type: string
-                required:
-                - status
-                - data
-                type: object
-          description: OK
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Bad Request
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      summary: Rotate session
-      tags:
-      - sessions
-  /api/v2/users:
-    get:
-      deprecated: false
-      description: This endpoint lists all users for the organization
-      operationId: ListUsers
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    items:
-                      $ref: '#/components/schemas/TypesUser'
-                    type: array
-                  status:
-                    type: string
-                required:
-                - status
-                - data
-                type: object
-          description: OK
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: List users v2
-      tags:
-      - users
-  /api/v2/users/{id}:
-    get:
-      deprecated: false
-      description: This endpoint returns the user by id
-      operationId: GetUser
-      parameters:
-      - in: path
-        name: id
-        required: true
-        schema:
-          type: string
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    $ref: '#/components/schemas/AuthtypesUserWithRoles'
-                  status:
-                    type: string
-                required:
-                - status
-                - data
-                type: object
-          description: OK
         "401":
           content:
             application/json:
@@ -7191,13 +3906,13 @@ paths:
         - ADMIN
       - tokenizer:
         - ADMIN
-      summary: Get user by user id
+      summary: Revoke api key
       tags:
       - users
     put:
       deprecated: false
-      description: This endpoint updates the user by id
-      operationId: UpdateUser
+      description: This endpoint updates an api key
+      operationId: UpdateAPIKey
       parameters:
       - in: path
         name: id
@@ -7208,9 +3923,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TypesUpdatableUser'
+              $ref: '#/components/schemas/TypesStorableAPIKey'
       responses:
         "204":
+          content:
+            application/json:
+              schema:
+                type: string
           description: No Content
         "400":
           content:
@@ -7247,247 +3966,7 @@ paths:
         - ADMIN
       - tokenizer:
         - ADMIN
-      summary: Update user v2
-      tags:
-      - users
-  /api/v2/users/{id}/roles:
-    get:
-      deprecated: false
-      description: This endpoint returns the user roles by user id
-      operationId: GetRolesByUserID
-      parameters:
-      - in: path
-        name: id
-        required: true
-        schema:
-          type: string
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    items:
-                      $ref: '#/components/schemas/AuthtypesRole'
-                    type: array
-                  status:
-                    type: string
-                required:
-                - status
-                - data
-                type: object
-          description: OK
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Not Found
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: Get user roles
-      tags:
-      - users
-    post:
-      deprecated: false
-      description: This endpoint assigns the role to the user roles by user id
-      operationId: SetRoleByUserID
-      parameters:
-      - in: path
-        name: id
-        required: true
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TypesPostableRole'
-      responses:
-        "200":
-          description: OK
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Not Found
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: Set user roles
-      tags:
-      - users
-  /api/v2/users/{id}/roles/{roleId}:
-    delete:
-      deprecated: false
-      description: This endpoint removes a role from the user by user id and role
-        id
-      operationId: RemoveUserRoleByUserIDAndRoleID
-      parameters:
-      - in: path
-        name: id
-        required: true
-        schema:
-          type: string
-      - in: path
-        name: roleId
-        required: true
-        schema:
-          type: string
-      responses:
-        "204":
-          description: No Content
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Not Found
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: Remove a role from user
-      tags:
-      - users
-  /api/v2/users/me:
-    get:
-      deprecated: false
-      description: This endpoint returns the user I belong to
-      operationId: GetMyUser
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    $ref: '#/components/schemas/AuthtypesUserWithRoles'
-                  status:
-                    type: string
-                required:
-                - status
-                - data
-                type: object
-          description: OK
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - tokenizer: []
-      summary: Get my user v2
-      tags:
-      - users
-    put:
-      deprecated: false
-      description: This endpoint updates the user I belong to
-      operationId: UpdateMyUserV2
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TypesUpdatableUser'
-      responses:
-        "204":
-          description: No Content
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - tokenizer: []
-      summary: Update my user v2
+      summary: Update api key
       tags:
       - users
   /api/v5/query_range:
@@ -7888,6 +4367,1330 @@ paths:
       summary: Query range
       tags:
       - querier
+  /api/v5/readyz:
+    get:
+      operationId: Readyz
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: '#/components/schemas/FactoryResponse'
+                  status:
+                    type: string
+                required:
+                - status
+                - data
+                type: object
+          description: OK
+        "503":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: '#/components/schemas/FactoryResponse'
+                  status:
+                    type: string
+                required:
+                - status
+                - data
+                type: object
+          description: Service Unavailable
+      summary: Readiness check
+      tags:
+      - health
+  /api/v5/resetPassword:
+    post:
+      deprecated: false
+      description: This endpoint resets the password by token
+      operationId: ResetPassword
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TypesPostableResetPassword'
+      responses:
+        "204":
+          description: No Content
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Bad Request
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Conflict
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Internal Server Error
+      summary: Reset password
+      tags:
+      - users
+  /api/v5/roles:
+    get:
+      deprecated: false
+      description: This endpoint lists all roles
+      operationId: ListRoles
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    items:
+                      $ref: '#/components/schemas/AuthtypesRole'
+                    type: array
+                  status:
+                    type: string
+                required:
+                - status
+                - data
+                type: object
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Forbidden
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Internal Server Error
+      security:
+      - api_key:
+        - ADMIN
+      - tokenizer:
+        - ADMIN
+      summary: List roles
+      tags:
+      - role
+    post:
+      deprecated: false
+      description: This endpoint creates a role
+      operationId: CreateRole
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthtypesPostableRole'
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: '#/components/schemas/TypesIdentifiable'
+                  status:
+                    type: string
+                required:
+                - status
+                - data
+                type: object
+          description: Created
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Forbidden
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Conflict
+        "451":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Unavailable For Legal Reasons
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Internal Server Error
+        "501":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Not Implemented
+      security:
+      - api_key:
+        - ADMIN
+      - tokenizer:
+        - ADMIN
+      summary: Create role
+      tags:
+      - role
+  /api/v5/roles/{id}:
+    delete:
+      deprecated: false
+      description: This endpoint deletes a role
+      operationId: DeleteRole
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        "204":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: No Content
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Not Found
+        "451":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Unavailable For Legal Reasons
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Internal Server Error
+        "501":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Not Implemented
+      security:
+      - api_key:
+        - ADMIN
+      - tokenizer:
+        - ADMIN
+      summary: Delete role
+      tags:
+      - role
+    get:
+      deprecated: false
+      description: This endpoint gets a role
+      operationId: GetRole
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: '#/components/schemas/AuthtypesRole'
+                  status:
+                    type: string
+                required:
+                - status
+                - data
+                type: object
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Forbidden
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Internal Server Error
+      security:
+      - api_key:
+        - ADMIN
+      - tokenizer:
+        - ADMIN
+      summary: Get role
+      tags:
+      - role
+    patch:
+      deprecated: false
+      description: This endpoint patches a role
+      operationId: PatchRole
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthtypesPatchableRole'
+      responses:
+        "204":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: No Content
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Not Found
+        "451":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Unavailable For Legal Reasons
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Internal Server Error
+        "501":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Not Implemented
+      security:
+      - api_key:
+        - ADMIN
+      - tokenizer:
+        - ADMIN
+      summary: Patch role
+      tags:
+      - role
+  /api/v5/roles/{id}/relation/{relation}/objects:
+    get:
+      deprecated: false
+      description: Gets all objects connected to the specified role via a given relation
+        type
+      operationId: GetObjects
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: relation
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    items:
+                      $ref: '#/components/schemas/AuthtypesGettableObjects'
+                    type: array
+                  status:
+                    type: string
+                required:
+                - status
+                - data
+                type: object
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Not Found
+        "451":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Unavailable For Legal Reasons
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Internal Server Error
+        "501":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Not Implemented
+      security:
+      - api_key:
+        - ADMIN
+      - tokenizer:
+        - ADMIN
+      summary: Get objects for a role by relation
+      tags:
+      - role
+    patch:
+      deprecated: false
+      description: Patches the objects connected to the specified role via a given
+        relation type
+      operationId: PatchObjects
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: relation
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthtypesPatchableObjects'
+      responses:
+        "204":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: No Content
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Not Found
+        "451":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Unavailable For Legal Reasons
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Internal Server Error
+        "501":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Not Implemented
+      security:
+      - api_key:
+        - ADMIN
+      - tokenizer:
+        - ADMIN
+      summary: Patch objects for a role by relation
+      tags:
+      - role
+  /api/v5/roles/{id}/users:
+    get:
+      deprecated: false
+      description: This endpoint returns the users having the role by role id
+      operationId: GetUsersByRoleID
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    items:
+                      $ref: '#/components/schemas/TypesUser'
+                    type: array
+                  status:
+                    type: string
+                required:
+                - status
+                - data
+                type: object
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Internal Server Error
+      security:
+      - api_key:
+        - ADMIN
+      - tokenizer:
+        - ADMIN
+      summary: Get users by role id
+      tags:
+      - users
+  /api/v5/service_accounts:
+    get:
+      deprecated: false
+      description: This endpoint lists the service accounts for an organisation
+      operationId: ListServiceAccounts
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    items:
+                      $ref: '#/components/schemas/ServiceaccounttypesServiceAccount'
+                    type: array
+                  status:
+                    type: string
+                required:
+                - status
+                - data
+                type: object
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Forbidden
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Internal Server Error
+      security:
+      - api_key:
+        - ADMIN
+      - tokenizer:
+        - ADMIN
+      summary: List service accounts
+      tags:
+      - serviceaccount
+    post:
+      deprecated: false
+      description: This endpoint creates a service account
+      operationId: CreateServiceAccount
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceaccounttypesPostableServiceAccount'
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: '#/components/schemas/TypesIdentifiable'
+                  status:
+                    type: string
+                required:
+                - status
+                - data
+                type: object
+          description: Created
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Forbidden
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Conflict
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Internal Server Error
+      security:
+      - api_key:
+        - ADMIN
+      - tokenizer:
+        - ADMIN
+      summary: Create service account
+      tags:
+      - serviceaccount
+  /api/v5/service_accounts/{id}:
+    delete:
+      deprecated: false
+      description: This endpoint deletes an existing service account
+      operationId: DeleteServiceAccount
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        "204":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: No Content
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Internal Server Error
+      security:
+      - api_key:
+        - ADMIN
+      - tokenizer:
+        - ADMIN
+      summary: Deletes a service account
+      tags:
+      - serviceaccount
+    get:
+      deprecated: false
+      description: This endpoint gets an existing service account
+      operationId: GetServiceAccount
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: '#/components/schemas/ServiceaccounttypesServiceAccount'
+                  status:
+                    type: string
+                required:
+                - status
+                - data
+                type: object
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Internal Server Error
+      security:
+      - api_key:
+        - ADMIN
+      - tokenizer:
+        - ADMIN
+      summary: Gets a service account
+      tags:
+      - serviceaccount
+    put:
+      deprecated: false
+      description: This endpoint updates an existing service account
+      operationId: UpdateServiceAccount
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceaccounttypesUpdatableServiceAccount'
+      responses:
+        "204":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: No Content
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Internal Server Error
+      security:
+      - api_key:
+        - ADMIN
+      - tokenizer:
+        - ADMIN
+      summary: Updates a service account
+      tags:
+      - serviceaccount
+  /api/v5/service_accounts/{id}/keys:
+    get:
+      deprecated: false
+      description: This endpoint lists the service account keys
+      operationId: ListServiceAccountKeys
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    items:
+                      $ref: '#/components/schemas/ServiceaccounttypesFactorAPIKey'
+                    type: array
+                  status:
+                    type: string
+                required:
+                - status
+                - data
+                type: object
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Forbidden
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Internal Server Error
+      security:
+      - api_key:
+        - ADMIN
+      - tokenizer:
+        - ADMIN
+      summary: List service account keys
+      tags:
+      - serviceaccount
+    post:
+      deprecated: false
+      description: This endpoint creates a service account key
+      operationId: CreateServiceAccountKey
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceaccounttypesPostableFactorAPIKey'
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: '#/components/schemas/ServiceaccounttypesGettableFactorAPIKeyWithKey'
+                  status:
+                    type: string
+                required:
+                - status
+                - data
+                type: object
+          description: Created
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Forbidden
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Conflict
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Internal Server Error
+      security:
+      - api_key:
+        - ADMIN
+      - tokenizer:
+        - ADMIN
+      summary: Create a service account key
+      tags:
+      - serviceaccount
+  /api/v5/service_accounts/{id}/keys/{fid}:
+    delete:
+      deprecated: false
+      description: This endpoint revokes an existing service account key
+      operationId: RevokeServiceAccountKey
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: fid
+        required: true
+        schema:
+          type: string
+      responses:
+        "204":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: No Content
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Internal Server Error
+      security:
+      - api_key:
+        - ADMIN
+      - tokenizer:
+        - ADMIN
+      summary: Revoke a service account key
+      tags:
+      - serviceaccount
+    put:
+      deprecated: false
+      description: This endpoint updates an existing service account key
+      operationId: UpdateServiceAccountKey
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: fid
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceaccounttypesUpdatableFactorAPIKey'
+      responses:
+        "204":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: No Content
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Internal Server Error
+      security:
+      - api_key:
+        - ADMIN
+      - tokenizer:
+        - ADMIN
+      summary: Updates a service account key
+      tags:
+      - serviceaccount
+  /api/v5/service_accounts/{id}/status:
+    put:
+      deprecated: false
+      description: This endpoint updates an existing service account status
+      operationId: UpdateServiceAccountStatus
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceaccounttypesUpdatableServiceAccountStatus'
+      responses:
+        "204":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: No Content
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Internal Server Error
+      security:
+      - api_key:
+        - ADMIN
+      - tokenizer:
+        - ADMIN
+      summary: Updates a service account status
+      tags:
+      - serviceaccount
+  /api/v5/sessions:
+    delete:
+      deprecated: false
+      description: This endpoint deletes the session
+      operationId: DeleteSession
+      responses:
+        "204":
+          description: No Content
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Forbidden
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Internal Server Error
+      security:
+      - tokenizer: []
+      summary: Delete session
+      tags:
+      - sessions
+  /api/v5/sessions/context:
+    get:
+      deprecated: false
+      description: This endpoint returns the context for the session
+      operationId: GetSessionContext
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: '#/components/schemas/AuthtypesSessionContext'
+                  status:
+                    type: string
+                required:
+                - status
+                - data
+                type: object
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Bad Request
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Internal Server Error
+      summary: Get session context
+      tags:
+      - sessions
+  /api/v5/sessions/email_password:
+    post:
+      deprecated: false
+      description: This endpoint creates a session for a user using email and password.
+      operationId: CreateSessionByEmailPassword
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthtypesPostableEmailPasswordSession'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: '#/components/schemas/AuthtypesGettableToken'
+                  status:
+                    type: string
+                required:
+                - status
+                - data
+                type: object
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Bad Request
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Internal Server Error
+      summary: Create session by email and password
+      tags:
+      - sessions
+  /api/v5/sessions/rotate:
+    post:
+      deprecated: false
+      description: This endpoint rotates the session
+      operationId: RotateSession
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthtypesPostableRotateToken'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: '#/components/schemas/AuthtypesGettableToken'
+                  status:
+                    type: string
+                required:
+                - status
+                - data
+                type: object
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Bad Request
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Internal Server Error
+      summary: Rotate session
+      tags:
+      - sessions
   /api/v5/substitute_vars:
     post:
       deprecated: false
@@ -7945,3 +5748,613 @@ paths:
       summary: Replace variables
       tags:
       - querier
+  /api/v5/user/{id}:
+    delete:
+      deprecated: false
+      description: This endpoint deletes the user by id
+      operationId: DeleteUser
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        "204":
+          description: No Content
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Internal Server Error
+      security:
+      - api_key:
+        - ADMIN
+      - tokenizer:
+        - ADMIN
+      summary: Delete user
+      tags:
+      - users
+  /api/v5/user/preferences:
+    get:
+      deprecated: false
+      description: This endpoint lists all user preferences
+      operationId: ListUserPreferences
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    items:
+                      $ref: '#/components/schemas/PreferencetypesPreference'
+                    type: array
+                  status:
+                    type: string
+                required:
+                - status
+                - data
+                type: object
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Forbidden
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Internal Server Error
+      security:
+      - api_key:
+        - VIEWER
+      - tokenizer:
+        - VIEWER
+      summary: List user preferences
+      tags:
+      - preferences
+  /api/v5/user/preferences/{name}:
+    get:
+      deprecated: false
+      description: This endpoint returns the user preference by name
+      operationId: GetUserPreference
+      parameters:
+      - in: path
+        name: name
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: '#/components/schemas/PreferencetypesPreference'
+                  status:
+                    type: string
+                required:
+                - status
+                - data
+                type: object
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Internal Server Error
+      security:
+      - api_key:
+        - VIEWER
+      - tokenizer:
+        - VIEWER
+      summary: Get user preference
+      tags:
+      - preferences
+    put:
+      deprecated: false
+      description: This endpoint updates the user preference by name
+      operationId: UpdateUserPreference
+      parameters:
+      - in: path
+        name: name
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PreferencetypesUpdatablePreference'
+      responses:
+        "204":
+          description: No Content
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Internal Server Error
+      security:
+      - api_key:
+        - VIEWER
+      - tokenizer:
+        - VIEWER
+      summary: Update user preference
+      tags:
+      - preferences
+  /api/v5/users:
+    get:
+      deprecated: false
+      description: This endpoint lists all users for the organization
+      operationId: ListUsers
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    items:
+                      $ref: '#/components/schemas/TypesUser'
+                    type: array
+                  status:
+                    type: string
+                required:
+                - status
+                - data
+                type: object
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Forbidden
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Internal Server Error
+      security:
+      - api_key:
+        - ADMIN
+      - tokenizer:
+        - ADMIN
+      summary: List users v2
+      tags:
+      - users
+  /api/v5/users/{id}:
+    get:
+      deprecated: false
+      description: This endpoint returns the user by id
+      operationId: GetUser
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: '#/components/schemas/AuthtypesUserWithRoles'
+                  status:
+                    type: string
+                required:
+                - status
+                - data
+                type: object
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Internal Server Error
+      security:
+      - api_key:
+        - ADMIN
+      - tokenizer:
+        - ADMIN
+      summary: Get user by user id
+      tags:
+      - users
+    put:
+      deprecated: false
+      description: This endpoint updates the user by id
+      operationId: UpdateUser
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TypesUpdatableUser'
+      responses:
+        "204":
+          description: No Content
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Internal Server Error
+      security:
+      - api_key:
+        - ADMIN
+      - tokenizer:
+        - ADMIN
+      summary: Update user v2
+      tags:
+      - users
+  /api/v5/users/{id}/roles:
+    get:
+      deprecated: false
+      description: This endpoint returns the user roles by user id
+      operationId: GetRolesByUserID
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    items:
+                      $ref: '#/components/schemas/AuthtypesRole'
+                    type: array
+                  status:
+                    type: string
+                required:
+                - status
+                - data
+                type: object
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Internal Server Error
+      security:
+      - api_key:
+        - ADMIN
+      - tokenizer:
+        - ADMIN
+      summary: Get user roles
+      tags:
+      - users
+    post:
+      deprecated: false
+      description: This endpoint assigns the role to the user roles by user id
+      operationId: SetRoleByUserID
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TypesPostableRole'
+      responses:
+        "200":
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Internal Server Error
+      security:
+      - api_key:
+        - ADMIN
+      - tokenizer:
+        - ADMIN
+      summary: Set user roles
+      tags:
+      - users
+  /api/v5/users/{id}/roles/{roleId}:
+    delete:
+      deprecated: false
+      description: This endpoint removes a role from the user by user id and role
+        id
+      operationId: RemoveUserRoleByUserIDAndRoleID
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: roleId
+        required: true
+        schema:
+          type: string
+      responses:
+        "204":
+          description: No Content
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Internal Server Error
+      security:
+      - api_key:
+        - ADMIN
+      - tokenizer:
+        - ADMIN
+      summary: Remove a role from user
+      tags:
+      - users
+  /api/v5/users/me:
+    get:
+      deprecated: false
+      description: This endpoint returns the user I belong to
+      operationId: GetMyUser
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: '#/components/schemas/AuthtypesUserWithRoles'
+                  status:
+                    type: string
+                required:
+                - status
+                - data
+                type: object
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Forbidden
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Internal Server Error
+      security:
+      - tokenizer: []
+      summary: Get my user
+      tags:
+      - users
+    put:
+      deprecated: false
+      description: This endpoint updates the user I belong to
+      operationId: UpdateMyUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TypesUpdatableUser'
+      responses:
+        "204":
+          description: No Content
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Forbidden
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderErrorResponse'
+          description: Internal Server Error
+      security:
+      - tokenizer: []
+      summary: Update my user
+      tags:
+      - users

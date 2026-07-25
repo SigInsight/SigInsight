@@ -7,7 +7,7 @@ jest.mock('api/browser/localstorage/get', () => ({
 	default: jest.fn(() => 'mock-token'),
 }));
 
-jest.mock('api/v2/sessions/rotate/post', () => ({
+jest.mock('api/v5/sessions/rotate/post', () => ({
 	__esModule: true,
 	default: jest.fn(() =>
 		Promise.resolve({

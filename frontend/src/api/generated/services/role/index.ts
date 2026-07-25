@@ -41,14 +41,14 @@ import type {
  */
 export const listRoles = (signal?: AbortSignal) => {
 	return GeneratedAPIInstance<ListRoles200>({
-		url: `/api/v1/roles`,
+		url: `/api/v5/roles`,
 		method: 'GET',
 		signal,
 	});
 };
 
 export const getListRolesQueryKey = () => {
-	return [`/api/v1/roles`] as const;
+	return [`/api/v5/roles`] as const;
 };
 
 export const getListRolesQueryOptions = <
@@ -122,7 +122,7 @@ export const createRole = (
 	signal?: AbortSignal,
 ) => {
 	return GeneratedAPIInstance<CreateRole201>({
-		url: `/api/v1/roles`,
+		url: `/api/v5/roles`,
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		data: authtypesPostableRoleDTO,
@@ -202,7 +202,7 @@ export const useCreateRole = <
  */
 export const deleteRole = ({ id }: DeleteRolePathParameters) => {
 	return GeneratedAPIInstance<string>({
-		url: `/api/v1/roles/${id}`,
+		url: `/api/v5/roles/${id}`,
 		method: 'DELETE',
 	});
 };
@@ -282,14 +282,14 @@ export const getRole = (
 	signal?: AbortSignal,
 ) => {
 	return GeneratedAPIInstance<GetRole200>({
-		url: `/api/v1/roles/${id}`,
+		url: `/api/v5/roles/${id}`,
 		method: 'GET',
 		signal,
 	});
 };
 
 export const getGetRoleQueryKey = ({ id }: GetRolePathParameters) => {
-	return [`/api/v1/roles/${id}`] as const;
+	return [`/api/v5/roles/${id}`] as const;
 };
 
 export const getGetRoleQueryOptions = <
@@ -373,7 +373,7 @@ export const patchRole = (
 	authtypesPatchableRoleDTO: BodyType<AuthtypesPatchableRoleDTO>,
 ) => {
 	return GeneratedAPIInstance<string>({
-		url: `/api/v1/roles/${id}`,
+		url: `/api/v5/roles/${id}`,
 		method: 'PATCH',
 		headers: { 'Content-Type': 'application/json' },
 		data: authtypesPatchableRoleDTO,
@@ -470,7 +470,7 @@ export const getObjects = (
 	signal?: AbortSignal,
 ) => {
 	return GeneratedAPIInstance<GetObjects200>({
-		url: `/api/v1/roles/${id}/relation/${relation}/objects`,
+		url: `/api/v5/roles/${id}/relation/${relation}/objects`,
 		method: 'GET',
 		signal,
 	});
@@ -480,7 +480,7 @@ export const getGetObjectsQueryKey = ({
 	id,
 	relation,
 }: GetObjectsPathParameters) => {
-	return [`/api/v1/roles/${id}/relation/${relation}/objects`] as const;
+	return [`/api/v5/roles/${id}/relation/${relation}/objects`] as const;
 };
 
 export const getGetObjectsQueryOptions = <
@@ -573,7 +573,7 @@ export const patchObjects = (
 	authtypesPatchableObjectsDTO: BodyType<AuthtypesPatchableObjectsDTO>,
 ) => {
 	return GeneratedAPIInstance<string>({
-		url: `/api/v1/roles/${id}/relation/${relation}/objects`,
+		url: `/api/v5/roles/${id}/relation/${relation}/objects`,
 		method: 'PATCH',
 		headers: { 'Content-Type': 'application/json' },
 		data: authtypesPatchableObjectsDTO,

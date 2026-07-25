@@ -572,54 +572,47 @@ export const WidgetHeaderProps: any = {
 					queryType: 'builder',
 					panelType: 'table',
 					fillGaps: false,
-					builderQueries: {
-						A: {
-							aggregateAttribute: {
-								dataType: 'float64',
-								id: 'signoz_calls_total--float64--Sum--true',
-								key: 'signoz_calls_total',
-								type: 'Sum',
+					unit: undefined,
+					queries: [
+						{
+							type: 'builder_query',
+							spec: {
+								name: 'A',
+								signal: 'metrics',
+								stepInterval: 60,
+								filter: { expression: '' },
+								groupBy: [
+									{
+										name: 'resource_host_name',
+										fieldDataType: 'string',
+										fieldContext: 'attribute',
+									},
+									{
+										name: 'service_name',
+										fieldDataType: 'string',
+										fieldContext: 'attribute',
+									},
+									{
+										name: 'operation',
+										fieldDataType: 'string',
+										fieldContext: 'attribute',
+									},
+								],
+								aggregations: [
+									{
+										metricName: 'signoz_calls_total',
+										temporality: '',
+										timeAggregation: 'rate',
+										spaceAggregation: 'sum',
+										reduceTo: ReduceOperators.AVG,
+									},
+								],
+								functions: [],
+								disabled: false,
+								legend: '',
 							},
-							aggregateOperator: 'rate',
-							dataSource: 'metrics',
-							disabled: false,
-							expression: 'A',
-							filters: {
-								items: [],
-								op: 'AND',
-							},
-							functions: [],
-							groupBy: [
-								{
-									dataType: 'string',
-									id: 'resource_host_name--string--tag--false',
-									key: 'resource_host_name',
-									type: 'tag',
-								},
-								{
-									dataType: 'string',
-									id: 'service_name--string--tag--false',
-									key: 'service_name',
-									type: 'tag',
-								},
-								{
-									dataType: 'string',
-									id: 'operation--string--tag--false',
-									key: 'operation',
-									type: 'tag',
-								},
-							],
-							having: [],
-							legend: '',
-							limit: null,
-							orderBy: [],
-							queryName: 'A',
-							reduceTo: ReduceOperators.AVG,
-							spaceAggregation: 'sum',
-							stepInterval: 60,
-							timeAggregation: 'rate',
 						},
-					},
+					],
 				},
 			},
 		},

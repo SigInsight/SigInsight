@@ -1,8 +1,8 @@
 import APIError from 'types/api/error';
-import { QueryDataV3 } from 'types/api/widgets/getQuery';
+import { QueryRangeResult } from 'types/api/widgets/getQuery';
 
 export type LogsExplorerTableProps = {
-	data: QueryDataV3[];
+	data: QueryRangeResult[];
 	isLoading: boolean;
 	isError: boolean;
 	error?: Error | APIError;

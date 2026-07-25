@@ -186,6 +186,6 @@ export const getUplotChartDataForAnomalyDetection = (
 	apiResponse: MetricRangePayloadProps,
 	isDarkMode: boolean,
 ): Record<string, { [x: string]: any; data: number[][]; color: string }> => {
-	const anomalyDetectionData = apiResponse?.data?.newResult?.data?.result;
+	const anomalyDetectionData = apiResponse?.data?.queryResult?.data?.result;
 	return processAnomalyDetectionData(anomalyDetectionData, isDarkMode);
 };

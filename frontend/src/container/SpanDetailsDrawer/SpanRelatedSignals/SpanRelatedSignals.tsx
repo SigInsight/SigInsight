@@ -15,7 +15,7 @@ import dayjs from 'dayjs';
 import { useIsDarkMode } from 'hooks/useDarkMode';
 import { BarChart2, Compass, X } from 'lucide-react';
 import { BaseAutocompleteData } from 'types/api/queryBuilder/queryAutocompleteResponse';
-import { Span } from 'types/api/trace/getTraceV2';
+import { Span } from 'types/api/trace/getTraceWaterfall';
 import { DataSource, LogsAggregatorOperator } from 'types/common/queryBuilder';
 
 import { RelatedSignalsViews } from '../constants';

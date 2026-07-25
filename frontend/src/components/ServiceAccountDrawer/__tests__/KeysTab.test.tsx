@@ -12,7 +12,7 @@ jest.mock('@signozhq/sonner', () => ({
 
 const mockToast = jest.mocked(toast);
 
-const SA_KEY_ENDPOINT = '*/api/v1/service_accounts/sa-1/keys/:fid';
+const SA_KEY_ENDPOINT = '*/api/v5/service_accounts/sa-1/keys/:fid';
 
 const keys: ServiceaccounttypesFactorAPIKeyDTO[] = [
 	{

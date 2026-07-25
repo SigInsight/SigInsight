@@ -2,6 +2,7 @@ package rules
 
 import (
 	"context"
+	"github.com/SigNoz/signoz/pkg/types/timeseriestypes"
 	"log/slog"
 	"strings"
 	"testing"
@@ -17,10 +18,11 @@ import (
 	"github.com/SigNoz/signoz/pkg/prometheus"
 	"github.com/SigNoz/signoz/pkg/prometheus/prometheustest"
 	"github.com/SigNoz/signoz/pkg/query-service/app/clickhouseReader"
-	v3 "github.com/SigNoz/signoz/pkg/query-service/model/v3"
+	"github.com/SigNoz/signoz/pkg/query-service/model/querytypes"
 	qslabels "github.com/SigNoz/signoz/pkg/query-service/utils/labels"
 	"github.com/SigNoz/signoz/pkg/telemetrystore"
 	"github.com/SigNoz/signoz/pkg/telemetrystore/telemetrystoretest"
+	qbtypes "github.com/SigNoz/signoz/pkg/types/querybuildertypes/querybuildertypesv5"
 	"github.com/SigNoz/signoz/pkg/types/ruletypes"
 	"github.com/SigNoz/signoz/pkg/valuer"
 )
@@ -36,6 +38,16 @@ func getVectorValues(vectors []ruletypes.Sample) []float64 {
 	return values
 }
 
+func promCompositeQuery(query string) *ruletypes.CompositeQuery {
+	return &ruletypes.CompositeQuery{
+		QueryType: querytypes.QueryTypePromQL,
+		Queries: []qbtypes.QueryEnvelope{{
+			Type: qbtypes.QueryTypePromQL,
+			Spec: qbtypes.PromQuery{Name: "A", Query: query},
+		}},
+	}
+}
+
 func TestPromRuleEval(t *testing.T) {
 	postableRule := ruletypes.PostableRule{
 		AlertName: "Test Rule",
@@ -46,14 +58,8 @@ func TestPromRuleEval(t *testing.T) {
 			Frequency:  valuer.MustParseTextDuration("1m"),
 		}},
 		RuleCondition: &ruletypes.RuleCondition{
-			CompositeQuery: &v3.CompositeQuery{
-				QueryType: v3.QueryTypePromQL,
-				PromQueries: map[string]*v3.PromQuery{
-					"A": {
-						Query: "dummy_query", // This is not used in the test
-					},
-				},
-			},
+			SelectedQuery:  "A",
+			CompositeQuery: promCompositeQuery("dummy_query"),
 		},
 	}
 
@@ -63,7 +69,7 @@ func TestPromRuleEval(t *testing.T) {
 		compareOp            string
 		matchType            string
 		target               float64
-		expectedAlertSample  v3.Point
+		expectedAlertSample  timeseriestypes.Point
 		expectedVectorValues []float64 // Expected values in result vector
 	}{
 		// Test cases for Equals Always
@@ -81,7 +87,7 @@ func TestPromRuleEval(t *testing.T) {
 			compareOp:            "3", // Equals
 			matchType:            "2", // Always
 			target:               0.0,
-			expectedAlertSample:  v3.Point{Value: 0.0},
+			expectedAlertSample:  timeseriestypes.Point{Value: 0.0},
 			expectedVectorValues: []float64{0.0},
 		},
 		{
@@ -146,7 +152,7 @@ func TestPromRuleEval(t *testing.T) {
 			compareOp:            "3", // Equals
 			matchType:            "1", // Once
 			target:               0.0,
-			expectedAlertSample:  v3.Point{Value: 0.0},
+			expectedAlertSample:  timeseriestypes.Point{Value: 0.0},
 			expectedVectorValues: []float64{0.0},
 		},
 		{
@@ -163,7 +169,7 @@ func TestPromRuleEval(t *testing.T) {
 			compareOp:           "3", // Equals
 			matchType:           "1", // Once
 			target:              0.0,
-			expectedAlertSample: v3.Point{Value: 0.0},
+			expectedAlertSample: timeseriestypes.Point{Value: 0.0},
 		},
 		{
 			values: pql.Series{
@@ -179,7 +185,7 @@ func TestPromRuleEval(t *testing.T) {
 			compareOp:           "3", // Equals
 			matchType:           "1", // Once
 			target:              0.0,
-			expectedAlertSample: v3.Point{Value: 0.0},
+			expectedAlertSample: timeseriestypes.Point{Value: 0.0},
 		},
 		{
 			values: pql.Series{
@@ -212,7 +218,7 @@ func TestPromRuleEval(t *testing.T) {
 			compareOp:            "1", // Greater Than
 			matchType:            "2", // Always
 			target:               1.5,
-			expectedAlertSample:  v3.Point{Value: 2.0},
+			expectedAlertSample:  timeseriestypes.Point{Value: 2.0},
 			expectedVectorValues: []float64{2.0},
 		},
 		{
@@ -229,7 +235,7 @@ func TestPromRuleEval(t *testing.T) {
 			compareOp:           "1", // Above
 			matchType:           "2", // Always
 			target:              2.0,
-			expectedAlertSample: v3.Point{Value: 3.0},
+			expectedAlertSample: timeseriestypes.Point{Value: 3.0},
 		},
 		{
 			values: pql.Series{
@@ -245,7 +251,7 @@ func TestPromRuleEval(t *testing.T) {
 			compareOp:           "2", // Below
 			matchType:           "2", // Always
 			target:              13.0,
-			expectedAlertSample: v3.Point{Value: 12.0},
+			expectedAlertSample: timeseriestypes.Point{Value: 12.0},
 		},
 		{
 			values: pql.Series{
@@ -277,7 +283,7 @@ func TestPromRuleEval(t *testing.T) {
 			compareOp:            "1", // Greater Than
 			matchType:            "1", // Once
 			target:               4.5,
-			expectedAlertSample:  v3.Point{Value: 10.0},
+			expectedAlertSample:  timeseriestypes.Point{Value: 10.0},
 			expectedVectorValues: []float64{10.0},
 		},
 		{
@@ -340,7 +346,7 @@ func TestPromRuleEval(t *testing.T) {
 			compareOp:           "4", // Not Equals
 			matchType:           "2", // Always
 			target:              0.0,
-			expectedAlertSample: v3.Point{Value: 1.0},
+			expectedAlertSample: timeseriestypes.Point{Value: 1.0},
 		},
 		{
 			values: pql.Series{
@@ -372,7 +378,7 @@ func TestPromRuleEval(t *testing.T) {
 			compareOp:           "4", // Not Equals
 			matchType:           "1", // Once
 			target:              0.0,
-			expectedAlertSample: v3.Point{Value: 1.0},
+			expectedAlertSample: timeseriestypes.Point{Value: 1.0},
 		},
 		{
 			values: pql.Series{
@@ -403,7 +409,7 @@ func TestPromRuleEval(t *testing.T) {
 			compareOp:           "4", // Not Equals
 			matchType:           "1", // Once
 			target:              0.0,
-			expectedAlertSample: v3.Point{Value: 1.0},
+			expectedAlertSample: timeseriestypes.Point{Value: 1.0},
 		},
 		{
 			values: pql.Series{
@@ -419,7 +425,7 @@ func TestPromRuleEval(t *testing.T) {
 			compareOp:           "4", // Not Equals
 			matchType:           "1", // Once
 			target:              0.0,
-			expectedAlertSample: v3.Point{Value: 1.0},
+			expectedAlertSample: timeseriestypes.Point{Value: 1.0},
 		},
 		// Test cases for Less Than Always
 		{
@@ -436,7 +442,7 @@ func TestPromRuleEval(t *testing.T) {
 			compareOp:           "2", // Less Than
 			matchType:           "2", // Always
 			target:              4,
-			expectedAlertSample: v3.Point{Value: 1.5},
+			expectedAlertSample: timeseriestypes.Point{Value: 1.5},
 		},
 		{
 			values: pql.Series{
@@ -468,7 +474,7 @@ func TestPromRuleEval(t *testing.T) {
 			compareOp:           "2", // Less Than
 			matchType:           "1", // Once
 			target:              4,
-			expectedAlertSample: v3.Point{Value: 2.5},
+			expectedAlertSample: timeseriestypes.Point{Value: 2.5},
 		},
 		{
 			values: pql.Series{
@@ -500,7 +506,7 @@ func TestPromRuleEval(t *testing.T) {
 			compareOp:           "3", // Equals
 			matchType:           "3", // OnAverage
 			target:              6.0,
-			expectedAlertSample: v3.Point{Value: 6.0},
+			expectedAlertSample: timeseriestypes.Point{Value: 6.0},
 		},
 		{
 			values: pql.Series{
@@ -531,7 +537,7 @@ func TestPromRuleEval(t *testing.T) {
 			compareOp:           "4", // Not Equals
 			matchType:           "3", // OnAverage
 			target:              4.5,
-			expectedAlertSample: v3.Point{Value: 6.0},
+			expectedAlertSample: timeseriestypes.Point{Value: 6.0},
 		},
 		{
 			values: pql.Series{
@@ -562,7 +568,7 @@ func TestPromRuleEval(t *testing.T) {
 			compareOp:           "1", // Greater Than
 			matchType:           "3", // OnAverage
 			target:              4.5,
-			expectedAlertSample: v3.Point{Value: 6.0},
+			expectedAlertSample: timeseriestypes.Point{Value: 6.0},
 		},
 		{
 			values: pql.Series{
@@ -578,7 +584,7 @@ func TestPromRuleEval(t *testing.T) {
 			compareOp:           "2", // Less Than
 			matchType:           "3", // OnAverage
 			target:              12.0,
-			expectedAlertSample: v3.Point{Value: 6.0},
+			expectedAlertSample: timeseriestypes.Point{Value: 6.0},
 		},
 		// Test cases for InTotal
 		{
@@ -595,7 +601,7 @@ func TestPromRuleEval(t *testing.T) {
 			compareOp:           "3", // Equals
 			matchType:           "4", // InTotal
 			target:              30.0,
-			expectedAlertSample: v3.Point{Value: 30.0},
+			expectedAlertSample: timeseriestypes.Point{Value: 30.0},
 		},
 		{
 			values: pql.Series{
@@ -622,7 +628,7 @@ func TestPromRuleEval(t *testing.T) {
 			compareOp:           "4", // Not Equals
 			matchType:           "4", // InTotal
 			target:              9.0,
-			expectedAlertSample: v3.Point{Value: 10.0},
+			expectedAlertSample: timeseriestypes.Point{Value: 10.0},
 		},
 		{
 			values: pql.Series{
@@ -646,7 +652,7 @@ func TestPromRuleEval(t *testing.T) {
 			compareOp:           "1", // Greater Than
 			matchType:           "4", // InTotal
 			target:              10.0,
-			expectedAlertSample: v3.Point{Value: 20.0},
+			expectedAlertSample: timeseriestypes.Point{Value: 20.0},
 		},
 		{
 			values: pql.Series{
@@ -671,7 +677,7 @@ func TestPromRuleEval(t *testing.T) {
 			compareOp:           "2", // Less Than
 			matchType:           "4", // InTotal
 			target:              30.0,
-			expectedAlertSample: v3.Point{Value: 20.0},
+			expectedAlertSample: timeseriestypes.Point{Value: 20.0},
 		},
 		{
 			values: pql.Series{
@@ -753,14 +759,8 @@ func TestPromRuleUnitCombinations(t *testing.T) {
 			Frequency:  valuer.MustParseTextDuration("1m"),
 		}},
 		RuleCondition: &ruletypes.RuleCondition{
-			CompositeQuery: &v3.CompositeQuery{
-				QueryType: v3.QueryTypePromQL,
-				PromQueries: map[string]*v3.PromQuery{
-					"A": {
-						Query: "test_metric",
-					},
-				},
-			},
+			SelectedQuery:  "A",
+			CompositeQuery: promCompositeQuery("test_metric"),
 		},
 	}
 
@@ -1012,15 +1012,9 @@ func _Enable_this_after_9146_issue_fix_is_merged_TestPromRuleNoData(t *testing.T
 			Frequency:  valuer.MustParseTextDuration("1m"),
 		}},
 		RuleCondition: &ruletypes.RuleCondition{
-			CompositeQuery: &v3.CompositeQuery{
-				QueryType: v3.QueryTypePromQL,
-				PromQueries: map[string]*v3.PromQuery{
-					"A": {
-						Query: "test_metric",
-					},
-				},
-			},
-			AlertOnAbsent: true,
+			SelectedQuery:  "A",
+			CompositeQuery: promCompositeQuery("test_metric"),
+			AlertOnAbsent:  true,
 		},
 	}
 
@@ -1123,14 +1117,8 @@ func TestMultipleThresholdPromRule(t *testing.T) {
 			Frequency:  valuer.MustParseTextDuration("1m"),
 		}},
 		RuleCondition: &ruletypes.RuleCondition{
-			CompositeQuery: &v3.CompositeQuery{
-				QueryType: v3.QueryTypePromQL,
-				PromQueries: map[string]*v3.PromQuery{
-					"A": {
-						Query: "test_metric",
-					},
-				},
-			},
+			SelectedQuery:  "A",
+			CompositeQuery: promCompositeQuery("test_metric"),
 		},
 	}
 
@@ -1358,14 +1346,10 @@ func TestPromRule_NoData(t *testing.T) {
 			Frequency:  valuer.MustParseTextDuration("1m"),
 		}},
 		RuleCondition: &ruletypes.RuleCondition{
-			CompareOp: ruletypes.ValueIsAbove,
-			MatchType: ruletypes.AtleastOnce,
-			CompositeQuery: &v3.CompositeQuery{
-				QueryType: v3.QueryTypePromQL,
-				PromQueries: map[string]*v3.PromQuery{
-					"A": {Query: "test_metric"},
-				},
-			},
+			CompareOp:      ruletypes.ValueIsAbove,
+			MatchType:      ruletypes.AtleastOnce,
+			SelectedQuery:  "A",
+			CompositeQuery: promCompositeQuery("test_metric"),
 			Thresholds: &ruletypes.RuleThresholdData{
 				Kind: ruletypes.BasicThresholdKind,
 				Spec: ruletypes.BasicRuleThresholds{{Name: "Test no data"}},
@@ -1481,16 +1465,12 @@ func TestPromRule_NoData_AbsentFor(t *testing.T) {
 			Frequency:  valuer.MustParseTextDuration("1m"),
 		}},
 		RuleCondition: &ruletypes.RuleCondition{
-			CompareOp:     ruletypes.ValueIsAbove,
-			MatchType:     ruletypes.AtleastOnce,
-			AlertOnAbsent: true,
-			Target:        &target,
-			CompositeQuery: &v3.CompositeQuery{
-				QueryType: v3.QueryTypePromQL,
-				PromQueries: map[string]*v3.PromQuery{
-					"A": {Query: "test_metric"},
-				},
-			},
+			CompareOp:      ruletypes.ValueIsAbove,
+			MatchType:      ruletypes.AtleastOnce,
+			AlertOnAbsent:  true,
+			Target:         &target,
+			SelectedQuery:  "A",
+			CompositeQuery: promCompositeQuery("test_metric"),
 			Thresholds: &ruletypes.RuleThresholdData{
 				Kind: ruletypes.BasicThresholdKind,
 				Spec: ruletypes.BasicRuleThresholds{{
@@ -1632,14 +1612,10 @@ func TestPromRuleEval_RequireMinPoints(t *testing.T) {
 			Frequency:  valuer.MustParseTextDuration("1m"),
 		}},
 		RuleCondition: &ruletypes.RuleCondition{
-			CompareOp: ruletypes.ValueIsAbove,
-			MatchType: ruletypes.AtleastOnce,
-			CompositeQuery: &v3.CompositeQuery{
-				QueryType: v3.QueryTypePromQL,
-				PromQueries: map[string]*v3.PromQuery{
-					"A": {Query: "test_metric"},
-				},
-			},
+			CompareOp:      ruletypes.ValueIsAbove,
+			MatchType:      ruletypes.AtleastOnce,
+			SelectedQuery:  "A",
+			CompositeQuery: promCompositeQuery("test_metric"),
 		},
 	}
 

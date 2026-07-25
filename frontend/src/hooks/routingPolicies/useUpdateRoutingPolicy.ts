@@ -3,7 +3,7 @@ import updateRoutingPolicy, {
 	UpdateRoutingPolicyBody,
 	UpdateRoutingPolicyResponse,
 } from 'api/routingPolicies/updateRoutingPolicy';
-import { ErrorResponseV2, SuccessResponseV2 } from 'types/api';
+import { HttpErrorResponse, HttpSuccessResponse } from 'types/api';
 
 interface UseUpdateRoutingPolicyProps {
 	id: string;
@@ -11,12 +11,12 @@ interface UseUpdateRoutingPolicyProps {
 }
 
 export function useUpdateRoutingPolicy(): UseMutationResult<
-	SuccessResponseV2<UpdateRoutingPolicyResponse> | ErrorResponseV2,
+	HttpSuccessResponse<UpdateRoutingPolicyResponse> | HttpErrorResponse,
 	Error,
 	UseUpdateRoutingPolicyProps
 > {
 	return useMutation<
-		SuccessResponseV2<UpdateRoutingPolicyResponse> | ErrorResponseV2,
+		HttpSuccessResponse<UpdateRoutingPolicyResponse> | HttpErrorResponse,
 		Error,
 		UseUpdateRoutingPolicyProps
 	>({

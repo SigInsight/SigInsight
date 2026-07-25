@@ -2,18 +2,17 @@ import ROUTES from 'constants/routes';
 import history from 'lib/history';
 import { rest, server } from 'mocks-server/server';
 import { render, screen, userEvent, waitFor } from 'tests/test-utils';
-import { ErrorV2 } from 'types/api';
-import { Info } from 'types/api/v1/version/get';
-import { SessionsContext } from 'types/api/v2/sessions/context/get';
-import { Token } from 'types/api/v2/sessions/email_password/post';
+import { HttpError } from 'types/api';
+import { SessionsContext } from 'types/api/v5/sessions/context/get';
+import { Token } from 'types/api/v5/sessions/email_password/post';
+import { Info } from 'types/api/v5/version/get';
 
 import Login from '../index';
 
-const VERSION_ENDPOINT = '*/api/v1/version';
-const SESSIONS_CONTEXT_ENDPOINT = '*/api/v2/sessions/context';
-const CALLBACK_AUTHN_ORG = 'callback_authn_org';
-const CALLBACK_AUTHN_URL = 'https://sso.example.com/auth';
+const VERSION_ENDPOINT = '*/api/v5/version';
+const SESSIONS_CONTEXT_ENDPOINT = '*/api/v5/sessions/context';
 const PASSWORD_AUTHN_ORG = 'password_authn_org';
+const SECONDARY_PASSWORD_AUTHN_ORG = 'secondary_password_authn_org';
 const PASSWORD_AUTHN_EMAIL = 'jest.test@signoz.io';
 
 jest.mock('lib/history', () => ({
@@ -51,21 +50,6 @@ const mockSingleOrgPasswordAuth: SessionsContext = {
 			name: 'Test Organization',
 			authNSupport: {
 				password: [{ provider: 'email_password' }],
-				callback: [],
-			},
-		},
-	],
-};
-
-const mockSingleOrgCallbackAuth: SessionsContext = {
-	exists: true,
-	orgs: [
-		{
-			id: 'org-1',
-			name: 'Test Organization',
-			authNSupport: {
-				password: [],
-				callback: [{ provider: 'google', url: CALLBACK_AUTHN_URL }],
 			},
 		},
 	],
@@ -79,15 +63,13 @@ const mockMultiOrgMixedAuth: SessionsContext = {
 			name: PASSWORD_AUTHN_ORG,
 			authNSupport: {
 				password: [{ provider: 'email_password' }],
-				callback: [],
 			},
 		},
 		{
 			id: 'org-2',
-			name: CALLBACK_AUTHN_ORG,
+			name: SECONDARY_PASSWORD_AUTHN_ORG,
 			authNSupport: {
-				password: [],
-				callback: [{ provider: 'google', url: CALLBACK_AUTHN_URL }],
+				password: [{ provider: 'email_password' }],
 			},
 		},
 	],
@@ -101,14 +83,13 @@ const mockOrgWithWarning: SessionsContext = {
 			name: 'Warning Organization',
 			authNSupport: {
 				password: [{ provider: 'email_password' }],
-				callback: [],
 			},
 			warning: {
 				code: 'ORG_WARNING',
 				message: 'Organization has limited access',
 				url: 'https://example.com/warning',
 				errors: [{ message: 'Contact admin for full access' }],
-			} as ErrorV2,
+			} as HttpError,
 		},
 	],
 };
@@ -357,7 +338,7 @@ describe('Login Component', () => {
 
 			await waitFor(() => {
 				expect(screen.getByText(PASSWORD_AUTHN_ORG)).toBeInTheDocument();
-				expect(screen.getByText(CALLBACK_AUTHN_ORG)).toBeInTheDocument();
+				expect(screen.getByText(SECONDARY_PASSWORD_AUTHN_ORG)).toBeInTheDocument();
 			});
 		});
 
@@ -391,11 +372,11 @@ describe('Login Component', () => {
 
 			await screen.findByRole('combobox');
 
-			// Select CALLBACK_AUTHN_ORG
+			// Select the second password-authenticated organization.
 			await user.click(screen.getByRole('combobox'));
-			await user.click(screen.getByText(CALLBACK_AUTHN_ORG));
+			await user.click(screen.getByText(SECONDARY_PASSWORD_AUTHN_ORG));
 
-			await screen.findByRole('button', { name: /sign in with sso/i });
+			await screen.findByRole('button', { name: /sign in with password/i });
 		});
 	});
 
@@ -434,129 +415,6 @@ describe('Login Component', () => {
 				expect(getByTestId('password_authn_submit')).toBeInTheDocument();
 			});
 		});
-
-		it('enables password auth when URL parameter password=Y', async () => {
-			const user = userEvent.setup({ pointerEventsCheck: 0 });
-
-			server.use(
-				rest.get(SESSIONS_CONTEXT_ENDPOINT, (_, res, ctx) =>
-					res(ctx.status(200), ctx.json({ data: mockSingleOrgCallbackAuth })),
-				),
-			);
-
-			const { getByTestId } = render(<Login />, undefined, {
-				initialRoute: '/login?password=Y',
-			});
-
-			// Wait for version API to complete (email input becomes enabled)
-			const emailInput = await waitFor(() => {
-				const input = getByTestId('email');
-				expect(input).not.toBeDisabled();
-				return input;
-			});
-
-			await user.type(emailInput, PASSWORD_AUTHN_EMAIL);
-
-			const nextButton = await waitFor(() => {
-				const button = getByTestId('initiate_login');
-				expect(button).not.toBeDisabled();
-				return button;
-			});
-
-			await user.click(nextButton);
-
-			await waitFor(() => {
-				// Should show password field even for SSO org due to password=Y override
-				expect(getByTestId('password')).toBeInTheDocument();
-			});
-		});
-	});
-
-	describe('Callback Authentication', () => {
-		it('shows callback login button when callback auth is supported', async () => {
-			const user = userEvent.setup({ pointerEventsCheck: 0 });
-
-			server.use(
-				rest.get(SESSIONS_CONTEXT_ENDPOINT, (_, res, ctx) =>
-					res(ctx.status(200), ctx.json({ data: mockSingleOrgCallbackAuth })),
-				),
-			);
-
-			const { getByTestId, queryByTestId } = render(<Login />);
-
-			// Wait for version API to complete (email input becomes enabled)
-			const emailInput = await waitFor(() => {
-				const input = getByTestId('email');
-				expect(input).not.toBeDisabled();
-				return input;
-			});
-
-			await user.type(emailInput, PASSWORD_AUTHN_EMAIL);
-
-			const nextButton = await waitFor(() => {
-				const button = getByTestId('initiate_login');
-				expect(button).not.toBeDisabled();
-				return button;
-			});
-
-			await user.click(nextButton);
-
-			await waitFor(() => {
-				expect(getByTestId('callback_authn_submit')).toBeInTheDocument();
-				expect(queryByTestId('password')).not.toBeInTheDocument();
-			});
-		});
-
-		it('redirects to callback URL on button click', async () => {
-			const user = userEvent.setup({ pointerEventsCheck: 0 });
-
-			// Mock window.location.href
-			const mockLocation = {
-				href: 'http://localhost/',
-			};
-			Object.defineProperty(window, 'location', {
-				value: mockLocation,
-				writable: true,
-			});
-
-			server.use(
-				rest.get(SESSIONS_CONTEXT_ENDPOINT, (_, res, ctx) =>
-					res(ctx.status(200), ctx.json({ data: mockSingleOrgCallbackAuth })),
-				),
-			);
-
-			const { getByTestId, queryByTestId } = render(<Login />);
-
-			// Wait for version API to complete (email input becomes enabled)
-			const emailInput = await waitFor(() => {
-				const input = getByTestId('email');
-				expect(input).not.toBeDisabled();
-				return input;
-			});
-
-			await user.type(emailInput, PASSWORD_AUTHN_EMAIL);
-
-			const nextButton = await waitFor(() => {
-				const button = getByTestId('initiate_login');
-				expect(button).not.toBeDisabled();
-				return button;
-			});
-
-			await user.click(nextButton);
-
-			await waitFor(() => {
-				expect(getByTestId('callback_authn_submit')).toBeInTheDocument();
-				expect(queryByTestId('password')).not.toBeInTheDocument();
-			});
-
-			const callbackButton = getByTestId('callback_authn_submit');
-			await user.click(callbackButton);
-
-			// Check that window.location.href was set to the callback URL
-			await waitFor(() => {
-				expect(window.location.href).toBe(CALLBACK_AUTHN_URL);
-			});
-		});
 	});
 
 	describe('Password Authentication Execution', () => {
@@ -567,7 +425,7 @@ describe('Login Component', () => {
 				rest.get(SESSIONS_CONTEXT_ENDPOINT, (_, res, ctx) =>
 					res(ctx.status(200), ctx.json({ data: mockSingleOrgPasswordAuth })),
 				),
-				rest.post('*/api/v2/sessions/email_password', async (_, res, ctx) =>
+				rest.post('*/api/v5/sessions/email_password', async (_, res, ctx) =>
 					res(
 						ctx.status(200),
 						ctx.json({ status: 'success', data: mockEmailPasswordResponse }),
@@ -618,7 +476,7 @@ describe('Login Component', () => {
 				rest.get(SESSIONS_CONTEXT_ENDPOINT, (_, res, ctx) =>
 					res(ctx.status(200), ctx.json({ data: mockSingleOrgPasswordAuth })),
 				),
-				rest.post('*/api/v2/sessions/email_password', (_, res, ctx) =>
+				rest.post('*/api/v5/sessions/email_password', (_, res, ctx) =>
 					res(
 						ctx.status(401),
 						ctx.json({
@@ -663,42 +521,6 @@ describe('Login Component', () => {
 
 			await waitFor(() => {
 				expect(getByText('invalid password')).toBeInTheDocument();
-			});
-		});
-	});
-
-	describe('URL Parameter Handling', () => {
-		it('calls afterLogin when accessToken and refreshToken are in URL', async () => {
-			render(<Login />, undefined, {
-				initialRoute: '/login?accessToken=test-token&refreshToken=test-refresh',
-			});
-
-			await waitFor(() => {
-				expect(localStorage.getItem('AUTH_TOKEN')).toBe('test-token');
-				expect(localStorage.getItem('REFRESH_AUTH_TOKEN')).toBe('test-refresh');
-			});
-		});
-
-		it('shows error modal when callbackauthnerr parameter exists', async () => {
-			const { getByText } = render(<Login />, undefined, {
-				initialRoute:
-					'/login?callbackauthnerr=true&code=AUTH_ERROR&message=Authentication failed&url=https://example.com/error&errors=[{"message":"Invalid token"}]',
-			});
-
-			await waitFor(() => {
-				expect(getByText('Authentication failed')).toBeInTheDocument();
-			});
-		});
-
-		it('handles malformed error JSON gracefully', async () => {
-			const { queryByText, getByText } = render(<Login />, undefined, {
-				initialRoute:
-					'/login?callbackauthnerr=true&code=AUTH_ERROR&message=Authentication failed&errors=invalid-json',
-			});
-
-			await waitFor(() => {
-				expect(queryByText('invalid-json')).not.toBeInTheDocument();
-				expect(getByText('Authentication failed')).toBeInTheDocument();
 			});
 		});
 	});
@@ -754,7 +576,7 @@ describe('Login Component', () => {
 							message: 'Organization has limited access',
 							url: 'https://example.com/warning',
 							errors: [{ message: 'Contact admin for full access' }],
-						} as ErrorV2,
+						} as HttpError,
 					},
 				],
 			};
@@ -913,9 +735,6 @@ describe('Login Component', () => {
 				expect(
 					screen.queryByTestId('password_authn_submit'),
 				).not.toBeInTheDocument();
-				expect(
-					screen.queryByTestId('callback_authn_submit'),
-				).not.toBeInTheDocument();
 			});
 		});
 
@@ -930,7 +749,6 @@ describe('Login Component', () => {
 						name: 'No Auth Organization',
 						authNSupport: {
 							password: [],
-							callback: [],
 						},
 					},
 				],
@@ -965,9 +783,6 @@ describe('Login Component', () => {
 				// Should not show any auth method buttons
 				expect(
 					screen.queryByTestId('password_authn_submit'),
-				).not.toBeInTheDocument();
-				expect(
-					screen.queryByTestId('callback_authn_submit'),
 				).not.toBeInTheDocument();
 			});
 		});

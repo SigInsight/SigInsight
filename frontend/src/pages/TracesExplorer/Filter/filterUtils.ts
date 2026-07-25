@@ -1,7 +1,6 @@
 import { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import { getAttributesValues } from 'api/queryBuilder/getAttributesValues';
 import { DATA_TYPE_VS_ATTRIBUTE_VALUES_KEY } from 'constants/queryBuilder';
-import { SPAN_ATTRIBUTES } from 'container/ApiMonitoring/Explorer/Domains/DomainDetails/constants';
 import {
 	BaseAutocompleteData,
 	DataTypes,
@@ -9,30 +8,20 @@ import {
 import { TagFilterItem } from 'types/api/queryBuilder/queryBuilderData';
 import { DataSource } from 'types/common/queryBuilder';
 
-export const AllTraceFilterKeyValue: Record<string, string> = {
+export const AllTraceFilterKeyValue = {
 	durationNanoMin: 'Duration',
-	durationNano: 'Duration',
 	duration_nano: 'Duration',
 	durationNanoMax: 'Duration',
 	'deployment.environment': 'Environment',
-	hasError: 'Status',
 	has_error: 'Status',
-	serviceName: 'Service Name',
-	'service.name': 'service.name',
+	'service.name': 'Service Name',
 	name: 'Operation / Name',
-	rpcMethod: 'RPC Method',
 	'rpc.method': 'RPC Method',
-	responseStatusCode: 'Status Code',
 	response_status_code: 'Status Code',
-	httpHost: 'HTTP Host',
 	http_host: 'HTTP Host',
-	httpMethod: 'HTTP Method',
 	http_method: 'HTTP Method',
-	httpRoute: 'HTTP Route',
 	'http.route': 'HTTP Route',
-	httpUrl: 'HTTP URL',
-	[SPAN_ATTRIBUTES.HTTP_URL]: 'HTTP URL',
-	traceID: 'Trace ID',
+	http_url: 'HTTP URL',
 	trace_id: 'Trace ID',
 } as const;
 
@@ -82,7 +71,7 @@ export const addFilter = (
 		const isDuration = [
 			'durationNanoMax',
 			'durationNanoMin',
-			'durationNano',
+			'duration_nano',
 		].includes(filterType);
 
 		// Convert value to string array
@@ -186,27 +175,30 @@ export const removeAllFilters = (
 	});
 };
 
-export const traceFilterKeys: Record<
-	AllTraceFilterKeys,
-	BaseAutocompleteData
-> = {
-	durationNano: {
-		key: 'durationNano',
+const defineTraceFilterKeys = <
+	T extends Record<AllTraceFilterKeys, BaseAutocompleteData>
+>(
+	filterKeys: T,
+): T => filterKeys;
+
+export const traceFilterKeys = defineTraceFilterKeys({
+	duration_nano: {
+		key: 'duration_nano',
 		dataType: DataTypes.Float64,
 		type: 'tag',
-		id: 'durationNano--float64--tag--true',
+		id: 'duration_nano--float64--tag--true',
 	},
-	hasError: {
-		key: 'hasError',
+	has_error: {
+		key: 'has_error',
 		dataType: DataTypes.bool,
 		type: 'tag',
-		id: 'hasError--bool--tag--true',
+		id: 'has_error--bool--tag--true',
 	},
-	serviceName: {
-		key: 'serviceName',
+	'service.name': {
+		key: 'service.name',
 		dataType: DataTypes.String,
-		type: 'tag',
-		id: 'serviceName--string--tag--true',
+		type: 'resource',
+		id: 'service.name--string--resource--false',
 	},
 
 	'deployment.environment': {
@@ -221,61 +213,61 @@ export const traceFilterKeys: Record<
 		type: 'tag',
 		id: 'name--string--tag--true',
 	},
-	rpcMethod: {
-		key: 'rpcMethod',
+	'rpc.method': {
+		key: 'rpc.method',
 		dataType: DataTypes.String,
 		type: 'tag',
-		id: 'rpcMethod--string--tag--true',
+		id: 'rpc.method--string--tag--true',
 	},
-	responseStatusCode: {
-		key: 'responseStatusCode',
+	response_status_code: {
+		key: 'response_status_code',
 		dataType: DataTypes.String,
 		type: 'tag',
-		id: 'responseStatusCode--string--tag--true',
+		id: 'response_status_code--string--tag--true',
 	},
-	httpHost: {
-		key: 'httpHost',
+	http_host: {
+		key: 'http_host',
 		dataType: DataTypes.String,
 		type: 'tag',
-		id: 'httpHost--string--tag--true',
+		id: 'http_host--string--tag--true',
 	},
-	httpMethod: {
-		key: 'httpMethod',
+	http_method: {
+		key: 'http_method',
 		dataType: DataTypes.String,
 		type: 'tag',
-		id: 'httpMethod--string--tag--true',
+		id: 'http_method--string--tag--true',
 	},
-	httpRoute: {
-		key: 'httpRoute',
+	'http.route': {
+		key: 'http.route',
 		dataType: DataTypes.String,
 		type: 'tag',
-		id: 'httpRoute--string--tag--true',
+		id: 'http.route--string--tag--true',
 	},
-	httpUrl: {
-		key: 'httpUrl',
+	http_url: {
+		key: 'http_url',
 		dataType: DataTypes.String,
 		type: 'tag',
-		id: 'httpUrl--string--tag--true',
+		id: 'http_url--string--tag--true',
 	},
-	traceID: {
-		key: 'traceID',
+	trace_id: {
+		key: 'trace_id',
 		dataType: DataTypes.String,
 		type: 'tag',
-		id: 'traceID--string--tag--true',
+		id: 'trace_id--string--tag--true',
 	},
 	durationNanoMin: {
-		key: 'durationNanoMin',
+		key: 'duration_nano',
 		dataType: DataTypes.Float64,
 		type: 'tag',
-		id: 'durationNanoMin--float64--tag--true',
+		id: 'duration_nano--float64--tag--true',
 	},
 	durationNanoMax: {
-		key: 'durationNanoMax',
+		key: 'duration_nano',
 		dataType: DataTypes.Float64,
 		type: 'tag',
-		id: 'durationNanoMax--float64--tag--true',
+		id: 'duration_nano--float64--tag--true',
 	},
-} as const;
+});
 
 interface AggregateValuesProps {
 	value: AllTraceFilterKeys;

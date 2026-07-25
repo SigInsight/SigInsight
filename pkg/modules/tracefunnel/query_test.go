@@ -3,8 +3,7 @@ package tracefunnel
 import (
 	"testing"
 
-	tracev4 "github.com/SigNoz/signoz/pkg/query-service/app/traces/v4"
-	v3 "github.com/SigNoz/signoz/pkg/query-service/model/v3"
+	"github.com/SigNoz/signoz/pkg/query-service/model/querytypes"
 	"github.com/SigNoz/signoz/pkg/types/tracefunneltypes"
 )
 
@@ -23,25 +22,25 @@ func TestValidateTracesMultipleSteps(t *testing.T) {
 						ServiceName: "service1",
 						SpanName:    "span1",
 						HasErrors:   false,
-						Filters:     &v3.FilterSet{},
+						Filters:     &querytypes.FilterSet{},
 					},
 					{
 						ServiceName: "service2",
 						SpanName:    "span2",
 						HasErrors:   true,
-						Filters:     &v3.FilterSet{},
+						Filters:     &querytypes.FilterSet{},
 					},
 					{
 						ServiceName: "service3",
 						SpanName:    "span3",
 						HasErrors:   false,
-						Filters:     &v3.FilterSet{},
+						Filters:     &querytypes.FilterSet{},
 					},
 					{
 						ServiceName: "service4",
 						SpanName:    "span4",
 						HasErrors:   true,
-						Filters:     &v3.FilterSet{},
+						Filters:     &querytypes.FilterSet{},
 					},
 				},
 			},
@@ -59,7 +58,7 @@ func TestValidateTracesMultipleSteps(t *testing.T) {
 						ServiceName: "service1",
 						SpanName:    "span1",
 						HasErrors:   false,
-						Filters:     &v3.FilterSet{},
+						Filters:     &querytypes.FilterSet{},
 					},
 				},
 			},
@@ -107,35 +106,35 @@ func TestGetFunnelAnalyticsMultipleSteps(t *testing.T) {
 						SpanName:       "span1",
 						HasErrors:      false,
 						LatencyPointer: "start",
-						Filters:        &v3.FilterSet{},
+						Filters:        &querytypes.FilterSet{},
 					},
 					{
 						ServiceName:    "service2",
 						SpanName:       "span2",
 						HasErrors:      true,
 						LatencyPointer: "end",
-						Filters:        &v3.FilterSet{},
+						Filters:        &querytypes.FilterSet{},
 					},
 					{
 						ServiceName:    "service3",
 						SpanName:       "span3",
 						HasErrors:      false,
 						LatencyPointer: "start",
-						Filters:        &v3.FilterSet{},
+						Filters:        &querytypes.FilterSet{},
 					},
 					{
 						ServiceName:    "service4",
 						SpanName:       "span4",
 						HasErrors:      false,
 						LatencyPointer: "end",
-						Filters:        &v3.FilterSet{},
+						Filters:        &querytypes.FilterSet{},
 					},
 					{
 						ServiceName:    "service5",
 						SpanName:       "span5",
 						HasErrors:      true,
 						LatencyPointer: "start",
-						Filters:        &v3.FilterSet{},
+						Filters:        &querytypes.FilterSet{},
 					},
 				},
 			},
@@ -170,11 +169,11 @@ func TestGetFunnelAnalyticsMultipleSteps(t *testing.T) {
 func TestGetStepAnalyticsMultipleSteps(t *testing.T) {
 	funnel := &tracefunneltypes.StorableFunnel{
 		Steps: []*tracefunneltypes.FunnelStep{
-			{ServiceName: "s1", SpanName: "sp1", HasErrors: false, Filters: &v3.FilterSet{}},
-			{ServiceName: "s2", SpanName: "sp2", HasErrors: true, Filters: &v3.FilterSet{}},
-			{ServiceName: "s3", SpanName: "sp3", HasErrors: false, Filters: &v3.FilterSet{}},
-			{ServiceName: "s4", SpanName: "sp4", HasErrors: false, Filters: &v3.FilterSet{}},
-			{ServiceName: "s5", SpanName: "sp5", HasErrors: true, Filters: &v3.FilterSet{}},
+			{ServiceName: "s1", SpanName: "sp1", HasErrors: false, Filters: &querytypes.FilterSet{}},
+			{ServiceName: "s2", SpanName: "sp2", HasErrors: true, Filters: &querytypes.FilterSet{}},
+			{ServiceName: "s3", SpanName: "sp3", HasErrors: false, Filters: &querytypes.FilterSet{}},
+			{ServiceName: "s4", SpanName: "sp4", HasErrors: false, Filters: &querytypes.FilterSet{}},
+			{ServiceName: "s5", SpanName: "sp5", HasErrors: true, Filters: &querytypes.FilterSet{}},
 		},
 	}
 
@@ -209,12 +208,12 @@ func TestGetFunnelStepAnalyticsMultipleSteps(t *testing.T) {
 			name: "step 2 to 4 in 6-step funnel",
 			funnel: &tracefunneltypes.StorableFunnel{
 				Steps: []*tracefunneltypes.FunnelStep{
-					{ServiceName: "s1", SpanName: "sp1", HasErrors: false, LatencyPointer: "start", LatencyType: "", Filters: &v3.FilterSet{}},
-					{ServiceName: "s2", SpanName: "sp2", HasErrors: false, LatencyPointer: "start", LatencyType: "p90", Filters: &v3.FilterSet{}},
-					{ServiceName: "s3", SpanName: "sp3", HasErrors: true, LatencyPointer: "end", LatencyType: "", Filters: &v3.FilterSet{}},
-					{ServiceName: "s4", SpanName: "sp4", HasErrors: false, LatencyPointer: "start", LatencyType: "p95", Filters: &v3.FilterSet{}},
-					{ServiceName: "s5", SpanName: "sp5", HasErrors: false, LatencyPointer: "end", LatencyType: "", Filters: &v3.FilterSet{}},
-					{ServiceName: "s6", SpanName: "sp6", HasErrors: true, LatencyPointer: "start", LatencyType: "", Filters: &v3.FilterSet{}},
+					{ServiceName: "s1", SpanName: "sp1", HasErrors: false, LatencyPointer: "start", LatencyType: "", Filters: &querytypes.FilterSet{}},
+					{ServiceName: "s2", SpanName: "sp2", HasErrors: false, LatencyPointer: "start", LatencyType: "p90", Filters: &querytypes.FilterSet{}},
+					{ServiceName: "s3", SpanName: "sp3", HasErrors: true, LatencyPointer: "end", LatencyType: "", Filters: &querytypes.FilterSet{}},
+					{ServiceName: "s4", SpanName: "sp4", HasErrors: false, LatencyPointer: "start", LatencyType: "p95", Filters: &querytypes.FilterSet{}},
+					{ServiceName: "s5", SpanName: "sp5", HasErrors: false, LatencyPointer: "end", LatencyType: "", Filters: &querytypes.FilterSet{}},
+					{ServiceName: "s6", SpanName: "sp6", HasErrors: true, LatencyPointer: "start", LatencyType: "", Filters: &querytypes.FilterSet{}},
 				},
 			},
 			timeRange: tracefunneltypes.TimeRange{
@@ -229,8 +228,8 @@ func TestGetFunnelStepAnalyticsMultipleSteps(t *testing.T) {
 			name: "invalid same step range",
 			funnel: &tracefunneltypes.StorableFunnel{
 				Steps: []*tracefunneltypes.FunnelStep{
-					{ServiceName: "s1", SpanName: "sp1", HasErrors: false, LatencyPointer: "start", Filters: &v3.FilterSet{}},
-					{ServiceName: "s2", SpanName: "sp2", HasErrors: false, LatencyPointer: "start", Filters: &v3.FilterSet{}},
+					{ServiceName: "s1", SpanName: "sp1", HasErrors: false, LatencyPointer: "start", Filters: &querytypes.FilterSet{}},
+					{ServiceName: "s2", SpanName: "sp2", HasErrors: false, LatencyPointer: "start", Filters: &querytypes.FilterSet{}},
 				},
 			},
 			timeRange: tracefunneltypes.TimeRange{
@@ -261,11 +260,4 @@ func TestGetFunnelStepAnalyticsMultipleSteps(t *testing.T) {
 			}
 		})
 	}
-}
-
-// Mock the tracev4.BuildTracesFilterQuery function since it's external
-func init() {
-	// This would normally be handled by the actual implementation
-	// For testing purposes, we'll assume it returns an empty string
-	_ = tracev4.BuildTracesFilterQuery
 }

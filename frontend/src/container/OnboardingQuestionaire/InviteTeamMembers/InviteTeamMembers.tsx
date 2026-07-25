@@ -5,7 +5,7 @@ import { Callout } from '@signozhq/callout';
 import { Input } from '@signozhq/input';
 import { Select, Typography } from 'antd';
 import logEvent from 'api/common/logEvent';
-import inviteUsers from 'api/v1/invite/bulk/create';
+import inviteUsers from 'api/v5/invite/bulk/create';
 import AuthError from 'components/AuthError/AuthError';
 import { useNotifications } from 'hooks/useNotifications';
 import { cloneDeep, debounce } from 'lodash-es';

@@ -19,7 +19,7 @@ function QuerySection(): JSX.Element {
 			<QueryBuilder
 				panelType={panelTypes}
 				config={{ initialDataSource: DataSource.METRICS, queryVariant: 'static' }}
-				version="v4"
+				version="v5"
 				actions={
 					<ButtonWrapper>
 						<Button

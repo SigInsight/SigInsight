@@ -8,7 +8,7 @@ import {
 } from '@testing-library/react';
 import { GetRoutingPoliciesResponse } from 'api/routingPolicies/getRoutingPolicies';
 import { createMemoryHistory } from 'history';
-import { SuccessResponseV2 } from 'types/api';
+import { HttpSuccessResponse } from 'types/api';
 
 import { UseRoutingPoliciesReturn } from '../types';
 import useRoutingPolicies from '../useRoutingPolicies';
@@ -41,7 +41,7 @@ const mockUpdateRoutingPolicy = jest.fn();
 const mockDeleteRoutingPolicy = jest.fn();
 jest.mock('hooks/routingPolicies/useGetRoutingPolicies', () => ({
 	useGetRoutingPolicies: (): UseQueryResult<
-		SuccessResponseV2<GetRoutingPoliciesResponse>,
+		HttpSuccessResponse<GetRoutingPoliciesResponse>,
 		Error
 	> =>
 		({

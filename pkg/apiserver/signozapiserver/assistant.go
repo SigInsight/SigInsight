@@ -10,7 +10,7 @@ import (
 )
 
 func (provider *provider) addAssistantRoutes(router *mux.Router) error {
-	if err := router.Handle("/api/v1/assistant/config", handler.New(provider.authZ.ViewAccess(provider.assistantHandler.GetConfig), handler.OpenAPIDef{
+	if err := router.Handle("/api/v5/assistant/config", handler.New(provider.authZ.ViewAccess(provider.assistantHandler.GetConfig), handler.OpenAPIDef{
 		ID:                  "GetAssistantConfig",
 		Tags:                []string{"assistant"},
 		Summary:             "Get AI assistant configuration",
@@ -23,7 +23,7 @@ func (provider *provider) addAssistantRoutes(router *mux.Router) error {
 		return err
 	}
 
-	if err := router.Handle("/api/v1/assistant/config", handler.New(provider.authZ.AdminAccess(provider.assistantHandler.UpdateConfig), handler.OpenAPIDef{
+	if err := router.Handle("/api/v5/assistant/config", handler.New(provider.authZ.AdminAccess(provider.assistantHandler.UpdateConfig), handler.OpenAPIDef{
 		ID:                 "UpdateAssistantConfig",
 		Tags:               []string{"assistant"},
 		Summary:            "Update AI assistant configuration",
@@ -36,7 +36,7 @@ func (provider *provider) addAssistantRoutes(router *mux.Router) error {
 		return err
 	}
 
-	if err := router.Handle("/api/v1/assistant/chat", handler.New(provider.authZ.ViewAccess(provider.assistantHandler.Chat), handler.OpenAPIDef{
+	if err := router.Handle("/api/v5/assistant/chat", handler.New(provider.authZ.ViewAccess(provider.assistantHandler.Chat), handler.OpenAPIDef{
 		ID:                  "ChatWithAssistant",
 		Tags:                []string{"assistant-stream"},
 		Summary:             "Chat with AI assistant",

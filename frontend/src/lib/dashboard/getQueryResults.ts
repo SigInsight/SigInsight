@@ -1,12 +1,10 @@
 // @ts-nocheck
-import { getMetricsQueryRange } from 'api/metrics/getQueryRange';
 import { createAggregation } from 'api/v5/queryRange/prepareQueryRangePayloadV5';
 import {
-	convertV5ResponseToLegacy,
 	getQueryRangeV5,
+	normalizeQueryRangeResponse,
 	prepareQueryRangePayloadV5,
 } from 'api/v5/v5';
-import { ENTITY_VERSION_V4, ENTITY_VERSION_V5 } from 'constants/app';
 import { PANEL_TYPES } from 'constants/queryBuilder';
 import { timePreferenceType } from 'container/NewWidget/RightContainer/timeItems';
 import {
@@ -14,18 +12,14 @@ import {
 	Time,
 } from 'container/TopNav/DateTimeSelectionV2/types';
 import { Pagination } from 'hooks/queryPagination';
-import { convertNewDataToOld } from 'lib/newQueryBuilder/convertNewDataToOld';
+import { buildMetricQueryRangePayload } from 'lib/newQueryBuilder/buildMetricQueryRangePayload';
 import { isEmpty } from 'lodash-es';
-import { SuccessResponseV2, Warning } from 'types/api';
 import { IDashboardVariable } from 'types/api/dashboard/getAll';
 import { MetricQueryRangeSuccessResponse } from 'types/api/metrics/getQueryRange';
 import { IBuilderQuery, Query } from 'types/api/queryBuilder/queryBuilderData';
-import { ExecStats, MetricRangePayloadV5 } from 'types/api/v5/queryRange';
 import { QueryData } from 'types/api/widgets/getQuery';
 import { EQueryType } from 'types/common/dashboard';
 import { DataSource } from 'types/common/queryBuilder';
-
-import { prepareQueryRangePayload } from './prepareQueryRangePayload';
 
 /**
  * Validates if metric name is available for METRICS data source
@@ -173,28 +167,17 @@ export const getLegend = (
 // eslint-disable-next-line sonarjs/cognitive-complexity
 export async function GetMetricQueryRange(
 	props: GetQueryResultsProps,
-	version: string,
 	dynamicVariables?: IDashboardVariable[],
 	signal?: AbortSignal,
 	headers?: Record<string, string>,
 ): Promise<MetricQueryRangeSuccessResponse> {
-	let legendMap: Record<string, string>;
-	let response:
-		| MetricQueryRangeSuccessResponse
-		| SuccessResponseV2<MetricRangePayloadV5>;
-	let warning: Warning | undefined;
-	let meta: ExecStats | undefined;
-
 	const panelType = props.originalGraphType || props.graphType;
 
 	const finalFormatForWeb =
 		props.formatForWeb || panelType === PANEL_TYPES.TABLE;
 
 	// Validate metric name for METRICS data source before making the API call
-	if (
-		version !== ENTITY_VERSION_V4 &&
-		!validateMetricNameForMetricsDataSource(props.query)
-	) {
+	if (!validateMetricNameForMetricsDataSource(props.query)) {
 		// Return empty response to avoid 400 error when metric name is missing
 		return {
 			statusCode: 200,
@@ -204,7 +187,7 @@ export async function GetMetricQueryRange(
 				data: {
 					result: [],
 					resultType: '',
-					newResult: {
+					queryResult: {
 						data: {
 							result: [],
 							resultType: '',
@@ -218,83 +201,61 @@ export async function GetMetricQueryRange(
 		};
 	}
 
-	if (version !== ENTITY_VERSION_V4) {
-		const v5Result = prepareQueryRangePayloadV5({
-			...props,
-			dynamicVariables,
-		});
-		legendMap = v5Result.legendMap;
+	const v5Result = prepareQueryRangePayloadV5({
+		...props,
+		dynamicVariables,
+	});
+	const legendMap = v5Result.legendMap;
 
-		// atleast one query should be there to make call to v5 api
-		if (v5Result.queryPayload.compositeQuery.queries.length === 0) {
-			return {
-				statusCode: 200,
-				error: null,
-				message: 'At least one query is required',
-				payload: {
-					data: {
-						result: [],
-						resultType: '',
-						newResult: {
-							data: {
-								result: [],
-								resultType: '',
-							},
+	// atleast one query should be there to make call to v5 api
+	if (v5Result.queryPayload.compositeQuery.queries.length === 0) {
+		return {
+			statusCode: 200,
+			error: null,
+			message: 'At least one query is required',
+			payload: {
+				data: {
+					result: [],
+					resultType: '',
+					queryResult: {
+						data: {
+							result: [],
+							resultType: '',
 						},
 					},
 				},
-				warning: undefined,
-				params: props,
-				warnings: [],
-			};
-		}
-
-		const v5Response = await getQueryRangeV5(
-			v5Result.queryPayload,
-			ENTITY_VERSION_V5,
-			signal,
-			headers,
-		);
-
-		response = convertV5ResponseToLegacy(
-			{
-				payload: v5Response.data,
-				params: v5Result.queryPayload,
 			},
-			legendMap,
-			finalFormatForWeb,
-		);
-
-		warning = response.payload.warning || undefined;
-		meta = response.payload.meta || undefined;
-	} else {
-		const legacyResult = prepareQueryRangePayload(props);
-		legendMap = legacyResult.legendMap;
-
-		response = await getMetricsQueryRange(
-			legacyResult.queryPayload,
-			version || 'v5',
-			signal,
-			headers,
-		);
+			warning: undefined,
+			params: props,
+			warnings: [],
+		};
 	}
 
-	if (response.statusCode >= 400 && version === ENTITY_VERSION_V4) {
-		let error = `API responded with ${response.statusCode} -  ${response.error} status: ${response.message}`;
-		if (response.body && !isEmpty(response.body)) {
-			error = `${error}, errors: ${response.body}`;
-		}
-		throw new Error(error);
-	}
+	const v5Response = await getQueryRangeV5(
+		v5Result.queryPayload,
+		signal,
+		headers,
+	);
 
+	const response = normalizeQueryRangeResponse(
+		{
+			payload: v5Response.data,
+			params: v5Result.queryPayload,
+		},
+		legendMap,
+		finalFormatForWeb,
+	);
+
+	const warning = response.payload.warning || undefined;
+	const meta = response.payload.meta || undefined;
 	if (finalFormatForWeb) {
 		return response;
 	}
 
 	if (response.payload?.data?.result) {
-		const v2Range = convertNewDataToOld(response.payload);
+		const normalizedPayload = buildMetricQueryRangePayload(response.payload);
 
-		response.payload = v2Range;
+		response.payload = normalizedPayload;
 
 		response.payload.data.result = response.payload.data.result.map(
 			(queryData) => {
@@ -317,8 +278,8 @@ export async function GetMetricQueryRange(
 		);
 	}
 
-	if (response.payload?.data?.newResult?.data?.resultType === 'anomaly') {
-		response.payload.data.newResult.data.result = response.payload.data.newResult.data.result.map(
+	if (response.payload?.data?.queryResult?.data?.resultType === 'anomaly') {
+		response.payload.data.queryResult.data.result = response.payload.data.queryResult.data.result.map(
 			(queryData) => {
 				if (legendMap[queryData.queryName]) {
 					queryData.legend = legendMap[queryData.queryName];

@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	v3 "github.com/SigNoz/signoz/pkg/query-service/model/v3"
 	"github.com/SigNoz/signoz/pkg/types/cachetypes"
 	"github.com/SigNoz/signoz/pkg/valuer"
 )
@@ -21,10 +20,4 @@ type Cache interface {
 
 	// DeleteMany deletes multiple cacheble entities from cache
 	DeleteMany(ctx context.Context, orgID valuer.UUID, cacheKeys []string)
-}
-
-type KeyGenerator interface {
-	// GenerateKeys generates the cache keys for the given query range params
-	// The keys are returned as a map where the key is the query name and the value is the cache key
-	GenerateKeys(*v3.QueryRangeParamsV3) map[string]string
 }

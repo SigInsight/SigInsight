@@ -6,7 +6,10 @@ import {
 	mapPanelTypeToRequestType,
 } from 'api/v5/queryRange/prepareQueryRangePayloadV5';
 import { TRACE_OPERATOR_QUERY_NAME } from 'constants/queryBuilder';
-import { ICompositeMetricQuery } from 'types/api/alerts/compositeQuery';
+import {
+	ICompositeMetricQuery,
+	ICompositeMetricQueryInput,
+} from 'types/api/alerts/compositeQuery';
 import {
 	BuilderQueryDataResourse,
 	IBuilderTraceOperator,
@@ -39,7 +42,7 @@ function convertFormulasToV5(
 }
 
 export function compositeQueryToQueryEnvelope(
-	compositeQuery: ICompositeMetricQuery,
+	compositeQuery: ICompositeMetricQueryInput,
 ): ICompositeMetricQuery {
 	const {
 		builderQueries,
@@ -110,10 +113,9 @@ export function compositeQueryToQueryEnvelope(
 	}
 
 	return {
-		...compositeQuery,
+		queryType,
+		panelType,
+		unit: compositeQuery.unit,
 		queries,
-		builderQueries: undefined,
-		promQueries: undefined,
-		chQueries: undefined,
 	};
 }

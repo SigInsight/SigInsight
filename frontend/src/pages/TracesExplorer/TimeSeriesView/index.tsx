@@ -7,7 +7,6 @@ import {
 } from 'react';
 // eslint-disable-next-line no-restricted-imports
 import { useSelector } from 'react-redux';
-import { ENTITY_VERSION_V5 } from 'constants/app';
 import { initialQueriesMap, PANEL_TYPES } from 'constants/queryBuilder';
 import { REACT_QUERY_KEY } from 'constants/reactQueryKeys';
 import { BuilderUnitsFilter } from 'container/QueryBuilder/filters';
@@ -85,8 +84,6 @@ function TimeSeriesViewContainer({
 				dataSource,
 			},
 		},
-		// ENTITY_VERSION_V4,
-		ENTITY_VERSION_V5,
 		{
 			queryKey,
 			enabled: !!stagedQuery && panelType === PANEL_TYPES.TIME_SERIES,

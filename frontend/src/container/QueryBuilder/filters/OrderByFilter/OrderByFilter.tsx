@@ -13,8 +13,7 @@ export function OrderByFilter({
 	query,
 	onChange,
 	isListViewPanel = false,
-	entityVersion,
-	isNewQueryV2 = false,
+	isNewQuery = false,
 }: OrderByFilterProps): JSX.Element {
 	const {
 		debouncedSearchText,
@@ -24,7 +23,7 @@ export function OrderByFilter({
 		createOptions,
 		handleChange,
 		handleSearchKeys,
-	} = useOrderByFilter({ query, onChange, entityVersion });
+	} = useOrderByFilter({ query, onChange });
 
 	const { data, isFetching } = useGetAggregateKeys(
 		{
@@ -39,10 +38,10 @@ export function OrderByFilter({
 		},
 	);
 
-	// Get parsed aggregation options using createAggregation only for QueryV2
+	// Get parsed aggregation options using createAggregation only for Query
 	const parsedAggregationOptions = useMemo(
-		() => (isNewQueryV2 ? getParsedAggregationOptionsForOrderBy(query) : []),
-		[query, isNewQueryV2],
+		() => (isNewQuery ? getParsedAggregationOptionsForOrderBy(query) : []),
+		[query, isNewQuery],
 	);
 
 	const optionsData = useMemo(() => {
@@ -55,7 +54,7 @@ export function OrderByFilter({
 				? keyOptions
 				: [
 						...groupByOptions,
-						...(isNewQueryV2 ? aggregationOptionsFromParsed : aggregationOptions),
+						...(isNewQuery ? aggregationOptionsFromParsed : aggregationOptions),
 				  ];
 
 		return generateOptions(options);
@@ -67,7 +66,7 @@ export function OrderByFilter({
 		parsedAggregationOptions,
 		aggregationOptions,
 		generateOptions,
-		isNewQueryV2,
+		isNewQuery,
 	]);
 
 	const isDisabledSelect =

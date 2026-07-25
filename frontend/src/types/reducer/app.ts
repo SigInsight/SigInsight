@@ -1,4 +1,3 @@
-import { PayloadProps as ConfigPayload } from 'types/api/dynamicConfigs/getDynamicConfigs';
 import { UserResponse as UserPayload } from 'types/api/user/getUser';
 
 export interface User {
@@ -14,7 +13,6 @@ export default interface AppReducer {
 	latestVersion: string;
 	isCurrentVersionError: boolean;
 	isLatestVersionError: boolean;
-	configs: ConfigPayload;
 	ee: 'Y' | 'N';
 	setupCompleted: boolean;
 }

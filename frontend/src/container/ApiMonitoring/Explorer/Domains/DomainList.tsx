@@ -5,7 +5,7 @@ import { LoadingOutlined } from '@ant-design/icons';
 import { Spin, Table } from 'antd';
 import logEvent from 'api/common/logEvent';
 import cx from 'classnames';
-import QuerySearch from 'components/QueryBuilderV2/QueryV2/QuerySearch/QuerySearch';
+import QuerySearch from 'components/QueryBuilder/Query/QuerySearch/QuerySearch';
 import { initialQueriesMap } from 'constants/queryBuilder';
 import RightToolbarActions from 'container/QueryBuilder/components/ToolbarActions/RightToolbarActions';
 import Toolbar from 'container/Toolbar/Toolbar';

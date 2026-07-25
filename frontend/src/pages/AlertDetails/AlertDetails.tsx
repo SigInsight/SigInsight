@@ -13,11 +13,11 @@ import { CreateAlertProvider } from 'container/CreateAlertV2/context';
 import { getCreateAlertLocalStateFromAlertDef } from 'container/CreateAlertV2/utils';
 import useUrlQuery from 'hooks/useUrlQuery';
 import history from 'lib/history';
-import { AlertTypes } from 'types/api/alerts/alertTypes';
 import {
 	NEW_ALERT_SCHEMA_VERSION,
-	PostableAlertRuleV2,
-} from 'types/api/alerts/alertTypesV2';
+	PostableAlertRule,
+} from 'types/api/alerts/alertRule';
+import { AlertTypes } from 'types/api/alerts/alertTypes';
 
 import AlertHeader from './AlertHeader/AlertHeader';
 import AlertNotFound from './AlertNotFound';
@@ -114,7 +114,7 @@ function AlertDetails(): JSX.Element {
 	}, [getDocumentTitle]);
 
 	const alertRuleDetails = useMemo(
-		() => alertDetailsResponse?.payload?.data as PostableAlertRuleV2 | undefined,
+		() => alertDetailsResponse?.payload?.data as PostableAlertRule | undefined,
 		[alertDetailsResponse],
 	);
 

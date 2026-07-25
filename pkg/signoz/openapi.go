@@ -13,11 +13,8 @@ import (
 	"github.com/SigNoz/signoz/pkg/authz"
 	"github.com/SigNoz/signoz/pkg/factory"
 	"github.com/SigNoz/signoz/pkg/flagger"
-	"github.com/SigNoz/signoz/pkg/global"
 	"github.com/SigNoz/signoz/pkg/http/handler"
 	"github.com/SigNoz/signoz/pkg/instrumentation"
-	"github.com/SigNoz/signoz/pkg/modules/authdomain"
-	"github.com/SigNoz/signoz/pkg/modules/cloudintegration"
 	"github.com/SigNoz/signoz/pkg/modules/fields"
 	"github.com/SigNoz/signoz/pkg/modules/metricsexplorer"
 	"github.com/SigNoz/signoz/pkg/modules/organization"
@@ -48,9 +45,7 @@ func NewOpenAPI(ctx context.Context, instrumentation instrumentation.Instrumenta
 		struct{ organization.Handler }{},
 		struct{ user.Handler }{},
 		struct{ session.Handler }{},
-		struct{ authdomain.Handler }{},
 		struct{ preference.Handler }{},
-		struct{ global.Handler }{},
 		struct{ promote.Handler }{},
 		struct{ flagger.Handler }{},
 		struct{ metricsexplorer.Handler }{},
@@ -60,7 +55,6 @@ func NewOpenAPI(ctx context.Context, instrumentation instrumentation.Instrumenta
 		struct{ querier.Handler }{},
 		struct{ serviceaccount.Handler }{},
 		struct{ factory.Handler }{},
-		struct{ cloudintegration.Handler }{},
 		struct{ assistant.Handler }{},
 	).New(ctx, instrumentation.ToProviderSettings(), apiserver.Config{})
 	if err != nil {

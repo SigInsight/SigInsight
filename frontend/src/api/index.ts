@@ -1,7 +1,7 @@
 /* eslint-disable sonarjs/cognitive-complexity */
 import { QueryClient } from 'react-query';
 import getLocalStorageApi from 'api/browser/localstorage/get';
-import post from 'api/v2/sessions/rotate/post';
+import post from 'api/v5/sessions/rotate/post';
 import afterLogin from 'AppRoutes/utils';
 import axios, {
 	AxiosError,
@@ -13,7 +13,7 @@ import { Events } from 'constants/events';
 import { LOCALSTORAGE } from 'constants/localStorage';
 import { eventEmitter } from 'utils/getEventEmitter';
 
-import apiV1, { apiAlertManager, apiV2, apiV4, apiV5 } from './apiV1';
+import { apiV5 } from './apiPaths';
 import { Logout } from './utils';
 
 const RESPONSE_TIMEOUT_THRESHOLD = 5000; // 5 seconds
@@ -89,7 +89,7 @@ export const interceptorRejected = async (
 					const refreshToken = getLocalStorageApi(LOCALSTORAGE.REFRESH_AUTH_TOKEN);
 					const response = await queryClient.fetchQuery({
 						queryFn: () => post({ refreshToken: refreshToken || '' }),
-						queryKey: ['/api/v2/sessions/rotate', accessToken, refreshToken],
+						queryKey: ['/api/v5/sessions/rotate', accessToken, refreshToken],
 					});
 
 					afterLogin(response.data.accessToken, response.data.refreshToken, true);
@@ -128,39 +128,6 @@ const interceptorRejectedBase = async (
 	value: AxiosResponse<any>,
 ): Promise<AxiosResponse<any>> => Promise.reject(value);
 
-const instance = axios.create({
-	baseURL: `${ENVIRONMENT.baseURL}${apiV1}`,
-});
-
-instance.interceptors.request.use(interceptorsRequestResponse);
-instance.interceptors.response.use(interceptorsResponse, interceptorRejected);
-
-export const AxiosAlertManagerInstance = axios.create({
-	baseURL: `${ENVIRONMENT.baseURL}${apiAlertManager}`,
-});
-
-export const ApiV2Instance = axios.create({
-	baseURL: `${ENVIRONMENT.baseURL}${apiV2}`,
-});
-ApiV2Instance.interceptors.response.use(
-	interceptorsResponse,
-	interceptorRejected,
-);
-ApiV2Instance.interceptors.request.use(interceptorsRequestResponse);
-
-// axios V4
-export const ApiV4Instance = axios.create({
-	baseURL: `${ENVIRONMENT.baseURL}${apiV4}`,
-});
-
-ApiV4Instance.interceptors.response.use(
-	interceptorsResponse,
-	interceptorRejected,
-);
-ApiV4Instance.interceptors.request.use(interceptorsRequestResponse);
-//
-
-// axios V5
 export const ApiV5Instance = axios.create({
 	baseURL: `${ENVIRONMENT.baseURL}${apiV5}`,
 });
@@ -170,11 +137,10 @@ ApiV5Instance.interceptors.response.use(
 	interceptorRejected,
 );
 ApiV5Instance.interceptors.request.use(interceptorsRequestResponse);
-//
 
 // axios Base
 export const LogEventAxiosInstance = axios.create({
-	baseURL: `${ENVIRONMENT.baseURL}${apiV1}`,
+	baseURL: `${ENVIRONMENT.baseURL}${apiV5}`,
 });
 
 LogEventAxiosInstance.interceptors.response.use(
@@ -183,12 +149,3 @@ LogEventAxiosInstance.interceptors.response.use(
 );
 LogEventAxiosInstance.interceptors.request.use(interceptorsRequestResponse);
 //
-
-AxiosAlertManagerInstance.interceptors.response.use(
-	interceptorsResponse,
-	interceptorRejected,
-);
-AxiosAlertManagerInstance.interceptors.request.use(interceptorsRequestResponse);
-
-export { apiV1 };
-export default instance;

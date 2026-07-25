@@ -12,7 +12,7 @@ import (
 
 	signozError "github.com/SigNoz/signoz/pkg/errors"
 	"github.com/SigNoz/signoz/pkg/query-service/model"
-	v3 "github.com/SigNoz/signoz/pkg/query-service/model/v3"
+	"github.com/SigNoz/signoz/pkg/query-service/model/querytypes"
 	"github.com/SigNoz/signoz/pkg/query-service/utils/times"
 	"github.com/SigNoz/signoz/pkg/query-service/utils/timestamp"
 	"github.com/SigNoz/signoz/pkg/types/alertmanagertypes"
@@ -200,18 +200,12 @@ func (r *PostableRule) processRuleDefaults() {
 
 	if r.RuleCondition != nil {
 		switch r.RuleCondition.CompositeQuery.QueryType {
-		case v3.QueryTypeBuilder:
+		case querytypes.QueryTypeBuilder:
 			if r.RuleType == "" {
 				r.RuleType = RuleTypeThreshold
 			}
-		case v3.QueryTypePromQL:
+		case querytypes.QueryTypePromQL:
 			r.RuleType = RuleTypeProm
-		}
-
-		for qLabel, q := range r.RuleCondition.CompositeQuery.BuilderQueries {
-			if q.AggregateAttribute.Key != "" && q.Expression == "" {
-				q.Expression = qLabel
-			}
 		}
 
 		//added alerts v2 fields
@@ -304,40 +298,13 @@ func isValidLabelValue(v string) bool {
 	return utf8.ValidString(v)
 }
 
-func isAllQueriesDisabled(compositeQuery *v3.CompositeQuery) bool {
-	if compositeQuery == nil {
+func isAllQueriesDisabled(compositeQuery *CompositeQuery) bool {
+	if compositeQuery == nil || len(compositeQuery.Queries) == 0 {
 		return false
 	}
-	if compositeQuery.BuilderQueries == nil && compositeQuery.PromQueries == nil && compositeQuery.ClickHouseQueries == nil {
-		return false
-	}
-	switch compositeQuery.QueryType {
-	case v3.QueryTypeBuilder:
-		if len(compositeQuery.BuilderQueries) == 0 {
+	for idx := range compositeQuery.Queries {
+		if !compositeQuery.Queries[idx].IsDisabled() {
 			return false
-		}
-		for _, query := range compositeQuery.BuilderQueries {
-			if !query.Disabled {
-				return false
-			}
-		}
-	case v3.QueryTypePromQL:
-		if len(compositeQuery.PromQueries) == 0 {
-			return false
-		}
-		for _, query := range compositeQuery.PromQueries {
-			if !query.Disabled {
-				return false
-			}
-		}
-	case v3.QueryTypeClickHouseSQL:
-		if len(compositeQuery.ClickHouseQueries) == 0 {
-			return false
-		}
-		for _, query := range compositeQuery.ClickHouseQueries {
-			if !query.Disabled {
-				return false
-			}
 		}
 	}
 	return true

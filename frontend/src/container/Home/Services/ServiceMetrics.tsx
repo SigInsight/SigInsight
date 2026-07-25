@@ -5,7 +5,6 @@ import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { Button, Select, Skeleton, Table } from 'antd';
 import logEvent from 'api/common/logEvent';
-import { ENTITY_VERSION_V4 } from 'constants/app';
 import ROUTES from 'constants/routes';
 import {
 	getQueryRangeRequestData,
@@ -209,27 +208,23 @@ function ServiceMetrics({
 		[globalSelectedInterval, topLevelOperations, dotMetricsEnabled],
 	);
 
-	const dataQueries = useGetQueriesRange(
-		queryRangeRequestData,
-		ENTITY_VERSION_V4,
-		{
-			queryKey: useMemo(
-				() => [
-					`GetMetricsQueryRange-home-${globalSelectedInterval}`,
-					timeRange.endTime,
-					timeRange.startTime,
-					globalSelectedInterval,
-				],
-				[globalSelectedInterval, timeRange.endTime, timeRange.startTime],
-			),
-			keepPreviousData: true,
-			enabled: true,
-			refetchOnMount: false,
-			onError: () => {
-				setIsError(true);
-			},
+	const dataQueries = useGetQueriesRange(queryRangeRequestData, {
+		queryKey: useMemo(
+			() => [
+				`GetMetricsQueryRange-home-${globalSelectedInterval}`,
+				timeRange.endTime,
+				timeRange.startTime,
+				globalSelectedInterval,
+			],
+			[globalSelectedInterval, timeRange.endTime, timeRange.startTime],
+		),
+		keepPreviousData: true,
+		enabled: true,
+		refetchOnMount: false,
+		onError: () => {
+			setIsError(true);
 		},
-	);
+	});
 
 	const isLoading = useMemo(() => dataQueries.some((query) => query.isLoading), [
 		dataQueries,

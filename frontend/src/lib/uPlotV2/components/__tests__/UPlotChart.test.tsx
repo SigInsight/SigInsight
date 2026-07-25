@@ -11,7 +11,7 @@ import UPlotChart from '../UPlotChart/UPlotChart';
 // ---------------------------------------------------------------------------
 
 jest.mock(
-	'container/DashboardContainer/visualization/panels/utils/legendVisibilityUtils',
+	'container/PanelVisualization/panels/utils/legendVisibilityUtils',
 	() => ({
 		getStoredSeriesVisibility: jest.fn(),
 		updateSeriesVisibilityToLocalStorage: jest.fn(),

@@ -383,15 +383,6 @@ type UsageItem struct {
 	Count     uint64    `json:"count" ch:"count"`
 }
 
-type TopOperationsItem struct {
-	Percentile50 float64 `json:"p50" ch:"p50"`
-	Percentile95 float64 `json:"p95" ch:"p95"`
-	Percentile99 float64 `json:"p99" ch:"p99"`
-	NumCalls     uint64  `json:"numCalls" ch:"numCalls"`
-	ErrorCount   uint64  `json:"errorCount" ch:"errorCount"`
-	Name         string  `json:"name" ch:"name"`
-}
-
 type TagFilters struct {
 	StringTagKeys []string `json:"stringTagKeys" ch:"stringTagKeys"`
 	NumberTagKeys []string `json:"numberTagKeys" ch:"numberTagKeys"`
@@ -646,10 +637,6 @@ func (s *ServiceItem) MarshalJSON() ([]byte, error) {
 	}{
 		Alias: (*Alias)(s),
 	})
-}
-
-type DashboardVar struct {
-	VariableValues []interface{} `json:"variableValues"`
 }
 
 type TagsInfo struct {

@@ -2,11 +2,11 @@ package querycache_test
 
 import (
 	"context"
+	"github.com/SigNoz/signoz/pkg/types/timeseriestypes"
 	"testing"
 
 	"github.com/SigNoz/signoz/pkg/cache"
 	"github.com/SigNoz/signoz/pkg/cache/cachetest"
-	v3 "github.com/SigNoz/signoz/pkg/query-service/model/v3"
 	"github.com/SigNoz/signoz/pkg/query-service/querycache"
 	"github.com/SigNoz/signoz/pkg/valuer"
 	"github.com/stretchr/testify/assert"
@@ -48,7 +48,7 @@ func TestFindMissingTimeRanges(t *testing.T) {
 				{
 					Start: 2000,
 					End:   3000,
-					Data:  []*v3.Series{}, // Data can be empty for this test
+					Data:  []*timeseriestypes.Series{}, // Data can be empty for this test
 				},
 			},
 			expectedMiss: []querycache.MissInterval{
@@ -66,7 +66,7 @@ func TestFindMissingTimeRanges(t *testing.T) {
 				{
 					Start: 1000,
 					End:   4000,
-					Data:  []*v3.Series{},
+					Data:  []*timeseriestypes.Series{},
 				},
 			},
 			expectedMiss: nil, // No missing intervals
@@ -81,7 +81,7 @@ func TestFindMissingTimeRanges(t *testing.T) {
 				{
 					Start: 1000,
 					End:   2500,
-					Data:  []*v3.Series{},
+					Data:  []*timeseriestypes.Series{},
 				},
 			},
 			expectedMiss: []querycache.MissInterval{
@@ -98,7 +98,7 @@ func TestFindMissingTimeRanges(t *testing.T) {
 				{
 					Start: 3500,
 					End:   5000,
-					Data:  []*v3.Series{},
+					Data:  []*timeseriestypes.Series{},
 				},
 			},
 			expectedMiss: []querycache.MissInterval{
@@ -115,7 +115,7 @@ func TestFindMissingTimeRanges(t *testing.T) {
 				{
 					Start: 5000,
 					End:   6000,
-					Data:  []*v3.Series{},
+					Data:  []*timeseriestypes.Series{},
 				},
 			},
 			expectedMiss: []querycache.MissInterval{
@@ -130,9 +130,9 @@ func TestFindMissingTimeRanges(t *testing.T) {
 			step:           60,
 			cacheKey:       "testKey6",
 			cachedData: []querycache.CachedSeriesData{
-				{Start: 1100, End: 1200, Data: []*v3.Series{}},
-				{Start: 1300, End: 1400, Data: []*v3.Series{}},
-				{Start: 1500, End: 1600, Data: []*v3.Series{}},
+				{Start: 1100, End: 1200, Data: []*timeseriestypes.Series{}},
+				{Start: 1300, End: 1400, Data: []*timeseriestypes.Series{}},
+				{Start: 1500, End: 1600, Data: []*timeseriestypes.Series{}},
 			},
 			expectedMiss: []querycache.MissInterval{
 				{Start: 1000, End: 1100},
@@ -148,10 +148,10 @@ func TestFindMissingTimeRanges(t *testing.T) {
 			step:           60,
 			cacheKey:       "testKey7",
 			cachedData: []querycache.CachedSeriesData{
-				{Start: 1000, End: 1100, Data: []*v3.Series{}},
-				{Start: 1200, End: 1300, Data: []*v3.Series{}},
-				{Start: 1400, End: 1500, Data: []*v3.Series{}},
-				{Start: 1600, End: 1700, Data: []*v3.Series{}},
+				{Start: 1000, End: 1100, Data: []*timeseriestypes.Series{}},
+				{Start: 1200, End: 1300, Data: []*timeseriestypes.Series{}},
+				{Start: 1400, End: 1500, Data: []*timeseriestypes.Series{}},
+				{Start: 1600, End: 1700, Data: []*timeseriestypes.Series{}},
 			},
 			expectedMiss: []querycache.MissInterval{
 				{Start: 1100, End: 1200},
@@ -167,8 +167,8 @@ func TestFindMissingTimeRanges(t *testing.T) {
 			step:           60,
 			cacheKey:       "testKey8",
 			cachedData: []querycache.CachedSeriesData{
-				{Start: 1000, End: 1500, Data: []*v3.Series{}},
-				{Start: 3500, End: 4000, Data: []*v3.Series{}},
+				{Start: 1000, End: 1500, Data: []*timeseriestypes.Series{}},
+				{Start: 3500, End: 4000, Data: []*timeseriestypes.Series{}},
 			},
 			expectedMiss: []querycache.MissInterval{
 				{Start: 2000, End: 3000},
@@ -192,10 +192,10 @@ func TestFindMissingTimeRanges(t *testing.T) {
 			step:           60,
 			cacheKey:       "testKey11",
 			cachedData: []querycache.CachedSeriesData{
-				{Start: 1000, End: 2000, Data: []*v3.Series{}},
-				{Start: 1500, End: 2500, Data: []*v3.Series{}}, // Overlaps with previous
-				{Start: 3000, End: 3500, Data: []*v3.Series{}},
-				{Start: 4000, End: 4500, Data: []*v3.Series{}},
+				{Start: 1000, End: 2000, Data: []*timeseriestypes.Series{}},
+				{Start: 1500, End: 2500, Data: []*timeseriestypes.Series{}}, // Overlaps with previous
+				{Start: 3000, End: 3500, Data: []*timeseriestypes.Series{}},
+				{Start: 4000, End: 4500, Data: []*timeseriestypes.Series{}},
 			},
 			expectedMiss: []querycache.MissInterval{
 				{Start: 2500, End: 3000},
@@ -210,8 +210,8 @@ func TestFindMissingTimeRanges(t *testing.T) {
 			step:           60,
 			cacheKey:       "testKey12",
 			cachedData: []querycache.CachedSeriesData{
-				{Start: 1000, End: 1500, Data: []*v3.Series{}},
-				{Start: 4500, End: 5000, Data: []*v3.Series{}},
+				{Start: 1000, End: 1500, Data: []*timeseriestypes.Series{}},
+				{Start: 4500, End: 5000, Data: []*timeseriestypes.Series{}},
 			},
 			expectedMiss: []querycache.MissInterval{
 				{Start: 1500, End: 4500},
@@ -272,9 +272,9 @@ func TestFindMissingTimeRangesV2(t *testing.T) {
 			cacheKey:       "testKey1",
 			cachedData: []querycache.CachedSeriesData{
 				{
-					Start: 1738576800000,  // 03 Feb 2025 10:00:00
-					End:   1738749600000,  // 05 Feb 2025 10:00:00
-					Data:  []*v3.Series{}, // Data can be empty for this test
+					Start: 1738576800000,               // 03 Feb 2025 10:00:00
+					End:   1738749600000,               // 05 Feb 2025 10:00:00
+					Data:  []*timeseriestypes.Series{}, // Data can be empty for this test
 				},
 			},
 			expectedMiss: []querycache.MissInterval{
@@ -292,7 +292,7 @@ func TestFindMissingTimeRangesV2(t *testing.T) {
 				{
 					Start: 1738404000000, // 01 Feb 2025 10:00:00
 					End:   1738836000000, // 06 Feb 2025 10:00:00
-					Data:  []*v3.Series{},
+					Data:  []*timeseriestypes.Series{},
 				},
 			},
 			expectedMiss: nil,
@@ -307,7 +307,7 @@ func TestFindMissingTimeRangesV2(t *testing.T) {
 				{
 					Start: 1738404000000, // 01 Feb 2025 10:00:00
 					End:   1738663200000, // 04 Feb 2025 10:00:00
-					Data:  []*v3.Series{},
+					Data:  []*timeseriestypes.Series{},
 				},
 			},
 			expectedMiss: []querycache.MissInterval{
@@ -324,7 +324,7 @@ func TestFindMissingTimeRangesV2(t *testing.T) {
 				{
 					Start: 1738490400000, // 02 Feb 2025 10:00:00
 					End:   1738663200000, // 04 Feb 2025 10:00:00
-					Data:  []*v3.Series{},
+					Data:  []*timeseriestypes.Series{},
 				},
 			},
 			expectedMiss: []querycache.MissInterval{
@@ -341,7 +341,7 @@ func TestFindMissingTimeRangesV2(t *testing.T) {
 				{
 					Start: 1738836000000, // 06 Feb 2025 10:00:00
 					End:   1739008800000, // 08 Feb 2025 10:00:00
-					Data:  []*v3.Series{},
+					Data:  []*timeseriestypes.Series{},
 				},
 			},
 			expectedMiss: []querycache.MissInterval{
@@ -359,17 +359,17 @@ func TestFindMissingTimeRangesV2(t *testing.T) {
 				{
 					Start: 1738490400000, // 02 Feb 2025 10:00:00
 					End:   1738576800000, // 03 Feb 2025 10:00:00
-					Data:  []*v3.Series{},
+					Data:  []*timeseriestypes.Series{},
 				},
 				{
 					Start: 1738663200000, // 04 Feb 2025 10:00:00
 					End:   1738749600000, // 05 Feb 2025 10:00:00
-					Data:  []*v3.Series{},
+					Data:  []*timeseriestypes.Series{},
 				},
 				{
 					Start: 1738836000000, // 06 Feb 2025 10:00:00
 					End:   1738922400000, // 07 Feb 2025 10:00:00
-					Data:  []*v3.Series{},
+					Data:  []*timeseriestypes.Series{},
 				},
 			},
 			expectedMiss: []querycache.MissInterval{
@@ -385,10 +385,10 @@ func TestFindMissingTimeRangesV2(t *testing.T) {
 			step:           60,
 			cacheKey:       "testKey7",
 			cachedData: []querycache.CachedSeriesData{
-				{Start: 1738404000000, End: 1738418400000, Data: []*v3.Series{}}, // 01 Feb 2025 10:00:00 - 14:00:00
-				{Start: 1738425600000, End: 1738432800000, Data: []*v3.Series{}}, // 01 Feb 2025 16:00:00 - 18:00:00
-				{Start: 1738440000000, End: 1738447200000, Data: []*v3.Series{}}, // 01 Feb 2025 20:00:00 - 22:00:00
-				{Start: 1738454400000, End: 1738461600000, Data: []*v3.Series{}}, // 02 Feb 2025 00:00:00 - 02:00:00
+				{Start: 1738404000000, End: 1738418400000, Data: []*timeseriestypes.Series{}}, // 01 Feb 2025 10:00:00 - 14:00:00
+				{Start: 1738425600000, End: 1738432800000, Data: []*timeseriestypes.Series{}}, // 01 Feb 2025 16:00:00 - 18:00:00
+				{Start: 1738440000000, End: 1738447200000, Data: []*timeseriestypes.Series{}}, // 01 Feb 2025 20:00:00 - 22:00:00
+				{Start: 1738454400000, End: 1738461600000, Data: []*timeseriestypes.Series{}}, // 02 Feb 2025 00:00:00 - 02:00:00
 			},
 			expectedMiss: []querycache.MissInterval{
 				// {Start: 1738404000000, End: 1738404060000}, // 01 Feb 2025 10:00:00 - 10:01:00
@@ -405,8 +405,8 @@ func TestFindMissingTimeRangesV2(t *testing.T) {
 			step:           60,
 			cacheKey:       "testKey8",
 			cachedData: []querycache.CachedSeriesData{
-				{Start: 1738404000000, End: 1738447200000, Data: []*v3.Series{}}, // 01 Feb 2025 10:00:00 - 22:00:00
-				{Start: 1738620000000, End: 1738663200000, Data: []*v3.Series{}}, // 03 Feb 2025 22:00:00 - 04 Feb 2025 10:00:00
+				{Start: 1738404000000, End: 1738447200000, Data: []*timeseriestypes.Series{}}, // 01 Feb 2025 10:00:00 - 22:00:00
+				{Start: 1738620000000, End: 1738663200000, Data: []*timeseriestypes.Series{}}, // 03 Feb 2025 22:00:00 - 04 Feb 2025 10:00:00
 			},
 			expectedMiss: []querycache.MissInterval{
 				{Start: 1738490400000, End: 1738576800000}, // 02 Feb 2025 10:00:00 - 03 Feb 2025 10:00:00
@@ -430,10 +430,10 @@ func TestFindMissingTimeRangesV2(t *testing.T) {
 			step:           60,
 			cacheKey:       "testKey11",
 			cachedData: []querycache.CachedSeriesData{
-				{Start: 1738404000000, End: 1738405200000, Data: []*v3.Series{}}, // 01 Feb 2025 10:00:00 - 10:20:00
-				{Start: 1738404600000, End: 1738405200000, Data: []*v3.Series{}}, // 01 Feb 2025 10:10:00 - 10:20:00
-				{Start: 1738406100000, End: 1738406700000, Data: []*v3.Series{}}, // 01 Feb 2025 10:35:00 - 10:45:00
-				{Start: 1738407000000, End: 1738407300000, Data: []*v3.Series{}}, // 01 Feb 2025 10:50:00 - 10:55:00
+				{Start: 1738404000000, End: 1738405200000, Data: []*timeseriestypes.Series{}}, // 01 Feb 2025 10:00:00 - 10:20:00
+				{Start: 1738404600000, End: 1738405200000, Data: []*timeseriestypes.Series{}}, // 01 Feb 2025 10:10:00 - 10:20:00
+				{Start: 1738406100000, End: 1738406700000, Data: []*timeseriestypes.Series{}}, // 01 Feb 2025 10:35:00 - 10:45:00
+				{Start: 1738407000000, End: 1738407300000, Data: []*timeseriestypes.Series{}}, // 01 Feb 2025 10:50:00 - 10:55:00
 			},
 			expectedMiss: []querycache.MissInterval{
 				{Start: 1738405200000, End: 1738406100000}, // 01 Feb 2025 10:20:00 - 10:35:00
@@ -448,8 +448,8 @@ func TestFindMissingTimeRangesV2(t *testing.T) {
 			step:           60,
 			cacheKey:       "testKey12",
 			cachedData: []querycache.CachedSeriesData{
-				{Start: 1738404000000, End: 1738405200000, Data: []*v3.Series{}}, // 01 Feb 2025 10:00:00 - 10:20:00
-				{Start: 1738406400000, End: 1738407600000, Data: []*v3.Series{}}, // 01 Feb 2025 10:40:00 - 11:00:00
+				{Start: 1738404000000, End: 1738405200000, Data: []*timeseriestypes.Series{}}, // 01 Feb 2025 10:00:00 - 10:20:00
+				{Start: 1738406400000, End: 1738407600000, Data: []*timeseriestypes.Series{}}, // 01 Feb 2025 10:40:00 - 11:00:00
 			},
 			expectedMiss: []querycache.MissInterval{
 				{Start: 1738405200000, End: 1738406400000}, // 01 Feb 2025 10:20:00 - 10:40:00
@@ -462,7 +462,7 @@ func TestFindMissingTimeRangesV2(t *testing.T) {
 			step:           60,
 			cacheKey:       "testKey13",
 			cachedData: []querycache.CachedSeriesData{
-				{Start: 1738576800000, End: 1738576860000, Data: []*v3.Series{}},
+				{Start: 1738576800000, End: 1738576860000, Data: []*timeseriestypes.Series{}},
 			},
 			expectedMiss: []querycache.MissInterval{{Start: 1738576800000, End: 1738576800001}},
 		},
@@ -473,7 +473,7 @@ func TestFindMissingTimeRangesV2(t *testing.T) {
 			step:           60,
 			cacheKey:       "testKey13",
 			cachedData: []querycache.CachedSeriesData{
-				{Start: 1738576800000, End: 1738576860000, Data: []*v3.Series{}},
+				{Start: 1738576800000, End: 1738576860000, Data: []*timeseriestypes.Series{}},
 			},
 			expectedMiss: nil,
 		},
@@ -487,7 +487,7 @@ func TestFindMissingTimeRangesV2(t *testing.T) {
 				{
 					Start: 1738540800000, // 03 Feb 2025 00:00:00
 					End:   1738713600000, // 05 Feb 2025 00:00:00
-					Data:  []*v3.Series{},
+					Data:  []*timeseriestypes.Series{},
 				},
 			},
 			expectedMiss: []querycache.MissInterval{
@@ -505,7 +505,7 @@ func TestFindMissingTimeRangesV2(t *testing.T) {
 				{
 					Start: 1738540800000, // 03 Feb 2025 00:00:00
 					End:   1738713600000, // 05 Feb 2025 00:00:00
-					Data:  []*v3.Series{},
+					Data:  []*timeseriestypes.Series{},
 				},
 			},
 			expectedMiss: []querycache.MissInterval{
@@ -522,7 +522,7 @@ func TestFindMissingTimeRangesV2(t *testing.T) {
 				{
 					Start: 1738540800000, // 03 Feb 2025 00:00:00
 					End:   1738713600000, // 05 Feb 2025 00:00:00
-					Data:  []*v3.Series{},
+					Data:  []*timeseriestypes.Series{},
 				},
 			},
 			expectedMiss: []querycache.MissInterval{
@@ -539,7 +539,7 @@ func TestFindMissingTimeRangesV2(t *testing.T) {
 				{
 					Start: 1738540800000, // 03 Feb 2025 00:00:00
 					End:   1738713600000, // 05 Feb 2025 00:00:00
-					Data:  []*v3.Series{},
+					Data:  []*timeseriestypes.Series{},
 				},
 			},
 			expectedMiss: []querycache.MissInterval{
@@ -557,7 +557,7 @@ func TestFindMissingTimeRangesV2(t *testing.T) {
 				{
 					Start: 1738540800000, // 03 Feb 2025 00:00:00
 					End:   1738713600000, // 05 Feb 2025 00:00:00
-					Data:  []*v3.Series{},
+					Data:  []*timeseriestypes.Series{},
 				},
 			},
 			expectedMiss: []querycache.MissInterval{
@@ -609,10 +609,10 @@ func TestMergeWithCachedSeriesData(t *testing.T) {
 		{
 			Start: 1000,
 			End:   2000,
-			Data: []*v3.Series{
+			Data: []*timeseriestypes.Series{
 				{
 					Labels: map[string]string{"metric": "cpu", "instance": "localhost"},
-					Points: []v3.Point{
+					Points: []timeseriestypes.Point{
 						{Timestamp: 1500, Value: 0.5},
 					},
 				},
@@ -625,16 +625,16 @@ func TestMergeWithCachedSeriesData(t *testing.T) {
 		{
 			Start: 1500,
 			End:   2500,
-			Data: []*v3.Series{
+			Data: []*timeseriestypes.Series{
 				{
 					Labels: map[string]string{"metric": "cpu", "instance": "localhost"},
-					Points: []v3.Point{
+					Points: []timeseriestypes.Point{
 						{Timestamp: 1750, Value: 0.6},
 					},
 				},
 				{
 					Labels: map[string]string{"metric": "memory", "instance": "localhost"},
-					Points: []v3.Point{
+					Points: []timeseriestypes.Point{
 						{Timestamp: 1800, Value: 0.7},
 					},
 				},
@@ -647,17 +647,17 @@ func TestMergeWithCachedSeriesData(t *testing.T) {
 		{
 			Start: 1000,
 			End:   2500,
-			Data: []*v3.Series{
+			Data: []*timeseriestypes.Series{
 				{
 					Labels: map[string]string{"metric": "cpu", "instance": "localhost"},
-					Points: []v3.Point{
+					Points: []timeseriestypes.Point{
 						{Timestamp: 1500, Value: 0.5},
 						{Timestamp: 1750, Value: 0.6},
 					},
 				},
 				{
 					Labels: map[string]string{"metric": "memory", "instance": "localhost"},
-					Points: []v3.Point{
+					Points: []timeseriestypes.Point{
 						{Timestamp: 1800, Value: 0.7},
 					},
 				},

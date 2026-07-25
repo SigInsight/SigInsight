@@ -26,7 +26,6 @@ type UseQueryOperationsParams = Pick<QueryProps, 'index' | 'query'> &
 		savePreviousQuery?: boolean;
 	};
 
-// Generic type that can work with both legacy and V5 query types
 export type HandleChangeQueryData<T = IBuilderQuery> = <
 	Key extends keyof T,
 	Value extends T[Key]
@@ -43,10 +42,6 @@ export type HandleChangeTraceOperatorData<T = IBuilderTraceOperator> = <
 	value: Value,
 ) => void;
 
-// Legacy version for backward compatibility
-export type HandleChangeQueryDataLegacy = HandleChangeQueryData<IBuilderQuery>;
-
-// V5 version for new API
 export type HandleChangeQueryDataV5 = HandleChangeQueryData<
 	BaseBuilderQuery & (TraceBuilderQuery | LogBuilderQuery | MetricBuilderQuery)
 >;

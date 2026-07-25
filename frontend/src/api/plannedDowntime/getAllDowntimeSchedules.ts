@@ -1,5 +1,5 @@
 import { useQuery, UseQueryResult } from 'react-query';
-import axios from 'api';
+import { ApiV5Instance as axios } from 'api';
 import { AxiosError, AxiosResponse } from 'axios';
 import { Option } from 'container/PlannedDowntime/PlannedDowntimeutils';
 

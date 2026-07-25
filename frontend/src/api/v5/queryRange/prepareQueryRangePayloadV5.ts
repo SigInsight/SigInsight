@@ -1,6 +1,6 @@
 /* eslint-disable sonarjs/cognitive-complexity */
 /* eslint-disable sonarjs/no-identical-functions */
-import { convertFiltersToExpression } from 'components/QueryBuilderV2/utils';
+import { convertFiltersToExpression } from 'components/QueryBuilder/utils';
 import { PANEL_TYPES } from 'constants/queryBuilder';
 import { GetQueryResultsProps } from 'lib/dashboard/getQueryResults';
 import getStartEndRangeTime from 'lib/getStartEndRangeTime';
@@ -75,46 +75,6 @@ function getSignalType(dataSource: string): 'traces' | 'logs' | 'metrics' {
 		return 'logs';
 	}
 	return 'metrics';
-}
-
-function isDeprecatedField(fieldName: string): boolean {
-	const deprecatedIntrinsicFields = [
-		'traceID',
-		'spanID',
-		'parentSpanID',
-		'spanKind',
-		'durationNano',
-		'statusCode',
-		'statusMessage',
-		'statusCodeString',
-	];
-
-	const deprecatedCalculatedFields = [
-		'responseStatusCode',
-		'externalHttpUrl',
-		'httpUrl',
-		'externalHttpMethod',
-		'httpMethod',
-		'httpHost',
-		'dbName',
-		'dbOperation',
-		'hasError',
-		'isRemote',
-		'serviceName',
-		'httpRoute',
-		'msgSystem',
-		'msgOperation',
-		'dbSystem',
-		'rpcSystem',
-		'rpcService',
-		'rpcMethod',
-		'peerService',
-	];
-
-	return (
-		deprecatedIntrinsicFields.includes(fieldName) ||
-		deprecatedCalculatedFields.includes(fieldName)
-	);
 }
 
 function getFilter(queryData: IBuilderQuery): Filter {
@@ -207,7 +167,6 @@ function createBaseSpec(
 			: nonEmptySelectColumns?.map(
 					(column: any): TelemetryFieldKey => {
 						const fieldName = column.name ?? column.key;
-						const isDeprecated = isDeprecatedField(fieldName);
 
 						const fieldObj: TelemetryFieldKey = {
 							name: fieldName,
@@ -216,8 +175,7 @@ function createBaseSpec(
 							signal: column?.signal ?? undefined,
 						};
 
-						// Only add fieldContext if the field is NOT deprecated
-						if (!isDeprecated && fieldName !== 'name') {
+						if (fieldName !== 'name') {
 							fieldObj.fieldContext =
 								column?.fieldContext ?? (column?.type as FieldContext);
 						}

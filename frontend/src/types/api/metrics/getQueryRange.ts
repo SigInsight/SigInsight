@@ -1,27 +1,10 @@
-import { PANEL_TYPES } from 'constants/queryBuilder';
-import { EQueryType } from 'types/common/dashboard';
-
 import { SuccessResponse, Warning } from '..';
-import {
-	IBuilderFormula,
-	IBuilderQuery,
-	IClickHouseQuery,
-	IPromQLQuery,
-} from '../queryBuilder/queryBuilderData';
+import { ICompositeMetricQuery } from '../alerts/compositeQuery';
 import { ExecStats } from '../v5/queryRange';
-import { QueryData, QueryDataV3 } from '../widgets/getQuery';
+import { QueryData, QueryRangeResult } from '../widgets/getQuery';
 
 export type QueryRangePayload = {
-	compositeQuery: {
-		builderQueries?: {
-			[x: string]: IBuilderQuery | IBuilderFormula;
-		};
-		chQueries?: Record<string, IClickHouseQuery>;
-		promQueries?: Record<string, IPromQLQuery>;
-		queryType: EQueryType;
-		panelType: PANEL_TYPES;
-		fillGaps?: boolean;
-	};
+	compositeQuery: ICompositeMetricQuery;
 	end: number;
 	start: number;
 	step: number;
@@ -33,7 +16,7 @@ export interface MetricRangePayloadProps {
 	data: {
 		result: QueryData[];
 		resultType: string;
-		newResult: MetricRangePayloadV3;
+		queryResult: QueryRangeViewPayload;
 		warnings?: string[];
 	};
 	meta?: ExecStats;
@@ -45,9 +28,9 @@ export type MetricQueryRangeSuccessResponse = SuccessResponse<
 	unknown
 > & { warning?: Warning; meta?: ExecStats };
 
-export interface MetricRangePayloadV3 {
+export interface QueryRangeViewPayload {
 	data: {
-		result: QueryDataV3[];
+		result: QueryRangeResult[];
 		resultType: string;
 		warnings?: string[];
 	};

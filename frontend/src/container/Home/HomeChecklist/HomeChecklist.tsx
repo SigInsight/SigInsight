@@ -2,7 +2,6 @@
 import { useEffect, useState } from 'react';
 import { Button } from 'antd';
 import logEvent from 'api/common/logEvent';
-import ROUTES from 'constants/routes';
 import history from 'lib/history';
 import { ArrowRight, ArrowRightToLine, BookOpenText } from 'lucide-react';
 import { useAppContext } from 'providers/App/App';
@@ -90,7 +89,7 @@ function HomeChecklist({
 															step: item.id,
 														});
 
-														if (item.toRoute === ROUTES.GET_STARTED_WITH_CLOUD) {
+														if (!item.toRoute && item.docsLink) {
 															window?.open(
 																item.docsLink || '',
 																'_blank',

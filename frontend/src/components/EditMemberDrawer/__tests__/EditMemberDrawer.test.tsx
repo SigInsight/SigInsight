@@ -3,8 +3,8 @@ import { toast } from '@signozhq/sonner';
 import { convertToApiError } from 'api/ErrorResponseHandlerForGeneratedAPIs';
 import {
 	getResetPasswordToken,
+	updateUser,
 	useDeleteUser,
-	useUpdateUserDeprecated,
 } from 'api/generated/services/users';
 import { MemberStatus } from 'container/MembersSettings/utils';
 import {
@@ -50,7 +50,9 @@ jest.mock('@signozhq/dialog', () => ({
 
 jest.mock('api/generated/services/users', () => ({
 	useDeleteUser: jest.fn(),
-	useUpdateUserDeprecated: jest.fn(),
+	updateUser: jest.fn(),
+	removeUserRoleByUserIDAndRoleID: jest.fn(),
+	setRoleByUserID: jest.fn(),
 	getResetPasswordToken: jest.fn(),
 }));
 
@@ -105,7 +107,7 @@ function renderDrawer(
 describe('EditMemberDrawer', () => {
 	beforeEach(() => {
 		jest.clearAllMocks();
-		(useUpdateUserDeprecated as jest.Mock).mockReturnValue({
+		(updateUser as jest.Mock).mockReturnValue({
 			mutate: mockUpdateMutate,
 			isLoading: false,
 		});
@@ -130,7 +132,7 @@ describe('EditMemberDrawer', () => {
 		const onComplete = jest.fn();
 		const user = userEvent.setup({ pointerEventsCheck: 0 });
 
-		(useUpdateUserDeprecated as jest.Mock).mockImplementation((options) => ({
+		(updateUser as jest.Mock).mockImplementation((options) => ({
 			mutate: mockUpdateMutate.mockImplementation(() => {
 				options?.mutation?.onSuccess?.();
 			}),
@@ -239,7 +241,7 @@ describe('EditMemberDrawer', () => {
 		const onComplete = jest.fn();
 		const user = userEvent.setup({ pointerEventsCheck: 0 });
 
-		(useUpdateUserDeprecated as jest.Mock).mockImplementation((options) => ({
+		(updateUser as jest.Mock).mockImplementation((options) => ({
 			mutate: mockUpdateMutate.mockImplementation(() => {
 				options?.mutation?.onSuccess?.();
 			}),
@@ -280,7 +282,7 @@ describe('EditMemberDrawer', () => {
 			const user = userEvent.setup({ pointerEventsCheck: 0 });
 			const mockToast = jest.mocked(toast);
 
-			(useUpdateUserDeprecated as jest.Mock).mockImplementation((options) => ({
+			(updateUser as jest.Mock).mockImplementation((options) => ({
 				mutate: mockUpdateMutate.mockImplementation(() => {
 					options?.mutation?.onError?.({});
 				}),

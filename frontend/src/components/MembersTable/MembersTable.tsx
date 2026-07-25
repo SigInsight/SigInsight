@@ -15,6 +15,7 @@ export interface MemberRow {
 	name?: string;
 	email: string;
 	role: ROLES;
+	roleIds?: string[];
 	status: MemberStatus;
 	joinedOn: string | null;
 	updatedAt?: string | null;
