@@ -30,130 +30,81 @@ export const handlers = [
 	rest.get('http://localhost/api/v5/users/me', (req, res, ctx) =>
 		res(ctx.status(200), ctx.json({ status: '200', data: membersResponse })),
 	),
-	rest.get(
-		'http://localhost/api/v5/autocomplete/attribute_keys',
-		(req, res, ctx) => {
-			const metricName = req.url.searchParams.get('metricName');
-			const match = req.url.searchParams.get('match');
+	rest.get('http://localhost/api/v5/fields/keys', (req, res, ctx) => {
+		const metricName = req.url.searchParams.get('metricName');
+		const searchText = req.url.searchParams.get('searchText');
 
-			if (metricName === 'signoz_calls_total' && match === 'resource_') {
-				return res(
-					ctx.status(200),
-					ctx.json({ status: 'success', data: ['resource_signoz_collector_id'] }),
-				);
-			}
-
-			return res(ctx.status(500));
-		},
-	),
-
-	rest.get(
-		'http://localhost/api/v5/autocomplete/attribute_values',
-		(req, res, ctx) => {
-			// ?metricName=signoz_calls_total&tagKey=resource_signoz_collector_id
-			const metricName = req.url.searchParams.get('metricName');
-			const tagKey = req.url.searchParams.get('tagKey');
-
-			const attributeKey = req.url.searchParams.get('attributeKey');
-
-			if (attributeKey === 'service.name') {
-				return res(
-					ctx.status(200),
-					ctx.json({
-						status: 'success',
-						data: {
-							stringAttributeValues: [
-								'customer',
-								'demo-app',
-								'driver',
-								'frontend',
-								'mysql',
-								'redis',
-								'route',
-								'go-grpc-otel-server',
-								'test',
+		if (metricName === 'signoz_calls_total' && searchText === 'resource_') {
+			return res(
+				ctx.status(200),
+				ctx.json({
+					status: 'success',
+					data: {
+						complete: true,
+						keys: {
+							resource: [
+								{
+									name: 'resource_signoz_collector_id',
+									fieldContext: 'resource',
+									fieldDataType: 'string',
+								},
 							],
-							numberAttributeValues: null,
-							boolAttributeValues: null,
 						},
-					}),
-				);
-			}
+					},
+				}),
+			);
+		}
 
-			if (attributeKey === 'name') {
-				return res(
-					ctx.status(200),
-					ctx.json({
-						status: 'success',
-						data: {
-							stringAttributeValues: [
-								'HTTP GET',
-								'HTTP GET /customer',
-								'HTTP GET /dispatch',
-								'HTTP GET /route',
-							],
-							numberAttributeValues: null,
-							boolAttributeValues: null,
-						},
-					}),
-				);
-			}
+		return res(
+			ctx.status(200),
+			ctx.json({ status: 'success', data: { complete: true, keys: {} } }),
+		);
+	}),
 
-			if (attributeKey === 'http_method') {
-				return res(
-					ctx.status(200),
-					ctx.json({
-						status: 'success',
-						data: {
-							stringAttributeValues: ['GET', 'POST'],
-							numberAttributeValues: null,
-							boolAttributeValues: null,
-						},
-					}),
-				);
-			}
+	rest.get('http://localhost/api/v5/fields/values', (req, res, ctx) => {
+		const attributeKey = req.url.searchParams.get('name');
+		const stringValuesByKey: Record<string, string[]> = {
+			'service.name': [
+				'customer',
+				'demo-app',
+				'driver',
+				'frontend',
+				'mysql',
+				'redis',
+				'route',
+				'go-grpc-otel-server',
+				'test',
+			],
+			name: [
+				'HTTP GET',
+				'HTTP GET /customer',
+				'HTTP GET /dispatch',
+				'HTTP GET /route',
+			],
+			http_method: ['GET', 'POST'],
+			'http.route': ['/health', '/v1/orders'],
+			resource_signoz_collector_id: [
+				'f38916c2-daf2-4424-bd3e-4907a7e537b6',
+				'6d4af7f0-4884-4a37-abd4-6bdbee29fa04',
+				'523c44b9-5fe1-46f7-9163-4d2c57ece09b',
+			],
+		};
 
-			if (attributeKey === 'http.route') {
-				return res(
-					ctx.status(200),
-					ctx.json({
-						status: 'success',
-						data: {
-							stringAttributeValues: ['/health', '/v1/orders'],
-							numberAttributeValues: null,
-							boolAttributeValues: null,
-						},
-					}),
-				);
-			}
-
-			if (
-				metricName === 'signoz_calls_total' &&
-				tagKey === 'resource_signoz_collector_id'
-			) {
-				return res(
-					ctx.status(200),
-					ctx.json({
-						status: 'success',
-						data: [
-							'f38916c2-daf2-4424-bd3e-4907a7e537b6',
-							'6d4af7f0-4884-4a37-abd4-6bdbee29fa04',
-							'523c44b9-5fe1-46f7-9163-4d2c57ece09b',
-							'aa52e8e8-6f88-4056-8fbd-b377394d022c',
-							'4d515ba2-065d-4856-b2d8-ddb957c44ddb',
-							'fd47a544-1410-4c76-a554-90ef6464da02',
-							'bb455f71-3fe1-4761-bbf5-efe2faee18a6',
-							'48563680-314e-4117-8a6d-1f0389c95e04',
-							'6e866423-7704-4d72-be8b-4695bc36f145',
-							'e4886c76-93f5-430f-9076-eef85524312f',
-						],
-					}),
-				);
-			}
-
-			return res(ctx.status(500));
-		},
-	),
+		return res(
+			ctx.status(200),
+			ctx.json({
+				status: 'success',
+				data: {
+					complete: true,
+					values: {
+						boolValues: [],
+						numberValues: [],
+						stringValues: stringValuesByKey[attributeKey || ''] || [],
+					},
+				},
+			}),
+		);
+	}),
 	rest.post('http://localhost/api/v5/invite', (_, res, ctx) =>
 		res(
 			ctx.status(200),
@@ -180,18 +131,6 @@ export const handlers = [
 				error: 'invalid credentials',
 			}),
 		),
-	),
-
-	rest.get(
-		'http://localhost/api/v5/autocomplete/aggregate_attributes',
-		(req, res, ctx) =>
-			res(
-				ctx.status(200),
-				ctx.json({
-					status: 'success',
-					data: { attributeKeys: null },
-				}),
-			),
 	),
 
 	rest.get('http://localhost/api/v5/explorer/views', (req, res, ctx) =>

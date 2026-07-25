@@ -1,4 +1,4 @@
-import { ThresholdProps } from 'container/NewWidget/RightContainer/Threshold/types';
+import { ThresholdProps } from 'features/query-visualization/threshold';
 import { convertValue } from 'lib/getConvertedValue';
 import { isFinite } from 'lodash-es';
 import { QueryRangeResult } from 'types/api/widgets/getQuery';

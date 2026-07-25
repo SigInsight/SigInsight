@@ -20,7 +20,7 @@ function ThresholdItem({
 	isLoadingChannels,
 }: ThresholdItemProps): JSX.Element {
 	const { user } = useAppContext();
-	const { thresholdState, notificationSettings } = useCreateAlertState();
+	const { thresholdState } = useCreateAlertState();
 	const [showRecoveryThreshold, setShowRecoveryThreshold] = useState(false);
 
 	const yAxisUnitSelect = useMemo(() => {
@@ -112,8 +112,7 @@ function ThresholdItem({
 						data-testid="threshold-value-input"
 					/>
 					{yAxisUnitSelect}
-					{!notificationSettings.routingPolicies && (
-						<>
+					<>
 							<Typography.Text className="sentence-text">send to</Typography.Text>
 							<Select
 								value={threshold.channels}
@@ -147,8 +146,7 @@ function ThresholdItem({
 									/>
 								}
 							/>
-						</>
-					)}
+					</>
 					{showRecoveryThreshold && (
 						<>
 							<Typography.Text className="sentence-text">recover on</Typography.Text>

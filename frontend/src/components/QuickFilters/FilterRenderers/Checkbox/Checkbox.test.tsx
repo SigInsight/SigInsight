@@ -128,8 +128,14 @@ describe('CheckboxFilter - User Flows', () => {
 
 		// Setup MSW server for API calls
 		server.use(
-			rest.get('*/api/v5/autocomplete/attribute_values', (_req, res, ctx) =>
-				res(ctx.status(200), ctx.json(quickFiltersAttributeValuesResponse)),
+			rest.get('*/api/v5/fields/values', (_req, res, ctx) =>
+				res(
+					ctx.status(200),
+					ctx.json({
+						status: 'success',
+						data: { complete: true, values: { stringValues: MOCK_SERVICE_NAMES } },
+					}),
+				),
 			),
 		);
 	});

@@ -1,5 +1,5 @@
 import { Typography } from 'antd';
-import { timeItems } from 'container/NewWidget/RightContainer/timeItems';
+import { timeItems } from 'features/query-visualization/timePreference';
 
 export const menuItems = timeItems.map((item) => ({
 	key: item.enum,

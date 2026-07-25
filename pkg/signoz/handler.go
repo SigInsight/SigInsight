@@ -20,8 +20,6 @@ import (
 	"github.com/SigNoz/signoz/pkg/modules/rawdataexport/implrawdataexport"
 	"github.com/SigNoz/signoz/pkg/modules/savedview"
 	"github.com/SigNoz/signoz/pkg/modules/savedview/implsavedview"
-	"github.com/SigNoz/signoz/pkg/modules/serviceaccount"
-	"github.com/SigNoz/signoz/pkg/modules/serviceaccount/implserviceaccount"
 	"github.com/SigNoz/signoz/pkg/modules/services"
 	"github.com/SigNoz/signoz/pkg/modules/services/implservices"
 	"github.com/SigNoz/signoz/pkg/modules/spanpercentile"
@@ -33,21 +31,20 @@ import (
 )
 
 type Handlers struct {
-	Assistant             assistant.Handler
-	SavedView             savedview.Handler
-	Apdex                 apdex.Handler
-	QuickFilter           quickfilter.Handler
-	TraceFunnel           tracefunnel.Handler
-	RawDataExport         rawdataexport.Handler
-	SpanPercentile        spanpercentile.Handler
-	Services              services.Handler
-	MetricsExplorer       metricsexplorer.Handler
-	FlaggerHandler        flagger.Handler
-	Fields                fields.Handler
-	AuthzHandler          authz.Handler
-	QuerierHandler        querier.Handler
-	ServiceAccountHandler serviceaccount.Handler
-	RegistryHandler       factory.Handler
+	Assistant       assistant.Handler
+	SavedView       savedview.Handler
+	Apdex           apdex.Handler
+	QuickFilter     quickfilter.Handler
+	TraceFunnel     tracefunnel.Handler
+	RawDataExport   rawdataexport.Handler
+	SpanPercentile  spanpercentile.Handler
+	Services        services.Handler
+	MetricsExplorer metricsexplorer.Handler
+	FlaggerHandler  flagger.Handler
+	Fields          fields.Handler
+	AuthzHandler    authz.Handler
+	QuerierHandler  querier.Handler
+	RegistryHandler factory.Handler
 }
 
 func NewHandlers(
@@ -61,20 +58,19 @@ func NewHandlers(
 	registryHandler factory.Handler,
 ) Handlers {
 	return Handlers{
-		Assistant:             implassistant.NewHandler(modules.Assistant),
-		SavedView:             implsavedview.NewHandler(modules.SavedView),
-		Apdex:                 implapdex.NewHandler(modules.Apdex),
-		QuickFilter:           implquickfilter.NewHandler(modules.QuickFilter),
-		TraceFunnel:           impltracefunnel.NewHandler(modules.TraceFunnel),
-		RawDataExport:         implrawdataexport.NewHandler(modules.RawDataExport),
-		Services:              implservices.NewHandler(modules.Services),
-		MetricsExplorer:       implmetricsexplorer.NewHandler(modules.MetricsExplorer),
-		SpanPercentile:        implspanpercentile.NewHandler(modules.SpanPercentile),
-		FlaggerHandler:        flagger.NewHandler(flaggerService),
-		Fields:                implfields.NewHandler(providerSettings, telemetryMetadataStore),
-		AuthzHandler:          signozauthzapi.NewHandler(authz),
-		QuerierHandler:        querierHandler,
-		ServiceAccountHandler: implserviceaccount.NewHandler(modules.ServiceAccount),
-		RegistryHandler:       registryHandler,
+		Assistant:       implassistant.NewHandler(modules.Assistant),
+		SavedView:       implsavedview.NewHandler(modules.SavedView),
+		Apdex:           implapdex.NewHandler(modules.Apdex),
+		QuickFilter:     implquickfilter.NewHandler(modules.QuickFilter),
+		TraceFunnel:     impltracefunnel.NewHandler(modules.TraceFunnel),
+		RawDataExport:   implrawdataexport.NewHandler(modules.RawDataExport),
+		Services:        implservices.NewHandler(modules.Services),
+		MetricsExplorer: implmetricsexplorer.NewHandler(modules.MetricsExplorer),
+		SpanPercentile:  implspanpercentile.NewHandler(modules.SpanPercentile),
+		FlaggerHandler:  flagger.NewHandler(flaggerService),
+		Fields:          implfields.NewHandler(providerSettings, telemetryMetadataStore),
+		AuthzHandler:    signozauthzapi.NewHandler(authz),
+		QuerierHandler:  querierHandler,
+		RegistryHandler: registryHandler,
 	}
 }

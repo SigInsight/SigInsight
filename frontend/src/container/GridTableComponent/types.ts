@@ -5,7 +5,7 @@ import { LogsExplorerTableProps } from 'container/LogsExplorerTable/LogsExplorer
 import {
 	ThresholdOperators,
 	ThresholdProps,
-} from 'container/NewWidget/RightContainer/Threshold/types';
+} from 'features/query-visualization/threshold';
 import { QueryTableProps } from 'container/QueryTable/QueryTable.intefaces';
 import { RowData } from 'lib/query/createTableColumnsFromQuery';
 import { ColumnUnit, ContextLinksData } from 'types/api/dashboard/getAll';

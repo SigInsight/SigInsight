@@ -1,7 +1,6 @@
 import { RouteTabProps } from 'components/RouteTab/types';
 import ROUTES from 'constants/routes';
 import AlertChannels from 'container/AllAlertChannels';
-import APIKeys from 'container/APIKeys/APIKeys';
 import CreateAlertChannels from 'container/CreateAlertChannels';
 import { ChannelType } from 'container/CreateAlertChannels/config';
 import GeneralSettings from 'container/GeneralSettings';
@@ -11,10 +10,8 @@ import { TFunction } from 'i18next';
 import {
 	Backpack,
 	BellDot,
-	Bot,
 	Building,
 	Keyboard,
-	KeySquare,
 	Pencil,
 	Plus,
 	User,
@@ -22,7 +19,6 @@ import {
 } from 'lucide-react';
 import ChannelsEdit from 'pages/ChannelsEdit';
 import MembersSettings from 'pages/MembersSettings';
-import ServiceAccountsSettings from 'pages/ServiceAccountsSettings';
 import Shortcuts from 'pages/Shortcuts';
 
 export const organizationSettings = (t: TFunction): RouteTabProps['routes'] => [
@@ -61,19 +57,6 @@ export const generalSettings = (t: TFunction): RouteTabProps['routes'] => [
 		),
 		route: ROUTES.SETTINGS,
 		key: ROUTES.SETTINGS,
-	},
-];
-
-export const apiKeys = (t: TFunction): RouteTabProps['routes'] => [
-	{
-		Component: APIKeys,
-		name: (
-			<div className="periscope-tab">
-				<KeySquare size={16} /> {t('routes:api_keys').toString()}
-			</div>
-		),
-		route: ROUTES.API_KEYS,
-		key: ROUTES.API_KEYS,
 	},
 ];
 
@@ -116,26 +99,9 @@ export const mySettings = (t: TFunction): RouteTabProps['routes'] => [
 	},
 ];
 
-export const serviceAccountsSettings = (
-	t: TFunction,
-): RouteTabProps['routes'] => [
-	{
-		Component: ServiceAccountsSettings,
-		name: (
-			<div className="periscope-tab">
-				<Bot size={16} /> {t('routes:service_accounts').toString()}
-			</div>
-		),
-		route: ROUTES.SERVICE_ACCOUNTS_SETTINGS,
-		key: ROUTES.SERVICE_ACCOUNTS_SETTINGS,
-	},
-];
-
 export const createAlertChannels = (t: TFunction): RouteTabProps['routes'] => [
 	{
-		Component: (): JSX.Element => (
-			<CreateAlertChannels preType={ChannelType.Slack} />
-		),
+		Component: (): JSX.Element => <CreateAlertChannels preType={ChannelType.Email} />,
 		name: (
 			<div className="periscope-tab">
 				<Plus size={16} /> {t('routes:create_alert_channels').toString()}

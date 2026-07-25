@@ -1,6 +1,6 @@
 import { TableColumnType as ColumnType } from 'antd';
 import { convertUnit } from 'container/NewWidget/RightContainer/dataFormatCategories';
-import { ThresholdProps } from 'container/NewWidget/RightContainer/Threshold/types';
+import { ThresholdProps } from 'features/query-visualization/threshold';
 import { QUERY_TABLE_CONFIG } from 'container/QueryTable/config';
 import { QueryTableProps } from 'container/QueryTable/QueryTable.intefaces';
 import { RowData } from 'lib/query/createTableColumnsFromQuery';

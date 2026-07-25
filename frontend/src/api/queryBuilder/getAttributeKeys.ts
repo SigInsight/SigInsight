@@ -1,15 +1,13 @@
-import { ApiV5Instance } from 'api';
 import { ErrorResponseHandler } from 'api/ErrorResponseHandler';
-import { AxiosError, AxiosResponse } from 'axios';
-import { baseAutoCompleteIdKeysOrder } from 'constants/queryBuilder';
-import { createIdFromObjectFields } from 'lib/createIdFromObjectFields';
-import createQueryParams from 'lib/createQueryParams';
+import { AxiosError } from 'axios';
+import { getFieldKeys, toAutocompleteData } from './fields';
 import { ErrorResponse, SuccessResponse } from 'types/api';
 import { IGetAttributeKeysPayload } from 'types/api/queryBuilder/getAttributeKeys';
 import {
 	BaseAutocompleteData,
 	IQueryAutocompleteResponse,
 } from 'types/api/queryBuilder/queryAutocompleteResponse';
+import { DataSource } from 'types/common/queryBuilder';
 
 export const getAggregateKeys = async ({
 	aggregateOperator,
@@ -21,22 +19,18 @@ export const getAggregateKeys = async ({
 	SuccessResponse<IQueryAutocompleteResponse> | ErrorResponse
 > => {
 	try {
-		const response: AxiosResponse<{
-			data: IQueryAutocompleteResponse;
-		}> = await ApiV5Instance.get(
-			`/autocomplete/attribute_keys?${createQueryParams({
-				aggregateOperator,
-				searchText,
-				dataSource,
-				aggregateAttribute,
-			})}&tagType=${tagType}`,
-		);
+		const response = await getFieldKeys({
+			signal:
+				dataSource === ('meter' as DataSource) ? DataSource.METRICS : dataSource,
+			searchText,
+			metricName: aggregateAttribute,
+			fieldContext: tagType === 'resource' ? 'resource' : undefined,
+			source: dataSource === ('meter' as DataSource) ? 'meter' : undefined,
+		});
 
-		const payload: BaseAutocompleteData[] =
-			response.data.data.attributeKeys?.map(({ id: _, ...item }) => ({
-				...item,
-				id: createIdFromObjectFields(item, baseAutoCompleteIdKeysOrder),
-			})) || [];
+		const payload: BaseAutocompleteData[] = toAutocompleteData(
+			response.data.data.keys,
+		);
 
 		return {
 			statusCode: 200,

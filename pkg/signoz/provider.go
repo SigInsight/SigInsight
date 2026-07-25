@@ -20,7 +20,6 @@ import (
 	"github.com/SigNoz/signoz/pkg/flagger"
 	"github.com/SigNoz/signoz/pkg/flagger/configflagger"
 	"github.com/SigNoz/signoz/pkg/identn"
-	"github.com/SigNoz/signoz/pkg/identn/apikeyidentn"
 	"github.com/SigNoz/signoz/pkg/identn/impersonationidentn"
 	"github.com/SigNoz/signoz/pkg/identn/tokenizeridentn"
 	"github.com/SigNoz/signoz/pkg/modules/organization"
@@ -59,7 +58,6 @@ import (
 	"github.com/SigNoz/signoz/pkg/tokenizer/jwttokenizer"
 	"github.com/SigNoz/signoz/pkg/tokenizer/opaquetokenizer"
 	"github.com/SigNoz/signoz/pkg/tokenizer/tokenizerstore/sqltokenizerstore"
-	"github.com/SigNoz/signoz/pkg/types/alertmanagertypes"
 	"github.com/SigNoz/signoz/pkg/types/featuretypes"
 	"github.com/SigNoz/signoz/pkg/version"
 	"github.com/SigNoz/signoz/pkg/web"
@@ -163,7 +161,6 @@ func NewSQLMigrationProviderFactories(
 				sqlmigration.NewQueryBuilderV5MigrationFactory(sqlstore, telemetryStore),
 				sqlmigration.NewAddMeterQuickFiltersFactory(sqlstore, sqlschema),
 				sqlmigration.NewUpdateTTLSettingForCustomRetentionFactory(sqlstore, sqlschema),
-				sqlmigration.NewAddRoutePolicyFactory(sqlstore, sqlschema),
 				sqlmigration.NewAddAuthTokenFactory(sqlstore, sqlschema),
 				sqlmigration.NewAddAuthzFactory(sqlstore, sqlschema),
 				sqlmigration.NewAddPublicDashboardsFactory(sqlstore, sqlschema),
@@ -184,7 +181,6 @@ func NewSQLMigrationProviderFactories(
 				sqlmigration.NewAddStatusUserFactory(sqlstore, sqlschema),
 				sqlmigration.NewDeprecateUserInviteFactory(sqlstore, sqlschema),
 				sqlmigration.NewUpdateCloudIntegrationUniqueIndexFactory(sqlstore, sqlschema),
-				sqlmigration.NewUpdatePlannedMaintenanceRuleFactory(sqlstore, sqlschema),
 				sqlmigration.NewAddUserRoleFactory(sqlstore, sqlschema),
 				sqlmigration.NewDropUserRoleColumnFactory(sqlstore, sqlschema),
 				sqlmigration.NewAddAssistantConfigFactory(sqlschema),
@@ -194,6 +190,7 @@ func NewSQLMigrationProviderFactories(
 			},
 			sqlmigration.NewConsolidateV5SchemaFactory(),
 		),
+		sqlmigration.NewRemoveUnusedProductDataFactory(),
 	)
 }
 
@@ -214,9 +211,9 @@ func NewPrometheusProviderFactories(telemetryStore telemetrystore.TelemetryStore
 	)
 }
 
-func NewNotificationManagerProviderFactories(routeStore alertmanagertypes.RouteStore) factory.NamedMap[factory.ProviderFactory[nfmanager.NotificationManager, nfmanager.Config]] {
+func NewNotificationManagerProviderFactories() factory.NamedMap[factory.ProviderFactory[nfmanager.NotificationManager, nfmanager.Config]] {
 	return factory.MustNewNamedMap(
-		rulebasednotification.NewFactory(routeStore),
+		rulebasednotification.NewFactory(),
 	)
 }
 
@@ -275,7 +272,6 @@ func NewAPIServerProviderFactories(orgGetter organization.Getter, authz authz.Au
 			handlers.AuthzHandler,
 			handlers.RawDataExport,
 			handlers.QuerierHandler,
-			handlers.ServiceAccountHandler,
 			handlers.RegistryHandler,
 			handlers.Assistant,
 		),
@@ -294,7 +290,6 @@ func NewIdentNProviderFactories(sqlstore sqlstore.SQLStore, tokenizer tokenizer.
 	return factory.MustNewNamedMap(
 		impersonationidentn.NewFactory(orgGetter, userGetter, userConfig),
 		tokenizeridentn.NewFactory(tokenizer),
-		apikeyidentn.NewFactory(sqlstore),
 	)
 }
 

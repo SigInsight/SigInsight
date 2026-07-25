@@ -26,8 +26,6 @@ import (
 	"github.com/SigNoz/signoz/pkg/modules/rawdataexport/implrawdataexport"
 	"github.com/SigNoz/signoz/pkg/modules/savedview"
 	"github.com/SigNoz/signoz/pkg/modules/savedview/implsavedview"
-	"github.com/SigNoz/signoz/pkg/modules/serviceaccount"
-	"github.com/SigNoz/signoz/pkg/modules/serviceaccount/implserviceaccount"
 	"github.com/SigNoz/signoz/pkg/modules/services"
 	"github.com/SigNoz/signoz/pkg/modules/services/implservices"
 	"github.com/SigNoz/signoz/pkg/modules/session"
@@ -66,7 +64,6 @@ type Modules struct {
 	SpanPercentile  spanpercentile.Module
 	MetricsExplorer metricsexplorer.Module
 	Promote         promote.Module
-	ServiceAccount  serviceaccount.Module
 }
 
 func NewModules(
@@ -110,6 +107,5 @@ func NewModules(
 		Services:        implservices.NewModule(querier, telemetryStore),
 		MetricsExplorer: implmetricsexplorer.NewModule(telemetryStore, telemetryMetadataStore, cache, ruleStore, providerSettings, config.MetricsExplorer),
 		Promote:         implpromote.NewModule(telemetryMetadataStore, telemetryStore),
-		ServiceAccount:  implserviceaccount.NewModule(implserviceaccount.NewStore(sqlstore), authz, emailing, providerSettings),
 	}
 }

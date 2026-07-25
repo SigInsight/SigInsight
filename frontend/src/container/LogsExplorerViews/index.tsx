@@ -49,7 +49,6 @@ import { Filter } from 'types/api/v5/queryRange';
 import { QueryRangeResult } from 'types/api/widgets/getQuery';
 import { DataSource } from 'types/common/queryBuilder';
 import { GlobalReducer } from 'types/reducer/globalTime';
-import { v4 } from 'uuid';
 
 import LogsActionsContainer from './LogsActionsContainer';
 
@@ -100,7 +99,6 @@ function LogsExplorerViewsContainer({
 	const [page, setPage] = useState<number>(1);
 	const [logs, setLogs] = useState<ILog[]>([]);
 	const [requestData, setRequestData] = useState<Query | null>(null);
-	const [queryId, setQueryId] = useState<string>(v4());
 	const [listChartQuery, setListChartQuery] = useState<Query | null>(null);
 
 	const [orderBy, setOrderBy] = useState<string>('timestamp:desc');
@@ -175,10 +173,7 @@ function LogsExplorerViewsContainer({
 		},
 		undefined,
 		listQueryKeyRef,
-		{
-			...(!isEmpty(queryId) &&
-				selectedPanelType !== PANEL_TYPES.LIST && { 'X-SIGNOZ-QUERY-ID': queryId }),
-		},
+		undefined,
 		// custom selected time interval to prevent recalculating the start and end timestamps before fetching next pages
 		'custom',
 	);
@@ -244,7 +239,6 @@ function LogsExplorerViewsContainer({
 	}, [isLimit, logs, listQuery, pageSize, stagedQuery, getRequestData, page]);
 
 	useEffect(() => {
-		setQueryId(v4());
 	}, [data]);
 
 	const logEventCalledRef = useRef(false);

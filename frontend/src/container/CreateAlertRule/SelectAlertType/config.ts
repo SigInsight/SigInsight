@@ -3,10 +3,7 @@ import { AlertTypes } from 'types/api/alerts/alertTypes';
 
 import { OptionType } from './types';
 
-export const getOptionList = (
-	t: TFunction,
-	isAnomalyDetectionEnabled: boolean,
-): OptionType[] => {
+export const getOptionList = (t: TFunction): OptionType[] => {
 	const optionList: OptionType[] = [
 		{
 			title: t('metric_based_alert'),
@@ -29,15 +26,6 @@ export const getOptionList = (
 			description: t('exceptions_based_alert_desc'),
 		},
 	];
-
-	if (isAnomalyDetectionEnabled) {
-		optionList.unshift({
-			title: t('anomaly_based_alert'),
-			selection: AlertTypes.ANOMALY_BASED_ALERT,
-			description: t('anomaly_based_alert_desc'),
-			isBeta: true,
-		});
-	}
 
 	return optionList;
 };

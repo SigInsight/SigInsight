@@ -6,7 +6,6 @@ import (
 
 	"github.com/SigNoz/signoz/pkg/alertmanager"
 	"github.com/SigNoz/signoz/pkg/alertmanager/nfmanager"
-	"github.com/SigNoz/signoz/pkg/alertmanager/nfmanager/nfroutingstore/sqlroutingstore"
 	"github.com/SigNoz/signoz/pkg/analytics"
 	"github.com/SigNoz/signoz/pkg/apiserver"
 	"github.com/SigNoz/signoz/pkg/authn"
@@ -292,7 +291,7 @@ func New(
 		ctx,
 		providerSettings,
 		nfmanager.Config{},
-		NewNotificationManagerProviderFactories(sqlroutingstore.NewStore(sqlstore)),
+		NewNotificationManagerProviderFactories(),
 		"rulebased",
 	)
 	if err != nil {

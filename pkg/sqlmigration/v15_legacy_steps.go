@@ -23,7 +23,6 @@ import (
 	"github.com/SigNoz/signoz/pkg/valuer"
 	"github.com/google/uuid"
 	"github.com/oklog/ulid/v2"
-	"github.com/prometheus/alertmanager/config"
 	"github.com/tidwall/gjson"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect"
@@ -1226,6 +1225,17 @@ func (migration *addAlertmanager) populateAlertmanagerConfig(ctx context.Context
 		return err
 	}
 
+	supportedChannels := make([]*alertmanagertypes.Channel, 0, len(channels))
+	supportedReceiverNames := make(map[string]struct{})
+	for _, channel := range channels {
+		if channel.Type != "email" && channel.Type != "webhook" {
+			continue
+		}
+		supportedChannels = append(supportedChannels, channel)
+		supportedReceiverNames[channel.Name] = struct{}{}
+	}
+	channels = supportedChannels
+
 	var receiversFromChannels []string
 	for _, channel := range channels {
 		receiversFromChannels = append(receiversFromChannels, channel.Name)
@@ -1252,17 +1262,13 @@ func (migration *addAlertmanager) populateAlertmanagerConfig(ctx context.Context
 	for _, matcher := range matchers {
 		receivers := gjson.Get(matcher.Data, "preferredChannels").Array()
 		for _, receiver := range receivers {
-			matchersMap[strconv.Itoa(matcher.ID)] = append(matchersMap[strconv.Itoa(matcher.ID)], receiver.String())
+			if _, ok := supportedReceiverNames[receiver.String()]; ok {
+				matchersMap[strconv.Itoa(matcher.ID)] = append(matchersMap[strconv.Itoa(matcher.ID)], receiver.String())
+			}
 		}
 
 		if len(receivers) == 0 {
 			matchersMap[strconv.Itoa(matcher.ID)] = append(matchersMap[strconv.Itoa(matcher.ID)], receiversFromChannels...)
-		}
-	}
-
-	for _, channel := range channels {
-		if err := migration.msTeamsChannelToMSTeamsV2Channel(channel); err != nil {
-			return err
 		}
 	}
 
@@ -1289,69 +1295,11 @@ func (migration *addAlertmanager) populateAlertmanagerConfig(ctx context.Context
 		return err
 	}
 
-	for _, channel := range channels {
-		if channel.Type == "msteamsv2" {
-			if _, err := tx.
-				NewUpdate().
-				Model(channel).
-				WherePK().
-				Exec(ctx); err != nil {
-				return err
-			}
-		}
-	}
-
 	return nil
 }
 
 func (migration *addAlertmanager) Down(ctx context.Context, db *bun.DB) error {
 	return nil
-}
-
-func (migration *addAlertmanager) msTeamsChannelToMSTeamsV2Channel(c *alertmanagertypes.Channel) error {
-	if c.Type != "msteams" {
-		return nil
-	}
-
-	receiver, err := alertmanagertypes.NewReceiver(c.Data)
-	if err != nil {
-		return err
-	}
-
-	receiver = migration.msTeamsReceiverToMSTeamsV2Receiver(receiver)
-	data, err := json.Marshal(receiver)
-	if err != nil {
-		return err
-	}
-
-	c.Type = "msteamsv2"
-	c.Data = string(data)
-	c.UpdatedAt = time.Now()
-
-	return nil
-}
-
-func (migration *addAlertmanager) msTeamsReceiverToMSTeamsV2Receiver(receiver alertmanagertypes.Receiver) alertmanagertypes.Receiver {
-	if receiver.MSTeamsConfigs == nil {
-		return receiver
-	}
-
-	var msTeamsV2Configs []*config.MSTeamsV2Config
-	for _, cfg := range receiver.MSTeamsConfigs {
-		msTeamsV2Configs = append(msTeamsV2Configs, &config.MSTeamsV2Config{
-			NotifierConfig: cfg.NotifierConfig,
-			HTTPConfig:     cfg.HTTPConfig,
-			WebhookURL:     cfg.WebhookURL,
-			WebhookURLFile: cfg.WebhookURLFile,
-			Title:          cfg.Title,
-			Text:           cfg.Text,
-		})
-	}
-
-	receiver.MSTeamsConfigs = nil
-	receiver.MSTeamsV2Configs = msTeamsV2Configs
-
-	return receiver
 }
 
 type updateDashboardAndSavedViews struct {
@@ -5949,247 +5897,6 @@ func (migration *updateTTLSettingForCustomRetention) Down(ctx context.Context, d
 	return nil
 }
 
-// Shared types for migration
-
-type expressionRoute struct {
-	bun.BaseModel `bun:"table:route_policy"`
-	types.Identifiable
-	types.TimeAuditable
-	types.UserAuditable
-
-	Expression     string `bun:"expression,type:text"`
-	ExpressionKind string `bun:"kind,type:text"`
-
-	Channels []string `bun:"channels,type:text"`
-
-	Name        string   `bun:"name,type:text"`
-	Description string   `bun:"description,type:text"`
-	Enabled     bool     `bun:"enabled,type:boolean,default:true"`
-	Tags        []string `bun:"tags,type:text"`
-
-	OrgID string `bun:"org_id,type:text"`
-}
-
-type rule struct {
-	bun.BaseModel `bun:"table:rule"`
-	types.Identifiable
-	types.TimeAuditable
-	types.UserAuditable
-	Deleted int    `bun:"deleted,default:0"`
-	Data    string `bun:"data,type:text"`
-	OrgID   string `bun:"org_id,type:text"`
-}
-
-type addRoutePolicies struct {
-	sqlstore  sqlstore.SQLStore
-	sqlschema sqlschema.SQLSchema
-	logger    *slog.Logger
-}
-
-func NewAddRoutePolicyFactory(sqlstore sqlstore.SQLStore, sqlschema sqlschema.SQLSchema) factory.ProviderFactory[SQLMigration, Config] {
-	return factory.NewProviderFactory(factory.MustNewName("add_route_policy"), func(ctx context.Context, providerSettings factory.ProviderSettings, config Config) (SQLMigration, error) {
-		return newAddRoutePolicy(ctx, providerSettings, config, sqlstore, sqlschema)
-	})
-}
-
-func newAddRoutePolicy(_ context.Context, settings factory.ProviderSettings, _ Config, sqlstore sqlstore.SQLStore, sqlschema sqlschema.SQLSchema) (SQLMigration, error) {
-	return &addRoutePolicies{
-		sqlstore:  sqlstore,
-		sqlschema: sqlschema,
-		logger:    settings.Logger,
-	}, nil
-}
-
-func (migration *addRoutePolicies) Register(migrations *migrate.Migrations) error {
-	if err := migrations.Register(migration.Up, migration.Down); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (migration *addRoutePolicies) Up(ctx context.Context, db *bun.DB) error {
-	_, _, err := migration.sqlschema.GetTable(ctx, sqlschema.TableName("route_policy"))
-	if err == nil {
-		return nil
-	}
-
-	tx, err := db.BeginTx(ctx, nil)
-	if err != nil {
-		return err
-	}
-
-	defer func() {
-		_ = tx.Rollback()
-	}()
-
-	sqls := [][]byte{}
-
-	// Create the route_policy table
-	table := &sqlschema.Table{
-		Name: "route_policy",
-		Columns: []*sqlschema.Column{
-			{Name: "id", DataType: sqlschema.DataTypeText, Nullable: false},
-			{Name: "created_at", DataType: sqlschema.DataTypeTimestamp, Nullable: false},
-			{Name: "updated_at", DataType: sqlschema.DataTypeTimestamp, Nullable: false},
-			{Name: "created_by", DataType: sqlschema.DataTypeText, Nullable: false},
-			{Name: "updated_by", DataType: sqlschema.DataTypeText, Nullable: false},
-			{Name: "expression", DataType: sqlschema.DataTypeText, Nullable: false},
-			{Name: "kind", DataType: sqlschema.DataTypeText, Nullable: false},
-			{Name: "channels", DataType: sqlschema.DataTypeText, Nullable: false},
-			{Name: "name", DataType: sqlschema.DataTypeText, Nullable: false},
-			{Name: "description", DataType: sqlschema.DataTypeText, Nullable: true},
-			{Name: "enabled", DataType: sqlschema.DataTypeBoolean, Nullable: false, Default: "true"},
-			{Name: "tags", DataType: sqlschema.DataTypeText, Nullable: true},
-			{Name: "org_id", DataType: sqlschema.DataTypeText, Nullable: false},
-		},
-		PrimaryKeyConstraint: &sqlschema.PrimaryKeyConstraint{
-			ColumnNames: []sqlschema.ColumnName{"id"},
-		},
-		ForeignKeyConstraints: []*sqlschema.ForeignKeyConstraint{
-			{
-				ReferencingColumnName: "org_id",
-				ReferencedTableName:   "organizations",
-				ReferencedColumnName:  "id",
-			},
-		},
-	}
-
-	tableSQLs := migration.sqlschema.Operator().CreateTable(table)
-	sqls = append(sqls, tableSQLs...)
-
-	for _, sqlStmt := range sqls {
-		if _, err := tx.ExecContext(ctx, string(sqlStmt)); err != nil {
-			return err
-		}
-	}
-
-	err = migration.migrateRulesToRoutePolicies(ctx, tx)
-	if err != nil {
-		return err
-	}
-
-	if err := tx.Commit(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (migration *addRoutePolicies) migrateRulesToRoutePolicies(ctx context.Context, tx bun.Tx) error {
-	var rules []*rule
-	err := tx.NewSelect().
-		Model(&rules).
-		Where("deleted = ?", 0).
-		Scan(ctx)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil // No rules to migrate
-		}
-		return errors.NewInternalf(errors.CodeInternal, "failed to fetch rules")
-	}
-
-	channelsByOrg, err := migration.getAllChannels(ctx, tx)
-	if err != nil {
-		return errors.NewInternalf(errors.CodeInternal, "fetching channels error: %v", err)
-	}
-
-	var routesToInsert []*expressionRoute
-
-	routesToInsert, err = migration.convertRulesToRoutes(rules, channelsByOrg)
-	if err != nil {
-		return errors.NewInternalf(errors.CodeInternal, "converting rules to routes error: %v", err)
-	}
-
-	// Insert all routes in a single batch operation
-	if len(routesToInsert) > 0 {
-		_, err = tx.NewInsert().
-			Model(&routesToInsert).
-			Exec(ctx)
-		if err != nil {
-			return errors.NewInternalf(errors.CodeInternal, "failed to insert notification routes")
-		}
-	}
-
-	return nil
-}
-
-func (migration *addRoutePolicies) convertRulesToRoutes(rules []*rule, channelsByOrg map[string][]string) ([]*expressionRoute, error) {
-	var routes []*expressionRoute
-	for _, r := range rules {
-		var gettableRule ruletypes.GettableRule
-		if err := json.Unmarshal([]byte(r.Data), &gettableRule); err != nil {
-			return nil, errors.NewInternalf(errors.CodeInternal, "failed to unmarshal rule data for rule ID %s: %v", r.ID, err)
-		}
-
-		if len(gettableRule.PreferredChannels) == 0 {
-			channels, exists := channelsByOrg[r.OrgID]
-			if !exists || len(channels) == 0 {
-				continue
-			}
-			gettableRule.PreferredChannels = channels
-		}
-		severity := "critical"
-		if v, ok := gettableRule.Labels["severity"]; ok {
-			severity = v
-		}
-		expression := fmt.Sprintf(`%s == "%s" && %s == "%s"`, "threshold.name", severity, "ruleId", r.ID.String())
-		route := &expressionRoute{
-			Identifiable: types.Identifiable{
-				ID: valuer.GenerateUUID(),
-			},
-			TimeAuditable: types.TimeAuditable{
-				CreatedAt: time.Now(),
-				UpdatedAt: time.Now(),
-			},
-			UserAuditable: types.UserAuditable{
-				CreatedBy: r.CreatedBy,
-				UpdatedBy: r.UpdatedBy,
-			},
-			Expression:     expression,
-			ExpressionKind: "rule",
-			Channels:       gettableRule.PreferredChannels,
-			Name:           r.ID.StringValue(),
-			Enabled:        true,
-			OrgID:          r.OrgID,
-		}
-		routes = append(routes, route)
-	}
-	return routes, nil
-}
-
-func (migration *addRoutePolicies) getAllChannels(ctx context.Context, tx bun.Tx) (map[string][]string, error) {
-	type channel struct {
-		bun.BaseModel `bun:"table:notification_channel"`
-		types.Identifiable
-		types.TimeAuditable
-		Name  string `json:"name" bun:"name"`
-		Type  string `json:"type" bun:"type"`
-		Data  string `json:"data" bun:"data"`
-		OrgID string `json:"org_id" bun:"org_id"`
-	}
-
-	var channels []*channel
-	err := tx.NewSelect().
-		Model(&channels).
-		Scan(ctx)
-	if err != nil {
-		return nil, errors.NewInternalf(errors.CodeInternal, "failed to fetch all channels")
-	}
-
-	// Group channels by org ID
-	channelsByOrg := make(map[string][]string)
-	for _, ch := range channels {
-		channelsByOrg[ch.OrgID] = append(channelsByOrg[ch.OrgID], ch.Name)
-	}
-
-	return channelsByOrg, nil
-}
-
-func (migration *addRoutePolicies) Down(ctx context.Context, db *bun.DB) error {
-	return nil
-}
-
 type addAuthToken struct {
 	sqlstore  sqlstore.SQLStore
 	sqlschema sqlschema.SQLSchema
@@ -8665,128 +8372,6 @@ func parseRegions(configJSON string, regionSet map[string]struct{}) {
 	for _, region := range config.Regions {
 		regionSet[region] = struct{}{}
 	}
-}
-
-type updatePlannedMaintenanceRule struct {
-	sqlstore  sqlstore.SQLStore
-	sqlschema sqlschema.SQLSchema
-}
-
-type plannedMaintenanceRuleRow struct {
-	bun.BaseModel `bun:"table:planned_maintenance_rule"`
-
-	ID                   string `bun:"id"`
-	PlannedMaintenanceID string `bun:"planned_maintenance_id"`
-	RuleID               string `bun:"rule_id"`
-}
-
-func NewUpdatePlannedMaintenanceRuleFactory(sqlstore sqlstore.SQLStore, sqlschema sqlschema.SQLSchema) factory.ProviderFactory[SQLMigration, Config] {
-	return factory.NewProviderFactory(
-		factory.MustNewName("update_planned_maintenance_rule"),
-		func(ctx context.Context, ps factory.ProviderSettings, c Config) (SQLMigration, error) {
-			return &updatePlannedMaintenanceRule{
-				sqlstore:  sqlstore,
-				sqlschema: sqlschema,
-			}, nil
-		},
-	)
-}
-
-func (migration *updatePlannedMaintenanceRule) Register(migrations *migrate.Migrations) error {
-	if err := migrations.Register(migration.Up, migration.Down); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (migration *updatePlannedMaintenanceRule) Up(ctx context.Context, db *bun.DB) error {
-	table, _, err := migration.sqlschema.GetTable(ctx, sqlschema.TableName("planned_maintenance_rule"))
-	if err != nil {
-		return err
-	}
-
-	if err := migration.sqlschema.ToggleFKEnforcement(ctx, db, false); err != nil {
-		return err
-	}
-
-	tx, err := db.BeginTx(ctx, nil)
-	if err != nil {
-		return err
-	}
-
-	defer func() {
-		_ = tx.Rollback()
-	}()
-
-	// Read all existing rows
-	var rows []*plannedMaintenanceRuleRow
-	err = tx.NewSelect().Model(&rows).Scan(ctx)
-	if err != nil {
-		return err
-	}
-
-	// Drop the existing table
-	dropTableSQLs := migration.sqlschema.Operator().DropTable(table)
-	for _, sql := range dropTableSQLs {
-		if _, err := tx.ExecContext(ctx, string(sql)); err != nil {
-			return err
-		}
-	}
-
-	// Create the table fresh without CASCADE constraints
-	newTable := &sqlschema.Table{
-		Name: sqlschema.TableName("planned_maintenance_rule"),
-		Columns: []*sqlschema.Column{
-			{Name: "id", DataType: sqlschema.DataTypeText, Nullable: false},
-			{Name: "planned_maintenance_id", DataType: sqlschema.DataTypeText, Nullable: false},
-			{Name: "rule_id", DataType: sqlschema.DataTypeText, Nullable: false},
-		},
-		PrimaryKeyConstraint: &sqlschema.PrimaryKeyConstraint{
-			ColumnNames: []sqlschema.ColumnName{"id"},
-		},
-		ForeignKeyConstraints: []*sqlschema.ForeignKeyConstraint{
-			{
-				ReferencingColumnName: "planned_maintenance_id",
-				ReferencedTableName:   "planned_maintenance",
-				ReferencedColumnName:  "id",
-			},
-			{
-				ReferencingColumnName: "rule_id",
-				ReferencedTableName:   "rule",
-				ReferencedColumnName:  "id",
-			},
-		},
-	}
-
-	createTableSQLs := migration.sqlschema.Operator().CreateTable(newTable)
-	for _, sql := range createTableSQLs {
-		if _, err := tx.ExecContext(ctx, string(sql)); err != nil {
-			return err
-		}
-	}
-
-	// Re-insert the data
-	if len(rows) > 0 {
-		_, err = tx.NewInsert().Model(&rows).Exec(ctx)
-		if err != nil {
-			return err
-		}
-	}
-
-	if err := tx.Commit(); err != nil {
-		return err
-	}
-
-	if err := migration.sqlschema.ToggleFKEnforcement(ctx, db, true); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (migration *updatePlannedMaintenanceRule) Down(ctx context.Context, db *bun.DB) error {
-	return nil
 }
 
 var (

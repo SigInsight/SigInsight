@@ -1,5 +1,5 @@
 import { ReactChild, useEffect, useMemo } from 'react';
-import { matchPath, Redirect, useLocation } from 'react-router-dom';
+import { matchPath, useLocation } from 'react-router-dom';
 import getLocalStorageApi from 'api/browser/localstorage/get';
 import setLocalStorageApi from 'api/browser/localstorage/set';
 import { LOCALSTORAGE } from 'constants/localStorage';
@@ -8,7 +8,7 @@ import history from 'lib/history';
 import { useAppContext } from 'providers/App/App';
 import { routePermission } from 'utils/permission';
 
-import routes, { oldNewRoutesMapping, oldRoutes } from './routes';
+import routes from './routes';
 
 function PrivateRoute({ children }: PrivateRouteProps): JSX.Element {
 	const location = useLocation();
@@ -27,17 +27,10 @@ function PrivateRoute({ children }: PrivateRouteProps): JSX.Element {
 			),
 		[pathname],
 	);
-	const isOldRoute = oldRoutes.indexOf(pathname) > -1;
 	const currentRoute = mapRoutes.get('current');
 
 	// eslint-disable-next-line sonarjs/cognitive-complexity
 	useEffect(() => {
-		// if it is an old route navigate to the new route
-		if (isOldRoute) {
-			// this will be handled by the redirect component below
-			return;
-		}
-
 		// if the current route
 		if (currentRoute) {
 			const { isPrivate, key } = currentRoute;
@@ -79,20 +72,7 @@ function PrivateRoute({ children }: PrivateRouteProps): JSX.Element {
 			setLocalStorageApi(LOCALSTORAGE.UNAUTHENTICATED_ROUTE_HIT, pathname);
 			history.push(ROUTES.LOGIN);
 		}
-	}, [isLoggedInState, pathname, user, isOldRoute, currentRoute, location]);
-
-	if (isOldRoute) {
-		const redirectUrl = oldNewRoutesMapping[pathname];
-		return (
-			<Redirect
-				to={{
-					pathname: redirectUrl,
-					search: location.search,
-					hash: location.hash,
-				}}
-			/>
-		);
-	}
+	}, [isLoggedInState, pathname, user, currentRoute, location]);
 
 	// NOTE: disabling this rule as there is no need to have div
 	return <>{children}</>;

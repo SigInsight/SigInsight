@@ -1,5 +1,5 @@
 import { UseQueryResult } from 'react-query';
-import { ThresholdProps } from 'container/NewWidget/RightContainer/Threshold/types';
+import { ThresholdProps } from 'features/query-visualization/threshold';
 import { SuccessResponse } from 'types/api';
 import { ContextLinksData, Widgets } from 'types/api/dashboard/getAll';
 import { MetricRangePayloadProps } from 'types/api/metrics/getQueryRange';

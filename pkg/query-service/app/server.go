@@ -25,7 +25,7 @@ import (
 	"github.com/SigNoz/signoz/pkg/modules/organization"
 	"github.com/SigNoz/signoz/pkg/prometheus"
 	"github.com/SigNoz/signoz/pkg/querier"
-	"github.com/SigNoz/signoz/pkg/query-service/agentConf"
+	"github.com/SigNoz/signoz/pkg/query-service/agentconfig"
 	"github.com/SigNoz/signoz/pkg/query-service/app/clickhouseReader"
 	"github.com/SigNoz/signoz/pkg/query-service/app/opamp"
 	opAmpModel "github.com/SigNoz/signoz/pkg/query-service/app/opamp/model"
@@ -131,8 +131,8 @@ func NewServer(config signoz.Config, signoz *signoz.SigNoz) (*Server, error) {
 
 	opAmpModel.Init(signoz.SQLStore, signoz.Instrumentation.Logger(), signoz.Modules.OrgGetter)
 
-	agentConfMgr, err := agentConf.Initiate(
-		&agentConf.ManagerOptions{
+	agentconfigMgr, err := agentconfig.Initiate(
+		&agentconfig.ManagerOptions{
 			Store: signoz.SQLStore,
 		},
 	)
@@ -142,7 +142,7 @@ func NewServer(config signoz.Config, signoz *signoz.SigNoz) (*Server, error) {
 
 	s.opampServer = opamp.InitializeServer(
 		&opAmpModel.AllAgents,
-		agentConfMgr,
+		agentconfigMgr,
 		signoz.Instrumentation,
 	)
 
@@ -180,7 +180,6 @@ func (s *Server) createPublicServer(api *APIHandler, web web.Web) (*http.Server,
 
 	api.RegisterRoutes(r, am)
 	api.RegisterQueryRangeV5Routes(r, am)
-	api.RegisterWebSocketPaths(r, am)
 	api.RegisterAPIMonitoringRoutes(r, am)
 	api.MetricExplorerRoutes(r, am)
 	api.RegisterTraceFunnelsRoutes(r, am)
@@ -193,7 +192,7 @@ func (s *Server) createPublicServer(api *APIHandler, web web.Web) (*http.Server,
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{"*"},
 		AllowedMethods: []string{"GET", "DELETE", "POST", "PUT", "PATCH", "OPTIONS"},
-		AllowedHeaders: []string{"Accept", "Authorization", "Content-Type", "cache-control", "X-SIGNOZ-QUERY-ID", "Sec-WebSocket-Protocol"},
+		AllowedHeaders: []string{"Accept", "Authorization", "Content-Type", "cache-control", "Sec-WebSocket-Protocol"},
 	})
 
 	handler := c.Handler(r)
@@ -297,24 +296,22 @@ func makeRulesManager(
 	queryParser queryparser.QueryParser,
 ) (*rules.Manager, error) {
 	ruleStore := sqlrulestore.NewRuleStore(sqlstore, queryParser, providerSettings)
-	maintenanceStore := sqlrulestore.NewMaintenanceStore(sqlstore)
 	// create manager opts
 	managerOpts := &rules.ManagerOptions{
-		TelemetryStore:   telemetryStore,
-		MetadataStore:    metadataStore,
-		Prometheus:       prometheus,
-		Context:          context.Background(),
-		Reader:           ch,
-		Querier:          querier,
-		Logger:           providerSettings.Logger,
-		Cache:            cache,
-		EvalDelay:        constants.GetEvalDelay(),
-		OrgGetter:        orgGetter,
-		Alertmanager:     alertmanager,
-		RuleStore:        ruleStore,
-		MaintenanceStore: maintenanceStore,
-		SqlStore:         sqlstore,
-		QueryParser:      queryParser,
+		TelemetryStore: telemetryStore,
+		MetadataStore:  metadataStore,
+		Prometheus:     prometheus,
+		Context:        context.Background(),
+		Reader:         ch,
+		Querier:        querier,
+		Logger:         providerSettings.Logger,
+		Cache:          cache,
+		EvalDelay:      constants.GetEvalDelay(),
+		OrgGetter:      orgGetter,
+		Alertmanager:   alertmanager,
+		RuleStore:      ruleStore,
+		SqlStore:       sqlstore,
+		QueryParser:    queryParser,
 	}
 
 	// create Manager

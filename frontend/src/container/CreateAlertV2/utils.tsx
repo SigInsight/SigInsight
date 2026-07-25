@@ -181,7 +181,6 @@ export function getNotificationSettingsStateFromAlertDef(
 ): NotificationSettingsState {
 	const description = alertDef.annotations?.description || '';
 	const multipleNotifications = alertDef.notificationSettings?.groupBy || [];
-	const routingPolicies = alertDef.notificationSettings?.usePolicy || false;
 
 	const reNotificationEnabled =
 		alertDef.notificationSettings?.renotify?.enabled || false;
@@ -200,7 +199,6 @@ export function getNotificationSettingsStateFromAlertDef(
 		...INITIAL_NOTIFICATION_SETTINGS_STATE,
 		description,
 		multipleNotifications,
-		routingPolicies,
 		reNotification: {
 			enabled: reNotificationEnabled,
 			conditions: reNotificationConditions,

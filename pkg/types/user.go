@@ -19,8 +19,6 @@ var (
 	ErrResetPasswordTokenAlreadyExists  = errors.MustNewCode("reset_password_token_already_exists")
 	ErrPasswordNotFound                 = errors.MustNewCode("password_not_found")
 	ErrResetPasswordTokenNotFound       = errors.MustNewCode("reset_password_token_not_found")
-	ErrAPIKeyAlreadyExists              = errors.MustNewCode("api_key_already_exists")
-	ErrAPIKeyNotFound                   = errors.MustNewCode("api_key_not_found")
 	ErrCodeRootUserOperationUnsupported = errors.MustNewCode("root_user_operation_unsupported")
 	ErrCodeUserStatusDeleted            = errors.MustNewCode("user_status_deleted")
 	ErrCodeUserStatusPendingInvite      = errors.MustNewCode("user_status_pending_invite")
@@ -242,14 +240,6 @@ type UserStore interface {
 	GetResetPasswordTokenByPasswordID(ctx context.Context, passwordID valuer.UUID) (*ResetPasswordToken, error)
 	DeleteResetPasswordTokenByPasswordID(ctx context.Context, passwordID valuer.UUID) error
 	UpdatePassword(ctx context.Context, password *FactorPassword) error
-
-	// API KEY
-	CreateAPIKey(ctx context.Context, apiKey *StorableAPIKey) error
-	UpdateAPIKey(ctx context.Context, id valuer.UUID, apiKey *StorableAPIKey, updaterID valuer.UUID) error
-	ListAPIKeys(ctx context.Context, orgID valuer.UUID) ([]*StorableAPIKeyUser, error)
-	RevokeAPIKey(ctx context.Context, id valuer.UUID, revokedByUserID valuer.UUID) error
-	GetAPIKey(ctx context.Context, orgID, id valuer.UUID) (*StorableAPIKeyUser, error)
-	CountAPIKeyByOrgID(ctx context.Context, orgID valuer.UUID) (int64, error)
 
 	CountByOrgID(ctx context.Context, orgID valuer.UUID) (int64, error)
 	CountByOrgIDAndStatuses(ctx context.Context, orgID valuer.UUID, statuses []string) (map[valuer.String]int64, error)

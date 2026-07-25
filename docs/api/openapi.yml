@@ -1582,138 +1582,6 @@ components:
       - status
       - error
       type: object
-    ServiceaccounttypesFactorAPIKey:
-      properties:
-        createdAt:
-          format: date-time
-          type: string
-        expiresAt:
-          minimum: 0
-          type: integer
-        id:
-          type: string
-        key:
-          type: string
-        lastObservedAt:
-          format: date-time
-          type: string
-        name:
-          type: string
-        serviceAccountId:
-          type: string
-        updatedAt:
-          format: date-time
-          type: string
-      required:
-      - id
-      - key
-      - expiresAt
-      - lastObservedAt
-      - serviceAccountId
-      type: object
-    ServiceaccounttypesGettableFactorAPIKeyWithKey:
-      properties:
-        id:
-          type: string
-        key:
-          type: string
-      required:
-      - id
-      - key
-      type: object
-    ServiceaccounttypesPostableFactorAPIKey:
-      properties:
-        expiresAt:
-          minimum: 0
-          type: integer
-        name:
-          type: string
-      required:
-      - name
-      - expiresAt
-      type: object
-    ServiceaccounttypesPostableServiceAccount:
-      properties:
-        email:
-          type: string
-        name:
-          type: string
-        roles:
-          items:
-            type: string
-          type: array
-      required:
-      - name
-      - email
-      - roles
-      type: object
-    ServiceaccounttypesServiceAccount:
-      properties:
-        createdAt:
-          format: date-time
-          type: string
-        deletedAt:
-          format: date-time
-          type: string
-        email:
-          type: string
-        id:
-          type: string
-        name:
-          type: string
-        orgId:
-          type: string
-        roles:
-          items:
-            type: string
-          type: array
-        status:
-          type: string
-        updatedAt:
-          format: date-time
-          type: string
-      required:
-      - id
-      - name
-      - email
-      - roles
-      - status
-      - orgId
-      - deletedAt
-      type: object
-    ServiceaccounttypesUpdatableFactorAPIKey:
-      properties:
-        expiresAt:
-          minimum: 0
-          type: integer
-        name:
-          type: string
-      required:
-      - name
-      - expiresAt
-      type: object
-    ServiceaccounttypesUpdatableServiceAccount:
-      properties:
-        email:
-          type: string
-        name:
-          type: string
-        roles:
-          items:
-            type: string
-          type: array
-      required:
-      - name
-      - email
-      - roles
-      type: object
-    ServiceaccounttypesUpdatableServiceAccountStatus:
-      properties:
-        status:
-          type: string
-      required:
-      - status
-      type: object
     TelemetrytypesFieldContext:
       enum:
       - metric
@@ -1812,43 +1680,6 @@ components:
         userId:
           type: string
       type: object
-    TypesGettableAPIKey:
-      properties:
-        createdAt:
-          format: date-time
-          type: string
-        createdBy:
-          type: string
-        createdByUser:
-          $ref: '#/components/schemas/TypesUser'
-        expiresAt:
-          format: int64
-          type: integer
-        id:
-          type: string
-        lastUsed:
-          format: int64
-          type: integer
-        name:
-          type: string
-        revoked:
-          type: boolean
-        role:
-          type: string
-        token:
-          type: string
-        updatedAt:
-          format: date-time
-          type: string
-        updatedBy:
-          type: string
-        updatedByUser:
-          $ref: '#/components/schemas/TypesUser'
-        userId:
-          type: string
-      required:
-      - id
-      type: object
     TypesIdentifiable:
       properties:
         id:
@@ -1902,16 +1733,6 @@ components:
           type: string
       required:
       - id
-      type: object
-    TypesPostableAPIKey:
-      properties:
-        expiresInDays:
-          format: int64
-          type: integer
-        name:
-          type: string
-        role:
-          type: string
       type: object
     TypesPostableBulkInviteRequest:
       properties:
@@ -1973,33 +1794,6 @@ components:
       required:
       - id
       type: object
-    TypesStorableAPIKey:
-      properties:
-        createdAt:
-          format: date-time
-          type: string
-        createdBy:
-          type: string
-        id:
-          type: string
-        name:
-          type: string
-        revoked:
-          type: boolean
-        role:
-          type: string
-        token:
-          type: string
-        updatedAt:
-          format: date-time
-          type: string
-        updatedBy:
-          type: string
-        userId:
-          type: string
-      required:
-      - id
-      type: object
     TypesUpdatableUser:
       properties:
         displayName:
@@ -2031,11 +1825,6 @@ components:
       - id
       type: object
   securitySchemes:
-    api_key:
-      description: API Keys
-      in: header
-      name: SigNoz-Api-Key
-      type: apiKey
     tokenizer:
       bearerFormat: Tokenizer
       description: Tokens generated by the tokenizer
@@ -2090,8 +1879,6 @@ paths:
                 $ref: '#/components/schemas/RenderErrorResponse'
           description: Internal Server Error
       security:
-      - api_key:
-        - VIEWER
       - tokenizer:
         - VIEWER
       summary: Chat with AI assistant
@@ -2137,8 +1924,6 @@ paths:
                 $ref: '#/components/schemas/RenderErrorResponse'
           description: Internal Server Error
       security:
-      - api_key:
-        - VIEWER
       - tokenizer:
         - VIEWER
       summary: Get AI assistant configuration
@@ -2175,8 +1960,6 @@ paths:
                 $ref: '#/components/schemas/RenderErrorResponse'
           description: Internal Server Error
       security:
-      - api_key:
-        - ADMIN
       - tokenizer:
         - ADMIN
       summary: Update AI assistant configuration
@@ -2299,8 +2082,6 @@ paths:
                 $ref: '#/components/schemas/RenderErrorResponse'
           description: Internal Server Error
       security:
-      - api_key:
-        - ADMIN
       - tokenizer:
         - ADMIN
       summary: Change password
@@ -2360,8 +2141,6 @@ paths:
                 $ref: '#/components/schemas/RenderErrorResponse'
           description: Internal Server Error
       security:
-      - api_key:
-        - VIEWER
       - tokenizer:
         - VIEWER
       summary: Export raw data
@@ -2444,8 +2223,6 @@ paths:
                 $ref: '#/components/schemas/RenderErrorResponse'
           description: Internal Server Error
       security:
-      - api_key:
-        - VIEWER
       - tokenizer:
         - VIEWER
       summary: Get features
@@ -2529,8 +2306,6 @@ paths:
                 $ref: '#/components/schemas/RenderErrorResponse'
           description: Internal Server Error
       security:
-      - api_key:
-        - VIEWER
       - tokenizer:
         - VIEWER
       summary: Get field keys
@@ -2622,8 +2397,6 @@ paths:
                 $ref: '#/components/schemas/RenderErrorResponse'
           description: Internal Server Error
       security:
-      - api_key:
-        - VIEWER
       - tokenizer:
         - VIEWER
       summary: Get field values
@@ -2686,8 +2459,6 @@ paths:
                 $ref: '#/components/schemas/RenderErrorResponse'
           description: Internal Server Error
       security:
-      - api_key:
-        - ADMIN
       - tokenizer:
         - ADMIN
       summary: Get reset password token
@@ -2784,8 +2555,6 @@ paths:
                 $ref: '#/components/schemas/RenderErrorResponse'
           description: Internal Server Error
       security:
-      - api_key:
-        - ADMIN
       - tokenizer:
         - ADMIN
       summary: Create invite
@@ -2835,8 +2604,6 @@ paths:
                 $ref: '#/components/schemas/RenderErrorResponse'
           description: Internal Server Error
       security:
-      - api_key:
-        - ADMIN
       - tokenizer:
         - ADMIN
       summary: Create bulk invite
@@ -2919,8 +2686,6 @@ paths:
                 $ref: '#/components/schemas/RenderErrorResponse'
           description: Internal Server Error
       security:
-      - api_key:
-        - VIEWER
       - tokenizer:
         - VIEWER
       summary: Promote and index paths
@@ -2966,8 +2731,6 @@ paths:
                 $ref: '#/components/schemas/RenderErrorResponse'
           description: Internal Server Error
       security:
-      - api_key:
-        - EDITOR
       - tokenizer:
         - EDITOR
       summary: Promote and index paths
@@ -3042,8 +2805,6 @@ paths:
                 $ref: '#/components/schemas/RenderErrorResponse'
           description: Internal Server Error
       security:
-      - api_key:
-        - VIEWER
       - tokenizer:
         - VIEWER
       summary: List metric names
@@ -3106,8 +2867,6 @@ paths:
                 $ref: '#/components/schemas/RenderErrorResponse'
           description: Internal Server Error
       security:
-      - api_key:
-        - VIEWER
       - tokenizer:
         - VIEWER
       summary: Get metric alerts
@@ -3181,8 +2940,6 @@ paths:
                 $ref: '#/components/schemas/RenderErrorResponse'
           description: Internal Server Error
       security:
-      - api_key:
-        - VIEWER
       - tokenizer:
         - VIEWER
       summary: Get metric attributes
@@ -3246,8 +3003,6 @@ paths:
                 $ref: '#/components/schemas/RenderErrorResponse'
           description: Internal Server Error
       security:
-      - api_key:
-        - VIEWER
       - tokenizer:
         - VIEWER
       summary: Get metric highlights
@@ -3311,8 +3066,6 @@ paths:
                 $ref: '#/components/schemas/RenderErrorResponse'
           description: Internal Server Error
       security:
-      - api_key:
-        - VIEWER
       - tokenizer:
         - VIEWER
       summary: Get metric metadata
@@ -3366,8 +3119,6 @@ paths:
                 $ref: '#/components/schemas/RenderErrorResponse'
           description: Internal Server Error
       security:
-      - api_key:
-        - EDITOR
       - tokenizer:
         - EDITOR
       summary: Update metric metadata
@@ -3424,8 +3175,6 @@ paths:
                 $ref: '#/components/schemas/RenderErrorResponse'
           description: Internal Server Error
       security:
-      - api_key:
-        - VIEWER
       - tokenizer:
         - VIEWER
       summary: Get metrics statistics
@@ -3482,8 +3231,6 @@ paths:
                 $ref: '#/components/schemas/RenderErrorResponse'
           description: Internal Server Error
       security:
-      - api_key:
-        - VIEWER
       - tokenizer:
         - VIEWER
       summary: Get metrics treemap
@@ -3530,8 +3277,6 @@ paths:
                 $ref: '#/components/schemas/RenderErrorResponse'
           description: Internal Server Error
       security:
-      - api_key:
-        - ADMIN
       - tokenizer:
         - ADMIN
       summary: List org preferences
@@ -3594,8 +3339,6 @@ paths:
                 $ref: '#/components/schemas/RenderErrorResponse'
           description: Internal Server Error
       security:
-      - api_key:
-        - ADMIN
       - tokenizer:
         - ADMIN
       summary: Get org preference
@@ -3650,8 +3393,6 @@ paths:
                 $ref: '#/components/schemas/RenderErrorResponse'
           description: Internal Server Error
       security:
-      - api_key:
-        - ADMIN
       - tokenizer:
         - ADMIN
       summary: Update org preference
@@ -3696,8 +3437,6 @@ paths:
                 $ref: '#/components/schemas/RenderErrorResponse'
           description: Internal Server Error
       security:
-      - api_key:
-        - ADMIN
       - tokenizer:
         - ADMIN
       summary: Get my organization
@@ -3746,229 +3485,11 @@ paths:
                 $ref: '#/components/schemas/RenderErrorResponse'
           description: Internal Server Error
       security:
-      - api_key:
-        - ADMIN
       - tokenizer:
         - ADMIN
       summary: Update my organization
       tags:
       - orgs
-  /api/v5/pats:
-    get:
-      deprecated: false
-      description: This endpoint lists all api keys
-      operationId: ListAPIKeys
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    items:
-                      $ref: '#/components/schemas/TypesGettableAPIKey'
-                    type: array
-                  status:
-                    type: string
-                required:
-                - status
-                - data
-                type: object
-          description: OK
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: List api keys
-      tags:
-      - users
-    post:
-      deprecated: false
-      description: This endpoint creates an api key
-      operationId: CreateAPIKey
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TypesPostableAPIKey'
-      responses:
-        "201":
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    $ref: '#/components/schemas/TypesGettableAPIKey'
-                  status:
-                    type: string
-                required:
-                - status
-                - data
-                type: object
-          description: Created
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Bad Request
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "409":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Conflict
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: Create api key
-      tags:
-      - users
-  /api/v5/pats/{id}:
-    delete:
-      deprecated: false
-      description: This endpoint revokes an api key
-      operationId: RevokeAPIKey
-      parameters:
-      - in: path
-        name: id
-        required: true
-        schema:
-          type: string
-      responses:
-        "204":
-          description: No Content
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Not Found
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: Revoke api key
-      tags:
-      - users
-    put:
-      deprecated: false
-      description: This endpoint updates an api key
-      operationId: UpdateAPIKey
-      parameters:
-      - in: path
-        name: id
-        required: true
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TypesStorableAPIKey'
-      responses:
-        "204":
-          content:
-            application/json:
-              schema:
-                type: string
-          description: No Content
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Bad Request
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Not Found
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: Update api key
-      tags:
-      - users
   /api/v5/query_range:
     post:
       deprecated: false
@@ -4360,8 +3881,6 @@ paths:
                 $ref: '#/components/schemas/RenderErrorResponse'
           description: Internal Server Error
       security:
-      - api_key:
-        - VIEWER
       - tokenizer:
         - VIEWER
       summary: Query range
@@ -4477,8 +3996,6 @@ paths:
                 $ref: '#/components/schemas/RenderErrorResponse'
           description: Internal Server Error
       security:
-      - api_key:
-        - ADMIN
       - tokenizer:
         - ADMIN
       summary: List roles
@@ -4551,8 +4068,6 @@ paths:
                 $ref: '#/components/schemas/RenderErrorResponse'
           description: Not Implemented
       security:
-      - api_key:
-        - ADMIN
       - tokenizer:
         - ADMIN
       summary: Create role
@@ -4613,8 +4128,6 @@ paths:
                 $ref: '#/components/schemas/RenderErrorResponse'
           description: Not Implemented
       security:
-      - api_key:
-        - ADMIN
       - tokenizer:
         - ADMIN
       summary: Delete role
@@ -4664,8 +4177,6 @@ paths:
                 $ref: '#/components/schemas/RenderErrorResponse'
           description: Internal Server Error
       security:
-      - api_key:
-        - ADMIN
       - tokenizer:
         - ADMIN
       summary: Get role
@@ -4730,8 +4241,6 @@ paths:
                 $ref: '#/components/schemas/RenderErrorResponse'
           description: Not Implemented
       security:
-      - api_key:
-        - ADMIN
       - tokenizer:
         - ADMIN
       summary: Patch role
@@ -4808,8 +4317,6 @@ paths:
                 $ref: '#/components/schemas/RenderErrorResponse'
           description: Not Implemented
       security:
-      - api_key:
-        - ADMIN
       - tokenizer:
         - ADMIN
       summary: Get objects for a role by relation
@@ -4886,8 +4393,6 @@ paths:
                 $ref: '#/components/schemas/RenderErrorResponse'
           description: Not Implemented
       security:
-      - api_key:
-        - ADMIN
       - tokenizer:
         - ADMIN
       summary: Patch objects for a role by relation
@@ -4946,593 +4451,11 @@ paths:
                 $ref: '#/components/schemas/RenderErrorResponse'
           description: Internal Server Error
       security:
-      - api_key:
-        - ADMIN
       - tokenizer:
         - ADMIN
       summary: Get users by role id
       tags:
       - users
-  /api/v5/service_accounts:
-    get:
-      deprecated: false
-      description: This endpoint lists the service accounts for an organisation
-      operationId: ListServiceAccounts
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    items:
-                      $ref: '#/components/schemas/ServiceaccounttypesServiceAccount'
-                    type: array
-                  status:
-                    type: string
-                required:
-                - status
-                - data
-                type: object
-          description: OK
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: List service accounts
-      tags:
-      - serviceaccount
-    post:
-      deprecated: false
-      description: This endpoint creates a service account
-      operationId: CreateServiceAccount
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ServiceaccounttypesPostableServiceAccount'
-      responses:
-        "201":
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    $ref: '#/components/schemas/TypesIdentifiable'
-                  status:
-                    type: string
-                required:
-                - status
-                - data
-                type: object
-          description: Created
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Bad Request
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "409":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Conflict
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: Create service account
-      tags:
-      - serviceaccount
-  /api/v5/service_accounts/{id}:
-    delete:
-      deprecated: false
-      description: This endpoint deletes an existing service account
-      operationId: DeleteServiceAccount
-      parameters:
-      - in: path
-        name: id
-        required: true
-        schema:
-          type: string
-      responses:
-        "204":
-          content:
-            application/json:
-              schema:
-                type: string
-          description: No Content
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Not Found
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: Deletes a service account
-      tags:
-      - serviceaccount
-    get:
-      deprecated: false
-      description: This endpoint gets an existing service account
-      operationId: GetServiceAccount
-      parameters:
-      - in: path
-        name: id
-        required: true
-        schema:
-          type: string
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    $ref: '#/components/schemas/ServiceaccounttypesServiceAccount'
-                  status:
-                    type: string
-                required:
-                - status
-                - data
-                type: object
-          description: OK
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Not Found
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: Gets a service account
-      tags:
-      - serviceaccount
-    put:
-      deprecated: false
-      description: This endpoint updates an existing service account
-      operationId: UpdateServiceAccount
-      parameters:
-      - in: path
-        name: id
-        required: true
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ServiceaccounttypesUpdatableServiceAccount'
-      responses:
-        "204":
-          content:
-            application/json:
-              schema:
-                type: string
-          description: No Content
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Bad Request
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Not Found
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: Updates a service account
-      tags:
-      - serviceaccount
-  /api/v5/service_accounts/{id}/keys:
-    get:
-      deprecated: false
-      description: This endpoint lists the service account keys
-      operationId: ListServiceAccountKeys
-      parameters:
-      - in: path
-        name: id
-        required: true
-        schema:
-          type: string
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    items:
-                      $ref: '#/components/schemas/ServiceaccounttypesFactorAPIKey'
-                    type: array
-                  status:
-                    type: string
-                required:
-                - status
-                - data
-                type: object
-          description: OK
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: List service account keys
-      tags:
-      - serviceaccount
-    post:
-      deprecated: false
-      description: This endpoint creates a service account key
-      operationId: CreateServiceAccountKey
-      parameters:
-      - in: path
-        name: id
-        required: true
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ServiceaccounttypesPostableFactorAPIKey'
-      responses:
-        "201":
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    $ref: '#/components/schemas/ServiceaccounttypesGettableFactorAPIKeyWithKey'
-                  status:
-                    type: string
-                required:
-                - status
-                - data
-                type: object
-          description: Created
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Bad Request
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "409":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Conflict
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: Create a service account key
-      tags:
-      - serviceaccount
-  /api/v5/service_accounts/{id}/keys/{fid}:
-    delete:
-      deprecated: false
-      description: This endpoint revokes an existing service account key
-      operationId: RevokeServiceAccountKey
-      parameters:
-      - in: path
-        name: id
-        required: true
-        schema:
-          type: string
-      - in: path
-        name: fid
-        required: true
-        schema:
-          type: string
-      responses:
-        "204":
-          content:
-            application/json:
-              schema:
-                type: string
-          description: No Content
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Not Found
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: Revoke a service account key
-      tags:
-      - serviceaccount
-    put:
-      deprecated: false
-      description: This endpoint updates an existing service account key
-      operationId: UpdateServiceAccountKey
-      parameters:
-      - in: path
-        name: id
-        required: true
-        schema:
-          type: string
-      - in: path
-        name: fid
-        required: true
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ServiceaccounttypesUpdatableFactorAPIKey'
-      responses:
-        "204":
-          content:
-            application/json:
-              schema:
-                type: string
-          description: No Content
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Bad Request
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Not Found
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: Updates a service account key
-      tags:
-      - serviceaccount
-  /api/v5/service_accounts/{id}/status:
-    put:
-      deprecated: false
-      description: This endpoint updates an existing service account status
-      operationId: UpdateServiceAccountStatus
-      parameters:
-      - in: path
-        name: id
-        required: true
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ServiceaccounttypesUpdatableServiceAccountStatus'
-      responses:
-        "204":
-          content:
-            application/json:
-              schema:
-                type: string
-          description: No Content
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Bad Request
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Not Found
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - api_key:
-        - ADMIN
-      - tokenizer:
-        - ADMIN
-      summary: Updates a service account status
-      tags:
-      - serviceaccount
   /api/v5/sessions:
     delete:
       deprecated: false
@@ -5741,8 +4664,6 @@ paths:
                 $ref: '#/components/schemas/RenderErrorResponse'
           description: Internal Server Error
       security:
-      - api_key:
-        - VIEWER
       - tokenizer:
         - VIEWER
       summary: Replace variables
@@ -5787,8 +4708,6 @@ paths:
                 $ref: '#/components/schemas/RenderErrorResponse'
           description: Internal Server Error
       security:
-      - api_key:
-        - ADMIN
       - tokenizer:
         - ADMIN
       summary: Delete user
@@ -5835,8 +4754,6 @@ paths:
                 $ref: '#/components/schemas/RenderErrorResponse'
           description: Internal Server Error
       security:
-      - api_key:
-        - VIEWER
       - tokenizer:
         - VIEWER
       summary: List user preferences
@@ -5893,8 +4810,6 @@ paths:
                 $ref: '#/components/schemas/RenderErrorResponse'
           description: Internal Server Error
       security:
-      - api_key:
-        - VIEWER
       - tokenizer:
         - VIEWER
       summary: Get user preference
@@ -5949,8 +4864,6 @@ paths:
                 $ref: '#/components/schemas/RenderErrorResponse'
           description: Internal Server Error
       security:
-      - api_key:
-        - VIEWER
       - tokenizer:
         - VIEWER
       summary: Update user preference
@@ -5997,8 +4910,6 @@ paths:
                 $ref: '#/components/schemas/RenderErrorResponse'
           description: Internal Server Error
       security:
-      - api_key:
-        - ADMIN
       - tokenizer:
         - ADMIN
       summary: List users v2
@@ -6055,8 +4966,6 @@ paths:
                 $ref: '#/components/schemas/RenderErrorResponse'
           description: Internal Server Error
       security:
-      - api_key:
-        - ADMIN
       - tokenizer:
         - ADMIN
       summary: Get user by user id
@@ -6111,8 +5020,6 @@ paths:
                 $ref: '#/components/schemas/RenderErrorResponse'
           description: Internal Server Error
       security:
-      - api_key:
-        - ADMIN
       - tokenizer:
         - ADMIN
       summary: Update user v2
@@ -6171,8 +5078,6 @@ paths:
                 $ref: '#/components/schemas/RenderErrorResponse'
           description: Internal Server Error
       security:
-      - api_key:
-        - ADMIN
       - tokenizer:
         - ADMIN
       summary: Get user roles
@@ -6221,8 +5126,6 @@ paths:
                 $ref: '#/components/schemas/RenderErrorResponse'
           description: Internal Server Error
       security:
-      - api_key:
-        - ADMIN
       - tokenizer:
         - ADMIN
       summary: Set user roles
@@ -6273,8 +5176,6 @@ paths:
                 $ref: '#/components/schemas/RenderErrorResponse'
           description: Internal Server Error
       security:
-      - api_key:
-        - ADMIN
       - tokenizer:
         - ADMIN
       summary: Remove a role from user

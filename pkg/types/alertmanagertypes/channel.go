@@ -101,7 +101,10 @@ func NewChannelFromReceiver(receiver config.Receiver, orgID string) (*Channel, e
 
 	// If we were unable to find the channel type, return an error
 	if channel.Type == "" {
-		return nil, errors.Newf(errors.TypeInvalidInput, ErrCodeAlertmanagerChannelInvalid, "channel '%s' must have at least one notification configuration (e.g., email_configs, webhook_configs, slack_configs)", receiver.Name)
+		return nil, errors.Newf(errors.TypeInvalidInput, ErrCodeAlertmanagerChannelInvalid, "channel '%s' must have an email or webhook notification configuration", receiver.Name)
+	}
+	if channel.Type != "email" && channel.Type != "webhook" {
+		return nil, errors.Newf(errors.TypeUnsupported, errors.CodeUnsupported, "channel type %q is not supported", channel.Type)
 	}
 
 	return &channel, nil
@@ -118,6 +121,9 @@ func NewConfigFromChannels(globalConfig GlobalConfig, routeConfig RouteConfig, c
 	}
 
 	for _, channel := range channels {
+		if channel.Type != "email" && channel.Type != "webhook" {
+			return nil, errors.Newf(errors.TypeUnsupported, errors.CodeUnsupported, "channel type %q is not supported", channel.Type)
+		}
 		receiver, err := NewReceiver(channel.Data)
 		if err != nil {
 			return nil, err

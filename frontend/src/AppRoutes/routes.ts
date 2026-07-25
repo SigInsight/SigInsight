@@ -23,7 +23,6 @@ import {
 	LogsSaveViews,
 	MeterExplorerPage,
 	MetricsExplorer,
-	OrgOnboarding,
 	PasswordReset,
 	ServiceMapPage,
 	ServiceMetricsPage,
@@ -39,7 +38,6 @@ import {
 	TracesFunnels,
 	TracesSaveViews,
 	UnAuthorized,
-	UsageExplorerPage,
 } from './pageComponents';
 
 const routes: AppRoutes[] = [
@@ -56,13 +54,6 @@ const routes: AppRoutes[] = [
 		component: Home,
 		isPrivate: true,
 		key: 'HOME',
-	},
-	{
-		path: ROUTES.ONBOARDING,
-		exact: false,
-		component: OrgOnboarding,
-		isPrivate: true,
-		key: 'ONBOARDING',
 	},
 	{
 		component: LogsIndexToFields,
@@ -119,13 +110,6 @@ const routes: AppRoutes[] = [
 		component: SettingsPage,
 		isPrivate: true,
 		key: 'SETTINGS',
-	},
-	{
-		path: ROUTES.USAGE_EXPLORER,
-		exact: true,
-		component: UsageExplorerPage,
-		isPrivate: true,
-		key: 'USAGE_EXPLORER',
 	},
 	{
 		path: ROUTES.EDIT_ALERTS,
@@ -339,28 +323,6 @@ const routes: AppRoutes[] = [
 		isPrivate: true,
 	},
 ];
-
-export const oldRoutes = [
-	'/pipelines',
-	'/logs/pipelines',
-	'/logs-explorer',
-	'/logs-explorer/live',
-	'/logs-save-views',
-	'/traces-save-views',
-	'/settings/access-tokens',
-	'/alerts/edit',
-];
-
-export const oldNewRoutesMapping: Record<string, string> = {
-	'/pipelines': '/logs/logs-explorer',
-	'/logs/pipelines': '/logs/logs-explorer',
-	'/logs-explorer': '/logs/logs-explorer',
-	'/logs-explorer/live': '/logs/logs-explorer/live',
-	'/logs-save-views': '/logs/saved-views',
-	'/traces-save-views': '/traces/saved-views',
-	'/settings/access-tokens': '/settings/api-keys',
-	'/alerts/edit': '/alerts/overview',
-};
 
 export const ROUTES_NOT_TO_BE_OVERRIDEN: string[] = [];
 

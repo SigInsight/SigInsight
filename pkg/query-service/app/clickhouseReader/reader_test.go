@@ -6,18 +6,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestTraceAutocompleteColumn(t *testing.T) {
-	if got := traceAutocompleteColumn("http.route"); got != "attribute_string_http$$route" {
-		t.Fatalf("traceAutocompleteColumn(http.route) = %q", got)
-	}
-	if got := traceAutocompleteColumn("service.name"); got != "resource_string_service$$name" {
-		t.Fatalf("traceAutocompleteColumn(service.name) = %q", got)
-	}
-	if got := traceAutocompleteColumn("rpc.method"); got != "attribute_string_rpc$$method" {
-		t.Fatalf("traceAutocompleteColumn(rpc.method) = %q", got)
-	}
-}
-
 type GetStatusFiltersTest struct {
 	query        string
 	statusParams []string

@@ -50,7 +50,7 @@ func (conn *MockOpAmpConnection) Connection() net.Conn {
 
 // Implements opamp.AgentConfigProvider
 type MockAgentConfigProvider struct {
-	// An updated config is recommended by TestAgentConfProvider
+	// An updated config is recommended by TestAgentConfigProvider
 	// if `ZPagesEndpoint` is not empty
 	ZPagesEndpoint string
 

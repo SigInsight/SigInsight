@@ -1,6 +1,6 @@
 import { UniversalYAxisUnit } from 'components/YAxisUnitSelector/types';
 import { PANEL_TYPES } from 'constants/queryBuilder';
-import { AlertDetectionTypes } from 'container/FormAlertRules';
+import { AlertRuleType } from 'features/alerting/types';
 import { mapQueryDataToApi } from 'lib/newQueryBuilder/queryBuilderMappers/mapQueryDataToApi';
 import { BasicThreshold, PostableAlertRule } from 'types/api/alerts/alertRule';
 import { EQueryType } from 'types/common/dashboard';
@@ -35,14 +35,14 @@ export function validateCreateAlertState(
 		return 'Please enter an alert name';
 	}
 
-	// Validate threshold state if routing policies is not enabled
+	// Every threshold sends directly to one or more notification channels.
 	for (let i = 0; i < thresholdState.thresholds.length; i++) {
 		const threshold = thresholdState.thresholds[i];
 		if (!threshold.label) {
 			return 'Please enter a label for each threshold';
 		}
-		if (!notificationSettings.routingPolicies && !threshold.channels.length) {
-			return 'Please select at least one channel for each threshold or enable routing policies';
+		if (!threshold.channels.length) {
+			return 'Please select at least one channel for each threshold';
 		}
 	}
 
@@ -55,7 +55,6 @@ export function getNotificationSettingsProps(
 ): PostableAlertRule['notificationSettings'] {
 	const notificationSettingsProps: PostableAlertRule['notificationSettings'] = {
 		groupBy: notificationSettings.multipleNotifications || [],
-		usePolicy: notificationSettings.routingPolicies,
 		renotify: {
 			enabled: notificationSettings.reNotification.enabled,
 			interval: getFormattedTimeValue(
@@ -252,7 +251,7 @@ export function buildCreateThresholdAlertRulePayload(
 	// Evaluation
 	const evaluationProps = getEvaluationProps(evaluationWindow, advancedOptions);
 
-	let ruleType: string = AlertDetectionTypes.THRESHOLD_ALERT;
+	let ruleType: string = AlertRuleType.THRESHOLD;
 	if (query.queryType === EQueryType.PROM) {
 		ruleType = 'promql_rule';
 	}
@@ -321,7 +320,7 @@ export function buildCreateAnomalyAlertRulePayload(
 
 	return {
 		alert: basicAlertState.name,
-		ruleType: AlertDetectionTypes.ANOMALY_DETECTION_ALERT,
+		ruleType: AlertRuleType.THRESHOLD,
 		alertType,
 		condition: {
 			compositeQuery,

@@ -16,7 +16,6 @@ import (
 	"github.com/SigNoz/signoz/pkg/modules/preference"
 	"github.com/SigNoz/signoz/pkg/modules/promote"
 	"github.com/SigNoz/signoz/pkg/modules/rawdataexport"
-	"github.com/SigNoz/signoz/pkg/modules/serviceaccount"
 	"github.com/SigNoz/signoz/pkg/modules/session"
 	"github.com/SigNoz/signoz/pkg/modules/user"
 	"github.com/SigNoz/signoz/pkg/querier"
@@ -41,7 +40,6 @@ type provider struct {
 	authzHandler           authz.Handler
 	rawDataExportHandler   rawdataexport.Handler
 	querierHandler         querier.Handler
-	serviceAccountHandler  serviceaccount.Handler
 	factoryHandler         factory.Handler
 	assistantHandler       assistant.Handler
 }
@@ -60,7 +58,6 @@ func NewFactory(
 	authzHandler authz.Handler,
 	rawDataExportHandler rawdataexport.Handler,
 	querierHandler querier.Handler,
-	serviceAccountHandler serviceaccount.Handler,
 	factoryHandler factory.Handler,
 	assistantHandler assistant.Handler,
 ) factory.ProviderFactory[apiserver.APIServer, apiserver.Config] {
@@ -82,7 +79,6 @@ func NewFactory(
 			authzHandler,
 			rawDataExportHandler,
 			querierHandler,
-			serviceAccountHandler,
 			factoryHandler,
 			assistantHandler,
 		)
@@ -106,7 +102,6 @@ func newProvider(
 	authzHandler authz.Handler,
 	rawDataExportHandler rawdataexport.Handler,
 	querierHandler querier.Handler,
-	serviceAccountHandler serviceaccount.Handler,
 	factoryHandler factory.Handler,
 	assistantHandler assistant.Handler,
 ) (apiserver.APIServer, error) {
@@ -128,7 +123,6 @@ func newProvider(
 		authzHandler:           authzHandler,
 		rawDataExportHandler:   rawDataExportHandler,
 		querierHandler:         querierHandler,
-		serviceAccountHandler:  serviceAccountHandler,
 		factoryHandler:         factoryHandler,
 		assistantHandler:       assistantHandler,
 	}
@@ -195,10 +189,6 @@ func (provider *provider) AddToRouter(router *mux.Router) error {
 		return err
 	}
 
-	if err := provider.addServiceAccountRoutes(router); err != nil {
-		return err
-	}
-
 	if err := provider.addRegistryRoutes(router); err != nil {
 		return err
 	}
@@ -212,7 +202,6 @@ func (provider *provider) AddToRouter(router *mux.Router) error {
 
 func newSecuritySchemes(role types.Role) []handler.OpenAPISecurityScheme {
 	return []handler.OpenAPISecurityScheme{
-		{Name: authtypes.IdentNProviderAPIKey.StringValue(), Scopes: []string{role.String()}},
 		{Name: authtypes.IdentNProviderTokenizer.StringValue(), Scopes: []string{role.String()}},
 	}
 }

@@ -2,7 +2,6 @@ package alertmanager
 
 import (
 	"context"
-	"encoding/json"
 	"io"
 	"net/http"
 	"time"
@@ -69,6 +68,10 @@ func (api *API) TestReceiver(rw http.ResponseWriter, req *http.Request) {
 
 	receiver, err := alertmanagertypes.NewReceiver(string(body))
 	if err != nil {
+		render.Error(rw, err)
+		return
+	}
+	if _, err = alertmanagertypes.NewChannelFromReceiver(receiver, claims.OrgID); err != nil {
 		render.Error(rw, err)
 		return
 	}
@@ -183,6 +186,10 @@ func (api *API) UpdateChannelByID(rw http.ResponseWriter, req *http.Request) {
 		render.Error(rw, err)
 		return
 	}
+	if _, err = alertmanagertypes.NewChannelFromReceiver(receiver, claims.OrgID); err != nil {
+		render.Error(rw, err)
+		return
+	}
 
 	err = api.alertmanager.UpdateChannelByReceiverAndID(ctx, claims.OrgID, receiver, id)
 	if err != nil {
@@ -252,6 +259,10 @@ func (api *API) CreateChannel(rw http.ResponseWriter, req *http.Request) {
 		render.Error(rw, err)
 		return
 	}
+	if _, err = alertmanagertypes.NewChannelFromReceiver(receiver, claims.OrgID); err != nil {
+		render.Error(rw, err)
+		return
+	}
 
 	channel, err := api.alertmanager.CreateChannel(ctx, claims.OrgID, receiver)
 	if err != nil {
@@ -260,129 +271,4 @@ func (api *API) CreateChannel(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	render.Success(rw, http.StatusCreated, channel)
-}
-
-func (api *API) CreateRoutePolicy(rw http.ResponseWriter, req *http.Request) {
-	ctx, cancel := context.WithTimeout(req.Context(), 30*time.Second)
-	defer cancel()
-
-	body, err := io.ReadAll(req.Body)
-	if err != nil {
-		render.Error(rw, err)
-		return
-	}
-	defer req.Body.Close()
-	var policy alertmanagertypes.PostableRoutePolicy
-	err = json.Unmarshal(body, &policy)
-	if err != nil {
-		render.Error(rw, err)
-		return
-	}
-
-	policy.ExpressionKind = alertmanagertypes.PolicyBasedExpression
-
-	// Validate the postable route
-	if err := policy.Validate(); err != nil {
-		render.Error(rw, err)
-		return
-	}
-
-	result, err := api.alertmanager.CreateRoutePolicy(ctx, &policy)
-	if err != nil {
-		render.Error(rw, err)
-		return
-	}
-
-	render.Success(rw, http.StatusCreated, result)
-}
-
-func (api *API) GetAllRoutePolicies(rw http.ResponseWriter, req *http.Request) {
-	ctx, cancel := context.WithTimeout(req.Context(), 30*time.Second)
-	defer cancel()
-
-	policies, err := api.alertmanager.GetAllRoutePolicies(ctx)
-	if err != nil {
-		render.Error(rw, err)
-		return
-	}
-
-	render.Success(rw, http.StatusOK, policies)
-}
-
-func (api *API) GetRoutePolicyByID(rw http.ResponseWriter, req *http.Request) {
-	ctx, cancel := context.WithTimeout(req.Context(), 30*time.Second)
-	defer cancel()
-
-	vars := mux.Vars(req)
-	policyID := vars["id"]
-	if policyID == "" {
-		render.Error(rw, errors.NewInvalidInputf(errors.CodeInvalidInput, "policy ID is required"))
-		return
-	}
-
-	policy, err := api.alertmanager.GetRoutePolicyByID(ctx, policyID)
-	if err != nil {
-		render.Error(rw, err)
-		return
-	}
-
-	render.Success(rw, http.StatusOK, policy)
-}
-
-func (api *API) DeleteRoutePolicyByID(rw http.ResponseWriter, req *http.Request) {
-	ctx, cancel := context.WithTimeout(req.Context(), 30*time.Second)
-	defer cancel()
-
-	vars := mux.Vars(req)
-	policyID := vars["id"]
-	if policyID == "" {
-		render.Error(rw, errors.NewInvalidInputf(errors.CodeInvalidInput, "policy ID is required"))
-		return
-	}
-
-	err := api.alertmanager.DeleteRoutePolicyByID(ctx, policyID)
-	if err != nil {
-		render.Error(rw, err)
-		return
-	}
-
-	render.Success(rw, http.StatusNoContent, nil)
-}
-
-func (api *API) UpdateRoutePolicy(rw http.ResponseWriter, req *http.Request) {
-	ctx, cancel := context.WithTimeout(req.Context(), 30*time.Second)
-	defer cancel()
-
-	vars := mux.Vars(req)
-	policyID := vars["id"]
-	if policyID == "" {
-		render.Error(rw, errors.NewInvalidInputf(errors.CodeInvalidInput, "policy ID is required"))
-		return
-	}
-	body, err := io.ReadAll(req.Body)
-	if err != nil {
-		render.Error(rw, err)
-		return
-	}
-	defer req.Body.Close()
-	var policy alertmanagertypes.PostableRoutePolicy
-	err = json.Unmarshal(body, &policy)
-	if err != nil {
-		render.Error(rw, err)
-		return
-	}
-	policy.ExpressionKind = alertmanagertypes.PolicyBasedExpression
-
-	// Validate the postable route
-	if err := policy.Validate(); err != nil {
-		render.Error(rw, err)
-		return
-	}
-
-	result, err := api.alertmanager.UpdateRoutePolicyByID(ctx, policyID, &policy)
-	if err != nil {
-		render.Error(rw, err)
-		return
-	}
-	render.Success(rw, http.StatusOK, result)
 }

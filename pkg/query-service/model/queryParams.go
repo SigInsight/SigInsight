@@ -41,16 +41,6 @@ type RegisterEventParams struct {
 	RateLimited bool                   `json:"rateLimited"`
 }
 
-type GetUsageParams struct {
-	StartTime   string
-	EndTime     string
-	ServiceName string
-	Period      string
-	StepHour    int
-	Start       *time.Time
-	End         *time.Time
-}
-
 type GetServicesParams struct {
 	StartTime string `json:"start"`
 	EndTime   string `json:"end"`
@@ -457,15 +447,6 @@ type FilterItem struct {
 type FilterSet struct {
 	Operator string       `json:"op,omitempty"`
 	Items    []FilterItem `json:"items"`
-}
-
-type UpdateField struct {
-	Name             string `json:"name"`
-	DataType         string `json:"dataType"`
-	Type             string `json:"type"`
-	Selected         bool   `json:"selected"`
-	IndexType        string `json:"index"`
-	IndexGranularity int    `json:"indexGranularity"`
 }
 
 type LogsFilterParams struct {

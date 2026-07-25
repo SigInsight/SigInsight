@@ -1872,159 +1872,6 @@ export interface RenderErrorResponseDTO {
 	status: string;
 }
 
-export interface ServiceaccounttypesFactorAPIKeyDTO {
-	/**
-	 * @type string
-	 * @format date-time
-	 */
-	createdAt?: Date;
-	/**
-	 * @type integer
-	 * @minimum 0
-	 */
-	expiresAt: number;
-	/**
-	 * @type string
-	 */
-	id: string;
-	/**
-	 * @type string
-	 */
-	key: string;
-	/**
-	 * @type string
-	 * @format date-time
-	 */
-	lastObservedAt: Date;
-	/**
-	 * @type string
-	 */
-	name?: string;
-	/**
-	 * @type string
-	 */
-	serviceAccountId: string;
-	/**
-	 * @type string
-	 * @format date-time
-	 */
-	updatedAt?: Date;
-}
-
-export interface ServiceaccounttypesGettableFactorAPIKeyWithKeyDTO {
-	/**
-	 * @type string
-	 */
-	id: string;
-	/**
-	 * @type string
-	 */
-	key: string;
-}
-
-export interface ServiceaccounttypesPostableFactorAPIKeyDTO {
-	/**
-	 * @type integer
-	 * @minimum 0
-	 */
-	expiresAt: number;
-	/**
-	 * @type string
-	 */
-	name: string;
-}
-
-export interface ServiceaccounttypesPostableServiceAccountDTO {
-	/**
-	 * @type string
-	 */
-	email: string;
-	/**
-	 * @type string
-	 */
-	name: string;
-	/**
-	 * @type array
-	 */
-	roles: string[];
-}
-
-export interface ServiceaccounttypesServiceAccountDTO {
-	/**
-	 * @type string
-	 * @format date-time
-	 */
-	createdAt?: Date;
-	/**
-	 * @type string
-	 * @format date-time
-	 */
-	deletedAt: Date;
-	/**
-	 * @type string
-	 */
-	email: string;
-	/**
-	 * @type string
-	 */
-	id: string;
-	/**
-	 * @type string
-	 */
-	name: string;
-	/**
-	 * @type string
-	 */
-	orgId: string;
-	/**
-	 * @type array
-	 */
-	roles: string[];
-	/**
-	 * @type string
-	 */
-	status: string;
-	/**
-	 * @type string
-	 * @format date-time
-	 */
-	updatedAt?: Date;
-}
-
-export interface ServiceaccounttypesUpdatableFactorAPIKeyDTO {
-	/**
-	 * @type integer
-	 * @minimum 0
-	 */
-	expiresAt: number;
-	/**
-	 * @type string
-	 */
-	name: string;
-}
-
-export interface ServiceaccounttypesUpdatableServiceAccountDTO {
-	/**
-	 * @type string
-	 */
-	email: string;
-	/**
-	 * @type string
-	 */
-	name: string;
-	/**
-	 * @type array
-	 */
-	roles: string[];
-}
-
-export interface ServiceaccounttypesUpdatableServiceAccountStatusDTO {
-	/**
-	 * @type string
-	 */
-	status: string;
-}
-
 export enum TelemetrytypesFieldContextDTO {
 	metric = 'metric',
 	log = 'log',
@@ -2127,63 +1974,6 @@ export interface TypesChangePasswordRequestDTO {
 	userId?: string;
 }
 
-export interface TypesGettableAPIKeyDTO {
-	/**
-	 * @type string
-	 * @format date-time
-	 */
-	createdAt?: Date;
-	/**
-	 * @type string
-	 */
-	createdBy?: string;
-	createdByUser?: TypesUserDTO;
-	/**
-	 * @type integer
-	 * @format int64
-	 */
-	expiresAt?: number;
-	/**
-	 * @type string
-	 */
-	id: string;
-	/**
-	 * @type integer
-	 * @format int64
-	 */
-	lastUsed?: number;
-	/**
-	 * @type string
-	 */
-	name?: string;
-	/**
-	 * @type boolean
-	 */
-	revoked?: boolean;
-	/**
-	 * @type string
-	 */
-	role?: string;
-	/**
-	 * @type string
-	 */
-	token?: string;
-	/**
-	 * @type string
-	 * @format date-time
-	 */
-	updatedAt?: Date;
-	/**
-	 * @type string
-	 */
-	updatedBy?: string;
-	updatedByUser?: TypesUserDTO;
-	/**
-	 * @type string
-	 */
-	userId?: string;
-}
-
 export interface TypesIdentifiableDTO {
 	/**
 	 * @type string
@@ -2266,22 +2056,6 @@ export interface TypesOrganizationDTO {
 	updatedAt?: Date;
 }
 
-export interface TypesPostableAPIKeyDTO {
-	/**
-	 * @type integer
-	 * @format int64
-	 */
-	expiresInDays?: number;
-	/**
-	 * @type string
-	 */
-	name?: string;
-	/**
-	 * @type string
-	 */
-	role?: string;
-}
-
 export interface TypesPostableBulkInviteRequestDTO {
 	/**
 	 * @type array
@@ -2359,51 +2133,6 @@ export interface TypesResetPasswordTokenDTO {
 	 * @type string
 	 */
 	token?: string;
-}
-
-export interface TypesStorableAPIKeyDTO {
-	/**
-	 * @type string
-	 * @format date-time
-	 */
-	createdAt?: Date;
-	/**
-	 * @type string
-	 */
-	createdBy?: string;
-	/**
-	 * @type string
-	 */
-	id: string;
-	/**
-	 * @type string
-	 */
-	name?: string;
-	/**
-	 * @type boolean
-	 */
-	revoked?: boolean;
-	/**
-	 * @type string
-	 */
-	role?: string;
-	/**
-	 * @type string
-	 */
-	token?: string;
-	/**
-	 * @type string
-	 * @format date-time
-	 */
-	updatedAt?: Date;
-	/**
-	 * @type string
-	 */
-	updatedBy?: string;
-	/**
-	 * @type string
-	 */
-	userId?: string;
 }
 
 export interface TypesUpdatableUserDTO {
@@ -2826,31 +2555,6 @@ export type GetMyOrganization200 = {
 	status: string;
 };
 
-export type ListAPIKeys200 = {
-	/**
-	 * @type array
-	 */
-	data: TypesGettableAPIKeyDTO[];
-	/**
-	 * @type string
-	 */
-	status: string;
-};
-
-export type CreateAPIKey201 = {
-	data: TypesGettableAPIKeyDTO;
-	/**
-	 * @type string
-	 */
-	status: string;
-};
-
-export type RevokeAPIKeyPathParameters = {
-	id: string;
-};
-export type UpdateAPIKeyPathParameters = {
-	id: string;
-};
 export type QueryRangeV5200 = {
 	data: Querybuildertypesv5QueryRangeResponseDTO;
 	/**
@@ -2944,78 +2648,6 @@ export type GetUsersByRoleID200 = {
 	status: string;
 };
 
-export type ListServiceAccounts200 = {
-	/**
-	 * @type array
-	 */
-	data: ServiceaccounttypesServiceAccountDTO[];
-	/**
-	 * @type string
-	 */
-	status: string;
-};
-
-export type CreateServiceAccount201 = {
-	data: TypesIdentifiableDTO;
-	/**
-	 * @type string
-	 */
-	status: string;
-};
-
-export type DeleteServiceAccountPathParameters = {
-	id: string;
-};
-export type GetServiceAccountPathParameters = {
-	id: string;
-};
-export type GetServiceAccount200 = {
-	data: ServiceaccounttypesServiceAccountDTO;
-	/**
-	 * @type string
-	 */
-	status: string;
-};
-
-export type UpdateServiceAccountPathParameters = {
-	id: string;
-};
-export type ListServiceAccountKeysPathParameters = {
-	id: string;
-};
-export type ListServiceAccountKeys200 = {
-	/**
-	 * @type array
-	 */
-	data: ServiceaccounttypesFactorAPIKeyDTO[];
-	/**
-	 * @type string
-	 */
-	status: string;
-};
-
-export type CreateServiceAccountKeyPathParameters = {
-	id: string;
-};
-export type CreateServiceAccountKey201 = {
-	data: ServiceaccounttypesGettableFactorAPIKeyWithKeyDTO;
-	/**
-	 * @type string
-	 */
-	status: string;
-};
-
-export type RevokeServiceAccountKeyPathParameters = {
-	id: string;
-	fid: string;
-};
-export type UpdateServiceAccountKeyPathParameters = {
-	id: string;
-	fid: string;
-};
-export type UpdateServiceAccountStatusPathParameters = {
-	id: string;
-};
 export type GetSessionContext200 = {
 	data: AuthtypesSessionContextDTO;
 	/**

@@ -8,7 +8,6 @@ const breadcrumbNameMap: Record<string, string> = {
 	[ROUTES.TRACE]: 'Traces',
 	[ROUTES.TRACES_EXPLORER]: 'Traces Explorer',
 	[ROUTES.SERVICE_MAP]: 'Service Map',
-	[ROUTES.USAGE_EXPLORER]: 'Usage Explorer',
 	[ROUTES.ALL_CHANNELS]: 'Channels',
 	[ROUTES.SETTINGS]: 'Settings',
 	[ROUTES.ALL_ERROR]: 'Exceptions',

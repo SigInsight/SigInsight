@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Form, Input } from 'antd';
 import { MarkdownRenderer } from 'components/MarkdownRenderer/MarkdownRenderer';
 
-import { WebhookChannel } from '../../CreateAlertChannels/config';
+import { ChannelConfig } from '../../CreateAlertChannels/config';
 
 function WebhookSettings({ setSelectedConfig }: WebhookProps): JSX.Element {
 	const { t } = useTranslation('channels');
@@ -70,7 +70,7 @@ function WebhookSettings({ setSelectedConfig }: WebhookProps): JSX.Element {
 }
 
 interface WebhookProps {
-	setSelectedConfig: Dispatch<SetStateAction<Partial<WebhookChannel>>>;
+	setSelectedConfig: Dispatch<SetStateAction<ChannelConfig>>;
 }
 
 export default WebhookSettings;

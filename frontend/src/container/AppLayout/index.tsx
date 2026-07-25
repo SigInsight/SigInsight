@@ -260,8 +260,6 @@ function AppLayout(props: AppLayoutProps): JSX.Element {
 	const routeKey = useMemo(() => getRouteKey(pathname), [pathname]);
 	const pageTitle = t(routeKey);
 
-	const renderFullScreen = pathname === ROUTES.ONBOARDING;
-
 	useEffect(() => {
 		if (isDarkMode) {
 			document.body.classList.remove('lightMode');
@@ -391,13 +389,9 @@ function AppLayout(props: AppLayoutProps): JSX.Element {
 					isSideNavPinned ? 'side-nav-pinned' : '',
 				)}
 			>
-				{isToDisplayLayout && !renderFullScreen && (
-					<SideNav isPinned={isSideNavPinned} />
-				)}
+				{isToDisplayLayout && <SideNav isPinned={isSideNavPinned} />}
 				<div
-					className={cx('app-content', {
-						'full-screen-content': renderFullScreen,
-					})}
+					className="app-content"
 					data-overlayscrollbars-initialize
 				>
 					<Sentry.ErrorBoundary
@@ -407,7 +401,7 @@ function AppLayout(props: AppLayoutProps): JSX.Element {
 						<LayoutContent data-overlayscrollbars-initialize>
 							<OverlayScrollbar>
 								<ChildrenContainer>
-									{isToDisplayLayout && !renderFullScreen && <TopNav />}
+									{isToDisplayLayout && <TopNav />}
 									{children}
 								</ChildrenContainer>
 							</OverlayScrollbar>

@@ -1,7 +1,7 @@
 import { Color } from '@signozhq/design-tokens';
 import { PANEL_TYPES } from 'constants/queryBuilder';
 import { Threshold } from 'container/CreateAlertV2/context/types';
-import { ThresholdProps } from 'container/NewWidget/RightContainer/Threshold/types';
+import { ThresholdProps } from 'features/query-visualization/threshold';
 import {
 	BooleanFormats,
 	DataFormats,
@@ -9,7 +9,7 @@ import {
 	MiscellaneousFormats,
 	ThroughputFormats,
 	TimeFormats,
-} from 'container/NewWidget/RightContainer/types';
+} from 'features/query-visualization/types';
 import { TFunction } from 'i18next';
 
 import {

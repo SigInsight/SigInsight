@@ -1,5 +1,4 @@
 export const ORG_PREFERENCES = {
-	ORG_ONBOARDING: 'org_onboarding',
 	WELCOME_CHECKLIST_DO_LATER: 'welcome_checklist_do_later',
 	WELCOME_CHECKLIST_SEND_LOGS_SKIPPED: 'welcome_checklist_send_logs_skipped',
 	WELCOME_CHECKLIST_SEND_TRACES_SKIPPED: 'welcome_checklist_send_traces_skipped',

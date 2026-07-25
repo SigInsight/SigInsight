@@ -6,17 +6,15 @@ import { useLocation } from 'react-router-dom';
 import ErrorInPlace from 'components/ErrorInPlace/ErrorInPlace';
 import Spinner from 'components/Spinner';
 import WarningPopover from 'components/WarningPopover/WarningPopover';
-import { FeatureKeys } from 'constants/features';
 import { QueryParams } from 'constants/query';
 import { initialQueriesMap, PANEL_TYPES } from 'constants/queryBuilder';
-import AnomalyAlertEvaluationView from 'container/AnomalyAlertEvaluationView';
 import { INITIAL_CRITICAL_THRESHOLD } from 'container/CreateAlertV2/context/constants';
 import { Threshold } from 'container/CreateAlertV2/context/types';
 import { getLocalStorageGraphVisibilityState } from 'container/GridCardLayout/GridCard/utils';
 import GridPanelSwitch from 'container/GridPanelSwitch';
 import { populateMultipleResults } from 'container/NewWidget/LeftContainer/WidgetGraph/util';
-import { getFormatNameByOptionId } from 'container/NewWidget/RightContainer/alertFomatCategories';
-import { timePreferenceType } from 'container/NewWidget/RightContainer/timeItems';
+import { getFormatNameByOptionId } from 'features/query-visualization/formats';
+import { timePreferenceType } from 'features/query-visualization/timePreference';
 import {
 	CustomTimeType,
 	Time,
@@ -32,7 +30,6 @@ import history from 'lib/history';
 import { getUPlotChartOptions } from 'lib/uPlotLib/getUplotChartOptions';
 import { getUPlotChartData } from 'lib/uPlotLib/utils/getUplotChartData';
 import { isEmpty } from 'lodash-es';
-import { useAppContext } from 'providers/App/App';
 import { useTimezone } from 'providers/Timezone';
 import { UpdateTimeInterval } from 'store/actions';
 import { AppState } from 'store/reducers';
@@ -48,11 +45,9 @@ import { getGraphType } from 'utils/getGraphType';
 import { getSortedSeriesData } from 'utils/getSortedSeriesData';
 import { getTimeRange } from 'utils/getTimeRange';
 
-import { AlertDetectionTypes } from '..';
 import { ChartContainer } from './styles';
 import { getThresholds } from './utils';
 
-import './ChartPreview.styles.scss';
 
 export interface ChartPreviewProps {
 	name: string;
@@ -120,8 +115,6 @@ function ChartPreview({
 		AppState,
 		GlobalReducer
 	>((state) => state.globalTime);
-
-	const { featureFlags } = useAppContext();
 
 	const handleBackNavigation = (): void => {
 		const searchParams = new URLSearchParams(window.location.search);
@@ -331,15 +324,8 @@ function ChartPreview({
 
 	const chartData = getUPlotChartData(queryResponse?.data?.payload);
 
-	const isAnomalyDetectionAlert =
-		alertDef?.ruleType === AlertDetectionTypes.ANOMALY_DETECTION_ALERT;
-
 	const chartDataAvailable =
 		chartData && !queryResponse.isError && !queryResponse.isLoading;
-
-	const isAnomalyDetectionEnabled =
-		featureFlags?.find((flag) => flag.name === FeatureKeys.ANOMALY_DETECTION)
-			?.active || false;
 
 	const isWarning = !isEmpty(queryResponse.data?.warning);
 	return (
@@ -360,7 +346,7 @@ function ChartPreview({
 						<ErrorInPlace error={queryResponse.error as APIError} />
 					)}
 
-					{chartDataAvailable && !isAnomalyDetectionAlert && (
+					{chartDataAvailable && (
 						<GridPanelSwitch
 							options={options}
 							panelType={graphType}
@@ -373,16 +359,6 @@ function ChartPreview({
 							yAxisUnit={yAxisUnit}
 						/>
 					)}
-
-					{chartDataAvailable &&
-						isAnomalyDetectionAlert &&
-						isAnomalyDetectionEnabled &&
-						queryResponse?.data?.payload?.data?.resultType === 'time_series' && (
-							<AnomalyAlertEvaluationView
-								data={queryResponse?.data?.payload}
-								yAxisUnit={yAxisUnit}
-							/>
-						)}
 				</div>
 			</ChartContainer>
 		</div>

@@ -23,7 +23,7 @@ type Server struct {
 	agents *model.Agents
 	logger *slog.Logger
 
-	agentConfigProvider AgentConfigProvider
+	agentconfigProvider AgentConfigProvider
 
 	// cleanups to be run when stopping the server
 	cleanups []func()
@@ -35,7 +35,7 @@ const capabilities = protobufs.ServerCapabilities_ServerCapabilities_AcceptsEffe
 
 func InitializeServer(
 	agents *model.Agents,
-	agentConfigProvider AgentConfigProvider,
+	agentconfigProvider AgentConfigProvider,
 	instrumentation instrumentation.Instrumentation,
 ) *Server {
 	if agents == nil {
@@ -44,7 +44,7 @@ func InitializeServer(
 
 	opAmpServer = &Server{
 		agents:              agents,
-		agentConfigProvider: agentConfigProvider,
+		agentconfigProvider: agentconfigProvider,
 		logger:              instrumentation.Logger(),
 	}
 	opAmpServer.server = server.New(wrappedLogger(instrumentation.Logger()))
@@ -70,8 +70,8 @@ func (srv *Server) Start(listener string) error {
 	}
 
 	// This will have to send request to all the agents of all tenants
-	unsubscribe := srv.agentConfigProvider.SubscribeToConfigUpdates(func() {
-		err := srv.agents.RecommendLatestConfigToAll(srv.agentConfigProvider)
+	unsubscribe := srv.agentconfigProvider.SubscribeToConfigUpdates(func() {
+		err := srv.agents.RecommendLatestConfigToAll(srv.agentconfigProvider)
 		if err != nil {
 			srv.logger.Error(
 				"could not roll out latest config recommendation to connected agents", errors.Attr(err),
@@ -149,7 +149,7 @@ func (srv *Server) OnMessage(ctx context.Context, conn types.Connection, msg *pr
 		Capabilities: uint64(capabilities),
 	}
 
-	agent.UpdateStatus(msg, response, srv.agentConfigProvider)
+	agent.UpdateStatus(msg, response, srv.agentconfigProvider)
 
 	return response
 }

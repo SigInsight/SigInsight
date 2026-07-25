@@ -249,7 +249,6 @@ export interface NotificationSettingsState {
 		conditions: ('firing' | 'nodata')[];
 	};
 	description: string;
-	routingPolicies: boolean;
 }
 
 export type NotificationSettingsAction =
@@ -267,7 +266,6 @@ export type NotificationSettingsAction =
 			};
 	  }
 	| { type: 'SET_DESCRIPTION'; payload: string }
-	| { type: 'SET_ROUTING_POLICIES'; payload: boolean }
 	| { type: 'SET_INITIAL_STATE'; payload: NotificationSettingsState }
 	| { type: 'RESET' };
 

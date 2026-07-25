@@ -444,7 +444,7 @@ func init() {
 type NotificationConfig struct {
 	NotificationGroup map[model.LabelName]struct{}
 	Renotify          ReNotificationConfig
-	UsePolicy         bool
+	Channels          []string
 	GroupByAll        bool
 }
 
@@ -456,7 +456,7 @@ func (nc *NotificationConfig) DeepCopy() NotificationConfig {
 	for k, v := range nc.NotificationGroup {
 		deepCopy.NotificationGroup[k] = v
 	}
-	deepCopy.UsePolicy = nc.UsePolicy
+	deepCopy.Channels = append([]string(nil), nc.Channels...)
 	return deepCopy
 }
 
@@ -465,7 +465,7 @@ type ReNotificationConfig struct {
 	RenotifyInterval time.Duration
 }
 
-func NewNotificationConfig(groups []string, renotifyInterval time.Duration, noDataRenotifyInterval time.Duration, policy bool) NotificationConfig {
+func NewNotificationConfig(groups []string, renotifyInterval time.Duration, noDataRenotifyInterval time.Duration) NotificationConfig {
 	notificationConfig := GetDefaultNotificationConfig()
 
 	if renotifyInterval != 0 {
@@ -481,9 +481,6 @@ func NewNotificationConfig(groups []string, renotifyInterval time.Duration, noDa
 			notificationConfig.GroupByAll = true
 		}
 	}
-
-	notificationConfig.UsePolicy = policy
-
 	return notificationConfig
 }
 

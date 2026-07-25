@@ -1,11 +1,9 @@
 import { RouteTabProps } from 'components/RouteTab/types';
-import { IS_SERVICE_ACCOUNTS_ENABLED } from 'container/ServiceAccountsSettings/config';
 import { TFunction } from 'i18next';
 import { ROLES, USER_ROLES } from 'types/roles';
 
 import {
 	alertChannels,
-	apiKeys,
 	createAlertChannels,
 	editAlertChannels,
 	generalSettings,
@@ -13,7 +11,6 @@ import {
 	membersSettings,
 	mySettings,
 	organizationSettings,
-	serviceAccountsSettings,
 } from './config';
 
 export const getRoutes = (
@@ -46,11 +43,7 @@ export const getRoutes = (
 	settings.push(...alertChannels(t));
 
 	if (isAdmin) {
-		settings.push(...apiKeys(t), ...membersSettings(t));
-
-		if (IS_SERVICE_ACCOUNTS_ENABLED) {
-			settings.push(...serviceAccountsSettings(t));
-		}
+		settings.push(...membersSettings(t));
 	}
 
 	settings.push(

@@ -377,12 +377,6 @@ func (item *SearchSpanResponseItem) GetValues() []interface{} {
 	return returnArray
 }
 
-type UsageItem struct {
-	Time      time.Time `json:"time,omitempty" ch:"time"`
-	Timestamp uint64    `json:"timestamp" ch:"timestamp"`
-	Count     uint64    `json:"count" ch:"count"`
-}
-
 type TagFilters struct {
 	StringTagKeys []string `json:"stringTagKeys" ch:"stringTagKeys"`
 	NumberTagKeys []string `json:"numberTagKeys" ch:"numberTagKeys"`
@@ -575,11 +569,6 @@ type Field struct {
 	Type     string `json:"type"`
 }
 
-type GetFieldsResponse struct {
-	Selected    []Field `json:"selected"`
-	Interesting []Field `json:"interesting"`
-}
-
 // Represents a log record in query service requests and responses.
 type SignozLog struct {
 	Timestamp          uint64             `json:"timestamp" ch:"timestamp"`
@@ -650,15 +639,10 @@ type AlertsInfo struct {
 	TotalActiveAlerts            int      `json:"totalActiveAlerts"`
 	LogsBasedAlerts              int      `json:"logsBasedAlerts"`
 	MetricBasedAlerts            int      `json:"metricBasedAlerts"`
-	AnomalyBasedAlerts           int      `json:"anomalyBasedAlerts"`
 	TracesBasedAlerts            int      `json:"tracesBasedAlerts"`
 	TotalChannels                int      `json:"totalChannels"`
-	SlackChannels                int      `json:"slackChannels"`
 	WebHookChannels              int      `json:"webHookChannels"`
-	PagerDutyChannels            int      `json:"pagerDutyChannels"`
-	OpsGenieChannels             int      `json:"opsGenieChannels"`
 	EmailChannels                int      `json:"emailChannels"`
-	MSTeamsChannels              int      `json:"microsoftTeamsChannels"`
 	MetricsBuilderQueries        int      `json:"metricsBuilderQueries"`
 	MetricsClickHouseQueries     int      `json:"metricsClickHouseQueries"`
 	MetricsPrometheusQueries     int      `json:"metricsPrometheusQueries"`

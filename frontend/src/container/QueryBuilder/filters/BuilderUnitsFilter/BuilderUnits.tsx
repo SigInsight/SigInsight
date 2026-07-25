@@ -1,5 +1,5 @@
 import { Select, SelectProps, Space, Typography } from 'antd';
-import { getCategorySelectOptionByName } from 'container/NewWidget/RightContainer/alertFomatCategories';
+import { getCategorySelectOptionByName } from 'features/query-visualization/formats';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
 import { popupContainer } from 'utils/selectPopupContainer';
 

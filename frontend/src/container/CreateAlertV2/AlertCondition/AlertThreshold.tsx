@@ -24,7 +24,6 @@ import {
 	getCategorySelectOptionByName,
 	getMatchTypeTooltip,
 	getQueryNames,
-	RoutingPolicyBanner,
 } from './utils';
 
 import './styles.scss';
@@ -41,8 +40,6 @@ function AlertThreshold({
 		thresholdState,
 		setThresholdState,
 		setEvaluationWindow,
-		notificationSettings,
-		setNotificationSettings,
 	} = useCreateAlertState();
 
 	const { currentQuery } = useQueryBuilder();
@@ -289,11 +286,6 @@ function AlertThreshold({
 					Add Threshold
 				</Button>
 			</div>
-
-			<RoutingPolicyBanner
-				notificationSettings={notificationSettings}
-				setNotificationSettings={setNotificationSettings}
-			/>
 		</div>
 	);
 }

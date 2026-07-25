@@ -1,10 +1,6 @@
-import { ApiV5Instance } from 'api';
 import { ErrorResponseHandler } from 'api/ErrorResponseHandler';
-import { AxiosError, AxiosResponse } from 'axios';
-import { baseAutoCompleteIdKeysOrder } from 'constants/queryBuilder';
-import { encode } from 'js-base64';
-import { createIdFromObjectFields } from 'lib/createIdFromObjectFields';
-import createQueryParams from 'lib/createQueryParams';
+import { AxiosError } from 'axios';
+import { getFieldKeys, toAutocompleteData } from './fields';
 import { ErrorResponse, SuccessResponse } from 'types/api';
 import {
 	IGetAttributeSuggestionsPayload,
@@ -20,33 +16,11 @@ export const getAttributeSuggestions = async ({
 	SuccessResponse<IGetAttributeSuggestionsSuccessResponse> | ErrorResponse
 > => {
 	try {
-		let base64EncodedFiltersString;
-		try {
-			// the replace function is to remove the padding at the end of base64 encoded string which is auto added to make it a multiple of 4
-			// why ? because the current working of qs doesn't work well with padding
-			base64EncodedFiltersString = encode(JSON.stringify(filters)).replace(
-				/=+$/,
-				'',
-			);
-		} catch {
-			// default base64 encoded string for empty filters object
-			base64EncodedFiltersString = 'eyJpdGVtcyI6W10sIm9wIjoiQU5EIn0';
-		}
-		const response: AxiosResponse<{
-			data: IGetAttributeSuggestionsSuccessResponse;
-		}> = await ApiV5Instance.get(
-			`/filter_suggestions?${createQueryParams({
-				searchText,
-				dataSource,
-				existingFilter: base64EncodedFiltersString,
-			})}`,
+		void filters;
+		const response = await getFieldKeys({ signal: dataSource, searchText });
+		const payload: BaseAutocompleteData[] = toAutocompleteData(
+			response.data.data.keys,
 		);
-
-		const payload: BaseAutocompleteData[] =
-			response.data.data.attributes?.map(({ id: _, ...item }) => ({
-				...item,
-				id: createIdFromObjectFields(item, baseAutoCompleteIdKeysOrder),
-			})) || [];
 
 		return {
 			statusCode: 200,
@@ -54,7 +28,7 @@ export const getAttributeSuggestions = async ({
 			message: response.statusText,
 			payload: {
 				attributes: payload,
-				example_queries: response.data.data.example_queries,
+				example_queries: [],
 			},
 		};
 	} catch (e) {

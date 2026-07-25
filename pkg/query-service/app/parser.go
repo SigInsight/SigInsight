@@ -1,7 +1,6 @@
 package app
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -17,7 +16,6 @@ import (
 	errorsV2 "github.com/SigNoz/signoz/pkg/errors"
 	baseconstants "github.com/SigNoz/signoz/pkg/query-service/constants"
 	"github.com/SigNoz/signoz/pkg/query-service/model"
-	"github.com/SigNoz/signoz/pkg/query-service/model/querytypes"
 )
 
 var allowedFunctions = []string{"count", "ratePerSec", "sum", "avg", "min", "max", "p50", "p90", "p95", "p99"}
@@ -38,42 +36,6 @@ func parseRegisterEventRequest(r *http.Request) (*model.RegisterEventParams, err
 	}
 
 	return postData, nil
-}
-
-func parseGetUsageRequest(r *http.Request) (*model.GetUsageParams, error) {
-	startTime, err := parseTime("start", r)
-	if err != nil {
-		return nil, err
-	}
-	endTime, err := parseTime("end", r)
-	if err != nil {
-		return nil, err
-	}
-
-	stepStr := r.URL.Query().Get("step")
-	if len(stepStr) == 0 {
-		return nil, errors.New("step param missing in query")
-	}
-	stepInt, err := strconv.Atoi(stepStr)
-	if err != nil {
-		return nil, errors.New("step param is not in correct format")
-	}
-
-	serviceName := r.URL.Query().Get("service")
-	stepHour := stepInt / 3600
-
-	getUsageParams := model.GetUsageParams{
-		StartTime:   startTime.Format(time.RFC3339Nano),
-		EndTime:     endTime.Format(time.RFC3339Nano),
-		Start:       startTime,
-		End:         endTime,
-		ServiceName: serviceName,
-		Period:      fmt.Sprintf("PT%dH", stepHour),
-		StepHour:    stepHour,
-	}
-
-	return &getUsageParams, nil
-
 }
 
 func parseGetServicesRequest(r *http.Request) (*model.GetServicesParams, error) {
@@ -341,212 +303,6 @@ func parseGetTTL(r *http.Request) (*model.GetTTLParams, error) {
 	}
 
 	return &model.GetTTLParams{Type: typeTTL}, nil
-}
-
-func parseAggregateAttributeRequest(r *http.Request) (*querytypes.AggregateAttributeRequest, error) {
-	var req querytypes.AggregateAttributeRequest
-
-	aggregateOperator := querytypes.AggregateOperator(r.URL.Query().Get("aggregateOperator"))
-	dataSource := querytypes.DataSource(r.URL.Query().Get("dataSource"))
-	aggregateAttribute := r.URL.Query().Get("searchText")
-
-	limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
-	if err != nil {
-		limit = 50
-	}
-
-	if dataSource != querytypes.DataSourceMetrics && dataSource != querytypes.DataSourceMeter {
-		if err := aggregateOperator.Validate(); err != nil {
-			return nil, err
-		}
-	}
-
-	if err := dataSource.Validate(); err != nil {
-		return nil, err
-	}
-
-	req = querytypes.AggregateAttributeRequest{
-		Operator:   aggregateOperator,
-		SearchText: aggregateAttribute,
-		Limit:      limit,
-		DataSource: dataSource,
-	}
-	return &req, nil
-}
-
-func parseQBFilterSuggestionsRequest(r *http.Request) (
-	*querytypes.QBFilterSuggestionsRequest, *model.ApiError,
-) {
-	dataSource := querytypes.DataSource(r.URL.Query().Get("dataSource"))
-	if err := dataSource.Validate(); err != nil {
-		return nil, model.BadRequest(err)
-	}
-
-	parsePositiveIntQP := func(
-		queryParam string, defaultValue uint64, maxValue uint64,
-	) (uint64, *model.ApiError) {
-		value := defaultValue
-
-		qpValue := r.URL.Query().Get(queryParam)
-		if len(qpValue) > 0 {
-			value, err := strconv.Atoi(qpValue)
-
-			if err != nil || value < 1 || value > int(maxValue) {
-				return 0, model.BadRequest(fmt.Errorf(
-					"invalid %s: %s", queryParam, qpValue,
-				))
-			}
-		}
-
-		return value, nil
-	}
-
-	attributesLimit, err := parsePositiveIntQP(
-		"attributesLimit",
-		baseconstants.DefaultFilterSuggestionsAttributesLimit,
-		baseconstants.MaxFilterSuggestionsAttributesLimit,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	examplesLimit, err := parsePositiveIntQP(
-		"examplesLimit",
-		baseconstants.DefaultFilterSuggestionsExamplesLimit,
-		baseconstants.MaxFilterSuggestionsExamplesLimit,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	var existingFilter *querytypes.FilterSet
-	existingFilterB64 := r.URL.Query().Get("existingFilter")
-	if len(existingFilterB64) > 0 {
-		decodedFilterJson, err := base64.RawURLEncoding.DecodeString(existingFilterB64)
-		if err != nil {
-			return nil, model.BadRequest(fmt.Errorf("couldn't base64 decode existingFilter: %w", err))
-		}
-
-		existingFilter = &querytypes.FilterSet{}
-		err = json.Unmarshal(decodedFilterJson, existingFilter)
-		if err != nil {
-			return nil, model.BadRequest(fmt.Errorf("couldn't JSON decode existingFilter: %w", err))
-		}
-	}
-
-	searchText := r.URL.Query().Get("searchText")
-
-	return &querytypes.QBFilterSuggestionsRequest{
-		DataSource:      dataSource,
-		SearchText:      searchText,
-		ExistingFilter:  existingFilter,
-		AttributesLimit: attributesLimit,
-		ExamplesLimit:   examplesLimit,
-	}, nil
-}
-
-func parseFilterAttributeKeyRequest(r *http.Request) (*querytypes.FilterAttributeKeyRequest, error) {
-	var req querytypes.FilterAttributeKeyRequest
-
-	dataSource := querytypes.DataSource(r.URL.Query().Get("dataSource"))
-	aggregateOperator := querytypes.AggregateOperator(r.URL.Query().Get("aggregateOperator"))
-	aggregateAttribute := r.URL.Query().Get("aggregateAttribute")
-	limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
-	tagType := querytypes.TagType(r.URL.Query().Get("tagType"))
-
-	// empty string is a valid tagType
-	// i.e retrieve all attributes
-	if tagType != "" {
-		// what is happening here?
-		// if tagType is undefined(uh oh javascript) or any invalid value, set it to empty string
-		// instead of failing the request. Ideally, we should fail the request.
-		// but we are not doing that to maintain backward compatibility.
-		if err := tagType.Validate(); err != nil {
-			// if the tagType is invalid, set it to empty string
-			tagType = ""
-		}
-	}
-
-	if err != nil {
-		limit = 50
-	}
-
-	if err := dataSource.Validate(); err != nil {
-		return nil, err
-	}
-
-	if dataSource != querytypes.DataSourceMetrics && dataSource != querytypes.DataSourceMeter {
-		if err := aggregateOperator.Validate(); err != nil {
-			return nil, err
-		}
-	}
-
-	req = querytypes.FilterAttributeKeyRequest{
-		DataSource:         dataSource,
-		AggregateOperator:  aggregateOperator,
-		AggregateAttribute: aggregateAttribute,
-		Limit:              limit,
-		SearchText:         r.URL.Query().Get("searchText"),
-		TagType:            tagType,
-	}
-	return &req, nil
-}
-
-func parseFilterAttributeValueRequestBody(r *http.Request) (*querytypes.FilterAttributeValueRequest, error) {
-
-	var req querytypes.FilterAttributeValueRequest
-
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		return nil, err
-	}
-
-	if err := req.Validate(); err != nil {
-		return nil, err
-	}
-
-	// offset by two windows periods for start for better results
-	req.StartTimeMillis = req.StartTimeMillis - time.Hour.Milliseconds()*6*2
-	req.EndTimeMillis = req.EndTimeMillis + time.Hour.Milliseconds()*6
-
-	return &req, nil
-}
-
-func parseFilterAttributeValueRequest(r *http.Request) (*querytypes.FilterAttributeValueRequest, error) {
-
-	var req querytypes.FilterAttributeValueRequest
-
-	dataSource := querytypes.DataSource(r.URL.Query().Get("dataSource"))
-	aggregateOperator := querytypes.AggregateOperator(r.URL.Query().Get("aggregateOperator"))
-	filterAttributeKeyDataType := querytypes.AttributeKeyDataType(r.URL.Query().Get("filterAttributeKeyDataType")) // can be empty
-	aggregateAttribute := r.URL.Query().Get("aggregateAttribute")
-	tagType := querytypes.TagType(r.URL.Query().Get("tagType")) // can be empty
-
-	limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
-	if err != nil {
-		limit = 50
-	}
-
-	if err := dataSource.Validate(); err != nil {
-		return nil, err
-	}
-
-	if dataSource != querytypes.DataSourceMetrics {
-		if err := aggregateOperator.Validate(); err != nil {
-			return nil, err
-		}
-	}
-
-	req = querytypes.FilterAttributeValueRequest{
-		DataSource:                 dataSource,
-		AggregateOperator:          aggregateOperator,
-		AggregateAttribute:         aggregateAttribute,
-		TagType:                    tagType,
-		Limit:                      limit,
-		SearchText:                 r.URL.Query().Get("searchText"),
-		FilterAttributeKey:         r.URL.Query().Get("attributeKey"),
-		FilterAttributeKeyDataType: filterAttributeKeyDataType,
-	}
-	return &req, nil
 }
 
 // ParseRequestBody for third party APIs

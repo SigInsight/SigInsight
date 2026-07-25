@@ -78,17 +78,17 @@ func addIngestionControlToAgent(agent *model.Agent, signal string, processors ma
 		return confHash, err
 	}
 
-	agentConf := confmap.NewFromStringMap(c)
+	agentconfig := confmap.NewFromStringMap(c)
 
 	// add ingestion control spec
-	err = makeIngestionControlSpec(agentConf, Signal(signal), processors)
+	err = makeIngestionControlSpec(agentconfig, Signal(signal), processors)
 	if err != nil {
 		slog.Error("failed to prepare ingestion control processors for agent", "agent_id", agent.AgentID, errors.Attr(err))
 		return confHash, err
 	}
 
 	// ------ complete adding processor
-	configR, err := yaml.Parser().Marshal(agentConf.ToStringMap())
+	configR, err := yaml.Parser().Marshal(agentconfig.ToStringMap())
 	if err != nil {
 		return confHash, err
 	}
@@ -124,8 +124,8 @@ func addIngestionControlToAgent(agent *model.Agent, signal string, processors ma
 }
 
 // prepare spec to introduce ingestion control in agent conf
-func makeIngestionControlSpec(agentConf *confmap.Conf, signal Signal, processors map[string]interface{}) error {
-	configParser := otelconfig.NewConfigParser(agentConf)
+func makeIngestionControlSpec(agentconfig *confmap.Conf, signal Signal, processors map[string]interface{}) error {
+	configParser := otelconfig.NewConfigParser(agentconfig)
 	configParser.UpdateProcessors(processors)
 
 	// edit pipeline if processor is missing

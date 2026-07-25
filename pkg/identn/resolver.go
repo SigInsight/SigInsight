@@ -45,20 +45,6 @@ func NewIdentNResolver(ctx context.Context, providerSettings factory.ProviderSet
 		identNs = append(identNs, identN)
 	}
 
-	if identNConfig.APIKeyConfig.Enabled {
-		identNFactory, err := identNFactories.Get(authtypes.IdentNProviderAPIKey.StringValue())
-		if err != nil {
-			return nil, err
-		}
-
-		identN, err := identNFactory.New(ctx, providerSettings, identNConfig)
-		if err != nil {
-			return nil, err
-		}
-
-		identNs = append(identNs, identN)
-	}
-
 	return &identNResolver{
 		identNs:  identNs,
 		settings: factory.NewScopedProviderSettings(providerSettings, "github.com/SigNoz/signoz/pkg/identn"),

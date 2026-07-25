@@ -9,8 +9,6 @@ const ROUTES = {
 	TRACE: '/trace',
 	TRACE_DETAIL: '/trace/:id',
 	TRACES_EXPLORER: '/traces-explorer',
-	ONBOARDING: '/onboarding',
-	USAGE_EXPLORER: '/usage-explorer',
 	APPLICATION: '/services',
 	EDIT_ALERTS: '/alerts/edit',
 	LIST_ALL_ALERT: '/alerts',
@@ -27,7 +25,6 @@ const ROUTES = {
 	SETTINGS: '/settings',
 	MY_SETTINGS: '/settings/my-settings',
 	ORG_SETTINGS: '/settings/org-settings',
-	API_KEYS: '/settings/api-keys',
 	SOMETHING_WENT_WRONG: '/something-went-wrong',
 	UN_AUTHORIZED: '/un-authorized',
 	NOT_FOUND: '/not-found',
@@ -38,8 +35,6 @@ const ROUTES = {
 	PASSWORD_RESET: '/password-reset',
 	LOGS_INDEX_FIELDS: '/logs-explorer/index-fields',
 	TRACE_EXPLORER: '/trace-explorer',
-	ROLES_SETTINGS: '/settings/roles',
-	ROLE_DETAILS: '/settings/roles/:roleId',
 	MEMBERS_SETTINGS: '/settings/members',
 	LOGS_SAVE_VIEWS: '/logs/saved-views',
 	TRACES_SAVE_VIEWS: '/traces/saved-views',
@@ -56,7 +51,6 @@ const ROUTES = {
 	METER_EXPLORER: '/meter/explorer',
 	METER_EXPLORER_VIEWS: '/meter/explorer/views',
 	HOME_PAGE: '/',
-	SERVICE_ACCOUNTS_SETTINGS: '/settings/service-accounts',
 } as const;
 
 export default ROUTES;

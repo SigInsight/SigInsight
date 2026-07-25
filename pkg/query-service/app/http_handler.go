@@ -26,15 +26,12 @@ import (
 	"github.com/SigNoz/signoz/pkg/valuer"
 
 	"github.com/gorilla/mux"
-	"github.com/gorilla/websocket"
 	jsoniter "github.com/json-iterator/go"
 	_ "modernc.org/sqlite"
 
 	"github.com/SigNoz/signoz/pkg/contextlinks"
 	traceFunnelsModule "github.com/SigNoz/signoz/pkg/modules/tracefunnel"
-	"github.com/SigNoz/signoz/pkg/query-service/app/logs"
 	"github.com/SigNoz/signoz/pkg/query-service/constants"
-	"github.com/SigNoz/signoz/pkg/query-service/model/querytypes"
 	"github.com/SigNoz/signoz/pkg/types"
 	"github.com/SigNoz/signoz/pkg/types/authtypes"
 	"github.com/SigNoz/signoz/pkg/types/ctxtypes"
@@ -73,9 +70,6 @@ type APIHandler struct {
 	// at the moment, we mark the app ready when the first user
 	// is registers.
 	SetupCompleted bool
-
-	// Websocket connection upgrader
-	Upgrader *websocket.Upgrader
 
 	SummaryService *metricsexplorer.SummaryService
 
@@ -130,12 +124,6 @@ func NewAPIHandler(opts APIHandlerOpts, config signoz.Config) (*APIHandler, erro
 	// If the root user is enabled, the setup is complete
 	if config.User.Root.Enabled {
 		aH.SetupCompleted = true
-	}
-
-	aH.Upgrader = &websocket.Upgrader{
-		CheckOrigin: func(r *http.Request) bool {
-			return true
-		},
 	}
 
 	return aH, nil
@@ -232,21 +220,8 @@ func writeHttpResponse(w http.ResponseWriter, data interface{}) {
 
 func (aH *APIHandler) RegisterQueryRangeV5Routes(router *mux.Router, am *middleware.AuthZ) {
 	subRouter := router.PathPrefix("/api/v5").Subrouter()
-	subRouter.HandleFunc("/autocomplete/aggregate_attributes", am.ViewAccess(
-		withCacheControl(AutoCompleteCacheControlAge, aH.autocompleteAggregateAttributes))).Methods(http.MethodGet)
-	subRouter.HandleFunc("/autocomplete/attribute_keys", am.ViewAccess(
-		withCacheControl(AutoCompleteCacheControlAge, aH.autoCompleteAttributeKeys))).Methods(http.MethodGet)
-	subRouter.HandleFunc("/autocomplete/attribute_values", am.ViewAccess(
-		withCacheControl(AutoCompleteCacheControlAge, aH.autoCompleteAttributeValues))).Methods(http.MethodGet)
-	subRouter.HandleFunc("/auto_complete/attribute_values", am.ViewAccess(aH.autoCompleteAttributeValuesPost)).Methods(http.MethodPost)
-	subRouter.HandleFunc("/filter_suggestions", am.ViewAccess(aH.getQueryBuilderSuggestions)).Methods(http.MethodGet)
 	subRouter.HandleFunc("/logs/livetail", am.ViewAccess(aH.Signoz.Handlers.QuerierHandler.QueryRawStream)).Methods(http.MethodGet)
 	subRouter.HandleFunc("/metric/metric_metadata", am.ViewAccess(aH.getMetricMetadata)).Methods(http.MethodGet)
-}
-
-func (aH *APIHandler) RegisterWebSocketPaths(router *mux.Router, am *middleware.AuthZ) {
-	subRouter := router.PathPrefix("/ws").Subrouter()
-	subRouter.HandleFunc("/query_progress", am.ViewAccess(aH.GetQueryProgressUpdates)).Methods(http.MethodGet)
 }
 
 // todo(remove): Implemented at render package (github.com/SigNoz/signoz/pkg/http/render) with the new error structure
@@ -263,12 +238,6 @@ func (aH *APIHandler) RegisterRoutes(router *mux.Router, am *middleware.AuthZ) {
 	router.HandleFunc("/api/v5/channels", am.EditAccess(aH.AlertmanagerAPI.CreateChannel)).Methods(http.MethodPost)
 	router.HandleFunc("/api/v5/testChannel", am.EditAccess(aH.AlertmanagerAPI.TestReceiver)).Methods(http.MethodPost)
 
-	router.HandleFunc("/api/v5/route_policies", am.ViewAccess(aH.AlertmanagerAPI.GetAllRoutePolicies)).Methods(http.MethodGet)
-	router.HandleFunc("/api/v5/route_policies/{id}", am.ViewAccess(aH.AlertmanagerAPI.GetRoutePolicyByID)).Methods(http.MethodGet)
-	router.HandleFunc("/api/v5/route_policies", am.AdminAccess(aH.AlertmanagerAPI.CreateRoutePolicy)).Methods(http.MethodPost)
-	router.HandleFunc("/api/v5/route_policies/{id}", am.AdminAccess(aH.AlertmanagerAPI.DeleteRoutePolicyByID)).Methods(http.MethodDelete)
-	router.HandleFunc("/api/v5/route_policies/{id}", am.AdminAccess(aH.AlertmanagerAPI.UpdateRoutePolicy)).Methods(http.MethodPut)
-
 	router.HandleFunc("/api/v5/alerts", am.ViewAccess(aH.AlertmanagerAPI.GetAlerts)).Methods(http.MethodGet)
 
 	router.HandleFunc("/api/v5/rules", am.ViewAccess(aH.listRules)).Methods(http.MethodGet)
@@ -283,12 +252,6 @@ func (aH *APIHandler) RegisterRoutes(router *mux.Router, am *middleware.AuthZ) {
 	router.HandleFunc("/api/v5/rules/{id}/history/top_contributors", am.ViewAccess(aH.getRuleStateHistoryTopContributors)).Methods(http.MethodPost)
 	router.HandleFunc("/api/v5/rules/{id}/history/overall_status", am.ViewAccess(aH.getOverallStateTransitions)).Methods(http.MethodPost)
 
-	router.HandleFunc("/api/v5/downtime_schedules", am.ViewAccess(aH.listDowntimeSchedules)).Methods(http.MethodGet)
-	router.HandleFunc("/api/v5/downtime_schedules/{id}", am.ViewAccess(aH.getDowntimeSchedule)).Methods(http.MethodGet)
-	router.HandleFunc("/api/v5/downtime_schedules", am.EditAccess(aH.createDowntimeSchedule)).Methods(http.MethodPost)
-	router.HandleFunc("/api/v5/downtime_schedules/{id}", am.EditAccess(aH.editDowntimeSchedule)).Methods(http.MethodPut)
-	router.HandleFunc("/api/v5/downtime_schedules/{id}", am.EditAccess(aH.deleteDowntimeSchedule)).Methods(http.MethodDelete)
-
 	router.HandleFunc("/api/v5/explorer/views", am.ViewAccess(aH.Signoz.Handlers.SavedView.List)).Methods(http.MethodGet)
 	router.HandleFunc("/api/v5/explorer/views", am.EditAccess(aH.Signoz.Handlers.SavedView.Create)).Methods(http.MethodPost)
 	router.HandleFunc("/api/v5/explorer/views/{viewId}", am.ViewAccess(aH.Signoz.Handlers.SavedView.Get)).Methods(http.MethodGet)
@@ -302,7 +265,6 @@ func (aH *APIHandler) RegisterRoutes(router *mux.Router, am *middleware.AuthZ) {
 	router.HandleFunc("/api/v5/service/top_level_operations", am.ViewAccess(aH.getServicesTopLevelOps)).Methods(http.MethodPost)
 
 	router.HandleFunc("/api/v5/service/entry_point_operations", am.ViewAccess(aH.Signoz.Handlers.Services.GetEntryPointOperations)).Methods(http.MethodPost)
-	router.HandleFunc("/api/v5/usage", am.ViewAccess(aH.getUsage)).Methods(http.MethodGet)
 	router.HandleFunc("/api/v5/services/dependency_graph", am.ViewAccess(aH.dependencyGraph)).Methods(http.MethodPost)
 	router.HandleFunc("/api/v5/settings/ttl", am.AdminAccess(aH.setTTL)).Methods(http.MethodPost)
 	router.HandleFunc("/api/v5/settings/ttl", am.ViewAccess(aH.getTTL)).Methods(http.MethodGet)
@@ -312,8 +274,6 @@ func (aH *APIHandler) RegisterRoutes(router *mux.Router, am *middleware.AuthZ) {
 	router.HandleFunc("/api/v5/settings/apdex", am.AdminAccess(aH.Signoz.Handlers.Apdex.Set)).Methods(http.MethodPost)
 	router.HandleFunc("/api/v5/settings/apdex", am.ViewAccess(aH.Signoz.Handlers.Apdex.Get)).Methods(http.MethodGet)
 
-	router.HandleFunc("/api/v5/traces/fields", am.ViewAccess(aH.traceFields)).Methods(http.MethodGet)
-	router.HandleFunc("/api/v5/traces/fields", am.EditAccess(aH.updateTraceField)).Methods(http.MethodPost)
 	router.HandleFunc("/api/v5/traces/flamegraph/{traceId}", am.ViewAccess(aH.GetFlamegraphSpansForTrace)).Methods(http.MethodPost)
 	router.HandleFunc("/api/v5/traces/waterfall/{traceId}", am.ViewAccess(aH.GetWaterfallSpansForTraceWithMetadata)).Methods(http.MethodPost)
 
@@ -388,129 +348,6 @@ func (aH *APIHandler) getRule(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	aH.Respond(w, ruleResponse)
-}
-
-func (aH *APIHandler) listDowntimeSchedules(w http.ResponseWriter, r *http.Request) {
-	claims, errv2 := authtypes.ClaimsFromContext(r.Context())
-	if errv2 != nil {
-		render.Error(w, errv2)
-		return
-	}
-
-	schedules, err := aH.ruleManager.MaintenanceStore().GetAllPlannedMaintenance(r.Context(), claims.OrgID)
-	if err != nil {
-		render.Error(w, err)
-		return
-	}
-
-	// The schedules are stored as JSON in the database, so we need to filter them here
-	// Since the number of schedules is expected to be small, this should be fine
-
-	if r.URL.Query().Get("active") != "" {
-		activeSchedules := make([]*ruletypes.GettablePlannedMaintenance, 0)
-		active, _ := strconv.ParseBool(r.URL.Query().Get("active"))
-		for _, schedule := range schedules {
-			now := time.Now().In(time.FixedZone(schedule.Schedule.Timezone, 0))
-			if schedule.IsActive(now) == active {
-				activeSchedules = append(activeSchedules, schedule)
-			}
-		}
-		schedules = activeSchedules
-	}
-
-	if r.URL.Query().Get("recurring") != "" {
-		recurringSchedules := make([]*ruletypes.GettablePlannedMaintenance, 0)
-		recurring, _ := strconv.ParseBool(r.URL.Query().Get("recurring"))
-		for _, schedule := range schedules {
-			if schedule.IsRecurring() == recurring {
-				recurringSchedules = append(recurringSchedules, schedule)
-			}
-		}
-		schedules = recurringSchedules
-	}
-
-	aH.Respond(w, schedules)
-}
-
-func (aH *APIHandler) getDowntimeSchedule(w http.ResponseWriter, r *http.Request) {
-	idStr := mux.Vars(r)["id"]
-	id, err := valuer.NewUUID(idStr)
-	if err != nil {
-		render.Error(w, errorsV2.New(errorsV2.TypeInvalidInput, errorsV2.CodeInvalidInput, err.Error()))
-		return
-	}
-
-	schedule, err := aH.ruleManager.MaintenanceStore().GetPlannedMaintenanceByID(r.Context(), id)
-	if err != nil {
-		render.Error(w, err)
-		return
-	}
-	aH.Respond(w, schedule)
-}
-
-func (aH *APIHandler) createDowntimeSchedule(w http.ResponseWriter, r *http.Request) {
-	var schedule ruletypes.GettablePlannedMaintenance
-	err := json.NewDecoder(r.Body).Decode(&schedule)
-	if err != nil {
-		RespondError(w, &model.ApiError{Typ: model.ErrorBadData, Err: err}, nil)
-		return
-	}
-	if err := schedule.Validate(); err != nil {
-		render.Error(w, err)
-		return
-	}
-
-	_, err = aH.ruleManager.MaintenanceStore().CreatePlannedMaintenance(r.Context(), schedule)
-	if err != nil {
-		render.Error(w, err)
-		return
-	}
-	aH.Respond(w, nil)
-}
-
-func (aH *APIHandler) editDowntimeSchedule(w http.ResponseWriter, r *http.Request) {
-	idStr := mux.Vars(r)["id"]
-	id, err := valuer.NewUUID(idStr)
-	if err != nil {
-		render.Error(w, errorsV2.New(errorsV2.TypeInvalidInput, errorsV2.CodeInvalidInput, err.Error()))
-		return
-	}
-
-	var schedule ruletypes.GettablePlannedMaintenance
-	err = json.NewDecoder(r.Body).Decode(&schedule)
-	if err != nil {
-		render.Error(w, err)
-		return
-	}
-	if err := schedule.Validate(); err != nil {
-		render.Error(w, err)
-		return
-	}
-
-	err = aH.ruleManager.MaintenanceStore().EditPlannedMaintenance(r.Context(), schedule, id)
-	if err != nil {
-		render.Error(w, err)
-		return
-	}
-
-	aH.Respond(w, nil)
-}
-
-func (aH *APIHandler) deleteDowntimeSchedule(w http.ResponseWriter, r *http.Request) {
-	idStr := mux.Vars(r)["id"]
-	id, err := valuer.NewUUID(idStr)
-	if err != nil {
-		render.Error(w, errorsV2.New(errorsV2.TypeInvalidInput, errorsV2.CodeInvalidInput, err.Error()))
-		return
-	}
-
-	err = aH.ruleManager.MaintenanceStore().DeletePlannedMaintenance(r.Context(), id)
-	if err != nil {
-		render.Error(w, err)
-		return
-	}
-
-	aH.Respond(w, nil)
 }
 
 func (aH *APIHandler) getRuleStats(w http.ResponseWriter, r *http.Request) {
@@ -896,22 +733,6 @@ func (aH *APIHandler) registerEvent(w http.ResponseWriter, r *http.Request) {
 	} else {
 		RespondError(w, &model.ApiError{Typ: model.ErrorInternal, Err: err}, nil)
 	}
-}
-
-func (aH *APIHandler) getUsage(w http.ResponseWriter, r *http.Request) {
-
-	query, err := parseGetUsageRequest(r)
-	if aH.HandleError(w, err, http.StatusBadRequest) {
-		return
-	}
-
-	result, err := aH.reader.GetUsage(r.Context(), query)
-	if aH.HandleError(w, err, http.StatusBadRequest) {
-		return
-	}
-
-	aH.WriteJSON(w, r, result)
-
 }
 
 func (aH *APIHandler) getServicesTopLevelOps(w http.ResponseWriter, r *http.Request) {
@@ -1359,228 +1180,6 @@ func (aH *APIHandler) RegisterAPIMonitoringRoutes(router *mux.Router, am *middle
 	overviewRouter.HandleFunc("/domain", am.ViewAccess(aH.getDomainInfo)).Methods(http.MethodPost)
 }
 
-func (aH *APIHandler) autocompleteAggregateAttributes(w http.ResponseWriter, r *http.Request) {
-	claims, err := authtypes.ClaimsFromContext(r.Context())
-	if err != nil {
-		render.Error(w, err)
-		return
-	}
-	orgID, err := valuer.NewUUID(claims.OrgID)
-	if err != nil {
-		render.Error(w, err)
-		return
-	}
-
-	var response *querytypes.AggregateAttributeResponse
-	req, err := parseAggregateAttributeRequest(r)
-
-	if err != nil {
-		RespondError(w, &model.ApiError{Typ: model.ErrorBadData, Err: err}, nil)
-		return
-	}
-
-	switch req.DataSource {
-	case querytypes.DataSourceMetrics:
-		response, err = aH.reader.GetMetricAggregateAttributes(r.Context(), orgID, req, false)
-	case querytypes.DataSourceLogs:
-		response, err = aH.reader.GetLogAggregateAttributes(r.Context(), req)
-	case querytypes.DataSourceTraces:
-		response, err = aH.reader.GetTraceAggregateAttributes(r.Context(), req)
-	case querytypes.DataSourceMeter:
-		response, err = aH.reader.GetMeterAggregateAttributes(r.Context(), orgID, req)
-	default:
-		RespondError(w, &model.ApiError{Typ: model.ErrorBadData, Err: fmt.Errorf("invalid data source")}, nil)
-		return
-	}
-
-	if err != nil {
-		RespondError(w, &model.ApiError{Typ: model.ErrorBadData, Err: err}, nil)
-		return
-	}
-
-	aH.Respond(w, response)
-}
-
-func (aH *APIHandler) getQueryBuilderSuggestions(w http.ResponseWriter, r *http.Request) {
-	req, err := parseQBFilterSuggestionsRequest(r)
-	if err != nil {
-		RespondError(w, err, nil)
-		return
-	}
-
-	if req.DataSource != querytypes.DataSourceLogs {
-		// Support for traces and metrics might come later
-		RespondError(w, model.BadRequest(
-			fmt.Errorf("suggestions not supported for %s", req.DataSource),
-		), nil)
-		return
-	}
-
-	response, apiErr := aH.reader.GetQBFilterSuggestionsForLogs(r.Context(), req)
-	if apiErr != nil {
-		RespondError(w, apiErr, nil)
-		return
-	}
-
-	aH.Respond(w, response)
-}
-
-func (aH *APIHandler) autoCompleteAttributeKeys(w http.ResponseWriter, r *http.Request) {
-	var response *querytypes.FilterAttributeKeyResponse
-	req, err := parseFilterAttributeKeyRequest(r)
-
-	if err != nil {
-		RespondError(w, &model.ApiError{Typ: model.ErrorBadData, Err: err}, nil)
-		return
-	}
-
-	switch req.DataSource {
-	case querytypes.DataSourceMetrics:
-		response, err = aH.reader.GetMetricAttributeKeys(r.Context(), req)
-	case querytypes.DataSourceMeter:
-		response, err = aH.reader.GetMeterAttributeKeys(r.Context(), req)
-	case querytypes.DataSourceLogs:
-		response, err = aH.reader.GetLogAttributeKeys(r.Context(), req)
-	case querytypes.DataSourceTraces:
-		response, err = aH.reader.GetTraceAttributeKeys(r.Context(), req)
-	default:
-		RespondError(w, &model.ApiError{Typ: model.ErrorBadData, Err: fmt.Errorf("invalid data source")}, nil)
-		return
-	}
-
-	if err != nil {
-		RespondError(w, &model.ApiError{Typ: model.ErrorBadData, Err: err}, nil)
-		return
-	}
-
-	aH.Respond(w, response)
-}
-
-func (aH *APIHandler) autoCompleteAttributeValues(w http.ResponseWriter, r *http.Request) {
-	var response *querytypes.FilterAttributeValueResponse
-	req, err := parseFilterAttributeValueRequest(r)
-
-	if err != nil {
-		RespondError(w, &model.ApiError{Typ: model.ErrorBadData, Err: err}, nil)
-		return
-	}
-
-	switch req.DataSource {
-	case querytypes.DataSourceMetrics:
-		response, err = aH.reader.GetMetricAttributeValues(r.Context(), req)
-	case querytypes.DataSourceLogs:
-		response, err = aH.reader.GetLogAttributeValues(r.Context(), req)
-	case querytypes.DataSourceTraces:
-		response, err = aH.reader.GetTraceAttributeValues(r.Context(), req)
-	default:
-		RespondError(w, &model.ApiError{Typ: model.ErrorBadData, Err: fmt.Errorf("invalid data source")}, nil)
-		return
-	}
-
-	if err != nil {
-		RespondError(w, &model.ApiError{Typ: model.ErrorBadData, Err: err}, nil)
-		return
-	}
-
-	aH.Respond(w, response)
-}
-
-func (aH *APIHandler) autoCompleteAttributeValuesPost(w http.ResponseWriter, r *http.Request) {
-	var response *querytypes.FilterAttributeValueResponse
-	req, err := parseFilterAttributeValueRequestBody(r)
-
-	if err != nil {
-		RespondError(w, &model.ApiError{Typ: model.ErrorBadData, Err: err}, nil)
-		return
-	}
-
-	switch req.DataSource {
-	case querytypes.DataSourceMetrics:
-		response, err = aH.reader.GetMetricAttributeValues(r.Context(), req)
-	case querytypes.DataSourceLogs:
-		response, err = aH.reader.GetLogAttributeValues(r.Context(), req)
-	case querytypes.DataSourceTraces:
-		response, err = aH.reader.GetTraceAttributeValues(r.Context(), req)
-	default:
-		RespondError(w, &model.ApiError{Typ: model.ErrorBadData, Err: fmt.Errorf("invalid data source")}, nil)
-		return
-	}
-
-	if err != nil {
-		RespondError(w, &model.ApiError{Typ: model.ErrorBadData, Err: err}, nil)
-		return
-	}
-
-	aH.Respond(w, response)
-}
-
-func (aH *APIHandler) GetQueryProgressUpdates(w http.ResponseWriter, r *http.Request) {
-	// Upgrade connection to websocket, sending back the requested protocol
-	// value for sec-websocket-protocol
-	//
-	// Since js websocket API doesn't allow setting headers, this header is often
-	// used for passing auth tokens. As per websocket spec the connection will only
-	// succeed if the requested `Sec-Websocket-Protocol` is sent back as a header
-	// in the upgrade response (signifying that the protocol is supported by the server).
-	upgradeResponseHeaders := http.Header{}
-	requestedProtocol := r.Header.Get("Sec-WebSocket-Protocol")
-	if len(requestedProtocol) > 0 {
-		upgradeResponseHeaders.Add("Sec-WebSocket-Protocol", requestedProtocol)
-	}
-
-	c, err := aH.Upgrader.Upgrade(w, r, upgradeResponseHeaders)
-	if err != nil {
-		RespondError(w, model.InternalError(fmt.Errorf(
-			"couldn't upgrade connection: %w", err,
-		)), nil)
-		return
-	}
-	defer c.Close()
-
-	// Websocket upgrade complete. Subscribe to query progress and send updates to client
-	//
-	// Note: we handle any subscription problems (queryId query param missing or query already complete etc)
-	// after the websocket connection upgrade by closing the channel.
-	// The other option would be to handle the errors before websocket upgrade by sending an
-	// error response instead of the upgrade response, but that leads to a generic websocket
-	// connection failure on the client.
-
-	queryId := r.URL.Query().Get("q")
-
-	progressCh, unsubscribe, apiErr := aH.reader.SubscribeToQueryProgress(queryId)
-	if apiErr != nil {
-		// Shouldn't happen unless query progress requested after query finished
-		aH.logger.WarnContext(r.Context(), "failed to subscribe to query progress",
-			"query_id", queryId, errors.Attr(apiErr),
-		)
-		return
-	}
-	defer func() { go unsubscribe() }()
-
-	for queryProgress := range progressCh {
-		msg, err := json.Marshal(queryProgress)
-		if err != nil {
-			aH.logger.ErrorContext(r.Context(), "failed to serialize progress message",
-				"query_id", queryId, "progress", queryProgress, errors.Attr(err),
-			)
-			continue
-		}
-
-		err = c.WriteMessage(websocket.TextMessage, msg)
-		if err != nil {
-			aH.logger.ErrorContext(r.Context(), "failed to write progress message to websocket",
-				"query_id", queryId, "msg", string(msg), errors.Attr(err),
-			)
-			break
-
-		} else {
-			aH.logger.DebugContext(r.Context(), "wrote progress message to websocket",
-				"query_id", queryId, "msg", string(msg),
-			)
-		}
-	}
-}
-
 func (aH *APIHandler) getMetricMetadata(w http.ResponseWriter, r *http.Request) {
 	claims, err := authtypes.ClaimsFromContext(r.Context())
 	if err != nil {
@@ -1602,38 +1201,6 @@ func (aH *APIHandler) getMetricMetadata(w http.ResponseWriter, r *http.Request) 
 	}
 
 	aH.WriteJSON(w, r, metricMetadata)
-}
-
-func (aH *APIHandler) traceFields(w http.ResponseWriter, r *http.Request) {
-	fields, apiErr := aH.reader.GetTraceFields(r.Context())
-	if apiErr != nil {
-		RespondError(w, apiErr, "failed to fetch fields from the db")
-		return
-	}
-	aH.WriteJSON(w, r, fields)
-}
-
-func (aH *APIHandler) updateTraceField(w http.ResponseWriter, r *http.Request) {
-	field := model.UpdateField{}
-	if err := json.NewDecoder(r.Body).Decode(&field); err != nil {
-		apiErr := &model.ApiError{Typ: model.ErrorBadData, Err: err}
-		RespondError(w, apiErr, "failed to decode payload")
-		return
-	}
-
-	err := logs.ValidateUpdateFieldPayloadV2(&field)
-	if err != nil {
-		apiErr := &model.ApiError{Typ: model.ErrorBadData, Err: err}
-		RespondError(w, apiErr, "incorrect payload")
-		return
-	}
-
-	apiErr := aH.reader.UpdateTraceField(r.Context(), &field)
-	if apiErr != nil {
-		RespondError(w, apiErr, "failed to update field in the db")
-		return
-	}
-	aH.WriteJSON(w, r, field)
 }
 
 func (aH *APIHandler) getDomainList(w http.ResponseWriter, r *http.Request) {

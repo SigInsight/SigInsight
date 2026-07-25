@@ -22,7 +22,7 @@ import { populateMultipleResults } from 'container/NewWidget/LeftContainer/Widge
 import {
 	timeItems,
 	timePreferance,
-} from 'container/NewWidget/RightContainer/timeItems';
+} from 'features/query-visualization/timePreference';
 import { PanelMode } from 'container/PanelVisualization/panels/types';
 import PanelWrapper from 'container/PanelWrapper/PanelWrapper';
 import RightToolbarActions from 'container/QueryBuilder/components/ToolbarActions/RightToolbarActions';

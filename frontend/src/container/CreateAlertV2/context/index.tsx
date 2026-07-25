@@ -11,7 +11,7 @@ import {
 } from 'react';
 import { useLocation } from 'react-router-dom';
 import { QueryParams } from 'constants/query';
-import { AlertDetectionTypes } from 'container/FormAlertRules';
+import { AlertRuleType } from 'features/alerting/types';
 import { useCreateAlertRule } from 'hooks/alerts/useCreateAlertRule';
 import { useTestAlertRule } from 'hooks/alerts/useTestAlertRule';
 import { useUpdateAlertRule } from 'hooks/alerts/useUpdateAlertRule';
@@ -145,9 +145,7 @@ export function CreateAlertProvider(
 				{
 					[QueryParams.alertType]: value,
 					[QueryParams.ruleType]:
-						value === AlertTypes.ANOMALY_BASED_ALERT
-							? AlertDetectionTypes.ANOMALY_DETECTION_ALERT
-							: AlertDetectionTypes.THRESHOLD_ALERT,
+					AlertRuleType.THRESHOLD,
 				},
 				undefined,
 				true,

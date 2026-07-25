@@ -59,20 +59,12 @@ export const TraceDetail = Loadable(
 		import(/* webpackChunkName: "TraceDetail Page" */ 'pages/TraceDetail/index'),
 );
 
-export const UsageExplorerPage = Loadable(
-	() => import(/* webpackChunkName: "UsageExplorerPage" */ 'modules/Usage'),
-);
-
 export const SignupPage = Loadable(
 	() => import(/* webpackChunkName: "SignupPage" */ 'pages/SignUp'),
 );
 
 export const SettingsPage = Loadable(
 	() => import(/* webpackChunkName: "SettingsPage" */ 'pages/Settings'),
-);
-
-export const OrgOnboarding = Loadable(
-	() => import(/* webpackChunkName: "OrgOnboarding" */ 'pages/OrgOnboarding'),
 );
 
 export const EditRulesPage = Loadable(
@@ -116,10 +108,6 @@ export const StatusPage = Loadable(
 );
 
 export const OrganizationSettings = Loadable(
-	() => import(/* webpackChunkName: "All Settings" */ 'pages/Settings'),
-);
-
-export const APIKeys = Loadable(
 	() => import(/* webpackChunkName: "All Settings" */ 'pages/Settings'),
 );
 
