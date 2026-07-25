@@ -25,6 +25,10 @@ func TestConsolidateV5Schema(t *testing.T) {
 	require.NoError(t, err)
 	_, err = db.ExecContext(ctx, `CREATE TABLE auth_domain (id TEXT PRIMARY KEY)`)
 	require.NoError(t, err)
+	_, err = db.ExecContext(ctx, `CREATE TABLE quick_filter (id TEXT PRIMARY KEY, org_id TEXT NOT NULL, filter TEXT NOT NULL, signal TEXT NOT NULL, created_at TIMESTAMP, updated_at TIMESTAMP)`)
+	require.NoError(t, err)
+	_, err = db.ExecContext(ctx, `INSERT INTO quick_filter (id, org_id, filter, signal) VALUES ('00000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000002', '[{"key":"hasError"},{"key":"http.method"}]', 'traces')`)
+	require.NoError(t, err)
 
 	testCases := []struct {
 		id            string
@@ -75,4 +79,8 @@ func TestConsolidateV5Schema(t *testing.T) {
 		Count(ctx)
 	require.NoError(t, err)
 	require.Zero(t, count)
+
+	var traceQuickFilter string
+	require.NoError(t, db.NewSelect().Table("quick_filter").Column("filter").Where("id = ?", "00000000-0000-0000-0000-000000000001").Scan(ctx, &traceQuickFilter))
+	require.JSONEq(t, `[{"key":"has_error"},{"key":"http_method"}]`, traceQuickFilter)
 }

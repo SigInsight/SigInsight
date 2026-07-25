@@ -289,6 +289,7 @@ func (t *telemetryMetaStore) getTracesKeys(ctx context.Context, fieldKeySelector
 	staticKeys := []string{"isRoot", "isEntryPoint"}
 	staticKeys = append(staticKeys, maps.Keys(telemetrytraces.IntrinsicFields)...)
 	staticKeys = append(staticKeys, maps.Keys(telemetrytraces.CalculatedFields)...)
+	staticKeys = append(staticKeys, maps.Keys(telemetrytraces.DefaultFields)...)
 
 	// Add matching intrinsic and matching calculated fields
 	// These don't count towards the limit
@@ -303,14 +304,20 @@ func (t *telemetryMetaStore) getTracesKeys(ctx context.Context, fieldKeySelector
 
 		if found {
 			if field, exists := telemetrytraces.IntrinsicFields[key]; exists {
-				if _, added := mapOfKeys[field.Name+";"+field.FieldContext.StringValue()+";"+field.FieldDataType.StringValue()]; !added {
+				if !containsFieldKey(keys, field) {
 					keys = append(keys, &field)
 				}
 				continue
 			}
 
 			if field, exists := telemetrytraces.CalculatedFields[key]; exists {
-				if _, added := mapOfKeys[field.Name+";"+field.FieldContext.StringValue()+";"+field.FieldDataType.StringValue()]; !added {
+				if !containsFieldKey(keys, field) {
+					keys = append(keys, &field)
+				}
+				continue
+			}
+			if field, exists := telemetrytraces.DefaultFields[key]; exists {
+				if !containsFieldKey(keys, field) {
 					keys = append(keys, &field)
 				}
 				continue
@@ -323,6 +330,17 @@ func (t *telemetryMetaStore) getTracesKeys(ctx context.Context, fieldKeySelector
 		}
 	}
 	return keys, complete, nil
+}
+
+func containsFieldKey(keys []*telemetrytypes.TelemetryFieldKey, target telemetrytypes.TelemetryFieldKey) bool {
+	for _, key := range keys {
+		if key.Name == target.Name &&
+			key.FieldContext == target.FieldContext &&
+			key.FieldDataType == target.FieldDataType {
+			return true
+		}
+	}
+	return false
 }
 
 // logsTblStatementToFieldKeys returns materialised attribute/resource/scope keys from the logs table

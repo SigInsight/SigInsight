@@ -8,6 +8,8 @@ import { DataSource, ReduceOperators } from 'types/common/queryBuilder';
 import { extractQueryPairs } from 'utils/queryContextUtils';
 
 import {
+	canonicalizeTraceFilterExpression,
+	canonicalizeTraceFilters,
 	convertAggregationToExpression,
 	convertFiltersToExpression,
 	convertFiltersToExpressionWithExistingQuery,
@@ -773,6 +775,34 @@ describe('convertFiltersToExpression', () => {
 
 		expect(result.filters.items).toHaveLength(2);
 		expect(result.filter.expression).toBe("service.name = 'old-service'");
+	});
+});
+
+describe('trace field canonicalization', () => {
+	it('canonicalizes legacy trace keys without changing quoted values', () => {
+		expect(
+			canonicalizeTraceFilterExpression(
+				"hasError in [true] AND service.name = 'hasError' AND httpMethod = 'GET'",
+			),
+		).toBe(
+			"has_error in [true] AND service.name = 'hasError' AND http_method = 'GET'",
+		);
+	});
+
+	it('canonicalizes legacy trace filter items', () => {
+		expect(
+			canonicalizeTraceFilters({
+				items: [
+					{
+						id: 'filter-1',
+						key: { key: 'hasError' } as any,
+						op: 'in',
+						value: true,
+					},
+				],
+				op: 'AND',
+			}),
+		).toMatchObject({ items: [{ key: { key: 'has_error' } }] });
 	});
 });
 

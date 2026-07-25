@@ -1,5 +1,7 @@
 import { useMemo } from 'react';
 import {
+	canonicalizeTraceFilterExpression,
+	canonicalizeTraceFilters,
 	convertAggregationToExpression,
 	convertFiltersToExpressionWithExistingQuery,
 	convertHavingToExpression,
@@ -7,7 +9,27 @@ import {
 import { QueryParams } from 'constants/query';
 import useUrlQuery from 'hooks/useUrlQuery';
 import { BaseAutocompleteData } from 'types/api/queryBuilder/queryAutocompleteResponse';
-import { Query } from 'types/api/queryBuilder/queryBuilderData';
+import { IBuilderQuery, Query } from 'types/api/queryBuilder/queryBuilderData';
+import { DataSource } from 'types/common/queryBuilder';
+
+const canonicalizeTraceQuery = (query: IBuilderQuery): IBuilderQuery => {
+	if (query.dataSource !== DataSource.TRACES) {
+		return query;
+	}
+
+	return {
+		...query,
+		filters: canonicalizeTraceFilters(query.filters || { items: [], op: 'AND' }),
+		filter: query.filter
+			? {
+					...query.filter,
+					expression: canonicalizeTraceFilterExpression(
+						query.filter.expression || '',
+					),
+			  }
+			: query.filter,
+	};
+};
 
 export const useGetCompositeQueryParam = (): Query | null => {
 	const urlQuery = useUrlQuery();
@@ -31,11 +53,12 @@ export const useGetCompositeQueryParam = (): Query | null => {
 			if (parsedCompositeQuery?.builder?.queryData) {
 				parsedCompositeQuery.builder.queryData = parsedCompositeQuery.builder.queryData.map(
 					(query) => {
-						const existingExpression = query.filter?.expression || '';
-						const convertedQuery = { ...query };
+						const normalizedQuery = canonicalizeTraceQuery(query);
+						const existingExpression = normalizedQuery.filter?.expression || '';
+						const convertedQuery = { ...normalizedQuery };
 
 						const convertedFilter = convertFiltersToExpressionWithExistingQuery(
-							query.filters || { items: [], op: 'AND' },
+							normalizedQuery.filters || { items: [], op: 'AND' },
 							existingExpression,
 						);
 						convertedQuery.filter = convertedFilter.filter;

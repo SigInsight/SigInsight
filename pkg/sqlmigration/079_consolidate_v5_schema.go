@@ -5,9 +5,11 @@ import (
 	"database/sql"
 	"encoding/json"
 	"log/slog"
+	"time"
 
 	"github.com/SigNoz/signoz/pkg/factory"
 	"github.com/SigNoz/signoz/pkg/transition"
+	"github.com/SigNoz/signoz/pkg/types/quickfiltertypes"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/migrate"
 )
@@ -76,7 +78,63 @@ func (migration *consolidateV5Schema) Up(ctx context.Context, db *bun.DB) error 
 		return err
 	}
 
+	var quickFilters []*quickfiltertypes.StorableQuickFilter
+	if err := tx.NewSelect().Model(&quickFilters).Where("signal = ?", quickfiltertypes.SignalTraces).Scan(ctx); err != nil {
+		return err
+	}
+	for _, quickFilter := range quickFilters {
+		updatedFilter, changed, err := migrateTraceQuickFilterFields(quickFilter.Filter)
+		if err != nil {
+			return err
+		}
+		if !changed {
+			continue
+		}
+		if _, err := tx.NewUpdate().Model(quickFilter).
+			Set("filter = ?, updated_at = ?", updatedFilter, time.Now()).
+			WherePK().
+			Exec(ctx); err != nil {
+			return err
+		}
+	}
+
 	return tx.Commit()
+}
+
+func migrateTraceQuickFilterFields(filterJSON string) (string, bool, error) {
+	var filters []map[string]json.RawMessage
+	if err := json.Unmarshal([]byte(filterJSON), &filters); err != nil {
+		return "", false, err
+	}
+
+	changed := false
+	for idx := range filters {
+		rawKey, ok := filters[idx]["key"]
+		if !ok {
+			continue
+		}
+		var key string
+		if err := json.Unmarshal(rawKey, &key); err != nil {
+			return "", false, err
+		}
+		switch key {
+		case "hasError":
+			filters[idx]["key"] = json.RawMessage(`"has_error"`)
+			changed = true
+		case "http.method":
+			filters[idx]["key"] = json.RawMessage(`"http_method"`)
+			changed = true
+		}
+	}
+	if !changed {
+		return filterJSON, false, nil
+	}
+
+	updatedFilter, err := json.Marshal(filters)
+	if err != nil {
+		return "", false, err
+	}
+	return string(updatedFilter), true, nil
 }
 
 func (migration *consolidateV5Schema) Down(context.Context, *bun.DB) error {

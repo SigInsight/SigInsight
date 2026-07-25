@@ -142,7 +142,7 @@ func NewDefaultQuickFilter(orgID valuer.UUID) ([]*StorableQuickFilter, error) {
 	tracesFilters := []map[string]interface{}{
 		{"key": "duration_nano", "dataType": "float64", "type": "tag"},
 		{"key": "deployment.environment", "dataType": "string", "type": "resource"},
-		{"key": "hasError", "dataType": "bool", "type": "tag"},
+		{"key": "has_error", "dataType": "bool", "type": "tag"},
 		{"key": "service.name", "dataType": "string", "type": "resource"},
 		{"key": "name", "dataType": "string", "type": "tag"},
 		{"key": "rpc.method", "dataType": "string", "type": "tag"},

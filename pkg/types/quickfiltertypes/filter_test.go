@@ -32,4 +32,6 @@ func TestNewDefaultQuickFilterUsesCanonicalHTTPMethod(t *testing.T) {
 	}
 	assert.Contains(t, keys, "http_method")
 	assert.NotContains(t, keys, "http.method")
+	assert.Contains(t, keys, "has_error")
+	assert.NotContains(t, keys, "hasError")
 }

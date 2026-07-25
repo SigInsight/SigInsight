@@ -38,6 +38,73 @@ const isArrayOperator = (operator: string): boolean => {
 	return arrayOperators.includes(operator);
 };
 
+const LEGACY_TRACE_FIELD_NAMES: Record<string, string> = {
+	traceID: 'trace_id',
+	spanID: 'span_id',
+	parentSpanID: 'parent_span_id',
+	spanKind: 'kind_string',
+	durationNano: 'duration_nano',
+	statusCode: 'status_code',
+	statusMessage: 'status_message',
+	statusCodeString: 'status_code_string',
+	responseStatusCode: 'response_status_code',
+	externalHttpUrl: 'external_http_url',
+	httpUrl: 'http_url',
+	externalHttpMethod: 'external_http_method',
+	httpMethod: 'http_method',
+	'http.method': 'http_method',
+	httpHost: 'http_host',
+	dbName: 'db_name',
+	dbOperation: 'db_operation',
+	hasError: 'has_error',
+	isRemote: 'is_remote',
+	serviceName: 'service.name',
+	httpRoute: 'http.route',
+};
+
+export const canonicalizeTraceFieldName = (name: string): string =>
+	LEGACY_TRACE_FIELD_NAMES[name] || name;
+
+export const canonicalizeTraceFilterExpression = (
+	expression: string,
+): string => {
+	const replaceFieldNames = (value: string): string =>
+		value.replace(
+			new RegExp(
+				`\\b(${Object.keys(LEGACY_TRACE_FIELD_NAMES).join('|')})\\b`,
+				'g',
+			),
+			(field) => canonicalizeTraceFieldName(field),
+		);
+
+	let result = '';
+	let start = 0;
+	const quotedValue = /'(?:\\.|[^'])*'|"(?:\\.|[^"])*"/g;
+	for (const match of expression.matchAll(quotedValue)) {
+		result += replaceFieldNames(expression.slice(start, match.index));
+		result += match[0];
+		start = (match.index || 0) + match[0].length;
+	}
+
+	return result + replaceFieldNames(expression.slice(start));
+};
+
+export const canonicalizeTraceFilters = (filters: TagFilter): TagFilter => ({
+	...filters,
+	items:
+		filters?.items?.map((item) =>
+			item.key
+				? {
+						...item,
+						key: {
+							...item.key,
+							key: canonicalizeTraceFieldName(item.key.key),
+						},
+				  }
+				: item,
+		) || [],
+});
+
 const isVariable = (
 	value: (string | number | boolean)[] | string | number | boolean,
 ): boolean => {
