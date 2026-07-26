@@ -48,7 +48,7 @@ def test_user_invite_accept_role_grant(
     # Login with editor email and password
     editor_token = get_token(ROLE_EDITOR_EMAIL, ROLE_EDITOR_PASSWORD)
     user_me_response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v5/user/me"),
+        signoz.self.host_configs["8080"].get("/api/v5/users/me"),
         headers={"Authorization": f"Bearer {editor_token}"},
         timeout=2,
     )
@@ -110,7 +110,7 @@ def test_user_update_role_grant(
     # Get the editor user's id
     editor_token = get_token(ROLE_EDITOR_EMAIL, ROLE_EDITOR_PASSWORD)
     user_me_response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v5/user/me"),
+        signoz.self.host_configs["8080"].get("/api/v5/users/me"),
         headers={"Authorization": f"Bearer {editor_token}"},
         timeout=2,
     )
@@ -127,16 +127,27 @@ def test_user_update_role_grant(
     assert roles_response.status_code == HTTPStatus.OK
     roles_data = roles_response.json()["data"]
     org_id = roles_data[0]["orgId"]
+    editor_role_id = next(
+        role["id"] for role in roles_data if role["name"] == "signoz-editor"
+    )
 
-    # Update the user's role to viewer
-    update_payload = {"role": "VIEWER"}
-    update_response = requests.put(
-        signoz.self.host_configs["8080"].get(f"/api/v5/user/{editor_id}"),
-        json=update_payload,
+    # Replace the editor role using the explicit role relationship endpoints.
+    remove_response = requests.delete(
+        signoz.self.host_configs["8080"].get(
+            f"/api/v5/users/{editor_id}/roles/{editor_role_id}"
+        ),
         headers={"Authorization": f"Bearer {admin_token}"},
         timeout=5,
     )
-    assert update_response.status_code == HTTPStatus.OK
+    assert remove_response.status_code == HTTPStatus.NO_CONTENT
+
+    add_response = requests.post(
+        signoz.self.host_configs["8080"].get(f"/api/v5/users/{editor_id}/roles"),
+        json={"name": "signoz-viewer"},
+        headers={"Authorization": f"Bearer {admin_token}"},
+        timeout=5,
+    )
+    assert add_response.status_code == HTTPStatus.OK
 
     # Check that user no longer has the editor role in the db
     with signoz.sqlstore.conn.connect() as conn:
@@ -190,7 +201,7 @@ def test_user_delete_role_revoke(
     # login with editor to get the user_id and check if user exists
     editor_token = get_token(ROLE_EDITOR_EMAIL, ROLE_EDITOR_PASSWORD)
     user_me_response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v5/user/me"),
+        signoz.self.host_configs["8080"].get("/api/v5/users/me"),
         headers={"Authorization": f"Bearer {editor_token}"},
         timeout=2,
     )

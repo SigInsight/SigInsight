@@ -50,9 +50,9 @@ def test_root_user_signoz_admin_assignment(
 ):
     admin_token = get_token(USER_ADMIN_EMAIL, USER_ADMIN_PASSWORD)
 
-    # Get the user from the /user/me endpoint and extract the id
+    # Get the user from the current-user endpoint and extract the id.
     user_response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v5/user/me"),
+        signoz.self.host_configs["8080"].get("/api/v5/users/me"),
         headers={"Authorization": f"Bearer {admin_token}"},
         timeout=2,
     )
