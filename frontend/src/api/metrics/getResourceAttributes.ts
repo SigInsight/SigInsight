@@ -1,10 +1,10 @@
 import { ErrorResponseHandler } from 'api/ErrorResponseHandler';
-import { AxiosError } from 'axios';
 import {
 	getFieldKeys,
 	getFieldValues,
 	toAutocompleteData,
 } from 'api/queryBuilder/fields';
+import { AxiosError } from 'axios';
 import { ErrorResponse, SuccessResponse } from 'types/api';
 import {
 	TagKeyProps,
@@ -12,7 +12,7 @@ import {
 	TagValueProps,
 	TagValuesPayloadProps,
 } from 'types/api/metrics/getResourceAttributes';
-import { DataSource, MetricAggregateOperator } from 'types/common/queryBuilder';
+import { DataSource } from 'types/common/queryBuilder';
 
 export const getResourceAttributesTagKeys = async (
 	props: TagKeyProps,

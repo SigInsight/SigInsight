@@ -28,7 +28,7 @@ export function getFormattedTimeValue(timeValue: number, unit: string): string {
 export function validateCreateAlertState(
 	args: BuildCreateAlertRulePayloadArgs,
 ): string | null {
-	const { basicAlertState, thresholdState, notificationSettings } = args;
+	const { basicAlertState, thresholdState } = args;
 
 	// Validate alert name
 	if (!basicAlertState.name) {

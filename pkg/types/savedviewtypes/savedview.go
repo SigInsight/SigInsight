@@ -2,10 +2,10 @@ package savedviewtypes
 
 import (
 	"encoding/json"
-	"fmt"
 	"strings"
 	"time"
 
+	"github.com/SigNoz/signoz/pkg/errors"
 	"github.com/SigNoz/signoz/pkg/types"
 	qbtypes "github.com/SigNoz/signoz/pkg/types/querybuildertypes/querybuildertypesv5"
 	"github.com/SigNoz/signoz/pkg/valuer"
@@ -54,7 +54,7 @@ func (queryType QueryType) Validate() error {
 	case QueryTypeBuilder, QueryTypeClickHouseSQL, QueryTypePromQL:
 		return nil
 	default:
-		return fmt.Errorf("invalid query type: %s", queryType)
+		return errors.Newf(errors.TypeInvalidInput, errors.CodeInvalidInput, "invalid query type: %s", queryType)
 	}
 }
 
@@ -73,7 +73,7 @@ func (panelType PanelType) Validate() error {
 	case PanelTypeValue, PanelTypeGraph, PanelTypeTable, PanelTypeList, PanelTypeTrace:
 		return nil
 	default:
-		return fmt.Errorf("invalid panel type: %s", panelType)
+		return errors.Newf(errors.TypeInvalidInput, errors.CodeInvalidInput, "invalid panel type: %s", panelType)
 	}
 }
 
@@ -105,7 +105,7 @@ func (query *CompositeQuery) UnmarshalJSON(data []byte) error {
 	}
 	for field := range fields {
 		if _, ok := validFields[field]; !ok {
-			return fmt.Errorf("unknown field %q in saved view composite query", field)
+			return errors.Newf(errors.TypeInvalidInput, errors.CodeInvalidInput, "unknown field %q in saved view composite query", field)
 		}
 	}
 
@@ -115,16 +115,16 @@ func (query *CompositeQuery) UnmarshalJSON(data []byte) error {
 
 func (query *CompositeQuery) Validate() error {
 	if query == nil {
-		return fmt.Errorf("composite query is required")
+		return errors.New(errors.TypeInvalidInput, errors.CodeInvalidInput, "composite query is required")
 	}
 	if len(query.Queries) == 0 {
-		return fmt.Errorf("composite query must contain at least one query")
+		return errors.New(errors.TypeInvalidInput, errors.CodeInvalidInput, "composite query must contain at least one query")
 	}
 	if err := query.PanelType.Validate(); err != nil {
-		return fmt.Errorf("panel type is invalid: %w", err)
+		return errors.Newf(errors.TypeInvalidInput, errors.CodeInvalidInput, "panel type is invalid: %v", err)
 	}
 	if err := query.QueryType.Validate(); err != nil {
-		return fmt.Errorf("query type is invalid: %w", err)
+		return errors.Newf(errors.TypeInvalidInput, errors.CodeInvalidInput, "query type is invalid: %v", err)
 	}
 	return nil
 }
@@ -145,7 +145,7 @@ type View struct {
 
 func (view *View) Validate() error {
 	if view.CompositeQuery == nil {
-		return fmt.Errorf("composite query is required")
+		return errors.New(errors.TypeInvalidInput, errors.CodeInvalidInput, "composite query is required")
 	}
 	return view.CompositeQuery.Validate()
 }

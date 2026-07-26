@@ -19,13 +19,13 @@ import { QueryParams } from 'constants/query';
 import { PANEL_TYPES } from 'constants/queryBuilder';
 import useDrilldown from 'container/GridCardLayout/GridCard/FullView/useDrilldown';
 import { populateMultipleResults } from 'container/NewWidget/LeftContainer/WidgetGraph/util';
+import { PanelMode } from 'container/PanelVisualization/panels/types';
+import PanelWrapper from 'container/PanelWrapper/PanelWrapper';
+import RightToolbarActions from 'container/QueryBuilder/components/ToolbarActions/RightToolbarActions';
 import {
 	timeItems,
 	timePreferance,
 } from 'features/query-visualization/timePreference';
-import { PanelMode } from 'container/PanelVisualization/panels/types';
-import PanelWrapper from 'container/PanelWrapper/PanelWrapper';
-import RightToolbarActions from 'container/QueryBuilder/components/ToolbarActions/RightToolbarActions';
 import { useDashboardVariables } from 'hooks/dashboard/useDashboardVariables';
 import { useGetQueryRange } from 'hooks/queryBuilder/useGetQueryRange';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';

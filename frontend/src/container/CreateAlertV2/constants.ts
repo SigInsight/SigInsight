@@ -26,7 +26,6 @@ const defaultNotificationSettings: PostableAlertRule['notificationSettings'] = {
 		interval: '30m',
 		alertStates: [],
 	},
-	usePolicy: false,
 };
 
 const defaultEvaluation: PostableAlertRule['evaluation'] = {

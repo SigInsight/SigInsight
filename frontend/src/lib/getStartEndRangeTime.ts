@@ -1,9 +1,9 @@
 import { PANEL_TYPES } from 'constants/queryBuilder';
-import { timePreferenceType } from 'features/query-visualization/timePreference';
 import {
 	CustomTimeType,
 	Time,
 } from 'container/TopNav/DateTimeSelectionV2/types';
+import { timePreferenceType } from 'features/query-visualization/timePreference';
 import store from 'store';
 
 import getMaxMinTime from './getMaxMinTime';

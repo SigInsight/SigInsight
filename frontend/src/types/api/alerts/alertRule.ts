@@ -55,7 +55,6 @@ export interface PostableAlertRule {
 			interval?: string;
 			alertStates?: string[];
 		};
-		usePolicy?: boolean;
 	};
 	version?: string;
 	source?: string;

@@ -35,7 +35,6 @@ describe('SettingsPage nav sections', () => {
 			'account',
 			'notification-channels',
 			'members',
-			'api-keys',
 		])('renders "%s" element', (id) => {
 			expect(screen.getByTestId(id)).toBeInTheDocument();
 		});
@@ -60,7 +59,7 @@ describe('SettingsPage nav sections', () => {
 			expect(screen.getByTestId(id)).toBeInTheDocument();
 		});
 
-		it.each(['billing', 'roles', 'api-keys', 'members'])(
+		it.each(['billing', 'roles', 'members'])(
 			'does not render "%s" element',
 			(id) => {
 				expect(screen.queryByTestId(id)).not.toBeInTheDocument();

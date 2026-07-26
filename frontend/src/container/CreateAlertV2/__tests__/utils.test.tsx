@@ -183,7 +183,6 @@ describe('CreateAlertV2 utils', () => {
 						interval: '1m0s',
 						alertStates: ['firing'],
 					},
-					usePolicy: true,
 				},
 			};
 			const props = getNotificationSettingsStateFromAlertDef(args);
@@ -198,7 +197,6 @@ describe('CreateAlertV2 utils', () => {
 				},
 				description:
 					'This alert is fired when the defined metric (current value: {{$value}}) crosses the threshold ({{$threshold}})',
-				routingPolicies: true,
 			});
 		});
 
@@ -207,7 +205,6 @@ describe('CreateAlertV2 utils', () => {
 				...defaultPostableAlertRule,
 				notificationSettings: {
 					groupBy: ['email'],
-					usePolicy: false,
 				},
 			};
 			const props = getNotificationSettingsStateFromAlertDef(args);

@@ -3,15 +3,16 @@ package ruletypes
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/SigNoz/signoz/pkg/types/timeseriestypes"
 	"net/url"
 	"strings"
 	"time"
 
+	"github.com/SigNoz/signoz/pkg/errors"
 	"github.com/SigNoz/signoz/pkg/query-service/model"
 	"github.com/SigNoz/signoz/pkg/query-service/model/querytypes"
 	"github.com/SigNoz/signoz/pkg/query-service/utils/labels"
 	qbtypes "github.com/SigNoz/signoz/pkg/types/querybuildertypes/querybuildertypesv5"
+	"github.com/SigNoz/signoz/pkg/types/timeseriestypes"
 )
 
 // this file contains common structs and methods used by
@@ -145,7 +146,7 @@ func (c *CompositeQuery) UnmarshalJSON(data []byte) error {
 	}
 	for field := range fields {
 		if _, ok := validFields[field]; !ok {
-			return fmt.Errorf("unsupported alert composite query field %q", field)
+			return errors.Newf(errors.TypeInvalidInput, errors.CodeInvalidInput, "unsupported alert composite query field %q", field)
 		}
 	}
 

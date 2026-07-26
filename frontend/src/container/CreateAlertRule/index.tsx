@@ -4,7 +4,6 @@ import { useGetCompositeQueryParam } from 'hooks/queryBuilder/useGetCompositeQue
 import { AlertTypes } from 'types/api/alerts/alertTypes';
 
 import { ALERT_TYPE_VS_SOURCE_MAPPING } from './config';
-import { ALERTS_VALUES_MAP } from './defaults';
 
 function CreateRules(): JSX.Element {
 	const compositeQuery = useGetCompositeQueryParam();

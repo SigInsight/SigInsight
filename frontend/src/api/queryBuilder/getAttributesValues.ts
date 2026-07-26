@@ -1,18 +1,17 @@
 import { ErrorResponseHandler } from 'api/ErrorResponseHandler';
 import { AxiosError } from 'axios';
-import { getFieldValues } from './fields';
 import { ErrorResponse, SuccessResponse } from 'types/api';
 import {
 	IAttributeValuesResponse,
 	IGetAttributeValuesPayload,
 } from 'types/api/queryBuilder/getAttributesValues';
 
+import { getFieldValues } from './fields';
+
 export const getAttributesValues = async ({
-	aggregateOperator,
 	dataSource,
 	aggregateAttribute,
 	attributeKey,
-	filterAttributeKeyDataType,
 	tagType,
 	searchText,
 }: IGetAttributeValuesPayload): Promise<

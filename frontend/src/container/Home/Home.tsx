@@ -7,7 +7,6 @@ import logEvent from 'api/common/logEvent';
 import listUserPreferences from 'api/v5/user/preferences/list';
 import updateUserPreferenceAPI from 'api/v5/user/preferences/name/update';
 import Header from 'components/Header/Header';
-import { LOCALSTORAGE } from 'constants/localStorage';
 import { ORG_PREFERENCES } from 'constants/orgPreferences';
 import { initialQueriesMap, PANEL_TYPES } from 'constants/queryBuilder';
 import { REACT_QUERY_KEY } from 'constants/reactQueryKeys';

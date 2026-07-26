@@ -12,6 +12,8 @@ VERSION                 ?= $(BRANCH_NAME)-$(COMMIT_SHORT_SHA)
 TIMESTAMP               ?= $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 ARCHS					?= amd64 arm64
 TARGET_DIR              ?= $(shell pwd)/target
+GOLANGCI_LINT_VERSION   ?= v2.12.2
+CI_PYTHON_VERSION       ?= 3.13
 
 
 GO_BUILD_VERSION_LDFLAGS 		= -X github.com/SigNoz/signoz/pkg/version.version=$(VERSION) -X github.com/SigNoz/signoz/pkg/version.hash=$(COMMIT_SHORT_SHA) -X github.com/SigNoz/signoz/pkg/version.time=$(TIMESTAMP) -X github.com/SigNoz/signoz/pkg/version.branch=$(BRANCH_NAME)
@@ -36,6 +38,16 @@ $(TARGET_DIR):
 .PHONY: help
 help: ## Displays help.
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n\nTargets:\n"} /^[a-z0-9A-Z_-]+:.*?##/ { printf "  \033[36m%-40s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
+
+.PHONY: ci-lint-install
+ci-lint-install: ## Installs the local dependencies used by CI lint jobs
+	@GOBIN="$$(dirname "$$(command -v golangci-lint 2>/dev/null || command -v uv)")" \
+		go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION)
+	@cd tests/integration && uv sync --python $(CI_PYTHON_VERSION) --frozen
+	@cd frontend && yarn install --frozen-lockfile
+
+.PHONY: ci-lint
+ci-lint: go-fmt-check go-lint js-fmt-check js-lint py-fmt-check py-lint ## Runs all CI lint and format jobs locally
 
 ##############################################################
 # devenv commands
@@ -70,6 +82,19 @@ devenv-clickhouse-clean: ## Clean all ClickHouse data from filesystem
 go-test: ## Runs go unit tests
 	@go test -race ./...
 
+.PHONY: go-fmt-check
+go-fmt-check: ## Checks Go formatting without modifying files
+	@out="$$(gofmt -l -s .)"; \
+	if [ -n "$$out" ]; then \
+		echo "The following files are not formatted with gofmt -s:"; \
+		echo "$$out"; \
+		exit 1; \
+	fi
+
+.PHONY: go-lint
+go-lint: ## Runs the Go linter with the same timeout as CI
+	@golangci-lint run --timeout 10m
+
 .PHONY: go-run-community
 go-run-community: ## Runs the community go backend server (requires .env, see .env.example)
 	@if [ ! -f .env ]; then \
@@ -102,6 +127,14 @@ js-build: ## Builds the js frontend
 	@echo ">> building js frontend"
 	@cd $(JS_BUILD_CONTEXT) && CI=1 yarn install && yarn build
 
+.PHONY: js-fmt-check
+js-fmt-check: ## Checks frontend formatting without modifying files
+	@cd $(JS_BUILD_CONTEXT) && yarn fmt
+
+.PHONY: js-lint
+js-lint: ## Runs the frontend linter
+	@cd $(JS_BUILD_CONTEXT) && yarn lint
+
 ##############################################################
 # python integration commands
 ##############################################################
@@ -110,6 +143,12 @@ py-fmt: ## Formats integration python tests
 	@cd tests/integration && uv run autoflake --in-place --remove-all-unused-imports --remove-unused-variables --recursive .
 	@cd tests/integration && uv run isort .
 	@cd tests/integration && uv run black .
+
+.PHONY: py-fmt-check
+py-fmt-check: ## Checks integration test formatting without modifying files
+	@cd tests/integration && uv run autoflake --check-diff --remove-all-unused-imports --remove-unused-variables --recursive .
+	@cd tests/integration && uv run isort --check-only .
+	@cd tests/integration && uv run black --check .
 
 .PHONY: py-lint
 py-lint: ## Lints integration python tests

@@ -3,11 +3,11 @@
 import { PANEL_TYPES } from 'constants/queryBuilder';
 import { FullViewProps } from 'container/GridCardLayout/GridCard/FullView/types';
 import { saveLegendEntriesToLocalStorage } from 'container/GridCardLayout/GridCard/FullView/utils';
-import { ThresholdProps } from 'features/query-visualization/threshold';
 import {
 	applyEnhancedLegendStyling,
 	calculateEnhancedLegendConfig,
 } from 'container/PanelWrapper/enhancedLegend';
+import { ThresholdProps } from 'features/query-visualization/threshold';
 import { Dimensions } from 'hooks/useDimensions';
 import { getLegend } from 'lib/dashboard/getQueryResults';
 import { convertValue } from 'lib/getConvertedValue';

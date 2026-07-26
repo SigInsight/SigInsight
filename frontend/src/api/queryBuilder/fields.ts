@@ -1,25 +1,24 @@
 import { ApiV5Instance } from 'api';
 import {
+	GetFieldsKeys200,
+	GetFieldsValues200,
+} from 'api/generated/services/sigNoz.schemas';
+import { AxiosResponse } from 'axios';
+import {
 	BaseAutocompleteData,
 	DataTypes,
 } from 'types/api/queryBuilder/queryAutocompleteResponse';
 import { DataSource } from 'types/common/queryBuilder';
 
-type FieldKey = {
-	name: string;
-	fieldContext?: 'metric' | 'log' | 'span' | 'resource' | 'attribute' | 'body';
-	fieldDataType?: DataTypes;
-};
-
 export const toAutocompleteData = (
-	keys: Record<string, FieldKey[]> | null | undefined,
+	keys: GetFieldsKeys200['data']['keys'],
 ): BaseAutocompleteData[] =>
 	Object.values(keys || {})
 		.flat()
 		.map((key) => ({
 			id: `${key.name}--${key.fieldDataType || ''}--`,
 			key: key.name,
-			dataType: key.fieldDataType,
+			dataType: (key.fieldDataType as unknown) as DataTypes,
 			type:
 				key.fieldContext === 'resource'
 					? 'resource'
@@ -34,7 +33,8 @@ export const getFieldKeys = (params: {
 	metricName?: string;
 	fieldContext?: string;
 	source?: 'meter';
-}) => ApiV5Instance.get('/fields/keys', { params });
+}): Promise<AxiosResponse<GetFieldsKeys200>> =>
+	ApiV5Instance.get<GetFieldsKeys200>('/fields/keys', { params });
 
 export const getFieldValues = (params: {
 	signal: DataSource;
@@ -43,4 +43,5 @@ export const getFieldValues = (params: {
 	metricName?: string;
 	fieldContext?: string;
 	source?: 'meter';
-}) => ApiV5Instance.get('/fields/values', { params });
+}): Promise<AxiosResponse<GetFieldsValues200>> =>
+	ApiV5Instance.get<GetFieldsValues200>('/fields/values', { params });

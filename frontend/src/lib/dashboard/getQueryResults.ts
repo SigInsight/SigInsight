@@ -6,11 +6,11 @@ import {
 	prepareQueryRangePayloadV5,
 } from 'api/v5/v5';
 import { PANEL_TYPES } from 'constants/queryBuilder';
-import { timePreferenceType } from 'features/query-visualization/timePreference';
 import {
 	CustomTimeType,
 	Time,
 } from 'container/TopNav/DateTimeSelectionV2/types';
+import { timePreferenceType } from 'features/query-visualization/timePreference';
 import { Pagination } from 'hooks/queryPagination';
 import { buildMetricQueryRangePayload } from 'lib/newQueryBuilder/buildMetricQueryRangePayload';
 import { isEmpty } from 'lodash-es';

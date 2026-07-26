@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/SigNoz/signoz/pkg/errors"
 	"github.com/SigNoz/signoz/pkg/query-service/constants"
 	"github.com/SigNoz/signoz/pkg/query-service/model/querytypes"
 	"github.com/SigNoz/signoz/pkg/query-service/utils"
@@ -66,7 +67,7 @@ func traceFilterColumnName(key querytypes.AttributeKey) string {
 
 func traceFilterFixedColumnExists(key querytypes.AttributeKey, operator querytypes.FilterOperator) (string, error) {
 	if key.DataType != querytypes.AttributeKeyDataTypeString {
-		return "", fmt.Errorf("exists and not exists only support custom attributes or string columns")
+		return "", errors.New(errors.TypeInvalidInput, errors.CodeInvalidInput, "exists and not exists only support custom attributes or string columns")
 	}
 	if operator == querytypes.FilterOperatorExists {
 		return fmt.Sprintf("%s != ''", traceFilterColumnName(key)), nil
@@ -84,7 +85,7 @@ func buildTracesFilterQuery(filterSet *querytypes.FilterSet) (string, error) {
 		item.Operator = querytypes.FilterOperator(strings.ToLower(strings.TrimSpace(string(item.Operator))))
 		operator, ok := traceFilterOperators[item.Operator]
 		if !ok {
-			return "", fmt.Errorf("unsupported operator %s", item.Operator)
+			return "", errors.Newf(errors.TypeInvalidInput, errors.CodeInvalidInput, "unsupported operator %s", item.Operator)
 		}
 
 		columnName := traceFilterColumnName(item.Key)
@@ -94,7 +95,7 @@ func buildTracesFilterQuery(filterSet *querytypes.FilterSet) (string, error) {
 			var err error
 			value, err = utils.ValidateAndCastValue(value, item.Key.DataType)
 			if err != nil {
-				return "", fmt.Errorf("invalid value for key %s: %v", item.Key.Key, err)
+				return "", errors.Newf(errors.TypeInvalidInput, errors.CodeInvalidInput, "invalid value for key %s: %v", item.Key.Key, err)
 			}
 			if value != nil {
 				formattedValue = utils.ClickHouseFormattedValue(value)

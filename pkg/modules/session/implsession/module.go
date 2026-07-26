@@ -68,13 +68,7 @@ func (module *module) GetSessionContext(ctx context.Context, email valuer.Email,
 		context.Exists = false
 
 		for _, org := range orgs {
-			orgContext, err := module.getOrgSessionContext(org)
-			if err != nil {
-				// For some reason, there was an error in getting the org session context. Instead of failing the context call, we create a PasswordAuthNSupport for the org and add a warning.
-				orgContext = authtypes.NewOrgSessionContext(org.ID, org.Name).AddPasswordAuthNSupport(authtypes.AuthNProviderEmailPassword).AddWarning(err)
-			}
-
-			context = context.AddOrgContext(orgContext)
+			context = context.AddOrgContext(module.getOrgSessionContext(org))
 		}
 
 		return context, nil
@@ -91,13 +85,7 @@ func (module *module) GetSessionContext(ctx context.Context, email valuer.Email,
 		}
 
 		org := orgs[idx]
-		orgContext, err := module.getOrgSessionContext(org)
-		if err != nil {
-			// For some reason, there was an error in getting the org session context. Instead of failing the context call, we create a PasswordAuthNSupport for the org and add a warning.
-			orgContext = authtypes.NewOrgSessionContext(org.ID, org.Name).AddPasswordAuthNSupport(authtypes.AuthNProviderEmailPassword).AddWarning(err)
-		}
-
-		context = context.AddOrgContext(orgContext)
+		context = context.AddOrgContext(module.getOrgSessionContext(org))
 	}
 
 	return context, nil
@@ -129,8 +117,8 @@ func (module *module) GetRotationInterval(context.Context) time.Duration {
 	return module.tokenizer.Config().Rotation.Interval
 }
 
-func (module *module) getOrgSessionContext(org *types.Organization) (*authtypes.OrgSessionContext, error) {
-	return authtypes.NewOrgSessionContext(org.ID, org.Name).AddPasswordAuthNSupport(authtypes.AuthNProviderEmailPassword), nil
+func (module *module) getOrgSessionContext(org *types.Organization) *authtypes.OrgSessionContext {
+	return authtypes.NewOrgSessionContext(org.ID, org.Name).AddPasswordAuthNSupport(authtypes.AuthNProviderEmailPassword)
 }
 
 func getProvider[T authn.AuthN](authNProvider authtypes.AuthNProvider, authNs map[authtypes.AuthNProvider]authn.AuthN) (T, error) {

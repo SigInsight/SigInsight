@@ -1,6 +1,5 @@
 import { ErrorResponseHandler } from 'api/ErrorResponseHandler';
 import { AxiosError } from 'axios';
-import { getFieldKeys, toAutocompleteData } from './fields';
 // ** Helpers
 import { ErrorResponse, SuccessResponse } from 'types/api';
 // ** Types
@@ -10,8 +9,9 @@ import {
 	IQueryAutocompleteResponse,
 } from 'types/api/queryBuilder/queryAutocompleteResponse';
 
+import { getFieldKeys, toAutocompleteData } from './fields';
+
 export const getAggregateAttribute = async ({
-	aggregateOperator,
 	searchText,
 	dataSource,
 	source,

@@ -1,8 +1,8 @@
 import { Dispatch, SetStateAction } from 'react';
 import { PANEL_TYPES } from 'constants/queryBuilder';
 import ROUTES from 'constants/routes';
-import { Format } from 'features/query-visualization/types';
 import { OptionsQuery } from 'container/OptionsMenu/types';
+import { Format } from 'features/query-visualization/types';
 import {
 	IBuilderFormula,
 	IBuilderQuery,

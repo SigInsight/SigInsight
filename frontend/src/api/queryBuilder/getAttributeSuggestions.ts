@@ -1,12 +1,13 @@
 import { ErrorResponseHandler } from 'api/ErrorResponseHandler';
 import { AxiosError } from 'axios';
-import { getFieldKeys, toAutocompleteData } from './fields';
 import { ErrorResponse, SuccessResponse } from 'types/api';
 import {
 	IGetAttributeSuggestionsPayload,
 	IGetAttributeSuggestionsSuccessResponse,
 } from 'types/api/queryBuilder/getAttributeSuggestions';
 import { BaseAutocompleteData } from 'types/api/queryBuilder/queryAutocompleteResponse';
+
+import { getFieldKeys, toAutocompleteData } from './fields';
 
 export const getAttributeSuggestions = async ({
 	searchText,

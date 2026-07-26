@@ -67,7 +67,6 @@ jest.mock('@signozhq/sonner', () => ({
 	},
 }));
 
-const mockUpdateMutate = jest.fn();
 const mockDeleteMutate = jest.fn();
 const mockGetResetPasswordToken = jest.mocked(getResetPasswordToken);
 
@@ -107,10 +106,7 @@ function renderDrawer(
 describe('EditMemberDrawer', () => {
 	beforeEach(() => {
 		jest.clearAllMocks();
-		(updateUser as jest.Mock).mockReturnValue({
-			mutate: mockUpdateMutate,
-			isLoading: false,
-		});
+		(updateUser as jest.Mock).mockResolvedValue(undefined);
 		(useDeleteUser as jest.Mock).mockReturnValue({
 			mutate: mockDeleteMutate,
 			isLoading: false,
@@ -132,13 +128,6 @@ describe('EditMemberDrawer', () => {
 		const onComplete = jest.fn();
 		const user = userEvent.setup({ pointerEventsCheck: 0 });
 
-		(updateUser as jest.Mock).mockImplementation((options) => ({
-			mutate: mockUpdateMutate.mockImplementation(() => {
-				options?.mutation?.onSuccess?.();
-			}),
-			isLoading: false,
-		}));
-
 		renderDrawer({ onComplete });
 
 		const nameInput = screen.getByDisplayValue('Alice Smith');
@@ -151,11 +140,9 @@ describe('EditMemberDrawer', () => {
 		await user.click(saveBtn);
 
 		await waitFor(() => {
-			expect(mockUpdateMutate).toHaveBeenCalledWith(
-				expect.objectContaining({
-					pathParams: { id: 'user-1' },
-					data: expect.objectContaining({ displayName: 'Alice Updated' }),
-				}),
+			expect(updateUser).toHaveBeenCalledWith(
+				{ id: 'user-1' },
+				expect.objectContaining({ displayName: 'Alice Updated' }),
 			);
 			expect(onComplete).toHaveBeenCalled();
 		});
@@ -241,13 +228,6 @@ describe('EditMemberDrawer', () => {
 		const onComplete = jest.fn();
 		const user = userEvent.setup({ pointerEventsCheck: 0 });
 
-		(updateUser as jest.Mock).mockImplementation((options) => ({
-			mutate: mockUpdateMutate.mockImplementation(() => {
-				options?.mutation?.onSuccess?.();
-			}),
-			isLoading: false,
-		}));
-
 		renderDrawer({ member: { ...invitedMember, name: 'Bob' }, onComplete });
 
 		const nameInput = screen.getByDisplayValue('Bob');
@@ -259,11 +239,9 @@ describe('EditMemberDrawer', () => {
 		await user.click(saveBtn);
 
 		await waitFor(() => {
-			expect(mockUpdateMutate).toHaveBeenCalledWith(
-				expect.objectContaining({
-					pathParams: { id: 'abc123' },
-					data: expect.objectContaining({ displayName: 'Bob Updated' }),
-				}),
+			expect(updateUser).toHaveBeenCalledWith(
+				{ id: 'abc123' },
+				expect.objectContaining({ displayName: 'Bob Updated' }),
 			);
 			expect(onComplete).toHaveBeenCalled();
 		});
@@ -282,12 +260,7 @@ describe('EditMemberDrawer', () => {
 			const user = userEvent.setup({ pointerEventsCheck: 0 });
 			const mockToast = jest.mocked(toast);
 
-			(updateUser as jest.Mock).mockImplementation((options) => ({
-				mutate: mockUpdateMutate.mockImplementation(() => {
-					options?.mutation?.onError?.({});
-				}),
-				isLoading: false,
-			}));
+			(updateUser as jest.Mock).mockRejectedValue({});
 
 			renderDrawer();
 
