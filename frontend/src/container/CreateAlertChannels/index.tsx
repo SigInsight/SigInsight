@@ -8,7 +8,12 @@ import ROUTES from 'constants/routes';
 import FormAlertChannels from 'container/FormAlertChannels';
 import history from 'lib/history';
 
-import { ChannelConfig, ChannelType, EmailChannel, WebhookChannel } from './config';
+import {
+	ChannelConfig,
+	ChannelType,
+	EmailChannel,
+	WebhookChannel,
+} from './config';
 
 function CreateAlertChannels({
 	preType = ChannelType.Email,
@@ -39,8 +44,11 @@ function CreateAlertChannels({
 	const submit = async (): Promise<void> => {
 		setSaving(true);
 		try {
-			if (type === ChannelType.Email) await createEmail(emailRequest());
-			else await createWebhook(webhookRequest());
+			if (type === ChannelType.Email) {
+				await createEmail(emailRequest());
+			} else {
+				await createWebhook(webhookRequest());
+			}
 			message.success('Channel saved');
 			history.replace(ROUTES.ALL_CHANNELS);
 		} finally {
@@ -50,8 +58,11 @@ function CreateAlertChannels({
 	const test = async (): Promise<void> => {
 		setTesting(true);
 		try {
-			if (type === ChannelType.Email) await testEmail(emailRequest());
-			else await testWebhook(webhookRequest());
+			if (type === ChannelType.Email) {
+				await testEmail(emailRequest());
+			} else {
+				await testWebhook(webhookRequest());
+			}
 			message.success('Test notification sent');
 		} finally {
 			setTesting(false);

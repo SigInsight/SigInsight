@@ -101,7 +101,9 @@ export const mySettings = (t: TFunction): RouteTabProps['routes'] => [
 
 export const createAlertChannels = (t: TFunction): RouteTabProps['routes'] => [
 	{
-		Component: (): JSX.Element => <CreateAlertChannels preType={ChannelType.Email} />,
+		Component: (): JSX.Element => (
+			<CreateAlertChannels preType={ChannelType.Email} />
+		),
 		name: (
 			<div className="periscope-tab">
 				<Plus size={16} /> {t('routes:create_alert_channels').toString()}

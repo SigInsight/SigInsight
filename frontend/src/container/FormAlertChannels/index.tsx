@@ -50,7 +50,11 @@ function FormAlertChannels({
 						}
 					/>
 				</Form.Item>
-				<Form.Item label={t('field_send_resolved')} labelAlign="left" name="send_resolved">
+				<Form.Item
+					label={t('field_send_resolved')}
+					labelAlign="left"
+					name="send_resolved"
+				>
 					<Switch
 						defaultChecked={initialValue?.send_resolved}
 						data-testid="field-send-resolved-checkbox"
@@ -72,10 +76,19 @@ function FormAlertChannels({
 				</Form.Item>
 				<Form.Item>{renderSettings()}</Form.Item>
 				<Form.Item>
-					<Button disabled={savingState} loading={savingState} type="primary" onClick={onSaveHandler}>
+					<Button
+						disabled={savingState}
+						loading={savingState}
+						type="primary"
+						onClick={onSaveHandler}
+					>
 						{t('button_save_channel')}
 					</Button>
-					<Button disabled={testingState} loading={testingState} onClick={onTestHandler}>
+					<Button
+						disabled={testingState}
+						loading={testingState}
+						onClick={onTestHandler}
+					>
 						{t('button_test_channel')}
 					</Button>
 					<Button onClick={(): void => history.replace(ROUTES.ALL_CHANNELS)}>

@@ -46,8 +46,7 @@ function SettingsPage(): JSX.Element {
 				updatedItems = updatedItems.map((item) => ({
 					...item,
 					isEnabled:
-						item.key === ROUTES.ORG_SETTINGS ||
-						item.key === ROUTES.MEMBERS_SETTINGS
+						item.key === ROUTES.ORG_SETTINGS || item.key === ROUTES.MEMBERS_SETTINGS
 							? true
 							: item.isEnabled,
 				}));

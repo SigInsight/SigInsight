@@ -27,7 +27,6 @@ import cx from 'classnames';
 import ChangelogModal from 'components/ChangelogModal/ChangelogModal';
 import OverlayScrollbar from 'components/OverlayScrollbar/OverlayScrollbar';
 import { Events } from 'constants/events';
-import ROUTES from 'constants/routes';
 import { GlobalShortcuts } from 'constants/shortcuts/globalShortcuts';
 import { USER_PREFERENCES } from 'constants/userPreferences';
 import SideNav from 'container/SideNav';
@@ -390,10 +389,7 @@ function AppLayout(props: AppLayoutProps): JSX.Element {
 				)}
 			>
 				{isToDisplayLayout && <SideNav isPinned={isSideNavPinned} />}
-				<div
-					className="app-content"
-					data-overlayscrollbars-initialize
-				>
+				<div className="app-content" data-overlayscrollbars-initialize>
 					<Sentry.ErrorBoundary
 						fallback={<ErrorBoundaryFallback />}
 						ref={errorBoundaryRef}

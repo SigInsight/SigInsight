@@ -238,8 +238,7 @@ function LogsExplorerViewsContainer({
 		setRequestData(newRequestData);
 	}, [isLimit, logs, listQuery, pageSize, stagedQuery, getRequestData, page]);
 
-	useEffect(() => {
-	}, [data]);
+	useEffect(() => {}, [data]);
 
 	const logEventCalledRef = useRef(false);
 	useEffect(() => {

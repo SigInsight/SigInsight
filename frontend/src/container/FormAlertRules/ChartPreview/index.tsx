@@ -13,12 +13,12 @@ import { Threshold } from 'container/CreateAlertV2/context/types';
 import { getLocalStorageGraphVisibilityState } from 'container/GridCardLayout/GridCard/utils';
 import GridPanelSwitch from 'container/GridPanelSwitch';
 import { populateMultipleResults } from 'container/NewWidget/LeftContainer/WidgetGraph/util';
-import { getFormatNameByOptionId } from 'features/query-visualization/formats';
-import { timePreferenceType } from 'features/query-visualization/timePreference';
 import {
 	CustomTimeType,
 	Time,
 } from 'container/TopNav/DateTimeSelectionV2/types';
+import { getFormatNameByOptionId } from 'features/query-visualization/formats';
+import { timePreferenceType } from 'features/query-visualization/timePreference';
 import { useGetQueryRange } from 'hooks/queryBuilder/useGetQueryRange';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
 import { useIsDarkMode } from 'hooks/useDarkMode';
@@ -47,7 +47,6 @@ import { getTimeRange } from 'utils/getTimeRange';
 
 import { ChartContainer } from './styles';
 import { getThresholds } from './utils';
-
 
 export interface ChartPreviewProps {
 	name: string;

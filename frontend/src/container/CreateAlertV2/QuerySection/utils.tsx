@@ -16,8 +16,7 @@ export function buildAlertDefForChartPreview({
 
 	return {
 		...initialAlertDef,
-		ruleType:
-			AlertRuleType.THRESHOLD,
+		ruleType: AlertRuleType.THRESHOLD,
 		condition: {
 			...initialAlertDef.condition,
 			targetUnit: thresholdState.thresholds?.[0].unit,

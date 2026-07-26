@@ -144,8 +144,7 @@ export function CreateAlertProvider(
 				currentQueryToRedirect,
 				{
 					[QueryParams.alertType]: value,
-					[QueryParams.ruleType]:
-					AlertRuleType.THRESHOLD,
+					[QueryParams.ruleType]: AlertRuleType.THRESHOLD,
 				},
 				undefined,
 				true,

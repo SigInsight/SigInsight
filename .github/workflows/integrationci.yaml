@@ -35,14 +35,12 @@ jobs:
         src:
           - bootstrap
           - passwordauthn
-          - callbackauthn
           - preference
           - querier
           - role
           - ttl
           - alerts
           - rootuser
-          - cloudintegrations
         sqlstore-provider:
           - sqlite
         clickhouse-version:

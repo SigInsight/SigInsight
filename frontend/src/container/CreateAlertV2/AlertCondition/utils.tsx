@@ -14,7 +14,6 @@ import { Query } from 'types/api/queryBuilder/queryBuilderData';
 import { EQueryType } from 'types/common/dashboard';
 import { USER_ROLES } from 'types/roles';
 
-
 export function getQueryNames(currentQuery: Query): BaseOptionType[] {
 	const involvedQueriesInTraceOperator = getInvolvedQueriesInTraceOperator(
 		currentQuery.builder.queryTraceOperator,
