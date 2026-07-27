@@ -24,7 +24,6 @@ export interface FormattingOptions {
 	maxLines?: number;
 	format?: LogViewMode;
 	fontSize?: FontSize;
-	version?: number;
 }
 
 export interface Preferences {

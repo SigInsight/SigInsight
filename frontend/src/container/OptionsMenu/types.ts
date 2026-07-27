@@ -17,7 +17,6 @@ export interface OptionsQuery {
 	maxLines: number;
 	format: LogViewMode;
 	fontSize: FontSize;
-	version?: number;
 }
 
 export interface InitialOptions

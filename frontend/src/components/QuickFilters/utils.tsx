@@ -1,7 +1,6 @@
 import { SIGNAL_DATA_SOURCE_MAP } from 'components/QuickFilters/QuickFiltersSettings/constants';
 import { Filter as FilterType } from 'types/api/quickFilters/getCustomFilters';
 
-import { canonicalizeTraceFieldName } from '../QueryBuilder/utils';
 import { FiltersType, IQuickFiltersConfig, SignalType } from './types';
 
 const FILTER_TITLE_MAP: Record<string, string> = {
@@ -44,9 +43,7 @@ export const getFilterConfig = (
 	}
 
 	return customFilters.map((att, index) => {
-		const key =
-			signal === SignalType.TRACES ? canonicalizeTraceFieldName(att.key) : att.key;
-
+		const key = att.key;
 		return {
 			type: getFilterType(key),
 			title: getFilterName(key),

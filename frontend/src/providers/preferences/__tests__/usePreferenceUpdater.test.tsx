@@ -48,7 +48,6 @@ describe('usePreferenceUpdater', () => {
 			maxLines: 1,
 			format: 'table' as LogViewMode,
 			fontSize: 'small' as FontSize,
-			version: 1,
 		},
 	};
 
@@ -115,7 +114,6 @@ describe('usePreferenceUpdater', () => {
 			maxLines: 10,
 			format: 'table' as LogViewMode,
 			fontSize: 'large' as FontSize,
-			version: 1,
 		};
 
 		const { result } = renderHook(() =>
@@ -180,7 +178,6 @@ describe('usePreferenceUpdater', () => {
 			maxLines: 10,
 			format: 'table' as LogViewMode,
 			fontSize: 'large' as FontSize,
-			version: 1,
 		};
 
 		const { result } = renderHook(() =>

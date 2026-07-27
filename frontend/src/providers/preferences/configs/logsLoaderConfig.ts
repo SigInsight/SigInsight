@@ -42,7 +42,6 @@ const logsLoaders = {
 						maxLines: parsed.maxLines ?? 1,
 						format: parsed.format ?? 'table',
 						fontSize: parsed.fontSize ?? 'small',
-						version: parsed.version ?? 1,
 					},
 				};
 			} catch {}
@@ -68,7 +67,6 @@ const logsLoaders = {
 					maxLines: options.maxLines ?? 1,
 					format: options.format ?? 'table',
 					fontSize: options.fontSize ?? 'small',
-					version: options.version ?? 1,
 				},
 			};
 		} catch {}
@@ -83,7 +81,6 @@ const logsLoaders = {
 			maxLines: 1,
 			format: 'table',
 			fontSize: 'small' as FontSize,
-			version: 1,
 		},
 	}),
 	priority: ['local', 'url', 'default'] as const,

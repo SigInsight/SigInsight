@@ -44,7 +44,6 @@ describe('logsUpdaterConfig', () => {
 			maxLines: 1,
 			format: 'table' as LogViewMode,
 			fontSize: 'small' as FontSize,
-			version: 1,
 		},
 	};
 
@@ -141,7 +140,6 @@ describe('logsUpdaterConfig', () => {
 			maxLines: 5,
 			format: 'json' as LogViewMode,
 			fontSize: 'large' as FontSize,
-			version: 1,
 		};
 
 		// Set initial localStorage data
@@ -173,7 +171,6 @@ describe('logsUpdaterConfig', () => {
 		expect(storedData.maxLines).toBe(5);
 		expect(storedData.format).toBe('json');
 		expect(storedData.fontSize).toBe('large');
-		expect(storedData.version).toBe(1);
 		expect(storedData.selectColumns).toEqual([
 			{
 				key: 'column',
@@ -194,7 +191,6 @@ describe('logsUpdaterConfig', () => {
 			maxLines: 5,
 			format: 'json' as LogViewMode,
 			fontSize: 'large' as FontSize,
-			version: 1,
 		};
 
 		// Set initial localStorage data
@@ -234,7 +230,6 @@ describe('logsUpdaterConfig', () => {
 			maxLines: 5,
 			format: 'json' as LogViewMode,
 			fontSize: 'large' as FontSize,
-			version: 1,
 		};
 
 		// No initial localStorage data
@@ -248,6 +243,5 @@ describe('logsUpdaterConfig', () => {
 		expect(storedData.maxLines).toBe(5);
 		expect(storedData.format).toBe('json');
 		expect(storedData.fontSize).toBe('large');
-		expect(storedData.version).toBe(1);
 	});
 });

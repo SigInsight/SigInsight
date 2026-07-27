@@ -1,7 +1,6 @@
 /* eslint-disable sonarjs/cognitive-complexity */
 import { createAggregation } from 'api/v5/queryRange/prepareQueryRangePayloadV5';
 import {
-	DEPRECATED_OPERATORS_MAP,
 	OPERATORS,
 	QUERY_BUILDER_FUNCTIONS,
 } from 'constants/antlrQueryConstants';
@@ -38,72 +37,24 @@ const isArrayOperator = (operator: string): boolean => {
 	return arrayOperators.includes(operator);
 };
 
-const LEGACY_TRACE_FIELD_NAMES: Record<string, string> = {
-	traceID: 'trace_id',
-	spanID: 'span_id',
-	parentSpanID: 'parent_span_id',
-	spanKind: 'kind_string',
-	durationNano: 'duration_nano',
-	statusCode: 'status_code',
-	statusMessage: 'status_message',
-	statusCodeString: 'status_code_string',
-	responseStatusCode: 'response_status_code',
-	externalHttpUrl: 'external_http_url',
-	httpUrl: 'http_url',
-	externalHttpMethod: 'external_http_method',
-	httpMethod: 'http_method',
-	'http.method': 'http_method',
-	httpHost: 'http_host',
-	dbName: 'db_name',
-	dbOperation: 'db_operation',
-	hasError: 'has_error',
-	isRemote: 'is_remote',
-	serviceName: 'service.name',
-	httpRoute: 'http.route',
+// Filter controls use compact operator IDs; query expressions use grammar tokens.
+const FILTER_OPERATOR_TO_QUERY_OPERATOR: Record<string, string> = {
+	regex: OPERATORS.REGEXP,
+	nin: `${OPERATORS.NOT} ${OPERATORS.IN}`,
+	nregex: `${OPERATORS.NOT} ${OPERATORS.REGEXP}`,
+	nlike: `${OPERATORS.NOT} ${OPERATORS.LIKE}`,
+	nilike: `${OPERATORS.NOT} ${OPERATORS.ILIKE}`,
+	nexists: `${OPERATORS.NOT} ${OPERATORS.EXISTS}`,
+	ncontains: `${OPERATORS.NOT} ${OPERATORS.CONTAINS}`,
+	nhas: `${OPERATORS.NOT} ${QUERY_BUILDER_FUNCTIONS.HAS}`,
+	nhasany: `${OPERATORS.NOT} ${QUERY_BUILDER_FUNCTIONS.HASANY}`,
+	nhasall: `${OPERATORS.NOT} ${QUERY_BUILDER_FUNCTIONS.HASALL}`,
 };
 
-export const canonicalizeTraceFieldName = (name: string): string =>
-	LEGACY_TRACE_FIELD_NAMES[name] || name;
-
-export const canonicalizeTraceFilterExpression = (
-	expression: string,
-): string => {
-	const replaceFieldNames = (value: string): string =>
-		value.replace(
-			new RegExp(
-				`\\b(${Object.keys(LEGACY_TRACE_FIELD_NAMES).join('|')})\\b`,
-				'g',
-			),
-			(field) => canonicalizeTraceFieldName(field),
-		);
-
-	let result = '';
-	let start = 0;
-	const quotedValue = /'(?:\\.|[^'])*'|"(?:\\.|[^"])*"/g;
-	for (const match of expression.matchAll(quotedValue)) {
-		result += replaceFieldNames(expression.slice(start, match.index));
-		result += match[0];
-		start = (match.index || 0) + match[0].length;
-	}
-
-	return result + replaceFieldNames(expression.slice(start));
+const toQueryOperator = (operator: string): string => {
+	const normalized = operator.trim().toLowerCase();
+	return FILTER_OPERATOR_TO_QUERY_OPERATOR[normalized] || normalized;
 };
-
-export const canonicalizeTraceFilters = (filters: TagFilter): TagFilter => ({
-	...filters,
-	items:
-		filters?.items?.map((item) =>
-			item.key
-				? {
-						...item,
-						key: {
-							...item.key,
-							key: canonicalizeTraceFieldName(item.key.key),
-						},
-				  }
-				: item,
-		) || [],
-});
 
 const isVariable = (
 	value: (string | number | boolean)[] | string | number | boolean,
@@ -177,13 +128,7 @@ export const convertFiltersToExpression = (
 				return '';
 			}
 
-			let operator = op.trim().toLowerCase();
-			if (Object.keys(DEPRECATED_OPERATORS_MAP).includes(operator)) {
-				operator =
-					DEPRECATED_OPERATORS_MAP[
-						operator as keyof typeof DEPRECATED_OPERATORS_MAP
-					];
-			}
+			const operator = toQueryOperator(op);
 
 			if (isNonValueOperator(operator)) {
 				return `${key.key} ${operator}`;
@@ -302,24 +247,11 @@ export const convertFiltersToExpressionWithExistingQuery = (
 	filters: TagFilter,
 	existingQuery: string | undefined,
 ): { filters: TagFilter; filter: { expression: string } } => {
-	// Check for deprecated operators and replace them with new operators
 	const updatedFilters = cloneDeep(filters);
-
-	// Replace deprecated operators in filter items
-	if (updatedFilters?.items) {
-		updatedFilters.items = updatedFilters.items.map((item) => {
-			const opLower = item.op?.toLowerCase();
-			if (Object.keys(DEPRECATED_OPERATORS_MAP).includes(opLower)) {
-				return {
-					...item,
-					op: DEPRECATED_OPERATORS_MAP[
-						opLower as keyof typeof DEPRECATED_OPERATORS_MAP
-					].toLowerCase(),
-				};
-			}
-			return item;
-		});
-	}
+	updatedFilters.items = updatedFilters.items.map((item) => ({
+		...item,
+		op: toQueryOperator(item.op).toLowerCase(),
+	}));
 
 	if (!existingQuery) {
 		// If no existing query, return filters with a newly generated expression

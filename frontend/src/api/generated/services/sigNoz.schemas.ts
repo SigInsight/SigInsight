@@ -921,36 +921,6 @@ export interface PreferencetypesValueDTO {
 	[key: string]: unknown;
 }
 
-export interface PromotetypesPromotePathDTO {
-	/**
-	 * @type array
-	 */
-	indexes?: PromotetypesWrappedIndexDTO[];
-	/**
-	 * @type string
-	 */
-	path?: string;
-	/**
-	 * @type boolean
-	 */
-	promote?: boolean;
-}
-
-export interface PromotetypesWrappedIndexDTO {
-	/**
-	 * @type string
-	 */
-	column_type?: string;
-	/**
-	 * @type integer
-	 */
-	granularity?: number;
-	/**
-	 * @type string
-	 */
-	type?: string;
-}
-
 export type Querybuildertypesv5AggregationBucketDTOMeta = {
 	/**
 	 * @type string
@@ -2388,18 +2358,6 @@ export type CreateInvite201 = {
 
 export type Livez200 = {
 	data: FactoryResponseDTO;
-	/**
-	 * @type string
-	 */
-	status: string;
-};
-
-export type ListPromotedAndIndexedPaths200 = {
-	/**
-	 * @type array
-	 * @nullable true
-	 */
-	data: PromotetypesPromotePathDTO[] | null;
 	/**
 	 * @type string
 	 */

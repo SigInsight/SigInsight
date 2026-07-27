@@ -81,7 +81,6 @@ describe('logsLoaderConfig', () => {
 			maxLines: 10,
 			format: 'json',
 			fontSize: 'large',
-			version: 2,
 		});
 
 		const result = await logsLoaderConfig.local();
@@ -92,7 +91,6 @@ describe('logsLoaderConfig', () => {
 				maxLines: 10,
 				format: 'json' as LogViewMode,
 				fontSize: 'large' as FontSize,
-				version: 2,
 			} as FormattingOptions,
 		});
 	});
@@ -125,7 +123,6 @@ describe('logsLoaderConfig', () => {
 				maxLines: 5,
 				format: 'raw',
 				fontSize: 'medium',
-				version: 1,
 			}),
 		)}`;
 
@@ -137,7 +134,6 @@ describe('logsLoaderConfig', () => {
 				maxLines: 5,
 				format: 'raw' as LogViewMode,
 				fontSize: 'medium' as FontSize,
-				version: 1,
 			} as FormattingOptions,
 		});
 	});
@@ -163,7 +159,6 @@ describe('logsLoaderConfig', () => {
 				maxLines: 1,
 				format: 'table' as LogViewMode,
 				fontSize: 'small' as FontSize,
-				version: 1,
 			} as FormattingOptions,
 		});
 	});

@@ -24,7 +24,6 @@ const getTracesUpdaterConfig = (
 					maxLines: 1,
 					format: 'table',
 					fontSize: 'small' as FontSize,
-					version: 1,
 				},
 			});
 		}

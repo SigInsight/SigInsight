@@ -579,9 +579,13 @@ function GeneralSettings({
 			},
 			statusComponent: (
 				<StatusMessage
-					total_retention={logsTtlValuesPayload.expected_logs_ttl_duration_hrs}
+					total_retention={logsTtlValuesPayload.default_ttl_days * 24}
 					status={logsTtlValuesPayload.status}
-					s3_retention={logsTtlValuesPayload.expected_logs_move_ttl_duration_hrs}
+					s3_retention={
+						logsTtlValuesPayload.cold_storage_ttl_days
+							? logsTtlValuesPayload.cold_storage_ttl_days * 24
+							: undefined
+					}
 				/>
 			),
 		},

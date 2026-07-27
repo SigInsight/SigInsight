@@ -1,15 +1,19 @@
 import { isEmpty } from 'lodash-es';
 import { ErrorResponse, SuccessResponse } from 'types/api';
-import { PayloadProps, Props } from 'types/api/alerts/save';
+import { PayloadProps as CreatePayloadProps } from 'types/api/alerts/create';
+import { PayloadProps as PatchPayloadProps } from 'types/api/alerts/patch';
+import { Props } from 'types/api/alerts/save';
 
 import create from './create';
-import put from './put';
+import patch from './patch';
 
 const save = async (
 	props: Props,
-): Promise<SuccessResponse<PayloadProps> | ErrorResponse> => {
+): Promise<
+	SuccessResponse<CreatePayloadProps | PatchPayloadProps> | ErrorResponse
+> => {
 	if (props.id && !isEmpty(props.id)) {
-		return put({ ...props });
+		return patch({ ...props, id: props.id });
 	}
 
 	return create({ ...props });
