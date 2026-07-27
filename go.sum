@@ -102,8 +102,8 @@ github.com/Masterminds/squirrel v1.5.4/go.mod h1:NNaOrjSoIDfDA40n7sr2tPNZRfjzjA4
 github.com/Microsoft/go-winio v0.6.2 h1:F2VQgta7ecxGYO8k3ZZz3RS8fVIXVxONVUPlNERoyfY=
 github.com/Microsoft/go-winio v0.6.2/go.mod h1:yd8OoFMLzJbo9gZq8j5qaps8bJ9aShtEA8Ipt1oGCvU=
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
-github.com/SigInsight/OtelCollector v1.1.2 h1:eINXTYFTpQPv/edywm2VX+177A3HB0hHRh5UQS9X1rI=
-github.com/SigInsight/OtelCollector v1.1.2/go.mod h1:rTym0odDJQMj9nGWNXzkCZa2i1xSqKXc2cb4irFUS94=
+github.com/SigInsight/OtelCollector v1.1.3 h1:GIn1dwMOcukGLElTDSgOiJUAkbpKAewV7TvLY8SJ8gI=
+github.com/SigInsight/OtelCollector v1.1.3/go.mod h1:rTym0odDJQMj9nGWNXzkCZa2i1xSqKXc2cb4irFUS94=
 github.com/SigNoz/govaluate v0.0.0-20240203125216-988004ccc7fd h1:Bk43AsDYe0fhkbj57eGXx8H3ZJ4zhmQXBnrW523ktj8=
 github.com/SigNoz/govaluate v0.0.0-20240203125216-988004ccc7fd/go.mod h1:nxRcH/OEdM8QxzH37xkGzomr1O0JpYBRS6pwjsWW6Pc=
 github.com/Yiling-J/theine-go v0.6.2 h1:1GeoXeQ0O0AUkiwj2S9Jc0Mzx+hpqzmqsJ4kIC4M9AY=
