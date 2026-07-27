@@ -47,7 +47,7 @@ function DomainMetrics({
 				ENTITY_VERSION_V5,
 			],
 			queryFn: (): Promise<SuccessResponse<MetricRangePayloadProps>> =>
-				GetMetricQueryRange(payload, ENTITY_VERSION_V5),
+				GetMetricQueryRange(payload),
 			enabled: !!payload,
 			staleTime: 60 * 1000, // 1 minute stale time : optimize this part
 		})),

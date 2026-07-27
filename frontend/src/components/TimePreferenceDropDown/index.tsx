@@ -4,7 +4,7 @@ import { Button, Dropdown, Typography } from 'antd';
 import TimeItems, {
 	timePreferance,
 	timePreferenceType,
-} from 'container/NewWidget/RightContainer/timeItems';
+} from 'features/query-visualization/timePreference';
 import { Globe } from 'lucide-react';
 
 import { menuItems } from './config';

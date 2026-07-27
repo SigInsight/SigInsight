@@ -15,7 +15,6 @@ import DownloadOptionsMenu from 'components/DownloadOptionsMenu/DownloadOptionsM
 import ErrorInPlace from 'components/ErrorInPlace/ErrorInPlace';
 import ListViewOrderBy from 'components/OrderBy/ListViewOrderBy';
 import { ResizeTable } from 'components/ResizeTable';
-import { ENTITY_VERSION_V5 } from 'constants/app';
 import { LOCALSTORAGE } from 'constants/localStorage';
 import { QueryParams } from 'constants/query';
 import { initialQueriesMap, PANEL_TYPES } from 'constants/queryBuilder';
@@ -144,8 +143,6 @@ function ListView({
 				selectColumns: options?.selectColumns,
 			},
 		},
-		// ENTITY_VERSION_V4,
-		ENTITY_VERSION_V5,
 		{
 			queryKey,
 			enabled:
@@ -172,10 +169,10 @@ function ListView({
 	}, [isLoading, isFetching, setIsLoadingQueries]);
 
 	const dataLength =
-		data?.payload?.data?.newResult?.data?.result[0]?.list?.length;
+		data?.payload?.data?.queryResult?.data?.result[0]?.list?.length;
 	const totalCount = useMemo(() => dataLength || 0, [dataLength]);
 
-	const queryTableDataResult = data?.payload?.data?.newResult?.data?.result;
+	const queryTableDataResult = data?.payload?.data?.queryResult?.data?.result;
 	const queryTableData = useMemo(() => queryTableDataResult || [], [
 		queryTableDataResult,
 	]);

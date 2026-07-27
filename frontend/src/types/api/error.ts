@@ -1,11 +1,11 @@
 import { StatusCodes } from 'http-status-codes';
 
-import { ErrorResponseV2 } from '.';
+import { HttpErrorResponse } from '.';
 
 class APIError extends Error {
-	error: ErrorResponseV2;
+	error: HttpErrorResponse;
 
-	constructor(error: ErrorResponseV2) {
+	constructor(error: HttpErrorResponse) {
 		super(error.error.message);
 		this.error = error;
 	}
@@ -22,7 +22,7 @@ class APIError extends Error {
 		return this.error.error.code;
 	}
 
-	getErrorDetails(): ErrorResponseV2 {
+	getErrorDetails(): HttpErrorResponse {
 		return this.error;
 	}
 }

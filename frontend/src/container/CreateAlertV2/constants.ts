@@ -4,12 +4,13 @@ import {
 	initialQueryPromQLData,
 	PANEL_TYPES,
 } from 'constants/queryBuilder';
-import { AlertTypes } from 'types/api/alerts/alertTypes';
 import {
 	NEW_ALERT_SCHEMA_VERSION,
-	PostableAlertRuleV2,
-} from 'types/api/alerts/alertTypesV2';
+	PostableAlertRule,
+} from 'types/api/alerts/alertRule';
+import { AlertTypes } from 'types/api/alerts/alertTypes';
 import { EQueryType } from 'types/common/dashboard';
+import { compositeQueryToQueryEnvelope } from 'utils/compositeQueryToQueryEnvelope';
 
 const defaultAnnotations = {
 	description:
@@ -18,17 +19,16 @@ const defaultAnnotations = {
 		'The rule threshold is set to {{$threshold}}, and the observed metric value is {{$value}}',
 };
 
-const defaultNotificationSettings: PostableAlertRuleV2['notificationSettings'] = {
+const defaultNotificationSettings: PostableAlertRule['notificationSettings'] = {
 	groupBy: [],
 	renotify: {
 		enabled: false,
 		interval: '30m',
 		alertStates: [],
 	},
-	usePolicy: false,
 };
 
-const defaultEvaluation: PostableAlertRuleV2['evaluation'] = {
+const defaultEvaluation: PostableAlertRule['evaluation'] = {
 	kind: 'rolling',
 	spec: {
 		evalWindow: '5m0s',
@@ -36,12 +36,12 @@ const defaultEvaluation: PostableAlertRuleV2['evaluation'] = {
 	},
 };
 
-export const defaultPostableAlertRuleV2: PostableAlertRuleV2 = {
+export const defaultPostableAlertRule: PostableAlertRule = {
 	alertType: AlertTypes.METRICS_BASED_ALERT,
 	version: ENTITY_VERSION_V5,
 	schemaVersion: NEW_ALERT_SCHEMA_VERSION,
 	condition: {
-		compositeQuery: {
+		compositeQuery: compositeQueryToQueryEnvelope({
 			builderQueries: {
 				A: initialQueryBuilderFormValuesMap.metrics,
 			},
@@ -57,7 +57,7 @@ export const defaultPostableAlertRuleV2: PostableAlertRuleV2 = {
 			queryType: EQueryType.QUERY_BUILDER,
 			panelType: PANEL_TYPES.TIME_SERIES,
 			unit: undefined,
-		},
+		}),
 		selectedQueryName: 'A',
 		alertOnAbsent: true,
 		absentFor: 10,

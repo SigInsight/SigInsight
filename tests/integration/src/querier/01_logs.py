@@ -29,12 +29,9 @@ def test_logs_list(
 
     Tests:
     1. Query logs for the last 10 seconds and check if the logs are returned in the correct order
-    2. Query values of severity_text attribute from the autocomplete API
-    3. Query values of severity_text attribute from the fields API
-    4. Query values of code.file attribute from the autocomplete API
-    5. Query values of code.file attribute from the fields API
-    6. Query values of code.line attribute from the autocomplete API
-    7. Query values of code.line attribute from the fields API
+    2. Query values of severity_text attribute from the fields API
+    3. Query values of code.file attribute from the fields API
+    4. Query values of code.line attribute from the fields API
     """
     insert_logs(
         [
@@ -176,35 +173,9 @@ def test_logs_list(
     }
     assert rows[1]["data"]["attributes_number"] == {"code.line": 120}
 
-    # Query values of severity_text attribute from the autocomplete API
-    response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v5/autocomplete/attribute_values"),
-        timeout=2,
-        headers={
-            "authorization": f"Bearer {token}",
-        },
-        params={
-            "aggregateOperator": "noop",
-            "dataSource": "logs",
-            "aggregateAttribute": "",
-            "attributeKey": "severity_text",
-            "searchText": "",
-            "filterAttributeKeyDataType": "string",
-            "tagType": "resource",
-        },
-    )
-
-    assert response.status_code == HTTPStatus.OK
-    assert response.json()["status"] == "success"
-
-    values = response.json()["data"]["stringAttributeValues"]
-    assert len(values) == 2
-    assert "DEBUG" in values
-    assert "INFO" in values
-
     # Query values of severity_text attribute from the fields API
     response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v1/fields/values"),
+        signoz.self.host_configs["8080"].get("/api/v5/fields/values"),
         timeout=2,
         headers={
             "authorization": f"Bearer {token}",
@@ -224,35 +195,9 @@ def test_logs_list(
     assert "DEBUG" in values
     assert "INFO" in values
 
-    # Query values of code.file attribute from the autocomplete API
-    response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v5/autocomplete/attribute_values"),
-        timeout=2,
-        headers={
-            "authorization": f"Bearer {token}",
-        },
-        params={
-            "aggregateOperator": "noop",
-            "dataSource": "logs",
-            "aggregateAttribute": "",
-            "attributeKey": "code.file",
-            "searchText": "",
-            "filterAttributeKeyDataType": "string",
-            "tagType": "tag",
-        },
-    )
-
-    assert response.status_code == HTTPStatus.OK
-    assert response.json()["status"] == "success"
-
-    values = response.json()["data"]["stringAttributeValues"]
-    assert len(values) == 2
-    assert "/opt/Integration.java" in values
-    assert "/opt/integration.go" in values
-
     # Query values of code.file attribute from the fields API
     response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v1/fields/values"),
+        signoz.self.host_configs["8080"].get("/api/v5/fields/values"),
         timeout=2,
         headers={
             "authorization": f"Bearer {token}",
@@ -272,34 +217,9 @@ def test_logs_list(
     assert "/opt/Integration.java" in values
     assert "/opt/integration.go" in values
 
-    # Query values of code.line attribute from the autocomplete API
-    response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v5/autocomplete/attribute_values"),
-        timeout=2,
-        headers={
-            "authorization": f"Bearer {token}",
-        },
-        params={
-            "aggregateOperator": "noop",
-            "dataSource": "logs",
-            "aggregateAttribute": "",
-            "attributeKey": "code.line",
-            "searchText": "",
-            "filterAttributeKeyDataType": "float64",
-            "tagType": "tag",
-        },
-    )
-
-    assert response.status_code == HTTPStatus.OK
-    assert response.json()["status"] == "success"
-
-    values = response.json()["data"]["numberAttributeValues"]
-    assert len(values) == 1
-    assert 120 in values
-
     # Query values of code.line attribute from the fields API
     response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v1/fields/values"),
+        signoz.self.host_configs["8080"].get("/api/v5/fields/values"),
         timeout=2,
         headers={
             "authorization": f"Bearer {token}",
@@ -320,7 +240,7 @@ def test_logs_list(
 
     # Query keys from the fields API with context specified in the key
     response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v1/fields/keys"),
+        signoz.self.host_configs["8080"].get("/api/v5/fields/keys"),
         timeout=2,
         headers={
             "authorization": f"Bearer {token}",
@@ -340,7 +260,7 @@ def test_logs_list(
 
     # Do not treat `metric.` as a context prefix for logs
     response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v1/fields/keys"),
+        signoz.self.host_configs["8080"].get("/api/v5/fields/keys"),
         timeout=2,
         headers={
             "authorization": f"Bearer {token}",
@@ -359,7 +279,7 @@ def test_logs_list(
 
     # Query values of service.name resource attribute using context-prefixed key
     response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v1/fields/values"),
+        signoz.self.host_configs["8080"].get("/api/v5/fields/values"),
         timeout=2,
         headers={
             "authorization": f"Bearer {token}",
@@ -380,7 +300,7 @@ def test_logs_list(
 
     # Query values of metric.domain_id (string attribute) and ensure context collision doesn't break it
     response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v1/fields/values"),
+        signoz.self.host_configs["8080"].get("/api/v5/fields/values"),
         timeout=2,
         headers={
             "authorization": f"Bearer {token}",

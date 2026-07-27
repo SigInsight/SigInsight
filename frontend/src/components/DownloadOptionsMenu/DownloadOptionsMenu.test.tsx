@@ -14,7 +14,7 @@ import { DownloadFormats, DownloadRowCounts } from './constants';
 import DownloadOptionsMenu from './DownloadOptionsMenu';
 
 const mockDownloadExportData = jest.fn().mockResolvedValue(undefined);
-jest.mock('api/v1/download/downloadExportData', () => ({
+jest.mock('api/v5/download/downloadExportData', () => ({
 	downloadExportData: (...args: any[]): any => mockDownloadExportData(...args),
 	default: (...args: any[]): any => mockDownloadExportData(...args),
 }));

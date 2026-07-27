@@ -1,4 +1,4 @@
-import setRetentionApiV2 from 'api/settings/setRetentionV2';
+import setLogsRetention from 'api/settings/setLogsRetention';
 import {
 	fireEvent,
 	render,
@@ -16,7 +16,7 @@ import {
 import GeneralSettings from '../GeneralSettings';
 
 // Mock dependencies
-jest.mock('api/settings/setRetentionV2');
+jest.mock('api/settings/setLogsRetention');
 
 const mockNotifications = {
 	error: jest.fn(),
@@ -48,14 +48,12 @@ const mockTracesRetention: PayloadPropsTraces = {
 };
 
 const mockLogsRetentionWithS3: PayloadPropsLogs = {
-	version: 'v2',
 	default_ttl_days: 30,
 	cold_storage_ttl_days: 24,
 	status: '',
 };
 
 const mockLogsRetentionWithoutS3: PayloadPropsLogs = {
-	version: 'v2',
 	default_ttl_days: 30,
 	cold_storage_ttl_days: -1,
 	status: '',
@@ -90,7 +88,7 @@ const getLogsRow = (): HTMLElement => {
 describe('GeneralSettings - S3 Logs Retention', () => {
 	beforeEach(() => {
 		jest.clearAllMocks();
-		(setRetentionApiV2 as jest.Mock).mockResolvedValue({
+		(setLogsRetention as jest.Mock).mockResolvedValue({
 			httpStatusCode: 200,
 			data: { message: 'success' },
 		});
@@ -168,7 +166,7 @@ describe('GeneralSettings - S3 Logs Retention', () => {
 
 			// Verify API was called with correct payload
 			await waitFor(() => {
-				expect(setRetentionApiV2).toHaveBeenCalledWith({
+				expect(setLogsRetention).toHaveBeenCalledWith({
 					type: 'logs',
 					defaultTTLDays: 30,
 					coldStorageVolume: 's3',
@@ -271,7 +269,7 @@ describe('GeneralSettings - S3 Logs Retention', () => {
 
 			// Verify API was called with empty S3 values (60 days)
 			await waitFor(() => {
-				expect(setRetentionApiV2).toHaveBeenCalledWith({
+				expect(setLogsRetention).toHaveBeenCalledWith({
 					type: 'logs',
 					defaultTTLDays: 60,
 					coldStorageVolume: '',

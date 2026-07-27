@@ -32,7 +32,7 @@ export const isFeatureKeys = (key: string): key is keyof typeof FeatureKeys =>
 	Object.keys(FeatureKeys).includes(key);
 
 export function isIngestionActive(data: any): boolean {
-	const table = get(data, 'data.newResult.data.result[0].table');
+	const table = get(data, 'data.queryResult.data.result[0].table');
 	if (!table) {
 		return false;
 	}

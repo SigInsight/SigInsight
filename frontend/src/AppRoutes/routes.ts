@@ -14,7 +14,6 @@ import {
 	ErrorDetails,
 	ForgotPassword,
 	Home,
-	InstalledIntegrations,
 	ListAllALertsPage,
 	LiveLogs,
 	Login,
@@ -24,10 +23,6 @@ import {
 	LogsSaveViews,
 	MeterExplorerPage,
 	MetricsExplorer,
-	OldLogsExplorer,
-	Onboarding,
-	OnboardingV2,
-	OrgOnboarding,
 	PasswordReset,
 	ServiceMapPage,
 	ServiceMetricsPage,
@@ -38,13 +33,11 @@ import {
 	SomethingWentWrong,
 	StatusPage,
 	TraceDetail,
-	TraceFilter,
 	TracesExplorer,
 	TracesFunnelDetails,
 	TracesFunnels,
 	TracesSaveViews,
 	UnAuthorized,
-	UsageExplorerPage,
 } from './pageComponents';
 
 const routes: AppRoutes[] = [
@@ -56,32 +49,11 @@ const routes: AppRoutes[] = [
 		key: 'SIGN_UP',
 	},
 	{
-		path: ROUTES.GET_STARTED,
-		exact: false,
-		component: Onboarding,
-		isPrivate: true,
-		key: 'GET_STARTED',
-	},
-	{
-		path: ROUTES.GET_STARTED_WITH_CLOUD,
-		exact: false,
-		component: OnboardingV2,
-		isPrivate: true,
-		key: 'GET_STARTED_WITH_CLOUD',
-	},
-	{
 		path: ROUTES.HOME,
 		exact: true,
 		component: Home,
 		isPrivate: true,
 		key: 'HOME',
-	},
-	{
-		path: ROUTES.ONBOARDING,
-		exact: false,
-		component: OrgOnboarding,
-		isPrivate: true,
-		key: 'ONBOARDING',
 	},
 	{
 		component: LogsIndexToFields,
@@ -140,13 +112,6 @@ const routes: AppRoutes[] = [
 		key: 'SETTINGS',
 	},
 	{
-		path: ROUTES.USAGE_EXPLORER,
-		exact: true,
-		component: UsageExplorerPage,
-		isPrivate: true,
-		key: 'USAGE_EXPLORER',
-	},
-	{
 		path: ROUTES.EDIT_ALERTS,
 		exact: true,
 		component: EditRulesPage,
@@ -187,13 +152,6 @@ const routes: AppRoutes[] = [
 		component: AlertOverview,
 		isPrivate: true,
 		key: 'ALERT_OVERVIEW',
-	},
-	{
-		path: ROUTES.TRACE,
-		exact: true,
-		component: TraceFilter,
-		isPrivate: true,
-		key: 'TRACE',
 	},
 	{
 		path: ROUTES.TRACES_EXPLORER,
@@ -273,13 +231,6 @@ const routes: AppRoutes[] = [
 		isPrivate: true,
 	},
 	{
-		path: ROUTES.OLD_LOGS_EXPLORER,
-		exact: true,
-		component: OldLogsExplorer,
-		key: 'OLD_LOGS_EXPLORER',
-		isPrivate: true,
-	},
-	{
 		path: ROUTES.LIVE_LOGS,
 		exact: true,
 		component: LiveLogs,
@@ -320,13 +271,6 @@ const routes: AppRoutes[] = [
 		component: SomethingWentWrong,
 		key: 'SOMETHING_WENT_WRONG',
 		isPrivate: false,
-	},
-	{
-		path: ROUTES.INTEGRATIONS,
-		exact: true,
-		component: InstalledIntegrations,
-		isPrivate: true,
-		key: 'INTEGRATIONS',
 	},
 	{
 		path: ROUTES.METRICS_EXPLORER,
@@ -379,28 +323,6 @@ const routes: AppRoutes[] = [
 		isPrivate: true,
 	},
 ];
-
-export const oldRoutes = [
-	'/pipelines',
-	'/logs/pipelines',
-	'/logs-explorer',
-	'/logs-explorer/live',
-	'/logs-save-views',
-	'/traces-save-views',
-	'/settings/access-tokens',
-	'/alerts/edit',
-];
-
-export const oldNewRoutesMapping: Record<string, string> = {
-	'/pipelines': '/logs/logs-explorer',
-	'/logs/pipelines': '/logs/logs-explorer',
-	'/logs-explorer': '/logs/logs-explorer',
-	'/logs-explorer/live': '/logs/logs-explorer/live',
-	'/logs-save-views': '/logs/saved-views',
-	'/traces-save-views': '/traces/saved-views',
-	'/settings/access-tokens': '/settings/api-keys',
-	'/alerts/edit': '/alerts/overview',
-};
 
 export const ROUTES_NOT_TO_BE_OVERRIDEN: string[] = [];
 

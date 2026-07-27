@@ -3,7 +3,6 @@ import { Virtuoso } from 'react-virtuoso';
 import RawLogView from 'components/Logs/RawLogView';
 import OverlayScrollbar from 'components/OverlayScrollbar/OverlayScrollbar';
 import Spinner from 'components/Spinner';
-import { DEFAULT_ENTITY_VERSION } from 'constants/app';
 import { PANEL_TYPES } from 'constants/queryBuilder';
 import { FontSize } from 'container/OptionsMenu/types';
 import { ORDERBY_FILTERS } from 'container/QueryBuilder/filters/OrderByFilter/config';
@@ -88,7 +87,7 @@ function LogsContextList({
 
 	const handleSuccess = useCallback(
 		(data: SuccessResponse<MetricRangePayloadProps, unknown>) => {
-			const currentData = data?.payload?.data?.newResult?.data?.result || [];
+			const currentData = data?.payload?.data?.queryResult?.data?.result || [];
 
 			if (currentData.length > 0 && currentData[0].list) {
 				const currentLogs: ILog[] = currentData[0].list.map((item) => ({
@@ -110,7 +109,6 @@ function LogsContextList({
 	const { isError, isFetching } = useGetExplorerQueryRange(
 		requestData,
 		PANEL_TYPES.LIST,
-		DEFAULT_ENTITY_VERSION,
 		{
 			keepPreviousData: true,
 			enabled: !!requestData,

@@ -12,10 +12,11 @@ import {
 import { useQuery } from 'react-query';
 import getLocalStorageApi from 'api/browser/localstorage/get';
 import setLocalStorageApi from 'api/browser/localstorage/set';
-import listOrgPreferences from 'api/v1/org/preferences/list';
-import get from 'api/v1/user/me/get';
-import listUserPreferences from 'api/v1/user/preferences/list';
-import getUserVersion from 'api/v1/version/get';
+import { getMyOrganization } from 'api/generated/services/orgs';
+import { getMyUser } from 'api/generated/services/users';
+import listOrgPreferences from 'api/v5/org/preferences/list';
+import listUserPreferences from 'api/v5/user/preferences/list';
+import getUserVersion from 'api/v5/version/get';
 import { LOCALSTORAGE } from 'constants/localStorage';
 import {
 	IsAdminPermission,
@@ -67,8 +68,18 @@ export function AppProvider({ children }: PropsWithChildren): JSX.Element {
 		isFetching: isFetchingUserData,
 		error: userFetchDataError,
 	} = useQuery({
-		queryFn: get,
-		queryKey: ['/api/v1/user/me'],
+		queryFn: () => getMyUser(),
+		queryKey: ['/api/v5/users/me'],
+		enabled: isLoggedIn,
+	});
+
+	const {
+		data: orgData,
+		isFetching: isFetchingOrgData,
+		error: orgFetchDataError,
+	} = useQuery({
+		queryFn: () => getMyOrganization(),
+		queryKey: ['/api/v5/orgs/me'],
 		enabled: isLoggedIn,
 	});
 
@@ -81,8 +92,10 @@ export function AppProvider({ children }: PropsWithChildren): JSX.Element {
 		enabled: isLoggedIn,
 	});
 
-	const isFetchingUser = isFetchingUserData || isFetchingPermissions;
-	const userFetchError = userFetchDataError || errorOnPermissions;
+	const isFetchingUser =
+		isFetchingUserData || isFetchingOrgData || isFetchingPermissions;
+	const userFetchError =
+		userFetchDataError || orgFetchDataError || errorOnPermissions;
 
 	const userRole = useMemo(() => {
 		if (permissionsResult?.[IsAdminPermission]?.isGranted) {
@@ -98,46 +111,48 @@ export function AppProvider({ children }: PropsWithChildren): JSX.Element {
 		return USER_ROLES.ANONYMOUS;
 	}, [permissionsResult]);
 
-	const user: IUser = useMemo(() => {
-		return {
+	const user: IUser = useMemo(
+		() => ({
 			...defaultUser,
 			role: userRole as ROLES,
-		};
-	}, [defaultUser, userRole]);
+		}),
+		[defaultUser, userRole],
+	);
 
 	useEffect(() => {
-		if (!isFetchingUser && userData && userData.data) {
-			setLocalStorageApi(LOCALSTORAGE.LOGGED_IN_USER_EMAIL, userData.data.email);
+		if (!isFetchingUser && userData?.data) {
+			if (userData.data.email) {
+				setLocalStorageApi(LOCALSTORAGE.LOGGED_IN_USER_EMAIL, userData.data.email);
+			}
 			setDefaultUser((prev) => ({
 				...prev,
-				...userData.data,
+				id: userData.data.id,
+				email: userData.data.email ?? prev.email,
+				displayName: userData.data.displayName ?? prev.displayName,
+				orgId: userData.data.orgId ?? prev.orgId,
+				createdAt:
+					userData.data.createdAt instanceof Date
+						? userData.data.createdAt.toISOString()
+						: userData.data.createdAt ?? prev.createdAt,
+				updatedAt:
+					userData.data.updatedAt instanceof Date
+						? userData.data.updatedAt.toISOString()
+						: userData.data.updatedAt ?? prev.updatedAt,
 			}));
-			setOrg((prev) => {
-				if (!prev) {
-					// if no org is present enter a new entry
-					return [
-						{
-							createdAt: 0,
-							id: userData.data.orgId,
-							displayName: userData.data.organization,
-						},
-					];
-				}
-				// else mutate the existing entry
-				const orgIndex = prev.findIndex((e) => e.id === userData.data.orgId);
-				const updatedOrg: Organization[] = [
-					...prev.slice(0, orgIndex),
-					{
-						createdAt: 0,
-						id: userData.data.orgId,
-						displayName: userData.data.organization,
-					},
-					...prev.slice(orgIndex + 1, prev.length),
-				];
-				return updatedOrg;
-			});
 		}
 	}, [userData, isFetchingUser]);
+
+	useEffect(() => {
+		if (!isFetchingUser && orgData?.data) {
+			setOrg([
+				{
+					createdAt: 0,
+					id: orgData.data.id,
+					displayName: orgData.data.displayName ?? '',
+				},
+			]);
+		}
+	}, [orgData, isFetchingUser]);
 
 	// fetcher for feature flags
 	const {

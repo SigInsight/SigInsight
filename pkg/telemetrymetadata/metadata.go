@@ -52,9 +52,8 @@ type telemetryMetaStore struct {
 	relatedMetadataDBName     string
 	relatedMetadataTblName    string
 
-	fm                 qbtypes.FieldMapper
-	conditionBuilder   qbtypes.ConditionBuilder
-	jsonColumnMetadata map[telemetrytypes.Signal]map[telemetrytypes.FieldContext]telemetrytypes.JSONColumnMetadata
+	fm               qbtypes.FieldMapper
+	conditionBuilder qbtypes.ConditionBuilder
 }
 
 func escapeForLike(s string) string {
@@ -100,14 +99,6 @@ func NewTelemetryMetaStore(
 		logResourceKeysTblName:    logResourceKeysTblName,
 		relatedMetadataDBName:     relatedMetadataDBName,
 		relatedMetadataTblName:    relatedMetadataTblName,
-		jsonColumnMetadata: map[telemetrytypes.Signal]map[telemetrytypes.FieldContext]telemetrytypes.JSONColumnMetadata{
-			telemetrytypes.SignalLogs: {
-				telemetrytypes.FieldContextBody: telemetrytypes.JSONColumnMetadata{
-					BaseColumn:     telemetrylogs.LogsV2BodyV2Column,
-					PromotedColumn: telemetrylogs.LogsV2BodyPromotedColumn,
-				},
-			},
-		},
 	}
 
 	fm := NewFieldMapper()
@@ -289,6 +280,7 @@ func (t *telemetryMetaStore) getTracesKeys(ctx context.Context, fieldKeySelector
 	staticKeys := []string{"isRoot", "isEntryPoint"}
 	staticKeys = append(staticKeys, maps.Keys(telemetrytraces.IntrinsicFields)...)
 	staticKeys = append(staticKeys, maps.Keys(telemetrytraces.CalculatedFields)...)
+	staticKeys = append(staticKeys, maps.Keys(telemetrytraces.DefaultFields)...)
 
 	// Add matching intrinsic and matching calculated fields
 	// These don't count towards the limit
@@ -303,14 +295,20 @@ func (t *telemetryMetaStore) getTracesKeys(ctx context.Context, fieldKeySelector
 
 		if found {
 			if field, exists := telemetrytraces.IntrinsicFields[key]; exists {
-				if _, added := mapOfKeys[field.Name+";"+field.FieldContext.StringValue()+";"+field.FieldDataType.StringValue()]; !added {
+				if !containsFieldKey(keys, field) {
 					keys = append(keys, &field)
 				}
 				continue
 			}
 
 			if field, exists := telemetrytraces.CalculatedFields[key]; exists {
-				if _, added := mapOfKeys[field.Name+";"+field.FieldContext.StringValue()+";"+field.FieldDataType.StringValue()]; !added {
+				if !containsFieldKey(keys, field) {
+					keys = append(keys, &field)
+				}
+				continue
+			}
+			if field, exists := telemetrytraces.DefaultFields[key]; exists {
+				if !containsFieldKey(keys, field) {
 					keys = append(keys, &field)
 				}
 				continue
@@ -323,6 +321,17 @@ func (t *telemetryMetaStore) getTracesKeys(ctx context.Context, fieldKeySelector
 		}
 	}
 	return keys, complete, nil
+}
+
+func containsFieldKey(keys []*telemetrytypes.TelemetryFieldKey, target telemetrytypes.TelemetryFieldKey) bool {
+	for _, key := range keys {
+		if key.Name == target.Name &&
+			key.FieldContext == target.FieldContext &&
+			key.FieldDataType == target.FieldDataType {
+			return true
+		}
+	}
+	return false
 }
 
 // logsTblStatementToFieldKeys returns materialised attribute/resource/scope keys from the logs table
@@ -580,14 +589,6 @@ func (t *telemetryMetaStore) getLogsKeys(ctx context.Context, fieldKeySelectors 
 		}
 	}
 
-	if querybuilder.BodyJSONQueryEnabled {
-		bodyJSONPaths, finished, err := t.buildBodyJSONPaths(ctx, fieldKeySelectors) // LIKE for pattern matching
-		if err != nil {
-			t.logger.ErrorContext(ctx, "failed to extract body JSON paths", errors.Attr(err))
-		}
-		keys = append(keys, bodyJSONPaths...)
-		complete = complete && finished
-	}
 	return keys, complete, nil
 }
 
@@ -789,40 +790,6 @@ func (t *telemetryMetaStore) getMeterSourceMetricKeys(ctx context.Context, field
 
 }
 
-// applyBackwardCompatibleKeys adds backward compatible key aliases to the map
-func applyBackwardCompatibleKeys(mapOfKeys map[string][]*telemetrytypes.TelemetryFieldKey) {
-	// Get backward compatible keys for all signals
-	backwardCompatKeysBySignal := map[telemetrytypes.Signal]BackwardCompatibleKeyMap{
-		telemetrytypes.SignalTraces:  GetBackwardCompatKeysForSignal(telemetrytypes.SignalTraces),
-		telemetrytypes.SignalLogs:    GetBackwardCompatKeysForSignal(telemetrytypes.SignalLogs),
-		telemetrytypes.SignalMetrics: GetBackwardCompatKeysForSignal(telemetrytypes.SignalMetrics),
-	}
-
-	// Iterate over existing keys and add aliases if they exist in backward compat mapping
-	for srcKey, srcKeys := range mapOfKeys {
-		for _, srcKeyEntry := range srcKeys {
-			backwardCompatKeys := backwardCompatKeysBySignal[srcKeyEntry.Signal]
-			if backwardCompatKeys == nil {
-				continue
-			}
-
-			if aliasKey, ok := backwardCompatKeys[srcKey]; ok {
-				if _, aliasExists := mapOfKeys[aliasKey]; !aliasExists {
-					aliasKeyEntry := &telemetrytypes.TelemetryFieldKey{
-						Name:          aliasKey,
-						Signal:        srcKeyEntry.Signal,
-						FieldContext:  srcKeyEntry.FieldContext,
-						FieldDataType: srcKeyEntry.FieldDataType,
-					}
-					mapOfKeys[aliasKey] = []*telemetrytypes.TelemetryFieldKey{aliasKeyEntry}
-				}
-				// Found the alias for this signal, no need to check other entries
-				break
-			}
-		}
-	}
-}
-
 func enrichWithIntrinsicMetricKeys(keys map[string][]*telemetrytypes.TelemetryFieldKey, selectors []*telemetrytypes.FieldKeySelector) map[string][]*telemetrytypes.TelemetryFieldKey {
 	if len(selectors) == 0 {
 		return keys
@@ -928,7 +895,6 @@ func (t *telemetryMetaStore) GetKeys(ctx context.Context, fieldKeySelector *tele
 		mapOfKeys[key.Name] = append(mapOfKeys[key.Name], key)
 	}
 
-	applyBackwardCompatibleKeys(mapOfKeys)
 	mapOfKeys = enrichWithIntrinsicMetricKeys(mapOfKeys, selectors)
 
 	return mapOfKeys, complete, nil
@@ -994,7 +960,6 @@ func (t *telemetryMetaStore) GetKeysMulti(ctx context.Context, fieldKeySelectors
 		mapOfKeys[key.Name] = append(mapOfKeys[key.Name], key)
 	}
 
-	applyBackwardCompatibleKeys(mapOfKeys)
 	mapOfKeys = enrichWithIntrinsicMetricKeys(mapOfKeys, fieldKeySelectors)
 
 	return mapOfKeys, complete, nil

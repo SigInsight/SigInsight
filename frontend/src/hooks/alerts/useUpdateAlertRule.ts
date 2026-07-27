@@ -3,19 +3,19 @@ import updateAlertRule, {
 	UpdateAlertRuleResponse,
 } from 'api/alerts/updateAlertRule';
 import { ErrorResponse, SuccessResponse } from 'types/api';
-import { PostableAlertRuleV2 } from 'types/api/alerts/alertTypesV2';
+import { PostableAlertRule } from 'types/api/alerts/alertRule';
 
 export function useUpdateAlertRule(
 	id: string,
 ): UseMutationResult<
 	SuccessResponse<UpdateAlertRuleResponse> | ErrorResponse,
 	Error,
-	PostableAlertRuleV2
+	PostableAlertRule
 > {
 	return useMutation<
 		SuccessResponse<UpdateAlertRuleResponse> | ErrorResponse,
 		Error,
-		PostableAlertRuleV2
+		PostableAlertRule
 	>({
 		mutationFn: (alertData) => updateAlertRule(id, alertData),
 	});

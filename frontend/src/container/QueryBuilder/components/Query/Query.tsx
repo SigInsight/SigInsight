@@ -10,9 +10,8 @@ import {
 } from 'react';
 import { useLocation } from 'react-use';
 import { Col, Input, Row, Tooltip, Typography } from 'antd';
-import { ENTITY_VERSION_V4 } from 'constants/app';
 // ** Constants
-import { ATTRIBUTE_TYPES, PANEL_TYPES } from 'constants/queryBuilder';
+import { PANEL_TYPES } from 'constants/queryBuilder';
 import ROUTES from 'constants/routes';
 // ** Components
 import {
@@ -40,7 +39,6 @@ import { DataSource } from 'types/common/queryBuilder';
 import { transformToUpperCase } from 'utils/transformToUpperCase';
 
 import QBEntityOptions from '../QBEntityOptions/QBEntityOptions';
-import SpaceAggregationOptions from '../SpaceAggregationOptions/SpaceAggregationOptions';
 // ** Types
 import { QueryProps } from './Query.interfaces';
 
@@ -63,7 +61,6 @@ export const Query = memo(function Query({
 
 	const {
 		operators,
-		spaceAggregationOptions,
 		isMetricsDataSource,
 		isTracePanelType,
 		listOfAdditionalFilters,
@@ -71,7 +68,6 @@ export const Query = memo(function Query({
 		handleChangeQueryData,
 		handleChangeDataSource,
 		handleChangeOperator,
-		handleSpaceAggregationChange,
 		handleDeleteQuery,
 		handleQueryFunctionsUpdates,
 	} = useQueryOperations({
@@ -156,19 +152,12 @@ export const Query = memo(function Query({
 
 		return (
 			<OrderByFilter
-				entityVersion={version}
 				query={query}
 				onChange={handleChangeOrderByKeys}
 				isListViewPanel={isListViewPanel}
 			/>
 		);
-	}, [
-		queryComponents,
-		query,
-		version,
-		handleChangeOrderByKeys,
-		isListViewPanel,
-	]);
+	}, [queryComponents, query, handleChangeOrderByKeys, isListViewPanel]);
 
 	const renderAggregateEveryFilter = useCallback(
 		(): JSX.Element | null =>
@@ -323,20 +312,12 @@ export const Query = memo(function Query({
 		filterConfigs?.having?.isHidden,
 	]);
 
-	const disableOperatorSelector =
-		!query?.aggregateAttribute?.key || query?.aggregateAttribute?.key === '';
-
-	const isVersionV4 = version && version === ENTITY_VERSION_V4;
-
 	return (
 		<Row gutter={[0, 12]} className={`query-builder-${version}`}>
 			<QBEntityOptions
 				isMetricsDataSource={isMetricsDataSource}
 				showFunctions={
-					(version && version === ENTITY_VERSION_V4) ||
-					query.dataSource === DataSource.LOGS ||
-					showFunctions ||
-					false
+					query.dataSource === DataSource.LOGS || showFunctions || false
 				}
 				isCollapsed={isCollapse}
 				entityType="query"
@@ -375,7 +356,7 @@ export const Query = memo(function Query({
 							{isMetricsDataSource && (
 								<Col span={12}>
 									<Row gutter={[11, 5]}>
-										{version && version === 'v5' && (
+										{
 											<Col flex="5.93rem">
 												<Tooltip
 													title={
@@ -401,7 +382,7 @@ export const Query = memo(function Query({
 													/>
 												</Tooltip>
 											</Col>
-										)}
+										}
 
 										<Col flex="auto">
 											<MetricNameSelector
@@ -409,39 +390,6 @@ export const Query = memo(function Query({
 												query={query}
 											/>
 										</Col>
-
-										{version &&
-											version === ENTITY_VERSION_V4 &&
-											operators &&
-											Array.isArray(operators) &&
-											operators.length > 0 && (
-												<Col flex="5.93rem">
-													<Tooltip
-														title={
-															<div style={{ textAlign: 'center' }}>
-																Select Aggregate Operator
-																<Typography.Link
-																	className="learn-more"
-																	href="https://signoz.io/docs/metrics-management/types-and-aggregation/?utm_source=product&utm_medium=query-builder#aggregation"
-																	target="_blank"
-																	style={{ textDecoration: 'underline' }}
-																>
-																	{' '}
-																	<br />
-																	Learn more
-																</Typography.Link>
-															</div>
-														}
-													>
-														<OperatorsSelect
-															value={query.aggregateOperator || ''}
-															onChange={handleChangeOperator}
-															operators={operators}
-															disabled={disableOperatorSelector}
-														/>
-													</Tooltip>
-												</Col>
-											)}
 									</Row>
 								</Col>
 							)}
@@ -516,34 +464,15 @@ export const Query = memo(function Query({
 						<Col span={24}>
 							<Row gutter={[11, 5]}>
 								<Col flex="5.93rem">
-									{isVersionV4 && isMetricsDataSource ? (
-										<SpaceAggregationOptions
-											panelType={panelType}
-											key={`${panelType}${query.spaceAggregation}${query.timeAggregation}`}
-											aggregatorAttributeType={
-												query?.aggregateAttribute?.type as ATTRIBUTE_TYPES
-											}
-											selectedValue={query.spaceAggregation}
-											disabled={disableOperatorSelector}
-											onSelect={handleSpaceAggregationChange}
-											operators={spaceAggregationOptions}
-										/>
-									) : (
-										<FilterLabel
-											label={panelType === PANEL_TYPES.VALUE ? 'Reduce to' : 'Group by'}
-										/>
-									)}
+									<FilterLabel
+										label={panelType === PANEL_TYPES.VALUE ? 'Reduce to' : 'Group by'}
+									/>
 								</Col>
 
 								<Col flex="1 1 12.5rem">
 									{panelType === PANEL_TYPES.VALUE ? (
 										<Row>
-											{isVersionV4 && isMetricsDataSource && (
-												<Col span={4}>
-													<FilterLabel label="Reduce to" />
-												</Col>
-											)}
-											<Col span={isVersionV4 && isMetricsDataSource ? 20 : 24}>
+											<Col span={24}>
 												<ReduceToFilter query={query} onChange={handleChangeReduceTo} />
 											</Col>
 										</Row>
@@ -555,22 +484,6 @@ export const Query = memo(function Query({
 										/>
 									)}
 								</Col>
-
-								{isVersionV4 &&
-									isMetricsDataSource &&
-									(panelType === PANEL_TYPES.TABLE || panelType === PANEL_TYPES.PIE) && (
-										<Col flex="1 1 12.5rem">
-											<Row>
-												<Col span={6}>
-													<FilterLabel label="Reduce to" />
-												</Col>
-
-												<Col span={18}>
-													<ReduceToFilter query={query} onChange={handleChangeReduceTo} />
-												</Col>
-											</Row>
-										</Col>
-									)}
 							</Row>
 						</Col>
 					)}

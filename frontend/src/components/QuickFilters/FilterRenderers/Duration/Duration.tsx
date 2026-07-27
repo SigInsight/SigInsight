@@ -43,7 +43,7 @@ function Duration({
 		>
 	>();
 	const [activeKeys, setActiveKeys] = useState<string[]>([
-		filter.defaultOpen ? 'durationNano' : '',
+		filter.defaultOpen ? 'duration_nano' : '',
 	]);
 
 	const {
@@ -81,15 +81,15 @@ function Duration({
 			)
 			.filter(
 				(item) =>
-					(item.op === 'in' && item.key?.key !== 'durationNano') ||
-					(item.key?.key === 'durationNano' && ['>=', '<='].includes(item.op)),
+					(item.op === 'in' && item.key?.key !== 'duration_nano') ||
+					(item.key?.key === 'duration_nano' && ['>=', '<='].includes(item.op)),
 			)
 			.reduce((acc, item) => {
 				const keys = item.key as BaseAutocompleteData;
 				const attributeName = item.key?.key || '';
 				const values = item.value as string[];
 
-				if ((attributeName as AllTraceFilterKeys) === 'durationNano') {
+				if ((attributeName as AllTraceFilterKeys) === 'duration_nano') {
 					if (item.op === '>=') {
 						acc.durationNanoMin = {
 							values: getMs(String(values)),
@@ -135,7 +135,7 @@ function Duration({
 		const items = Object.keys(selectedFilters)?.flatMap((attribute) => {
 			const { keys, values } = selectedFilters[attribute as AllTraceFilterKeys];
 			if (
-				['durationNanoMax', 'durationNanoMin', 'durationNano'].includes(
+				['durationNanoMax', 'durationNanoMin', 'duration_nano'].includes(
 					attribute as AllTraceFilterKeys,
 				)
 			) {
@@ -272,7 +272,7 @@ function Duration({
 		e.preventDefault();
 
 		if (selectedFilters?.durationNanoMin || selectedFilters?.durationNanoMax) {
-			handleRun({ clearByType: 'durationNano' });
+			handleRun({ clearByType: 'duration_nano' });
 		}
 	};
 
@@ -285,7 +285,7 @@ function Duration({
 				onChange={(keys): void => setActiveKeys(keys as string[])}
 				items={[
 					{
-						key: 'durationNano',
+						key: 'duration_nano',
 						children: (
 							<DurationSection
 								setSelectedFilters={setSelectedFilters}
@@ -296,7 +296,7 @@ function Duration({
 					},
 				]}
 			/>
-			{activeKeys.includes('durationNano') && (
+			{activeKeys.includes('duration_nano') && (
 				<Button
 					type="link"
 					onClick={onClearHandler}

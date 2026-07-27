@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button, Input, InputNumber, Popover, Tooltip, Typography } from 'antd';
 import type { DefaultOptionType } from 'antd/es/select';
 import cx from 'classnames';
-import { LogViewMode } from 'container/LogsTable';
 import { FontSize, OptionsMenuConfig } from 'container/OptionsMenu/types';
 import useDebouncedFn from 'hooks/useDebouncedFunction';
 import {
@@ -14,6 +13,7 @@ import {
 	Sliders,
 	X,
 } from 'lucide-react';
+import { LogViewMode } from 'types/logs';
 
 import './LogsFormatOptionsMenu.styles.scss';
 

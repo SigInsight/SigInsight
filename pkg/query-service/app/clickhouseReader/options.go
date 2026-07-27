@@ -21,7 +21,6 @@ const (
 	defaultLocalIndexTable         string        = "signoz_index_v2"
 	defaultErrorTable              string        = "signoz_error_index_v2"
 	defaultDurationTable           string        = "durationSort"
-	defaultUsageExplorerTable      string        = "usage_explorer"
 	defaultSpansTable              string        = "signoz_spans"
 	defaultDependencyGraphTable    string        = "dependency_graph_minutes_v2"
 	defaultTopLevelOperationsTable string        = "top_level_operations"
@@ -59,7 +58,6 @@ type namespaceConfig struct {
 	IndexTable              string
 	LocalIndexTable         string
 	DurationTable           string
-	UsageExplorerTable      string
 	SpansTable              string
 	ErrorTable              string
 	SpanAttributeTableV2    string
@@ -113,7 +111,6 @@ func NewOptions(
 			LocalIndexTable:         defaultLocalIndexTable,
 			ErrorTable:              defaultErrorTable,
 			DurationTable:           defaultDurationTable,
-			UsageExplorerTable:      defaultUsageExplorerTable,
 			SpansTable:              defaultSpansTable,
 			SpanAttributeTableV2:    defaultSpanAttributeTableV2,
 			SpanAttributeKeysTable:  defaultSpanAttributeKeysTable,

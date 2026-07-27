@@ -7,13 +7,13 @@ import (
 )
 
 type ConfigParser struct {
-	lock      sync.Mutex
-	agentConf *confmap.Conf
+	lock        sync.Mutex
+	agentconfig *confmap.Conf
 }
 
-func NewConfigParser(agentConf *confmap.Conf) ConfigParser {
+func NewConfigParser(agentconfig *confmap.Conf) ConfigParser {
 	return ConfigParser{
-		agentConf: agentConf,
+		agentconfig: agentconfig,
 	}
 }
 
@@ -35,7 +35,7 @@ func emptyList() []interface{} {
 }
 
 func (cp *ConfigParser) Service() map[string]interface{} {
-	service := cp.agentConf.Get("service")
+	service := cp.agentconfig.Get("service")
 	if service == nil {
 		return emptyMap()
 	}
@@ -44,7 +44,7 @@ func (cp *ConfigParser) Service() map[string]interface{} {
 
 // components gets the high level parts like receivers, exporters, processors etc
 func (cp *ConfigParser) components(partName, nameOptional string) map[string]interface{} {
-	parts := cp.agentConf.Get(partName)
+	parts := cp.agentconfig.Get(partName)
 	if parts == nil {
 		return emptyMap()
 	}
@@ -160,7 +160,7 @@ func (cp *ConfigParser) CheckProcessorInPipeline(pipelineName, name string) bool
 func (cp *ConfigParser) Merge(c *confmap.Conf) {
 	cp.lock.Lock()
 	defer cp.lock.Unlock()
-	_ = cp.agentConf.Merge(c)
+	_ = cp.agentconfig.Merge(c)
 }
 
 func (cp *ConfigParser) UpdateProcessors(processors map[string]interface{}) {

@@ -1,9 +1,5 @@
-import { ApiV5Instance } from 'api';
 import { ErrorResponseHandler } from 'api/ErrorResponseHandler';
-import { AxiosError, AxiosResponse } from 'axios';
-import { baseAutoCompleteIdKeysOrder } from 'constants/queryBuilder';
-import { createIdFromObjectFields } from 'lib/createIdFromObjectFields';
-import createQueryParams from 'lib/createQueryParams';
+import { AxiosError } from 'axios';
 // ** Helpers
 import { ErrorResponse, SuccessResponse } from 'types/api';
 // ** Types
@@ -13,8 +9,9 @@ import {
 	IQueryAutocompleteResponse,
 } from 'types/api/queryBuilder/queryAutocompleteResponse';
 
+import { getFieldKeys, toAutocompleteData } from './fields';
+
 export const getAggregateAttribute = async ({
-	aggregateOperator,
 	searchText,
 	dataSource,
 	source,
@@ -22,21 +19,15 @@ export const getAggregateAttribute = async ({
 	SuccessResponse<IQueryAutocompleteResponse> | ErrorResponse
 > => {
 	try {
-		const response: AxiosResponse<{
-			data: IQueryAutocompleteResponse;
-		}> = await ApiV5Instance.get(
-			`/autocomplete/aggregate_attributes?${createQueryParams({
-				aggregateOperator,
-				searchText,
-				dataSource: source === 'meter' ? 'meter' : dataSource,
-			})}`,
-		);
+		const response = await getFieldKeys({
+			signal: dataSource,
+			searchText,
+			source: source === 'meter' ? 'meter' : undefined,
+		});
 
-		const payload: BaseAutocompleteData[] =
-			response.data.data.attributeKeys?.map(({ id: _, ...item }) => ({
-				...item,
-				id: createIdFromObjectFields(item, baseAutoCompleteIdKeysOrder),
-			})) || [];
+		const payload: BaseAutocompleteData[] = toAutocompleteData(
+			response.data.data.keys,
+		);
 
 		return {
 			statusCode: 200,

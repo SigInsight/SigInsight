@@ -1,6 +1,6 @@
-import axios from 'api';
+import { ApiV5Instance as axios } from 'api';
 import { ErrorResponse, SuccessResponse } from 'types/api';
-import { PostableAlertRuleV2 } from 'types/api/alerts/alertTypesV2';
+import { PostableAlertRule } from 'types/api/alerts/alertRule';
 
 export interface UpdateAlertRuleResponse {
 	data: string;
@@ -9,7 +9,7 @@ export interface UpdateAlertRuleResponse {
 
 const updateAlertRule = async (
 	id: string,
-	postableAlertRule: PostableAlertRuleV2,
+	postableAlertRule: PostableAlertRule,
 ): Promise<SuccessResponse<UpdateAlertRuleResponse> | ErrorResponse> => {
 	const response = await axios.put(`/rules/${id}`, {
 		...postableAlertRule,

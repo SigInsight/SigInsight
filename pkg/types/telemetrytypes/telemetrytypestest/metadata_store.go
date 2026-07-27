@@ -4,7 +4,6 @@ import (
 	"context"
 	"strings"
 
-	schemamigrator "github.com/SigInsight/OtelCollector/cmd/signozschemamigrator/schema_migrator"
 	"github.com/SigNoz/signoz/pkg/types/metrictypes"
 	"github.com/SigNoz/signoz/pkg/types/telemetrytypes"
 )
@@ -12,14 +11,12 @@ import (
 // MockMetadataStore implements the MetadataStore interface for testing purposes
 type MockMetadataStore struct {
 	// Maps to store test data
-	KeysMap            map[string][]*telemetrytypes.TelemetryFieldKey
-	RelatedValuesMap   map[string][]string
-	AllValuesMap       map[string]*telemetrytypes.TelemetryFieldValues
-	TemporalityMap     map[string]metrictypes.Temporality
-	TypeMap            map[string]metrictypes.Type
-	PromotedPathsMap   map[string]bool
-	LogsJSONIndexesMap map[string][]schemamigrator.Index
-	LookupKeysMap      map[telemetrytypes.MetricMetadataLookupKey]int64
+	KeysMap          map[string][]*telemetrytypes.TelemetryFieldKey
+	RelatedValuesMap map[string][]string
+	AllValuesMap     map[string]*telemetrytypes.TelemetryFieldValues
+	TemporalityMap   map[string]metrictypes.Temporality
+	TypeMap          map[string]metrictypes.Type
+	LookupKeysMap    map[telemetrytypes.MetricMetadataLookupKey]int64
 	// StaticFields holds signal-specific intrinsic field definitions (e.g. telemetrylogs.IntrinsicFields).
 	StaticFields map[string]telemetrytypes.TelemetryFieldKey
 }
@@ -27,15 +24,13 @@ type MockMetadataStore struct {
 // NewMockMetadataStore creates a new instance of MockMetadataStore with initialized maps.
 func NewMockMetadataStore() *MockMetadataStore {
 	return &MockMetadataStore{
-		KeysMap:            make(map[string][]*telemetrytypes.TelemetryFieldKey),
-		RelatedValuesMap:   make(map[string][]string),
-		AllValuesMap:       make(map[string]*telemetrytypes.TelemetryFieldValues),
-		TemporalityMap:     make(map[string]metrictypes.Temporality),
-		TypeMap:            make(map[string]metrictypes.Type),
-		PromotedPathsMap:   make(map[string]bool),
-		LogsJSONIndexesMap: make(map[string][]schemamigrator.Index),
-		LookupKeysMap:      make(map[telemetrytypes.MetricMetadataLookupKey]int64),
-		StaticFields:       make(map[string]telemetrytypes.TelemetryFieldKey),
+		KeysMap:          make(map[string][]*telemetrytypes.TelemetryFieldKey),
+		RelatedValuesMap: make(map[string][]string),
+		AllValuesMap:     make(map[string]*telemetrytypes.TelemetryFieldValues),
+		TemporalityMap:   make(map[string]metrictypes.Temporality),
+		TypeMap:          make(map[string]metrictypes.Type),
+		LookupKeysMap:    make(map[telemetrytypes.MetricMetadataLookupKey]int64),
+		StaticFields:     make(map[string]telemetrytypes.TelemetryFieldKey),
 	}
 }
 
@@ -346,24 +341,6 @@ func (m *MockMetadataStore) FetchTemporalityAndTypeMulti(ctx context.Context, qu
 // SetTemporality sets the temporality for a metric in the mock store
 func (m *MockMetadataStore) SetTemporality(metricName string, temporality metrictypes.Temporality) {
 	m.TemporalityMap[metricName] = temporality
-}
-
-// PromotePaths promotes the paths.
-func (m *MockMetadataStore) PromotePaths(ctx context.Context, paths ...string) error {
-	for _, path := range paths {
-		m.PromotedPathsMap[path] = true
-	}
-	return nil
-}
-
-// GetPromotedPaths returns the promoted paths.
-func (m *MockMetadataStore) GetPromotedPaths(ctx context.Context, paths ...string) (map[string]bool, error) {
-	return m.PromotedPathsMap, nil
-}
-
-// ListLogsJSONIndexes lists the JSON indexes for the logs table.
-func (m *MockMetadataStore) ListLogsJSONIndexes(ctx context.Context, filters ...string) (map[string][]schemamigrator.Index, error) {
-	return m.LogsJSONIndexesMap, nil
 }
 
 func (m *MockMetadataStore) GetFirstSeenFromMetricMetadata(ctx context.Context, lookupKeys []telemetrytypes.MetricMetadataLookupKey) (map[telemetrytypes.MetricMetadataLookupKey]int64, error) {

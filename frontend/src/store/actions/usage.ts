@@ -1,4 +1,4 @@
-import api from 'api';
+import { ApiV5Instance as api } from 'api';
 // eslint-disable-next-line no-restricted-imports
 import { Dispatch } from 'redux';
 import { toUTCEpoch } from 'utils/timeUtils';

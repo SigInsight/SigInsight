@@ -3,7 +3,6 @@ package impluser
 import (
 	"context"
 	"log/slog"
-	"slices"
 	"strings"
 	"time"
 
@@ -21,7 +20,6 @@ import (
 	"github.com/SigNoz/signoz/pkg/types"
 	"github.com/SigNoz/signoz/pkg/types/authtypes"
 	"github.com/SigNoz/signoz/pkg/types/emailtypes"
-	"github.com/SigNoz/signoz/pkg/types/integrationtypes"
 	"github.com/SigNoz/signoz/pkg/valuer"
 )
 
@@ -220,77 +218,6 @@ func (module *setter) CreateUser(ctx context.Context, user *types.User, opts ...
 	return nil
 }
 
-func (module *setter) UpdateUserDeprecated(ctx context.Context, orgID valuer.UUID, id string, user *types.DeprecatedUser, updatedBy string) (*types.DeprecatedUser, error) {
-	existingUser, err := module.getter.GetDeprecatedUserByOrgIDAndID(ctx, orgID, valuer.MustNewUUID(id))
-	if err != nil {
-		return nil, err
-	}
-
-	if err := existingUser.ErrIfRoot(); err != nil {
-		return nil, errors.WithAdditionalf(err, "cannot update root user")
-	}
-
-	if err := existingUser.ErrIfDeleted(); err != nil {
-		return nil, errors.WithAdditionalf(err, "cannot update deleted user")
-	}
-
-	requestor, err := module.getter.GetDeprecatedUserByOrgIDAndID(ctx, orgID, valuer.MustNewUUID(updatedBy))
-	if err != nil {
-		return nil, err
-	}
-
-	roleChange := user.Role != "" && user.Role != existingUser.Role
-
-	if roleChange && requestor.Role != types.RoleAdmin {
-		return nil, errors.New(errors.TypeForbidden, errors.CodeForbidden, "only admins can change roles")
-	}
-
-	// make sure the user is not demoting self from admin
-	if roleChange && existingUser.ID == requestor.ID && existingUser.Role == types.RoleAdmin && user.Role != types.RoleAdmin {
-		return nil, errors.New(errors.TypeForbidden, errors.CodeForbidden, "cannot change self role")
-	}
-
-	if roleChange {
-		err = module.authz.ModifyGrant(ctx,
-			orgID,
-			[]string{authtypes.MustGetSigNozManagedRoleFromExistingRole(existingUser.Role)},
-			[]string{authtypes.MustGetSigNozManagedRoleFromExistingRole(user.Role)},
-			authtypes.MustNewSubject(authtypes.TypeableUser, id, orgID, nil),
-		)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	existingUser.Update(user.DisplayName, user.Role)
-
-	// update the user - idempotent (this does analytics too so keeping it outside txn)
-	if err := module.UpdateAnyUserDeprecated(ctx, orgID, existingUser); err != nil {
-		return nil, err
-	}
-
-	err = module.store.RunInTx(ctx, func(ctx context.Context) error {
-		if roleChange {
-			// delete old role entries and create new ones
-			if err := module.userRoleStore.DeleteUserRoles(ctx, existingUser.ID); err != nil {
-				return err
-			}
-
-			// create new ones
-			if err := module.createUserRoleEntries(ctx, existingUser.OrgID, existingUser.ID, []string{authtypes.MustGetSigNozManagedRoleFromExistingRole(user.Role)}); err != nil {
-				return err
-			}
-		}
-
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return existingUser, nil
-}
-
 func (module *setter) UpdateUser(ctx context.Context, orgID valuer.UUID, userID valuer.UUID, updatable *types.UpdatableUser) (*types.User, error) {
 	existingUser, err := module.getter.GetUserByOrgIDAndID(ctx, orgID, userID)
 	if err != nil {
@@ -330,23 +257,6 @@ func (module *setter) UpdateAnyUser(ctx context.Context, orgID valuer.UUID, user
 	return nil
 }
 
-func (module *setter) UpdateAnyUserDeprecated(ctx context.Context, orgID valuer.UUID, deprecateUser *types.DeprecatedUser) error {
-	user := types.NewUserFromDeprecatedUser(deprecateUser)
-	if err := module.store.UpdateUser(ctx, orgID, user); err != nil {
-		return err
-	}
-
-	traits := types.NewTraitsFromDeprecatedUser(deprecateUser)
-	module.analytics.IdentifyUser(ctx, user.OrgID.String(), user.ID.String(), traits)
-	module.analytics.TrackUser(ctx, user.OrgID.String(), user.ID.String(), "User Updated", traits)
-
-	if err := module.tokenizer.DeleteIdentity(ctx, user.ID); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (module *setter) DeleteUser(ctx context.Context, orgID valuer.UUID, id string, deletedBy string) error {
 	user, err := module.store.GetUser(ctx, valuer.MustNewUUID(id))
 	if err != nil {
@@ -359,10 +269,6 @@ func (module *setter) DeleteUser(ctx context.Context, orgID valuer.UUID, id stri
 
 	if err := user.ErrIfDeleted(); err != nil {
 		return errors.WithAdditionalf(err, "cannot delete already deleted user")
-	}
-
-	if slices.Contains(integrationtypes.AllIntegrationUserEmails, integrationtypes.IntegrationUserEmail(user.Email.String())) {
-		return errors.New(errors.TypeForbidden, errors.CodeForbidden, "integration user cannot be deleted")
 	}
 
 	deleter, err := module.store.GetUser(ctx, valuer.MustNewUUID(deletedBy))
@@ -667,26 +573,6 @@ func (module *setter) GetOrCreateUser(ctx context.Context, user *types.User, opt
 	return user, nil
 }
 
-func (module *setter) CreateAPIKey(ctx context.Context, apiKey *types.StorableAPIKey) error {
-	return module.store.CreateAPIKey(ctx, apiKey)
-}
-
-func (module *setter) UpdateAPIKey(ctx context.Context, id valuer.UUID, apiKey *types.StorableAPIKey, updaterID valuer.UUID) error {
-	return module.store.UpdateAPIKey(ctx, id, apiKey, updaterID)
-}
-
-func (module *setter) ListAPIKeys(ctx context.Context, orgID valuer.UUID) ([]*types.StorableAPIKeyUser, error) {
-	return module.store.ListAPIKeys(ctx, orgID)
-}
-
-func (module *setter) GetAPIKey(ctx context.Context, orgID, id valuer.UUID) (*types.StorableAPIKeyUser, error) {
-	return module.store.GetAPIKey(ctx, orgID, id)
-}
-
-func (module *setter) RevokeAPIKey(ctx context.Context, id, removedByUserID valuer.UUID) error {
-	return module.store.RevokeAPIKey(ctx, id, removedByUserID)
-}
-
 func (module *setter) CreateFirstUser(ctx context.Context, organization *types.Organization, name string, email valuer.Email, passwd string) (*types.User, error) {
 	user, err := types.NewRootUser(name, email, organization.ID)
 	if err != nil {
@@ -740,11 +626,6 @@ func (module *setter) Collect(ctx context.Context, orgID valuer.UUID) (map[strin
 		stats["user.count.active"] = counts[types.UserStatusActive]
 		stats["user.count.deleted"] = counts[types.UserStatusDeleted]
 		stats["user.count.pending_invite"] = counts[types.UserStatusPendingInvite]
-	}
-
-	count, err := module.store.CountAPIKeyByOrgID(ctx, orgID)
-	if err == nil {
-		stats["factor.api_key.count"] = count
 	}
 
 	return stats, nil

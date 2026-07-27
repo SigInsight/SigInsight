@@ -2,7 +2,7 @@ import { Dispatch, SetStateAction } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Form, Input } from 'antd';
 
-import { EmailChannel } from '../../CreateAlertChannels/config';
+import { ChannelConfig } from '../../CreateAlertChannels/config';
 
 function EmailForm({ setSelectedConfig }: EmailFormProps): JSX.Element {
 	const { t } = useTranslation('channels');
@@ -43,7 +43,7 @@ function EmailForm({ setSelectedConfig }: EmailFormProps): JSX.Element {
 }
 
 interface EmailFormProps {
-	setSelectedConfig: Dispatch<SetStateAction<Partial<EmailChannel>>>;
+	setSelectedConfig: Dispatch<SetStateAction<ChannelConfig>>;
 }
 
 export default EmailForm;

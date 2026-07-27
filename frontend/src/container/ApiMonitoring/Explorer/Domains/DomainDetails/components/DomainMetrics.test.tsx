@@ -1,7 +1,6 @@
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { render, screen, waitFor } from '@testing-library/react';
 import { TraceAggregation } from 'api/v5/v5';
-import { ENTITY_VERSION_V5 } from 'constants/app';
 import { GetMetricQueryRange } from 'lib/dashboard/getQueryResults';
 import { IBuilderQuery } from 'types/api/queryBuilder/queryBuilderData';
 
@@ -98,16 +97,13 @@ describe('DomainMetrics - V5 Query Payload Tests', () => {
 				expect(GetMetricQueryRange).toHaveBeenCalledTimes(1);
 			});
 
-			const [payload, version] = (GetMetricQueryRange as jest.Mock).mock.calls[0];
-
-			// Verify it's using V5
-			expect(version).toBe(ENTITY_VERSION_V5);
+			const [payload] = (GetMetricQueryRange as jest.Mock).mock.calls[0];
 
 			// Verify time range
 			expect(payload.start).toBe(1758259531000);
 			expect(payload.end).toBe(1758261331000);
 
-			// Verify V3 payload structure (getDomainMetricsQueryPayload returns V3 format)
+			// Verify the V5 query envelope.
 			expect(payload.query).toBeDefined();
 			expect(payload.query.builder).toBeDefined();
 			expect(payload.query.builder.queryData).toBeDefined();

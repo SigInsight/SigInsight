@@ -1,7 +1,7 @@
 import { Skeleton, Typography } from 'antd';
 import axios from 'axios';
 import { SOMETHING_WENT_WRONG } from 'constants/api';
-import { ENTITY_VERSION_V4 } from 'constants/app';
+import { ENTITY_VERSION_V5 } from 'constants/app';
 import Graph from 'container/GridCardLayout/GridCard';
 import { Card, GraphContainer } from 'container/MetricsApplication/styles';
 import { OnClickPluginOpts } from 'lib/uPlotLib/plugins/onClickPlugin';
@@ -41,7 +41,7 @@ function TopLevelOperation({
 							onClickHandler={handleGraphClick(opName)}
 							onDragSelect={onDragSelect}
 							isQueryEnabled={!topLevelOperationsIsLoading}
-							version={ENTITY_VERSION_V4}
+							version={ENTITY_VERSION_V5}
 						/>
 					)}
 				</GraphContainer>

@@ -87,7 +87,7 @@ def create_webhook_notification_channel(
         send_resolved: bool = True,
     ) -> str:
         response = requests.post(
-            signoz.self.host_configs["8080"].get("/api/v1/channels"),
+            signoz.self.host_configs["8080"].get("/api/v5/channels"),
             json={
                 "name": channel_name,
                 "webhook_configs": [

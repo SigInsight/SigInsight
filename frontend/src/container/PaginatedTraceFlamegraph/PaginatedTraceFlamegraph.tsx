@@ -8,7 +8,7 @@ import useGetTraceFlamegraph from 'hooks/trace/useGetTraceFlamegraph';
 import useUrlQuery from 'hooks/useUrlQuery';
 import { generateColor } from 'lib/uPlotLib/utils/generateColor';
 import { TraceDetailFlamegraphURLProps } from 'types/api/trace/getTraceFlamegraph';
-import { Span } from 'types/api/trace/getTraceV2';
+import { Span } from 'types/api/trace/getTraceWaterfall';
 
 import { TraceFlamegraphStates } from './constants';
 import Error from './TraceFlamegraphStates/Error/Error';

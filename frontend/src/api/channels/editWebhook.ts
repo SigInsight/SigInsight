@@ -1,12 +1,12 @@
-import axios from 'api';
-import { ErrorResponseHandlerV2 } from 'api/ErrorResponseHandlerV2';
+import { ApiV5Instance as axios } from 'api';
+import { HttpErrorResponseHandler } from 'api/HttpErrorResponseHandler';
 import { AxiosError } from 'axios';
-import { ErrorV2Resp, SuccessResponseV2 } from 'types/api';
+import { HttpErrorPayload, HttpSuccessResponse } from 'types/api';
 import { PayloadProps, Props } from 'types/api/channels/editWebhook';
 
 const editWebhook = async (
 	props: Props,
-): Promise<SuccessResponseV2<PayloadProps>> => {
+): Promise<HttpSuccessResponse<PayloadProps>> => {
 	try {
 		let httpConfig = {};
 		const username = props.username ? props.username.trim() : '';
@@ -44,7 +44,7 @@ const editWebhook = async (
 			data: response.data,
 		};
 	} catch (error) {
-		ErrorResponseHandlerV2(error as AxiosError<ErrorV2Resp>);
+		HttpErrorResponseHandler(error as AxiosError<HttpErrorPayload>);
 		throw error;
 	}
 };

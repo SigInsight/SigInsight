@@ -11,15 +11,15 @@ jest.mock('../configs/logsLoaderConfig', () => ({
 		priority: ['local', 'url', 'default'],
 		local: jest.fn(() => ({
 			columns: [{ name: 'local-column' }],
-			formatting: { maxLines: 5, format: 'table', fontSize: 'medium', version: 1 },
+			formatting: { maxLines: 5, format: 'table', fontSize: 'medium' },
 		})),
 		url: jest.fn(() => ({
 			columns: [{ name: 'url-column' }],
-			formatting: { maxLines: 3, format: 'table', fontSize: 'small', version: 1 },
+			formatting: { maxLines: 3, format: 'table', fontSize: 'small' },
 		})),
 		default: jest.fn(() => ({
 			columns: [{ name: 'default-column' }],
-			formatting: { maxLines: 2, format: 'table', fontSize: 'small', version: 1 },
+			formatting: { maxLines: 2, format: 'table', fontSize: 'small' },
 		})),
 	},
 }));
@@ -63,7 +63,7 @@ describe('usePreferenceLoader', () => {
 		// Should have loaded from local storage (highest priority)
 		expect(result.current.preferences).toEqual({
 			columns: [{ name: 'local-column' }],
-			formatting: { maxLines: 5, format: 'table', fontSize: 'medium', version: 1 },
+			formatting: { maxLines: 5, format: 'table', fontSize: 'medium' },
 		});
 		expect(result.current.error).toBe(null);
 		expect(setReSync).not.toHaveBeenCalled(); // Should not call setReSync when reSync is false
@@ -120,7 +120,7 @@ describe('usePreferenceLoader', () => {
 		const localSpy: jest.SpyInstance = jest.spyOn(logsLoaderConfig, 'local');
 		localSpy.mockImplementationOnce(() => ({
 			columns: [{ name: 'local-column' }],
-			formatting: { maxLines: 5, format: 'table', fontSize: 'medium', version: 1 },
+			formatting: { maxLines: 5, format: 'table', fontSize: 'medium' },
 		}));
 		localSpy.mockImplementationOnce(() => {
 			throw new Error('Loading failed');

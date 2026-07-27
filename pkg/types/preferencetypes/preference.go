@@ -55,15 +55,6 @@ type StorableUserPreference struct {
 
 func NewAvailablePreference() map[Name]Preference {
 	return map[Name]Preference{
-		NameOrgOnboarding: {
-			Name:          NameOrgOnboarding,
-			Description:   "Organisation Onboarding",
-			ValueType:     ValueTypeBoolean,
-			DefaultValue:  MustNewValue(false, ValueTypeBoolean),
-			AllowedScopes: []Scope{ScopeOrg},
-			AllowedValues: []string{},
-			Value:         MustNewValue(false, ValueTypeBoolean),
-		},
 		NameWelcomeChecklistDoLater: {
 			Name:          NameWelcomeChecklistDoLater,
 			Description:   "Welcome Checklist Do Later",

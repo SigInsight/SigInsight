@@ -1,7 +1,6 @@
 import { act } from 'react-dom/test-utils';
 import { renderHook } from '@testing-library/react';
 import { TelemetryFieldKey } from 'api/v5/v5';
-import { LogViewMode } from 'container/LogsTable';
 import { FontSize } from 'container/OptionsMenu/types';
 import {
 	FormattingOptions,
@@ -10,6 +9,7 @@ import {
 } from 'providers/preferences/types';
 import { DataTypes } from 'types/api/queryBuilder/queryAutocompleteResponse';
 import { DataSource } from 'types/common/queryBuilder';
+import { LogViewMode } from 'types/logs';
 
 import { usePreferenceUpdater } from '../updater/usePreferenceUpdater';
 
@@ -48,7 +48,6 @@ describe('usePreferenceUpdater', () => {
 			maxLines: 1,
 			format: 'table' as LogViewMode,
 			fontSize: 'small' as FontSize,
-			version: 1,
 		},
 	};
 
@@ -115,7 +114,6 @@ describe('usePreferenceUpdater', () => {
 			maxLines: 10,
 			format: 'table' as LogViewMode,
 			fontSize: 'large' as FontSize,
-			version: 1,
 		};
 
 		const { result } = renderHook(() =>
@@ -180,7 +178,6 @@ describe('usePreferenceUpdater', () => {
 			maxLines: 10,
 			format: 'table' as LogViewMode,
 			fontSize: 'large' as FontSize,
-			version: 1,
 		};
 
 		const { result } = renderHook(() =>

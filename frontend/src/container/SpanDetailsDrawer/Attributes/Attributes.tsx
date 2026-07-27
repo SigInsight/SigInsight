@@ -5,7 +5,7 @@ import CopyClipboardHOC from 'components/Logs/CopyClipboardHOC';
 import { flattenObject } from 'container/LogDetailedView/utils';
 import { usePinnedAttributes } from 'hooks/spanDetails/usePinnedAttributes';
 import { Pin } from 'lucide-react';
-import { Span } from 'types/api/trace/getTraceV2';
+import { Span } from 'types/api/trace/getTraceWaterfall';
 
 import NoData from '../NoData/NoData';
 import AttributeActions from './AttributeActions';

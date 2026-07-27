@@ -4,8 +4,7 @@ import (
 	"strings"
 
 	"github.com/SigNoz/signoz/pkg/errors"
-	tracev4 "github.com/SigNoz/signoz/pkg/query-service/app/traces/v4"
-	v3 "github.com/SigNoz/signoz/pkg/query-service/model/v3"
+	qbtypes "github.com/SigNoz/signoz/pkg/types/querybuildertypes/querybuildertypesv5"
 	"github.com/SigNoz/signoz/pkg/types/tracefunneltypes"
 )
 
@@ -21,7 +20,7 @@ func sanitizeClause(clause string) string {
 	return "AND " + clause
 }
 
-func ValidateTraces(funnel *tracefunneltypes.StorableFunnel, timeRange tracefunneltypes.TimeRange) (*v3.ClickHouseQuery, error) {
+func ValidateTraces(funnel *tracefunneltypes.StorableFunnel, timeRange tracefunneltypes.TimeRange) (*qbtypes.ClickHouseQuery, error) {
 	funnelSteps := funnel.Steps
 
 	// Build step data for the dynamic query builder
@@ -34,7 +33,7 @@ func ValidateTraces(funnel *tracefunneltypes.StorableFunnel, timeRange tracefunn
 
 	for i, step := range funnelSteps {
 		// Build filter clause
-		clause, err := tracev4.BuildTracesFilterQuery(step.Filters, false)
+		clause, err := buildTracesFilterQuery(step.Filters)
 		if err != nil {
 			return nil, err
 		}
@@ -58,12 +57,12 @@ func ValidateTraces(funnel *tracefunneltypes.StorableFunnel, timeRange tracefunn
 
 	query := BuildFunnelValidationQuery(steps, timeRange.StartTime, timeRange.EndTime)
 
-	return &v3.ClickHouseQuery{
+	return &qbtypes.ClickHouseQuery{
 		Query: query,
 	}, nil
 }
 
-func GetFunnelAnalytics(funnel *tracefunneltypes.StorableFunnel, timeRange tracefunneltypes.TimeRange) (*v3.ClickHouseQuery, error) {
+func GetFunnelAnalytics(funnel *tracefunneltypes.StorableFunnel, timeRange tracefunneltypes.TimeRange) (*qbtypes.ClickHouseQuery, error) {
 	funnelSteps := funnel.Steps
 
 	// Build step data for the dynamic query builder
@@ -77,7 +76,7 @@ func GetFunnelAnalytics(funnel *tracefunneltypes.StorableFunnel, timeRange trace
 
 	for i, step := range funnelSteps {
 		// Build filter clause
-		clause, err := tracev4.BuildTracesFilterQuery(step.Filters, false)
+		clause, err := buildTracesFilterQuery(step.Filters)
 		if err != nil {
 			return nil, err
 		}
@@ -108,10 +107,10 @@ func GetFunnelAnalytics(funnel *tracefunneltypes.StorableFunnel, timeRange trace
 
 	query := BuildFunnelOverviewQuery(steps, timeRange.StartTime, timeRange.EndTime)
 
-	return &v3.ClickHouseQuery{Query: query}, nil
+	return &qbtypes.ClickHouseQuery{Query: query}, nil
 }
 
-func GetFunnelStepAnalytics(funnel *tracefunneltypes.StorableFunnel, timeRange tracefunneltypes.TimeRange, stepStart, stepEnd int64) (*v3.ClickHouseQuery, error) {
+func GetFunnelStepAnalytics(funnel *tracefunneltypes.StorableFunnel, timeRange tracefunneltypes.TimeRange, stepStart, stepEnd int64) (*qbtypes.ClickHouseQuery, error) {
 	if stepStart == stepEnd {
 		return nil, errors.NewInvalidInputf(errors.CodeInvalidInput, "step start and end cannot be the same for /step/overview")
 	}
@@ -130,7 +129,7 @@ func GetFunnelStepAnalytics(funnel *tracefunneltypes.StorableFunnel, timeRange t
 
 	for i, step := range funnelSteps {
 		// Build filter clause
-		clause, err := tracev4.BuildTracesFilterQuery(step.Filters, false)
+		clause, err := buildTracesFilterQuery(step.Filters)
 		if err != nil {
 			return nil, err
 		}
@@ -163,10 +162,10 @@ func GetFunnelStepAnalytics(funnel *tracefunneltypes.StorableFunnel, timeRange t
 
 	query := BuildFunnelStepOverviewQuery(steps, timeRange.StartTime, timeRange.EndTime, stepStart, stepEnd)
 
-	return &v3.ClickHouseQuery{Query: query}, nil
+	return &qbtypes.ClickHouseQuery{Query: query}, nil
 }
 
-func GetStepAnalytics(funnel *tracefunneltypes.StorableFunnel, timeRange tracefunneltypes.TimeRange) (*v3.ClickHouseQuery, error) {
+func GetStepAnalytics(funnel *tracefunneltypes.StorableFunnel, timeRange tracefunneltypes.TimeRange) (*qbtypes.ClickHouseQuery, error) {
 	funnelSteps := funnel.Steps
 
 	// Build step data for the dynamic query builder
@@ -179,7 +178,7 @@ func GetStepAnalytics(funnel *tracefunneltypes.StorableFunnel, timeRange tracefu
 
 	for i, step := range funnelSteps {
 		// Build filter clause
-		clause, err := tracev4.BuildTracesFilterQuery(step.Filters, false)
+		clause, err := buildTracesFilterQuery(step.Filters)
 		if err != nil {
 			return nil, err
 		}
@@ -203,12 +202,12 @@ func GetStepAnalytics(funnel *tracefunneltypes.StorableFunnel, timeRange tracefu
 
 	query := BuildFunnelCountQuery(steps, timeRange.StartTime, timeRange.EndTime)
 
-	return &v3.ClickHouseQuery{
+	return &qbtypes.ClickHouseQuery{
 		Query: query,
 	}, nil
 }
 
-func GetSlowestTraces(funnel *tracefunneltypes.StorableFunnel, timeRange tracefunneltypes.TimeRange, stepStart, stepEnd int64) (*v3.ClickHouseQuery, error) {
+func GetSlowestTraces(funnel *tracefunneltypes.StorableFunnel, timeRange tracefunneltypes.TimeRange, stepStart, stepEnd int64) (*qbtypes.ClickHouseQuery, error) {
 	funnelSteps := funnel.Steps
 	containsErrorT1 := 0
 	containsErrorT2 := 0
@@ -227,11 +226,11 @@ func GetSlowestTraces(funnel *tracefunneltypes.StorableFunnel, timeRange tracefu
 	}
 
 	// Build filter clauses for the steps
-	clauseStep1, err := tracev4.BuildTracesFilterQuery(funnelSteps[stepStartOrder].Filters, false)
+	clauseStep1, err := buildTracesFilterQuery(funnelSteps[stepStartOrder].Filters)
 	if err != nil {
 		return nil, err
 	}
-	clauseStep2, err := tracev4.BuildTracesFilterQuery(funnelSteps[stepEndOrder].Filters, false)
+	clauseStep2, err := buildTracesFilterQuery(funnelSteps[stepEndOrder].Filters)
 	if err != nil {
 		return nil, err
 	}
@@ -264,11 +263,11 @@ func GetSlowestTraces(funnel *tracefunneltypes.StorableFunnel, timeRange tracefu
 		latencyPointerT1,
 		latencyPointerT2,
 	)
-	return &v3.ClickHouseQuery{Query: query}, nil
+	return &qbtypes.ClickHouseQuery{Query: query}, nil
 }
 
 // TODO: Showing traces with error which are slow makes little sense as a product. We should show the error spans directly in the funnel chart. Rather showing traces which has drop between steps will be more relevant
-func GetErroredTraces(funnel *tracefunneltypes.StorableFunnel, timeRange tracefunneltypes.TimeRange, stepStart, stepEnd int64) (*v3.ClickHouseQuery, error) {
+func GetErroredTraces(funnel *tracefunneltypes.StorableFunnel, timeRange tracefunneltypes.TimeRange, stepStart, stepEnd int64) (*qbtypes.ClickHouseQuery, error) {
 	funnelSteps := funnel.Steps
 	containsErrorT1 := 0
 	containsErrorT2 := 0
@@ -287,11 +286,11 @@ func GetErroredTraces(funnel *tracefunneltypes.StorableFunnel, timeRange tracefu
 	}
 
 	// Build filter clauses for the steps
-	clauseStep1, err := tracev4.BuildTracesFilterQuery(funnelSteps[stepStartOrder].Filters, false)
+	clauseStep1, err := buildTracesFilterQuery(funnelSteps[stepStartOrder].Filters)
 	if err != nil {
 		return nil, err
 	}
-	clauseStep2, err := tracev4.BuildTracesFilterQuery(funnelSteps[stepEndOrder].Filters, false)
+	clauseStep2, err := buildTracesFilterQuery(funnelSteps[stepEndOrder].Filters)
 	if err != nil {
 		return nil, err
 	}
@@ -324,5 +323,5 @@ func GetErroredTraces(funnel *tracefunneltypes.StorableFunnel, timeRange tracefu
 		latencyPointerT1,
 		latencyPointerT2,
 	)
-	return &v3.ClickHouseQuery{Query: query}, nil
+	return &qbtypes.ClickHouseQuery{Query: query}, nil
 }

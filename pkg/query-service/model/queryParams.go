@@ -4,31 +4,12 @@ import (
 	"time"
 )
 
-type InstantQueryMetricsParams struct {
-	Time  time.Time
-	Query string
-	Stats string
-}
-
-type QueryRangeParams struct {
-	Start time.Time
-	End   time.Time
-	Step  time.Duration
-	Query string
-	Stats string
-}
-
 const (
 	StringTagMapCol   = "stringTagMap"
 	NumberTagMapCol   = "numberTagMap"
 	BoolTagMapCol     = "boolTagMap"
 	ResourceTagMapCol = "resourceTagsMap"
 )
-
-type DashboardVars struct {
-	Query     string                 `json:"query"`
-	Variables map[string]interface{} `json:"variables,omitempty"`
-}
 
 // Metric auto complete types
 type metricTags map[string]string
@@ -38,16 +19,6 @@ type MetricAutocompleteTagParams struct {
 	MetricTags metricTags
 	Match      string
 	TagKey     string
-}
-
-type GetTopOperationsParams struct {
-	StartTime   string `json:"start"`
-	EndTime     string `json:"end"`
-	ServiceName string `json:"service"`
-	Start       *time.Time
-	End         *time.Time
-	Tags        []TagQueryParam `json:"tags"`
-	Limit       int             `json:"limit"`
 }
 
 type EventType string
@@ -68,16 +39,6 @@ type RegisterEventParams struct {
 	EventName   string                 `json:"eventName"`
 	Attributes  map[string]interface{} `json:"attributes"`
 	RateLimited bool                   `json:"rateLimited"`
-}
-
-type GetUsageParams struct {
-	StartTime   string
-	EndTime     string
-	ServiceName string
-	Period      string
-	StepHour    int
-	Start       *time.Time
-	End         *time.Time
 }
 
 type GetServicesParams struct {
@@ -320,15 +281,6 @@ type GetFilteredSpanAggregatesParams struct {
 	End                *time.Time
 }
 
-type SearchTracesParams struct {
-	TraceID          string `json:"traceId"`
-	LevelUp          int    `json:"levelUp"`
-	LevelDown        int    `json:"levelDown"`
-	SpanID           string `json:"spanId"`
-	SpansRenderLimit int    `json:"spansRenderLimit"`
-	MaxSpansInTrace  int    `json:"maxSpansInTrace"`
-}
-
 type GetWaterfallSpansForTraceWithMetadataParams struct {
 	SelectedSpanID              string   `json:"selectedSpanId"`
 	IsSelectedSpanIDUnCollapsed bool     `json:"isSelectedSpanIDUnCollapsed"`
@@ -423,16 +375,7 @@ type FilterCondition struct {
 }
 
 type GetCustomRetentionTTLResponse struct {
-	Version string `json:"version"`
-	Status  string `json:"status"`
-
-	// V1 fields
-	// LogsTime             int `json:"logs_ttl_duration_hrs,omitempty"`
-	// LogsMoveTime         int `json:"logs_move_ttl_duration_hrs,omitempty"`
-	ExpectedLogsTime     int `json:"expected_logs_ttl_duration_hrs,omitempty"`
-	ExpectedLogsMoveTime int `json:"expected_logs_move_ttl_duration_hrs,omitempty"`
-
-	// V2 fields
+	Status             string                `json:"status"`
 	DefaultTTLDays     int                   `json:"default_ttl_days,omitempty"`
 	TTLConditions      []CustomRetentionRule `json:"ttl_conditions,omitempty"`
 	ColdStorageVolume  string                `json:"cold_storage_volume,omitempty"`
@@ -486,15 +429,6 @@ type FilterItem struct {
 type FilterSet struct {
 	Operator string       `json:"op,omitempty"`
 	Items    []FilterItem `json:"items"`
-}
-
-type UpdateField struct {
-	Name             string `json:"name"`
-	DataType         string `json:"dataType"`
-	Type             string `json:"type"`
-	Selected         bool   `json:"selected"`
-	IndexType        string `json:"index"`
-	IndexGranularity int    `json:"indexGranularity"`
 }
 
 type LogsFilterParams struct {

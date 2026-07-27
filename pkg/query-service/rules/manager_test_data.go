@@ -4,7 +4,7 @@ import (
 	"math"
 	"time"
 
-	v3 "github.com/SigNoz/signoz/pkg/query-service/model/v3"
+	"github.com/SigNoz/signoz/pkg/query-service/model/querytypes"
 	"github.com/SigNoz/signoz/pkg/types/metrictypes"
 	qbtypes "github.com/SigNoz/signoz/pkg/types/querybuildertypes/querybuildertypesv5"
 	ruletypes "github.com/SigNoz/signoz/pkg/types/ruletypes"
@@ -52,11 +52,12 @@ func ThresholdRuleAtLeastOnceValueAbove(target float64, recovery *float64) rulet
 		},
 		Version: "v5",
 		RuleCondition: &ruletypes.RuleCondition{
-			MatchType: ruletypes.AtleastOnce,
-			CompareOp: ruletypes.ValueIsAbove,
-			Target:    &target,
-			CompositeQuery: &v3.CompositeQuery{
-				QueryType: v3.QueryTypeBuilder,
+			MatchType:     ruletypes.AtleastOnce,
+			CompareOp:     ruletypes.ValueIsAbove,
+			Target:        &target,
+			SelectedQuery: "A",
+			CompositeQuery: &ruletypes.CompositeQuery{
+				QueryType: querytypes.QueryTypeBuilder,
 				Queries: []qbtypes.QueryEnvelope{
 					{
 						Type: qbtypes.QueryTypeBuilder,
@@ -115,9 +116,9 @@ func BuildPromAtLeastOnceValueAbove(target float64, recovery *float64) ruletypes
 			SelectedQuery: "A",
 			CompareOp:     ruletypes.ValueIsAbove,
 			Target:        &target,
-			CompositeQuery: &v3.CompositeQuery{
-				QueryType: v3.QueryTypePromQL,
-				PanelType: v3.PanelTypeGraph,
+			CompositeQuery: &ruletypes.CompositeQuery{
+				QueryType: querytypes.QueryTypePromQL,
+				PanelType: querytypes.PanelTypeGraph,
 				Queries: []qbtypes.QueryEnvelope{
 					{
 						Type: qbtypes.QueryTypePromQL,

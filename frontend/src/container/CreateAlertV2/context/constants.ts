@@ -194,7 +194,6 @@ export const INITIAL_NOTIFICATION_SETTINGS_STATE: NotificationSettingsState = {
 		conditions: [],
 	},
 	description: NOTIFICATION_MESSAGE_PLACEHOLDER,
-	routingPolicies: false,
 };
 
 export const INITIAL_CREATE_ALERT_STATE = {

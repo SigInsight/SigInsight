@@ -55,8 +55,8 @@ Exceptions.defaultProps = {
 };
 
 const BASE_URL = ENVIRONMENT.baseURL;
-const listErrorsURL = `${BASE_URL}/api/v1/listErrors`;
-const countErrorsURL = `${BASE_URL}/api/v1/countErrors`;
+const listErrorsURL = `${BASE_URL}/api/v5/exceptions`;
+const countErrorsURL = `${BASE_URL}/api/v5/exceptions/count`;
 
 const postListErrorsSpy = jest.fn();
 

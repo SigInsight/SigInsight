@@ -1,6 +1,6 @@
 import { PANEL_TYPES } from 'constants/queryBuilder';
-import { ThresholdProps } from 'container/NewWidget/RightContainer/Threshold/types';
-import { QueryDataV3 } from 'types/api/widgets/getQuery';
+import { ThresholdProps } from 'features/query-visualization/threshold';
+import { QueryRangeResult } from 'types/api/widgets/getQuery';
 
 import { GetYAxisScale, getYAxisScale } from './getYAxisScale';
 
@@ -28,7 +28,7 @@ describe('getYAxisScale', () => {
 		},
 	];
 
-	const mockSeriesData: QueryDataV3[] = [
+	const mockSeriesData: QueryRangeResult[] = [
 		{
 			list: null,
 			queryName: 'Mock Query',

@@ -2,59 +2,30 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useQuery } from 'react-query';
 import { Button } from '@signozhq/ui';
 import { Form, Input, Select, Typography } from 'antd';
-import getVersion from 'api/v1/version/get';
-import get from 'api/v2/sessions/context/get';
-import post from 'api/v2/sessions/email_password/post';
+import get from 'api/v5/sessions/context/get';
+import post from 'api/v5/sessions/email_password/post';
+import getVersion from 'api/v5/version/get';
 import afterLogin from 'AppRoutes/utils';
 import AuthError from 'components/AuthError/AuthError';
 import ROUTES from 'constants/routes';
-import useUrlQuery from 'hooks/useUrlQuery';
 import history from 'lib/history';
 import { Activity, ArrowRight } from 'lucide-react';
-import { ErrorV2 } from 'types/api';
+import { HttpError } from 'types/api';
 import APIError from 'types/api/error';
-import { SessionsContext } from 'types/api/v2/sessions/context/get';
+import { SessionsContext } from 'types/api/v5/sessions/context/get';
 
 import { FormContainer, Label, ParentContainer } from './styles';
 
 import './Login.styles.scss';
 
-function parseErrors(errors: string): { message: string }[] {
-	try {
-		const parsedErrors = JSON.parse(errors);
-		return parsedErrors.map((error: { message: string }) => ({
-			message: error.message,
-		}));
-	} catch (e) {
-		console.error('Failed to parse errors:', e);
-		return [];
-	}
-}
-
 type FormValues = {
 	email: string;
 	password: string;
 	orgId: string;
-	url: string;
 };
 
 // eslint-disable-next-line sonarjs/cognitive-complexity
 function Login(): JSX.Element {
-	const urlQueryParams = useUrlQuery();
-	// override for callbackAuthN in case of some misconfiguration
-	const isPasswordAuthNEnabled = (urlQueryParams.get('password') || 'N') === 'Y';
-
-	// callbackAuthN handling
-	const accessToken = urlQueryParams.get('accessToken') || '';
-	const refreshToken = urlQueryParams.get('refreshToken') || '';
-
-	// callbackAuthN error handling
-	const callbackAuthError = urlQueryParams.get('callbackauthnerr') || '';
-	const callbackAuthErrorCode = urlQueryParams.get('code') || '';
-	const callbackAuthErrorMessage = urlQueryParams.get('message') || '';
-	const callbackAuthErrorURL = urlQueryParams.get('url') || '';
-	const callbackAuthErrorAdditional = urlQueryParams.get('errors') || '';
-
 	const [sessionsContext, setSessionsContext] = useState<SessionsContext>();
 	const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 	const [sessionsOrgId, setSessionsOrgId] = useState<string>('');
@@ -77,7 +48,7 @@ function Login(): JSX.Element {
 		error: versionError,
 	} = useQuery({
 		queryFn: getVersion,
-		queryKey: ['api/v1/version/get'],
+		queryKey: ['api/v5/version/get'],
 		enabled: true,
 	});
 
@@ -135,33 +106,10 @@ function Login(): JSX.Element {
 			}
 		});
 
-		return isPasswordAuthN || isPasswordAuthNEnabled;
-	}, [sessionsContext, sessionsOrgId, isPasswordAuthNEnabled]);
+		return isPasswordAuthN;
+	}, [sessionsContext, sessionsOrgId]);
 
-	const isCallbackAuthN = useMemo((): boolean => {
-		if (!sessionsContext) {
-			return false;
-		}
-
-		if (!sessionsOrgId) {
-			return false;
-		}
-
-		let isCallbackAuthN = false;
-		sessionsContext.orgs.forEach((orgSession) => {
-			if (
-				orgSession.id === sessionsOrgId &&
-				orgSession.authNSupport?.callback?.length > 0
-			) {
-				isCallbackAuthN = true;
-				form.setFieldValue('url', orgSession.authNSupport.callback[0].url);
-			}
-		});
-
-		return isCallbackAuthN && !isPasswordAuthNEnabled;
-	}, [sessionsContext, sessionsOrgId, isPasswordAuthNEnabled, form]);
-
-	const sessionsOrgWarning = useMemo((): ErrorV2 | null => {
+	const sessionsOrgWarning = useMemo((): HttpError | null => {
 		if (!sessionsContext) {
 			return null;
 		}
@@ -179,13 +127,6 @@ function Login(): JSX.Element {
 
 		return sessionsOrgWarning || null;
 	}, [sessionsContext, sessionsOrgId]);
-
-	// once the callback authN redirects to the login screen with access_token and refresh_token navigate them to homepage
-	useEffect(() => {
-		if (accessToken && refreshToken) {
-			afterLogin(accessToken, refreshToken);
-		}
-	}, [accessToken, refreshToken]);
 
 	const onSubmitHandler: () => Promise<void> = async () => {
 		setIsSubmitting(true);
@@ -208,11 +149,6 @@ function Login(): JSX.Element {
 					createSessionEmailPasswordResponse.data.refreshToken,
 				);
 			}
-			if (isCallbackAuthN) {
-				const url = form.getFieldValue('url');
-
-				window.location.href = url;
-			}
 		} catch (error) {
 			setErrorMessage(error as APIError);
 		} finally {
@@ -233,29 +169,6 @@ function Login(): JSX.Element {
 			orgs: sessionsContext.orgs,
 		});
 	}, [form, sessionsContext, sessionsOrgId]);
-
-	useEffect(() => {
-		if (callbackAuthError) {
-			setErrorMessage(
-				new APIError({
-					httpStatusCode: 500,
-					error: {
-						code: callbackAuthErrorCode,
-						message: callbackAuthErrorMessage,
-						url: callbackAuthErrorURL,
-						errors: parseErrors(callbackAuthErrorAdditional),
-					},
-				}),
-			);
-		}
-	}, [
-		callbackAuthError,
-		callbackAuthErrorAdditional,
-		callbackAuthErrorCode,
-		callbackAuthErrorMessage,
-		callbackAuthErrorURL,
-		setErrorMessage,
-	]);
 
 	useEffect(() => {
 		if (sessionsOrgWarning) {
@@ -397,21 +310,6 @@ function Login(): JSX.Element {
 							suffix={<ArrowRight />}
 						>
 							Next
-						</Button>
-					)}
-
-					{sessionsContext && isCallbackAuthN && (
-						<Button
-							disabled={!isSubmitButtonEnabled}
-							variant="solid"
-							type="submit"
-							color="primary"
-							testId="callback_authn_submit"
-							data-attr="signup"
-							className="login-submit-btn"
-							suffix={<ArrowRight />}
-						>
-							Sign in with SSO
 						</Button>
 					)}
 

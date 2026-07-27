@@ -5,7 +5,7 @@ import { FiltersType, IQuickFiltersConfig, SignalType } from './types';
 
 const FILTER_TITLE_MAP: Record<string, string> = {
 	duration_nano: 'Duration',
-	hasError: 'Has Error (Status)',
+	has_error: 'Has Error (Status)',
 };
 
 const FILTER_TYPE_MAP: Record<string, FiltersType> = {
@@ -26,9 +26,9 @@ const getFilterName = (str: string): string => {
 		.join(' ');
 };
 
-const getFilterType = (att: FilterType): FiltersType => {
-	if (FILTER_TYPE_MAP[att.key]) {
-		return FILTER_TYPE_MAP[att.key];
+const getFilterType = (key: string): FiltersType => {
+	if (FILTER_TYPE_MAP[key]) {
+		return FILTER_TYPE_MAP[key];
 	}
 	return FiltersType.CHECKBOX;
 };
@@ -42,19 +42,19 @@ export const getFilterConfig = (
 		return config || [];
 	}
 
-	return customFilters.map(
-		(att, index) =>
-			({
-				type: getFilterType(att),
-				title: getFilterName(att.key),
-				dataSource: SIGNAL_DATA_SOURCE_MAP[signal],
-				attributeKey: {
-					id: att.key,
-					key: att.key,
-					dataType: att.dataType,
-					type: att.type,
-				},
-				defaultOpen: index < 2,
-			} as IQuickFiltersConfig),
-	);
+	return customFilters.map((att, index) => {
+		const key = att.key;
+		return {
+			type: getFilterType(key),
+			title: getFilterName(key),
+			dataSource: SIGNAL_DATA_SOURCE_MAP[signal],
+			attributeKey: {
+				id: key,
+				key,
+				dataType: att.dataType,
+				type: att.type,
+			},
+			defaultOpen: index < 2,
+		} as IQuickFiltersConfig;
+	});
 };

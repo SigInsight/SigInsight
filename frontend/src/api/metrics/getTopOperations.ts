@@ -1,7 +1,7 @@
-import { ApiV2Instance } from 'api';
-import { ErrorResponseHandlerV2 } from 'api/ErrorResponseHandlerV2';
+import { ApiV5Instance } from 'api';
+import { HttpErrorResponseHandler } from 'api/HttpErrorResponseHandler';
 import { AxiosError } from 'axios';
-import { ErrorV2Resp } from 'types/api';
+import { HttpErrorPayload } from 'types/api';
 import { PayloadProps, Props } from 'types/api/metrics/getTopOperations';
 
 const getTopOperations = async (props: Props): Promise<PayloadProps> => {
@@ -10,7 +10,7 @@ const getTopOperations = async (props: Props): Promise<PayloadProps> => {
 			? '/service/entry_point_operations'
 			: '/service/top_operations';
 
-		const response = await ApiV2Instance.post(endpoint, {
+		const response = await ApiV5Instance.post(endpoint, {
 			start: `${props.start}`,
 			end: `${props.end}`,
 			service: props.service,
@@ -20,7 +20,7 @@ const getTopOperations = async (props: Props): Promise<PayloadProps> => {
 
 		return response.data.data;
 	} catch (error) {
-		ErrorResponseHandlerV2(error as AxiosError<ErrorV2Resp>);
+		HttpErrorResponseHandler(error as AxiosError<HttpErrorPayload>);
 	}
 };
 

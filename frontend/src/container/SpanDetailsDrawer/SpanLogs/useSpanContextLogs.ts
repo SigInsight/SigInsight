@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useQuery } from 'react-query';
-import { convertFiltersToExpression } from 'components/QueryBuilderV2/utils';
-import { ENTITY_VERSION_V5 } from 'constants/app';
+import { convertFiltersToExpression } from 'components/QueryBuilder/utils';
 import { OPERATORS } from 'constants/queryBuilder';
 import { REACT_QUERY_KEY } from 'constants/reactQueryKeys';
 import { getOperatorValue } from 'container/QueryBuilder/filters/QueryBuilderSearch/utils';
@@ -141,19 +140,19 @@ export const useSpanContextLogs = ({
 			timeRange.startTime,
 			timeRange.endTime,
 		],
-		queryFn: () => GetMetricQueryRange(spanQueryPayload, ENTITY_VERSION_V5),
+		queryFn: () => GetMetricQueryRange(spanQueryPayload),
 		enabled: !!traceId && !!spanId,
 		staleTime: FIVE_MINUTES_IN_MS,
 	});
 
 	// Extract span logs and track their IDs
 	const spanLogs = useMemo(() => {
-		if (!spanData?.payload?.data?.newResult?.data?.result?.[0]?.list) {
+		if (!spanData?.payload?.data?.queryResult?.data?.result?.[0]?.list) {
 			setSpanLogIds(new Set());
 			return [];
 		}
 
-		const logs = spanData.payload.data.newResult.data.result[0].list.map(
+		const logs = spanData.payload.data.queryResult.data.result[0].list.map(
 			(item: any) => ({
 				...item.data,
 				timestamp: item.timestamp,
@@ -209,8 +208,7 @@ export const useSpanContextLogs = ({
 			timeRange.startTime,
 			timeRange.endTime,
 		],
-		queryFn: () =>
-			GetMetricQueryRange(beforeQueryPayload as any, ENTITY_VERSION_V5),
+		queryFn: () => GetMetricQueryRange(beforeQueryPayload as any),
 		enabled: !!beforeQueryPayload && !!firstSpanLog,
 		staleTime: FIVE_MINUTES_IN_MS,
 	});
@@ -243,19 +241,18 @@ export const useSpanContextLogs = ({
 			timeRange.startTime,
 			timeRange.endTime,
 		],
-		queryFn: () =>
-			GetMetricQueryRange(afterQueryPayload as any, ENTITY_VERSION_V5),
+		queryFn: () => GetMetricQueryRange(afterQueryPayload as any),
 		enabled: !!afterQueryPayload && !!lastSpanLog,
 		staleTime: FIVE_MINUTES_IN_MS,
 	});
 
 	// Extract context logs
 	const beforeLogs = useMemo(() => {
-		if (!beforeData?.payload?.data?.newResult?.data?.result?.[0]?.list) {
+		if (!beforeData?.payload?.data?.queryResult?.data?.result?.[0]?.list) {
 			return [];
 		}
 
-		return beforeData.payload.data.newResult.data.result[0].list.map(
+		return beforeData.payload.data.queryResult.data.result[0].list.map(
 			(item: any) => ({
 				...item.data,
 				timestamp: item.timestamp,
@@ -264,11 +261,11 @@ export const useSpanContextLogs = ({
 	}, [beforeData]);
 
 	const afterLogs = useMemo(() => {
-		if (!afterData?.payload?.data?.newResult?.data?.result?.[0]?.list) {
+		if (!afterData?.payload?.data?.queryResult?.data?.result?.[0]?.list) {
 			return [];
 		}
 
-		return afterData.payload.data.newResult.data.result[0].list.map(
+		return afterData.payload.data.queryResult.data.result[0].list.map(
 			(item: any) => ({
 				...item.data,
 				timestamp: item.timestamp,
@@ -309,8 +306,7 @@ export const useSpanContextLogs = ({
 			timeRange.startTime,
 			timeRange.endTime,
 		],
-		queryFn: () =>
-			GetMetricQueryRange(traceOnlyQueryPayload as any, ENTITY_VERSION_V5),
+		queryFn: () => GetMetricQueryRange(traceOnlyQueryPayload as any),
 		enabled: isDrawerOpen && !!traceOnlyQueryPayload && spanLogs.length === 0,
 		staleTime: FIVE_MINUTES_IN_MS,
 	});
@@ -320,7 +316,8 @@ export const useSpanContextLogs = ({
 			return true;
 		}
 		return !!(
-			traceOnlyData?.payload?.data?.newResult?.data?.result?.[0]?.list?.length || 0
+			traceOnlyData?.payload?.data?.queryResult?.data?.result?.[0]?.list?.length ||
+			0
 		);
 	}, [spanLogs.length, traceOnlyData]);
 

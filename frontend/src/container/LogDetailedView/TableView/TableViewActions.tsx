@@ -141,7 +141,7 @@ export default function TableViewActions(
 
 	// there is no option for where clause in old logs explorer and live logs page
 	const isOldLogsExplorerOrLiveLogsPage = useMemo(
-		() => pathname === ROUTES.OLD_LOGS_EXPLORER || pathname === ROUTES.LIVE_LOGS,
+		() => pathname === ROUTES.LIVE_LOGS,
 		[pathname],
 	);
 

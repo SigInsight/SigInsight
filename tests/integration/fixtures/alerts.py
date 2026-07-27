@@ -26,7 +26,7 @@ def create_alert_rule(
 
     def _create_alert_rule(rule_data: dict) -> str:
         response = requests.post(
-            signoz.self.host_configs["8080"].get("/api/v1/rules"),
+            signoz.self.host_configs["8080"].get("/api/v5/rules"),
             json=rule_data,
             headers={"Authorization": f"Bearer {admin_token}"},
             timeout=5,
@@ -41,7 +41,7 @@ def create_alert_rule(
     def _delete_alert_rule(rule_id: str):
         logger.info("Deleting rule: %s", {"rule_id": rule_id})
         response = requests.delete(
-            signoz.self.host_configs["8080"].get(f"/api/v1/rules/{rule_id}"),
+            signoz.self.host_configs["8080"].get(f"/api/v5/rules/{rule_id}"),
             headers={"Authorization": f"Bearer {admin_token}"},
             timeout=5,
         )

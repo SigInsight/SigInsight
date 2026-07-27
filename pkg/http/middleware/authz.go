@@ -40,17 +40,6 @@ func (middleware *AuthZ) ViewAccess(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
-		if claims.IdentNProvider == authtypes.IdentNProviderAPIKey.StringValue() {
-			if err := claims.IsViewer(); err != nil {
-				middleware.logger.WarnContext(ctx, authzDeniedMessage, slog.Any("claims", claims))
-				render.Error(rw, err)
-				return
-			}
-
-			next(rw, req)
-			return
-		}
-
 		selectors := []authtypes.Selector{
 			authtypes.MustNewSelector(authtypes.TypeRole, authtypes.SigNozAdminRoleName),
 			authtypes.MustNewSelector(authtypes.TypeRole, authtypes.SigNozEditorRoleName),
@@ -90,17 +79,6 @@ func (middleware *AuthZ) EditAccess(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
-		if claims.IdentNProvider == authtypes.IdentNProviderAPIKey.StringValue() {
-			if err := claims.IsEditor(); err != nil {
-				middleware.logger.WarnContext(ctx, authzDeniedMessage, slog.Any("claims", claims))
-				render.Error(rw, err)
-				return
-			}
-
-			next(rw, req)
-			return
-		}
-
 		selectors := []authtypes.Selector{
 			authtypes.MustNewSelector(authtypes.TypeRole, authtypes.SigNozAdminRoleName),
 			authtypes.MustNewSelector(authtypes.TypeRole, authtypes.SigNozEditorRoleName),
@@ -136,17 +114,6 @@ func (middleware *AuthZ) AdminAccess(next http.HandlerFunc) http.HandlerFunc {
 		claims, err := authtypes.ClaimsFromContext(ctx)
 		if err != nil {
 			render.Error(rw, err)
-			return
-		}
-
-		if claims.IdentNProvider == authtypes.IdentNProviderAPIKey.StringValue() {
-			if err := claims.IsAdmin(); err != nil {
-				middleware.logger.WarnContext(ctx, authzDeniedMessage, slog.Any("claims", claims))
-				render.Error(rw, err)
-				return
-			}
-
-			next(rw, req)
 			return
 		}
 

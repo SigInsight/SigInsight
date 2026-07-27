@@ -5,7 +5,7 @@ import cx from 'classnames';
 import { ToggleGraphProps } from 'components/Graph/types';
 import { QueryParams } from 'constants/query';
 import { PANEL_TYPES } from 'constants/queryBuilder';
-import { PanelMode } from 'container/DashboardContainer/visualization/panels/types';
+import { PanelMode } from 'container/PanelVisualization/panels/types';
 import PanelWrapper from 'container/PanelWrapper/PanelWrapper';
 import useGetResolvedText from 'hooks/dashboard/useGetResolvedText';
 import { useNavigateToExplorer } from 'hooks/useNavigateToExplorer';

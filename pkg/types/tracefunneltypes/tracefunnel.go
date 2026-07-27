@@ -2,7 +2,7 @@ package tracefunneltypes
 
 import (
 	"github.com/SigNoz/signoz/pkg/errors"
-	v3 "github.com/SigNoz/signoz/pkg/query-service/model/v3"
+	"github.com/SigNoz/signoz/pkg/query-service/model/querytypes"
 	"github.com/SigNoz/signoz/pkg/types"
 	"github.com/SigNoz/signoz/pkg/valuer"
 	"github.com/uptrace/bun"
@@ -27,16 +27,16 @@ type StorableFunnel struct {
 }
 
 type FunnelStep struct {
-	ID             valuer.UUID   `json:"id,omitempty"`
-	Name           string        `json:"name,omitempty"`        // step name
-	Description    string        `json:"description,omitempty"` // step description
-	Order          int64         `json:"step_order"`
-	ServiceName    string        `json:"service_name"`
-	SpanName       string        `json:"span_name"`
-	Filters        *v3.FilterSet `json:"filters,omitempty"`
-	LatencyPointer string        `json:"latency_pointer,omitempty"`
-	LatencyType    string        `json:"latency_type,omitempty"`
-	HasErrors      bool          `json:"has_errors"`
+	ID             valuer.UUID           `json:"id,omitempty"`
+	Name           string                `json:"name,omitempty"`        // step name
+	Description    string                `json:"description,omitempty"` // step description
+	Order          int64                 `json:"step_order"`
+	ServiceName    string                `json:"service_name"`
+	SpanName       string                `json:"span_name"`
+	Filters        *querytypes.FilterSet `json:"filters,omitempty"`
+	LatencyPointer string                `json:"latency_pointer,omitempty"`
+	LatencyType    string                `json:"latency_type,omitempty"`
+	HasErrors      bool                  `json:"has_errors"`
 }
 
 // PostableFunnel represents all possible funnel-related requests
@@ -94,5 +94,5 @@ type FunnelStepFilter struct {
 	ServiceName    string
 	SpanName       string
 	LatencyPointer string // "start" or "end"
-	CustomFilters  *v3.FilterSet
+	CustomFilters  *querytypes.FilterSet
 }

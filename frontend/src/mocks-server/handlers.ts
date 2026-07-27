@@ -8,18 +8,13 @@ import { membersResponse } from './__mockdata__/members';
 import { queryRangeSuccessResponse } from './__mockdata__/query_range';
 import { serviceSuccessResponse } from './__mockdata__/services';
 import { topLevelOperationSuccessResponse } from './__mockdata__/top_level_operations';
-import { traceDetailResponse } from './__mockdata__/tracedetail';
 
 export const handlers = [
 	rest.post('http://localhost/api/v5/query_range', (req, res, ctx) =>
 		res(ctx.status(200), ctx.json(queryRangeSuccessResponse)),
 	),
 
-	rest.post('http://localhost/api/v4/query_range', (req, res, ctx) =>
-		res(ctx.status(200), ctx.json(queryRangeSuccessResponse)),
-	),
-
-	rest.post('http://localhost/api/v2/services', (req, res, ctx) =>
+	rest.post('http://localhost/api/v5/services', (req, res, ctx) =>
 		res(
 			ctx.status(200),
 			ctx.json({ status: 'success', data: serviceSuccessResponse }),
@@ -27,132 +22,90 @@ export const handlers = [
 	),
 
 	rest.post(
-		'http://localhost/api/v1/service/top_level_operations',
+		'http://localhost/api/v5/service/top_level_operations',
 		(req, res, ctx) =>
 			res(ctx.status(200), ctx.json(topLevelOperationSuccessResponse)),
 	),
 
-	rest.get('http://localhost/api/v1/user', (req, res, ctx) =>
+	rest.get('http://localhost/api/v5/users/me', (req, res, ctx) =>
 		res(ctx.status(200), ctx.json({ status: '200', data: membersResponse })),
 	),
-	rest.get(
-		'http://localhost/api/v5/autocomplete/attribute_keys',
-		(req, res, ctx) => {
-			const metricName = req.url.searchParams.get('metricName');
-			const match = req.url.searchParams.get('match');
+	rest.get('http://localhost/api/v5/fields/keys', (req, res, ctx) => {
+		const metricName = req.url.searchParams.get('metricName');
+		const searchText = req.url.searchParams.get('searchText');
 
-			if (metricName === 'signoz_calls_total' && match === 'resource_') {
-				return res(
-					ctx.status(200),
-					ctx.json({ status: 'success', data: ['resource_signoz_collector_id'] }),
-				);
-			}
-
-			return res(ctx.status(500));
-		},
-	),
-
-	rest.get(
-		'http://localhost/api/v5/autocomplete/attribute_values',
-		(req, res, ctx) => {
-			// ?metricName=signoz_calls_total&tagKey=resource_signoz_collector_id
-			const metricName = req.url.searchParams.get('metricName');
-			const tagKey = req.url.searchParams.get('tagKey');
-
-			const attributeKey = req.url.searchParams.get('attributeKey');
-
-			if (attributeKey === 'serviceName') {
-				return res(
-					ctx.status(200),
-					ctx.json({
-						status: 'success',
-						data: {
-							stringAttributeValues: [
-								'customer',
-								'demo-app',
-								'driver',
-								'frontend',
-								'mysql',
-								'redis',
-								'route',
-								'go-grpc-otel-server',
-								'test',
+		if (metricName === 'signoz_calls_total' && searchText === 'resource_') {
+			return res(
+				ctx.status(200),
+				ctx.json({
+					status: 'success',
+					data: {
+						complete: true,
+						keys: {
+							resource: [
+								{
+									name: 'resource_signoz_collector_id',
+									fieldContext: 'resource',
+									fieldDataType: 'string',
+								},
 							],
-							numberAttributeValues: null,
-							boolAttributeValues: null,
 						},
-					}),
-				);
-			}
-
-			if (attributeKey === 'name') {
-				return res(
-					ctx.status(200),
-					ctx.json({
-						status: 'success',
-						data: {
-							stringAttributeValues: [
-								'HTTP GET',
-								'HTTP GET /customer',
-								'HTTP GET /dispatch',
-								'HTTP GET /route',
-							],
-							numberAttributeValues: null,
-							boolAttributeValues: null,
-						},
-					}),
-				);
-			}
-
-			if (
-				metricName === 'signoz_calls_total' &&
-				tagKey === 'resource_signoz_collector_id'
-			) {
-				return res(
-					ctx.status(200),
-					ctx.json({
-						status: 'success',
-						data: [
-							'f38916c2-daf2-4424-bd3e-4907a7e537b6',
-							'6d4af7f0-4884-4a37-abd4-6bdbee29fa04',
-							'523c44b9-5fe1-46f7-9163-4d2c57ece09b',
-							'aa52e8e8-6f88-4056-8fbd-b377394d022c',
-							'4d515ba2-065d-4856-b2d8-ddb957c44ddb',
-							'fd47a544-1410-4c76-a554-90ef6464da02',
-							'bb455f71-3fe1-4761-bbf5-efe2faee18a6',
-							'48563680-314e-4117-8a6d-1f0389c95e04',
-							'6e866423-7704-4d72-be8b-4695bc36f145',
-							'e4886c76-93f5-430f-9076-eef85524312f',
-						],
-					}),
-				);
-			}
-
-			return res(ctx.status(500));
-		},
-	),
-	rest.get('http://localhost/api/v1/loginPrecheck', (req, res, ctx) => {
-		const email = req.url.searchParams.get('email');
-		if (email === 'failEmail@signoz.io') {
-			return res(ctx.status(500));
+					},
+				}),
+			);
 		}
+
+		return res(
+			ctx.status(200),
+			ctx.json({ status: 'success', data: { complete: true, keys: {} } }),
+		);
+	}),
+
+	rest.get('http://localhost/api/v5/fields/values', (req, res, ctx) => {
+		const attributeKey = req.url.searchParams.get('name');
+		const stringValuesByKey: Record<string, string[]> = {
+			'service.name': [
+				'customer',
+				'demo-app',
+				'driver',
+				'frontend',
+				'mysql',
+				'redis',
+				'route',
+				'go-grpc-otel-server',
+				'test',
+			],
+			name: [
+				'HTTP GET',
+				'HTTP GET /customer',
+				'HTTP GET /dispatch',
+				'HTTP GET /route',
+			],
+			http_method: ['GET', 'POST'],
+			'http.route': ['/health', '/v1/orders'],
+			resource_signoz_collector_id: [
+				'f38916c2-daf2-4424-bd3e-4907a7e537b6',
+				'6d4af7f0-4884-4a37-abd4-6bdbee29fa04',
+				'523c44b9-5fe1-46f7-9163-4d2c57ece09b',
+			],
+		};
 
 		return res(
 			ctx.status(200),
 			ctx.json({
 				status: 'success',
 				data: {
-					sso: true,
-					ssoUrl: '',
-					canSelfRegister: false,
-					isUser: true,
-					ssoError: '',
+					complete: true,
+					values: {
+						boolValues: [],
+						numberValues: [],
+						stringValues: stringValuesByKey[attributeKey || ''] || [],
+					},
 				},
 			}),
 		);
 	}),
-
-	rest.post('http://localhost/api/v1/invite', (_, res, ctx) =>
+	rest.post('http://localhost/api/v5/invite', (_, res, ctx) =>
 		res(
 			ctx.status(200),
 			ctx.json({
@@ -161,7 +114,7 @@ export const handlers = [
 			}),
 		),
 	),
-	rest.put('http://localhost/api/v1/user/:id', (_, res, ctx) =>
+	rest.put('http://localhost/api/v5/user/:id', (_, res, ctx) =>
 		res(
 			ctx.status(200),
 			ctx.json({
@@ -169,7 +122,7 @@ export const handlers = [
 			}),
 		),
 	),
-	rest.post('http://localhost/api/v1/changePassword', (_, res, ctx) =>
+	rest.post('http://localhost/api/v5/changePassword', (_, res, ctx) =>
 		res(
 			ctx.status(403),
 			ctx.json({
@@ -180,23 +133,11 @@ export const handlers = [
 		),
 	),
 
-	rest.get(
-		'http://localhost/api/v5/autocomplete/aggregate_attributes',
-		(req, res, ctx) =>
-			res(
-				ctx.status(200),
-				ctx.json({
-					status: 'success',
-					data: { attributeKeys: null },
-				}),
-			),
-	),
-
-	rest.get('http://localhost/api/v1/explorer/views', (req, res, ctx) =>
+	rest.get('http://localhost/api/v5/explorer/views', (req, res, ctx) =>
 		res(ctx.status(200), ctx.json(explorerView)),
 	),
 
-	rest.post('http://localhost/api/v1/explorer/views', (req, res, ctx) =>
+	rest.post('http://localhost/api/v5/explorer/views', (req, res, ctx) =>
 		res(
 			ctx.status(200),
 			ctx.json({
@@ -206,7 +147,7 @@ export const handlers = [
 		),
 	),
 
-	rest.post('http://localhost/api/v1/event', (req, res, ctx) =>
+	rest.post('http://localhost/api/v5/event', (req, res, ctx) =>
 		res(
 			ctx.status(200),
 			ctx.json({
@@ -217,15 +158,10 @@ export const handlers = [
 		),
 	),
 
-	rest.get(
-		'http://localhost/api/v1/traces/000000000000000071dc9b0a338729b4',
-		(req, res, ctx) => res(ctx.status(200), ctx.json(traceDetailResponse)),
-	),
-
-	rest.get('http://localhost/api/v1/channels', (_, res, ctx) =>
+	rest.get('http://localhost/api/v5/channels', (_, res, ctx) =>
 		res(ctx.status(200), ctx.json({ data: allAlertChannels, status: 'success' })),
 	),
-	rest.delete('http://localhost/api/v1/channels/:id', (_, res, ctx) =>
+	rest.delete('http://localhost/api/v5/channels/:id', (_, res, ctx) =>
 		res(
 			ctx.status(200),
 			ctx.json({

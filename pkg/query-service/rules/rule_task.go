@@ -16,7 +16,6 @@ import (
 	"github.com/SigNoz/signoz/pkg/types/authtypes"
 	"github.com/SigNoz/signoz/pkg/types/ctxtypes"
 	ruletypes "github.com/SigNoz/signoz/pkg/types/ruletypes"
-	"github.com/SigNoz/signoz/pkg/valuer"
 )
 
 // RuleTask holds a rule (with composite queries)
@@ -38,15 +37,12 @@ type RuleTask struct {
 
 	pause  bool
 	notify NotifyFunc
-
-	maintenanceStore ruletypes.MaintenanceStore
-	orgID            valuer.UUID
 }
 
 const DefaultFrequency = 1 * time.Minute
 
 // NewRuleTask makes a new RuleTask with the given name, options, and rules.
-func NewRuleTask(name, file string, frequency time.Duration, rules []Rule, opts *ManagerOptions, notify NotifyFunc, maintenanceStore ruletypes.MaintenanceStore, orgID valuer.UUID) *RuleTask {
+func NewRuleTask(name, file string, frequency time.Duration, rules []Rule, opts *ManagerOptions, notify NotifyFunc) *RuleTask {
 
 	if frequency == 0 {
 		frequency = DefaultFrequency
@@ -54,18 +50,16 @@ func NewRuleTask(name, file string, frequency time.Duration, rules []Rule, opts 
 	opts.Logger.Info("initiating a new rule task", "name", name, "frequency", frequency)
 
 	return &RuleTask{
-		name:             name,
-		file:             file,
-		pause:            false,
-		frequency:        frequency,
-		rules:            rules,
-		opts:             opts,
-		logger:           opts.Logger,
-		done:             make(chan struct{}),
-		terminated:       make(chan struct{}),
-		notify:           notify,
-		maintenanceStore: maintenanceStore,
-		orgID:            orgID,
+		name:       name,
+		file:       file,
+		pause:      false,
+		frequency:  frequency,
+		rules:      rules,
+		opts:       opts,
+		logger:     opts.Logger,
+		done:       make(chan struct{}),
+		terminated: make(chan struct{}),
+		notify:     notify,
 	}
 }
 
@@ -316,28 +310,8 @@ func (g *RuleTask) Eval(ctx context.Context, ts time.Time) {
 
 	g.logger.DebugContext(ctx, "rule task eval started", "name", g.name, "start_time", ts)
 
-	maintenance, err := g.maintenanceStore.GetAllPlannedMaintenance(ctx, g.orgID.StringValue())
-
-	if err != nil {
-		g.logger.ErrorContext(ctx, "error in processing sql query", errors.Attr(err))
-	}
-
 	for i, rule := range g.rules {
 		if rule == nil {
-			continue
-		}
-
-		shouldSkip := false
-		for _, m := range maintenance {
-			g.logger.InfoContext(ctx, "checking if rule should be skipped", "rule", rule.ID(), "maintenance", m)
-			if m.ShouldSkip(rule.ID(), ts) {
-				shouldSkip = true
-				break
-			}
-		}
-
-		if shouldSkip {
-			g.logger.InfoContext(ctx, "rule should be skipped", "rule", rule.ID())
 			continue
 		}
 

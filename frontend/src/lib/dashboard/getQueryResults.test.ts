@@ -1,11 +1,10 @@
-import { ENTITY_VERSION_V5 } from 'constants/app';
 import { PANEL_TYPES } from 'constants/queryBuilder';
 import { EQueryType } from 'types/common/dashboard';
 
 import { GetMetricQueryRange, GetQueryResultsProps } from './getQueryResults';
 
 jest.mock('api/v5/v5', () => ({
-	convertV5ResponseToLegacy: jest.fn(() => ({
+	normalizeQueryRangeResponse: jest.fn(() => ({
 		statusCode: 200,
 		payload: { data: { result: [] } },
 	})),
@@ -26,7 +25,7 @@ describe('GetMetricQueryRange', () => {
 		getQueryRangeV5.mockResolvedValue({ data: {} });
 	});
 
-	it('passes the version before the AbortSignal to the V5 client', async () => {
+	it('uses the V5 client', async () => {
 		const controller = new AbortController();
 		const headers = { 'X-Test-Header': 'test' };
 		const request = {
@@ -36,17 +35,10 @@ describe('GetMetricQueryRange', () => {
 			formatForWeb: true,
 		} as GetQueryResultsProps;
 
-		await GetMetricQueryRange(
-			request,
-			ENTITY_VERSION_V5,
-			undefined,
-			controller.signal,
-			headers,
-		);
+		await GetMetricQueryRange(request, undefined, controller.signal, headers);
 
 		expect(getQueryRangeV5).toHaveBeenCalledWith(
 			expect.any(Object),
-			ENTITY_VERSION_V5,
 			controller.signal,
 			headers,
 		);

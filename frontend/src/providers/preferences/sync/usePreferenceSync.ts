@@ -35,18 +35,6 @@ export function usePreferenceSync({
 		setSavedViewPreferences,
 	] = useState<Preferences | null>(null);
 
-	const updateExtraDataSelectColumns = (
-		columns: TelemetryFieldKey[],
-	): TelemetryFieldKey[] | null => {
-		if (!columns) {
-			return null;
-		}
-		return columns.map((column) => ({
-			...column,
-			name: column.name ?? column.key,
-		}));
-	};
-
 	useEffect(() => {
 		const extraData = viewsData?.data?.data?.find(
 			(view) => view.id === savedViewId,
@@ -56,14 +44,11 @@ export function usePreferenceSync({
 		let columns: TelemetryFieldKey[] = [];
 		let formatting: FormattingOptions | undefined;
 		if (dataSource === DataSource.LOGS) {
-			columns =
-				updateExtraDataSelectColumns(parsedExtraData?.selectColumns) ||
-				defaultLogsSelectedColumns;
+			columns = parsedExtraData?.selectColumns || defaultLogsSelectedColumns;
 			formatting = {
 				maxLines: parsedExtraData?.maxLines ?? 1,
 				format: parsedExtraData?.format ?? 'table',
 				fontSize: parsedExtraData?.fontSize ?? 'small',
-				version: parsedExtraData?.version ?? 1,
 			};
 		}
 		if (dataSource === DataSource.TRACES) {

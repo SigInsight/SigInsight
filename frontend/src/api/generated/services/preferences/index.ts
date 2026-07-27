@@ -38,14 +38,14 @@ import type {
  */
 export const listOrgPreferences = (signal?: AbortSignal) => {
 	return GeneratedAPIInstance<ListOrgPreferences200>({
-		url: `/api/v1/org/preferences`,
+		url: `/api/v5/org/preferences`,
 		method: 'GET',
 		signal,
 	});
 };
 
 export const getListOrgPreferencesQueryKey = () => {
-	return [`/api/v1/org/preferences`] as const;
+	return [`/api/v5/org/preferences`] as const;
 };
 
 export const getListOrgPreferencesQueryOptions = <
@@ -127,7 +127,7 @@ export const getOrgPreference = (
 	signal?: AbortSignal,
 ) => {
 	return GeneratedAPIInstance<GetOrgPreference200>({
-		url: `/api/v1/org/preferences/${name}`,
+		url: `/api/v5/org/preferences/${name}`,
 		method: 'GET',
 		signal,
 	});
@@ -136,7 +136,7 @@ export const getOrgPreference = (
 export const getGetOrgPreferenceQueryKey = ({
 	name,
 }: GetOrgPreferencePathParameters) => {
-	return [`/api/v1/org/preferences/${name}`] as const;
+	return [`/api/v5/org/preferences/${name}`] as const;
 };
 
 export const getGetOrgPreferenceQueryOptions = <
@@ -231,7 +231,7 @@ export const updateOrgPreference = (
 	preferencetypesUpdatablePreferenceDTO: BodyType<PreferencetypesUpdatablePreferenceDTO>,
 ) => {
 	return GeneratedAPIInstance<void>({
-		url: `/api/v1/org/preferences/${name}`,
+		url: `/api/v5/org/preferences/${name}`,
 		method: 'PUT',
 		headers: { 'Content-Type': 'application/json' },
 		data: preferencetypesUpdatablePreferenceDTO,
@@ -325,14 +325,14 @@ export const useUpdateOrgPreference = <
  */
 export const listUserPreferences = (signal?: AbortSignal) => {
 	return GeneratedAPIInstance<ListUserPreferences200>({
-		url: `/api/v1/user/preferences`,
+		url: `/api/v5/user/preferences`,
 		method: 'GET',
 		signal,
 	});
 };
 
 export const getListUserPreferencesQueryKey = () => {
-	return [`/api/v1/user/preferences`] as const;
+	return [`/api/v5/user/preferences`] as const;
 };
 
 export const getListUserPreferencesQueryOptions = <
@@ -414,7 +414,7 @@ export const getUserPreference = (
 	signal?: AbortSignal,
 ) => {
 	return GeneratedAPIInstance<GetUserPreference200>({
-		url: `/api/v1/user/preferences/${name}`,
+		url: `/api/v5/user/preferences/${name}`,
 		method: 'GET',
 		signal,
 	});
@@ -423,7 +423,7 @@ export const getUserPreference = (
 export const getGetUserPreferenceQueryKey = ({
 	name,
 }: GetUserPreferencePathParameters) => {
-	return [`/api/v1/user/preferences/${name}`] as const;
+	return [`/api/v5/user/preferences/${name}`] as const;
 };
 
 export const getGetUserPreferenceQueryOptions = <
@@ -518,7 +518,7 @@ export const updateUserPreference = (
 	preferencetypesUpdatablePreferenceDTO: BodyType<PreferencetypesUpdatablePreferenceDTO>,
 ) => {
 	return GeneratedAPIInstance<void>({
-		url: `/api/v1/user/preferences/${name}`,
+		url: `/api/v5/user/preferences/${name}`,
 		method: 'PUT',
 		headers: { 'Content-Type': 'application/json' },
 		data: preferencetypesUpdatablePreferenceDTO,

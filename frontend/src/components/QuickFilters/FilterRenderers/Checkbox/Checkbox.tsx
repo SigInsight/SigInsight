@@ -2,7 +2,7 @@
 import { Fragment, useMemo, useState } from 'react';
 import { Button, Checkbox, Input, Skeleton, Typography } from 'antd';
 import cx from 'classnames';
-import { removeKeysFromExpression } from 'components/QueryBuilderV2/utils';
+import { removeKeysFromExpression } from 'components/QueryBuilder/utils';
 import {
 	IQuickFiltersConfig,
 	QuickFiltersSource,

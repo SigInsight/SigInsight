@@ -3,8 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { Row, Tag, Typography } from 'antd';
 import logEvent from 'api/common/logEvent';
 import { ALERTS_DATA_SOURCE_MAP } from 'constants/alerts';
-import { FeatureKeys } from 'constants/features';
-import { useAppContext } from 'providers/App/App';
 import { AlertTypes } from 'types/api/alerts/alertTypes';
 
 import { getOptionList } from './config';
@@ -13,21 +11,11 @@ import { OptionType } from './types';
 
 function SelectAlertType({ onSelect }: SelectAlertTypeProps): JSX.Element {
 	const { t } = useTranslation(['alerts']);
-	const { featureFlags } = useAppContext();
-
-	const isAnomalyDetectionEnabled =
-		featureFlags?.find((flag) => flag.name === FeatureKeys.ANOMALY_DETECTION)
-			?.active || false;
-
-	const optionList = getOptionList(t, isAnomalyDetectionEnabled);
+	const optionList = getOptionList(t);
 
 	function handleRedirection(option: AlertTypes): void {
 		let url = '';
 		switch (option) {
-			case AlertTypes.ANOMALY_BASED_ALERT:
-				url =
-					'https://signoz.io/docs/alerts-management/anomaly-based-alerts/?utm_source=product&utm_medium=alert-source-selection-page#examples';
-				break;
 			case AlertTypes.METRICS_BASED_ALERT:
 				url =
 					'https://signoz.io/docs/alerts-management/metrics-based-alerts/?utm_source=product&utm_medium=alert-source-selection-page#examples';

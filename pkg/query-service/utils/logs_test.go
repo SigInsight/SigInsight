@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	v3 "github.com/SigNoz/signoz/pkg/query-service/model/v3"
+	"github.com/SigNoz/signoz/pkg/query-service/model/querytypes"
 )
 
 func TestListTsRange(t *testing.T) {
@@ -55,7 +55,7 @@ func TestListTsRange(t *testing.T) {
 
 func Test_GenerateEnrichmentKeys(t *testing.T) {
 	type args struct {
-		field v3.AttributeKey
+		field querytypes.AttributeKey
 	}
 	tests := []struct {
 		name string
@@ -65,10 +65,10 @@ func Test_GenerateEnrichmentKeys(t *testing.T) {
 		{
 			name: "all are present",
 			args: args{
-				field: v3.AttributeKey{
+				field: querytypes.AttributeKey{
 					Key:      "data",
-					DataType: v3.AttributeKeyDataTypeString,
-					Type:     v3.AttributeKeyTypeTag,
+					DataType: querytypes.AttributeKeyDataTypeString,
+					Type:     querytypes.AttributeKeyTypeTag,
 				},
 			},
 			want: []string{"data##tag##string"},
@@ -76,9 +76,9 @@ func Test_GenerateEnrichmentKeys(t *testing.T) {
 		{
 			name: "type present",
 			args: args{
-				field: v3.AttributeKey{
+				field: querytypes.AttributeKey{
 					Key:  "data",
-					Type: v3.AttributeKeyTypeTag,
+					Type: querytypes.AttributeKeyTypeTag,
 				},
 			},
 			want: []string{"data##tag##float64", "data##tag##int64", "data##tag##string", "data##tag##bool"},
@@ -86,9 +86,9 @@ func Test_GenerateEnrichmentKeys(t *testing.T) {
 		{
 			name: "dataType present",
 			args: args{
-				field: v3.AttributeKey{
+				field: querytypes.AttributeKey{
 					Key:      "data",
-					DataType: v3.AttributeKeyDataTypeString,
+					DataType: querytypes.AttributeKeyDataTypeString,
 				},
 			},
 			want: []string{"data##tag##string", "data##resource##string"},

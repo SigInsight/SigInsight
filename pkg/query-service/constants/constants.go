@@ -7,7 +7,7 @@ import (
 	"strconv"
 
 	"github.com/SigNoz/signoz/pkg/query-service/model"
-	v3 "github.com/SigNoz/signoz/pkg/query-service/model/v3"
+	"github.com/SigNoz/signoz/pkg/query-service/model/querytypes"
 	"github.com/SigNoz/signoz/pkg/valuer"
 )
 
@@ -240,61 +240,61 @@ var ReservedColumnTargetAliases = map[string]struct{}{
 
 // The datatype present here doesn't represent the actual datatype of column in the logs table.
 
-var StaticFieldsLogsV3 = map[string]v3.AttributeKey{
+var StaticFieldsLogsV3 = map[string]querytypes.AttributeKey{
 	"timestamp": {},
 	"id":        {},
 	"trace_id": {
 		Key:      "trace_id",
-		DataType: v3.AttributeKeyDataTypeString,
-		Type:     v3.AttributeKeyTypeUnspecified,
+		DataType: querytypes.AttributeKeyDataTypeString,
+		Type:     querytypes.AttributeKeyTypeUnspecified,
 		IsColumn: true,
 	},
 	"span_id": {
 		Key:      "span_id",
-		DataType: v3.AttributeKeyDataTypeString,
-		Type:     v3.AttributeKeyTypeUnspecified,
+		DataType: querytypes.AttributeKeyDataTypeString,
+		Type:     querytypes.AttributeKeyTypeUnspecified,
 		IsColumn: true,
 	},
 	"trace_flags": {
 		Key:      "trace_flags",
-		DataType: v3.AttributeKeyDataTypeInt64,
-		Type:     v3.AttributeKeyTypeUnspecified,
+		DataType: querytypes.AttributeKeyDataTypeInt64,
+		Type:     querytypes.AttributeKeyTypeUnspecified,
 		IsColumn: true,
 	},
 	"severity_text": {
 		Key:      "severity_text",
-		DataType: v3.AttributeKeyDataTypeString,
-		Type:     v3.AttributeKeyTypeUnspecified,
+		DataType: querytypes.AttributeKeyDataTypeString,
+		Type:     querytypes.AttributeKeyTypeUnspecified,
 		IsColumn: true,
 	},
 	"severity_number": {
 		Key:      "severity_number",
-		DataType: v3.AttributeKeyDataTypeInt64,
-		Type:     v3.AttributeKeyTypeUnspecified,
+		DataType: querytypes.AttributeKeyDataTypeInt64,
+		Type:     querytypes.AttributeKeyTypeUnspecified,
 		IsColumn: true,
 	},
 	"body": {
 		Key:      "body",
-		DataType: v3.AttributeKeyDataTypeString,
-		Type:     v3.AttributeKeyTypeUnspecified,
+		DataType: querytypes.AttributeKeyDataTypeString,
+		Type:     querytypes.AttributeKeyTypeUnspecified,
 		IsColumn: true,
 	},
 	"__attrs": {
 		Key:      "__attrs",
-		DataType: v3.AttributeKeyDataTypeString,
-		Type:     v3.AttributeKeyTypeUnspecified,
+		DataType: querytypes.AttributeKeyDataTypeString,
+		Type:     querytypes.AttributeKeyTypeUnspecified,
 		IsColumn: true,
 	},
 	"scope_name": {
 		Key:      "scope_name",
-		DataType: v3.AttributeKeyDataTypeString,
-		Type:     v3.AttributeKeyTypeUnspecified,
+		DataType: querytypes.AttributeKeyDataTypeString,
+		Type:     querytypes.AttributeKeyTypeUnspecified,
 		IsColumn: true,
 	},
 	"scope_version": {
 		Key:      "scope_version",
-		DataType: v3.AttributeKeyDataTypeString,
-		Type:     v3.AttributeKeyTypeUnspecified,
+		DataType: querytypes.AttributeKeyDataTypeString,
+		Type:     querytypes.AttributeKeyTypeUnspecified,
 		IsColumn: true,
 	},
 }
@@ -314,366 +314,171 @@ const MaxFilterSuggestionsExamplesLimit = 10
 var SpanRenderLimitStr = GetOrDefaultEnv("SPAN_RENDER_LIMIT", "2500")
 var MaxSpansInTraceStr = GetOrDefaultEnv("MAX_SPANS_IN_TRACE", "250000")
 
-var NewStaticFieldsTraces = map[string]v3.AttributeKey{
+var NewStaticFieldsTraces = map[string]querytypes.AttributeKey{
 	"timestamp": {},
 	"trace_id": {
 		Key:      "trace_id",
-		DataType: v3.AttributeKeyDataTypeString,
+		DataType: querytypes.AttributeKeyDataTypeString,
 		IsColumn: true,
 	},
 	"span_id": {
 		Key:      "span_id",
-		DataType: v3.AttributeKeyDataTypeString,
+		DataType: querytypes.AttributeKeyDataTypeString,
 		IsColumn: true,
 	},
 	"trace_state": {
 		Key:      "trace_state",
-		DataType: v3.AttributeKeyDataTypeString,
+		DataType: querytypes.AttributeKeyDataTypeString,
 		IsColumn: true,
 	},
 	"parent_span_id": {
 		Key:      "parent_span_id",
-		DataType: v3.AttributeKeyDataTypeString,
+		DataType: querytypes.AttributeKeyDataTypeString,
 		IsColumn: true,
 	},
 	"flags": {
 		Key:      "flags",
-		DataType: v3.AttributeKeyDataTypeInt64,
+		DataType: querytypes.AttributeKeyDataTypeInt64,
 		IsColumn: true,
 	},
 	"name": {
 		Key:      "name",
-		DataType: v3.AttributeKeyDataTypeString,
+		DataType: querytypes.AttributeKeyDataTypeString,
 		IsColumn: true,
 	},
 	"kind_string": {
 		Key:      "kind_string",
-		DataType: v3.AttributeKeyDataTypeString,
+		DataType: querytypes.AttributeKeyDataTypeString,
 		IsColumn: true,
 	},
 	"duration_nano": {
 		Key:      "duration_nano",
-		DataType: v3.AttributeKeyDataTypeFloat64,
+		DataType: querytypes.AttributeKeyDataTypeFloat64,
 		IsColumn: true,
 	},
 	"status_code": {
 		Key:      "status_code",
-		DataType: v3.AttributeKeyDataTypeFloat64,
+		DataType: querytypes.AttributeKeyDataTypeFloat64,
 		IsColumn: true,
 	},
 	"status_message": {
 		Key:      "status_message",
-		DataType: v3.AttributeKeyDataTypeString,
+		DataType: querytypes.AttributeKeyDataTypeString,
 		IsColumn: true,
 	},
 	"status_code_string": {
 		Key:      "status_code_string",
-		DataType: v3.AttributeKeyDataTypeString,
+		DataType: querytypes.AttributeKeyDataTypeString,
 		IsColumn: true,
 	},
 
 	// new support for composite attributes
 	"response_status_code": {
 		Key:      "response_status_code",
-		DataType: v3.AttributeKeyDataTypeString,
+		DataType: querytypes.AttributeKeyDataTypeString,
 		IsColumn: true,
 	},
 	"external_http_url": {
 		Key:      "external_http_url",
-		DataType: v3.AttributeKeyDataTypeString,
+		DataType: querytypes.AttributeKeyDataTypeString,
 		IsColumn: true,
 	},
 	"http_url": {
 		Key:      "http_url",
-		DataType: v3.AttributeKeyDataTypeString,
+		DataType: querytypes.AttributeKeyDataTypeString,
 		IsColumn: true,
 	},
 	"external_http_method": {
 		Key:      "external_http_method",
-		DataType: v3.AttributeKeyDataTypeString,
+		DataType: querytypes.AttributeKeyDataTypeString,
 		IsColumn: true,
 	},
 	"http_method": {
 		Key:      "http_method",
-		DataType: v3.AttributeKeyDataTypeString,
+		DataType: querytypes.AttributeKeyDataTypeString,
 		IsColumn: true,
 	},
 	"http_host": {
 		Key:      "http_host",
-		DataType: v3.AttributeKeyDataTypeString,
+		DataType: querytypes.AttributeKeyDataTypeString,
 		IsColumn: true,
 	},
 	"db_name": {
 		Key:      "db_name",
-		DataType: v3.AttributeKeyDataTypeString,
+		DataType: querytypes.AttributeKeyDataTypeString,
 		IsColumn: true,
 	},
 	"db_operation": {
 		Key:      "db_operation",
-		DataType: v3.AttributeKeyDataTypeString,
+		DataType: querytypes.AttributeKeyDataTypeString,
 		IsColumn: true,
 	},
 	"has_error": {
 		Key:      "has_error",
-		DataType: v3.AttributeKeyDataTypeBool,
+		DataType: querytypes.AttributeKeyDataTypeBool,
 		IsColumn: true,
 	},
 	"is_remote": {
 		Key:      "is_remote",
-		DataType: v3.AttributeKeyDataTypeString,
+		DataType: querytypes.AttributeKeyDataTypeString,
 		IsColumn: true,
 	},
 
 	// these are just added so that we don't use the aliased columns
 	"resource_string_service$$name": {
 		Key:      "resource_string_service$$name",
-		DataType: v3.AttributeKeyDataTypeString,
+		DataType: querytypes.AttributeKeyDataTypeString,
 		IsColumn: true,
 	},
 	"attribute_string_http$$route": {
 		Key:      "attribute_string_http$$route",
-		DataType: v3.AttributeKeyDataTypeString,
+		DataType: querytypes.AttributeKeyDataTypeString,
 		IsColumn: true,
 	},
 	"attribute_string_messaging$$system": {
 		Key:      "attribute_string_messaging$$system",
-		DataType: v3.AttributeKeyDataTypeString,
+		DataType: querytypes.AttributeKeyDataTypeString,
 		IsColumn: true,
 	},
 	"attribute_string_messaging$$operation": {
 		Key:      "attribute_string_messaging$$operation",
-		DataType: v3.AttributeKeyDataTypeString,
+		DataType: querytypes.AttributeKeyDataTypeString,
 		IsColumn: true,
 	},
 	"attribute_string_db$$system": {
 		Key:      "attribute_string_db$$system",
-		DataType: v3.AttributeKeyDataTypeString,
+		DataType: querytypes.AttributeKeyDataTypeString,
 		IsColumn: true,
 	},
 	"attribute_string_rpc$$system": {
 		Key:      "attribute_string_rpc$$system",
-		DataType: v3.AttributeKeyDataTypeString,
+		DataType: querytypes.AttributeKeyDataTypeString,
 		IsColumn: true,
 	},
 	"attribute_string_rpc$$service": {
 		Key:      "attribute_string_rpc$$service",
-		DataType: v3.AttributeKeyDataTypeString,
+		DataType: querytypes.AttributeKeyDataTypeString,
 		IsColumn: true,
 	},
 	"attribute_string_rpc$$method": {
 		Key:      "attribute_string_rpc$$method",
-		DataType: v3.AttributeKeyDataTypeString,
+		DataType: querytypes.AttributeKeyDataTypeString,
 		IsColumn: true,
 	},
 	"attribute_string_peer$$service": {
 		Key:      "attribute_string_peer$$service",
-		DataType: v3.AttributeKeyDataTypeString,
+		DataType: querytypes.AttributeKeyDataTypeString,
 		IsColumn: true,
 	},
 }
 
-var DeprecatedStaticFieldsTraces = map[string]v3.AttributeKey{
-	"traceID": {
-		Key:      "traceID",
-		DataType: v3.AttributeKeyDataTypeString,
-		IsColumn: true,
-	},
-	"spanID": {
-		Key:      "spanID",
-		DataType: v3.AttributeKeyDataTypeString,
-		IsColumn: true,
-	},
-	"parentSpanID": {
-		Key:      "parentSpanID",
-		DataType: v3.AttributeKeyDataTypeString,
-		IsColumn: true,
-	},
-	"flags": {
-		Key:      "flags",
-		DataType: v3.AttributeKeyDataTypeInt64,
-		IsColumn: true,
-	},
-	"name": {
-		Key:      "name",
-		DataType: v3.AttributeKeyDataTypeString,
-		IsColumn: true,
-	},
-	"kind": {
-		Key:      "kind",
-		DataType: v3.AttributeKeyDataTypeInt64,
-		IsColumn: true,
-	},
-	"spanKind": {
-		Key:      "spanKind",
-		DataType: v3.AttributeKeyDataTypeString,
-		IsColumn: true,
-	},
-	"durationNano": {
-		Key:      "durationNano",
-		DataType: v3.AttributeKeyDataTypeFloat64,
-		IsColumn: true,
-	},
-	"statusCode": {
-		Key:      "statusCode",
-		DataType: v3.AttributeKeyDataTypeFloat64,
-		IsColumn: true,
-	},
-	"statusMessage": {
-		Key:      "statusMessage",
-		DataType: v3.AttributeKeyDataTypeString,
-		IsColumn: true,
-	},
-	"statusCodeString": {
-		Key:      "statusCodeString",
-		DataType: v3.AttributeKeyDataTypeString,
-		IsColumn: true,
-	},
-
-	// old support for composite attributes
-	"responseStatusCode": {
-		Key:      "responseStatusCode",
-		DataType: v3.AttributeKeyDataTypeString,
-		IsColumn: true,
-	},
-	"externalHttpUrl": {
-		Key:      "externalHttpUrl",
-		DataType: v3.AttributeKeyDataTypeString,
-		IsColumn: true,
-	},
-	"httpUrl": {
-		Key:      "httpUrl",
-		DataType: v3.AttributeKeyDataTypeString,
-		IsColumn: true,
-	},
-	"externalHttpMethod": {
-		Key:      "externalHttpMethod",
-		DataType: v3.AttributeKeyDataTypeString,
-		IsColumn: true,
-	},
-	"httpMethod": {
-		Key:      "httpMethod",
-		DataType: v3.AttributeKeyDataTypeString,
-		IsColumn: true,
-	},
-	"httpHost": {
-		Key:      "httpHost",
-		DataType: v3.AttributeKeyDataTypeString,
-		IsColumn: true,
-	},
-	"dbName": {
-		Key:      "dbName",
-		DataType: v3.AttributeKeyDataTypeString,
-		IsColumn: true,
-	},
-	"dbOperation": {
-		Key:      "dbOperation",
-		DataType: v3.AttributeKeyDataTypeString,
-		IsColumn: true,
-	},
-	"hasError": {
-		Key:      "hasError",
-		DataType: v3.AttributeKeyDataTypeBool,
-		IsColumn: true,
-	},
-	"isRemote": {
-		Key:      "isRemote",
-		DataType: v3.AttributeKeyDataTypeString,
-		IsColumn: true,
-	},
-
-	// old support for resource attributes
-	"serviceName": {
-		Key:      "serviceName",
-		DataType: v3.AttributeKeyDataTypeString,
-		IsColumn: true,
-	},
-
-	// old support for simple attributes
-	"httpRoute": {
-		Key:      "httpRoute",
-		DataType: v3.AttributeKeyDataTypeString,
-		IsColumn: true,
-	},
-	"msgSystem": {
-		Key:      "msgSystem",
-		DataType: v3.AttributeKeyDataTypeString,
-		IsColumn: true,
-	},
-	"msgOperation": {
-		Key:      "msgOperation",
-		DataType: v3.AttributeKeyDataTypeString,
-		IsColumn: true,
-	},
-	"dbSystem": {
-		Key:      "dbSystem",
-		DataType: v3.AttributeKeyDataTypeString,
-		IsColumn: true,
-	},
-	"rpcSystem": {
-		Key:      "rpcSystem",
-		DataType: v3.AttributeKeyDataTypeString,
-		IsColumn: true,
-	},
-	"rpcService": {
-		Key:      "rpcService",
-		DataType: v3.AttributeKeyDataTypeString,
-		IsColumn: true,
-	},
-	"rpcMethod": {
-		Key:      "rpcMethod",
-		DataType: v3.AttributeKeyDataTypeString,
-		IsColumn: true,
-	},
-	"peerService": {
-		Key:      "peerService",
-		DataType: v3.AttributeKeyDataTypeString,
-		IsColumn: true,
-	},
-}
-
-// TODO(nitya): remove this later
-var OldToNewTraceFieldsMap = map[string]string{
-	// deprecated intrinsic -> new intrinsic
-	"traceID":          "trace_id",
-	"spanID":           "span_id",
-	"parentSpanID":     "parent_span_id",
-	"spanKind":         "kind_string",
-	"durationNano":     "duration_nano",
-	"statusCode":       "status_code",
-	"statusMessage":    "status_message",
-	"statusCodeString": "status_code_string",
-
-	// deprecated derived -> new derived / materialized
-	"references":         "links",
-	"responseStatusCode": "response_status_code",
-	"externalHttpUrl":    "external_http_url",
-	"httpUrl":            "http_url",
-	"externalHttpMethod": "external_http_method",
-	"httpMethod":         "http_method",
-	"httpHost":           "http_host",
-	"dbName":             "db_name",
-	"dbOperation":        "db_operation",
-	"hasError":           "has_error",
-	"isRemote":           "is_remote",
-	"serviceName":        "resource_string_service$$name",
-	"httpRoute":          "attribute_string_http$$route",
-	"msgSystem":          "attribute_string_messaging$$system",
-	"msgOperation":       "attribute_string_messaging$$operation",
-	"dbSystem":           "attribute_string_db$$system",
-	"rpcSystem":          "attribute_string_rpc$$system",
-	"rpcService":         "attribute_string_rpc$$service",
-	"rpcMethod":          "attribute_string_rpc$$method",
-	"peerService":        "attribute_string_peer$$service",
-}
-
-var StaticFieldsTraces = map[string]v3.AttributeKey{}
+var StaticFieldsTraces = map[string]querytypes.AttributeKey{}
 
 var IsDotMetricsEnabled = false
 var MaxJSONFlatteningDepth = 1
 
 func init() {
 	StaticFieldsTraces = maps.Clone(NewStaticFieldsTraces)
-	maps.Copy(StaticFieldsTraces, DeprecatedStaticFieldsTraces)
 	if GetOrDefaultEnv(DotMetricsEnabled, "true") == "true" {
 		IsDotMetricsEnabled = true
 	}

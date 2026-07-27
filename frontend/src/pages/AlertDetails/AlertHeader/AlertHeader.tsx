@@ -4,8 +4,8 @@ import LineClampedText from 'periscope/components/LineClampedText/LineClampedTex
 import { useAlertRule } from 'providers/Alert';
 import {
 	NEW_ALERT_SCHEMA_VERSION,
-	PostableAlertRuleV2,
-} from 'types/api/alerts/alertTypesV2';
+	PostableAlertRule,
+} from 'types/api/alerts/alertRule';
 import { GettableAlert } from 'types/api/alerts/get';
 
 import AlertActionButtons from './ActionButtons/ActionButtons';
@@ -16,7 +16,7 @@ import AlertState from './AlertState/AlertState';
 import './AlertHeader.styles.scss';
 
 export type AlertHeaderProps = {
-	alertDetails: GettableAlert | PostableAlertRuleV2;
+	alertDetails: GettableAlert | PostableAlertRule;
 };
 function AlertHeader({ alertDetails }: AlertHeaderProps): JSX.Element {
 	const { state, alert: alertName, labels } = alertDetails;

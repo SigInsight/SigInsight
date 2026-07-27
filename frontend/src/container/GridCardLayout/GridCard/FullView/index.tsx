@@ -11,22 +11,21 @@ import { Button, Input, Spin } from 'antd';
 import cx from 'classnames';
 import { ToggleGraphProps } from 'components/Graph/types';
 import OverlayScrollbar from 'components/OverlayScrollbar/OverlayScrollbar';
-import { QueryBuilderV2 } from 'components/QueryBuilderV2/QueryBuilderV2';
+import { QueryBuilder } from 'components/QueryBuilder/QueryBuilder';
 import Spinner from 'components/Spinner';
 import TimePreference from 'components/TimePreferenceDropDown';
 import WarningPopover from 'components/WarningPopover/WarningPopover';
-import { ENTITY_VERSION_V5 } from 'constants/app';
 import { QueryParams } from 'constants/query';
 import { PANEL_TYPES } from 'constants/queryBuilder';
-import { PanelMode } from 'container/DashboardContainer/visualization/panels/types';
 import useDrilldown from 'container/GridCardLayout/GridCard/FullView/useDrilldown';
 import { populateMultipleResults } from 'container/NewWidget/LeftContainer/WidgetGraph/util';
+import { PanelMode } from 'container/PanelVisualization/panels/types';
+import PanelWrapper from 'container/PanelWrapper/PanelWrapper';
+import RightToolbarActions from 'container/QueryBuilder/components/ToolbarActions/RightToolbarActions';
 import {
 	timeItems,
 	timePreferance,
-} from 'container/NewWidget/RightContainer/timeItems';
-import PanelWrapper from 'container/PanelWrapper/PanelWrapper';
-import RightToolbarActions from 'container/QueryBuilder/components/ToolbarActions/RightToolbarActions';
+} from 'features/query-visualization/timePreference';
 import { useDashboardVariables } from 'hooks/dashboard/useDashboardVariables';
 import { useGetQueryRange } from 'hooks/queryBuilder/useGetQueryRange';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
@@ -183,7 +182,7 @@ function FullView({
 		});
 	}, [selectedPanelType]);
 
-	const response = useGetQueryRange(requestData, ENTITY_VERSION_V5, {
+	const response = useGetQueryRange(requestData, {
 		queryKey: [
 			widget?.query,
 			selectedPanelType,
@@ -307,7 +306,7 @@ function FullView({
 						)}
 						{enableDrillDown && (
 							<>
-								<QueryBuilderV2
+								<QueryBuilder
 									panelType={selectedPanelType}
 									version={selectedDashboard?.data?.version || 'v5'}
 									isListViewPanel={selectedPanelType === PANEL_TYPES.LIST}

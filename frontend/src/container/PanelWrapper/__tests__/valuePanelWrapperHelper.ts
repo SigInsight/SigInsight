@@ -168,7 +168,7 @@ export const valuePanelQueryResponse = {
 					},
 				],
 				resultType: '',
-				newResult: {
+				queryResult: {
 					status: 'success',
 					data: {
 						resultType: '',
@@ -205,35 +205,30 @@ export const valuePanelQueryResponse = {
 				queryType: 'builder',
 				panelType: 'value',
 				fillGaps: false,
-				builderQueries: {
-					A: {
-						dataSource: 'metrics',
-						queryName: 'A',
-						aggregateOperator: 'count',
-						aggregateAttribute: {
-							key: 'signoz_latency',
-							dataType: 'float64',
-							type: 'ExponentialHistogram',
-							id: 'signoz_latency--float64--ExponentialHistogram--true',
+				unit: undefined,
+				queries: [
+					{
+						type: 'builder_query',
+						spec: {
+							name: 'A',
+							signal: 'metrics',
+							stepInterval: 60,
+							filter: { expression: '' },
+							aggregations: [
+								{
+									metricName: 'signoz_latency',
+									temporality: '',
+									timeAggregation: '',
+									spaceAggregation: 'p90',
+									reduceTo: ReduceOperators.AVG,
+								},
+							],
+							functions: [],
+							disabled: false,
+							legend: '',
 						},
-						timeAggregation: '',
-						spaceAggregation: 'p90',
-						functions: [],
-						filters: {
-							items: [],
-							op: 'AND',
-						},
-						expression: 'A',
-						disabled: false,
-						stepInterval: 60,
-						having: [],
-						limit: null,
-						orderBy: [],
-						groupBy: [],
-						legend: '',
-						reduceTo: ReduceOperators.AVG,
 					},
-				},
+				],
 			},
 		},
 	},

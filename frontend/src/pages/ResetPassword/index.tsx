@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useQuery } from 'react-query';
-import getUserVersion from 'api/v1/version/get';
+import getUserVersion from 'api/v5/version/get';
 import Spinner from 'components/Spinner';
 import ResetPasswordContainer from 'container/ResetPassword';
 import { useAppContext } from 'providers/App/App';

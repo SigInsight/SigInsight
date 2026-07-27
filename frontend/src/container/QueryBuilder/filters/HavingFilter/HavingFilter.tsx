@@ -2,7 +2,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Color } from '@signozhq/design-tokens';
 import { Select } from 'antd';
-import { ENTITY_VERSION_V4 } from 'constants/app';
 // ** Constants
 import { HAVING_OPERATORS, initialHavingValues } from 'constants/queryBuilder';
 import { HavingFilterTag } from 'container/QueryBuilder/components';
@@ -23,7 +22,6 @@ import { getHavingObject, isValidHavingValue } from '../utils';
 import { HavingFilterProps } from './HavingFilter.interfaces';
 
 export function HavingFilter({
-	entityVersion,
 	query,
 	onChange,
 }: HavingFilterProps): JSX.Element {
@@ -47,19 +45,10 @@ export function HavingFilter({
 	);
 
 	const columnName = useMemo(() => {
-		if (
-			query &&
-			query.dataSource === DataSource.METRICS &&
-			query.spaceAggregation &&
-			entityVersion === ENTITY_VERSION_V4
-		) {
-			return `${query.spaceAggregation.toUpperCase()}(${aggregatorAttribute})`;
-		}
-
 		return `${
 			query.aggregateOperator?.toUpperCase() || ''
 		}(${aggregatorAttribute})`;
-	}, [query, aggregatorAttribute, entityVersion]);
+	}, [query, aggregatorAttribute]);
 
 	const aggregatorOptions: SelectOption<string, string>[] = useMemo(
 		() => [{ label: columnName, value: columnName }],

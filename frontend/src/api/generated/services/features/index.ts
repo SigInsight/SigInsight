@@ -24,14 +24,14 @@ import type { GetFeatures200, RenderErrorResponseDTO } from '../sigNoz.schemas';
  */
 export const getFeatures = (signal?: AbortSignal) => {
 	return GeneratedAPIInstance<GetFeatures200>({
-		url: `/api/v2/features`,
+		url: `/api/v5/features`,
 		method: 'GET',
 		signal,
 	});
 };
 
 export const getGetFeaturesQueryKey = () => {
-	return [`/api/v2/features`] as const;
+	return [`/api/v5/features`] as const;
 };
 
 export const getGetFeaturesQueryOptions = <

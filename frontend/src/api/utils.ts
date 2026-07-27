@@ -3,7 +3,7 @@ import { LOCALSTORAGE } from 'constants/localStorage';
 import ROUTES from 'constants/routes';
 import history from 'lib/history';
 
-import deleteSession from './v2/sessions/delete';
+import deleteSession from './v5/sessions/delete';
 
 export const Logout = async (): Promise<void> => {
 	try {

@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { getQueryLabelWithAggregation } from 'components/QueryBuilderV2/utils';
+import { getQueryLabelWithAggregation } from 'components/QueryBuilder/utils';
 import { Query } from 'types/api/queryBuilder/queryBuilderData';
 import { EQueryType } from 'types/common/dashboard';
 

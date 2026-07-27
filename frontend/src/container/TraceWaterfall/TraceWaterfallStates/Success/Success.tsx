@@ -30,7 +30,7 @@ import {
 	Leaf,
 } from 'lucide-react';
 import { useAppContext } from 'providers/App/App';
-import { Span } from 'types/api/trace/getTraceV2';
+import { Span } from 'types/api/trace/getTraceWaterfall';
 import { toFixed } from 'utils/toFixed';
 
 import Filters from './Filters/Filters';

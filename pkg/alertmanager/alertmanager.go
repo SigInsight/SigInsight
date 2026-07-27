@@ -19,7 +19,7 @@ var (
 type Alertmanager interface {
 	factory.Service
 	// GetAlerts gets the alerts from the alertmanager per organization.
-	GetAlerts(context.Context, string, alertmanagertypes.GettableAlertsParams) (alertmanagertypes.DeprecatedGettableAlerts, error)
+	GetAlerts(context.Context, string, alertmanagertypes.GettableAlertsParams) (alertmanagertypes.GettableAlerts, error)
 
 	// PutAlerts puts the alerts into the alertmanager per organization.
 	PutAlerts(context.Context, string, alertmanagertypes.PostableAlerts) error
@@ -32,9 +32,6 @@ type Alertmanager interface {
 
 	// ListChannels lists all channels for the organization.
 	ListChannels(context.Context, string) ([]*alertmanagertypes.Channel, error)
-
-	// ListAllChannels lists all channels for all organizations. It is used by the legacy alertmanager only.
-	ListAllChannels(context.Context) ([]*alertmanagertypes.Channel, error)
 
 	// GetChannelByID gets a channel for the organization.
 	GetChannelByID(context.Context, string, valuer.UUID) (*alertmanagertypes.Channel, error)
@@ -60,16 +57,6 @@ type Alertmanager interface {
 	SetNotificationConfig(ctx context.Context, orgID valuer.UUID, ruleId string, config *alertmanagertypes.NotificationConfig) error
 
 	DeleteNotificationConfig(ctx context.Context, orgID valuer.UUID, ruleId string) error
-
-	// Notification Policy CRUD
-	CreateRoutePolicy(ctx context.Context, route *alertmanagertypes.PostableRoutePolicy) (*alertmanagertypes.GettableRoutePolicy, error)
-	CreateRoutePolicies(ctx context.Context, routeRequests []*alertmanagertypes.PostableRoutePolicy) ([]*alertmanagertypes.GettableRoutePolicy, error)
-	GetRoutePolicyByID(ctx context.Context, routeID string) (*alertmanagertypes.GettableRoutePolicy, error)
-	GetAllRoutePolicies(ctx context.Context) ([]*alertmanagertypes.GettableRoutePolicy, error)
-	UpdateRoutePolicyByID(ctx context.Context, routeID string, route *alertmanagertypes.PostableRoutePolicy) (*alertmanagertypes.GettableRoutePolicy, error)
-	DeleteRoutePolicyByID(ctx context.Context, routeID string) error
-	DeleteAllRoutePoliciesByRuleId(ctx context.Context, ruleId string) error
-	UpdateAllRoutePoliciesByRuleId(ctx context.Context, ruleId string, routes []*alertmanagertypes.PostableRoutePolicy) error
 
 	CreateInhibitRules(ctx context.Context, orgID valuer.UUID, rules []amConfig.InhibitRule) error
 	DeleteAllInhibitRulesByRuleId(ctx context.Context, orgID valuer.UUID, ruleId string) error

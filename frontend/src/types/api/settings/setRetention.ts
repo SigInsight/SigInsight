@@ -7,7 +7,7 @@ export interface Props {
 	toColdDuration?: string;
 }
 
-export interface PropsV2 {
+export interface LogsRetentionProps {
 	type: TTTLType;
 	defaultTTLDays: number;
 	coldStorageVolume: string;
@@ -24,6 +24,6 @@ export interface PayloadProps {
 	success: 'message';
 }
 
-export interface PayloadPropsV2 {
+export interface RetentionUpdateResponse {
 	message: string;
 }

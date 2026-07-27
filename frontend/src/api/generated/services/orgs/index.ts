@@ -31,14 +31,14 @@ import type {
  */
 export const getMyOrganization = (signal?: AbortSignal) => {
 	return GeneratedAPIInstance<GetMyOrganization200>({
-		url: `/api/v2/orgs/me`,
+		url: `/api/v5/orgs/me`,
 		method: 'GET',
 		signal,
 	});
 };
 
 export const getGetMyOrganizationQueryKey = () => {
-	return [`/api/v2/orgs/me`] as const;
+	return [`/api/v5/orgs/me`] as const;
 };
 
 export const getGetMyOrganizationQueryOptions = <
@@ -119,7 +119,7 @@ export const updateMyOrganization = (
 	typesOrganizationDTO: BodyType<TypesOrganizationDTO>,
 ) => {
 	return GeneratedAPIInstance<void>({
-		url: `/api/v2/orgs/me`,
+		url: `/api/v5/orgs/me`,
 		method: 'PUT',
 		headers: { 'Content-Type': 'application/json' },
 		data: typesOrganizationDTO,

@@ -19,8 +19,8 @@ import { QueryBuilderContext } from 'providers/QueryBuilder';
 import MockQueryClientProvider from 'providers/test/MockQueryClientProvider';
 import TimezoneProvider from 'providers/Timezone';
 import store from 'store';
+import { ICompositeMetricQuery } from 'types/api/alerts/compositeQuery';
 import { QueryRangePayload } from 'types/api/metrics/getQueryRange';
-import { IBuilderQuery } from 'types/api/queryBuilder/queryBuilderData';
 
 import ContextLogRenderer from '../ContextLogRenderer';
 import {
@@ -107,11 +107,6 @@ describe('ContextLogRenderer', () => {
 
 	beforeEach(() => {
 		server.use(
-			rest.get(`${ENVIRONMENT.baseURL}/api/v1/logs`, (req, res, ctx) =>
-				res(ctx.status(200), ctx.json({ logs: [mockLog] })),
-			),
-		);
-		server.use(
 			rest.post(
 				`${ENVIRONMENT.baseURL}/api/v5/query_range`,
 				async (req, res, ctx) => {
@@ -128,30 +123,6 @@ describe('ContextLogRenderer', () => {
 					return res(ctx.status(200), ctx.json(mockQueryRangeResponse));
 				},
 			),
-		);
-		// Add handler for logs API that returns the expected message
-		server.use(
-			rest.get(`${ENVIRONMENT.baseURL}/api/v1/logs`, (req, res, ctx) => {
-				const url = new URL(req.url);
-				if (url.searchParams.has('offset')) {
-					// Return logs with "Failed to authenticate" message for pagination
-					const failedAuthLog = {
-						...mockLog,
-						body: 'Failed to authenticate user',
-					};
-					return res(
-						ctx.status(200),
-						ctx.json({
-							logs: [
-								{ ...failedAuthLog, id: 'failed-auth-log-1' },
-								{ ...failedAuthLog, id: 'failed-auth-log-2' },
-								{ ...failedAuthLog, id: 'failed-auth-log-3' },
-							],
-						}),
-					);
-				}
-				return res(ctx.status(200), ctx.json({ logs: [mockLog] }));
-			}),
 		);
 	});
 
@@ -197,11 +168,7 @@ describe('ContextLogRenderer', () => {
 		let initialPayload: {
 			start: number;
 			end: number;
-			compositeQuery: {
-				builderQueries: {
-					A: IBuilderQuery;
-				};
-			};
+			compositeQuery: ICompositeMetricQuery;
 		};
 
 		beforeEach(async () => {

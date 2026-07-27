@@ -31,7 +31,7 @@ def test_export_raw_data_get_not_allowed(
     token = get_token(USER_ADMIN_EMAIL, USER_ADMIN_PASSWORD)
 
     response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v1/export_raw_data"),
+        signoz.self.host_configs["8080"].get("/api/v5/export_raw_data"),
         timeout=10,
         headers={
             "authorization": f"Bearer {token}",
@@ -152,7 +152,7 @@ def test_export_traces_csv(
 
     # Export traces as CSV
     response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v1/export_raw_data"),
+        signoz.self.host_configs["8080"].get("/api/v5/export_raw_data"),
         json=body,
         timeout=30,
         headers={
@@ -264,7 +264,7 @@ def test_export_traces_jsonl(
 
     # Export traces as JSONL
     response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v1/export_raw_data?format=jsonl"),
+        signoz.self.host_configs["8080"].get("/api/v5/export_raw_data?format=jsonl"),
         json=body,
         timeout=10,
         headers={
@@ -378,7 +378,7 @@ def test_export_traces_with_filter(
 
     # Export traces with filter
     response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v1/export_raw_data?format=jsonl"),
+        signoz.self.host_configs["8080"].get("/api/v5/export_raw_data?format=jsonl"),
         json=body,
         timeout=10,
         headers={
@@ -452,7 +452,7 @@ def test_export_traces_with_limit(
 
     # Export traces with limit
     response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v1/export_raw_data?format=csv"),
+        signoz.self.host_configs["8080"].get("/api/v5/export_raw_data?format=csv"),
         json=body,
         timeout=10,
         headers={
@@ -508,7 +508,7 @@ def test_export_traces_multiple_queries_rejected(
         ],
     ).to_dict()
 
-    url = signoz.self.host_configs["8080"].get("/api/v1/export_raw_data?format=jsonl")
+    url = signoz.self.host_configs["8080"].get("/api/v5/export_raw_data?format=jsonl")
     response = requests.post(
         url,
         json=body,
@@ -636,7 +636,7 @@ def test_export_traces_with_composite_query_trace_operator(
         queries=[query_a, query_b, query_c],
     ).to_dict()
 
-    url = signoz.self.host_configs["8080"].get("/api/v1/export_raw_data?format=jsonl")
+    url = signoz.self.host_configs["8080"].get("/api/v5/export_raw_data?format=jsonl")
     response = requests.post(
         url,
         json=body,
@@ -733,7 +733,7 @@ def test_export_traces_with_select_fields(
         ],
     ).to_dict()
 
-    url = signoz.self.host_configs["8080"].get("/api/v1/export_raw_data?format=jsonl")
+    url = signoz.self.host_configs["8080"].get("/api/v5/export_raw_data?format=jsonl")
     response = requests.post(
         url,
         json=body,

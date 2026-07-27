@@ -6,8 +6,8 @@ import { LoadingOutlined } from '@ant-design/icons';
 import { Button } from '@signozhq/button';
 import { Compass, ScrollText } from '@signozhq/icons';
 import { Modal, Spin } from 'antd';
+import setLogsRetention from 'api/settings/setLogsRetention';
 import setRetentionApi from 'api/settings/setRetention';
-import setRetentionApiV2 from 'api/settings/setRetentionV2';
 import TextToolTip from 'components/TextToolTip';
 import useComponentPermission from 'hooks/useComponentPermission';
 import { useNotifications } from 'hooks/useNotifications';
@@ -17,9 +17,9 @@ import { BarChart2 } from 'lucide-react';
 import { useAppContext } from 'providers/App/App';
 import {
 	ErrorResponse,
-	ErrorResponseV2,
+	HttpErrorResponse,
+	HttpSuccessResponse,
 	SuccessResponse,
-	SuccessResponseV2,
 } from 'types/api';
 import {
 	IDiskType,
@@ -378,7 +378,7 @@ function GeneralSettings({
 							? apiCallS3Retention / 24
 							: 0;
 
-					await setRetentionApiV2({
+					await setLogsRetention({
 						type,
 						defaultTTLDays: apiCallTotalRetention ? apiCallTotalRetention / 24 : -1, // convert Hours to days
 						coldStorageVolume: s3RetentionDays > 0 ? 's3' : '',
@@ -579,9 +579,13 @@ function GeneralSettings({
 			},
 			statusComponent: (
 				<StatusMessage
-					total_retention={logsTtlValuesPayload.expected_logs_ttl_duration_hrs}
+					total_retention={logsTtlValuesPayload.default_ttl_days * 24}
 					status={logsTtlValuesPayload.status}
-					s3_retention={logsTtlValuesPayload.expected_logs_move_ttl_duration_hrs}
+					s3_retention={
+						logsTtlValuesPayload.cold_storage_ttl_days
+							? logsTtlValuesPayload.cold_storage_ttl_days * 24
+							: undefined
+					}
 				/>
 			),
 		},
@@ -693,7 +697,7 @@ interface GeneralSettingsProps {
 		ErrorResponse | SuccessResponse<GetRetentionPeriodTracesPayload>
 	>['refetch'];
 	logsTtlValuesRefetch: UseQueryResult<
-		ErrorResponseV2 | SuccessResponseV2<GetRetentionPeriodLogsPayload>
+		HttpErrorResponse | HttpSuccessResponse<GetRetentionPeriodLogsPayload>
 	>['refetch'];
 }
 

@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/SigNoz/signoz/pkg/errors"
-	v3 "github.com/SigNoz/signoz/pkg/query-service/model/v3"
+	"github.com/SigNoz/signoz/pkg/query-service/model/querytypes"
 	"github.com/SigNoz/signoz/pkg/types"
 	"github.com/SigNoz/signoz/pkg/valuer"
 	"github.com/uptrace/bun"
@@ -66,13 +66,13 @@ type StorableQuickFilter struct {
 }
 
 type SignalFilters struct {
-	Signal  Signal            `json:"signal"`
-	Filters []v3.AttributeKey `json:"filters"`
+	Signal  Signal                    `json:"signal"`
+	Filters []querytypes.AttributeKey `json:"filters"`
 }
 
 type UpdatableQuickFilters struct {
-	Signal  Signal            `json:"signal"`
-	Filters []v3.AttributeKey `json:"filters"`
+	Signal  Signal                    `json:"signal"`
+	Filters []querytypes.AttributeKey `json:"filters"`
 }
 
 // NewStorableQuickFilter creates a new StorableQuickFilter after validation
@@ -85,7 +85,7 @@ func NewStorableQuickFilter(orgID valuer.UUID, signal Signal, filterJSON []byte)
 		return nil, err
 	}
 
-	var filters []v3.AttributeKey
+	var filters []querytypes.AttributeKey
 	if err := json.Unmarshal(filterJSON, &filters); err != nil {
 		return nil, errors.Wrapf(err, errors.TypeInvalidInput, errors.CodeInvalidInput, "invalid filter JSON")
 	}
@@ -107,7 +107,7 @@ func NewStorableQuickFilter(orgID valuer.UUID, signal Signal, filterJSON []byte)
 
 // Update updates an existing StorableQuickFilter with new filter data after validation
 func (quickfilter *StorableQuickFilter) Update(filterJSON []byte) error {
-	var filters []v3.AttributeKey
+	var filters []querytypes.AttributeKey
 	if err := json.Unmarshal(filterJSON, &filters); err != nil {
 		return errors.Wrapf(err, errors.TypeInvalidInput, errors.CodeInvalidInput, "invalid filter JSON")
 	}
@@ -123,7 +123,7 @@ func NewSignalFilterFromStorableQuickFilter(storableQuickFilter *StorableQuickFi
 		return nil, errors.Newf(errors.TypeInvalidInput, errors.CodeInvalidInput, "storableQuickFilter cannot be nil")
 	}
 
-	var filters []v3.AttributeKey
+	var filters []querytypes.AttributeKey
 	if storableQuickFilter.Filter != "" {
 		err := json.Unmarshal([]byte(storableQuickFilter.Filter), &filters)
 		if err != nil {
@@ -142,7 +142,7 @@ func NewDefaultQuickFilter(orgID valuer.UUID) ([]*StorableQuickFilter, error) {
 	tracesFilters := []map[string]interface{}{
 		{"key": "duration_nano", "dataType": "float64", "type": "tag"},
 		{"key": "deployment.environment", "dataType": "string", "type": "resource"},
-		{"key": "hasError", "dataType": "bool", "type": "tag"},
+		{"key": "has_error", "dataType": "bool", "type": "tag"},
 		{"key": "service.name", "dataType": "string", "type": "resource"},
 		{"key": "name", "dataType": "string", "type": "tag"},
 		{"key": "rpc.method", "dataType": "string", "type": "tag"},

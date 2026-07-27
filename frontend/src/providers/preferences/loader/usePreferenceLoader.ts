@@ -1,19 +1,10 @@
 import { useEffect, useState } from 'react';
 import { TelemetryFieldKey } from 'api/v5/v5';
-import { has } from 'lodash-es';
 import { DataSource } from 'types/common/queryBuilder';
 
 import logsLoaderConfig from '../configs/logsLoaderConfig';
 import tracesLoaderConfig from '../configs/tracesLoaderConfig';
 import { FormattingOptions, Preferences } from '../types';
-
-const migrateColumns = (columns: any): any =>
-	columns.map((column: any) => {
-		if (has(column, 'key') && !has(column, 'name')) {
-			return { ...column, name: column.key };
-		}
-		return column;
-	});
 
 // Generic preferences loader that works with any config (synchronous version)
 function preferencesLoader<T>(config: {
@@ -32,13 +23,9 @@ function preferencesLoader<T>(config: {
 	);
 	const validFormattingResult = results.find(({ result }) => result.formatting);
 
-	const migratedColumns = validColumnsResult?.result.columns
-		? migrateColumns(validColumnsResult.result.columns)
-		: undefined;
-
 	// Combine valid results or fallback to default
 	const finalResult = {
-		columns: migratedColumns || config.default().columns,
+		columns: validColumnsResult?.result.columns || config.default().columns,
 		formatting:
 			validFormattingResult?.result.formatting || config.default().formatting,
 	};

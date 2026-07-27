@@ -10,7 +10,7 @@ import { TimestampInput } from 'hooks/useTimezoneFormatter/useTimezoneFormatter'
 import { RowData } from 'lib/query/createTableColumnsFromQuery';
 import LineClampedText from 'periscope/components/LineClampedText/LineClampedText';
 import { ILog } from 'types/api/logs/log';
-import { QueryDataV3 } from 'types/api/widgets/getQuery';
+import { QueryRangeResult } from 'types/api/widgets/getQuery';
 
 export function BlockLink({
 	children,
@@ -34,7 +34,7 @@ export function BlockLink({
 }
 
 export const transformDataWithDate = (
-	data: QueryDataV3[],
+	data: QueryRangeResult[],
 ): Omit<ILog, 'timestamp'>[] =>
 	data[0]?.list?.map(({ data, timestamp }) => ({ ...data, date: timestamp })) ||
 	[];

@@ -55,32 +55,6 @@ export function negateOperator(operatorOrFunction: string): string {
 	return `${OPERATORS.NOT} ${operatorOrFunction}`;
 }
 
-export enum DEPRECATED_OPERATORS {
-	REGEX = 'regex',
-	NIN = 'nin',
-	NREGEX = 'nregex',
-	NLIKE = 'nlike',
-	NILIKE = 'nilike',
-	NEXTISTS = 'nexists',
-	NCONTAINS = 'ncontains',
-	NHAS = 'nhas',
-	NHASANY = 'nhasany',
-	NHASALL = 'nhasall',
-}
-
-export const DEPRECATED_OPERATORS_MAP = {
-	[DEPRECATED_OPERATORS.REGEX]: OPERATORS.REGEXP,
-	[DEPRECATED_OPERATORS.NIN]: negateOperator(OPERATORS.IN),
-	[DEPRECATED_OPERATORS.NREGEX]: negateOperator(OPERATORS.REGEXP),
-	[DEPRECATED_OPERATORS.NLIKE]: negateOperator(OPERATORS.LIKE),
-	[DEPRECATED_OPERATORS.NILIKE]: negateOperator(OPERATORS.ILIKE),
-	[DEPRECATED_OPERATORS.NEXTISTS]: negateOperator(OPERATORS.EXISTS),
-	[DEPRECATED_OPERATORS.NCONTAINS]: negateOperator(OPERATORS.CONTAINS),
-	[DEPRECATED_OPERATORS.NHAS]: negateOperator(QUERY_BUILDER_FUNCTIONS.HAS),
-	[DEPRECATED_OPERATORS.NHASANY]: negateOperator(QUERY_BUILDER_FUNCTIONS.HASANY),
-	[DEPRECATED_OPERATORS.NHASALL]: negateOperator(QUERY_BUILDER_FUNCTIONS.HASALL),
-};
-
 export const NON_VALUE_OPERATORS = [OPERATORS.EXISTS];
 
 export enum QUERY_BUILDER_KEY_TYPES {

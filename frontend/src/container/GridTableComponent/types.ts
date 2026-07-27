@@ -2,11 +2,11 @@ import { TableProps } from 'antd';
 import { PrecisionOption } from 'components/Graph/types';
 import { PANEL_TYPES } from 'constants/queryBuilder';
 import { LogsExplorerTableProps } from 'container/LogsExplorerTable/LogsExplorerTable.interfaces';
+import { QueryTableProps } from 'container/QueryTable/QueryTable.intefaces';
 import {
 	ThresholdOperators,
 	ThresholdProps,
-} from 'container/NewWidget/RightContainer/Threshold/types';
-import { QueryTableProps } from 'container/QueryTable/QueryTable.intefaces';
+} from 'features/query-visualization/threshold';
 import { RowData } from 'lib/query/createTableColumnsFromQuery';
 import { ColumnUnit, ContextLinksData } from 'types/api/dashboard/getAll';
 import { Query } from 'types/api/queryBuilder/queryBuilderData';

@@ -16,7 +16,6 @@ pytest_plugins = [
     "fixtures.meter",
     "fixtures.notification_channel",
     "fixtures.alerts",
-    "fixtures.cloudintegrations",
 ]
 
 
@@ -54,6 +53,6 @@ def pytest_addoption(parser: pytest.Parser):
     parser.addoption(
         "--schema-migrator-version",
         action="store",
-        default="v1.0.2",
+        default="v1.1.3",
         help="schema migrator version",
     )

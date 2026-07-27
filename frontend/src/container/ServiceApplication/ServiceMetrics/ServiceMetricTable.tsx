@@ -3,7 +3,6 @@ import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
 import { ResizeTable } from 'components/ResizeTable';
-import { ENTITY_VERSION_V4 } from 'constants/app';
 import ResourceAttributesFilter from 'container/ResourceAttributesFilter';
 import { useGetQueriesRange } from 'hooks/queryBuilder/useGetQueriesRange';
 import { useNotifications } from 'hooks/useNotifications';
@@ -26,7 +25,7 @@ function ServiceMetricTable({
 
 	const { notifications } = useNotifications();
 
-	const queries = useGetQueriesRange(queryRangeRequestData, ENTITY_VERSION_V4, {
+	const queries = useGetQueriesRange(queryRangeRequestData, {
 		queryKey: [
 			`GetMetricsQueryRange-${queryRangeRequestData[0].selectedTime}-${globalSelectedInterval}`,
 			maxTime,

@@ -3,6 +3,7 @@ package transition
 
 import (
 	"log/slog"
+	"sort"
 
 	"golang.org/x/net/context"
 )
@@ -25,6 +26,59 @@ func NewAlertMigrateV5(logger *slog.Logger, logsDuplicateKeys []string, tracesDu
 	}
 }
 
+func EnsureAlertSelectedQuery(ruleData map[string]any) bool {
+	ruleCondition, ok := ruleData["condition"].(map[string]any)
+	if !ok {
+		return false
+	}
+	if selected, _ := ruleCondition["selectedQueryName"].(string); selected != "" {
+		return false
+	}
+
+	compositeQuery, ok := ruleCondition["compositeQuery"].(map[string]any)
+	if !ok {
+		return false
+	}
+	queries, ok := compositeQuery["queries"].([]any)
+	if !ok {
+		return false
+	}
+
+	queryNames := make(map[string]struct{})
+	for _, query := range queries {
+		envelope, ok := query.(map[string]any)
+		if !ok {
+			continue
+		}
+		spec, ok := envelope["spec"].(map[string]any)
+		if !ok {
+			continue
+		}
+		name, _ := spec["name"].(string)
+		if name != "" {
+			queryNames[name] = struct{}{}
+		}
+	}
+	if len(queryNames) == 0 {
+		return false
+	}
+
+	selected := ""
+	if _, ok := queryNames["F1"]; ok {
+		selected = "F1"
+	} else {
+		names := make([]string, 0, len(queryNames))
+		for name := range queryNames {
+			names = append(names, name)
+		}
+		sort.Strings(names)
+		selected = names[len(names)-1]
+	}
+
+	ruleCondition["selectedQueryName"] = selected
+	return true
+}
+
 func (m *alertMigrateV5) Migrate(ctx context.Context, ruleData map[string]any) bool {
 
 	updated := false
@@ -33,6 +87,7 @@ func (m *alertMigrateV5) Migrate(ctx context.Context, ruleData map[string]any) b
 	if _, ok := ruleData["version"].(string); ok {
 		version = ruleData["version"].(string)
 	}
+	updated = version != "v5"
 
 	if version == "v5" {
 		m.logger.InfoContext(ctx, "alert is already migrated to v5, skipping", slog.Any("alert_name", ruleData["alert"]))
@@ -82,6 +137,7 @@ func (m *alertMigrateV5) Migrate(ctx context.Context, ruleData map[string]any) b
 					envelope := m.WrapInV5Envelope(name, queryMap, "builder_query")
 					m.logger.InfoContext(ctx, "envelope after wrap", slog.Any("envelope", envelope))
 					compositeQuery["queries"] = append(compositeQuery["queries"].([]any), envelope)
+					updated = true
 				}
 			}
 		}
@@ -130,6 +186,9 @@ func (m *alertMigrateV5) Migrate(ctx context.Context, ruleData map[string]any) b
 	delete(compositeQuery, "promQueries")
 
 	ruleData["version"] = "v5"
+	if EnsureAlertSelectedQuery(ruleData) {
+		updated = true
+	}
 
 	return updated
 }

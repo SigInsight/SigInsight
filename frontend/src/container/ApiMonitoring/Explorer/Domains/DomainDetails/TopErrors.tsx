@@ -18,7 +18,7 @@ import {
 import { useNavigateToExplorer } from 'hooks/useNavigateToExplorer';
 import { GetMetricQueryRange } from 'lib/dashboard/getQueryResults';
 import { Info } from 'lucide-react';
-import { SuccessResponse, SuccessResponseV2 } from 'types/api';
+import { HttpSuccessResponse, SuccessResponse } from 'types/api';
 import { MetricRangePayloadProps } from 'types/api/metrics/getQueryRange';
 import { DataTypes } from 'types/api/queryBuilder/queryAutocompleteResponse';
 import { IBuilderQuery } from 'types/api/queryBuilder/queryBuilderData';
@@ -101,8 +101,9 @@ function TopErrors({
 		],
 		queryFn: ({
 			signal,
-		}: QueryFunctionContext): Promise<SuccessResponseV2<MetricRangePayloadV5>> =>
-			getQueryRangeV5(queryPayload, ENTITY_VERSION_V5, signal),
+		}: QueryFunctionContext): Promise<
+			HttpSuccessResponse<MetricRangePayloadV5>
+		> => getQueryRangeV5(queryPayload, signal),
 		enabled: !!queryPayload,
 		staleTime: 0,
 		cacheTime: 0,
@@ -136,7 +137,7 @@ function TopErrors({
 				ENTITY_VERSION_V5,
 			],
 			queryFn: (): Promise<SuccessResponse<MetricRangePayloadProps>> =>
-				GetMetricQueryRange(payload, ENTITY_VERSION_V5),
+				GetMetricQueryRange(payload),
 			enabled: !!payload,
 			staleTime: 60 * 1000,
 		})),

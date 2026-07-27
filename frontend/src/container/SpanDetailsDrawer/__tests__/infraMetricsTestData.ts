@@ -1,4 +1,4 @@
-import { Span } from 'types/api/trace/getTraceV2';
+import { Span } from 'types/api/trace/getTraceWaterfall';
 
 // Constants
 const TEST_TRACE_ID = 'test-trace-id';
@@ -85,7 +85,7 @@ export const mockSpanWithoutInfraMetadata: Span = {
 export const mockPodMetricsResponse = {
 	payload: {
 		data: {
-			newResult: {
+			queryResult: {
 				data: {
 					result: [
 						{
@@ -105,7 +105,7 @@ export const mockPodMetricsResponse = {
 export const mockNodeMetricsResponse = {
 	payload: {
 		data: {
-			newResult: {
+			queryResult: {
 				data: {
 					result: [
 						{
@@ -125,7 +125,7 @@ export const mockNodeMetricsResponse = {
 export const mockEmptyMetricsResponse = {
 	payload: {
 		data: {
-			newResult: {
+			queryResult: {
 				data: {
 					result: [],
 				},

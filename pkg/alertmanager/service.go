@@ -106,7 +106,7 @@ func (service *Service) SyncServers(ctx context.Context) error {
 	return nil
 }
 
-func (service *Service) GetAlerts(ctx context.Context, orgID string, params alertmanagertypes.GettableAlertsParams) (alertmanagertypes.DeprecatedGettableAlerts, error) {
+func (service *Service) GetAlerts(ctx context.Context, orgID string, params alertmanagertypes.GettableAlertsParams) (alertmanagertypes.GettableAlerts, error) {
 	service.serversMtx.RLock()
 	defer service.serversMtx.RUnlock()
 
@@ -120,7 +120,7 @@ func (service *Service) GetAlerts(ctx context.Context, orgID string, params aler
 		return nil, err
 	}
 
-	return alertmanagertypes.NewDeprecatedGettableAlertsFromGettableAlerts(alerts), nil
+	return alerts, nil
 }
 
 func (service *Service) PutAlerts(ctx context.Context, orgID string, alerts alertmanagertypes.PostableAlerts) error {

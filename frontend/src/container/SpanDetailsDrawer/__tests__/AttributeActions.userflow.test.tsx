@@ -5,7 +5,7 @@ import ROUTES from 'constants/routes';
 import { SPAN_ATTRIBUTES } from 'container/ApiMonitoring/Explorer/Domains/DomainDetails/constants';
 import { AppProvider } from 'providers/App/App';
 import MockQueryClientProvider from 'providers/test/MockQueryClientProvider';
-import { Span } from 'types/api/trace/getTraceV2';
+import { Span } from 'types/api/trace/getTraceWaterfall';
 
 import SpanDetailsDrawer from '../SpanDetailsDrawer';
 

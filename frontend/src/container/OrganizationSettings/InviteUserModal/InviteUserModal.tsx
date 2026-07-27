@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button, Form, FormInstance, Modal } from 'antd';
-import sendInvite from 'api/v1/invite/create';
+import sendInvite from 'api/v5/invite/create';
 import { useNotifications } from 'hooks/useNotifications';
 import APIError from 'types/api/error';
 

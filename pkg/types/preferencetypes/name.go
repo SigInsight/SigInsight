@@ -8,7 +8,6 @@ import (
 )
 
 var (
-	NameOrgOnboarding                         = Name{valuer.NewString("org_onboarding")}
 	NameWelcomeChecklistDoLater               = Name{valuer.NewString("welcome_checklist_do_later")}
 	NameWelcomeChecklistSendLogsSkipped       = Name{valuer.NewString("welcome_checklist_send_logs_skipped")}
 	NameWelcomeChecklistSendTracesSkipped     = Name{valuer.NewString("welcome_checklist_send_traces_skipped")}
@@ -26,7 +25,6 @@ type Name struct{ valuer.String }
 func NewName(name string) (Name, error) {
 	ok := slices.Contains(
 		[]string{
-			NameOrgOnboarding.StringValue(),
 			NameWelcomeChecklistDoLater.StringValue(),
 			NameWelcomeChecklistSendLogsSkipped.StringValue(),
 			NameWelcomeChecklistSendTracesSkipped.StringValue(),

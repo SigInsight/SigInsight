@@ -67,11 +67,10 @@ export const queryRangeSuccessResponse: QueryRangePayload = {
 		],
 	},
 	compositeQuery: {
-		builderQueries: undefined,
-		chQueries: undefined,
-		promQueries: undefined,
 		queryType: EQueryType.QUERY_BUILDER,
 		panelType: PANEL_TYPES.TIME_SERIES,
+		unit: undefined,
+		queries: [],
 	},
 	end: 0,
 	start: 0,

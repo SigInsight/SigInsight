@@ -14,7 +14,7 @@ import { useAuthZ } from './useAuthZ';
 import { buildPermission } from './utils';
 
 const BASE_URL = ENVIRONMENT.baseURL || '';
-const AUTHZ_CHECK_URL = `${BASE_URL}/api/v1/authz/check`;
+const AUTHZ_CHECK_URL = `${BASE_URL}/api/v5/authz/check`;
 
 function authzMockResponse(
 	payload: AuthtypesTransactionDTO[],

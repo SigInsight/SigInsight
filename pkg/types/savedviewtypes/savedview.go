@@ -1,9 +1,14 @@
 package savedviewtypes
 
 import (
+	"encoding/json"
 	"strings"
+	"time"
 
+	"github.com/SigNoz/signoz/pkg/errors"
 	"github.com/SigNoz/signoz/pkg/types"
+	qbtypes "github.com/SigNoz/signoz/pkg/types/querybuildertypes/querybuildertypesv5"
+	"github.com/SigNoz/signoz/pkg/valuer"
 	"github.com/uptrace/bun"
 )
 
@@ -32,7 +37,115 @@ func NewStatsFromSavedViews(savedViews []*SavedView) map[string]any {
 			stats[key] = stats[key].(int64) + 1
 		}
 	}
-
 	stats["savedview.count"] = int64(len(savedViews))
 	return stats
+}
+
+type QueryType string
+
+const (
+	QueryTypeBuilder       QueryType = "builder"
+	QueryTypeClickHouseSQL QueryType = "clickhouse_sql"
+	QueryTypePromQL        QueryType = "promql"
+)
+
+func (queryType QueryType) Validate() error {
+	switch queryType {
+	case QueryTypeBuilder, QueryTypeClickHouseSQL, QueryTypePromQL:
+		return nil
+	default:
+		return errors.Newf(errors.TypeInvalidInput, errors.CodeInvalidInput, "invalid query type: %s", queryType)
+	}
+}
+
+type PanelType string
+
+const (
+	PanelTypeValue PanelType = "value"
+	PanelTypeGraph PanelType = "graph"
+	PanelTypeTable PanelType = "table"
+	PanelTypeList  PanelType = "list"
+	PanelTypeTrace PanelType = "trace"
+)
+
+func (panelType PanelType) Validate() error {
+	switch panelType {
+	case PanelTypeValue, PanelTypeGraph, PanelTypeTable, PanelTypeList, PanelTypeTrace:
+		return nil
+	default:
+		return errors.Newf(errors.TypeInvalidInput, errors.CodeInvalidInput, "invalid panel type: %s", panelType)
+	}
+}
+
+type CompositeQuery struct {
+	Queries   []qbtypes.QueryEnvelope `json:"queries"`
+	PanelType PanelType               `json:"panelType"`
+	QueryType QueryType               `json:"queryType"`
+	Unit      string                  `json:"unit,omitempty"`
+	FillGaps  bool                    `json:"fillGaps,omitempty"`
+}
+
+func (query *CompositeQuery) UnmarshalJSON(data []byte) error {
+	type alias CompositeQuery
+	var value alias
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+
+	var fields map[string]json.RawMessage
+	if err := json.Unmarshal(data, &fields); err != nil {
+		return err
+	}
+	validFields := map[string]struct{}{
+		"queries":   {},
+		"panelType": {},
+		"queryType": {},
+		"unit":      {},
+		"fillGaps":  {},
+	}
+	for field := range fields {
+		if _, ok := validFields[field]; !ok {
+			return errors.Newf(errors.TypeInvalidInput, errors.CodeInvalidInput, "unknown field %q in saved view composite query", field)
+		}
+	}
+
+	*query = CompositeQuery(value)
+	return nil
+}
+
+func (query *CompositeQuery) Validate() error {
+	if query == nil {
+		return errors.New(errors.TypeInvalidInput, errors.CodeInvalidInput, "composite query is required")
+	}
+	if len(query.Queries) == 0 {
+		return errors.New(errors.TypeInvalidInput, errors.CodeInvalidInput, "composite query must contain at least one query")
+	}
+	if err := query.PanelType.Validate(); err != nil {
+		return errors.Newf(errors.TypeInvalidInput, errors.CodeInvalidInput, "panel type is invalid: %v", err)
+	}
+	if err := query.QueryType.Validate(); err != nil {
+		return errors.Newf(errors.TypeInvalidInput, errors.CodeInvalidInput, "query type is invalid: %v", err)
+	}
+	return nil
+}
+
+type View struct {
+	ID             valuer.UUID     `json:"id,omitempty"`
+	Name           string          `json:"name"`
+	Category       string          `json:"category"`
+	CreatedAt      time.Time       `json:"createdAt"`
+	CreatedBy      string          `json:"createdBy"`
+	UpdatedAt      time.Time       `json:"updatedAt"`
+	UpdatedBy      string          `json:"updatedBy"`
+	SourcePage     string          `json:"sourcePage"`
+	Tags           []string        `json:"tags"`
+	CompositeQuery *CompositeQuery `json:"compositeQuery"`
+	ExtraData      string          `json:"extraData"`
+}
+
+func (view *View) Validate() error {
+	if view.CompositeQuery == nil {
+		return errors.New(errors.TypeInvalidInput, errors.CodeInvalidInput, "composite query is required")
+	}
+	return view.CompositeQuery.Validate()
 }

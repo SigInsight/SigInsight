@@ -2,12 +2,12 @@ package ruletypes
 
 import (
 	"encoding/json"
+	"github.com/SigNoz/signoz/pkg/types/timeseriestypes"
 	"math"
 	"sort"
 	"strings"
 
 	"github.com/SigNoz/signoz/pkg/errors"
-	v3 "github.com/SigNoz/signoz/pkg/query-service/model/v3"
 	"github.com/SigNoz/signoz/pkg/query-service/utils/labels"
 	"github.com/SigNoz/signoz/pkg/units"
 	"github.com/SigNoz/signoz/pkg/valuer"
@@ -83,7 +83,7 @@ func (eval EvalData) HasActiveAlert(sampleLabelFp uint64) bool {
 type RuleThreshold interface {
 	// Eval runs the given series through the threshold rules
 	// using the given EvalData and returns the matching series
-	Eval(series v3.Series, unit string, evalData EvalData) (Vector, error)
+	Eval(series timeseriestypes.Series, unit string, evalData EvalData) (Vector, error)
 	GetRuleReceivers() []RuleReceivers
 }
 
@@ -122,7 +122,7 @@ func (r BasicRuleThresholds) Validate() error {
 	return errors.Join(errs...)
 }
 
-func (r BasicRuleThresholds) Eval(series v3.Series, unit string, evalData EvalData) (Vector, error) {
+func (r BasicRuleThresholds) Eval(series timeseriestypes.Series, unit string, evalData EvalData) (Vector, error) {
 	var resultVector Vector
 	thresholds := []BasicRuleThreshold(r)
 	sortThresholds(thresholds)
@@ -255,15 +255,15 @@ func (b BasicRuleThreshold) Validate() error {
 	return errors.Join(errs...)
 }
 
-func (b BasicRuleThreshold) matchesRecoveryThreshold(series v3.Series, ruleUnit string) (Sample, bool) {
+func (b BasicRuleThreshold) matchesRecoveryThreshold(series timeseriestypes.Series, ruleUnit string) (Sample, bool) {
 	return b.shouldAlertWithTarget(series, b.recoveryTarget(ruleUnit))
 }
-func (b BasicRuleThreshold) shouldAlert(series v3.Series, ruleUnit string) (Sample, bool) {
+func (b BasicRuleThreshold) shouldAlert(series timeseriestypes.Series, ruleUnit string) (Sample, bool) {
 	return b.shouldAlertWithTarget(series, b.target(ruleUnit))
 }
 
-func removeGroupinSetPoints(series v3.Series) []v3.Point {
-	var result []v3.Point
+func removeGroupinSetPoints(series timeseriestypes.Series) []timeseriestypes.Point {
+	var result []timeseriestypes.Point
 	for _, s := range series.Points {
 		if s.Timestamp >= 0 && !math.IsNaN(s.Value) && !math.IsInf(s.Value, 0) {
 			result = append(result, s)
@@ -284,7 +284,7 @@ func PrepareSampleLabelsForRule(seriesLabels map[string]string, thresholdName st
 	return lb.Labels()
 }
 
-func (b BasicRuleThreshold) shouldAlertWithTarget(series v3.Series, target float64) (Sample, bool) {
+func (b BasicRuleThreshold) shouldAlertWithTarget(series timeseriestypes.Series, target float64) (Sample, bool) {
 	var shouldAlert bool
 	var alertSmpl Sample
 	lbls := PrepareSampleLabelsForRule(series.Labels, b.Name)

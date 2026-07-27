@@ -88,7 +88,7 @@ def test_list_meter_metric_names(
     token = get_token(USER_ADMIN_EMAIL, USER_ADMIN_PASSWORD)
 
     response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v2/metrics"),
+        signoz.self.host_configs["8080"].get("/api/v5/metrics"),
         params={
             "start": start_ms,
             "end": end_ms,

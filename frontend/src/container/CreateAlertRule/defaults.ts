@@ -4,7 +4,6 @@ import {
 	initialQueryPromQLData,
 	PANEL_TYPES,
 } from 'constants/queryBuilder';
-import { AlertDetectionTypes } from 'container/FormAlertRules';
 import { AlertTypes } from 'types/api/alerts/alertTypes';
 import {
 	AlertDef,
@@ -15,6 +14,7 @@ import {
 	defaultSeasonality,
 } from 'types/api/alerts/def';
 import { EQueryType } from 'types/common/dashboard';
+import { compositeQueryToQueryEnvelope } from 'utils/compositeQueryToQueryEnvelope';
 
 const defaultAlertDescription =
 	'This alert is fired when the defined metric (current value: {{$value}}) crosses the threshold ({{$threshold}})';
@@ -30,7 +30,7 @@ export const alertDefaults: AlertDef = {
 	alertType: AlertTypes.METRICS_BASED_ALERT,
 	version: ENTITY_VERSION_V5,
 	condition: {
-		compositeQuery: {
+		compositeQuery: compositeQueryToQueryEnvelope({
 			builderQueries: {
 				A: initialQueryBuilderFormValuesMap.metrics,
 			},
@@ -46,56 +46,11 @@ export const alertDefaults: AlertDef = {
 			queryType: EQueryType.QUERY_BUILDER,
 			panelType: PANEL_TYPES.TIME_SERIES,
 			unit: undefined,
-		},
+		}),
 		op: defaultCompareOp,
 		matchType: defaultMatchType,
 		algorithm: defaultAlgorithm,
 		seasonality: defaultSeasonality,
-	},
-	labels: {
-		severity: 'warning',
-	},
-	annotations: defaultAnnotations,
-	evalWindow: defaultEvalWindow,
-	alert: '',
-};
-
-export const anamolyAlertDefaults: AlertDef = {
-	alertType: AlertTypes.METRICS_BASED_ALERT,
-	version: ENTITY_VERSION_V5,
-	ruleType: AlertDetectionTypes.ANOMALY_DETECTION_ALERT,
-	condition: {
-		compositeQuery: {
-			builderQueries: {
-				A: {
-					...initialQueryBuilderFormValuesMap.metrics,
-					functions: [
-						{
-							name: 'anomaly',
-							args: [],
-							namedArgs: { z_score_threshold: 3 },
-						},
-					],
-				},
-			},
-			promQueries: { A: initialQueryPromQLData },
-			chQueries: {
-				A: {
-					name: 'A',
-					query: ``,
-					legend: '',
-					disabled: false,
-				},
-			},
-			queryType: EQueryType.QUERY_BUILDER,
-			panelType: PANEL_TYPES.TIME_SERIES,
-			unit: undefined,
-		},
-		op: defaultCompareOp,
-		matchType: defaultMatchType,
-		algorithm: defaultAlgorithm,
-		seasonality: defaultSeasonality,
-		target: 3,
 	},
 	labels: {
 		severity: 'warning',
@@ -109,7 +64,7 @@ export const logAlertDefaults: AlertDef = {
 	alertType: AlertTypes.LOGS_BASED_ALERT,
 	version: ENTITY_VERSION_V5,
 	condition: {
-		compositeQuery: {
+		compositeQuery: compositeQueryToQueryEnvelope({
 			builderQueries: {
 				A: initialQueryBuilderFormValuesMap.logs,
 			},
@@ -125,7 +80,7 @@ export const logAlertDefaults: AlertDef = {
 			queryType: EQueryType.QUERY_BUILDER,
 			panelType: PANEL_TYPES.TIME_SERIES,
 			unit: undefined,
-		},
+		}),
 		op: defaultCompareOp,
 		matchType: '4',
 	},
@@ -141,7 +96,7 @@ export const traceAlertDefaults: AlertDef = {
 	alertType: AlertTypes.TRACES_BASED_ALERT,
 	version: ENTITY_VERSION_V5,
 	condition: {
-		compositeQuery: {
+		compositeQuery: compositeQueryToQueryEnvelope({
 			builderQueries: {
 				A: initialQueryBuilderFormValuesMap.traces,
 			},
@@ -157,7 +112,7 @@ export const traceAlertDefaults: AlertDef = {
 			queryType: EQueryType.QUERY_BUILDER,
 			panelType: PANEL_TYPES.TIME_SERIES,
 			unit: undefined,
-		},
+		}),
 		op: defaultCompareOp,
 		matchType: '4',
 	},
@@ -173,7 +128,7 @@ export const exceptionAlertDefaults: AlertDef = {
 	alertType: AlertTypes.EXCEPTIONS_BASED_ALERT,
 	version: ENTITY_VERSION_V5,
 	condition: {
-		compositeQuery: {
+		compositeQuery: compositeQueryToQueryEnvelope({
 			builderQueries: {
 				A: initialQueryBuilderFormValuesMap.traces,
 			},
@@ -189,7 +144,7 @@ export const exceptionAlertDefaults: AlertDef = {
 			queryType: EQueryType.CLICKHOUSE,
 			panelType: PANEL_TYPES.TIME_SERIES,
 			unit: undefined,
-		},
+		}),
 		op: defaultCompareOp,
 		matchType: '4',
 	},
@@ -202,7 +157,6 @@ export const exceptionAlertDefaults: AlertDef = {
 };
 
 export const ALERTS_VALUES_MAP: Record<AlertTypes, AlertDef> = {
-	[AlertTypes.ANOMALY_BASED_ALERT]: anamolyAlertDefaults,
 	[AlertTypes.METRICS_BASED_ALERT]: alertDefaults,
 	[AlertTypes.LOGS_BASED_ALERT]: logAlertDefaults,
 	[AlertTypes.TRACES_BASED_ALERT]: traceAlertDefaults,

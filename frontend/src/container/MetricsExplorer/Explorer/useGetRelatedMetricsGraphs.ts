@@ -2,7 +2,6 @@ import { useMemo } from 'react';
 import { useQueries } from 'react-query';
 // eslint-disable-next-line no-restricted-imports
 import { useSelector } from 'react-redux';
-import { ENTITY_VERSION_V4 } from 'constants/app';
 import { PANEL_TYPES } from 'constants/queryBuilder';
 import { useGetRelatedMetrics } from 'hooks/metricsExplorer/useGetRelatedMetrics';
 import { GetMetricQueryRange } from 'lib/dashboard/getQueryResults';
@@ -64,31 +63,28 @@ export const useGetRelatedMetricsGraphs = ({
 				relatedMetrics.map((metric) => ({
 					queryKey: ['related-metrics', metric.name],
 					queryFn: (): Promise<SuccessResponse<MetricRangePayloadProps>> =>
-						GetMetricQueryRange(
-							{
-								query: {
-									queryType: EQueryType.QUERY_BUILDER,
-									promql: [],
-									builder: {
-										queryData: [metric.query],
-										queryFormulas: [],
-										queryTraceOperator: [],
-									},
-									clickhouse_sql: [],
-									id: uuidv4(),
+						GetMetricQueryRange({
+							query: {
+								queryType: EQueryType.QUERY_BUILDER,
+								promql: [],
+								builder: {
+									queryData: [metric.query],
+									queryFormulas: [],
+									queryTraceOperator: [],
 								},
-								graphType: PANEL_TYPES.TIME_SERIES,
-								selectedTime: 'GLOBAL_TIME',
-								globalSelectedInterval: globalSelectedTime,
-								start: startMs,
-								end: endMs,
-								formatForWeb: false,
-								params: {
-									dataSource: DataSource.METRICS,
-								},
+								clickhouse_sql: [],
+								id: uuidv4(),
 							},
-							ENTITY_VERSION_V4,
-						),
+							graphType: PANEL_TYPES.TIME_SERIES,
+							selectedTime: 'GLOBAL_TIME',
+							globalSelectedInterval: globalSelectedTime,
+							start: startMs,
+							end: endMs,
+							formatForWeb: false,
+							params: {
+								dataSource: DataSource.METRICS,
+							},
+						}),
 					enabled: !!metric.query,
 				})),
 			[relatedMetrics, globalSelectedTime, startMs, endMs],

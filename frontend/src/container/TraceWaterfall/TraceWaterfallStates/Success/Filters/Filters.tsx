@@ -3,7 +3,6 @@ import { useHistory, useLocation } from 'react-router-dom';
 import { InfoCircleOutlined, LoadingOutlined } from '@ant-design/icons';
 import { Button, Spin, Tooltip, Typography } from 'antd';
 import { AxiosError } from 'axios';
-import { DEFAULT_ENTITY_VERSION } from 'constants/app';
 import { initialQueriesMap, PANEL_TYPES } from 'constants/queryBuilder';
 import QueryBuilderSearchV2 from 'container/QueryBuilder/filters/QueryBuilderSearchV2/QueryBuilderSearchV2';
 import { useGetQueryRange } from 'hooks/queryBuilder/useGetQueryRange';
@@ -123,15 +122,14 @@ function Filters({
 				],
 			},
 		},
-		DEFAULT_ENTITY_VERSION,
 		{
 			queryKey: [filters],
 			enabled: filters.items.length > 0,
 			onSuccess: (data) => {
 				const isFilterActive = filters.items.length > 0;
-				if (data?.payload.data.newResult.data.result[0].list) {
+				if (data?.payload.data.queryResult.data.result[0].list) {
 					const uniqueSpans = uniqBy(
-						data?.payload.data.newResult.data.result[0].list,
+						data?.payload.data.queryResult.data.result[0].list,
 						'data.spanID',
 					);
 

@@ -116,7 +116,6 @@ describe('tracesUpdaterConfig', () => {
 				maxLines: 1,
 				format: 'table',
 				fontSize: 'small',
-				version: 1,
 			},
 		});
 	});

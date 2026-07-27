@@ -3,13 +3,6 @@
 # Do not modify this file
 #
 
-##################### Global #####################
-global:
-  # the url under which the signoz apiserver is externally reachable.
-  external_url: <unset>
-  # the url where the SigNoz backend receives telemetry data (traces, metrics, logs) from instrumented applications.
-  ingestion_url: <unset>
-
 ##################### Version #####################
 version:
   banner:
@@ -99,13 +92,12 @@ apiserver:
     max: 600s
     # List of routes to exclude from request timeout.
     excluded_routes:
-      - /api/v1/logs/tail
       - /api/v5/logs/livetail
   logging:
     # List of routes to exclude from request responselogging.
     excluded_routes:
-      - /api/v1/health
-      - /api/v1/version
+      - /api/v5/health
+      - /api/v5/version
       - /
 
 ##################### Querier #####################

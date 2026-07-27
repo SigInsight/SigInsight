@@ -16,7 +16,7 @@ import {
 	Querybuildertypesv5OrderByDTO,
 	Querybuildertypesv5OrderDirectionDTO,
 } from 'api/generated/services/sigNoz.schemas';
-import { convertExpressionToFilters } from 'components/QueryBuilderV2/utils';
+import { convertExpressionToFilters } from 'components/QueryBuilder/utils';
 import { initialQueriesMap } from 'constants/queryBuilder';
 import NoLogs from 'container/NoLogs/NoLogs';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';

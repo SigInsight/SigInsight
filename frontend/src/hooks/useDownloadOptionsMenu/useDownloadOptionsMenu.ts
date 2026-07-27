@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react';
 // eslint-disable-next-line no-restricted-imports
 import { useSelector } from 'react-redux';
 import { message } from 'antd';
-import { downloadExportData } from 'api/v1/download/downloadExportData';
+import { downloadExportData } from 'api/v5/download/downloadExportData';
 import { prepareQueryRangePayloadV5, TelemetryFieldKey } from 'api/v5/v5';
 import { PANEL_TYPES } from 'constants/queryBuilder';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';

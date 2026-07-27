@@ -4,14 +4,14 @@ import (
 	"reflect"
 	"testing"
 
-	v3 "github.com/SigNoz/signoz/pkg/query-service/model/v3"
+	"github.com/SigNoz/signoz/pkg/query-service/model/querytypes"
 )
 
 func Test_buildResourceFilter(t *testing.T) {
 	type args struct {
 		logsOp string
 		key    string
-		op     v3.FilterOperator
+		op     querytypes.FilterOperator
 		value  interface{}
 	}
 	tests := []struct {
@@ -23,7 +23,7 @@ func Test_buildResourceFilter(t *testing.T) {
 			name: "test exists",
 			args: args{
 				key: "service.name",
-				op:  v3.FilterOperatorExists,
+				op:  querytypes.FilterOperatorExists,
 			},
 			want: `simpleJSONHas(labels, 'service.name')`,
 		},
@@ -31,7 +31,7 @@ func Test_buildResourceFilter(t *testing.T) {
 			name: "test nexists",
 			args: args{
 				key: "service.name",
-				op:  v3.FilterOperatorNotExists,
+				op:  querytypes.FilterOperatorNotExists,
 			},
 			want: `not simpleJSONHas(labels, 'service.name')`,
 		},
@@ -40,7 +40,7 @@ func Test_buildResourceFilter(t *testing.T) {
 			args: args{
 				logsOp: "match(%s, %s)",
 				key:    "service.name",
-				op:     v3.FilterOperatorRegex,
+				op:     querytypes.FilterOperatorRegex,
 				value:  ".*",
 			},
 			want: `match(simpleJSONExtractString(labels, 'service.name'), '.*')`,
@@ -50,7 +50,7 @@ func Test_buildResourceFilter(t *testing.T) {
 			args: args{
 				logsOp: "LIKE",
 				key:    "service.name",
-				op:     v3.FilterOperatorContains,
+				op:     querytypes.FilterOperatorContains,
 				value:  "Application%_",
 			},
 			want: `simpleJSONExtractString(lower(labels), 'service.name') LIKE '%application\%\_%'`,
@@ -60,7 +60,7 @@ func Test_buildResourceFilter(t *testing.T) {
 			args: args{
 				logsOp: "=",
 				key:    "service.name",
-				op:     v3.FilterOperatorEqual,
+				op:     querytypes.FilterOperatorEqual,
 				value:  "Application%",
 			},
 			want: `simpleJSONExtractString(labels, 'service.name') = 'Application%'`,
@@ -70,7 +70,7 @@ func Test_buildResourceFilter(t *testing.T) {
 			args: args{
 				logsOp: "=",
 				key:    "service.name",
-				op:     v3.FilterOperatorEqual,
+				op:     querytypes.FilterOperatorEqual,
 				value:  "Application's",
 			},
 			want: `simpleJSONExtractString(labels, 'service.name') = 'Application\'s'`,
@@ -80,7 +80,7 @@ func Test_buildResourceFilter(t *testing.T) {
 			args: args{
 				logsOp: "LIKE",
 				key:    "service.name",
-				op:     v3.FilterOperatorLike,
+				op:     querytypes.FilterOperatorLike,
 				value:  "Application%_",
 			},
 			want: `simpleJSONExtractString(lower(labels), 'service.name') LIKE 'application%_'`,
@@ -98,7 +98,7 @@ func Test_buildResourceFilter(t *testing.T) {
 func Test_buildIndexFilterForInOperator(t *testing.T) {
 	type args struct {
 		key   string
-		op    v3.FilterOperator
+		op    querytypes.FilterOperator
 		value interface{}
 	}
 	tests := []struct {
@@ -110,7 +110,7 @@ func Test_buildIndexFilterForInOperator(t *testing.T) {
 			name: "test in array",
 			args: args{
 				key:   "service.name",
-				op:    v3.FilterOperatorIn,
+				op:    querytypes.FilterOperatorIn,
 				value: []interface{}{"Application", "Test"},
 			},
 			want: `(labels like '%"service.name":"Application"%' OR labels like '%"service.name":"Test"%')`,
@@ -119,7 +119,7 @@ func Test_buildIndexFilterForInOperator(t *testing.T) {
 			name: "test nin array",
 			args: args{
 				key:   "service.name",
-				op:    v3.FilterOperatorNotIn,
+				op:    querytypes.FilterOperatorNotIn,
 				value: []interface{}{"Application", "Test"},
 			},
 			want: `(labels not like '%"service.name":"Application"%' AND labels not like '%"service.name":"Test"%')`,
@@ -128,7 +128,7 @@ func Test_buildIndexFilterForInOperator(t *testing.T) {
 			name: "test in string",
 			args: args{
 				key:   "service.name",
-				op:    v3.FilterOperatorIn,
+				op:    querytypes.FilterOperatorIn,
 				value: "application%",
 			},
 			want: `(labels like '%"service.name":"application\%"%')`,
@@ -137,7 +137,7 @@ func Test_buildIndexFilterForInOperator(t *testing.T) {
 			name: "test nin string",
 			args: args{
 				key:   "service.name",
-				op:    v3.FilterOperatorNotIn,
+				op:    querytypes.FilterOperatorNotIn,
 				value: `application'"_s`,
 			},
 			want: `(labels not like '%"service.name":"application\'\\\\"\_s"%')`,
@@ -155,7 +155,7 @@ func Test_buildIndexFilterForInOperator(t *testing.T) {
 func Test_buildResourceIndexFilter(t *testing.T) {
 	type args struct {
 		key   string
-		op    v3.FilterOperator
+		op    querytypes.FilterOperator
 		value interface{}
 	}
 	tests := []struct {
@@ -167,7 +167,7 @@ func Test_buildResourceIndexFilter(t *testing.T) {
 			name: "test eq",
 			args: args{
 				key:   "service.name",
-				op:    v3.FilterOperatorEqual,
+				op:    querytypes.FilterOperatorEqual,
 				value: `Application"`,
 			},
 			want: `labels like '%service.name":"Application\\\\"%'`,
@@ -176,7 +176,7 @@ func Test_buildResourceIndexFilter(t *testing.T) {
 			name: "test not eq",
 			args: args{
 				key:   "service.name",
-				op:    v3.FilterOperatorNotEqual,
+				op:    querytypes.FilterOperatorNotEqual,
 				value: `Application"`,
 			},
 			want: `labels not like '%service.name":"Application\\\\"%'`,
@@ -185,7 +185,7 @@ func Test_buildResourceIndexFilter(t *testing.T) {
 			name: "test like with % and _",
 			args: args{
 				key:   "service.name",
-				op:    v3.FilterOperatorLike,
+				op:    querytypes.FilterOperatorLike,
 				value: "Application%_test",
 			},
 			want: `lower(labels) like '%service.name%application%_test%'`,
@@ -194,7 +194,7 @@ func Test_buildResourceIndexFilter(t *testing.T) {
 			name: "test like with % and _",
 			args: args{
 				key:   "service.name",
-				op:    v3.FilterOperatorLike,
+				op:    querytypes.FilterOperatorLike,
 				value: "application%_test",
 			},
 			want: `lower(labels) like '%service.name%application%_test%'`,
@@ -203,7 +203,7 @@ func Test_buildResourceIndexFilter(t *testing.T) {
 			name: "test not like with % and _",
 			args: args{
 				key:   "service.name",
-				op:    v3.FilterOperatorLike,
+				op:    querytypes.FilterOperatorLike,
 				value: "application%_test",
 			},
 			want: `lower(labels) like '%service.name%application%_test%'`,
@@ -212,7 +212,7 @@ func Test_buildResourceIndexFilter(t *testing.T) {
 			name: "test not like with % and _",
 			args: args{
 				key:   "service.name",
-				op:    v3.FilterOperatorILike,
+				op:    querytypes.FilterOperatorILike,
 				value: "application%_test",
 			},
 			want: `lower(labels) like '%service.name%application%_test%'`,
@@ -221,7 +221,7 @@ func Test_buildResourceIndexFilter(t *testing.T) {
 			name: "test contains",
 			args: args{
 				key:   "service.name",
-				op:    v3.FilterOperatorContains,
+				op:    querytypes.FilterOperatorContains,
 				value: "application",
 			},
 			want: `lower(labels) like '%service.name%application%'`,
@@ -230,7 +230,7 @@ func Test_buildResourceIndexFilter(t *testing.T) {
 			name: "test not contains",
 			args: args{
 				key:   "service.name",
-				op:    v3.FilterOperatorNotContains,
+				op:    querytypes.FilterOperatorNotContains,
 				value: "application",
 			},
 			want: ``,
@@ -239,7 +239,7 @@ func Test_buildResourceIndexFilter(t *testing.T) {
 			name: "test contains with % and _",
 			args: args{
 				key:   "service.name",
-				op:    v3.FilterOperatorNotContains,
+				op:    querytypes.FilterOperatorNotContains,
 				value: "application%_test",
 			},
 			want: ``,
@@ -249,7 +249,7 @@ func Test_buildResourceIndexFilter(t *testing.T) {
 			name: "test not regex",
 			args: args{
 				key:   "service.name",
-				op:    v3.FilterOperatorNotRegex,
+				op:    querytypes.FilterOperatorNotRegex,
 				value: ".*",
 			},
 			want: ``,
@@ -258,7 +258,7 @@ func Test_buildResourceIndexFilter(t *testing.T) {
 			name: "test in",
 			args: args{
 				key:   "service.name",
-				op:    v3.FilterOperatorNotIn,
+				op:    querytypes.FilterOperatorNotIn,
 				value: []interface{}{"Application", "Test"},
 			},
 			want: `(labels not like '%"service.name":"Application"%' AND labels not like '%"service.name":"Test"%')`,
@@ -267,7 +267,7 @@ func Test_buildResourceIndexFilter(t *testing.T) {
 			name: "test exists",
 			args: args{
 				key: "service.name",
-				op:  v3.FilterOperatorExists,
+				op:  querytypes.FilterOperatorExists,
 			},
 			want: `lower(labels) like '%service.name%'`,
 		},
@@ -275,7 +275,7 @@ func Test_buildResourceIndexFilter(t *testing.T) {
 			name: "test not exists",
 			args: args{
 				key: "service.name",
-				op:  v3.FilterOperatorNotExists,
+				op:  querytypes.FilterOperatorNotExists,
 			},
 			want: `lower(labels) not like '%service.name%'`,
 		},
@@ -291,7 +291,7 @@ func Test_buildResourceIndexFilter(t *testing.T) {
 
 func Test_buildResourceFiltersFromFilterItems(t *testing.T) {
 	type args struct {
-		fs *v3.FilterSet
+		fs *querytypes.FilterSet
 	}
 	tests := []struct {
 		name    string
@@ -302,15 +302,15 @@ func Test_buildResourceFiltersFromFilterItems(t *testing.T) {
 		{
 			name: "ignore attribute",
 			args: args{
-				fs: &v3.FilterSet{
-					Items: []v3.FilterItem{
+				fs: &querytypes.FilterSet{
+					Items: []querytypes.FilterItem{
 						{
-							Key: v3.AttributeKey{
+							Key: querytypes.AttributeKey{
 								Key:      "service.name",
-								DataType: v3.AttributeKeyDataTypeString,
-								Type:     v3.AttributeKeyTypeTag,
+								DataType: querytypes.AttributeKeyDataTypeString,
+								Type:     querytypes.AttributeKeyTypeTag,
 							},
-							Operator: v3.FilterOperatorEqual,
+							Operator: querytypes.FilterOperatorEqual,
 							Value:    "test",
 						},
 					},
@@ -322,15 +322,15 @@ func Test_buildResourceFiltersFromFilterItems(t *testing.T) {
 		{
 			name: "build filter",
 			args: args{
-				fs: &v3.FilterSet{
-					Items: []v3.FilterItem{
+				fs: &querytypes.FilterSet{
+					Items: []querytypes.FilterItem{
 						{
-							Key: v3.AttributeKey{
+							Key: querytypes.AttributeKey{
 								Key:      "service.name",
-								DataType: v3.AttributeKeyDataTypeString,
-								Type:     v3.AttributeKeyTypeResource,
+								DataType: querytypes.AttributeKeyDataTypeString,
+								Type:     querytypes.AttributeKeyTypeResource,
 							},
-							Operator: v3.FilterOperatorEqual,
+							Operator: querytypes.FilterOperatorEqual,
 							Value:    "test",
 						},
 					},
@@ -345,24 +345,24 @@ func Test_buildResourceFiltersFromFilterItems(t *testing.T) {
 		{
 			name: "build filter with multiple items",
 			args: args{
-				fs: &v3.FilterSet{
-					Items: []v3.FilterItem{
+				fs: &querytypes.FilterSet{
+					Items: []querytypes.FilterItem{
 						{
-							Key: v3.AttributeKey{
+							Key: querytypes.AttributeKey{
 								Key:      "service.name",
-								DataType: v3.AttributeKeyDataTypeString,
-								Type:     v3.AttributeKeyTypeResource,
+								DataType: querytypes.AttributeKeyDataTypeString,
+								Type:     querytypes.AttributeKeyTypeResource,
 							},
-							Operator: v3.FilterOperatorEqual,
+							Operator: querytypes.FilterOperatorEqual,
 							Value:    "test",
 						},
 						{
-							Key: v3.AttributeKey{
+							Key: querytypes.AttributeKey{
 								Key:      "namespace",
-								DataType: v3.AttributeKeyDataTypeString,
-								Type:     v3.AttributeKeyTypeResource,
+								DataType: querytypes.AttributeKeyDataTypeString,
+								Type:     querytypes.AttributeKeyTypeResource,
 							},
-							Operator: v3.FilterOperatorContains,
+							Operator: querytypes.FilterOperatorContains,
 							Value:    `test1"`,
 						},
 					},
@@ -393,7 +393,7 @@ func Test_buildResourceFiltersFromFilterItems(t *testing.T) {
 
 func Test_buildResourceFiltersFromGroupBy(t *testing.T) {
 	type args struct {
-		groupBy []v3.AttributeKey
+		groupBy []querytypes.AttributeKey
 	}
 	tests := []struct {
 		name string
@@ -403,11 +403,11 @@ func Test_buildResourceFiltersFromGroupBy(t *testing.T) {
 		{
 			name: "build filter",
 			args: args{
-				groupBy: []v3.AttributeKey{
+				groupBy: []querytypes.AttributeKey{
 					{
 						Key:      "service.name",
-						DataType: v3.AttributeKeyDataTypeString,
-						Type:     v3.AttributeKeyTypeResource,
+						DataType: querytypes.AttributeKeyDataTypeString,
+						Type:     querytypes.AttributeKeyTypeResource,
 					},
 				},
 			},
@@ -418,16 +418,16 @@ func Test_buildResourceFiltersFromGroupBy(t *testing.T) {
 		{
 			name: "build filter multiple group by",
 			args: args{
-				groupBy: []v3.AttributeKey{
+				groupBy: []querytypes.AttributeKey{
 					{
 						Key:      "service.name",
-						DataType: v3.AttributeKeyDataTypeString,
-						Type:     v3.AttributeKeyTypeResource,
+						DataType: querytypes.AttributeKeyDataTypeString,
+						Type:     querytypes.AttributeKeyTypeResource,
 					},
 					{
 						Key:      "namespace",
-						DataType: v3.AttributeKeyDataTypeString,
-						Type:     v3.AttributeKeyTypeResource,
+						DataType: querytypes.AttributeKeyDataTypeString,
+						Type:     querytypes.AttributeKeyTypeResource,
 					},
 				},
 			},
@@ -448,7 +448,7 @@ func Test_buildResourceFiltersFromGroupBy(t *testing.T) {
 
 func Test_buildResourceFiltersFromAggregateAttribute(t *testing.T) {
 	type args struct {
-		aggregateAttribute v3.AttributeKey
+		aggregateAttribute querytypes.AttributeKey
 	}
 	tests := []struct {
 		name string
@@ -458,10 +458,10 @@ func Test_buildResourceFiltersFromAggregateAttribute(t *testing.T) {
 		{
 			name: "build filter",
 			args: args{
-				aggregateAttribute: v3.AttributeKey{
+				aggregateAttribute: querytypes.AttributeKey{
 					Key:      "service.name",
-					DataType: v3.AttributeKeyDataTypeString,
-					Type:     v3.AttributeKeyTypeResource,
+					DataType: querytypes.AttributeKeyDataTypeString,
+					Type:     querytypes.AttributeKeyTypeResource,
 				},
 			},
 			want: "(simpleJSONHas(labels, 'service.name') AND labels like '%service.name%')",
@@ -480,9 +480,9 @@ func Test_buildResourceSubQuery(t *testing.T) {
 	type args struct {
 		bucketStart        int64
 		bucketEnd          int64
-		fs                 *v3.FilterSet
-		groupBy            []v3.AttributeKey
-		aggregateAttribute v3.AttributeKey
+		fs                 *querytypes.FilterSet
+		groupBy            []querytypes.AttributeKey
+		aggregateAttribute querytypes.AttributeKey
 	}
 	tests := []struct {
 		name    string
@@ -495,39 +495,39 @@ func Test_buildResourceSubQuery(t *testing.T) {
 			args: args{
 				bucketStart: 1680064560,
 				bucketEnd:   1680066458,
-				fs: &v3.FilterSet{
-					Items: []v3.FilterItem{
+				fs: &querytypes.FilterSet{
+					Items: []querytypes.FilterItem{
 						{
-							Key: v3.AttributeKey{
+							Key: querytypes.AttributeKey{
 								Key:      "service.name",
-								DataType: v3.AttributeKeyDataTypeString,
-								Type:     v3.AttributeKeyTypeResource,
+								DataType: querytypes.AttributeKeyDataTypeString,
+								Type:     querytypes.AttributeKeyTypeResource,
 							},
-							Operator: v3.FilterOperatorEqual,
+							Operator: querytypes.FilterOperatorEqual,
 							Value:    "test",
 						},
 						{
-							Key: v3.AttributeKey{
+							Key: querytypes.AttributeKey{
 								Key:      "namespace",
-								DataType: v3.AttributeKeyDataTypeString,
-								Type:     v3.AttributeKeyTypeResource,
+								DataType: querytypes.AttributeKeyDataTypeString,
+								Type:     querytypes.AttributeKeyTypeResource,
 							},
-							Operator: v3.FilterOperatorContains,
+							Operator: querytypes.FilterOperatorContains,
 							Value:    "test1",
 						},
 					},
 				},
-				groupBy: []v3.AttributeKey{
+				groupBy: []querytypes.AttributeKey{
 					{
 						Key:      "host.name",
-						DataType: v3.AttributeKeyDataTypeString,
-						Type:     v3.AttributeKeyTypeResource,
+						DataType: querytypes.AttributeKeyDataTypeString,
+						Type:     querytypes.AttributeKeyTypeResource,
 					},
 				},
-				aggregateAttribute: v3.AttributeKey{
+				aggregateAttribute: querytypes.AttributeKey{
 					Key:      "cluster.name",
-					DataType: v3.AttributeKeyDataTypeString,
-					Type:     v3.AttributeKeyTypeResource,
+					DataType: querytypes.AttributeKeyDataTypeString,
+					Type:     querytypes.AttributeKeyTypeResource,
 				},
 			},
 			want: "(SELECT fingerprint FROM signoz_logs.logs_v2_resource WHERE " +

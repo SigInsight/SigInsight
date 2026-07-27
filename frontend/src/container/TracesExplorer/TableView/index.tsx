@@ -10,7 +10,6 @@ import {
 import { useSelector } from 'react-redux';
 import { Space } from 'antd';
 import ErrorInPlace from 'components/ErrorInPlace/ErrorInPlace';
-import { ENTITY_VERSION_V5 } from 'constants/app';
 import { initialQueriesMap, PANEL_TYPES } from 'constants/queryBuilder';
 import { REACT_QUERY_KEY } from 'constants/reactQueryKeys';
 import { QueryTable } from 'container/QueryTable';
@@ -19,7 +18,7 @@ import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
 import { AppState } from 'store/reducers';
 import { Warning } from 'types/api';
 import APIError from 'types/api/error';
-import { QueryDataV3 } from 'types/api/widgets/getQuery';
+import { QueryRangeResult } from 'types/api/widgets/getQuery';
 import { GlobalReducer } from 'types/reducer/globalTime';
 
 function TableView({
@@ -63,7 +62,6 @@ function TableView({
 				dataSource: 'traces',
 			},
 		},
-		ENTITY_VERSION_V5,
 		{
 			queryKey,
 			enabled: panelType === PANEL_TYPES.TABLE,
@@ -80,7 +78,7 @@ function TableView({
 
 	const queryTableData = useMemo(
 		() =>
-			data?.payload?.data?.newResult?.data?.result ||
+			data?.payload?.data?.queryResult?.data?.result ||
 			data?.payload.data.result ||
 			[],
 		[data],
@@ -99,7 +97,7 @@ function TableView({
 			{!isError && (
 				<QueryTable
 					query={stagedQuery || initialQueriesMap.traces}
-					queryTableData={queryTableData as QueryDataV3[]}
+					queryTableData={queryTableData as QueryRangeResult[]}
 					loading={isLoading}
 					sticky
 				/>

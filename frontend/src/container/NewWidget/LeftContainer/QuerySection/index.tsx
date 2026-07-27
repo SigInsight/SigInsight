@@ -4,7 +4,7 @@ import { Color } from '@signozhq/design-tokens';
 import { Button, Tabs, Typography } from 'antd';
 import logEvent from 'api/common/logEvent';
 import PromQLIcon from 'assets/Dashboard/PromQl';
-import { QueryBuilderV2 } from 'components/QueryBuilderV2/QueryBuilderV2';
+import { QueryBuilder } from 'components/QueryBuilder/QueryBuilder';
 import TextToolTip from 'components/TextToolTip';
 import { PANEL_TYPES } from 'constants/queryBuilder';
 import { QBShortcuts } from 'constants/shortcuts/QBShortcuts';
@@ -91,12 +91,12 @@ function QuerySection({
 				icon: <Atom size={14} />,
 				label: 'Query Builder',
 				component: (
-					<div className="query-builder-v2-container">
-						<QueryBuilderV2
+					<div className="query-builder-container">
+						<QueryBuilder
 							panelType={selectedGraph}
 							filterConfigs={filterConfigs}
 							showTraceOperator={selectedGraph !== PANEL_TYPES.LIST}
-							version={dashboardVersion === 'v4' ? dashboardVersion : 'v5'}
+							version="v5"
 							isListViewPanel={selectedGraph === PANEL_TYPES.LIST}
 							queryComponents={queryComponents}
 							signalSourceChangeEnabled

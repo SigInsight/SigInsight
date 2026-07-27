@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -28,38 +29,37 @@ import (
 	"github.com/SigNoz/signoz/pkg/types"
 	"github.com/SigNoz/signoz/pkg/types/alertmanagertypes"
 	"github.com/SigNoz/signoz/pkg/types/authtypes"
+	qbtypes "github.com/SigNoz/signoz/pkg/types/querybuildertypes/querybuildertypesv5"
 	"github.com/SigNoz/signoz/pkg/types/ruletypes"
 	"github.com/SigNoz/signoz/pkg/types/telemetrytypes"
 	"github.com/SigNoz/signoz/pkg/valuer"
 )
 
 type PrepareTaskOptions struct {
-	Rule             *ruletypes.PostableRule
-	TaskName         string
-	RuleStore        ruletypes.RuleStore
-	MaintenanceStore ruletypes.MaintenanceStore
-	Reader           interfaces.Reader
-	Querier          querierV5.Querier
-	Logger           *slog.Logger
-	Cache            cache.Cache
-	ManagerOpts      *ManagerOptions
-	NotifyFunc       NotifyFunc
-	SQLStore         sqlstore.SQLStore
-	OrgID            valuer.UUID
+	Rule        *ruletypes.PostableRule
+	TaskName    string
+	RuleStore   ruletypes.RuleStore
+	Reader      interfaces.Reader
+	Querier     querierV5.Querier
+	Logger      *slog.Logger
+	Cache       cache.Cache
+	ManagerOpts *ManagerOptions
+	NotifyFunc  NotifyFunc
+	SQLStore    sqlstore.SQLStore
+	OrgID       valuer.UUID
 }
 
 type PrepareTestRuleOptions struct {
-	Rule             *ruletypes.PostableRule
-	RuleStore        ruletypes.RuleStore
-	MaintenanceStore ruletypes.MaintenanceStore
-	Reader           interfaces.Reader
-	Querier          querierV5.Querier
-	Logger           *slog.Logger
-	Cache            cache.Cache
-	ManagerOpts      *ManagerOptions
-	NotifyFunc       NotifyFunc
-	SQLStore         sqlstore.SQLStore
-	OrgID            valuer.UUID
+	Rule        *ruletypes.PostableRule
+	RuleStore   ruletypes.RuleStore
+	Reader      interfaces.Reader
+	Querier     querierV5.Querier
+	Logger      *slog.Logger
+	Cache       cache.Cache
+	ManagerOpts *ManagerOptions
+	NotifyFunc  NotifyFunc
+	SQLStore    sqlstore.SQLStore
+	OrgID       valuer.UUID
 }
 
 const taskNameSuffix = "webAppEditor"
@@ -99,7 +99,6 @@ type ManagerOptions struct {
 	Alertmanager        alertmanager.Alertmanager
 	OrgGetter           organization.Getter
 	RuleStore           ruletypes.RuleStore
-	MaintenanceStore    ruletypes.MaintenanceStore
 	SqlStore            sqlstore.SQLStore
 	QueryParser         queryparser.QueryParser
 }
@@ -112,8 +111,7 @@ type Manager struct {
 	mtx   sync.RWMutex
 	block chan struct{}
 	// datastore to store alert definitions
-	ruleStore        ruletypes.RuleStore
-	maintenanceStore ruletypes.MaintenanceStore
+	ruleStore ruletypes.RuleStore
 
 	logger              *slog.Logger
 	reader              interfaces.Reader
@@ -178,7 +176,7 @@ func defaultPrepareTaskFunc(opts PrepareTaskOptions) (Task, error) {
 		rules = append(rules, tr)
 
 		// create ch rule task for evaluation
-		task = newTask(TaskTypeCh, opts.TaskName, taskNameSuffix, evaluation.GetFrequency().Duration(), rules, opts.ManagerOpts, opts.NotifyFunc, opts.MaintenanceStore, opts.OrgID)
+		task = newTask(TaskTypeCh, opts.TaskName, taskNameSuffix, evaluation.GetFrequency().Duration(), rules, opts.ManagerOpts, opts.NotifyFunc)
 
 	} else if opts.Rule.RuleType == ruletypes.RuleTypeProm {
 
@@ -202,7 +200,7 @@ func defaultPrepareTaskFunc(opts PrepareTaskOptions) (Task, error) {
 		rules = append(rules, pr)
 
 		// create promql rule task for evaluation
-		task = newTask(TaskTypeProm, opts.TaskName, taskNameSuffix, evaluation.GetFrequency().Duration(), rules, opts.ManagerOpts, opts.NotifyFunc, opts.MaintenanceStore, opts.OrgID)
+		task = newTask(TaskTypeProm, opts.TaskName, taskNameSuffix, evaluation.GetFrequency().Duration(), rules, opts.ManagerOpts, opts.NotifyFunc)
 
 	} else {
 		return nil, fmt.Errorf("unsupported rule type %s. Supported types: %s, %s", opts.Rule.RuleType, ruletypes.RuleTypeProm, ruletypes.RuleTypeThreshold)
@@ -220,7 +218,6 @@ func NewManager(o *ManagerOptions) (*Manager, error) {
 		tasks:               map[string]Task{},
 		rules:               map[string]Rule{},
 		ruleStore:           o.RuleStore,
-		maintenanceStore:    o.MaintenanceStore,
 		opts:                o,
 		block:               make(chan struct{}),
 		logger:              o.Logger,
@@ -247,10 +244,6 @@ func (m *Manager) Start(ctx context.Context) {
 
 func (m *Manager) RuleStore() ruletypes.RuleStore {
 	return m.ruleStore
-}
-
-func (m *Manager) MaintenanceStore() ruletypes.MaintenanceStore {
-	return m.maintenanceStore
 }
 
 func (m *Manager) Pause(b bool) {
@@ -360,32 +353,24 @@ func (m *Manager) EditRule(ctx context.Context, ruleStr string, id valuer.UUID) 
 	return m.ruleStore.EditRule(ctx, existingRule, func(ctx context.Context) error {
 		if parsedRule.NotificationSettings != nil {
 			config := parsedRule.NotificationSettings.GetAlertManagerNotificationConfig()
+			config.Channels, err = parsedRule.GetRuleChannels()
+			if err != nil {
+				return err
+			}
 			err = m.alertmanager.SetNotificationConfig(ctx, orgID, id.StringValue(), &config)
 			if err != nil {
 				return err
 			}
-			if !parsedRule.NotificationSettings.UsePolicy {
-				request, err := parsedRule.GetRuleRouteRequest(id.StringValue())
-				if err != nil {
-					return err
-				}
-				err = m.alertmanager.UpdateAllRoutePoliciesByRuleId(ctx, id.StringValue(), request)
-				if err != nil {
-					return err
-				}
-				err = m.alertmanager.DeleteAllInhibitRulesByRuleId(ctx, orgID, id.StringValue())
-				if err != nil {
-					return err
-				}
-
-				inhibitRules, err := parsedRule.GetInhibitRules(id.StringValue())
-				if err != nil {
-					return err
-				}
-				err = m.alertmanager.CreateInhibitRules(ctx, orgID, inhibitRules)
-				if err != nil {
-					return err
-				}
+			err = m.alertmanager.DeleteAllInhibitRulesByRuleId(ctx, orgID, id.StringValue())
+			if err != nil {
+				return err
+			}
+			inhibitRules, err := parsedRule.GetInhibitRules(id.StringValue())
+			if err != nil {
+				return err
+			}
+			if err = m.alertmanager.CreateInhibitRules(ctx, orgID, inhibitRules); err != nil {
+				return err
 			}
 		}
 		err = m.syncRuleStateWithTask(ctx, orgID, prepareTaskName(existingRule.ID.StringValue()), &parsedRule)
@@ -404,18 +389,17 @@ func (m *Manager) editTask(_ context.Context, orgID valuer.UUID, rule *ruletypes
 	m.logger.Debug("editing a rule task", "name", taskName)
 
 	newTask, err := m.prepareTaskFunc(PrepareTaskOptions{
-		Rule:             rule,
-		TaskName:         taskName,
-		RuleStore:        m.ruleStore,
-		MaintenanceStore: m.maintenanceStore,
-		Reader:           m.reader,
-		Querier:          m.opts.Querier,
-		Logger:           m.opts.Logger,
-		Cache:            m.cache,
-		ManagerOpts:      m.opts,
-		NotifyFunc:       m.prepareNotifyFunc(),
-		SQLStore:         m.sqlstore,
-		OrgID:            orgID,
+		Rule:        rule,
+		TaskName:    taskName,
+		RuleStore:   m.ruleStore,
+		Reader:      m.reader,
+		Querier:     m.opts.Querier,
+		Logger:      m.opts.Logger,
+		Cache:       m.cache,
+		ManagerOpts: m.opts,
+		NotifyFunc:  m.prepareNotifyFunc(),
+		SQLStore:    m.sqlstore,
+		OrgID:       orgID,
 	})
 
 	if err != nil {
@@ -495,11 +479,6 @@ func (m *Manager) DeleteRule(ctx context.Context, idStr string) error {
 			return err
 		}
 
-		err = m.alertmanager.DeleteAllRoutePoliciesByRuleId(ctx, id.String())
-		if err != nil {
-			return err
-		}
-
 		err = m.alertmanager.DeleteAllInhibitRulesByRuleId(ctx, orgID, id.String())
 		if err != nil {
 			return err
@@ -566,27 +545,20 @@ func (m *Manager) CreateRule(ctx context.Context, ruleStr string) (*ruletypes.Ge
 	id, err := m.ruleStore.CreateRule(ctx, storedRule, func(ctx context.Context, id valuer.UUID) error {
 		if parsedRule.NotificationSettings != nil {
 			config := parsedRule.NotificationSettings.GetAlertManagerNotificationConfig()
+			config.Channels, err = parsedRule.GetRuleChannels()
+			if err != nil {
+				return err
+			}
 			err = m.alertmanager.SetNotificationConfig(ctx, orgID, id.StringValue(), &config)
 			if err != nil {
 				return err
 			}
-			if !parsedRule.NotificationSettings.UsePolicy {
-				request, err := parsedRule.GetRuleRouteRequest(id.StringValue())
-				if err != nil {
-					return err
-				}
-				_, err = m.alertmanager.CreateRoutePolicies(ctx, request)
-				if err != nil {
-					return err
-				}
-				inhibitRules, err := parsedRule.GetInhibitRules(id.StringValue())
-				if err != nil {
-					return err
-				}
-				err = m.alertmanager.CreateInhibitRules(ctx, orgID, inhibitRules)
-				if err != nil {
-					return err
-				}
+			inhibitRules, err := parsedRule.GetInhibitRules(id.StringValue())
+			if err != nil {
+				return err
+			}
+			if err = m.alertmanager.CreateInhibitRules(ctx, orgID, inhibitRules); err != nil {
+				return err
 			}
 		}
 
@@ -613,18 +585,17 @@ func (m *Manager) addTask(_ context.Context, orgID valuer.UUID, rule *ruletypes.
 
 	m.logger.Debug("adding a new rule task", "name", taskName)
 	newTask, err := m.prepareTaskFunc(PrepareTaskOptions{
-		Rule:             rule,
-		TaskName:         taskName,
-		RuleStore:        m.ruleStore,
-		MaintenanceStore: m.maintenanceStore,
-		Reader:           m.reader,
-		Querier:          m.opts.Querier,
-		Logger:           m.opts.Logger,
-		Cache:            m.cache,
-		ManagerOpts:      m.opts,
-		NotifyFunc:       m.prepareNotifyFunc(),
-		SQLStore:         m.sqlstore,
-		OrgID:            orgID,
+		Rule:        rule,
+		TaskName:    taskName,
+		RuleStore:   m.ruleStore,
+		Reader:      m.reader,
+		Querier:     m.opts.Querier,
+		Logger:      m.opts.Logger,
+		Cache:       m.cache,
+		ManagerOpts: m.opts,
+		NotifyFunc:  m.prepareNotifyFunc(),
+		SQLStore:    m.sqlstore,
+		OrgID:       orgID,
 	})
 
 	if err != nil {
@@ -984,10 +955,14 @@ func (m *Manager) TestNotification(ctx context.Context, orgID valuer.UUID, ruleS
 	if err != nil {
 		return 0, model.BadRequest(err)
 	}
-	if !parsedRule.NotificationSettings.UsePolicy {
+	if !slices.Contains(parsedRule.NotificationSettings.GroupBy, ruletypes.LabelThresholdName) {
 		parsedRule.NotificationSettings.GroupBy = append(parsedRule.NotificationSettings.GroupBy, ruletypes.LabelThresholdName)
 	}
 	config := parsedRule.NotificationSettings.GetAlertManagerNotificationConfig()
+	config.Channels, err = parsedRule.GetRuleChannels()
+	if err != nil {
+		return 0, &model.ApiError{Typ: model.ErrorBadData, Err: err}
+	}
 	err = m.alertmanager.SetNotificationConfig(ctx, orgID, parsedRule.AlertName, &config)
 	if err != nil {
 		return 0, &model.ApiError{
@@ -997,17 +972,16 @@ func (m *Manager) TestNotification(ctx context.Context, orgID valuer.UUID, ruleS
 	}
 
 	alertCount, apiErr := m.prepareTestRuleFunc(PrepareTestRuleOptions{
-		Rule:             &parsedRule,
-		RuleStore:        m.ruleStore,
-		MaintenanceStore: m.maintenanceStore,
-		Reader:           m.reader,
-		Querier:          m.opts.Querier,
-		Logger:           m.opts.Logger,
-		Cache:            m.cache,
-		ManagerOpts:      m.opts,
-		NotifyFunc:       m.prepareTestNotifyFunc(),
-		SQLStore:         m.sqlstore,
-		OrgID:            orgID,
+		Rule:        &parsedRule,
+		RuleStore:   m.ruleStore,
+		Reader:      m.reader,
+		Querier:     m.opts.Querier,
+		Logger:      m.opts.Logger,
+		Cache:       m.cache,
+		ManagerOpts: m.opts,
+		NotifyFunc:  m.prepareTestNotifyFunc(),
+		SQLStore:    m.sqlstore,
+		OrgID:       orgID,
 	})
 
 	return alertCount, apiErr
@@ -1045,26 +1019,23 @@ func (m *Manager) GetAlertDetailsForMetricNames(ctx context.Context, metricNames
 		rule.UpdatedAt = &storedRule.UpdatedAt
 		rule.UpdatedBy = &storedRule.UpdatedBy
 
-		for _, query := range rule.RuleCondition.CompositeQuery.BuilderQueries {
-			if query.AggregateAttribute.Key != "" {
-				metricRulesMap[query.AggregateAttribute.Key] = append(metricRulesMap[query.AggregateAttribute.Key], rule)
-			}
-		}
-
-		for _, query := range rule.RuleCondition.CompositeQuery.PromQueries {
-			if query.Query != "" {
+		for _, query := range rule.RuleCondition.CompositeQuery.Queries {
+			switch spec := query.Spec.(type) {
+			case qbtypes.QueryBuilderQuery[qbtypes.MetricAggregation]:
+				for _, aggregation := range spec.Aggregations {
+					if aggregation.MetricName != "" {
+						metricRulesMap[aggregation.MetricName] = append(metricRulesMap[aggregation.MetricName], rule)
+					}
+				}
+			case qbtypes.PromQuery:
 				for _, metricName := range metricNames {
-					if strings.Contains(query.Query, metricName) {
+					if strings.Contains(spec.Query, metricName) {
 						metricRulesMap[metricName] = append(metricRulesMap[metricName], rule)
 					}
 				}
-			}
-		}
-
-		for _, query := range rule.RuleCondition.CompositeQuery.ClickHouseQueries {
-			if query.Query != "" {
+			case qbtypes.ClickHouseQuery:
 				for _, metricName := range metricNames {
-					if strings.Contains(query.Query, metricName) {
+					if strings.Contains(spec.Query, metricName) {
 						metricRulesMap[metricName] = append(metricRulesMap[metricName], rule)
 					}
 				}

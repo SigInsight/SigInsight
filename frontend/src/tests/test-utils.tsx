@@ -5,7 +5,6 @@ import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router-dom';
 import { render, RenderOptions, RenderResult } from '@testing-library/react';
 import { FeatureKeys } from 'constants/features';
-import { ORG_PREFERENCES } from 'constants/orgPreferences';
 import { ResourceProvider } from 'hooks/useResourceAttribute';
 import { NuqsAdapter } from 'nuqs/adapters/react';
 import { AppContext } from 'providers/App/App';
@@ -141,17 +140,7 @@ export function getAppContextMock(
 		],
 		isFetchingFeatureFlags: false,
 		featureFlagsFetchError: null,
-		orgPreferences: [
-			{
-				name: ORG_PREFERENCES.ORG_ONBOARDING,
-				description: 'Organisation Onboarding',
-				valueType: 'boolean',
-				defaultValue: false,
-				allowedValues: ['true', 'false'],
-				allowedScopes: ['org'],
-				value: false,
-			},
-		],
+		orgPreferences: [],
 		userPreferences: [],
 		updateUserPreferenceInContext: jest.fn(),
 		isFetchingOrgPreferences: false,

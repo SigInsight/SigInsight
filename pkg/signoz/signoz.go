@@ -6,7 +6,6 @@ import (
 
 	"github.com/SigNoz/signoz/pkg/alertmanager"
 	"github.com/SigNoz/signoz/pkg/alertmanager/nfmanager"
-	"github.com/SigNoz/signoz/pkg/alertmanager/nfmanager/nfroutingstore/sqlroutingstore"
 	"github.com/SigNoz/signoz/pkg/analytics"
 	"github.com/SigNoz/signoz/pkg/apiserver"
 	"github.com/SigNoz/signoz/pkg/authn"
@@ -26,7 +25,6 @@ import (
 	"github.com/SigNoz/signoz/pkg/sharder"
 	"github.com/SigNoz/signoz/pkg/sqlmigration"
 	"github.com/SigNoz/signoz/pkg/sqlmigrator"
-	"github.com/SigNoz/signoz/pkg/sqlschema"
 	"github.com/SigNoz/signoz/pkg/sqlstore"
 	"github.com/SigNoz/signoz/pkg/statsreporter"
 	"github.com/SigNoz/signoz/pkg/telemetrylogs"
@@ -74,7 +72,6 @@ func New(
 	emailingProviderFactories factory.NamedMap[factory.ProviderFactory[emailing.Emailing, emailing.Config]],
 	cacheProviderFactories factory.NamedMap[factory.ProviderFactory[cache.Cache, cache.Config]],
 	webProviderFactories factory.NamedMap[factory.ProviderFactory[web.Web, web.Config]],
-	sqlSchemaProviderFactories func(sqlstore.SQLStore) factory.NamedMap[factory.ProviderFactory[sqlschema.SQLSchema, sqlschema.Config]],
 	sqlstoreProviderFactories factory.NamedMap[factory.ProviderFactory[sqlstore.SQLStore, sqlstore.Config]],
 	telemetrystoreProviderFactories factory.NamedMap[factory.ProviderFactory[telemetrystore.TelemetryStore, telemetrystore.Config]],
 	authNsCallback func(ctx context.Context, providerSettings factory.ProviderSettings, store authtypes.AuthNStore) (map[authtypes.AuthNProvider]authn.AuthN, error),
@@ -214,23 +211,12 @@ func New(
 		return nil, err
 	}
 
-	sqlschema, err := factory.NewProviderFromNamedMap(
-		ctx,
-		providerSettings,
-		config.SQLSchema,
-		sqlSchemaProviderFactories(sqlstore),
-		config.SQLStore.Provider,
-	)
-	if err != nil {
-		return nil, err
-	}
-
 	// Run migrations on the sqlstore
 	sqlmigrations, err := sqlmigration.New(
 		ctx,
 		providerSettings,
 		config.SQLMigration,
-		NewSQLMigrationProviderFactories(sqlstore, sqlschema, telemetrystore, providerSettings),
+		NewSQLMigrationProviderFactories(),
 	)
 	if err != nil {
 		return nil, err
@@ -292,7 +278,7 @@ func New(
 		ctx,
 		providerSettings,
 		nfmanager.Config{},
-		NewNotificationManagerProviderFactories(sqlroutingstore.NewStore(sqlstore)),
+		NewNotificationManagerProviderFactories(),
 		"rulebased",
 	)
 	if err != nil {
@@ -352,17 +338,6 @@ func New(
 		telemetrymetadata.AttributesMetadataLocalTableName,
 	)
 
-	global, err := factory.NewProviderFromNamedMap(
-		ctx,
-		providerSettings,
-		config.Global,
-		NewGlobalProviderFactories(config.IdentN),
-		"signoz",
-	)
-	if err != nil {
-		return nil, err
-	}
-
 	// Initialize all modules
 	modules := NewModules(sqlstore, tokenizer, emailing, providerSettings, orgGetter, alertmanager, analytics, querier, telemetrystore, telemetryMetadataStore, authNs, authz, cache, queryParser, config, userGetter, userRoleStore)
 
@@ -386,7 +361,6 @@ func New(
 		modules.UserSetter,
 		tokenizer,
 		config,
-		modules.AuthDomain,
 	}
 
 	// Initialize stats reporter from the available stats reporter provider factories
@@ -419,7 +393,7 @@ func New(
 
 	// Initialize all handlers for the modules
 	registryHandler := factory.NewHandler(registry)
-	handlers := NewHandlers(modules, providerSettings, analytics, querierHandler, global, flagger, telemetryMetadataStore, authz, registryHandler)
+	handlers := NewHandlers(modules, providerSettings, analytics, querierHandler, flagger, telemetryMetadataStore, authz, registryHandler)
 
 	// Initialize the API server (after registry so it can access service health)
 	apiserverInstance, err := factory.NewProviderFromNamedMap(

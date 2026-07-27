@@ -2,9 +2,9 @@ import { ReactNode } from 'react';
 import { Layout } from 'react-grid-layout';
 import { PrecisionOption } from 'components/Graph/types';
 import { PANEL_GROUP_TYPES, PANEL_TYPES } from 'constants/queryBuilder';
-import { ThresholdProps } from 'container/NewWidget/RightContainer/Threshold/types';
-import { timePreferenceType } from 'container/NewWidget/RightContainer/timeItems';
 import { QueryTableProps } from 'container/QueryTable/QueryTable.intefaces';
+import { ThresholdProps } from 'features/query-visualization/threshold';
+import { timePreferenceType } from 'features/query-visualization/timePreference';
 import {
 	FillMode,
 	LineInterpolation,

@@ -427,9 +427,6 @@ type ConfigStore interface {
 	// ListChannels returns the list of channels.
 	ListChannels(context.Context, string) ([]*Channel, error)
 
-	// ListAllChannels returns the list of channels for all organizations.
-	ListAllChannels(context.Context) ([]*Channel, error)
-
 	// GetMatchers gets a list of matchers per organization.
 	// Matchers is an array of ruleId to receiver names.
 	GetMatchers(context.Context, string) (map[string][]string, error)
@@ -447,7 +444,7 @@ func init() {
 type NotificationConfig struct {
 	NotificationGroup map[model.LabelName]struct{}
 	Renotify          ReNotificationConfig
-	UsePolicy         bool
+	Channels          []string
 	GroupByAll        bool
 }
 
@@ -459,7 +456,7 @@ func (nc *NotificationConfig) DeepCopy() NotificationConfig {
 	for k, v := range nc.NotificationGroup {
 		deepCopy.NotificationGroup[k] = v
 	}
-	deepCopy.UsePolicy = nc.UsePolicy
+	deepCopy.Channels = append([]string(nil), nc.Channels...)
 	return deepCopy
 }
 
@@ -468,7 +465,7 @@ type ReNotificationConfig struct {
 	RenotifyInterval time.Duration
 }
 
-func NewNotificationConfig(groups []string, renotifyInterval time.Duration, noDataRenotifyInterval time.Duration, policy bool) NotificationConfig {
+func NewNotificationConfig(groups []string, renotifyInterval time.Duration, noDataRenotifyInterval time.Duration) NotificationConfig {
 	notificationConfig := GetDefaultNotificationConfig()
 
 	if renotifyInterval != 0 {
@@ -484,9 +481,6 @@ func NewNotificationConfig(groups []string, renotifyInterval time.Duration, noDa
 			notificationConfig.GroupByAll = true
 		}
 	}
-
-	notificationConfig.UsePolicy = policy
-
 	return notificationConfig
 }
 

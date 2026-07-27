@@ -109,7 +109,7 @@ function returnMetrics(
 		isFetching: false,
 		isError: false,
 		data: { data: { metrics } },
-		queryKey: ['/api/v2/metrics'],
+		queryKey: ['/api/v5/metrics'],
 		...overrides,
 	});
 }
@@ -198,7 +198,7 @@ describe('MetricNameSelector', () => {
 			isFetching: false,
 			isError: true,
 			data: undefined,
-			queryKey: ['/api/v2/metrics'],
+			queryKey: ['/api/v5/metrics'],
 		});
 
 		render(<MetricNameSelector query={makeQuery()} onChange={jest.fn()} />);
@@ -215,7 +215,7 @@ describe('MetricNameSelector', () => {
 			isFetching: true,
 			isError: false,
 			data: undefined,
-			queryKey: ['/api/v2/metrics'],
+			queryKey: ['/api/v5/metrics'],
 		});
 
 		const { container } = render(

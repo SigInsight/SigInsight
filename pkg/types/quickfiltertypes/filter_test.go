@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	v3 "github.com/SigNoz/signoz/pkg/query-service/model/v3"
+	"github.com/SigNoz/signoz/pkg/query-service/model/querytypes"
 	"github.com/SigNoz/signoz/pkg/valuer"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -23,7 +23,7 @@ func TestNewDefaultQuickFilterUsesCanonicalHTTPMethod(t *testing.T) {
 	}
 	require.NotNil(t, tracesFilter)
 
-	var filters []v3.AttributeKey
+	var filters []querytypes.AttributeKey
 	require.NoError(t, json.Unmarshal([]byte(tracesFilter.Filter), &filters))
 
 	var keys []string
@@ -32,4 +32,6 @@ func TestNewDefaultQuickFilterUsesCanonicalHTTPMethod(t *testing.T) {
 	}
 	assert.Contains(t, keys, "http_method")
 	assert.NotContains(t, keys, "http.method")
+	assert.Contains(t, keys, "has_error")
+	assert.NotContains(t, keys, "hasError")
 }

@@ -9,7 +9,7 @@ import (
 )
 
 func (provider *provider) addSessionRoutes(router *mux.Router) error {
-	if err := router.Handle("/api/v2/sessions/email_password", handler.New(provider.authZ.OpenAccess(provider.sessionHandler.CreateSessionByEmailPassword), handler.OpenAPIDef{
+	if err := router.Handle("/api/v5/sessions/email_password", handler.New(provider.authZ.OpenAccess(provider.sessionHandler.CreateSessionByEmailPassword), handler.OpenAPIDef{
 		ID:                  "CreateSessionByEmailPassword",
 		Tags:                []string{"sessions"},
 		Summary:             "Create session by email and password",
@@ -26,7 +26,7 @@ func (provider *provider) addSessionRoutes(router *mux.Router) error {
 		return err
 	}
 
-	if err := router.Handle("/api/v2/sessions/context", handler.New(provider.authZ.OpenAccess(provider.sessionHandler.GetSessionContext), handler.OpenAPIDef{
+	if err := router.Handle("/api/v5/sessions/context", handler.New(provider.authZ.OpenAccess(provider.sessionHandler.GetSessionContext), handler.OpenAPIDef{
 		ID:                  "GetSessionContext",
 		Tags:                []string{"sessions"},
 		Summary:             "Get session context",
@@ -43,7 +43,7 @@ func (provider *provider) addSessionRoutes(router *mux.Router) error {
 		return err
 	}
 
-	if err := router.Handle("/api/v2/sessions/rotate", handler.New(provider.authZ.OpenAccess(provider.sessionHandler.RotateSession), handler.OpenAPIDef{
+	if err := router.Handle("/api/v5/sessions/rotate", handler.New(provider.authZ.OpenAccess(provider.sessionHandler.RotateSession), handler.OpenAPIDef{
 		ID:                  "RotateSession",
 		Tags:                []string{"sessions"},
 		Summary:             "Rotate session",
@@ -60,7 +60,7 @@ func (provider *provider) addSessionRoutes(router *mux.Router) error {
 		return err
 	}
 
-	if err := router.Handle("/api/v2/sessions", handler.New(provider.authZ.OpenAccess(provider.sessionHandler.DeleteSession), handler.OpenAPIDef{
+	if err := router.Handle("/api/v5/sessions", handler.New(provider.authZ.OpenAccess(provider.sessionHandler.DeleteSession), handler.OpenAPIDef{
 		ID:                  "DeleteSession",
 		Tags:                []string{"sessions"},
 		Summary:             "Delete session",
@@ -74,23 +74,6 @@ func (provider *provider) addSessionRoutes(router *mux.Router) error {
 		Deprecated:          false,
 		SecuritySchemes:     []handler.OpenAPISecurityScheme{{Name: authtypes.IdentNProviderTokenizer.StringValue()}},
 	})).Methods(http.MethodDelete).GetError(); err != nil {
-		return err
-	}
-
-	if err := router.Handle("/api/v1/complete/google", handler.New(provider.authZ.OpenAccess(provider.sessionHandler.CreateSessionByGoogleCallback), handler.OpenAPIDef{
-		ID:                  "CreateSessionByGoogleCallback",
-		Tags:                []string{"sessions"},
-		Summary:             "Create session by google callback",
-		Description:         "This endpoint creates a session for a user using google callback",
-		Request:             nil,
-		RequestContentType:  "",
-		Response:            new(authtypes.GettableToken),
-		ResponseContentType: "application/json",
-		SuccessStatusCode:   http.StatusSeeOther,
-		ErrorStatusCodes:    []int{http.StatusBadRequest, http.StatusNotFound},
-		Deprecated:          false,
-		SecuritySchemes:     []handler.OpenAPISecurityScheme{},
-	})).Methods(http.MethodGet).GetError(); err != nil {
 		return err
 	}
 

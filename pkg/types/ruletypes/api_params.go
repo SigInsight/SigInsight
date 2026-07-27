@@ -3,7 +3,6 @@ package ruletypes
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"slices"
 	"time"
 	"unicode/utf8"
@@ -12,7 +11,7 @@ import (
 
 	signozError "github.com/SigNoz/signoz/pkg/errors"
 	"github.com/SigNoz/signoz/pkg/query-service/model"
-	v3 "github.com/SigNoz/signoz/pkg/query-service/model/v3"
+	"github.com/SigNoz/signoz/pkg/query-service/model/querytypes"
 	"github.com/SigNoz/signoz/pkg/query-service/utils/times"
 	"github.com/SigNoz/signoz/pkg/query-service/utils/timestamp"
 	"github.com/SigNoz/signoz/pkg/types/alertmanagertypes"
@@ -67,9 +66,8 @@ type PostableRule struct {
 }
 
 type NotificationSettings struct {
-	GroupBy   []string `json:"groupBy,omitempty"`
-	Renotify  Renotify `json:"renotify,omitempty"`
-	UsePolicy bool     `json:"usePolicy,omitempty"`
+	GroupBy  []string `json:"groupBy,omitempty"`
+	Renotify Renotify `json:"renotify,omitempty"`
 	// NewGroupEvalDelay is the grace period for new series to be excluded from alerts evaluation
 	NewGroupEvalDelay valuer.TextDuration `json:"newGroupEvalDelay,omitzero"`
 }
@@ -94,28 +92,19 @@ func (ns *NotificationSettings) GetAlertManagerNotificationConfig() alertmanager
 		renotifyInterval = 8760 * time.Hour //1 year for no renotify substitute
 		noDataRenotifyInterval = 8760 * time.Hour
 	}
-	return alertmanagertypes.NewNotificationConfig(ns.GroupBy, renotifyInterval, noDataRenotifyInterval, ns.UsePolicy)
+	return alertmanagertypes.NewNotificationConfig(ns.GroupBy, renotifyInterval, noDataRenotifyInterval)
 }
 
-func (r *PostableRule) GetRuleRouteRequest(ruleId string) ([]*alertmanagertypes.PostableRoutePolicy, error) {
+func (r *PostableRule) GetRuleChannels() ([]string, error) {
 	threshold, err := r.RuleCondition.Thresholds.GetRuleThreshold()
 	if err != nil {
 		return nil, err
 	}
-	receivers := threshold.GetRuleReceivers()
-	routeRequests := make([]*alertmanagertypes.PostableRoutePolicy, 0)
-	for _, receiver := range receivers {
-		expression := fmt.Sprintf(`%s == "%s" && %s == "%s"`, LabelThresholdName, receiver.Name, LabelRuleId, ruleId)
-		routeRequests = append(routeRequests, &alertmanagertypes.PostableRoutePolicy{
-			Expression:     expression,
-			ExpressionKind: alertmanagertypes.RuleBasedExpression,
-			Channels:       receiver.Channels,
-			Name:           ruleId,
-			Description:    fmt.Sprintf("Auto-generated route for rule %s", ruleId),
-			Tags:           []string{"auto-generated", "rule-based"},
-		})
+	channels := make([]string, 0)
+	for _, receiver := range threshold.GetRuleReceivers() {
+		channels = append(channels, receiver.Channels...)
 	}
-	return routeRequests, nil
+	return slices.Compact(channels), nil
 }
 
 func (r *PostableRule) GetInhibitRules(ruleId string) ([]config.InhibitRule, error) {
@@ -200,18 +189,12 @@ func (r *PostableRule) processRuleDefaults() {
 
 	if r.RuleCondition != nil {
 		switch r.RuleCondition.CompositeQuery.QueryType {
-		case v3.QueryTypeBuilder:
+		case querytypes.QueryTypeBuilder:
 			if r.RuleType == "" {
 				r.RuleType = RuleTypeThreshold
 			}
-		case v3.QueryTypePromQL:
+		case querytypes.QueryTypePromQL:
 			r.RuleType = RuleTypeProm
-		}
-
-		for qLabel, q := range r.RuleCondition.CompositeQuery.BuilderQueries {
-			if q.AggregateAttribute.Key != "" && q.Expression == "" {
-				q.Expression = qLabel
-			}
 		}
 
 		//added alerts v2 fields
@@ -223,19 +206,12 @@ func (r *PostableRule) processRuleDefaults() {
 				}
 			}
 
-			// For anomaly detection with ValueIsBelow, negate the target
-			targetValue := r.RuleCondition.Target
-			if r.RuleType == RuleTypeAnomaly && r.RuleCondition.CompareOp == ValueIsBelow && targetValue != nil {
-				negated := -1 * *targetValue
-				targetValue = &negated
-			}
-
 			thresholdData := RuleThresholdData{
 				Kind: BasicThresholdKind,
 				Spec: BasicRuleThresholds{{
 					Name:        thresholdName,
 					TargetUnit:  r.RuleCondition.TargetUnit,
-					TargetValue: targetValue,
+					TargetValue: r.RuleCondition.Target,
 					MatchType:   r.RuleCondition.MatchType,
 					CompareOp:   r.RuleCondition.CompareOp,
 					Channels:    r.PreferredChannels,
@@ -304,40 +280,13 @@ func isValidLabelValue(v string) bool {
 	return utf8.ValidString(v)
 }
 
-func isAllQueriesDisabled(compositeQuery *v3.CompositeQuery) bool {
-	if compositeQuery == nil {
+func isAllQueriesDisabled(compositeQuery *CompositeQuery) bool {
+	if compositeQuery == nil || len(compositeQuery.Queries) == 0 {
 		return false
 	}
-	if compositeQuery.BuilderQueries == nil && compositeQuery.PromQueries == nil && compositeQuery.ClickHouseQueries == nil {
-		return false
-	}
-	switch compositeQuery.QueryType {
-	case v3.QueryTypeBuilder:
-		if len(compositeQuery.BuilderQueries) == 0 {
+	for idx := range compositeQuery.Queries {
+		if !compositeQuery.Queries[idx].IsDisabled() {
 			return false
-		}
-		for _, query := range compositeQuery.BuilderQueries {
-			if !query.Disabled {
-				return false
-			}
-		}
-	case v3.QueryTypePromQL:
-		if len(compositeQuery.PromQueries) == 0 {
-			return false
-		}
-		for _, query := range compositeQuery.PromQueries {
-			if !query.Disabled {
-				return false
-			}
-		}
-	case v3.QueryTypeClickHouseSQL:
-		if len(compositeQuery.ClickHouseQueries) == 0 {
-			return false
-		}
-		for _, query := range compositeQuery.ClickHouseQueries {
-			if !query.Disabled {
-				return false
-			}
 		}
 	}
 	return true

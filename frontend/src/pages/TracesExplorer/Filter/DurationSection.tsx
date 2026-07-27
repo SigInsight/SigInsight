@@ -30,10 +30,10 @@ export function DurationSection(props: DurationProps): JSX.Element {
 			};
 		}
 
-		if (selectedFilters?.durationNano) {
+		if (selectedFilters?.duration_nano) {
 			return {
-				minDuration: getMs(selectedFilters?.durationNano?.values?.[0] || ''),
-				maxDuration: getMs(selectedFilters?.durationNano?.values?.[1] || ''),
+				minDuration: getMs(selectedFilters?.duration_nano?.values?.[0] || ''),
+				maxDuration: getMs(selectedFilters?.duration_nano?.values?.[1] || ''),
 			};
 		}
 
@@ -55,8 +55,18 @@ export function DurationSection(props: DurationProps): JSX.Element {
 		const durationMin = 'durationNanoMin';
 		const durationMax = 'durationNanoMax';
 
-		addFilter(durationMin, min, setSelectedFilters, traceFilterKeys.durationNano);
-		addFilter(durationMax, max, setSelectedFilters, traceFilterKeys.durationNano);
+		addFilter(
+			durationMin,
+			min,
+			setSelectedFilters,
+			traceFilterKeys.duration_nano,
+		);
+		addFilter(
+			durationMax,
+			max,
+			setSelectedFilters,
+			traceFilterKeys.duration_nano,
+		);
 	};
 
 	const onRangeSliderHandler = (number: [string, string]): void => {

@@ -2,7 +2,7 @@
 // This component is been kept for future reference.
 import { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
-import { ENTITY_VERSION_V4 } from 'constants/app';
+import { ENTITY_VERSION_V5 } from 'constants/app';
 import { PANEL_TYPES } from 'constants/queryBuilder';
 import Graph from 'container/GridCardLayout/GridCard';
 import { GraphTitle } from 'container/MetricsApplication/constant';
@@ -55,7 +55,7 @@ function ApDexTraces({
 			onClickHandler={handleGraphClick('ApDex')}
 			threshold={thresholdValue}
 			isQueryEnabled={isQueryEnabled}
-			version={ENTITY_VERSION_V4}
+			version={ENTITY_VERSION_V5}
 		/>
 	);
 }

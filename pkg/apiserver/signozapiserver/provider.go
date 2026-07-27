@@ -8,18 +8,13 @@ import (
 	"github.com/SigNoz/signoz/pkg/authz"
 	"github.com/SigNoz/signoz/pkg/factory"
 	"github.com/SigNoz/signoz/pkg/flagger"
-	"github.com/SigNoz/signoz/pkg/global"
 	"github.com/SigNoz/signoz/pkg/http/handler"
 	"github.com/SigNoz/signoz/pkg/http/middleware"
-	"github.com/SigNoz/signoz/pkg/modules/authdomain"
-	"github.com/SigNoz/signoz/pkg/modules/cloudintegration"
 	"github.com/SigNoz/signoz/pkg/modules/fields"
 	"github.com/SigNoz/signoz/pkg/modules/metricsexplorer"
 	"github.com/SigNoz/signoz/pkg/modules/organization"
 	"github.com/SigNoz/signoz/pkg/modules/preference"
-	"github.com/SigNoz/signoz/pkg/modules/promote"
 	"github.com/SigNoz/signoz/pkg/modules/rawdataexport"
-	"github.com/SigNoz/signoz/pkg/modules/serviceaccount"
 	"github.com/SigNoz/signoz/pkg/modules/session"
 	"github.com/SigNoz/signoz/pkg/modules/user"
 	"github.com/SigNoz/signoz/pkg/querier"
@@ -29,27 +24,22 @@ import (
 )
 
 type provider struct {
-	config                  apiserver.Config
-	settings                factory.ScopedProviderSettings
-	router                  *mux.Router
-	authZ                   *middleware.AuthZ
-	orgHandler              organization.Handler
-	userHandler             user.Handler
-	sessionHandler          session.Handler
-	authDomainHandler       authdomain.Handler
-	preferenceHandler       preference.Handler
-	globalHandler           global.Handler
-	promoteHandler          promote.Handler
-	flaggerHandler          flagger.Handler
-	metricsExplorerHandler  metricsexplorer.Handler
-	fieldsHandler           fields.Handler
-	authzHandler            authz.Handler
-	rawDataExportHandler    rawdataexport.Handler
-	querierHandler          querier.Handler
-	serviceAccountHandler   serviceaccount.Handler
-	factoryHandler          factory.Handler
-	cloudIntegrationHandler cloudintegration.Handler
-	assistantHandler        assistant.Handler
+	config                 apiserver.Config
+	settings               factory.ScopedProviderSettings
+	router                 *mux.Router
+	authZ                  *middleware.AuthZ
+	orgHandler             organization.Handler
+	userHandler            user.Handler
+	sessionHandler         session.Handler
+	preferenceHandler      preference.Handler
+	flaggerHandler         flagger.Handler
+	metricsExplorerHandler metricsexplorer.Handler
+	fieldsHandler          fields.Handler
+	authzHandler           authz.Handler
+	rawDataExportHandler   rawdataexport.Handler
+	querierHandler         querier.Handler
+	factoryHandler         factory.Handler
+	assistantHandler       assistant.Handler
 }
 
 func NewFactory(
@@ -58,19 +48,14 @@ func NewFactory(
 	orgHandler organization.Handler,
 	userHandler user.Handler,
 	sessionHandler session.Handler,
-	authDomainHandler authdomain.Handler,
 	preferenceHandler preference.Handler,
-	globalHandler global.Handler,
-	promoteHandler promote.Handler,
 	flaggerHandler flagger.Handler,
 	metricsExplorerHandler metricsexplorer.Handler,
 	fieldsHandler fields.Handler,
 	authzHandler authz.Handler,
 	rawDataExportHandler rawdataexport.Handler,
 	querierHandler querier.Handler,
-	serviceAccountHandler serviceaccount.Handler,
 	factoryHandler factory.Handler,
-	cloudIntegrationHandler cloudintegration.Handler,
 	assistantHandler assistant.Handler,
 ) factory.ProviderFactory[apiserver.APIServer, apiserver.Config] {
 	return factory.NewProviderFactory(factory.MustNewName("signoz"), func(ctx context.Context, providerSettings factory.ProviderSettings, config apiserver.Config) (apiserver.APIServer, error) {
@@ -83,19 +68,14 @@ func NewFactory(
 			orgHandler,
 			userHandler,
 			sessionHandler,
-			authDomainHandler,
 			preferenceHandler,
-			globalHandler,
-			promoteHandler,
 			flaggerHandler,
 			metricsExplorerHandler,
 			fieldsHandler,
 			authzHandler,
 			rawDataExportHandler,
 			querierHandler,
-			serviceAccountHandler,
 			factoryHandler,
-			cloudIntegrationHandler,
 			assistantHandler,
 		)
 	})
@@ -110,45 +90,35 @@ func newProvider(
 	orgHandler organization.Handler,
 	userHandler user.Handler,
 	sessionHandler session.Handler,
-	authDomainHandler authdomain.Handler,
 	preferenceHandler preference.Handler,
-	globalHandler global.Handler,
-	promoteHandler promote.Handler,
 	flaggerHandler flagger.Handler,
 	metricsExplorerHandler metricsexplorer.Handler,
 	fieldsHandler fields.Handler,
 	authzHandler authz.Handler,
 	rawDataExportHandler rawdataexport.Handler,
 	querierHandler querier.Handler,
-	serviceAccountHandler serviceaccount.Handler,
 	factoryHandler factory.Handler,
-	cloudIntegrationHandler cloudintegration.Handler,
 	assistantHandler assistant.Handler,
 ) (apiserver.APIServer, error) {
 	settings := factory.NewScopedProviderSettings(providerSettings, "github.com/SigNoz/signoz/pkg/apiserver/signozapiserver")
 	router := mux.NewRouter().UseEncodedPath()
 
 	provider := &provider{
-		config:                  config,
-		settings:                settings,
-		router:                  router,
-		orgHandler:              orgHandler,
-		userHandler:             userHandler,
-		sessionHandler:          sessionHandler,
-		authDomainHandler:       authDomainHandler,
-		preferenceHandler:       preferenceHandler,
-		globalHandler:           globalHandler,
-		promoteHandler:          promoteHandler,
-		flaggerHandler:          flaggerHandler,
-		metricsExplorerHandler:  metricsExplorerHandler,
-		fieldsHandler:           fieldsHandler,
-		authzHandler:            authzHandler,
-		rawDataExportHandler:    rawDataExportHandler,
-		querierHandler:          querierHandler,
-		serviceAccountHandler:   serviceAccountHandler,
-		factoryHandler:          factoryHandler,
-		cloudIntegrationHandler: cloudIntegrationHandler,
-		assistantHandler:        assistantHandler,
+		config:                 config,
+		settings:               settings,
+		router:                 router,
+		orgHandler:             orgHandler,
+		userHandler:            userHandler,
+		sessionHandler:         sessionHandler,
+		preferenceHandler:      preferenceHandler,
+		flaggerHandler:         flaggerHandler,
+		metricsExplorerHandler: metricsExplorerHandler,
+		fieldsHandler:          fieldsHandler,
+		authzHandler:           authzHandler,
+		rawDataExportHandler:   rawDataExportHandler,
+		querierHandler:         querierHandler,
+		factoryHandler:         factoryHandler,
+		assistantHandler:       assistantHandler,
 	}
 
 	provider.authZ = middleware.NewAuthZ(settings.Logger(), orgGetter, authz)
@@ -173,23 +143,11 @@ func (provider *provider) AddToRouter(router *mux.Router) error {
 		return err
 	}
 
-	if err := provider.addAuthDomainRoutes(router); err != nil {
-		return err
-	}
-
 	if err := provider.addPreferenceRoutes(router); err != nil {
 		return err
 	}
 
 	if err := provider.addUserRoutes(router); err != nil {
-		return err
-	}
-
-	if err := provider.addGlobalRoutes(router); err != nil {
-		return err
-	}
-
-	if err := provider.addPromoteRoutes(router); err != nil {
 		return err
 	}
 
@@ -221,15 +179,7 @@ func (provider *provider) AddToRouter(router *mux.Router) error {
 		return err
 	}
 
-	if err := provider.addServiceAccountRoutes(router); err != nil {
-		return err
-	}
-
 	if err := provider.addRegistryRoutes(router); err != nil {
-		return err
-	}
-
-	if err := provider.addCloudIntegrationRoutes(router); err != nil {
 		return err
 	}
 
@@ -242,7 +192,6 @@ func (provider *provider) AddToRouter(router *mux.Router) error {
 
 func newSecuritySchemes(role types.Role) []handler.OpenAPISecurityScheme {
 	return []handler.OpenAPISecurityScheme{
-		{Name: authtypes.IdentNProviderAPIKey.StringValue(), Scopes: []string{role.String()}},
 		{Name: authtypes.IdentNProviderTokenizer.StringValue(), Scopes: []string{role.String()}},
 	}
 }

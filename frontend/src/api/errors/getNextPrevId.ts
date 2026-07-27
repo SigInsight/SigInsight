@@ -1,4 +1,4 @@
-import axios from 'api';
+import { ApiV5Instance as axios } from 'api';
 import { ErrorResponseHandler } from 'api/ErrorResponseHandler';
 import { AxiosError } from 'axios';
 import createQueryParams from 'lib/createQueryParams';
@@ -10,7 +10,7 @@ const getErrorCounts = async (
 ): Promise<SuccessResponse<PayloadProps> | ErrorResponse> => {
 	try {
 		const response = await axios.get(
-			`/nextPrevErrorIDs?${createQueryParams({
+			`/exceptions/next-prev?${createQueryParams({
 				...props,
 			})}`,
 		);

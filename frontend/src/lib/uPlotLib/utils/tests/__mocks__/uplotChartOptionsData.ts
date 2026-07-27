@@ -52,7 +52,7 @@ export const inputPropsTimeSeries = {
 				},
 			],
 			resultType: '',
-			newResult: {
+			queryResult: {
 				status: 'success',
 				data: {
 					resultType: '',
@@ -258,7 +258,7 @@ export const inputPropsBar = {
 				},
 			],
 			resultType: '',
-			newResult: {
+			queryResult: {
 				status: 'success',
 				data: {
 					resultType: '',

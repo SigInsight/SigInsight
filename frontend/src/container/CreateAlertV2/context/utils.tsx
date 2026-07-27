@@ -1,9 +1,7 @@
 import { UTC_TIMEZONE } from 'components/CustomTimePicker/timezoneUtils';
 import { UniversalYAxisUnit } from 'components/YAxisUnitSelector/types';
-import { QueryParams } from 'constants/query';
 import {
 	alertDefaults,
-	anamolyAlertDefaults,
 	exceptionAlertDefaults,
 	logAlertDefaults,
 	traceAlertDefaults,
@@ -90,8 +88,6 @@ export function buildInitialAlertDef(alertType: AlertTypes): AlertDef {
 			return traceAlertDefaults;
 		case AlertTypes.EXCEPTIONS_BASED_ALERT:
 			return exceptionAlertDefaults;
-		case AlertTypes.ANOMALY_BASED_ALERT:
-			return anamolyAlertDefaults;
 		case AlertTypes.METRICS_BASED_ALERT:
 			return alertDefaults;
 		default:
@@ -103,10 +99,6 @@ export function getInitialAlertTypeFromURL(
 	urlSearchParams: URLSearchParams,
 	currentQuery: Query,
 ): AlertTypes {
-	const ruleType = urlSearchParams.get(QueryParams.ruleType);
-	if (ruleType === 'anomaly_rule') {
-		return AlertTypes.ANOMALY_BASED_ALERT;
-	}
 	const alertTypeFromURL = urlSearchParams.get(QueryParams.alertType);
 	return alertTypeFromURL
 		? (alertTypeFromURL as AlertTypes)
@@ -245,8 +237,6 @@ export const notificationSettingsReducer = (
 			return { ...state, reNotification: action.payload };
 		case 'SET_DESCRIPTION':
 			return { ...state, description: action.payload };
-		case 'SET_ROUTING_POLICIES':
-			return { ...state, routingPolicies: action.payload };
 		case 'RESET':
 			return INITIAL_NOTIFICATION_SETTINGS_STATE;
 		case 'SET_INITIAL_STATE':
@@ -309,3 +299,4 @@ export const createAlertReducer = (
 			return state;
 	}
 };
+import { QueryParams } from 'constants/query';

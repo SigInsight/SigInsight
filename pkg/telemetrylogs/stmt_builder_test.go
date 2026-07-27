@@ -882,37 +882,18 @@ func TestAdjustKey(t *testing.T) {
 			require.Equal(t, c.expectedKey.FieldContext, key.FieldContext, "field context should match")
 			require.Equal(t, c.expectedKey.FieldDataType, key.FieldDataType, "field data type should match")
 			require.Equal(t, c.expectedKey.Materialized, key.Materialized, "materialized should match")
-			require.Equal(t, c.expectedKey.JSONDataType, key.JSONDataType, "json data type should match")
-			require.Equal(t, c.expectedKey.Indexes, key.Indexes, "json exists should match")
 		})
 	}
 }
 
 func TestStmtBuilderBodyField(t *testing.T) {
 	cases := []struct {
-		name                string
-		requestType         qbtypes.RequestType
-		query               qbtypes.QueryBuilderQuery[qbtypes.LogAggregation]
-		enableBodyJSONQuery bool
-		expected            qbtypes.Statement
-		expectedErr         error
+		name        string
+		requestType qbtypes.RequestType
+		query       qbtypes.QueryBuilderQuery[qbtypes.LogAggregation]
+		expected    qbtypes.Statement
+		expectedErr error
 	}{
-		{
-			name:        "body_exists",
-			requestType: qbtypes.RequestTypeRaw,
-			query: qbtypes.QueryBuilderQuery[qbtypes.LogAggregation]{
-				Signal: telemetrytypes.SignalLogs,
-				Filter: &qbtypes.Filter{Expression: "body Exists"},
-				Limit:  10,
-			},
-			enableBodyJSONQuery: true,
-			expected: qbtypes.Statement{
-				Query:    "WITH __resource_filter AS (SELECT fingerprint FROM signoz_logs.logs_v2_resource WHERE true AND seen_at_ts_bucket_start >= ? AND seen_at_ts_bucket_start <= ?) SELECT timestamp, id, trace_id, span_id, trace_flags, severity_text, severity_number, scope_name, scope_version, body_v2 as body, attributes_string, attributes_number, attributes_bool, resources_string, scope_string FROM signoz_logs.logs_v2 WHERE resource_fingerprint GLOBAL IN (SELECT fingerprint FROM __resource_filter) AND body_v2.message <> ? AND timestamp >= ? AND ts_bucket_start >= ? AND timestamp < ? AND ts_bucket_start <= ? LIMIT ?",
-				Args:     []any{uint64(1747945619), uint64(1747983448), "", "1747947419000000000", uint64(1747945619), "1747983448000000000", uint64(1747983448), 10},
-				Warnings: []string{bodySearchDefaultWarning},
-			},
-			expectedErr: nil,
-		},
 		{
 			name:        "body_exists_disabled",
 			requestType: qbtypes.RequestTypeRaw,
@@ -921,26 +902,9 @@ func TestStmtBuilderBodyField(t *testing.T) {
 				Filter: &qbtypes.Filter{Expression: "body Exists"},
 				Limit:  10,
 			},
-			enableBodyJSONQuery: false,
 			expected: qbtypes.Statement{
 				Query: "WITH __resource_filter AS (SELECT fingerprint FROM signoz_logs.logs_v2_resource WHERE true AND seen_at_ts_bucket_start >= ? AND seen_at_ts_bucket_start <= ?) SELECT timestamp, id, trace_id, span_id, trace_flags, severity_text, severity_number, scope_name, scope_version, body, attributes_string, attributes_number, attributes_bool, resources_string, scope_string FROM signoz_logs.logs_v2 WHERE resource_fingerprint GLOBAL IN (SELECT fingerprint FROM __resource_filter) AND body <> ? AND timestamp >= ? AND ts_bucket_start >= ? AND timestamp < ? AND ts_bucket_start <= ? LIMIT ?",
 				Args:  []any{uint64(1747945619), uint64(1747983448), "", "1747947419000000000", uint64(1747945619), "1747983448000000000", uint64(1747983448), 10},
-			},
-			expectedErr: nil,
-		},
-		{
-			name:        "body_empty",
-			requestType: qbtypes.RequestTypeRaw,
-			query: qbtypes.QueryBuilderQuery[qbtypes.LogAggregation]{
-				Signal: telemetrytypes.SignalLogs,
-				Filter: &qbtypes.Filter{Expression: "body == ''"},
-				Limit:  10,
-			},
-			enableBodyJSONQuery: true,
-			expected: qbtypes.Statement{
-				Query:    "WITH __resource_filter AS (SELECT fingerprint FROM signoz_logs.logs_v2_resource WHERE true AND seen_at_ts_bucket_start >= ? AND seen_at_ts_bucket_start <= ?) SELECT timestamp, id, trace_id, span_id, trace_flags, severity_text, severity_number, scope_name, scope_version, body_v2 as body, attributes_string, attributes_number, attributes_bool, resources_string, scope_string FROM signoz_logs.logs_v2 WHERE resource_fingerprint GLOBAL IN (SELECT fingerprint FROM __resource_filter) AND body_v2.message = ? AND timestamp >= ? AND ts_bucket_start >= ? AND timestamp < ? AND ts_bucket_start <= ? LIMIT ?",
-				Args:     []any{uint64(1747945619), uint64(1747983448), "", "1747947419000000000", uint64(1747945619), "1747983448000000000", uint64(1747983448), 10},
-				Warnings: []string{bodySearchDefaultWarning},
 			},
 			expectedErr: nil,
 		},
@@ -952,26 +916,9 @@ func TestStmtBuilderBodyField(t *testing.T) {
 				Filter: &qbtypes.Filter{Expression: "body == ''"},
 				Limit:  10,
 			},
-			enableBodyJSONQuery: false,
 			expected: qbtypes.Statement{
 				Query: "WITH __resource_filter AS (SELECT fingerprint FROM signoz_logs.logs_v2_resource WHERE true AND seen_at_ts_bucket_start >= ? AND seen_at_ts_bucket_start <= ?) SELECT timestamp, id, trace_id, span_id, trace_flags, severity_text, severity_number, scope_name, scope_version, body, attributes_string, attributes_number, attributes_bool, resources_string, scope_string FROM signoz_logs.logs_v2 WHERE resource_fingerprint GLOBAL IN (SELECT fingerprint FROM __resource_filter) AND body = ? AND timestamp >= ? AND ts_bucket_start >= ? AND timestamp < ? AND ts_bucket_start <= ? LIMIT ?",
 				Args:  []any{uint64(1747945619), uint64(1747983448), "", "1747947419000000000", uint64(1747945619), "1747983448000000000", uint64(1747983448), 10},
-			},
-			expectedErr: nil,
-		},
-		{
-			name:        "body_contains",
-			requestType: qbtypes.RequestTypeRaw,
-			query: qbtypes.QueryBuilderQuery[qbtypes.LogAggregation]{
-				Signal: telemetrytypes.SignalLogs,
-				Filter: &qbtypes.Filter{Expression: "body CONTAINS 'error'"},
-				Limit:  10,
-			},
-			enableBodyJSONQuery: true,
-			expected: qbtypes.Statement{
-				Query:    "WITH __resource_filter AS (SELECT fingerprint FROM signoz_logs.logs_v2_resource WHERE true AND seen_at_ts_bucket_start >= ? AND seen_at_ts_bucket_start <= ?) SELECT timestamp, id, trace_id, span_id, trace_flags, severity_text, severity_number, scope_name, scope_version, body_v2 as body, attributes_string, attributes_number, attributes_bool, resources_string, scope_string FROM signoz_logs.logs_v2 WHERE resource_fingerprint GLOBAL IN (SELECT fingerprint FROM __resource_filter) AND LOWER(body_v2.message) LIKE LOWER(?) AND timestamp >= ? AND ts_bucket_start >= ? AND timestamp < ? AND ts_bucket_start <= ? LIMIT ?",
-				Args:     []any{uint64(1747945619), uint64(1747983448), "%error%", "1747947419000000000", uint64(1747945619), "1747983448000000000", uint64(1747983448), 10},
-				Warnings: []string{bodySearchDefaultWarning},
 			},
 			expectedErr: nil,
 		},
@@ -983,7 +930,6 @@ func TestStmtBuilderBodyField(t *testing.T) {
 				Filter: &qbtypes.Filter{Expression: "body CONTAINS 'error'"},
 				Limit:  10,
 			},
-			enableBodyJSONQuery: false,
 			expected: qbtypes.Statement{
 				Query: "WITH __resource_filter AS (SELECT fingerprint FROM signoz_logs.logs_v2_resource WHERE true AND seen_at_ts_bucket_start >= ? AND seen_at_ts_bucket_start <= ?) SELECT timestamp, id, trace_id, span_id, trace_flags, severity_text, severity_number, scope_name, scope_version, body, attributes_string, attributes_number, attributes_bool, resources_string, scope_string FROM signoz_logs.logs_v2 WHERE resource_fingerprint GLOBAL IN (SELECT fingerprint FROM __resource_filter) AND LOWER(body) LIKE LOWER(?) AND timestamp >= ? AND ts_bucket_start >= ? AND timestamp < ? AND ts_bucket_start <= ? LIMIT ?",
 				Args:  []any{uint64(1747945619), uint64(1747983448), "%error%", "1747947419000000000", uint64(1747945619), "1747983448000000000", uint64(1747983448), 10},
@@ -995,16 +941,8 @@ func TestStmtBuilderBodyField(t *testing.T) {
 	fm := NewFieldMapper()
 	cb := NewConditionBuilder(fm)
 
-	enable, disable := jsonQueryTestUtil(t)
-	defer disable()
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			if c.enableBodyJSONQuery {
-				enable()
-			} else {
-				disable()
-			}
-			// build the key map after enabling/disabling body JSON query
 			mockMetadataStore := telemetrytypestest.NewMockMetadataStore()
 			for _, field := range IntrinsicFields {
 				f := field
@@ -1043,28 +981,12 @@ func TestStmtBuilderBodyField(t *testing.T) {
 
 func TestStmtBuilderBodyFullTextSearch(t *testing.T) {
 	cases := []struct {
-		name                string
-		requestType         qbtypes.RequestType
-		query               qbtypes.QueryBuilderQuery[qbtypes.LogAggregation]
-		enableBodyJSONQuery bool
-		expected            qbtypes.Statement
-		expectedErr         error
+		name        string
+		requestType qbtypes.RequestType
+		query       qbtypes.QueryBuilderQuery[qbtypes.LogAggregation]
+		expected    qbtypes.Statement
+		expectedErr error
 	}{
-		{
-			name:        "body_contains",
-			requestType: qbtypes.RequestTypeRaw,
-			query: qbtypes.QueryBuilderQuery[qbtypes.LogAggregation]{
-				Signal: telemetrytypes.SignalLogs,
-				Filter: &qbtypes.Filter{Expression: "'error'"},
-				Limit:  10,
-			},
-			enableBodyJSONQuery: true,
-			expected: qbtypes.Statement{
-				Query: "WITH __resource_filter AS (SELECT fingerprint FROM signoz_logs.logs_v2_resource WHERE true AND seen_at_ts_bucket_start >= ? AND seen_at_ts_bucket_start <= ?) SELECT timestamp, id, trace_id, span_id, trace_flags, severity_text, severity_number, scope_name, scope_version, body_v2 as body, attributes_string, attributes_number, attributes_bool, resources_string, scope_string FROM signoz_logs.logs_v2 WHERE resource_fingerprint GLOBAL IN (SELECT fingerprint FROM __resource_filter) AND match(LOWER(body_v2.message), LOWER(?)) AND timestamp >= ? AND ts_bucket_start >= ? AND timestamp < ? AND ts_bucket_start <= ? LIMIT ?",
-				Args:  []any{uint64(1747945619), uint64(1747983448), "error", "1747947419000000000", uint64(1747945619), "1747983448000000000", uint64(1747983448), 10},
-			},
-			expectedErr: nil,
-		},
 		{
 			name:        "body_contains_disabled",
 			requestType: qbtypes.RequestTypeRaw,
@@ -1073,7 +995,6 @@ func TestStmtBuilderBodyFullTextSearch(t *testing.T) {
 				Filter: &qbtypes.Filter{Expression: "'error'"},
 				Limit:  10,
 			},
-			enableBodyJSONQuery: false,
 			expected: qbtypes.Statement{
 				Query: "WITH __resource_filter AS (SELECT fingerprint FROM signoz_logs.logs_v2_resource WHERE true AND seen_at_ts_bucket_start >= ? AND seen_at_ts_bucket_start <= ?) SELECT timestamp, id, trace_id, span_id, trace_flags, severity_text, severity_number, scope_name, scope_version, body, attributes_string, attributes_number, attributes_bool, resources_string, scope_string FROM signoz_logs.logs_v2 WHERE resource_fingerprint GLOBAL IN (SELECT fingerprint FROM __resource_filter) AND match(LOWER(body), LOWER(?)) AND timestamp >= ? AND ts_bucket_start >= ? AND timestamp < ? AND ts_bucket_start <= ? LIMIT ?",
 				Args:  []any{uint64(1747945619), uint64(1747983448), "error", "1747947419000000000", uint64(1747945619), "1747983448000000000", uint64(1747983448), 10},
@@ -1085,16 +1006,8 @@ func TestStmtBuilderBodyFullTextSearch(t *testing.T) {
 	fm := NewFieldMapper()
 	cb := NewConditionBuilder(fm)
 
-	enable, disable := jsonQueryTestUtil(t)
-	defer disable()
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			if c.enableBodyJSONQuery {
-				enable()
-			} else {
-				disable()
-			}
-			// build the key map after enabling/disabling body JSON query
 			mockMetadataStore := telemetrytypestest.NewMockMetadataStore()
 			for _, field := range IntrinsicFields {
 				f := field

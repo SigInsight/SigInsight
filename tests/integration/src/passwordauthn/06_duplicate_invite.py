@@ -22,7 +22,7 @@ def test_duplicate_user_invite_rejected(
 
     # Invite a new user
     response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v1/invite"),
+        signoz.self.host_configs["8080"].get("/api/v5/invite"),
         json={"email": DUPLICATE_USER_EMAIL, "role": "EDITOR"},
         headers={"Authorization": f"Bearer {admin_token}"},
         timeout=2,
@@ -33,7 +33,7 @@ def test_duplicate_user_invite_rejected(
 
     # Invite the same email again — should fail
     response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v1/invite"),
+        signoz.self.host_configs["8080"].get("/api/v5/invite"),
         json={"email": DUPLICATE_USER_EMAIL, "role": "VIEWER"},
         headers={"Authorization": f"Bearer {admin_token}"},
         timeout=2,
@@ -42,7 +42,7 @@ def test_duplicate_user_invite_rejected(
 
     # activate the user
     response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v1/resetPassword"),
+        signoz.self.host_configs["8080"].get("/api/v5/resetPassword"),
         json={"password": "password123Z$", "token": reset_token},
         timeout=2,
     )
@@ -50,7 +50,7 @@ def test_duplicate_user_invite_rejected(
 
     # Try to invite the same email again — should fail
     response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v1/invite"),
+        signoz.self.host_configs["8080"].get("/api/v5/invite"),
         json={"email": DUPLICATE_USER_EMAIL, "role": "VIEWER"},
         headers={"Authorization": f"Bearer {admin_token}"},
         timeout=2,

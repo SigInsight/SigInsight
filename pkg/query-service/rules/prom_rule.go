@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/SigNoz/signoz/pkg/types/timeseriestypes"
 	"log/slog"
 	"time"
 
@@ -14,7 +15,6 @@ import (
 	"github.com/SigNoz/signoz/pkg/prometheus"
 	"github.com/SigNoz/signoz/pkg/query-service/interfaces"
 	"github.com/SigNoz/signoz/pkg/query-service/model"
-	v3 "github.com/SigNoz/signoz/pkg/query-service/model/v3"
 	qslabels "github.com/SigNoz/signoz/pkg/query-service/utils/labels"
 	"github.com/SigNoz/signoz/pkg/query-service/utils/times"
 	"github.com/SigNoz/signoz/pkg/query-service/utils/timestamp"
@@ -26,7 +26,6 @@ import (
 
 type PromRule struct {
 	*BaseRule
-	version    string
 	prometheus prometheus.Prometheus
 }
 
@@ -50,7 +49,6 @@ func NewPromRule(
 
 	p := PromRule{
 		BaseRule:   baseRule,
-		version:    postableRule.Version,
 		prometheus: prometheus,
 	}
 	p.logger = logger
@@ -69,59 +67,44 @@ func (r *PromRule) Type() ruletypes.RuleType {
 }
 
 func (r *PromRule) GetSelectedQuery() string {
-	if r.ruleCondition != nil {
-		// If the user has explicitly set the selected query, we return that.
-		if r.ruleCondition.SelectedQuery != "" {
-			return r.ruleCondition.SelectedQuery
-		}
-		// Historically, we used to have only one query in the alerts for promql.
-		// So, if there is only one query, we return that.
-		// This is to maintain backward compatibility.
-		// For new rules, we will have to explicitly set the selected query.
-		return "A"
+	if r.ruleCondition == nil {
+		return ""
 	}
-	// This should never happen.
-	return ""
+	return r.ruleCondition.SelectedQuery
 }
 
 func (r *PromRule) getPqlQuery() (string, error) {
-	if r.version == "v5" {
-		if len(r.ruleCondition.CompositeQuery.Queries) > 0 {
-			selectedQuery := r.GetSelectedQuery()
-			for _, item := range r.ruleCondition.CompositeQuery.Queries {
-				switch item.Type {
-				case qbtypes.QueryTypePromQL:
-					promQuery, ok := item.Spec.(qbtypes.PromQuery)
-					if !ok {
-						return "", errors.NewInvalidInputf(errors.CodeInvalidInput, "invalid promql query spec %T", item.Spec)
-					}
-					if promQuery.Name == selectedQuery {
-						return promQuery.Query, nil
-					}
-				}
-			}
-		}
-		return "", fmt.Errorf("invalid promql rule setup")
+	if r.ruleCondition == nil || r.ruleCondition.CompositeQuery == nil {
+		return "", errors.NewInvalidInputf(errors.CodeInvalidInput, "promql rule requires a composite query")
 	}
 
-	if r.ruleCondition.CompositeQuery.QueryType == v3.QueryTypePromQL {
-		if len(r.ruleCondition.CompositeQuery.PromQueries) > 0 {
-			selectedQuery := r.GetSelectedQuery()
-			if promQuery, ok := r.ruleCondition.CompositeQuery.PromQueries[selectedQuery]; ok {
-				query := promQuery.Query
-				if query == "" {
-					return query, fmt.Errorf("a promquery needs to be set for this rule to function")
-				}
-				return query, nil
-			}
-		}
+	selectedQuery := r.GetSelectedQuery()
+	if selectedQuery == "" {
+		return "", errors.NewInvalidInputf(errors.CodeInvalidInput, "promql rule requires selectedQueryName")
 	}
 
-	return "", fmt.Errorf("invalid promql rule query")
+	for _, item := range r.ruleCondition.CompositeQuery.Queries {
+		if item.Type != qbtypes.QueryTypePromQL {
+			continue
+		}
+		promQuery, ok := item.Spec.(qbtypes.PromQuery)
+		if !ok {
+			return "", errors.NewInvalidInputf(errors.CodeInvalidInput, "invalid promql query spec %T", item.Spec)
+		}
+		if promQuery.Name != selectedQuery {
+			continue
+		}
+		if promQuery.Query == "" {
+			return "", errors.NewInvalidInputf(errors.CodeInvalidInput, "promql query %q is empty", selectedQuery)
+		}
+		return promQuery.Query, nil
+	}
+
+	return "", errors.NewInvalidInputf(errors.CodeInvalidInput, "selected promql query %q was not found", selectedQuery)
 }
 
-func (r *PromRule) matrixToV3Series(res promql.Matrix) []*v3.Series {
-	v3Series := make([]*v3.Series, 0, len(res))
+func (r *PromRule) matrixToV3Series(res promql.Matrix) []*timeseriestypes.Series {
+	v3Series := make([]*timeseriestypes.Series, 0, len(res))
 	for _, series := range res {
 		commonSeries := toCommonSeries(series)
 		v3Series = append(v3Series, &commonSeries)
@@ -456,11 +439,11 @@ func (r *PromRule) RunAlertQuery(ctx context.Context, qs string, start, end time
 	}
 }
 
-func toCommonSeries(series promql.Series) v3.Series {
-	commonSeries := v3.Series{
+func toCommonSeries(series promql.Series) timeseriestypes.Series {
+	commonSeries := timeseriestypes.Series{
 		Labels:      make(map[string]string),
 		LabelsArray: make([]map[string]string, 0),
-		Points:      make([]v3.Point, 0),
+		Points:      make([]timeseriestypes.Point, 0),
 	}
 
 	series.Metric.Range(func(lbl labels.Label) {
@@ -471,7 +454,7 @@ func toCommonSeries(series promql.Series) v3.Series {
 	})
 
 	for _, f := range series.Floats {
-		commonSeries.Points = append(commonSeries.Points, v3.Point{
+		commonSeries.Points = append(commonSeries.Points, timeseriestypes.Point{
 			Timestamp: f.T,
 			Value:     f.F,
 		})

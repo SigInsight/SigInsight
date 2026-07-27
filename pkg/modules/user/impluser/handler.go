@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
-	"slices"
 	"time"
 
 	"github.com/SigNoz/signoz/pkg/errors"
@@ -13,7 +12,6 @@ import (
 	root "github.com/SigNoz/signoz/pkg/modules/user"
 	"github.com/SigNoz/signoz/pkg/types"
 	"github.com/SigNoz/signoz/pkg/types/authtypes"
-	"github.com/SigNoz/signoz/pkg/types/integrationtypes"
 	"github.com/SigNoz/signoz/pkg/valuer"
 	"github.com/gorilla/mux"
 )
@@ -85,27 +83,6 @@ func (h *handler) CreateBulkInvite(rw http.ResponseWriter, r *http.Request) {
 	render.Success(rw, http.StatusCreated, nil)
 }
 
-func (h *handler) GetUserDeprecated(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
-	defer cancel()
-
-	id := mux.Vars(r)["id"]
-
-	claims, err := authtypes.ClaimsFromContext(ctx)
-	if err != nil {
-		render.Error(w, err)
-		return
-	}
-
-	user, err := h.getter.GetDeprecatedUserByOrgIDAndID(ctx, valuer.MustNewUUID(claims.OrgID), valuer.MustNewUUID(id))
-	if err != nil {
-		render.Error(w, err)
-		return
-	}
-
-	render.Success(w, http.StatusOK, user)
-}
-
 func (h *handler) GetUser(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
@@ -136,25 +113,6 @@ func (h *handler) GetUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	render.Success(w, http.StatusOK, userWithRoles)
-}
-
-func (h *handler) GetMyUserDeprecated(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
-	defer cancel()
-
-	claims, err := authtypes.ClaimsFromContext(ctx)
-	if err != nil {
-		render.Error(w, err)
-		return
-	}
-
-	user, err := h.getter.GetDeprecatedUserByOrgIDAndID(ctx, valuer.MustNewUUID(claims.OrgID), valuer.MustNewUUID(claims.UserID))
-	if err != nil {
-		render.Error(w, err)
-		return
-	}
-
-	render.Success(w, http.StatusOK, user)
 }
 
 func (h *handler) GetMyUser(w http.ResponseWriter, r *http.Request) {
@@ -212,25 +170,6 @@ func (h *handler) UpdateMyUser(w http.ResponseWriter, r *http.Request) {
 	render.Success(w, http.StatusNoContent, nil)
 }
 
-func (h *handler) ListUsersDeprecated(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
-	defer cancel()
-
-	claims, err := authtypes.ClaimsFromContext(ctx)
-	if err != nil {
-		render.Error(w, err)
-		return
-	}
-
-	users, err := h.getter.ListDeprecatedUsersByOrgID(ctx, valuer.MustNewUUID(claims.OrgID))
-	if err != nil {
-		render.Error(w, err)
-		return
-	}
-
-	render.Success(w, http.StatusOK, users)
-}
-
 func (h *handler) ListUsers(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
@@ -248,33 +187,6 @@ func (h *handler) ListUsers(w http.ResponseWriter, r *http.Request) {
 	}
 
 	render.Success(w, http.StatusOK, users)
-}
-
-func (h *handler) UpdateUserDeprecated(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
-	defer cancel()
-
-	id := mux.Vars(r)["id"]
-
-	claims, err := authtypes.ClaimsFromContext(ctx)
-	if err != nil {
-		render.Error(w, err)
-		return
-	}
-
-	user := types.DeprecatedUser{User: &types.User{}}
-	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
-		render.Error(w, err)
-		return
-	}
-
-	updatedUser, err := h.setter.UpdateUserDeprecated(ctx, valuer.MustNewUUID(claims.OrgID), id, &user, claims.UserID)
-	if err != nil {
-		render.Error(w, err)
-		return
-	}
-
-	render.Success(w, http.StatusOK, updatedUser)
 }
 
 func (h *handler) UpdateUser(w http.ResponseWriter, r *http.Request) {
@@ -341,7 +253,7 @@ func (handler *handler) GetResetPasswordToken(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	user, err := handler.getter.GetDeprecatedUserByOrgIDAndID(ctx, valuer.MustNewUUID(claims.OrgID), valuer.MustNewUUID(id))
+	user, err := handler.getter.GetUserByOrgIDAndID(ctx, valuer.MustNewUUID(claims.OrgID), valuer.MustNewUUID(id))
 	if err != nil {
 		render.Error(w, err)
 		return
@@ -406,175 +318,6 @@ func (h *handler) ForgotPassword(w http.ResponseWriter, r *http.Request) {
 
 	err := h.setter.ForgotPassword(ctx, req.OrgID, req.Email, req.FrontendBaseURL)
 	if err != nil {
-		render.Error(w, err)
-		return
-	}
-
-	render.Success(w, http.StatusNoContent, nil)
-}
-
-func (h *handler) CreateAPIKey(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
-	defer cancel()
-
-	claims, err := authtypes.ClaimsFromContext(ctx)
-	if err != nil {
-		render.Error(w, err)
-		return
-	}
-
-	req := new(types.PostableAPIKey)
-	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
-		render.Error(w, errors.Wrapf(err, errors.TypeInvalidInput, errors.CodeInvalidInput, "failed to decode api key"))
-		return
-	}
-
-	apiKey, err := types.NewStorableAPIKey(
-		req.Name,
-		valuer.MustNewUUID(claims.UserID),
-		req.Role,
-		req.ExpiresInDays,
-	)
-	if err != nil {
-		render.Error(w, err)
-		return
-	}
-
-	err = h.setter.CreateAPIKey(ctx, apiKey)
-	if err != nil {
-		render.Error(w, err)
-		return
-	}
-
-	createdApiKey, err := h.setter.GetAPIKey(ctx, valuer.MustNewUUID(claims.OrgID), apiKey.ID)
-	if err != nil {
-		render.Error(w, err)
-		return
-	}
-
-	// just corrected the status code, response is same,
-	render.Success(w, http.StatusCreated, createdApiKey)
-}
-
-func (h *handler) ListAPIKeys(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
-	defer cancel()
-
-	claims, err := authtypes.ClaimsFromContext(ctx)
-	if err != nil {
-		render.Error(w, err)
-		return
-	}
-
-	apiKeys, err := h.setter.ListAPIKeys(ctx, valuer.MustNewUUID(claims.OrgID))
-	if err != nil {
-		render.Error(w, err)
-		return
-	}
-
-	// for backward compatibility
-	if len(apiKeys) == 0 {
-		render.Success(w, http.StatusOK, []types.GettableAPIKey{})
-		return
-	}
-
-	result := make([]*types.GettableAPIKey, len(apiKeys))
-	for i, apiKey := range apiKeys {
-		result[i] = types.NewGettableAPIKeyFromStorableAPIKey(apiKey)
-	}
-
-	render.Success(w, http.StatusOK, result)
-
-}
-
-func (h *handler) UpdateAPIKey(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
-	defer cancel()
-
-	claims, err := authtypes.ClaimsFromContext(ctx)
-	if err != nil {
-		render.Error(w, err)
-		return
-	}
-
-	req := types.StorableAPIKey{}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		render.Error(w, errors.Wrapf(err, errors.TypeInvalidInput, errors.CodeInvalidInput, "failed to decode api key"))
-		return
-	}
-
-	idStr := mux.Vars(r)["id"]
-	id, err := valuer.NewUUID(idStr)
-	if err != nil {
-		render.Error(w, errors.Newf(errors.TypeInvalidInput, errors.CodeInvalidInput, "id is not a valid uuid-v7"))
-		return
-	}
-
-	//get the API Key
-	existingAPIKey, err := h.setter.GetAPIKey(ctx, valuer.MustNewUUID(claims.OrgID), id)
-	if err != nil {
-		render.Error(w, err)
-		return
-	}
-
-	// get the user
-	createdByUser, err := h.getter.Get(ctx, existingAPIKey.UserID)
-	if err != nil {
-		render.Error(w, err)
-		return
-	}
-
-	if slices.Contains(integrationtypes.AllIntegrationUserEmails, integrationtypes.IntegrationUserEmail(createdByUser.Email.String())) {
-		render.Error(w, errors.Newf(errors.TypeInvalidInput, errors.CodeInvalidInput, "API Keys for integration users cannot be revoked"))
-		return
-	}
-
-	err = h.setter.UpdateAPIKey(ctx, id, &req, valuer.MustNewUUID(claims.UserID))
-	if err != nil {
-		render.Error(w, err)
-		return
-	}
-
-	render.Success(w, http.StatusNoContent, nil)
-}
-
-func (h *handler) RevokeAPIKey(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
-	defer cancel()
-
-	claims, err := authtypes.ClaimsFromContext(ctx)
-	if err != nil {
-		render.Error(w, err)
-		return
-	}
-
-	idStr := mux.Vars(r)["id"]
-	id, err := valuer.NewUUID(idStr)
-	if err != nil {
-		render.Error(w, errors.Newf(errors.TypeInvalidInput, errors.CodeInvalidInput, "id is not a valid uuid-v7"))
-		return
-	}
-
-	//get the API Key
-	existingAPIKey, err := h.setter.GetAPIKey(ctx, valuer.MustNewUUID(claims.OrgID), id)
-	if err != nil {
-		render.Error(w, err)
-		return
-	}
-
-	// get the user
-	createdByUser, err := h.getter.Get(ctx, existingAPIKey.UserID)
-	if err != nil {
-		render.Error(w, err)
-		return
-	}
-
-	if slices.Contains(integrationtypes.AllIntegrationUserEmails, integrationtypes.IntegrationUserEmail(createdByUser.Email.String())) {
-		render.Error(w, errors.Newf(errors.TypeInvalidInput, errors.CodeInvalidInput, "API Keys for integration users cannot be revoked"))
-		return
-	}
-
-	if err := h.setter.RevokeAPIKey(ctx, id, valuer.MustNewUUID(claims.UserID)); err != nil {
 		render.Error(w, err)
 		return
 	}

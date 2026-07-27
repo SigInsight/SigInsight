@@ -41,7 +41,7 @@ def test_unique_index_allows_multiple_deleted_rows(
 
     # Step 1: invite and delete the first user
     resp = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v1/invite"),
+        signoz.self.host_configs["8080"].get("/api/v5/invite"),
         json={
             "email": UNIQUE_INDEX_USER_EMAIL,
             "role": "EDITOR",
@@ -54,7 +54,7 @@ def test_unique_index_allows_multiple_deleted_rows(
     first_user_id = resp.json()["data"]["id"]
 
     resp = requests.delete(
-        signoz.self.host_configs["8080"].get(f"/api/v1/user/{first_user_id}"),
+        signoz.self.host_configs["8080"].get(f"/api/v5/user/{first_user_id}"),
         headers={"Authorization": f"Bearer {admin_token}"},
         timeout=2,
     )
@@ -62,7 +62,7 @@ def test_unique_index_allows_multiple_deleted_rows(
 
     # Step 2: re-invite and delete the same email (second deleted row)
     resp = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v1/invite"),
+        signoz.self.host_configs["8080"].get("/api/v5/invite"),
         json={
             "email": UNIQUE_INDEX_USER_EMAIL,
             "role": "EDITOR",
@@ -76,7 +76,7 @@ def test_unique_index_allows_multiple_deleted_rows(
     assert second_user_id != first_user_id
 
     resp = requests.delete(
-        signoz.self.host_configs["8080"].get(f"/api/v1/user/{second_user_id}"),
+        signoz.self.host_configs["8080"].get(f"/api/v5/user/{second_user_id}"),
         headers={"Authorization": f"Bearer {admin_token}"},
         timeout=2,
     )

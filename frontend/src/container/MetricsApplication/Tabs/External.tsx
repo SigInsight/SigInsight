@@ -4,7 +4,7 @@ import { useDispatch } from 'react-redux';
 import { useLocation, useParams } from 'react-router-dom';
 import { Col } from 'antd';
 import logEvent from 'api/common/logEvent';
-import { ENTITY_VERSION_V4 } from 'constants/app';
+import { ENTITY_VERSION_V5 } from 'constants/app';
 import { QueryParams } from 'constants/query';
 import { PANEL_TYPES } from 'constants/queryBuilder';
 import Graph from 'container/GridCardLayout/GridCard';
@@ -278,7 +278,7 @@ function External(): JSX.Element {
 									);
 								}}
 								onDragSelect={onDragSelect}
-								version={ENTITY_VERSION_V4}
+								version={ENTITY_VERSION_V5}
 							/>
 						</GraphContainer>
 					</Card>
@@ -321,7 +321,7 @@ function External(): JSX.Element {
 									);
 								}}
 								onDragSelect={onDragSelect}
-								version={ENTITY_VERSION_V4}
+								version={ENTITY_VERSION_V5}
 							/>
 						</GraphContainer>
 					</Card>
@@ -365,7 +365,7 @@ function External(): JSX.Element {
 									)
 								}
 								onDragSelect={onDragSelect}
-								version={ENTITY_VERSION_V4}
+								version={ENTITY_VERSION_V5}
 							/>
 						</GraphContainer>
 					</Card>
@@ -408,7 +408,7 @@ function External(): JSX.Element {
 									);
 								}}
 								onDragSelect={onDragSelect}
-								version={ENTITY_VERSION_V4}
+								version={ENTITY_VERSION_V5}
 							/>
 						</GraphContainer>
 					</Card>

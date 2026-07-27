@@ -116,7 +116,7 @@ jest.mock('hooks/useNotifications', (): unknown => ({
 }));
 
 // mock updateUserPreference API and react-query mutation
-jest.mock('api/v1/user/preferences/name/update', (): jest.Mock => jest.fn());
+jest.mock('api/v5/user/preferences/name/update', (): jest.Mock => jest.fn());
 jest.mock('react-query', (): unknown => {
 	const actual = jest.requireActual('react-query');
 	return {

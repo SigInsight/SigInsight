@@ -25,8 +25,8 @@ func TestServiceConfig(t *testing.T) {
 		return
 	}
 
-	agentConf := confmap.NewFromStringMap(c)
-	configParser := NewConfigParser(agentConf)
+	agentconfig := confmap.NewFromStringMap(c)
+	configParser := NewConfigParser(agentconfig)
 
 	expected := map[string]interface{}{
 		"extensions": []interface{}{"zpages"},

@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	schema "github.com/SigInsight/OtelCollector/cmd/signozschemamigrator/schema_migrator"
+	schema "github.com/SigInsight/OtelCollector/cmd/siginsightschemamigrator/schema_migrator"
 	"github.com/SigNoz/signoz/pkg/errors"
 	"github.com/SigNoz/signoz/pkg/querybuilder"
 	qbtypes "github.com/SigNoz/signoz/pkg/types/querybuildertypes/querybuildertypesv5"
@@ -52,7 +52,7 @@ func (c *conditionBuilder) conditionFor(
 	}
 
 	// TODO(srikanthccv): maybe extend this to every possible attribute
-	if key.Name == "duration_nano" || key.Name == "durationNano" { // QoL improvement
+	if key.Name == "duration_nano" {
 		if strDuration, ok := value.(string); ok {
 			duration, err := time.ParseDuration(strDuration)
 			if err == nil {
@@ -248,9 +248,7 @@ func (c *conditionBuilder) ConditionFor(
 		// skip adding exists filter for intrinsic fields
 		field, _ := c.fm.FieldFor(ctx, key)
 		if slices.Contains(maps.Keys(IntrinsicFields), field) ||
-			slices.Contains(maps.Keys(IntrinsicFieldsDeprecated), field) ||
-			slices.Contains(maps.Keys(CalculatedFields), field) ||
-			slices.Contains(maps.Keys(CalculatedFieldsDeprecated), field) {
+			slices.Contains(maps.Keys(CalculatedFields), field) {
 			return condition, nil
 		}
 

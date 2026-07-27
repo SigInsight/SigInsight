@@ -1,4 +1,3 @@
-import { RocketOutlined } from '@ant-design/icons';
 import { Style } from '@signozhq/design-tokens';
 import { MenuProps } from 'antd';
 import ROUTES from 'constants/routes';
@@ -8,7 +7,6 @@ import {
 	BellDot,
 	Binoculars,
 	Book,
-	Bot,
 	BugIcon,
 	Building2,
 	ChartArea,
@@ -18,7 +16,6 @@ import {
 	Github,
 	HardDrive,
 	Home,
-	Key,
 	Keyboard,
 	Layers2,
 	LogOut,
@@ -27,9 +24,7 @@ import {
 	Route,
 	ScrollText,
 	Settings,
-	Shield,
 	Slack,
-	Unplug,
 	User,
 	UserPlus,
 	Users,
@@ -40,18 +35,6 @@ import {
 	SettingsNavSection,
 	SidebarItem,
 } from './sideNav.types';
-
-export const getStartedMenuItem = {
-	key: ROUTES.GET_STARTED,
-	label: 'Get Started',
-	icon: <RocketOutlined rotate={45} />,
-};
-
-export const getStartedV3MenuItem = {
-	key: ROUTES.GET_STARTED_WITH_CLOUD,
-	label: 'Get Started',
-	icon: <RocketOutlined rotate={45} />,
-};
 
 export const homeMenuItem = {
 	key: ROUTES.HOME,
@@ -129,12 +112,6 @@ const menuItems: SidebarItem[] = [
 		itemKey: 'alerts',
 	},
 	{
-		key: ROUTES.INTEGRATIONS,
-		label: 'Integrations',
-		icon: <Unplug size={16} />,
-		itemKey: 'integrations',
-	},
-	{
 		key: ROUTES.ALL_ERROR,
 		label: 'Exceptions',
 		icon: <BugIcon size={16} />,
@@ -204,13 +181,6 @@ export const defaultMoreMenuItems: SidebarItem[] = [
 		itemKey: 'metrics',
 	},
 	{
-		key: ROUTES.INTEGRATIONS,
-		label: 'Integrations',
-		icon: <Unplug size={16} />,
-		isEnabled: true,
-		itemKey: 'integrations',
-	},
-	{
 		key: ROUTES.ALL_ERROR,
 		label: 'Exceptions',
 		icon: <BugIcon size={16} />,
@@ -275,52 +245,11 @@ export const settingsNavSections: SettingsNavSection[] = [
 		title: 'Identity & Access',
 		items: [
 			{
-				key: ROUTES.ROLES_SETTINGS,
-				label: 'Roles',
-				icon: <Shield size={16} />,
-				isEnabled: false,
-				itemKey: 'roles',
-			},
-			{
 				key: ROUTES.MEMBERS_SETTINGS,
 				label: 'Members',
 				icon: <Users size={16} />,
 				isEnabled: false,
 				itemKey: 'members',
-			},
-			{
-				key: ROUTES.SERVICE_ACCOUNTS_SETTINGS,
-				label: 'Service Accounts',
-				icon: <Bot size={16} />,
-				isEnabled: false,
-				itemKey: 'service-accounts',
-			},
-			{
-				key: ROUTES.API_KEYS,
-				label: 'API Keys',
-				icon: <Key size={16} />,
-				isEnabled: false,
-				itemKey: 'api-keys',
-			},
-			{
-				key: ROUTES.INGESTION_SETTINGS,
-				label: 'Ingestion',
-				icon: <RocketOutlined rotate={45} />,
-				isEnabled: false,
-				itemKey: 'ingestion',
-			},
-		],
-	},
-	{
-		key: 'authentication',
-		title: 'Authentication',
-		items: [
-			{
-				key: ROUTES.ORG_SETTINGS,
-				label: 'Single Sign-on',
-				icon: <User size={16} />,
-				isEnabled: false,
-				itemKey: 'sso',
 			},
 		],
 	},

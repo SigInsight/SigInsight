@@ -9,7 +9,7 @@ import AuthError from 'components/AuthError/AuthError';
 import ROUTES from 'constants/routes';
 import history from 'lib/history';
 import APIError from 'types/api/error';
-import { OrgSessionContext } from 'types/api/v2/sessions/context/get';
+import { OrgSessionContext } from 'types/api/v5/sessions/context/get';
 
 import SuccessScreen from './SuccessScreen';
 

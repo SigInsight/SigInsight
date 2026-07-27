@@ -1,11 +1,11 @@
-import inviteUsers from 'api/v1/invite/bulk/create';
-import sendInvite from 'api/v1/invite/create';
+import inviteUsers from 'api/v5/invite/bulk/create';
+import sendInvite from 'api/v5/invite/create';
 import { render, screen, userEvent, waitFor } from 'tests/test-utils';
 
 import InviteMembersModal from '../InviteMembersModal';
 
-jest.mock('api/v1/invite/create');
-jest.mock('api/v1/invite/bulk/create');
+jest.mock('api/v5/invite/create');
+jest.mock('api/v5/invite/bulk/create');
 jest.mock('@signozhq/sonner', () => ({
 	toast: {
 		success: jest.fn(),

@@ -1,6 +1,5 @@
 import { TelemetryFieldKey } from 'api/v5/v5';
 import { LOCALSTORAGE } from 'constants/localStorage';
-import { LogViewMode } from 'container/LogsTable';
 import {
 	defaultLogsSelectedColumns,
 	defaultTraceSelectedColumns,
@@ -8,6 +7,7 @@ import {
 import { FontSize } from 'container/OptionsMenu/types';
 import { render, screen, userEvent } from 'tests/test-utils';
 import { DataSource } from 'types/common/queryBuilder';
+import { LogViewMode } from 'types/logs';
 
 import { usePreferenceContext } from '../context/PreferenceContextProvider';
 
@@ -21,7 +21,6 @@ type LogsLocalOptions = {
 	maxLines?: number;
 	format?: string;
 	fontSize?: string;
-	version?: number;
 };
 
 type TracesLocalOptions = {
@@ -97,7 +96,6 @@ describe('PreferencesProvider integration', () => {
 				maxLines: 5,
 				format: 'json',
 				fontSize: 'large',
-				version: 2,
 			});
 
 			render(
@@ -158,7 +156,6 @@ describe('PreferencesProvider integration', () => {
 				maxLines: 7,
 				format: 'json',
 				fontSize: 'large',
-				version: 2,
 			};
 			const originalLocation = window.location;
 			Object.defineProperty(window, 'location', {
@@ -200,7 +197,6 @@ describe('PreferencesProvider integration', () => {
 								maxLines: 9,
 								format: 'json' as LogViewMode,
 								fontSize: 'large' as FontSize,
-								version: 2,
 							})
 						}
 					>
@@ -219,7 +215,6 @@ describe('PreferencesProvider integration', () => {
 			expect(stored?.maxLines).toBe(9);
 			expect(stored?.format).toBe('json');
 			expect(stored?.fontSize).toBe('large');
-			expect(stored?.version).toBe(2);
 		});
 
 		it('saved view mode updates in-memory preferences (columns-len changes)', async () => {
@@ -358,7 +353,6 @@ describe('PreferencesProvider integration', () => {
 								maxLines: 9,
 								format: 'json' as LogViewMode,
 								fontSize: 'large' as FontSize,
-								version: 2,
 							})
 						}
 					>

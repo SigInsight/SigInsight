@@ -20,7 +20,7 @@ function ThresholdItem({
 	isLoadingChannels,
 }: ThresholdItemProps): JSX.Element {
 	const { user } = useAppContext();
-	const { thresholdState, notificationSettings } = useCreateAlertState();
+	const { thresholdState } = useCreateAlertState();
 	const [showRecoveryThreshold, setShowRecoveryThreshold] = useState(false);
 
 	const yAxisUnitSelect = useMemo(() => {
@@ -112,43 +112,41 @@ function ThresholdItem({
 						data-testid="threshold-value-input"
 					/>
 					{yAxisUnitSelect}
-					{!notificationSettings.routingPolicies && (
-						<>
-							<Typography.Text className="sentence-text">send to</Typography.Text>
-							<Select
-								value={threshold.channels}
-								onChange={(value): void =>
-									updateThreshold(threshold.id, 'channels', value)
-								}
-								data-testid="threshold-notification-channel-select"
-								style={{ width: 350 }}
-								options={channels.map((channel) => ({
-									value: channel.name,
-									label: channel.name,
-									'data-testid': `threshold-notification-channel-option-${threshold.label}`,
-								}))}
-								mode="multiple"
-								placeholder="Select notification channels"
-								showSearch
-								maxTagCount={2}
-								maxTagPlaceholder={(omittedValues): string =>
-									`+${omittedValues.length} more`
-								}
-								maxTagTextLength={10}
-								filterOption={(input, option): boolean =>
-									option?.label?.toLowerCase().includes(input.toLowerCase()) || false
-								}
-								status={isErrorChannels ? 'error' : undefined}
-								disabled={isLoadingChannels}
-								notFoundContent={
-									<NotificationChannelsNotFoundContent
-										user={user}
-										refreshChannels={refreshChannels}
-									/>
-								}
-							/>
-						</>
-					)}
+					<>
+						<Typography.Text className="sentence-text">send to</Typography.Text>
+						<Select
+							value={threshold.channels}
+							onChange={(value): void =>
+								updateThreshold(threshold.id, 'channels', value)
+							}
+							data-testid="threshold-notification-channel-select"
+							style={{ width: 350 }}
+							options={channels.map((channel) => ({
+								value: channel.name,
+								label: channel.name,
+								'data-testid': `threshold-notification-channel-option-${threshold.label}`,
+							}))}
+							mode="multiple"
+							placeholder="Select notification channels"
+							showSearch
+							maxTagCount={2}
+							maxTagPlaceholder={(omittedValues): string =>
+								`+${omittedValues.length} more`
+							}
+							maxTagTextLength={10}
+							filterOption={(input, option): boolean =>
+								option?.label?.toLowerCase().includes(input.toLowerCase()) || false
+							}
+							status={isErrorChannels ? 'error' : undefined}
+							disabled={isLoadingChannels}
+							notFoundContent={
+								<NotificationChannelsNotFoundContent
+									user={user}
+									refreshChannels={refreshChannels}
+								/>
+							}
+						/>
+					</>
 					{showRecoveryThreshold && (
 						<>
 							<Typography.Text className="sentence-text">recover on</Typography.Text>

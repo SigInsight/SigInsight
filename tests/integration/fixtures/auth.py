@@ -25,7 +25,7 @@ def create_user_admin(
 ) -> types.Operation:
     def create() -> types.Operation:
         response = requests.post(
-            signoz.self.host_configs["8080"].get("/api/v1/register"),
+            signoz.self.host_configs["8080"].get("/api/v5/register"),
             json={
                 "name": USER_ADMIN_NAME,
                 "orgName": USER_ADMIN_ORG_NAME,
@@ -40,7 +40,7 @@ def create_user_admin(
 
         if response.status_code == HTTPStatus.BAD_REQUEST:
             context_response = requests.get(
-                signoz.self.host_configs["8080"].get("/api/v2/sessions/context"),
+                signoz.self.host_configs["8080"].get("/api/v5/sessions/context"),
                 params={
                     "email": USER_ADMIN_EMAIL,
                     "ref": f"{signoz.self.host_configs['8080'].base()}",
@@ -52,7 +52,7 @@ def create_user_admin(
                 org_id = context_response.json()["data"]["orgs"][0]["id"]
                 token_response = requests.post(
                     signoz.self.host_configs["8080"].get(
-                        "/api/v2/sessions/email_password"
+                        "/api/v5/sessions/email_password"
                     ),
                     json={
                         "email": USER_ADMIN_EMAIL,
@@ -89,7 +89,7 @@ def create_user_admin(
 def get_session_context(signoz: types.SigNoz) -> Callable[[str, str], str]:
     def _get_session_context(email: str) -> str:
         response = requests.get(
-            signoz.self.host_configs["8080"].get("/api/v2/sessions/context"),
+            signoz.self.host_configs["8080"].get("/api/v5/sessions/context"),
             params={
                 "email": email,
                 "ref": f"{signoz.self.host_configs['8080'].base()}",
@@ -107,7 +107,7 @@ def get_session_context(signoz: types.SigNoz) -> Callable[[str, str], str]:
 def get_token(signoz: types.SigNoz) -> Callable[[str, str], str]:
     def _get_token(email: str, password: str) -> str:
         response = requests.get(
-            signoz.self.host_configs["8080"].get("/api/v2/sessions/context"),
+            signoz.self.host_configs["8080"].get("/api/v5/sessions/context"),
             params={
                 "email": email,
                 "ref": f"{signoz.self.host_configs['8080'].base()}",
@@ -119,7 +119,7 @@ def get_token(signoz: types.SigNoz) -> Callable[[str, str], str]:
         org_id = response.json()["data"]["orgs"][0]["id"]
 
         response = requests.post(
-            signoz.self.host_configs["8080"].get("/api/v2/sessions/email_password"),
+            signoz.self.host_configs["8080"].get("/api/v5/sessions/email_password"),
             json={
                 "email": email,
                 "password": password,
@@ -138,7 +138,7 @@ def get_token(signoz: types.SigNoz) -> Callable[[str, str], str]:
 def get_tokens(signoz: types.SigNoz) -> Callable[[str, str], Tuple[str, str]]:
     def _get_tokens(email: str, password: str) -> str:
         response = requests.get(
-            signoz.self.host_configs["8080"].get("/api/v2/sessions/context"),
+            signoz.self.host_configs["8080"].get("/api/v5/sessions/context"),
             params={
                 "email": email,
                 "ref": f"{signoz.self.host_configs['8080'].base()}",
@@ -150,7 +150,7 @@ def get_tokens(signoz: types.SigNoz) -> Callable[[str, str], Tuple[str, str]]:
         org_id = response.json()["data"]["orgs"][0]["id"]
 
         response = requests.post(
-            signoz.self.host_configs["8080"].get("/api/v2/sessions/email_password"),
+            signoz.self.host_configs["8080"].get("/api/v5/sessions/email_password"),
             json={
                 "email": email,
                 "password": password,

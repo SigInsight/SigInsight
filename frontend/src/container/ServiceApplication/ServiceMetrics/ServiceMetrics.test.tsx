@@ -1,6 +1,4 @@
 import useGetTopLevelOperations from 'hooks/useGetTopLevelOperations';
-import { server } from 'mocks-server/server';
-import { rest } from 'msw';
 import { act, render, screen } from 'tests/test-utils';
 
 import ServicesUsingMetrics from './index';
@@ -49,35 +47,6 @@ describe('ServicesUsingMetrics', () => {
 			refetch: jest.fn(),
 			remove: jest.fn(),
 		} as any);
-
-		// Mock the query range API responses
-		server.use(
-			rest.post('*/api/v1/query_range', (req, res, ctx) =>
-				res(
-					ctx.status(200),
-					ctx.json({
-						status: 'success',
-						data: {
-							resultType: 'matrix',
-							result: [
-								{
-									metric: { __name__: 'A' },
-									values: [[Date.now() / 1000, '100']],
-								},
-								{
-									metric: { __name__: 'D' },
-									values: [[Date.now() / 1000, '50']],
-								},
-								{
-									metric: { __name__: 'F1' },
-									values: [[Date.now() / 1000, '2.5']],
-								},
-							],
-						},
-					}),
-				),
-			),
-		);
 
 		await act(async () => {
 			render(<ServicesUsingMetrics />);
@@ -151,35 +120,6 @@ describe('ServicesUsingMetrics', () => {
 			refetch: jest.fn(),
 			remove: jest.fn(),
 		} as any);
-
-		// Mock the query range API responses
-		server.use(
-			rest.post('*/api/v1/query_range', (req, res, ctx) =>
-				res(
-					ctx.status(200),
-					ctx.json({
-						status: 'success',
-						data: {
-							resultType: 'matrix',
-							result: [
-								{
-									metric: { __name__: 'A' },
-									values: [[Date.now() / 1000, '100']],
-								},
-								{
-									metric: { __name__: 'D' },
-									values: [[Date.now() / 1000, '50']],
-								},
-								{
-									metric: { __name__: 'F1' },
-									values: [[Date.now() / 1000, '2.5']],
-								},
-							],
-						},
-					}),
-				),
-			),
-		);
 
 		await act(async () => {
 			render(<ServicesUsingMetrics />);

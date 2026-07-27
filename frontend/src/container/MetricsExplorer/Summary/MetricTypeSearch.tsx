@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { Button, Menu, Popover, Tooltip } from 'antd';
 import { MetrictypesTypeDTO } from 'api/generated/services/sigNoz.schemas';
-import { convertFiltersToExpression } from 'components/QueryBuilderV2/utils';
+import { convertFiltersToExpression } from 'components/QueryBuilder/utils';
 import { Search } from 'lucide-react';
 import { TagFilter } from 'types/api/queryBuilder/queryBuilderData';
 

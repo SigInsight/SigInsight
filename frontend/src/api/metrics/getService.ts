@@ -1,19 +1,19 @@
-import { ApiV2Instance } from 'api';
-import { ErrorResponseHandlerV2 } from 'api/ErrorResponseHandlerV2';
+import { ApiV5Instance } from 'api';
+import { HttpErrorResponseHandler } from 'api/HttpErrorResponseHandler';
 import { AxiosError } from 'axios';
-import { ErrorV2Resp } from 'types/api';
+import { HttpErrorPayload } from 'types/api';
 import { PayloadProps, Props } from 'types/api/metrics/getService';
 
 const getService = async (props: Props): Promise<PayloadProps> => {
 	try {
-		const response = await ApiV2Instance.post(`/services`, {
+		const response = await ApiV5Instance.post(`/services`, {
 			start: `${props.start}`,
 			end: `${props.end}`,
 			tags: props.selectedTags,
 		});
 		return response.data.data;
 	} catch (error) {
-		ErrorResponseHandlerV2(error as AxiosError<ErrorV2Resp>);
+		HttpErrorResponseHandler(error as AxiosError<HttpErrorPayload>);
 	}
 };
 

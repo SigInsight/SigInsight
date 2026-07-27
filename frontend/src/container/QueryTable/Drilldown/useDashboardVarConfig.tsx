@@ -1,13 +1,13 @@
 import { useCallback, useMemo } from 'react';
 import OverlayScrollbar from 'components/OverlayScrollbar/OverlayScrollbar';
 import { useDashboardVariablesByType } from 'hooks/dashboard/useDashboardVariablesByType';
+import useDashboardVariableUpdate from 'hooks/dashboard/useDashboardVariableUpdate';
 import { ArrowLeft, Plus, Settings, X } from 'lucide-react';
 import ContextMenu from 'periscope/components/ContextMenu';
 import { IDashboardVariable } from 'types/api/dashboard/getAll';
 // import { PANEL_TYPES } from 'constants/queryBuilder';
 import { Query } from 'types/api/queryBuilder/queryBuilderData';
 
-import useDashboardVariableUpdate from '../../DashboardContainer/DashboardVariablesSelection/useDashboardVariableUpdate';
 import { getAggregateColumnHeader } from './drilldownUtils';
 import { AggregateData } from './useAggregateDrilldown';
 

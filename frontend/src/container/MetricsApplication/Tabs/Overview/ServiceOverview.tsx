@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { Skeleton } from 'antd';
-import { ENTITY_VERSION_V4 } from 'constants/app';
+import { ENTITY_VERSION_V5 } from 'constants/app';
 import { FeatureKeys } from 'constants/features';
 import { PANEL_TYPES } from 'constants/queryBuilder';
 import Graph from 'container/GridCardLayout/GridCard';
@@ -137,7 +137,7 @@ function ServiceOverview({
 							widget={latencyWidget}
 							onClickHandler={handleGraphClick('Service')}
 							isQueryEnabled={isQueryEnabled}
-							version={ENTITY_VERSION_V4}
+							version={ENTITY_VERSION_V5}
 						/>
 					)}
 				</GraphContainer>

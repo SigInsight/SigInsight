@@ -7,7 +7,7 @@ import { Spin, Table } from 'antd';
 import type { ColumnType } from 'antd/lib/table';
 import logEvent from 'api/common/logEvent';
 import TableLoading from 'components/TableLoading/TableLoading';
-import { ENTITY_VERSION_V4 } from 'constants/app';
+import { ENTITY_VERSION_V5 } from 'constants/app';
 import { REACT_QUERY_KEY } from 'constants/reactQueryKeys';
 import {
 	createFiltersForSelectedRowData,
@@ -82,11 +82,11 @@ function ExpandedRow({
 					queryKey: [
 						`${REACT_QUERY_KEY.GET_NESTED_ENDPOINTS_LIST}-${domainName}-${selectedRowData?.key}`,
 						payload,
-						ENTITY_VERSION_V4,
+						ENTITY_VERSION_V5,
 						selectedRowData?.key,
 					],
 					queryFn: (): Promise<SuccessResponse<MetricRangePayloadProps>> =>
-						GetMetricQueryRange(payload, ENTITY_VERSION_V4),
+						GetMetricQueryRange(payload),
 					enabled: !!payload && !!selectedRowData,
 			  }))
 			: [],

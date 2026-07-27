@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { QueryParams } from 'constants/query';
 import ROUTES from 'constants/routes';
-import { defaultPostableAlertRuleV2 } from 'container/CreateAlertV2/constants';
+import { defaultPostableAlertRule } from 'container/CreateAlertV2/constants';
 import { getCreateAlertLocalStateFromAlertDef } from 'container/CreateAlertV2/utils';
 import * as useSafeNavigateHook from 'hooks/useSafeNavigate';
 import { AlertTypes } from 'types/api/alerts/alertTypes';
@@ -96,7 +96,7 @@ describe('CreateAlertHeader', () => {
 				isEditMode
 				initialAlertType={AlertTypes.METRICS_BASED_ALERT}
 				initialAlertState={getCreateAlertLocalStateFromAlertDef(
-					defaultPostableAlertRuleV2,
+					defaultPostableAlertRule,
 				)}
 			>
 				<CreateAlertHeader />
@@ -130,7 +130,7 @@ describe('CreateAlertHeader', () => {
 				isEditMode
 				initialAlertType={AlertTypes.METRICS_BASED_ALERT}
 				initialAlertState={getCreateAlertLocalStateFromAlertDef(
-					defaultPostableAlertRuleV2,
+					defaultPostableAlertRule,
 				)}
 			>
 				<CreateAlertHeader />

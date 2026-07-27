@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useMutation } from 'react-query';
 import setLocalStorageApi from 'api/browser/localstorage/set';
-import updateUserPreference from 'api/v1/user/preferences/name/update';
+import updateUserPreference from 'api/v5/user/preferences/name/update';
 import { AxiosError } from 'axios';
 import { LOCALSTORAGE } from 'constants/localStorage';
 import { USER_PREFERENCES } from 'constants/userPreferences';

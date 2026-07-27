@@ -1,5 +1,8 @@
 import { PANEL_TYPES } from 'constants/queryBuilder';
-import { ICompositeMetricQuery } from 'types/api/alerts/compositeQuery';
+import {
+	ICompositeMetricQuery,
+	ICompositeMetricQueryInput,
+} from 'types/api/alerts/compositeQuery';
 import {
 	BuilderClickHouseResource,
 	BuilderPromQLResource,
@@ -11,20 +14,19 @@ import { compositeQueryToQueryEnvelope } from 'utils/compositeQueryToQueryEnvelo
 
 import { mapQueryDataToApi } from './mapQueryDataToApi';
 
-const defaultCompositeQuery: ICompositeMetricQuery = {
+const createDefaultCompositeQuery = (): ICompositeMetricQueryInput => ({
 	queryType: EQueryType.QUERY_BUILDER,
 	panelType: PANEL_TYPES.TIME_SERIES,
 	builderQueries: {},
 	chQueries: {},
 	promQueries: {},
 	unit: undefined,
-	queries: [],
-};
+});
 
 const buildBuilderQuery = (
 	query: Query,
 	panelType: PANEL_TYPES | null,
-): ICompositeMetricQuery => {
+): ICompositeMetricQueryInput => {
 	const { queryData, queryFormulas, queryTraceOperator } = query.builder;
 	const currentQueryData = mapQueryDataToApi(queryData, 'queryName');
 	const currentFormulas = mapQueryDataToApi(queryFormulas, 'queryName');
@@ -38,7 +40,7 @@ const buildBuilderQuery = (
 		...currentTraceOperator.data,
 	};
 
-	const compositeQuery = defaultCompositeQuery;
+	const compositeQuery = createDefaultCompositeQuery();
 	compositeQuery.queryType = query.queryType;
 	compositeQuery.panelType = panelType || PANEL_TYPES.TIME_SERIES;
 	compositeQuery.builderQueries = builderQueries;
@@ -49,7 +51,7 @@ const buildBuilderQuery = (
 const buildClickHouseQuery = (
 	query: Query,
 	panelType: PANEL_TYPES | null,
-): ICompositeMetricQuery => {
+): ICompositeMetricQueryInput => {
 	const chQueries: BuilderClickHouseResource = {};
 	query.clickhouse_sql.forEach((query: IClickHouseQuery) => {
 		if (!query.query) {
@@ -58,7 +60,7 @@ const buildClickHouseQuery = (
 		chQueries[query.name] = query;
 	});
 
-	const compositeQuery = defaultCompositeQuery;
+	const compositeQuery = createDefaultCompositeQuery();
 	compositeQuery.queryType = query.queryType;
 	compositeQuery.panelType = panelType || PANEL_TYPES.TIME_SERIES;
 	compositeQuery.chQueries = chQueries;
@@ -69,7 +71,7 @@ const buildClickHouseQuery = (
 const buildPromQuery = (
 	query: Query,
 	panelType: PANEL_TYPES | null,
-): ICompositeMetricQuery => {
+): ICompositeMetricQueryInput => {
 	const promQueries: BuilderPromQLResource = {};
 	query.promql.forEach((query) => {
 		if (!query.query) {
@@ -83,7 +85,7 @@ const buildPromQuery = (
 		};
 	});
 
-	const compositeQuery = defaultCompositeQuery;
+	const compositeQuery = createDefaultCompositeQuery();
 	compositeQuery.queryType = query.queryType;
 	compositeQuery.panelType = panelType || PANEL_TYPES.TIME_SERIES;
 	compositeQuery.promQueries = promQueries;
@@ -110,13 +112,12 @@ export const mapCompositeQueryFromQuery = (
 		}
 	}
 
-	return {
+	return compositeQueryToQueryEnvelope({
 		queryType: query.queryType,
 		panelType: panelType || PANEL_TYPES.TIME_SERIES,
 		builderQueries: {},
 		chQueries: {},
 		promQueries: {},
 		unit: undefined,
-		queries: [],
-	};
+	});
 };

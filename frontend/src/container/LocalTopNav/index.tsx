@@ -1,7 +1,6 @@
 import { useLocation } from 'react-use';
 import { Col, Row, Space, Typography } from 'antd';
 import ROUTES from 'constants/routes';
-import NewExplorerCTA from 'container/NewExplorerCTA';
 import { FileText } from 'lucide-react';
 
 import DateTimeSelector from '../TopNav/DateTimeSelectionV2';
@@ -33,7 +32,6 @@ function LocalTopNav({
 			<Col span={isLiveLogsPage ? 8 : 24}>
 				<Row justify="end">
 					<Space align="start" size={30} direction="horizontal">
-						<NewExplorerCTA />
 						{actions}
 						{renderPermissions?.isDateTimeEnabled && (
 							<div>

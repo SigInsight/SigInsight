@@ -11,7 +11,7 @@ jest.mock('@signozhq/sonner', () => ({
 	},
 }));
 
-const USERS_ENDPOINT = '*/api/v1/user';
+const USERS_ENDPOINT = '*/api/v5/users';
 
 const mockUsers: UserResponse[] = [
 	{
@@ -63,6 +63,18 @@ describe('MembersSettings (integration)', () => {
 			rest.get(USERS_ENDPOINT, (_, res, ctx) =>
 				res(ctx.status(200), ctx.json({ data: mockUsers })),
 			),
+			rest.get('*/api/v5/users/:id/roles', (req, res, ctx) => {
+				const roleName =
+					req.params.id === 'user-1'
+						? 'signoz-admin'
+						: req.params.id === 'inv-1'
+						? 'signoz-editor'
+						: 'signoz-viewer';
+				return res(
+					ctx.status(200),
+					ctx.json({ data: [{ id: `${req.params.id}-role`, name: roleName }] }),
+				);
+			}),
 		);
 	});
 

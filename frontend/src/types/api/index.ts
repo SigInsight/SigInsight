@@ -24,23 +24,23 @@ export interface AdditionalErrors {
 	message: string;
 }
 
-export interface ErrorV2 {
+export interface HttpError {
 	code: string;
 	message: string;
 	url: string;
 	errors: AdditionalErrors[];
 }
 
-export interface ErrorV2Resp {
-	error: ErrorV2;
+export interface HttpErrorPayload {
+	error: HttpError;
 }
 
-export interface ErrorResponseV2 {
+export interface HttpErrorResponse {
 	httpStatusCode: StatusCodes;
-	error: ErrorV2;
+	error: HttpError;
 }
 
-export interface SuccessResponseV2<T> {
+export interface HttpSuccessResponse<T> {
 	httpStatusCode: StatusCodes;
 	data: T;
 }

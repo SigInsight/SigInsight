@@ -3,10 +3,7 @@ package signoz
 import (
 	"context"
 	"log/slog"
-	"os"
-	"path"
 	"reflect"
-	"time"
 
 	"github.com/SigNoz/signoz/pkg/alertmanager"
 	"github.com/SigNoz/signoz/pkg/analytics"
@@ -17,7 +14,6 @@ import (
 	"github.com/SigNoz/signoz/pkg/errors"
 	"github.com/SigNoz/signoz/pkg/factory"
 	"github.com/SigNoz/signoz/pkg/flagger"
-	"github.com/SigNoz/signoz/pkg/global"
 	"github.com/SigNoz/signoz/pkg/identn"
 	"github.com/SigNoz/signoz/pkg/instrumentation"
 	"github.com/SigNoz/signoz/pkg/modules/metricsexplorer"
@@ -29,7 +25,6 @@ import (
 	"github.com/SigNoz/signoz/pkg/sharder"
 	"github.com/SigNoz/signoz/pkg/sqlmigration"
 	"github.com/SigNoz/signoz/pkg/sqlmigrator"
-	"github.com/SigNoz/signoz/pkg/sqlschema"
 	"github.com/SigNoz/signoz/pkg/sqlstore"
 	"github.com/SigNoz/signoz/pkg/statsreporter"
 	"github.com/SigNoz/signoz/pkg/telemetrystore"
@@ -41,9 +36,6 @@ import (
 
 // Config defines the entire input configuration of signoz.
 type Config struct {
-	// Global config
-	Global global.Config `mapstructure:"global"`
-
 	// Version config
 	Version version.Config `mapstructure:"version"`
 
@@ -70,9 +62,6 @@ type Config struct {
 
 	// SQLMigrator config
 	SQLMigrator sqlmigrator.Config `mapstructure:"sqlmigrator"`
-
-	// SQLSchema config
-	SQLSchema sqlschema.Config `mapstructure:"sqlschema"`
 
 	// API Server config
 	APIServer apiserver.Config `mapstructure:"apiserver"`
@@ -119,7 +108,6 @@ type Config struct {
 
 func NewConfig(ctx context.Context, logger *slog.Logger, resolverConfig config.ResolverConfig) (Config, error) {
 	configFactories := []factory.ConfigFactory{
-		global.NewConfigFactory(),
 		version.NewConfigFactory(),
 		instrumentation.NewConfigFactory(),
 		pprof.NewConfigFactory(),
@@ -128,7 +116,6 @@ func NewConfig(ctx context.Context, logger *slog.Logger, resolverConfig config.R
 		cache.NewConfigFactory(),
 		sqlstore.NewConfigFactory(),
 		sqlmigrator.NewConfigFactory(),
-		sqlschema.NewConfigFactory(),
 		apiserver.NewConfigFactory(),
 		telemetrystore.NewConfigFactory(),
 		prometheus.NewConfigFactory(),
@@ -155,8 +142,6 @@ func NewConfig(ctx context.Context, logger *slog.Logger, resolverConfig config.R
 		return Config{}, err
 	}
 
-	mergeAndEnsureBackwardCompatibility(ctx, logger, &config)
-
 	if err := validateConfig(config); err != nil {
 		return Config{}, err
 	}
@@ -178,101 +163,6 @@ func validateConfig(config Config) error {
 	}
 
 	return nil
-}
-
-func mergeAndEnsureBackwardCompatibility(ctx context.Context, logger *slog.Logger, config *Config) {
-	if os.Getenv("SIGNOZ_LOCAL_DB_PATH") != "" {
-		logger.WarnContext(ctx, "[Deprecated] env SIGNOZ_LOCAL_DB_PATH is deprecated and scheduled for removal. Please use SIGNOZ_SQLSTORE_SQLITE_PATH instead.")
-		config.SQLStore.Sqlite.Path = os.Getenv("SIGNOZ_LOCAL_DB_PATH")
-	}
-
-	if os.Getenv("CONTEXT_TIMEOUT") != "" {
-		logger.WarnContext(ctx, "[Deprecated] env CONTEXT_TIMEOUT is deprecated and scheduled for removal. Please use SIGNOZ_APISERVER_TIMEOUT_DEFAULT instead.")
-		contextTimeoutDuration, err := time.ParseDuration(os.Getenv("CONTEXT_TIMEOUT") + "s")
-		if err == nil {
-			config.APIServer.Timeout.Default = contextTimeoutDuration
-		} else {
-			logger.WarnContext(ctx, "Error parsing CONTEXT_TIMEOUT, using default value of 60s")
-		}
-	}
-
-	if os.Getenv("CONTEXT_TIMEOUT_MAX_ALLOWED") != "" {
-		logger.WarnContext(ctx, "[Deprecated] env CONTEXT_TIMEOUT_MAX_ALLOWED is deprecated and scheduled for removal. Please use SIGNOZ_APISERVER_TIMEOUT_MAX instead.")
-
-		contextTimeoutDuration, err := time.ParseDuration(os.Getenv("CONTEXT_TIMEOUT_MAX_ALLOWED") + "s")
-		if err == nil {
-			config.APIServer.Timeout.Max = contextTimeoutDuration
-		} else {
-			logger.WarnContext(ctx, "Error parsing CONTEXT_TIMEOUT_MAX_ALLOWED, using default value of 600s")
-		}
-	}
-
-	if os.Getenv("STORAGE") != "" {
-		logger.WarnContext(ctx, "[Deprecated] env STORAGE is deprecated and scheduled for removal. Please use SIGNOZ_TELEMETRYSTORE_PROVIDER instead.")
-		config.TelemetryStore.Provider = os.Getenv("STORAGE")
-	}
-
-	if os.Getenv("ClickHouseUrl") != "" {
-		logger.WarnContext(ctx, "[Deprecated] env ClickHouseUrl is deprecated and scheduled for removal. Please use SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN instead.")
-		config.TelemetryStore.Clickhouse.DSN = os.Getenv("ClickHouseUrl")
-	}
-
-	if os.Getenv("INVITE_EMAIL_TEMPLATE") != "" {
-		logger.WarnContext(ctx, "[Deprecated] env INVITE_EMAIL_TEMPLATE is deprecated and scheduled for removal. Please use SIGNOZ_EMAILING_TEMPLATES_DIRECTORY instead.")
-		config.Emailing.Templates.Directory = path.Dir(os.Getenv("INVITE_EMAIL_TEMPLATE"))
-	}
-
-	if os.Getenv("SMTP_ENABLED") != "" {
-		logger.WarnContext(ctx, "[Deprecated] env SMTP_ENABLED is deprecated and scheduled for removal. Please use SIGNOZ_EMAILING_ENABLED instead.")
-		config.Emailing.Enabled = os.Getenv("SMTP_ENABLED") == "true"
-	}
-
-	if os.Getenv("SMTP_HOST") != "" {
-		logger.WarnContext(ctx, "[Deprecated] env SMTP_HOST is deprecated and scheduled for removal. Please use SIGNOZ_EMAILING_ADDRESS instead.")
-		if os.Getenv("SMTP_PORT") != "" {
-			config.Emailing.SMTP.Address = os.Getenv("SMTP_HOST") + ":" + os.Getenv("SMTP_PORT")
-		} else {
-			config.Emailing.SMTP.Address = os.Getenv("SMTP_HOST")
-		}
-	}
-
-	if os.Getenv("SMTP_PORT") != "" {
-		logger.WarnContext(ctx, "[Deprecated] env SMTP_PORT is deprecated and scheduled for removal. Please use SIGNOZ_EMAILING_ADDRESS instead.")
-	}
-
-	if os.Getenv("SMTP_USERNAME") != "" {
-		logger.WarnContext(ctx, "[Deprecated] env SMTP_USERNAME is deprecated and scheduled for removal. Please use SIGNOZ_EMAILING_AUTH_USERNAME instead.")
-		config.Emailing.SMTP.Auth.Username = os.Getenv("SMTP_USERNAME")
-	}
-
-	if os.Getenv("SMTP_PASSWORD") != "" {
-		logger.WarnContext(ctx, "[Deprecated] env SMTP_PASSWORD is deprecated and scheduled for removal. Please use SIGNOZ_EMAILING_AUTH_PASSWORD instead.")
-		config.Emailing.SMTP.Auth.Password = os.Getenv("SMTP_PASSWORD")
-	}
-
-	if os.Getenv("SMTP_FROM") != "" {
-		logger.WarnContext(ctx, "[Deprecated] env SMTP_FROM is deprecated and scheduled for removal. Please use SIGNOZ_EMAILING_FROM instead.")
-		config.Emailing.SMTP.From = os.Getenv("SMTP_FROM")
-	}
-
-	if os.Getenv("TELEMETRY_ENABLED") != "" {
-		logger.WarnContext(ctx, "[Deprecated] env TELEMETRY_ENABLED is deprecated and scheduled for removal. Please use SIGNOZ_ANALYTICS_ENABLED instead.")
-		config.Analytics.Enabled = os.Getenv("TELEMETRY_ENABLED") == "true"
-	}
-
-	if os.Getenv("USE_SPAN_METRICS") != "" {
-		logger.WarnContext(ctx, "[Deprecated] env USE_SPAN_METRICS is deprecated and scheduled for removal. Please use SIGNOZ_FLAGGER_CONFIG_BOOLEAN_USE__SPAN__METRICS instead.")
-		if config.Flagger.Config.Boolean == nil {
-			config.Flagger.Config.Boolean = make(map[string]bool)
-		}
-		config.Flagger.Config.Boolean[flagger.FeatureUseSpanMetrics.String()] = os.Getenv("USE_SPAN_METRICS") == "true"
-	}
-
-	if os.Getenv("SIGNOZ_JWT_SECRET") != "" {
-		logger.WarnContext(ctx, "[Deprecated] env SIGNOZ_JWT_SECRET is deprecated and scheduled for removal. Please use SIGNOZ_TOKENIZER_JWT_SECRET instead.")
-		config.Tokenizer.JWT.Secret = os.Getenv("SIGNOZ_JWT_SECRET")
-	}
-
 }
 
 func (config Config) Collect(_ context.Context, _ valuer.UUID) (map[string]any, error) {

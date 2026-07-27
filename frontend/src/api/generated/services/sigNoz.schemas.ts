@@ -194,85 +194,12 @@ export interface AssistantVisibleDataSummaryDTO {
 	seriesCount?: number | null;
 }
 
-export interface AuthtypesAuthDomainConfigDTO {
-	googleAuthConfig?: AuthtypesGoogleConfigDTO;
-	roleMapping?: AuthtypesRoleMappingDTO;
-	/**
-	 * @type boolean
-	 */
-	ssoEnabled?: boolean;
-	/**
-	 * @type string
-	 */
-	ssoType?: string;
-}
-
-export interface AuthtypesAuthNProviderInfoDTO {
-	/**
-	 * @type string
-	 * @nullable true
-	 */
-	relayStatePath?: string | null;
-}
-
 export interface AuthtypesAuthNSupportDTO {
 	/**
 	 * @type array
 	 * @nullable true
 	 */
-	callback?: AuthtypesCallbackAuthNSupportDTO[] | null;
-	/**
-	 * @type array
-	 * @nullable true
-	 */
 	password?: AuthtypesPasswordAuthNSupportDTO[] | null;
-}
-
-export interface AuthtypesCallbackAuthNSupportDTO {
-	/**
-	 * @type string
-	 */
-	provider?: string;
-	/**
-	 * @type string
-	 */
-	url?: string;
-}
-
-export interface AuthtypesGettableAuthDomainDTO {
-	authNProviderInfo?: AuthtypesAuthNProviderInfoDTO;
-	/**
-	 * @type string
-	 * @format date-time
-	 */
-	createdAt?: Date;
-	googleAuthConfig?: AuthtypesGoogleConfigDTO;
-	/**
-	 * @type string
-	 */
-	id: string;
-	/**
-	 * @type string
-	 */
-	name?: string;
-	/**
-	 * @type string
-	 */
-	orgId?: string;
-	roleMapping?: AuthtypesRoleMappingDTO;
-	/**
-	 * @type boolean
-	 */
-	ssoEnabled?: boolean;
-	/**
-	 * @type string
-	 */
-	ssoType?: string;
-	/**
-	 * @type string
-	 * @format date-time
-	 */
-	updatedAt?: Date;
 }
 
 export interface AuthtypesGettableObjectsDTO {
@@ -333,49 +260,6 @@ export interface AuthtypesGettableTransactionDTO {
 	relation: string;
 }
 
-export type AuthtypesGoogleConfigDTODomainToAdminEmail = {
-	[key: string]: string;
-};
-
-export interface AuthtypesGoogleConfigDTO {
-	/**
-	 * @type array
-	 */
-	allowedGroups?: string[];
-	/**
-	 * @type string
-	 */
-	clientId?: string;
-	/**
-	 * @type string
-	 */
-	clientSecret?: string;
-	/**
-	 * @type object
-	 */
-	domainToAdminEmail?: AuthtypesGoogleConfigDTODomainToAdminEmail;
-	/**
-	 * @type boolean
-	 */
-	fetchGroups?: boolean;
-	/**
-	 * @type boolean
-	 */
-	fetchTransitiveGroupMembership?: boolean;
-	/**
-	 * @type boolean
-	 */
-	insecureSkipEmailVerified?: boolean;
-	/**
-	 * @type string
-	 */
-	redirectURI?: string;
-	/**
-	 * @type string
-	 */
-	serviceAccountJson?: string;
-}
-
 export interface AuthtypesObjectDTO {
 	resource: AuthtypesResourceDTO;
 	/**
@@ -422,14 +306,6 @@ export interface AuthtypesPatchableRoleDTO {
 	 * @type string
 	 */
 	description: string;
-}
-
-export interface AuthtypesPostableAuthDomainDTO {
-	config?: AuthtypesAuthDomainConfigDTO;
-	/**
-	 * @type string
-	 */
-	name?: string;
 }
 
 export interface AuthtypesPostableEmailPasswordSessionDTO {
@@ -509,29 +385,6 @@ export interface AuthtypesRoleDTO {
 	updatedAt?: Date;
 }
 
-/**
- * @nullable
- */
-export type AuthtypesRoleMappingDTOGroupMappings = {
-	[key: string]: string;
-} | null;
-
-export interface AuthtypesRoleMappingDTO {
-	/**
-	 * @type string
-	 */
-	defaultRole?: string;
-	/**
-	 * @type object
-	 * @nullable true
-	 */
-	groupMappings?: AuthtypesRoleMappingDTOGroupMappings;
-	/**
-	 * @type boolean
-	 */
-	useRoleAttribute?: boolean;
-}
-
 export interface AuthtypesSessionContextDTO {
 	/**
 	 * @type boolean
@@ -583,10 +436,6 @@ export interface AuthtypesTransactionDTO {
 	 * @type string
 	 */
 	relation: string;
-}
-
-export interface AuthtypesUpdateableAuthDomainDTO {
-	config?: AuthtypesAuthDomainConfigDTO;
 }
 
 export interface AuthtypesUserRoleDTO {
@@ -734,45 +583,6 @@ export interface FeaturetypesGettableFeatureDTO {
 	 * @nullable true
 	 */
 	variants?: FeaturetypesGettableFeatureDTOVariants;
-}
-
-export interface GlobaltypesAPIKeyConfigDTO {
-	/**
-	 * @type boolean
-	 */
-	enabled?: boolean;
-}
-
-export interface GlobaltypesConfigDTO {
-	/**
-	 * @type string
-	 */
-	external_url?: string;
-	identN?: GlobaltypesIdentNConfigDTO;
-	/**
-	 * @type string
-	 */
-	ingestion_url?: string;
-}
-
-export interface GlobaltypesIdentNConfigDTO {
-	apikey?: GlobaltypesAPIKeyConfigDTO;
-	impersonation?: GlobaltypesImpersonationConfigDTO;
-	tokenizer?: GlobaltypesTokenizerConfigDTO;
-}
-
-export interface GlobaltypesImpersonationConfigDTO {
-	/**
-	 * @type boolean
-	 */
-	enabled?: boolean;
-}
-
-export interface GlobaltypesTokenizerConfigDTO {
-	/**
-	 * @type boolean
-	 */
-	enabled?: boolean;
 }
 
 export interface MetricsexplorertypesListMetricDTO {
@@ -1109,36 +919,6 @@ export interface PreferencetypesUpdatablePreferenceDTO {
 
 export interface PreferencetypesValueDTO {
 	[key: string]: unknown;
-}
-
-export interface PromotetypesPromotePathDTO {
-	/**
-	 * @type array
-	 */
-	indexes?: PromotetypesWrappedIndexDTO[];
-	/**
-	 * @type string
-	 */
-	path?: string;
-	/**
-	 * @type boolean
-	 */
-	promote?: boolean;
-}
-
-export interface PromotetypesWrappedIndexDTO {
-	/**
-	 * @type string
-	 */
-	column_type?: string;
-	/**
-	 * @type integer
-	 */
-	granularity?: number;
-	/**
-	 * @type string
-	 */
-	type?: string;
 }
 
 export type Querybuildertypesv5AggregationBucketDTOMeta = {
@@ -2062,159 +1842,6 @@ export interface RenderErrorResponseDTO {
 	status: string;
 }
 
-export interface ServiceaccounttypesFactorAPIKeyDTO {
-	/**
-	 * @type string
-	 * @format date-time
-	 */
-	createdAt?: Date;
-	/**
-	 * @type integer
-	 * @minimum 0
-	 */
-	expiresAt: number;
-	/**
-	 * @type string
-	 */
-	id: string;
-	/**
-	 * @type string
-	 */
-	key: string;
-	/**
-	 * @type string
-	 * @format date-time
-	 */
-	lastObservedAt: Date;
-	/**
-	 * @type string
-	 */
-	name?: string;
-	/**
-	 * @type string
-	 */
-	serviceAccountId: string;
-	/**
-	 * @type string
-	 * @format date-time
-	 */
-	updatedAt?: Date;
-}
-
-export interface ServiceaccounttypesGettableFactorAPIKeyWithKeyDTO {
-	/**
-	 * @type string
-	 */
-	id: string;
-	/**
-	 * @type string
-	 */
-	key: string;
-}
-
-export interface ServiceaccounttypesPostableFactorAPIKeyDTO {
-	/**
-	 * @type integer
-	 * @minimum 0
-	 */
-	expiresAt: number;
-	/**
-	 * @type string
-	 */
-	name: string;
-}
-
-export interface ServiceaccounttypesPostableServiceAccountDTO {
-	/**
-	 * @type string
-	 */
-	email: string;
-	/**
-	 * @type string
-	 */
-	name: string;
-	/**
-	 * @type array
-	 */
-	roles: string[];
-}
-
-export interface ServiceaccounttypesServiceAccountDTO {
-	/**
-	 * @type string
-	 * @format date-time
-	 */
-	createdAt?: Date;
-	/**
-	 * @type string
-	 * @format date-time
-	 */
-	deletedAt: Date;
-	/**
-	 * @type string
-	 */
-	email: string;
-	/**
-	 * @type string
-	 */
-	id: string;
-	/**
-	 * @type string
-	 */
-	name: string;
-	/**
-	 * @type string
-	 */
-	orgId: string;
-	/**
-	 * @type array
-	 */
-	roles: string[];
-	/**
-	 * @type string
-	 */
-	status: string;
-	/**
-	 * @type string
-	 * @format date-time
-	 */
-	updatedAt?: Date;
-}
-
-export interface ServiceaccounttypesUpdatableFactorAPIKeyDTO {
-	/**
-	 * @type integer
-	 * @minimum 0
-	 */
-	expiresAt: number;
-	/**
-	 * @type string
-	 */
-	name: string;
-}
-
-export interface ServiceaccounttypesUpdatableServiceAccountDTO {
-	/**
-	 * @type string
-	 */
-	email: string;
-	/**
-	 * @type string
-	 */
-	name: string;
-	/**
-	 * @type array
-	 */
-	roles: string[];
-}
-
-export interface ServiceaccounttypesUpdatableServiceAccountStatusDTO {
-	/**
-	 * @type string
-	 */
-	status: string;
-}
-
 export enum TelemetrytypesFieldContextDTO {
 	metric = 'metric',
 	log = 'log',
@@ -2317,104 +1944,6 @@ export interface TypesChangePasswordRequestDTO {
 	userId?: string;
 }
 
-export interface TypesDeprecatedUserDTO {
-	/**
-	 * @type string
-	 * @format date-time
-	 */
-	createdAt?: Date;
-	/**
-	 * @type string
-	 */
-	displayName?: string;
-	/**
-	 * @type string
-	 */
-	email?: string;
-	/**
-	 * @type string
-	 */
-	id: string;
-	/**
-	 * @type boolean
-	 */
-	isRoot?: boolean;
-	/**
-	 * @type string
-	 */
-	orgId?: string;
-	/**
-	 * @type string
-	 */
-	role?: string;
-	/**
-	 * @type string
-	 */
-	status?: string;
-	/**
-	 * @type string
-	 * @format date-time
-	 */
-	updatedAt?: Date;
-}
-
-export interface TypesGettableAPIKeyDTO {
-	/**
-	 * @type string
-	 * @format date-time
-	 */
-	createdAt?: Date;
-	/**
-	 * @type string
-	 */
-	createdBy?: string;
-	createdByUser?: TypesUserDTO;
-	/**
-	 * @type integer
-	 * @format int64
-	 */
-	expiresAt?: number;
-	/**
-	 * @type string
-	 */
-	id: string;
-	/**
-	 * @type integer
-	 * @format int64
-	 */
-	lastUsed?: number;
-	/**
-	 * @type string
-	 */
-	name?: string;
-	/**
-	 * @type boolean
-	 */
-	revoked?: boolean;
-	/**
-	 * @type string
-	 */
-	role?: string;
-	/**
-	 * @type string
-	 */
-	token?: string;
-	/**
-	 * @type string
-	 * @format date-time
-	 */
-	updatedAt?: Date;
-	/**
-	 * @type string
-	 */
-	updatedBy?: string;
-	updatedByUser?: TypesUserDTO;
-	/**
-	 * @type string
-	 */
-	userId?: string;
-}
-
 export interface TypesIdentifiableDTO {
 	/**
 	 * @type string
@@ -2497,22 +2026,6 @@ export interface TypesOrganizationDTO {
 	updatedAt?: Date;
 }
 
-export interface TypesPostableAPIKeyDTO {
-	/**
-	 * @type integer
-	 * @format int64
-	 */
-	expiresInDays?: number;
-	/**
-	 * @type string
-	 */
-	name?: string;
-	/**
-	 * @type string
-	 */
-	role?: string;
-}
-
 export interface TypesPostableBulkInviteRequestDTO {
 	/**
 	 * @type array
@@ -2592,51 +2105,6 @@ export interface TypesResetPasswordTokenDTO {
 	token?: string;
 }
 
-export interface TypesStorableAPIKeyDTO {
-	/**
-	 * @type string
-	 * @format date-time
-	 */
-	createdAt?: Date;
-	/**
-	 * @type string
-	 */
-	createdBy?: string;
-	/**
-	 * @type string
-	 */
-	id: string;
-	/**
-	 * @type string
-	 */
-	name?: string;
-	/**
-	 * @type boolean
-	 */
-	revoked?: boolean;
-	/**
-	 * @type string
-	 */
-	role?: string;
-	/**
-	 * @type string
-	 */
-	token?: string;
-	/**
-	 * @type string
-	 * @format date-time
-	 */
-	updatedAt?: Date;
-	/**
-	 * @type string
-	 */
-	updatedBy?: string;
-	/**
-	 * @type string
-	 */
-	userId?: string;
-}
-
 export interface TypesUpdatableUserDTO {
 	/**
 	 * @type string
@@ -2711,39 +2179,6 @@ export type AuthzResources200 = {
 export type ChangePasswordPathParameters = {
 	id: string;
 };
-export type CreateSessionByGoogleCallback303 = {
-	data: AuthtypesGettableTokenDTO;
-	/**
-	 * @type string
-	 */
-	status: string;
-};
-
-export type ListAuthDomains200 = {
-	/**
-	 * @type array
-	 */
-	data: AuthtypesGettableAuthDomainDTO[];
-	/**
-	 * @type string
-	 */
-	status: string;
-};
-
-export type CreateAuthDomain200 = {
-	data: AuthtypesGettableAuthDomainDTO;
-	/**
-	 * @type string
-	 */
-	status: string;
-};
-
-export type DeleteAuthDomainPathParameters = {
-	id: string;
-};
-export type UpdateAuthDomainPathParameters = {
-	id: string;
-};
 export type HandleExportRawDataPOSTParams = {
 	/**
 	 * @enum csv,jsonl
@@ -2757,6 +2192,17 @@ export enum HandleExportRawDataPOSTFormat {
 	csv = 'csv',
 	jsonl = 'jsonl',
 }
+export type GetFeatures200 = {
+	/**
+	 * @type array
+	 */
+	data: FeaturetypesGettableFeatureDTO[];
+	/**
+	 * @type string
+	 */
+	status: string;
+};
+
 export type GetFieldsKeysParams = {
 	/**
 	 * @description undefined
@@ -2886,291 +2332,6 @@ export type GetResetPasswordToken200 = {
 	status: string;
 };
 
-export type GetGlobalConfig200 = {
-	data: GlobaltypesConfigDTO;
-	/**
-	 * @type string
-	 */
-	status: string;
-};
-
-export type CreateInvite201 = {
-	data: TypesInviteDTO;
-	/**
-	 * @type string
-	 */
-	status: string;
-};
-
-export type ListPromotedAndIndexedPaths200 = {
-	/**
-	 * @type array
-	 * @nullable true
-	 */
-	data: PromotetypesPromotePathDTO[] | null;
-	/**
-	 * @type string
-	 */
-	status: string;
-};
-
-export type ListOrgPreferences200 = {
-	/**
-	 * @type array
-	 */
-	data: PreferencetypesPreferenceDTO[];
-	/**
-	 * @type string
-	 */
-	status: string;
-};
-
-export type GetOrgPreferencePathParameters = {
-	name: string;
-};
-export type GetOrgPreference200 = {
-	data: PreferencetypesPreferenceDTO;
-	/**
-	 * @type string
-	 */
-	status: string;
-};
-
-export type UpdateOrgPreferencePathParameters = {
-	name: string;
-};
-export type ListAPIKeys200 = {
-	/**
-	 * @type array
-	 */
-	data: TypesGettableAPIKeyDTO[];
-	/**
-	 * @type string
-	 */
-	status: string;
-};
-
-export type CreateAPIKey201 = {
-	data: TypesGettableAPIKeyDTO;
-	/**
-	 * @type string
-	 */
-	status: string;
-};
-
-export type RevokeAPIKeyPathParameters = {
-	id: string;
-};
-export type UpdateAPIKeyPathParameters = {
-	id: string;
-};
-export type ListRoles200 = {
-	/**
-	 * @type array
-	 */
-	data: AuthtypesRoleDTO[];
-	/**
-	 * @type string
-	 */
-	status: string;
-};
-
-export type CreateRole201 = {
-	data: TypesIdentifiableDTO;
-	/**
-	 * @type string
-	 */
-	status: string;
-};
-
-export type DeleteRolePathParameters = {
-	id: string;
-};
-export type GetRolePathParameters = {
-	id: string;
-};
-export type GetRole200 = {
-	data: AuthtypesRoleDTO;
-	/**
-	 * @type string
-	 */
-	status: string;
-};
-
-export type PatchRolePathParameters = {
-	id: string;
-};
-export type GetObjectsPathParameters = {
-	id: string;
-	relation: string;
-};
-export type GetObjects200 = {
-	/**
-	 * @type array
-	 */
-	data: AuthtypesGettableObjectsDTO[];
-	/**
-	 * @type string
-	 */
-	status: string;
-};
-
-export type PatchObjectsPathParameters = {
-	id: string;
-	relation: string;
-};
-export type ListServiceAccounts200 = {
-	/**
-	 * @type array
-	 */
-	data: ServiceaccounttypesServiceAccountDTO[];
-	/**
-	 * @type string
-	 */
-	status: string;
-};
-
-export type CreateServiceAccount201 = {
-	data: TypesIdentifiableDTO;
-	/**
-	 * @type string
-	 */
-	status: string;
-};
-
-export type DeleteServiceAccountPathParameters = {
-	id: string;
-};
-export type GetServiceAccountPathParameters = {
-	id: string;
-};
-export type GetServiceAccount200 = {
-	data: ServiceaccounttypesServiceAccountDTO;
-	/**
-	 * @type string
-	 */
-	status: string;
-};
-
-export type UpdateServiceAccountPathParameters = {
-	id: string;
-};
-export type ListServiceAccountKeysPathParameters = {
-	id: string;
-};
-export type ListServiceAccountKeys200 = {
-	/**
-	 * @type array
-	 */
-	data: ServiceaccounttypesFactorAPIKeyDTO[];
-	/**
-	 * @type string
-	 */
-	status: string;
-};
-
-export type CreateServiceAccountKeyPathParameters = {
-	id: string;
-};
-export type CreateServiceAccountKey201 = {
-	data: ServiceaccounttypesGettableFactorAPIKeyWithKeyDTO;
-	/**
-	 * @type string
-	 */
-	status: string;
-};
-
-export type RevokeServiceAccountKeyPathParameters = {
-	id: string;
-	fid: string;
-};
-export type UpdateServiceAccountKeyPathParameters = {
-	id: string;
-	fid: string;
-};
-export type UpdateServiceAccountStatusPathParameters = {
-	id: string;
-};
-export type ListUsersDeprecated200 = {
-	/**
-	 * @type array
-	 */
-	data: TypesDeprecatedUserDTO[];
-	/**
-	 * @type string
-	 */
-	status: string;
-};
-
-export type DeleteUserPathParameters = {
-	id: string;
-};
-export type GetUserDeprecatedPathParameters = {
-	id: string;
-};
-export type GetUserDeprecated200 = {
-	data: TypesDeprecatedUserDTO;
-	/**
-	 * @type string
-	 */
-	status: string;
-};
-
-export type UpdateUserDeprecatedPathParameters = {
-	id: string;
-};
-export type UpdateUserDeprecated200 = {
-	data: TypesDeprecatedUserDTO;
-	/**
-	 * @type string
-	 */
-	status: string;
-};
-
-export type GetMyUserDeprecated200 = {
-	data: TypesDeprecatedUserDTO;
-	/**
-	 * @type string
-	 */
-	status: string;
-};
-
-export type ListUserPreferences200 = {
-	/**
-	 * @type array
-	 */
-	data: PreferencetypesPreferenceDTO[];
-	/**
-	 * @type string
-	 */
-	status: string;
-};
-
-export type GetUserPreferencePathParameters = {
-	name: string;
-};
-export type GetUserPreference200 = {
-	data: PreferencetypesPreferenceDTO;
-	/**
-	 * @type string
-	 */
-	status: string;
-};
-
-export type UpdateUserPreferencePathParameters = {
-	name: string;
-};
-export type GetFeatures200 = {
-	/**
-	 * @type array
-	 */
-	data: FeaturetypesGettableFeatureDTO[];
-	/**
-	 * @type string
-	 */
-	status: string;
-};
-
 export type Healthz200 = {
 	data: FactoryResponseDTO;
 	/**
@@ -3181,6 +2342,14 @@ export type Healthz200 = {
 
 export type Healthz503 = {
 	data: FactoryResponseDTO;
+	/**
+	 * @type string
+	 */
+	status: string;
+};
+
+export type CreateInvite201 = {
+	data: TypesInviteDTO;
 	/**
 	 * @type string
 	 */
@@ -3311,8 +2480,41 @@ export type GetMetricsTreemap200 = {
 	status: string;
 };
 
+export type ListOrgPreferences200 = {
+	/**
+	 * @type array
+	 */
+	data: PreferencetypesPreferenceDTO[];
+	/**
+	 * @type string
+	 */
+	status: string;
+};
+
+export type GetOrgPreferencePathParameters = {
+	name: string;
+};
+export type GetOrgPreference200 = {
+	data: PreferencetypesPreferenceDTO;
+	/**
+	 * @type string
+	 */
+	status: string;
+};
+
+export type UpdateOrgPreferencePathParameters = {
+	name: string;
+};
 export type GetMyOrganization200 = {
 	data: TypesOrganizationDTO;
+	/**
+	 * @type string
+	 */
+	status: string;
+};
+
+export type QueryRangeV5200 = {
+	data: Querybuildertypesv5QueryRangeResponseDTO;
 	/**
 	 * @type string
 	 */
@@ -3335,6 +2537,61 @@ export type Readyz503 = {
 	status: string;
 };
 
+export type ListRoles200 = {
+	/**
+	 * @type array
+	 */
+	data: AuthtypesRoleDTO[];
+	/**
+	 * @type string
+	 */
+	status: string;
+};
+
+export type CreateRole201 = {
+	data: TypesIdentifiableDTO;
+	/**
+	 * @type string
+	 */
+	status: string;
+};
+
+export type DeleteRolePathParameters = {
+	id: string;
+};
+export type GetRolePathParameters = {
+	id: string;
+};
+export type GetRole200 = {
+	data: AuthtypesRoleDTO;
+	/**
+	 * @type string
+	 */
+	status: string;
+};
+
+export type PatchRolePathParameters = {
+	id: string;
+};
+export type GetObjectsPathParameters = {
+	id: string;
+	relation: string;
+};
+export type GetObjects200 = {
+	/**
+	 * @type array
+	 */
+	data: AuthtypesGettableObjectsDTO[];
+	/**
+	 * @type string
+	 */
+	status: string;
+};
+
+export type PatchObjectsPathParameters = {
+	id: string;
+	relation: string;
+};
 export type GetUsersByRoleIDPathParameters = {
 	id: string;
 };
@@ -3373,6 +2630,42 @@ export type RotateSession200 = {
 	status: string;
 };
 
+export type ReplaceVariables200 = {
+	data: Querybuildertypesv5QueryRangeRequestDTO;
+	/**
+	 * @type string
+	 */
+	status: string;
+};
+
+export type DeleteUserPathParameters = {
+	id: string;
+};
+export type ListUserPreferences200 = {
+	/**
+	 * @type array
+	 */
+	data: PreferencetypesPreferenceDTO[];
+	/**
+	 * @type string
+	 */
+	status: string;
+};
+
+export type GetUserPreferencePathParameters = {
+	name: string;
+};
+export type GetUserPreference200 = {
+	data: PreferencetypesPreferenceDTO;
+	/**
+	 * @type string
+	 */
+	status: string;
+};
+
+export type UpdateUserPreferencePathParameters = {
+	name: string;
+};
 export type ListUsers200 = {
 	/**
 	 * @type array
@@ -3421,22 +2714,6 @@ export type RemoveUserRoleByUserIDAndRoleIDPathParameters = {
 };
 export type GetMyUser200 = {
 	data: AuthtypesUserWithRolesDTO;
-	/**
-	 * @type string
-	 */
-	status: string;
-};
-
-export type QueryRangeV5200 = {
-	data: Querybuildertypesv5QueryRangeResponseDTO;
-	/**
-	 * @type string
-	 */
-	status: string;
-};
-
-export type ReplaceVariables200 = {
-	data: Querybuildertypesv5QueryRangeRequestDTO;
 	/**
 	 * @type string
 	 */

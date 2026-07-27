@@ -1,5 +1,5 @@
-import { SeriesVisibilityItem } from 'container/DashboardContainer/visualization/panels/types';
-import { getStoredSeriesVisibility } from 'container/DashboardContainer/visualization/panels/utils/legendVisibilityUtils';
+import { SeriesVisibilityItem } from 'container/PanelVisualization/panels/types';
+import { getStoredSeriesVisibility } from 'container/PanelVisualization/panels/utils/legendVisibilityUtils';
 import { ThresholdsDrawHookOptions } from 'lib/uPlotV2/hooks/types';
 import { thresholdsDrawHook } from 'lib/uPlotV2/hooks/useThresholdsDrawHook';
 import { resolveSeriesVisibility } from 'lib/uPlotV2/utils/seriesVisibility';

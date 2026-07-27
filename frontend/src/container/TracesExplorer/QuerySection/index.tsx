@@ -1,5 +1,5 @@
 import { memo, useCallback, useMemo } from 'react';
-import { QueryBuilderV2 } from 'components/QueryBuilderV2/QueryBuilderV2';
+import { QueryBuilder } from 'components/QueryBuilder/QueryBuilder';
 import { PANEL_TYPES } from 'constants/queryBuilder';
 import ExplorerOrderBy from 'container/ExplorerOrderBy';
 import { OrderByFilterProps } from 'container/QueryBuilder/filters/OrderByFilter/OrderByFilter.interfaces';
@@ -43,7 +43,7 @@ function QuerySection(): JSX.Element {
 	);
 
 	return (
-		<QueryBuilderV2
+		<QueryBuilder
 			isListViewPanel={isListViewPanel}
 			showTraceOperator
 			config={{ initialDataSource: DataSource.TRACES, queryVariant: 'static' }}

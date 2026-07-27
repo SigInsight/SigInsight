@@ -36,8 +36,7 @@ def test_traces_list(
     Tests:
     1. Query traces for the last 5 minutes and check if the spans are returned in the correct order
     2. Query root spans for the last 5 minutes and check if the spans are returned in the correct order
-    3. Query values of http.request.method attribute from the autocomplete API
-    4. Query values of http.request.method attribute from the fields API
+    3. Query values of http.request.method attribute from the fields API
     """
     http_service_trace_id = TraceIdGenerator.trace_id()
     http_service_span_id = TraceIdGenerator.span_id()
@@ -390,35 +389,9 @@ def test_traces_list(
     assert rows[0]["data"]["service.name"] == "topic-service"
     assert rows[1]["data"]["service.name"] == "http-service"
 
-    # Query values of http.request.method attribute from the autocomplete API
-    response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v5/autocomplete/attribute_values"),
-        timeout=2,
-        headers={
-            "authorization": f"Bearer {token}",
-        },
-        params={
-            "aggregateOperator": "noop",
-            "dataSource": "traces",
-            "aggregateAttribute": "",
-            "attributeKey": "http.request.method",
-            "searchText": "",
-            "filterAttributeKeyDataType": "string",
-            "tagType": "tag",
-        },
-    )
-
-    assert response.status_code == HTTPStatus.OK
-    assert response.json()["status"] == "success"
-
-    values = response.json()["data"]["stringAttributeValues"]
-    assert len(values) == 2
-
-    assert set(values) == set(["POST", "PATCH"])
-
     # Query values of http.request.method attribute from the fields API
     response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v1/fields/values"),
+        signoz.self.host_configs["8080"].get("/api/v5/fields/values"),
         timeout=2,
         headers={
             "authorization": f"Bearer {token}",
@@ -440,7 +413,7 @@ def test_traces_list(
 
     # Query keys from the fields API with context specified in the key
     response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v1/fields/keys"),
+        signoz.self.host_configs["8080"].get("/api/v5/fields/keys"),
         timeout=2,
         headers={
             "authorization": f"Bearer {token}",
@@ -460,7 +433,7 @@ def test_traces_list(
 
     # Query values of service.name resource attribute using context-prefixed key
     response = requests.get(
-        signoz.self.host_configs["8080"].get("/api/v1/fields/values"),
+        signoz.self.host_configs["8080"].get("/api/v5/fields/values"),
         timeout=2,
         headers={
             "authorization": f"Bearer {token}",

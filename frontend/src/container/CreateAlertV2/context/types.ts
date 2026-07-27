@@ -5,8 +5,8 @@ import { TestAlertRuleResponse } from 'api/alerts/testAlertRule';
 import { UpdateAlertRuleResponse } from 'api/alerts/updateAlertRule';
 import { Dayjs } from 'dayjs';
 import { ErrorResponse, SuccessResponse } from 'types/api';
+import { PostableAlertRule } from 'types/api/alerts/alertRule';
 import { AlertTypes } from 'types/api/alerts/alertTypes';
-import { PostableAlertRuleV2 } from 'types/api/alerts/alertTypesV2';
 import { Labels } from 'types/api/alerts/def';
 
 export interface ICreateAlertContextProps {
@@ -26,14 +26,14 @@ export interface ICreateAlertContextProps {
 	createAlertRule: UseMutateFunction<
 		SuccessResponse<CreateAlertRuleResponse, unknown> | ErrorResponse,
 		Error,
-		PostableAlertRuleV2,
+		PostableAlertRule,
 		unknown
 	>;
 	isTestingAlertRule: boolean;
 	testAlertRule: UseMutateFunction<
 		SuccessResponse<TestAlertRuleResponse, unknown> | ErrorResponse,
 		Error,
-		PostableAlertRuleV2,
+		PostableAlertRule,
 		unknown
 	>;
 	discardAlertRule: () => void;
@@ -41,7 +41,7 @@ export interface ICreateAlertContextProps {
 	updateAlertRule: UseMutateFunction<
 		SuccessResponse<UpdateAlertRuleResponse, unknown> | ErrorResponse,
 		Error,
-		PostableAlertRuleV2,
+		PostableAlertRule,
 		unknown
 	>;
 	isEditMode: boolean;
@@ -249,7 +249,6 @@ export interface NotificationSettingsState {
 		conditions: ('firing' | 'nodata')[];
 	};
 	description: string;
-	routingPolicies: boolean;
 }
 
 export type NotificationSettingsAction =
@@ -267,7 +266,6 @@ export type NotificationSettingsAction =
 			};
 	  }
 	| { type: 'SET_DESCRIPTION'; payload: string }
-	| { type: 'SET_ROUTING_POLICIES'; payload: boolean }
 	| { type: 'SET_INITIAL_STATE'; payload: NotificationSettingsState }
 	| { type: 'RESET' };
 

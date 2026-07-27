@@ -4,7 +4,6 @@ import { FiltersType, QuickFiltersSource } from 'components/QuickFilters/types';
 import { useGetAggregateValues } from 'hooks/queryBuilder/useGetAggregateValues';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
 import { useGetQueryKeyValueSuggestions } from 'hooks/querySuggestions/useGetQueryKeyValueSuggestions';
-import { quickFiltersAttributeValuesResponse } from 'mocks-server/__mockdata__/customQuickFilters';
 import { rest, server } from 'mocks-server/server';
 import { render, screen, waitFor } from 'tests/test-utils';
 import { SuccessResponse } from 'types/api';
@@ -128,8 +127,14 @@ describe('CheckboxFilter - User Flows', () => {
 
 		// Setup MSW server for API calls
 		server.use(
-			rest.get('*/api/v5/autocomplete/attribute_values', (_req, res, ctx) =>
-				res(ctx.status(200), ctx.json(quickFiltersAttributeValuesResponse)),
+			rest.get('*/api/v5/fields/values', (_req, res, ctx) =>
+				res(
+					ctx.status(200),
+					ctx.json({
+						status: 'success',
+						data: { complete: true, values: { stringValues: MOCK_SERVICE_NAMES } },
+					}),
+				),
 			),
 		);
 	});

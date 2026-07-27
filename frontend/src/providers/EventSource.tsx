@@ -11,10 +11,10 @@ import {
 	useState,
 } from 'react';
 import { useQueryClient } from 'react-query';
-import { apiV5 } from 'api/apiV1';
+import { apiV5 } from 'api/apiPaths';
 import getLocalStorageApi from 'api/browser/localstorage/get';
 import { Logout } from 'api/utils';
-import post from 'api/v2/sessions/rotate/post';
+import post from 'api/v5/sessions/rotate/post';
 import afterLogin from 'AppRoutes/utils';
 import { ENVIRONMENT } from 'constants/env';
 import { LIVE_TAIL_HEARTBEAT_TIMEOUT } from 'constants/liveTail';
@@ -84,7 +84,7 @@ export function EventSourceProvider({
 
 			const response = await queryClient.fetchQuery({
 				queryFn: () => post({ refreshToken: refreshToken || '' }),
-				queryKey: ['/api/v2/sessions/rotate', accessToken, refreshToken],
+				queryKey: ['/api/v5/sessions/rotate', accessToken, refreshToken],
 			});
 			afterLogin(response.data.accessToken, response.data.refreshToken, true);
 

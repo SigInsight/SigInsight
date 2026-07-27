@@ -15,7 +15,7 @@ import (
 	"github.com/SigNoz/signoz/pkg/query-service/interfaces"
 	"github.com/SigNoz/signoz/pkg/query-service/model"
 	"github.com/SigNoz/signoz/pkg/query-service/model/metrics_explorer"
-	v3 "github.com/SigNoz/signoz/pkg/query-service/model/v3"
+	"github.com/SigNoz/signoz/pkg/query-service/model/querytypes"
 	"github.com/SigNoz/signoz/pkg/query-service/rules"
 	"github.com/SigNoz/signoz/pkg/valuer"
 )
@@ -49,7 +49,7 @@ func (receiver *SummaryService) FilterValues(ctx context.Context, orgID valuer.U
 	switch params.FilterKey {
 	case "metric_name":
 		var filterValues []string
-		request := v3.AggregateAttributeRequest{DataSource: v3.DataSourceMetrics, SearchText: params.SearchText, Limit: params.Limit}
+		request := querytypes.AggregateAttributeRequest{DataSource: querytypes.DataSourceMetrics, SearchText: params.SearchText, Limit: params.Limit}
 		attributes, err := receiver.reader.GetMetricAggregateAttributes(ctx, orgID, &request, true)
 		if err != nil {
 			return nil, model.InternalError(err)
@@ -80,135 +80,6 @@ func (receiver *SummaryService) FilterValues(ctx context.Context, orgID valuer.U
 		}
 		response.FilterValues = attributes
 		return &response, nil
-	}
-}
-
-func (receiver *SummaryService) GetMetricsSummary(ctx context.Context, orgID valuer.UUID, metricName string) (metrics_explorer.MetricDetailsDTO, *model.ApiError) {
-	var metricDetailsDTO metrics_explorer.MetricDetailsDTO
-	g, ctx := errgroup.WithContext(ctx)
-
-	// Call 1: GetMetricMetadata
-	g.Go(func() error {
-		metadata, err := receiver.reader.GetMetricMetadata(ctx, orgID, metricName, metricName)
-		if err != nil {
-			return &model.ApiError{Typ: "ClickHouseError", Err: err}
-		}
-		metricDetailsDTO.Name = metricName
-		metricDetailsDTO.Unit = metadata.Unit
-		metricDetailsDTO.Description = metadata.Description
-		metricDetailsDTO.Type = metadata.Type
-		metricDetailsDTO.Metadata.MetricType = metadata.Type
-		metricDetailsDTO.Metadata.Description = metadata.Description
-		metricDetailsDTO.Metadata.Unit = metadata.Unit
-		metricDetailsDTO.Metadata.Temporality = metadata.Temporality
-		metricDetailsDTO.Metadata.Monotonic = metadata.IsMonotonic
-		return nil
-	})
-
-	g.Go(func() error {
-		dataPoints, apiErr := receiver.reader.GetMetricsDataPoints(ctx, metricName)
-		if apiErr != nil {
-			return apiErr.ToError()
-		}
-		metricDetailsDTO.Samples = dataPoints
-		return nil
-	})
-
-	g.Go(func() error {
-		lastReceived, apiErr := receiver.reader.GetMetricsLastReceived(ctx, metricName)
-		if apiErr != nil {
-			return apiErr.ToError()
-		}
-		metricDetailsDTO.LastReceived = lastReceived
-		return nil
-	})
-
-	g.Go(func() error {
-		totalSeries, apiErr := receiver.reader.GetTotalTimeSeriesForMetricName(ctx, metricName)
-		if apiErr != nil {
-			return apiErr.ToError()
-		}
-		metricDetailsDTO.TimeSeriesTotal = totalSeries
-		return nil
-	})
-
-	g.Go(func() error {
-		activeSeries, apiErr := receiver.reader.GetActiveTimeSeriesForMetricName(ctx, metricName, 120*time.Minute)
-		if apiErr != nil {
-			return apiErr.ToError()
-		}
-		metricDetailsDTO.TimeSeriesActive = activeSeries
-		return nil
-	})
-
-	g.Go(func() error {
-		attributes, apiErr := receiver.reader.GetAttributesForMetricName(ctx, metricName, nil, nil, nil)
-		if apiErr != nil {
-			return apiErr.ToError()
-		}
-		if attributes != nil {
-			metricDetailsDTO.Attributes = *attributes
-		}
-		return nil
-	})
-
-	g.Go(func() error {
-		var metrics []string
-		var metricsAlerts []metrics_explorer.Alert
-		metrics = append(metrics, metricName)
-		data, err := receiver.rulesManager.GetAlertDetailsForMetricNames(ctx, metrics)
-		if err != nil {
-			return err
-		}
-		if rulesLists, ok := data[metricName]; ok {
-			for _, rule := range rulesLists {
-				metricsAlerts = append(metricsAlerts, metrics_explorer.Alert{AlertName: rule.AlertName, AlertID: rule.Id})
-			}
-		}
-		metricDetailsDTO.Alerts = metricsAlerts
-		return nil
-	})
-
-	// Wait for all goroutines and handle any errors
-	if err := g.Wait(); err != nil {
-
-		var apiErr *model.ApiError
-		if errors.As(err, &apiErr) {
-			return metrics_explorer.MetricDetailsDTO{}, apiErr
-		}
-		return metrics_explorer.MetricDetailsDTO{}, &model.ApiError{Typ: "InternalError", Err: err}
-	}
-
-	return metricDetailsDTO, nil
-}
-
-func (receiver *SummaryService) ListMetricsWithSummary(ctx context.Context, orgID valuer.UUID, params *metrics_explorer.SummaryListMetricsRequest) (*metrics_explorer.SummaryListMetricsResponse, *model.ApiError) {
-	return receiver.reader.ListSummaryMetrics(ctx, orgID, params)
-}
-
-func (receiver *SummaryService) GetMetricsTreemap(ctx context.Context, params *metrics_explorer.TreeMapMetricsRequest) (*metrics_explorer.TreeMap, *model.ApiError) {
-	var response metrics_explorer.TreeMap
-	switch params.Treemap {
-	case metrics_explorer.TimeSeriesTeeMap:
-		ts, apiError := receiver.reader.GetMetricsTimeSeriesPercentage(ctx, params)
-		if apiError != nil {
-			return nil, apiError
-		}
-		if ts != nil {
-			response.TimeSeries = *ts
-		}
-		return &response, nil
-	case metrics_explorer.SamplesTreeMap:
-		samples, apiError := receiver.reader.GetMetricsSamplesPercentage(ctx, params)
-		if apiError != nil {
-			return nil, apiError
-		}
-		if samples != nil {
-			response.Samples = *samples
-		}
-		return &response, nil
-	default:
-		return nil, nil
 	}
 }
 
@@ -339,59 +210,59 @@ func (receiver *SummaryService) GetRelatedMetrics(ctx context.Context, params *m
 	return &response, nil
 }
 
-func getQueryRangeForRelateMetricsList(metricName string, scores metrics_explorer.RelatedMetricsScore) *v3.BuilderQuery {
-	var filterItems []v3.FilterItem
+func getQueryRangeForRelateMetricsList(metricName string, scores metrics_explorer.RelatedMetricsScore) *querytypes.BuilderQuery {
+	var filterItems []querytypes.FilterItem
 	for _, pair := range scores.Filters {
 		if len(pair) < 2 {
 			continue // Skip invalid filter pairs.
 		}
-		filterItem := v3.FilterItem{
-			Key: v3.AttributeKey{
-				Key:      pair[0], // Default type, or you can use v3.AttributeKeyTypeUnspecified.
+		filterItem := querytypes.FilterItem{
+			Key: querytypes.AttributeKey{
+				Key:      pair[0], // Default type, or you can use querytypes.AttributeKeyTypeUnspecified.
 				IsColumn: false,
 				IsJSON:   false,
 			},
 			Value:    pair[1],
-			Operator: v3.FilterOperatorEqual, // Using "=" as the operator.
+			Operator: querytypes.FilterOperatorEqual, // Using "=" as the operator.
 		}
 		filterItems = append(filterItems, filterItem)
 	}
 
 	// If there are any filters, combine them with an "AND" operator.
-	var filters *v3.FilterSet
+	var filters *querytypes.FilterSet
 	if len(filterItems) > 0 {
-		filters = &v3.FilterSet{
+		filters = &querytypes.FilterSet{
 			Operator: "AND",
 			Items:    filterItems,
 		}
 	}
 
 	// Create the BuilderQuery. Here we set the QueryName to the metric name.
-	query := v3.BuilderQuery{
+	query := querytypes.BuilderQuery{
 		QueryName:  metricName,
-		DataSource: v3.DataSourceMetrics,
+		DataSource: querytypes.DataSourceMetrics,
 		Expression: metricName, // Using metric name as expression
 		Filters:    filters,
 	}
 
-	if scores.MetricType == v3.MetricTypeSum && !scores.IsMonotonic && scores.Temporality == v3.Cumulative {
-		scores.MetricType = v3.MetricTypeGauge
+	if scores.MetricType == querytypes.MetricTypeSum && !scores.IsMonotonic && scores.Temporality == querytypes.Cumulative {
+		scores.MetricType = querytypes.MetricTypeGauge
 	}
 
 	switch scores.MetricType {
-	case v3.MetricTypeGauge:
-		query.TimeAggregation = v3.TimeAggregationAvg
-		query.SpaceAggregation = v3.SpaceAggregationAvg
-	case v3.MetricTypeSum:
-		query.TimeAggregation = v3.TimeAggregationRate
-		query.SpaceAggregation = v3.SpaceAggregationSum
-	case v3.MetricTypeHistogram:
-		query.SpaceAggregation = v3.SpaceAggregationPercentile95
+	case querytypes.MetricTypeGauge:
+		query.TimeAggregation = querytypes.TimeAggregationAvg
+		query.SpaceAggregation = querytypes.SpaceAggregationAvg
+	case querytypes.MetricTypeSum:
+		query.TimeAggregation = querytypes.TimeAggregationRate
+		query.SpaceAggregation = querytypes.SpaceAggregationSum
+	case querytypes.MetricTypeHistogram:
+		query.SpaceAggregation = querytypes.SpaceAggregationPercentile95
 	}
 
-	query.AggregateAttribute = v3.AttributeKey{
+	query.AggregateAttribute = querytypes.AttributeKey{
 		Key:  metricName,
-		Type: v3.AttributeKeyType(scores.MetricType),
+		Type: querytypes.AttributeKeyType(scores.MetricType),
 	}
 
 	query.StepInterval = 60
@@ -479,24 +350,4 @@ func (receiver *SummaryService) GetInspectMetrics(ctx context.Context, params *m
 	}
 
 	return baseResponse, nil
-}
-
-func (receiver *SummaryService) UpdateMetricsMetadata(ctx context.Context, orgID valuer.UUID, params *metrics_explorer.UpdateMetricsMetadataRequest) *model.ApiError {
-	if params.MetricType == v3.MetricTypeSum && !params.IsMonotonic && params.Temporality == v3.Cumulative {
-		params.MetricType = v3.MetricTypeGauge
-	}
-	metadata := model.UpdateMetricsMetadata{
-		MetricName:  params.MetricName,
-		MetricType:  params.MetricType,
-		Temporality: params.Temporality,
-		Unit:        params.Unit,
-		Description: params.Description,
-		IsMonotonic: params.IsMonotonic,
-		CreatedAt:   time.Now(),
-	}
-	apiError := receiver.reader.UpdateMetricsMetadata(ctx, orgID, &metadata)
-	if apiError != nil {
-		return apiError
-	}
-	return nil
 }

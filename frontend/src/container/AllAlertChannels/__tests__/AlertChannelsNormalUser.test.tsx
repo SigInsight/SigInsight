@@ -70,7 +70,7 @@ describe('Alert Channels Settings List page (Normal User)', () => {
 
 		it('Should check if the data in the table is displayed properly', async () => {
 			expect(screen.getByText('Dummy-Channel')).toBeInTheDocument();
-			expect(screen.getAllByText('slack')[0]).toBeInTheDocument();
+			expect(screen.getAllByText('webhook')[0]).toBeInTheDocument();
 			expect(screen.queryByText('column_channel_edit')).not.toBeInTheDocument();
 			expect(screen.queryByText('Delete')).not.toBeInTheDocument();
 		});

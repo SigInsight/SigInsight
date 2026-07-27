@@ -4,7 +4,7 @@ import { Spin } from 'antd';
 import { TIMEZONE_DATA } from 'components/CustomTimePicker/timezoneUtils';
 import { UniversalYAxisUnit } from 'components/YAxisUnitSelector/types';
 import { getRandomColor } from 'container/ExplorerOptions/utils';
-import { PostableAlertRuleV2 } from 'types/api/alerts/alertTypesV2';
+import { PostableAlertRule } from 'types/api/alerts/alertRule';
 import { v4 } from 'uuid';
 
 import { useCreateAlertState } from './context';
@@ -78,7 +78,7 @@ export function parseGoTime(
 
 // eslint-disable-next-line sonarjs/cognitive-complexity
 export function getEvaluationWindowStateFromAlertDef(
-	alertDef: PostableAlertRuleV2,
+	alertDef: PostableAlertRule,
 ): EvaluationWindowState {
 	const windowType = alertDef.evaluation?.kind as 'rolling' | 'cumulative';
 
@@ -177,11 +177,10 @@ export function getEvaluationWindowStateFromAlertDef(
 }
 
 export function getNotificationSettingsStateFromAlertDef(
-	alertDef: PostableAlertRuleV2,
+	alertDef: PostableAlertRule,
 ): NotificationSettingsState {
 	const description = alertDef.annotations?.description || '';
 	const multipleNotifications = alertDef.notificationSettings?.groupBy || [];
-	const routingPolicies = alertDef.notificationSettings?.usePolicy || false;
 
 	const reNotificationEnabled =
 		alertDef.notificationSettings?.renotify?.enabled || false;
@@ -200,7 +199,6 @@ export function getNotificationSettingsStateFromAlertDef(
 		...INITIAL_NOTIFICATION_SETTINGS_STATE,
 		description,
 		multipleNotifications,
-		routingPolicies,
 		reNotification: {
 			enabled: reNotificationEnabled,
 			conditions: reNotificationConditions,
@@ -211,7 +209,7 @@ export function getNotificationSettingsStateFromAlertDef(
 }
 
 export function getAdvancedOptionsStateFromAlertDef(
-	alertDef: PostableAlertRuleV2,
+	alertDef: PostableAlertRule,
 ): AdvancedOptionsState {
 	return {
 		...INITIAL_ADVANCED_OPTIONS_STATE,
@@ -238,7 +236,7 @@ export function getAdvancedOptionsStateFromAlertDef(
 }
 
 export function getThresholdStateFromAlertDef(
-	alertDef: PostableAlertRuleV2,
+	alertDef: PostableAlertRule,
 ): AlertThresholdState {
 	return {
 		...INITIAL_ALERT_THRESHOLD_STATE,
@@ -264,7 +262,7 @@ export function getThresholdStateFromAlertDef(
 }
 
 export function getCreateAlertLocalStateFromAlertDef(
-	alertDef: PostableAlertRuleV2 | undefined,
+	alertDef: PostableAlertRule | undefined,
 ): CreateAlertState {
 	if (!alertDef) {
 		return {

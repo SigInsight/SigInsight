@@ -7,7 +7,6 @@ import {
 	useMemo,
 	useState,
 } from 'react';
-import { DEFAULT_ENTITY_VERSION } from 'constants/app';
 import { PANEL_TYPES } from 'constants/queryBuilder';
 import {
 	getOrderByTimestamp,
@@ -106,7 +105,7 @@ export const useContextLogData = ({
 
 	const handleSuccess = useCallback(
 		(data: SuccessResponse<MetricRangePayloadProps, unknown>) => {
-			const currentData = data?.payload?.data?.newResult?.data?.result || [];
+			const currentData = data?.payload?.data?.queryResult?.data?.result || [];
 
 			if (currentData.length > 0 && currentData[0].list) {
 				const currentLogs: ILog[] = currentData[0].list.map((item) => ({
@@ -130,7 +129,6 @@ export const useContextLogData = ({
 	const { isError, isFetching } = useGetExplorerQueryRange(
 		requestData,
 		PANEL_TYPES.LIST,
-		DEFAULT_ENTITY_VERSION,
 		{
 			keepPreviousData: true,
 			enabled: !!requestData,

@@ -1,5 +1,5 @@
 import { renderHook } from '@testing-library/react';
-import { convertFiltersToExpression } from 'components/QueryBuilderV2/utils';
+import { convertFiltersToExpression } from 'components/QueryBuilder/utils';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
 import { ILog } from 'types/api/logs/log';
 import { DataTypes } from 'types/api/queryBuilder/queryAutocompleteResponse';
@@ -19,7 +19,7 @@ jest.mock('hooks/queryBuilder/useQueryBuilder', () => ({
 }));
 
 // Mock the convertFiltersToExpression utility
-jest.mock('components/QueryBuilderV2/utils', () => ({
+jest.mock('components/QueryBuilder/utils', () => ({
 	convertFiltersToExpression: jest.fn(),
 }));
 

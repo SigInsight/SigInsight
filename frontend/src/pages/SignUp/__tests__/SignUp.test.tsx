@@ -1,8 +1,8 @@
 import afterLogin from 'AppRoutes/utils';
 import { rest, server } from 'mocks-server/server';
 import { render, screen, userEvent, waitFor } from 'tests/test-utils';
-import { SignupResponse } from 'types/api/v1/register/post';
-import { Token } from 'types/api/v2/sessions/email_password/post';
+import { SignupResponse } from 'types/api/v5/register/post';
+import { Token } from 'types/api/v5/sessions/email_password/post';
 
 import SignUp from '../SignUp';
 
@@ -29,8 +29,8 @@ jest.mock('lib/history', () => ({
 	},
 }));
 
-const REGISTER_ENDPOINT = '*/api/v1/register';
-const EMAIL_PASSWORD_ENDPOINT = '*/api/v2/sessions/email_password';
+const REGISTER_ENDPOINT = '*/api/v5/register';
+const EMAIL_PASSWORD_ENDPOINT = '*/api/v5/sessions/email_password';
 
 const mockSignupResponse: SignupResponse = {
 	orgId: 'test-org-id',

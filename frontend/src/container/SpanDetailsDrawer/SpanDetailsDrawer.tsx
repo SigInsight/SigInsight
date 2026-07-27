@@ -21,8 +21,8 @@ import {
 	Typography,
 } from 'antd';
 import getSpanPercentiles from 'api/trace/getSpanPercentiles';
-import getUserPreference from 'api/v1/user/preferences/name/get';
-import updateUserPreference from 'api/v1/user/preferences/name/update';
+import getUserPreference from 'api/v5/user/preferences/name/get';
+import updateUserPreference from 'api/v5/user/preferences/name/update';
 import LogsIcon from 'assets/AlertHistory/LogsIcon';
 import { getYAxisFormattedValue } from 'components/Graph/yAxisConfig';
 import { DATE_TIME_FORMATS } from 'constants/dateTimeFormats';
@@ -47,7 +47,7 @@ import {
 	Search,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
-import { Span } from 'types/api/trace/getTraceV2';
+import { Span } from 'types/api/trace/getTraceWaterfall';
 import { formatEpochTimestamp } from 'utils/timeUtils';
 
 import Attributes from './Attributes/Attributes';

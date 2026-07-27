@@ -6,17 +6,24 @@ import { Check, ChevronDown, Plus } from '@signozhq/icons';
 import { Input } from '@signozhq/input';
 import type { MenuProps } from 'antd';
 import { Dropdown } from 'antd';
-import getAll from 'api/v1/user/get';
+import { getRolesByUserID, listUsers } from 'api/generated/services/users';
 import EditMemberDrawer from 'components/EditMemberDrawer/EditMemberDrawer';
 import InviteMembersModal from 'components/InviteMembersModal/InviteMembersModal';
 import MembersTable, { MemberRow } from 'components/MembersTable/MembersTable';
 import useUrlQuery from 'hooks/useUrlQuery';
 import { useAppContext } from 'providers/App/App';
+import { ROLES, USER_ROLES } from 'types/roles';
 import { toISOString } from 'utils/app';
 
 import { FilterMode, MemberStatus, toMemberStatus } from './utils';
 
 import './MembersSettings.styles.scss';
+
+const LEGACY_ROLE_BY_NAME: Record<string, ROLES> = {
+	'signoz-admin': USER_ROLES.ADMIN as ROLES,
+	'signoz-editor': USER_ROLES.EDITOR as ROLES,
+	'signoz-viewer': USER_ROLES.VIEWER as ROLES,
+};
 
 const PAGE_SIZE = 20;
 
@@ -34,24 +41,32 @@ function MembersSettings(): JSX.Element {
 	const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
 	const [selectedMember, setSelectedMember] = useState<MemberRow | null>(null);
 
-	const { data: usersData, isLoading, refetch: refetchUsers } = useQuery({
-		queryFn: getAll,
+	const { data: allMembers = [], isLoading, refetch: refetchUsers } = useQuery({
+		queryFn: async (): Promise<MemberRow[]> => {
+			const usersResponse = await listUsers();
+			return Promise.all(
+				usersResponse.data.map(async (user) => {
+					const rolesResponse = await getRolesByUserID({ id: user.id });
+					const roles = rolesResponse.data;
+					const role: ROLES =
+						roles
+							.map((item) => (item.name ? LEGACY_ROLE_BY_NAME[item.name] : undefined))
+							.find(Boolean) ?? (USER_ROLES.ANONYMOUS as ROLES);
+					return {
+						id: user.id,
+						name: user.displayName,
+						email: user.email ?? '',
+						role,
+						roleIds: roles.map((item) => item.id),
+						status: toMemberStatus(user.status ?? ''),
+						joinedOn: toISOString(user.createdAt),
+						updatedAt: toISOString(user.updatedAt),
+					};
+				}),
+			);
+		},
 		queryKey: ['getOrgUser', org?.[0]?.id],
 	});
-
-	const allMembers = useMemo(
-		(): MemberRow[] =>
-			(usersData?.data ?? []).map((user) => ({
-				id: user.id,
-				name: user.displayName,
-				email: user.email,
-				role: user.role,
-				status: toMemberStatus(user.status ?? ''),
-				joinedOn: toISOString(user.createdAt),
-				updatedAt: toISOString(user?.updatedAt),
-			})),
-		[usersData],
-	);
 
 	const filteredMembers = useMemo((): MemberRow[] => {
 		let result = allMembers;

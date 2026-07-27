@@ -6,7 +6,6 @@ import {
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
 import {
 	otherFiltersResponse,
-	quickFiltersAttributeValuesResponse,
 	quickFiltersListResponse,
 } from 'mocks-server/__mockdata__/customQuickFilters';
 import { server } from 'mocks-server/server';
@@ -34,11 +33,10 @@ const mockUseApiMonitoringParams = jest.mocked(useApiMonitoringParams);
 
 const BASE_URL = ENVIRONMENT.baseURL;
 const SIGNAL = SignalType.LOGS;
-const quickFiltersListURL = `${BASE_URL}/api/v1/orgs/me/filters/${SIGNAL}`;
-const saveQuickFiltersURL = `${BASE_URL}/api/v1/orgs/me/filters`;
-const quickFiltersSuggestionsURL = `${BASE_URL}/api/v5/filter_suggestions`;
-const quickFiltersAttributeValuesURL = `${BASE_URL}/api/v5/autocomplete/attribute_values`;
-const fieldsValuesURL = `${BASE_URL}/api/v1/fields/values`;
+const quickFiltersListURL = `${BASE_URL}/api/v5/orgs/me/filters/${SIGNAL}`;
+const saveQuickFiltersURL = `${BASE_URL}/api/v5/orgs/me/filters`;
+const fieldsKeysURL = `${BASE_URL}/api/v5/fields/keys`;
+const fieldsValuesURL = `${BASE_URL}/api/v5/fields/values`;
 
 const FILTER_OS_DESCRIPTION = 'os.description';
 const FILTER_K8S_DEPLOYMENT_NAME = 'k8s.deployment.name';
@@ -55,18 +53,43 @@ const setupServer = (): void => {
 		rest.get(quickFiltersListURL, (_, res, ctx) =>
 			res(ctx.status(200), ctx.json(quickFiltersListResponse)),
 		),
-		rest.get(quickFiltersSuggestionsURL, (_, res, ctx) =>
-			res(ctx.status(200), ctx.json(otherFiltersResponse)),
+		rest.get(fieldsKeysURL, (_, res, ctx) =>
+			res(
+				ctx.status(200),
+				ctx.json({
+					status: 'success',
+					data: {
+						complete: true,
+						keys: {
+							resource: otherFiltersResponse.data.attributes.map((attribute) => ({
+								name: attribute.key,
+								fieldContext: 'resource',
+								fieldDataType: attribute.dataType,
+							})),
+						},
+					},
+				}),
+			),
 		),
 		rest.put(saveQuickFiltersURL, async (req, res, ctx) => {
 			putHandler(await req.json());
 			return res(ctx.status(200), ctx.json({}));
 		}),
-		rest.get(quickFiltersAttributeValuesURL, (_req, res, ctx) =>
-			res(ctx.status(200), ctx.json(quickFiltersAttributeValuesResponse)),
-		),
 		rest.get(fieldsValuesURL, (_req, res, ctx) =>
-			res(ctx.status(200), ctx.json(quickFiltersAttributeValuesResponse)),
+			res(
+				ctx.status(200),
+				ctx.json({
+					status: 'success',
+					data: {
+						complete: true,
+						values: {
+							stringValues: ['mq-kafka', 'otel-demo', 'otlp-python', 'sample-flask'],
+							numberValues: [],
+							boolValues: [],
+						},
+					},
+				}),
+			),
 		),
 	);
 };
@@ -501,12 +524,12 @@ describe('Quick Filters with custom filters', () => {
 								filters: expect.objectContaining({
 									items: expect.arrayContaining([
 										expect.objectContaining({
-											key: expect.objectContaining({ key: 'durationNano' }),
+											key: expect.objectContaining({ key: 'duration_nano' }),
 											op: '>=',
 											value: 10000000000,
 										}),
 										expect.objectContaining({
-											key: expect.objectContaining({ key: 'durationNano' }),
+											key: expect.objectContaining({ key: 'duration_nano' }),
 											op: '<=',
 											value: 20000000000,
 										}),

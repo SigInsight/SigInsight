@@ -3,11 +3,10 @@ import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import * as Sentry from '@sentry/react';
 import logEvent from 'api/common/logEvent';
-import { DEFAULT_ENTITY_VERSION, ENTITY_VERSION_V5 } from 'constants/app';
 import { QueryParams } from 'constants/query';
 import { PANEL_TYPES } from 'constants/queryBuilder';
-import { useScrollWidgetIntoView } from 'container/DashboardContainer/visualization/hooks/useScrollWidgetIntoView';
 import { populateMultipleResults } from 'container/NewWidget/LeftContainer/WidgetGraph/util';
+import { useScrollWidgetIntoView } from 'container/PanelVisualization/hooks/useScrollWidgetIntoView';
 import { CustomTimeType } from 'container/TopNav/DateTimeSelectionV2/types';
 import { useIsPanelWaitingOnVariable } from 'hooks/dashboard/useVariableFetchState';
 import { useGetQueryRange } from 'hooks/queryBuilder/useGetQueryRange';
@@ -218,7 +217,6 @@ function GridCardGraph({
 			end: customTimeRange?.endTime || end,
 			originalGraphType: widget?.panelTypes,
 		},
-		version || DEFAULT_ENTITY_VERSION,
 		{
 			queryKey: [
 				REACT_QUERY_KEY.PANEL_QUERY_RANGE,
@@ -260,12 +258,7 @@ function GridCardGraph({
 			enabled: queryEnabledCondition,
 			refetchOnMount: false,
 			onError: (error) => {
-				const errorMessage =
-					version === ENTITY_VERSION_V5
-						? errorDetails(error as APIError)
-						: error.message;
-
-				setErrorMessage(errorMessage);
+				setErrorMessage(errorDetails(error as APIError));
 				if (customErrorMessage) {
 					setIsInternalServerError(
 						String(error.message).includes('API responded with 500'),

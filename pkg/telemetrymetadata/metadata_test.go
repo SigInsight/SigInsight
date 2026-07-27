@@ -94,7 +94,75 @@ func TestGetKeys(t *testing.T) {
 	t.Logf("Keys: %v", keys)
 }
 
-func TestApplyBackwardCompatibleKeys(t *testing.T) {
+func TestGetTraceStaticCalculatedFieldKey(t *testing.T) {
+	mockTelemetryStore := telemetrystoretest.New(telemetrystore.Config{}, &regexMatcher{})
+	mock := mockTelemetryStore.Mock()
+	metadata := newTestTelemetryMetaStoreTestHelper(mockTelemetryStore)
+
+	mock.ExpectSelect("SHOW CREATE TABLE signoz_traces.signoz_index_v3").
+		WillReturnRows(cmock.NewRows([]cmock.ColumnType{
+			{Name: "statement", Type: "String"},
+		}, [][]any{{"CREATE TABLE signoz_traces.signoz_index_v3"}}))
+	mock.ExpectQuery(`SELECT.*`).
+		WithArgs("http.route", telemetrytypes.FieldDataTypeString.TagDataType(), 2).
+		WillReturnRows(cmock.NewRows([]cmock.ColumnType{
+			{Name: "tag_key", Type: "String"},
+			{Name: "tag_type", Type: "String"},
+			{Name: "tag_data_type", Type: "String"},
+			{Name: "priority", Type: "UInt8"},
+		}, nil))
+
+	keys, _, err := metadata.GetKeys(context.Background(), &telemetrytypes.FieldKeySelector{
+		Signal:            telemetrytypes.SignalTraces,
+		Name:              "http.route",
+		FieldContext:      telemetrytypes.FieldContextSpan,
+		FieldDataType:     telemetrytypes.FieldDataTypeString,
+		SelectorMatchType: telemetrytypes.FieldSelectorMatchTypeExact,
+		Limit:             1,
+	})
+
+	require.NoError(t, err)
+	require.Contains(t, keys, "http.route")
+	require.Len(t, keys["http.route"], 1)
+	assert.Equal(t, telemetrytraces.CalculatedFields["http.route"], *keys["http.route"][0])
+	require.NoError(t, mock.ExpectationsWereMet())
+}
+
+func TestGetTraceDefaultFieldKey(t *testing.T) {
+	mockTelemetryStore := telemetrystoretest.New(telemetrystore.Config{}, &regexMatcher{})
+	mock := mockTelemetryStore.Mock()
+	metadata := newTestTelemetryMetaStoreTestHelper(mockTelemetryStore)
+
+	mock.ExpectSelect("SHOW CREATE TABLE signoz_traces.signoz_index_v3").
+		WillReturnRows(cmock.NewRows([]cmock.ColumnType{{Name: "statement", Type: "String"}}, [][]any{{`CREATE TABLE signoz_traces.signoz_index_v3 (
+			` + "`resource_string_service$$name`" + ` String DEFAULT resources_string['service.name']
+		)`}}))
+	mock.ExpectQuery(`SELECT.*`).
+		WithArgs("service.name", telemetrytypes.FieldContextResource.TagType(), telemetrytypes.FieldDataTypeString.TagDataType(), 2).
+		WillReturnRows(cmock.NewRows([]cmock.ColumnType{
+			{Name: "tag_key", Type: "String"},
+			{Name: "tag_type", Type: "String"},
+			{Name: "tag_data_type", Type: "String"},
+			{Name: "priority", Type: "UInt8"},
+		}, nil))
+
+	keys, _, err := metadata.GetKeys(context.Background(), &telemetrytypes.FieldKeySelector{
+		Signal:            telemetrytypes.SignalTraces,
+		Name:              "service.name",
+		FieldContext:      telemetrytypes.FieldContextResource,
+		FieldDataType:     telemetrytypes.FieldDataTypeString,
+		SelectorMatchType: telemetrytypes.FieldSelectorMatchTypeExact,
+		Limit:             1,
+	})
+
+	require.NoError(t, err)
+	require.Contains(t, keys, "service.name")
+	require.Len(t, keys["service.name"], 1)
+	assert.Equal(t, telemetrytraces.DefaultFields["service.name"], *keys["service.name"][0])
+	require.NoError(t, mock.ExpectationsWereMet())
+}
+
+func TestGetKeysMultiDoesNotAddAliases(t *testing.T) {
 	tests := []struct {
 		name           string
 		inputKeys      []*telemetrytypes.TelemetryFieldKey
@@ -102,7 +170,7 @@ func TestApplyBackwardCompatibleKeys(t *testing.T) {
 		notExpectedKey string
 	}{
 		{
-			name: "bidirectional mapping: net.peer.name -> server.address",
+			name: "net.peer.name remains exact",
 			inputKeys: []*telemetrytypes.TelemetryFieldKey{
 				{
 					Name:          "net.peer.name",
@@ -111,10 +179,11 @@ func TestApplyBackwardCompatibleKeys(t *testing.T) {
 					FieldDataType: telemetrytypes.FieldDataTypeString,
 				},
 			},
-			expectedKeys: []string{"net.peer.name", "server.address"},
+			expectedKeys:   []string{"net.peer.name"},
+			notExpectedKey: "server.address",
 		},
 		{
-			name: "bidirectional mapping: server.address -> net.peer.name",
+			name: "server.address remains exact",
 			inputKeys: []*telemetrytypes.TelemetryFieldKey{
 				{
 					Name:          "server.address",
@@ -123,10 +192,11 @@ func TestApplyBackwardCompatibleKeys(t *testing.T) {
 					FieldDataType: telemetrytypes.FieldDataTypeString,
 				},
 			},
-			expectedKeys: []string{"server.address", "net.peer.name"},
+			expectedKeys:   []string{"server.address"},
+			notExpectedKey: "net.peer.name",
 		},
 		{
-			name: "bidirectional mapping: http.url -> url.full",
+			name: "http.url remains exact",
 			inputKeys: []*telemetrytypes.TelemetryFieldKey{
 				{
 					Name:          "http.url",
@@ -135,10 +205,11 @@ func TestApplyBackwardCompatibleKeys(t *testing.T) {
 					FieldDataType: telemetrytypes.FieldDataTypeString,
 				},
 			},
-			expectedKeys: []string{"http.url", "url.full"},
+			expectedKeys:   []string{"http.url"},
+			notExpectedKey: "url.full",
 		},
 		{
-			name: "bidirectional mapping: url.full -> http.url",
+			name: "url.full remains exact",
 			inputKeys: []*telemetrytypes.TelemetryFieldKey{
 				{
 					Name:          "url.full",
@@ -147,7 +218,8 @@ func TestApplyBackwardCompatibleKeys(t *testing.T) {
 					FieldDataType: telemetrytypes.FieldDataTypeString,
 				},
 			},
-			expectedKeys: []string{"url.full", "http.url"},
+			expectedKeys:   []string{"url.full"},
+			notExpectedKey: "http.url",
 		},
 		{
 			name: "key without alias",
@@ -256,28 +328,6 @@ func TestApplyBackwardCompatibleKeys(t *testing.T) {
 
 			if tt.notExpectedKey != "" {
 				assert.NotContains(t, resultMap, tt.notExpectedKey, "Did not expect key %q to exist in result map", tt.notExpectedKey)
-			}
-
-			for _, srcKey := range tt.inputKeys {
-				backwardCompatKeys := GetBackwardCompatKeysForSignal(srcKey.Signal)
-				if aliasKey, ok := backwardCompatKeys[srcKey.Name]; ok {
-					aliasExistedInInput := false
-					for _, inputKey := range tt.inputKeys {
-						if inputKey.Name == aliasKey {
-							aliasExistedInInput = true
-							break
-						}
-					}
-
-					if !aliasExistedInInput {
-						if aliasEntries, exists := resultMap[aliasKey]; exists && len(aliasEntries) > 0 {
-							aliasEntry := aliasEntries[0]
-							assert.Equal(t, srcKey.Signal, aliasEntry.Signal, "Alias %q should have same signal", aliasKey)
-							assert.Equal(t, srcKey.FieldContext, aliasEntry.FieldContext, "Alias %q should have same field context", aliasKey)
-							assert.Equal(t, srcKey.FieldDataType, aliasEntry.FieldDataType, "Alias %q should have same field data type", aliasKey)
-						}
-					}
-				}
 			}
 
 			require.NoError(t, mock.ExpectationsWereMet(), "All SQL expectations should be met")

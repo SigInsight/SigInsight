@@ -66,11 +66,11 @@ function TracesTableComponent({
 	);
 
 	const dataLength =
-		queryResponse.data?.payload?.data?.newResult?.data?.result[0]?.list?.length;
+		queryResponse.data?.payload?.data?.queryResult?.data?.result[0]?.list?.length;
 	const totalCount = useMemo(() => dataLength || 0, [dataLength]);
 
 	const queryTableDataResult =
-		queryResponse.data?.payload?.data?.newResult?.data?.result;
+		queryResponse.data?.payload?.data?.queryResult?.data?.result;
 	const queryTableData = useMemo(() => queryTableDataResult || [], [
 		queryTableDataResult,
 	]);

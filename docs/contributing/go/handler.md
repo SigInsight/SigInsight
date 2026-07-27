@@ -24,7 +24,7 @@ Each route wraps a module handler method with the following:
 For example, in `pkg/apiserver/signozapiserver`:
 
 ```go
-if err := router.Handle("/api/v1/invite", handler.New(
+if err := router.Handle("/api/v5/invite", handler.New(
     provider.authZ.AdminAccess(provider.userHandler.CreateInvite),
     handler.OpenAPIDef{
         ID:                  "CreateInvite",
@@ -114,7 +114,7 @@ func (h *handler) CreateThing(rw http.ResponseWriter, req *http.Request) {
 In `pkg/apiserver/signozapiserver`, add a route in the appropriate `add*Routes` function (`addUserRoutes`, `addSessionRoutes`, `addOrgRoutes`, etc.). The pattern is:
 
 ```go
-if err := router.Handle("/api/v1/things", handler.New(
+if err := router.Handle("/api/v5/things", handler.New(
     provider.authZ.AdminAccess(provider.thingHandler.CreateThing),
     handler.OpenAPIDef{
         ID:                  "CreateThing",

@@ -54,19 +54,9 @@ export const TracesFunnelDetails = Loadable(
 		),
 );
 
-export const TraceFilter = Loadable(
-	() => import(/* webpackChunkName: "Trace Filter Page" */ 'pages/Trace'),
-);
-
 export const TraceDetail = Loadable(
 	() =>
-		import(
-			/* webpackChunkName: "TraceDetail Page" */ 'pages/TraceDetailV2/index'
-		),
-);
-
-export const UsageExplorerPage = Loadable(
-	() => import(/* webpackChunkName: "UsageExplorerPage" */ 'modules/Usage'),
+		import(/* webpackChunkName: "TraceDetail Page" */ 'pages/TraceDetail/index'),
 );
 
 export const SignupPage = Loadable(
@@ -75,22 +65,6 @@ export const SignupPage = Loadable(
 
 export const SettingsPage = Loadable(
 	() => import(/* webpackChunkName: "SettingsPage" */ 'pages/Settings'),
-);
-
-export const GettingStarted = Loadable(
-	() => import(/* webpackChunkName: "GettingStarted" */ 'pages/GettingStarted'),
-);
-
-export const Onboarding = Loadable(
-	() => import(/* webpackChunkName: "Onboarding" */ 'pages/OnboardingPage'),
-);
-
-export const OrgOnboarding = Loadable(
-	() => import(/* webpackChunkName: "OrgOnboarding" */ 'pages/OrgOnboarding'),
-);
-
-export const OnboardingV2 = Loadable(
-	() => import(/* webpackChunkName: "Onboarding V2" */ 'pages/OnboardingPageV2'),
 );
 
 export const EditRulesPage = Loadable(
@@ -137,10 +111,6 @@ export const OrganizationSettings = Loadable(
 	() => import(/* webpackChunkName: "All Settings" */ 'pages/Settings'),
 );
 
-export const APIKeys = Loadable(
-	() => import(/* webpackChunkName: "All Settings" */ 'pages/Settings'),
-);
-
 export const MySettings = Loadable(
 	() => import(/* webpackChunkName: "All MySettings" */ 'pages/Settings'),
 );
@@ -151,10 +121,6 @@ export const Logs = Loadable(
 
 export const LogsExplorer = Loadable(
 	() => import(/* webpackChunkName: "Logs Explorer" */ 'pages/LogsModulePage'),
-);
-
-export const OldLogsExplorer = Loadable(
-	() => import(/* webpackChunkName: "Logs Explorer" */ 'pages/Logs'),
 );
 
 export const LiveLogs = Loadable(
@@ -191,13 +157,6 @@ export const LogsIndexToFields = Loadable(
 
 export const ShortcutsPage = Loadable(
 	() => import(/* webpackChunkName: "ShortcutsPage" */ 'pages/Settings'),
-);
-
-export const InstalledIntegrations = Loadable(
-	() =>
-		import(
-			/* webpackChunkName: "InstalledIntegrations" */ 'pages/IntegrationsModulePage'
-		),
 );
 
 export const MetricsExplorer = Loadable(

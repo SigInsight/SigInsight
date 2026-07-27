@@ -13,7 +13,7 @@ import { Filter } from 'api/v5/v5';
 import {
 	convertExpressionToFilters,
 	convertFiltersToExpression,
-} from 'components/QueryBuilderV2/utils';
+} from 'components/QueryBuilder/utils';
 import { REACT_QUERY_KEY } from 'constants/reactQueryKeys';
 import { useGetMetricsListFilterValues } from 'hooks/metricsExplorer/useGetMetricsListFilterValues';
 import useDebouncedFn from 'hooks/useDebouncedFunction';

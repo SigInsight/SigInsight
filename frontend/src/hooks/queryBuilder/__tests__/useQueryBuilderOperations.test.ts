@@ -1,5 +1,5 @@
 import { act, renderHook } from '@testing-library/react';
-import { ENTITY_VERSION_V4, ENTITY_VERSION_V5 } from 'constants/app';
+import { ENTITY_VERSION_V5 } from 'constants/app';
 import { ATTRIBUTE_TYPES } from 'constants/queryBuilder';
 import {
 	BaseAutocompleteData,
@@ -85,7 +85,7 @@ describe('useQueryBuilderOperations - Empty Aggregate Attribute Type', () => {
 			useQueryOperations({
 				query: defaultMockQuery,
 				index: 0,
-				entityVersion: ENTITY_VERSION_V4,
+				entityVersion: ENTITY_VERSION_V5,
 				...props,
 			}),
 		);
@@ -116,7 +116,15 @@ describe('useQueryBuilderOperations - Empty Aggregate Attribute Type', () => {
 					aggregateAttribute: newAttribute,
 					aggregateOperator: MetricAggregateOperator.AVG,
 					timeAggregation: MetricAggregateOperator.AVG,
-					spaceAggregation: MetricAggregateOperator.AVG,
+					spaceAggregation: '',
+					aggregations: [
+						{
+							timeAggregation: MetricAggregateOperator.AVG,
+							metricName: 'new_metric',
+							temporality: '',
+							spaceAggregation: MetricAggregateOperator.AVG,
+						},
+					],
 				}),
 			);
 		});
@@ -137,9 +145,17 @@ describe('useQueryBuilderOperations - Empty Aggregate Attribute Type', () => {
 				0,
 				expect.objectContaining({
 					aggregateAttribute: newAttribute,
-					aggregateOperator: MetricAggregateOperator.COUNT,
-					timeAggregation: MetricAggregateOperator.RATE,
-					spaceAggregation: MetricAggregateOperator.SUM,
+					aggregateOperator: MetricAggregateOperator.AVG,
+					timeAggregation: MetricAggregateOperator.AVG,
+					spaceAggregation: '',
+					aggregations: [
+						{
+							timeAggregation: MetricAggregateOperator.AVG,
+							metricName: '',
+							temporality: '',
+							spaceAggregation: MetricAggregateOperator.SUM,
+						},
+					],
 				}),
 			);
 		});

@@ -155,22 +155,6 @@ func (store *config) ListChannels(ctx context.Context, orgID string) ([]*alertma
 	return channels, nil
 }
 
-func (store *config) ListAllChannels(ctx context.Context) ([]*alertmanagertypes.Channel, error) {
-	var channels []*alertmanagertypes.Channel
-
-	err := store.
-		sqlstore.
-		BunDB().
-		NewSelect().
-		Model(&channels).
-		Scan(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	return channels, nil
-}
-
 func (store *config) GetMatchers(ctx context.Context, orgID string) (map[string][]string, error) {
 	type matcher struct {
 		bun.BaseModel `bun:"table:rule"`

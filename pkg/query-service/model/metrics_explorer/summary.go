@@ -1,16 +1,17 @@
 package metrics_explorer
 
 import (
-	v3 "github.com/SigNoz/signoz/pkg/query-service/model/v3"
+	"github.com/SigNoz/signoz/pkg/query-service/model/querytypes"
+	"github.com/SigNoz/signoz/pkg/types/timeseriestypes"
 )
 
 type SummaryListMetricsRequest struct {
-	Offset  int          `json:"offset"`
-	Limit   int          `json:"limit"`
-	OrderBy v3.OrderBy   `json:"orderBy"`
-	Start   int64        `json:"start"`
-	End     int64        `json:"end"`
-	Filters v3.FilterSet `json:"filters"`
+	Offset  int                  `json:"offset"`
+	Limit   int                  `json:"limit"`
+	OrderBy querytypes.OrderBy   `json:"orderBy"`
+	Start   int64                `json:"start"`
+	End     int64                `json:"end"`
+	Filters querytypes.FilterSet `json:"filters"`
 }
 
 type TreeMapType string
@@ -21,11 +22,11 @@ const (
 )
 
 type TreeMapMetricsRequest struct {
-	Limit   int          `json:"limit"`
-	Treemap TreeMapType  `json:"treemap"`
-	Start   int64        `json:"start"`
-	End     int64        `json:"end"`
-	Filters v3.FilterSet `json:"filters"`
+	Limit   int                  `json:"limit"`
+	Treemap TreeMapType          `json:"treemap"`
+	Start   int64                `json:"start"`
+	End     int64                `json:"end"`
+	Filters querytypes.FilterSet `json:"filters"`
 }
 
 type MetricDetail struct {
@@ -95,10 +96,10 @@ type FilterKeyRequest struct {
 }
 
 type FilterValueRequest struct {
-	FilterKey                  string                  `json:"filterKey"`
-	FilterAttributeKeyDataType v3.AttributeKeyDataType `json:"filterAttributeKeyDataType"`
-	SearchText                 string                  `json:"searchText"`
-	Limit                      int                     `json:"limit"`
+	FilterKey                  string                          `json:"filterKey"`
+	FilterAttributeKeyDataType querytypes.AttributeKeyDataType `json:"filterAttributeKeyDataType"`
+	SearchText                 string                          `json:"searchText"`
+	Limit                      int                             `json:"limit"`
 }
 
 type FilterValueResponse struct {
@@ -106,8 +107,8 @@ type FilterValueResponse struct {
 }
 
 type FilterKeyResponse struct {
-	MetricColumns []string          `json:"metricColumns"`
-	AttributeKeys []v3.AttributeKey `json:"attributeKeys"`
+	MetricColumns []string                  `json:"metricColumns"`
+	AttributeKeys []querytypes.AttributeKey `json:"attributeKeys"`
 }
 
 var AvailableColumnFilterMap = map[string]bool{
@@ -120,16 +121,16 @@ type RelatedMetricsScore struct {
 	AttributeSimilarity float64
 	NameSimilarity      float64
 	Filters             [][]string
-	MetricType          v3.MetricType
-	Temporality         v3.Temporality
+	MetricType          querytypes.MetricType
+	Temporality         querytypes.Temporality
 	IsMonotonic         bool
 }
 
 type RelatedMetricsRequest struct {
-	CurrentMetricName string       `json:"currentMetricName"`
-	Start             int64        `json:"start"`
-	End               int64        `json:"end"`
-	Filters           v3.FilterSet `json:"filters"`
+	CurrentMetricName string               `json:"currentMetricName"`
+	Start             int64                `json:"start"`
+	End               int64                `json:"end"`
+	Filters           querytypes.FilterSet `json:"filters"`
 }
 
 type RelatedMetricsResponse struct {
@@ -137,27 +138,27 @@ type RelatedMetricsResponse struct {
 }
 
 type RelatedMetrics struct {
-	Name   string           `json:"name"`
-	Query  *v3.BuilderQuery `json:"query"`
-	Alerts []Alert          `json:"alerts"`
+	Name   string                   `json:"name"`
+	Query  *querytypes.BuilderQuery `json:"query"`
+	Alerts []Alert                  `json:"alerts"`
 }
 
 type InspectMetricsRequest struct {
-	MetricName string       `json:"metricName"`
-	Filters    v3.FilterSet `json:"filters"`
-	Start      int64        `json:"start"`
-	End        int64        `json:"end"`
+	MetricName string               `json:"metricName"`
+	Filters    querytypes.FilterSet `json:"filters"`
+	Start      int64                `json:"start"`
+	End        int64                `json:"end"`
 }
 
 type InspectMetricsResponse struct {
-	Series *[]v3.Series `json:"series,omitempty"`
+	Series *[]timeseriestypes.Series `json:"series,omitempty"`
 }
 
 type UpdateMetricsMetadataRequest struct {
-	MetricName  string         `json:"metricName"`
-	MetricType  v3.MetricType  `json:"metricType"`
-	Description string         `json:"description"`
-	Unit        string         `json:"unit"`
-	Temporality v3.Temporality `json:"temporality"`
-	IsMonotonic bool           `json:"isMonotonic"`
+	MetricName  string                 `json:"metricName"`
+	MetricType  querytypes.MetricType  `json:"metricType"`
+	Description string                 `json:"description"`
+	Unit        string                 `json:"unit"`
+	Temporality querytypes.Temporality `json:"temporality"`
+	IsMonotonic bool                   `json:"isMonotonic"`
 }

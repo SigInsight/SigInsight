@@ -10,7 +10,7 @@ import { DataSource } from '../../../../../types/common/queryBuilder';
 import { GroupByFilter } from '../GroupByFilter';
 
 const BASE_URL = ENVIRONMENT.baseURL;
-const attributeKeysURL = `${BASE_URL}/api/v5/autocomplete/attribute_keys`;
+const attributeKeysURL = `${BASE_URL}/api/v5/fields/keys`;
 
 function setup(
 	overrides?: Partial<React.ComponentProps<typeof GroupByFilter>>,
@@ -54,7 +54,7 @@ describe('GroupByFilter', () => {
 	it('uses meter datasource for suggestions and normalization', async () => {
 		server.use(
 			rest.get(attributeKeysURL, (req, res, ctx) => {
-				const ds = req.url.searchParams.get('dataSource') || '';
+				const ds = req.url.searchParams.get('source') || '';
 				dataSourceCalls.push(ds);
 				callCount += 1;
 				const attributeKeys =
@@ -71,7 +71,17 @@ describe('GroupByFilter', () => {
 				return res(
 					ctx.status(200),
 					ctx.json({
-						data: { attributeKeys },
+						status: 'success',
+						data: {
+							complete: true,
+							keys: {
+								resource: attributeKeys.map((attribute) => ({
+									name: attribute.key,
+									fieldContext: 'resource',
+									fieldDataType: attribute.dataType,
+								})),
+							},
+						},
 					}),
 				);
 			}),
@@ -109,14 +119,16 @@ describe('GroupByFilter', () => {
 					ctx.json({
 						status: 'success',
 						data: {
-							attributeKeys: [
-								{
-									id: 'service.name--string--',
-									key: 'service.name',
-									dataType: 'string',
-									type: '',
-								},
-							],
+							complete: true,
+							keys: {
+								resource: [
+									{
+										name: 'service.name',
+										fieldContext: 'resource',
+										fieldDataType: 'string',
+									},
+								],
+							},
 						},
 					}),
 				),

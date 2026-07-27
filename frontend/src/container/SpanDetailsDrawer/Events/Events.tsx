@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Collapse, Input, Modal, Typography } from 'antd';
 import { getYAxisFormattedValue } from 'components/Graph/yAxisConfig';
 import { Diamond } from 'lucide-react';
-import { Span } from 'types/api/trace/getTraceV2';
+import { Span } from 'types/api/trace/getTraceWaterfall';
 
 import NoData from '../NoData/NoData';
 import EventAttribute from './components/EventAttribute';

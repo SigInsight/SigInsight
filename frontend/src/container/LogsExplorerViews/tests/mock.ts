@@ -12,7 +12,7 @@ export const logsQueryRangeSuccessNewFormatResponse = {
 	data: {
 		result: [],
 		resultType: '',
-		newResult: {
+		queryResult: {
 			status: 'success',
 			data: {
 				resultType: '',

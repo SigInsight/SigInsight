@@ -69,7 +69,7 @@ export function SectionBody(props: SectionBodyProps): JSX.Element {
 
 	const listData = useMemo(
 		() =>
-			(type === 'hasError' ? statusFilterOption : results)
+			(type === 'has_error' ? statusFilterOption : results)
 				.filter((i) => i.length)
 				.filter((filter) => {
 					if (searchFilter.length === 0) {
@@ -86,7 +86,7 @@ export function SectionBody(props: SectionBodyProps): JSX.Element {
 	const onCheckHandler = (event: CheckboxChangeEvent, value: string): void => {
 		const { checked } = event.target;
 		let newValue = value;
-		if (type === 'hasError') {
+		if (type === 'has_error') {
 			newValue = String(value === 'Error');
 		}
 		if (checked) {
@@ -111,7 +111,9 @@ export function SectionBody(props: SectionBodyProps): JSX.Element {
 	};
 
 	const checkboxMatcher = (item: string): boolean =>
-		checkedItems?.includes(type === 'hasError' ? String(item === 'Error') : item);
+		checkedItems?.includes(
+			type === 'has_error' ? String(item === 'Error') : item,
+		);
 
 	const labelClassname = (item: string): string => `${type}-${item}`;
 
@@ -125,7 +127,7 @@ export function SectionBody(props: SectionBodyProps): JSX.Element {
 		<Card
 			bordered={false}
 			className="section-card"
-			loading={type === 'hasError' ? false : isFetching}
+			loading={type === 'has_error' ? false : isFetching}
 			key={type}
 		>
 			<>

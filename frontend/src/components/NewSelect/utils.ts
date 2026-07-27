@@ -1,4 +1,4 @@
-import { uniqueOptions } from 'container/DashboardContainer/DashboardVariablesSelection/util';
+import { uniqueOptions } from 'hooks/dashboard/dashboardVariableUtils';
 
 import { OptionData } from './types';
 

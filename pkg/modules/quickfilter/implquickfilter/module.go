@@ -6,7 +6,7 @@ import (
 
 	"github.com/SigNoz/signoz/pkg/errors"
 	"github.com/SigNoz/signoz/pkg/modules/quickfilter"
-	v3 "github.com/SigNoz/signoz/pkg/query-service/model/v3"
+	"github.com/SigNoz/signoz/pkg/query-service/model/querytypes"
 	"github.com/SigNoz/signoz/pkg/types/quickfiltertypes"
 	"github.com/SigNoz/signoz/pkg/valuer"
 )
@@ -49,7 +49,7 @@ func (m *module) GetSignalFilters(ctx context.Context, orgID valuer.UUID, signal
 	if storedFilter == nil {
 		return &quickfiltertypes.SignalFilters{
 			Signal:  signal,
-			Filters: []v3.AttributeKey{},
+			Filters: []querytypes.AttributeKey{},
 		}, nil
 	}
 
@@ -63,7 +63,7 @@ func (m *module) GetSignalFilters(ctx context.Context, orgID valuer.UUID, signal
 }
 
 // UpdateQuickFilters updates quick filters for a specific signal in an organization
-func (module *module) UpdateQuickFilters(ctx context.Context, orgID valuer.UUID, signal quickfiltertypes.Signal, filters []v3.AttributeKey) error {
+func (module *module) UpdateQuickFilters(ctx context.Context, orgID valuer.UUID, signal quickfiltertypes.Signal, filters []querytypes.AttributeKey) error {
 	// Validate each filter
 	for _, filter := range filters {
 		if err := filter.Validate(); err != nil {

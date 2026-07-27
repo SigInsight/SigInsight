@@ -2,11 +2,11 @@ import { useTranslation } from 'react-i18next';
 import { useQueries } from 'react-query';
 import { Typography } from 'antd';
 import getDisks from 'api/disks/getDisks';
+import getLogsRetention from 'api/settings/getLogsRetention';
 import getRetentionPeriodApi from 'api/settings/getRetention';
-import getRetentionPeriodApiV2 from 'api/settings/getRetentionV2';
 import Spinner from 'components/Spinner';
 import { useAppContext } from 'providers/App/App';
-import { ErrorResponse, SuccessResponse, SuccessResponseV2 } from 'types/api';
+import { ErrorResponse, HttpSuccessResponse, SuccessResponse } from 'types/api';
 import APIError from 'types/api/error';
 import { TTTLType } from 'types/api/settings/common';
 import { PayloadProps as GetRetentionPeriodAPIPayloadProps } from 'types/api/settings/getRetention';
@@ -17,8 +17,8 @@ type TRetentionAPIReturn<T extends TTTLType> = Promise<
 	SuccessResponse<GetRetentionPeriodAPIPayloadProps<T>> | ErrorResponse
 >;
 
-type TRetentionAPIReturnV2<T extends TTTLType> = Promise<
-	SuccessResponseV2<GetRetentionPeriodAPIPayloadProps<T>>
+type TLogsRetentionAPIReturn<T extends TTTLType> = Promise<
+	HttpSuccessResponse<GetRetentionPeriodAPIPayloadProps<T>>
 >;
 
 function GeneralSettings(): JSX.Element {
@@ -42,7 +42,7 @@ function GeneralSettings(): JSX.Element {
 			queryKey: ['getRetentionPeriodApiTraces', user?.accessJwt],
 		},
 		{
-			queryFn: (): TRetentionAPIReturnV2<'logs'> => getRetentionPeriodApiV2(), // Only works for logs
+			queryFn: (): TLogsRetentionAPIReturn<'logs'> => getLogsRetention(), // Only works for logs
 			queryKey: ['getRetentionPeriodApiLogs', user?.accessJwt],
 		},
 		{

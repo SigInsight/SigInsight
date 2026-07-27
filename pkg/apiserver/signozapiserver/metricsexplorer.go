@@ -10,7 +10,7 @@ import (
 )
 
 func (provider *provider) addMetricsExplorerRoutes(router *mux.Router) error {
-	if err := router.Handle("/api/v2/metrics", handler.New(
+	if err := router.Handle("/api/v5/metrics", handler.New(
 		provider.authZ.ViewAccess(provider.metricsExplorerHandler.ListMetrics),
 		handler.OpenAPIDef{
 			ID:                  "ListMetrics",
@@ -30,7 +30,7 @@ func (provider *provider) addMetricsExplorerRoutes(router *mux.Router) error {
 		return err
 	}
 
-	if err := router.Handle("/api/v2/metrics/stats", handler.New(
+	if err := router.Handle("/api/v5/metrics/stats", handler.New(
 		provider.authZ.ViewAccess(provider.metricsExplorerHandler.GetStats),
 		handler.OpenAPIDef{
 			ID:                  "GetMetricsStats",
@@ -49,7 +49,7 @@ func (provider *provider) addMetricsExplorerRoutes(router *mux.Router) error {
 		return err
 	}
 
-	if err := router.Handle("/api/v2/metrics/treemap", handler.New(
+	if err := router.Handle("/api/v5/metrics/treemap", handler.New(
 		provider.authZ.ViewAccess(provider.metricsExplorerHandler.GetTreemap),
 		handler.OpenAPIDef{
 			ID:                  "GetMetricsTreemap",
@@ -68,7 +68,7 @@ func (provider *provider) addMetricsExplorerRoutes(router *mux.Router) error {
 		return err
 	}
 
-	if err := router.Handle("/api/v2/metrics/{metric_name}/attributes", handler.New(
+	if err := router.Handle("/api/v5/metrics/{metric_name}/attributes", handler.New(
 		provider.authZ.ViewAccess(provider.metricsExplorerHandler.GetMetricAttributes),
 		handler.OpenAPIDef{
 			ID:                  "GetMetricAttributes",
@@ -88,7 +88,7 @@ func (provider *provider) addMetricsExplorerRoutes(router *mux.Router) error {
 		return err
 	}
 
-	if err := router.Handle("/api/v2/metrics/{metric_name}/metadata", handler.New(
+	if err := router.Handle("/api/v5/metrics/{metric_name}/metadata", handler.New(
 		provider.authZ.ViewAccess(provider.metricsExplorerHandler.GetMetricMetadata),
 		handler.OpenAPIDef{
 			ID:                  "GetMetricMetadata",
@@ -107,7 +107,7 @@ func (provider *provider) addMetricsExplorerRoutes(router *mux.Router) error {
 		return err
 	}
 
-	if err := router.Handle("/api/v2/metrics/{metric_name}/metadata", handler.New(
+	if err := router.Handle("/api/v5/metrics/{metric_name}/metadata", handler.New(
 		provider.authZ.EditAccess(provider.metricsExplorerHandler.UpdateMetricMetadata),
 		handler.OpenAPIDef{
 			ID:                  "UpdateMetricMetadata",
@@ -126,7 +126,7 @@ func (provider *provider) addMetricsExplorerRoutes(router *mux.Router) error {
 		return err
 	}
 
-	if err := router.Handle("/api/v2/metrics/{metric_name}/highlights", handler.New(
+	if err := router.Handle("/api/v5/metrics/{metric_name}/highlights", handler.New(
 		provider.authZ.ViewAccess(provider.metricsExplorerHandler.GetMetricHighlights),
 		handler.OpenAPIDef{
 			ID:                  "GetMetricHighlights",
@@ -145,7 +145,7 @@ func (provider *provider) addMetricsExplorerRoutes(router *mux.Router) error {
 		return err
 	}
 
-	if err := router.Handle("/api/v2/metrics/{metric_name}/alerts", handler.New(
+	if err := router.Handle("/api/v5/metrics/{metric_name}/alerts", handler.New(
 		provider.authZ.ViewAccess(provider.metricsExplorerHandler.GetMetricAlerts),
 		handler.OpenAPIDef{
 			ID:                  "GetMetricAlerts",

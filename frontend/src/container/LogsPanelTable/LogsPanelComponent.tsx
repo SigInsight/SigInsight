@@ -77,11 +77,11 @@ function LogsPanelComponent({
 	);
 
 	const dataLength =
-		queryResponse.data?.payload?.data?.newResult?.data?.result[0]?.list?.length;
+		queryResponse.data?.payload?.data?.queryResult?.data?.result[0]?.list?.length;
 	const totalCount = useMemo(() => dataLength || 0, [dataLength]);
 
 	const { logs } = useLogsData({
-		result: queryResponse.data?.payload?.data?.newResult?.data?.result,
+		result: queryResponse.data?.payload?.data?.queryResult?.data?.result,
 		panelType: PANEL_TYPES.LIST,
 		stagedQuery: widget.query,
 	});

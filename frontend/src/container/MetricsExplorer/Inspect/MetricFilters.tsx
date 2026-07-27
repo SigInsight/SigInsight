@@ -1,8 +1,8 @@
 import { useCallback } from 'react';
 import { Typography } from 'antd';
 import logEvent from 'api/common/logEvent';
-import QuerySearch from 'components/QueryBuilderV2/QueryV2/QuerySearch/QuerySearch';
-import { convertExpressionToFilters } from 'components/QueryBuilderV2/utils';
+import QuerySearch from 'components/QueryBuilder/Query/QuerySearch/QuerySearch';
+import { convertExpressionToFilters } from 'components/QueryBuilder/utils';
 import { DataSource } from 'types/common/queryBuilder';
 
 import { MetricsExplorerEventKeys, MetricsExplorerEvents } from '../events';
