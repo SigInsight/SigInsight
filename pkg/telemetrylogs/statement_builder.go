@@ -65,7 +65,7 @@ func (b *logQueryStatementBuilder) Build(
 	start = querybuilder.ToNanoSecs(start)
 	end = querybuilder.ToNanoSecs(end)
 
-	keySelectors, warnings := getKeySelectors(query)
+	keySelectors := getKeySelectors(query)
 	keys, _, err := b.metadataStore.GetKeysMulti(ctx, keySelectors)
 	if err != nil {
 		return nil, err
@@ -92,13 +92,11 @@ func (b *logQueryStatementBuilder) Build(
 		return nil, err
 	}
 
-	stmt.Warnings = append(stmt.Warnings, warnings...)
 	return stmt, nil
 }
 
-func getKeySelectors(query qbtypes.QueryBuilderQuery[qbtypes.LogAggregation]) ([]*telemetrytypes.FieldKeySelector, []string) {
+func getKeySelectors(query qbtypes.QueryBuilderQuery[qbtypes.LogAggregation]) []*telemetrytypes.FieldKeySelector {
 	var keySelectors []*telemetrytypes.FieldKeySelector
-	var warnings []string
 
 	for idx := range query.Aggregations {
 		aggExpr := query.Aggregations[idx]
@@ -145,19 +143,7 @@ func getKeySelectors(query qbtypes.QueryBuilderQuery[qbtypes.LogAggregation]) ([
 		keySelectors[idx].SelectorMatchType = telemetrytypes.FieldSelectorMatchTypeExact
 	}
 
-	// When the new JSON body experience is enabled, warn the user if they use the bare
-	// "body" key in the filter — queries on plain "body" default to body.message:string.
-	// TODO(Piyush): Setup better for coming FTS support.
-	if querybuilder.BodyJSONQueryEnabled {
-		for _, sel := range keySelectors {
-			if sel.Name == LogsV2BodyColumn {
-				warnings = append(warnings, bodySearchDefaultWarning)
-				break
-			}
-		}
-	}
-
-	return keySelectors, warnings
+	return keySelectors
 }
 
 func (b *logQueryStatementBuilder) adjustKeys(ctx context.Context, keys map[string][]*telemetrytypes.TelemetryFieldKey, query qbtypes.QueryBuilderQuery[qbtypes.LogAggregation], requestType qbtypes.RequestType) qbtypes.QueryBuilderQuery[qbtypes.LogAggregation] {
@@ -268,7 +254,7 @@ func (b *logQueryStatementBuilder) buildListQuery(
 		sb.SelectMore(LogsV2SeverityNumberColumn)
 		sb.SelectMore(LogsV2ScopeNameColumn)
 		sb.SelectMore(LogsV2ScopeVersionColumn)
-		sb.SelectMore(bodyAliasExpression())
+		sb.SelectMore(LogsV2BodyColumn)
 		sb.SelectMore(LogsV2AttributesStringColumn)
 		sb.SelectMore(LogsV2AttributesNumberColumn)
 		sb.SelectMore(LogsV2AttributesBoolColumn)

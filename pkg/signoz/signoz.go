@@ -25,7 +25,6 @@ import (
 	"github.com/SigNoz/signoz/pkg/sharder"
 	"github.com/SigNoz/signoz/pkg/sqlmigration"
 	"github.com/SigNoz/signoz/pkg/sqlmigrator"
-	"github.com/SigNoz/signoz/pkg/sqlschema"
 	"github.com/SigNoz/signoz/pkg/sqlstore"
 	"github.com/SigNoz/signoz/pkg/statsreporter"
 	"github.com/SigNoz/signoz/pkg/telemetrylogs"
@@ -73,7 +72,6 @@ func New(
 	emailingProviderFactories factory.NamedMap[factory.ProviderFactory[emailing.Emailing, emailing.Config]],
 	cacheProviderFactories factory.NamedMap[factory.ProviderFactory[cache.Cache, cache.Config]],
 	webProviderFactories factory.NamedMap[factory.ProviderFactory[web.Web, web.Config]],
-	sqlSchemaProviderFactories func(sqlstore.SQLStore) factory.NamedMap[factory.ProviderFactory[sqlschema.SQLSchema, sqlschema.Config]],
 	sqlstoreProviderFactories factory.NamedMap[factory.ProviderFactory[sqlstore.SQLStore, sqlstore.Config]],
 	telemetrystoreProviderFactories factory.NamedMap[factory.ProviderFactory[telemetrystore.TelemetryStore, telemetrystore.Config]],
 	authNsCallback func(ctx context.Context, providerSettings factory.ProviderSettings, store authtypes.AuthNStore) (map[authtypes.AuthNProvider]authn.AuthN, error),
@@ -213,23 +211,12 @@ func New(
 		return nil, err
 	}
 
-	sqlschema, err := factory.NewProviderFromNamedMap(
-		ctx,
-		providerSettings,
-		config.SQLSchema,
-		sqlSchemaProviderFactories(sqlstore),
-		config.SQLStore.Provider,
-	)
-	if err != nil {
-		return nil, err
-	}
-
 	// Run migrations on the sqlstore
 	sqlmigrations, err := sqlmigration.New(
 		ctx,
 		providerSettings,
 		config.SQLMigration,
-		NewSQLMigrationProviderFactories(sqlstore, sqlschema, telemetrystore, providerSettings),
+		NewSQLMigrationProviderFactories(),
 	)
 	if err != nil {
 		return nil, err

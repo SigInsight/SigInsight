@@ -14,7 +14,6 @@ import (
 	"github.com/SigNoz/signoz/pkg/modules/metricsexplorer"
 	"github.com/SigNoz/signoz/pkg/modules/organization"
 	"github.com/SigNoz/signoz/pkg/modules/preference"
-	"github.com/SigNoz/signoz/pkg/modules/promote"
 	"github.com/SigNoz/signoz/pkg/modules/rawdataexport"
 	"github.com/SigNoz/signoz/pkg/modules/session"
 	"github.com/SigNoz/signoz/pkg/modules/user"
@@ -33,7 +32,6 @@ type provider struct {
 	userHandler            user.Handler
 	sessionHandler         session.Handler
 	preferenceHandler      preference.Handler
-	promoteHandler         promote.Handler
 	flaggerHandler         flagger.Handler
 	metricsExplorerHandler metricsexplorer.Handler
 	fieldsHandler          fields.Handler
@@ -51,7 +49,6 @@ func NewFactory(
 	userHandler user.Handler,
 	sessionHandler session.Handler,
 	preferenceHandler preference.Handler,
-	promoteHandler promote.Handler,
 	flaggerHandler flagger.Handler,
 	metricsExplorerHandler metricsexplorer.Handler,
 	fieldsHandler fields.Handler,
@@ -72,7 +69,6 @@ func NewFactory(
 			userHandler,
 			sessionHandler,
 			preferenceHandler,
-			promoteHandler,
 			flaggerHandler,
 			metricsExplorerHandler,
 			fieldsHandler,
@@ -95,7 +91,6 @@ func newProvider(
 	userHandler user.Handler,
 	sessionHandler session.Handler,
 	preferenceHandler preference.Handler,
-	promoteHandler promote.Handler,
 	flaggerHandler flagger.Handler,
 	metricsExplorerHandler metricsexplorer.Handler,
 	fieldsHandler fields.Handler,
@@ -116,7 +111,6 @@ func newProvider(
 		userHandler:            userHandler,
 		sessionHandler:         sessionHandler,
 		preferenceHandler:      preferenceHandler,
-		promoteHandler:         promoteHandler,
 		flaggerHandler:         flaggerHandler,
 		metricsExplorerHandler: metricsExplorerHandler,
 		fieldsHandler:          fieldsHandler,
@@ -154,10 +148,6 @@ func (provider *provider) AddToRouter(router *mux.Router) error {
 	}
 
 	if err := provider.addUserRoutes(router); err != nil {
-		return err
-	}
-
-	if err := provider.addPromoteRoutes(router); err != nil {
 		return err
 	}
 

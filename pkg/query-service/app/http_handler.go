@@ -799,22 +799,6 @@ func (aH *APIHandler) dependencyGraph(w http.ResponseWriter, r *http.Request) {
 	aH.WriteJSON(w, r, result)
 }
 
-func (aH *APIHandler) SearchTraces(w http.ResponseWriter, r *http.Request) {
-	params, err := ParseSearchTracesParams(r)
-	if err != nil {
-		RespondError(w, &model.ApiError{Typ: model.ErrorBadData, Err: err}, "Error reading params")
-		return
-	}
-
-	result, err := aH.reader.SearchTraces(r.Context(), params)
-	if aH.HandleError(w, err, http.StatusBadRequest) {
-		return
-	}
-
-	aH.WriteJSON(w, r, result)
-
-}
-
 func (aH *APIHandler) GetWaterfallSpansForTraceWithMetadata(w http.ResponseWriter, r *http.Request) {
 	claims, err := authtypes.ClaimsFromContext(r.Context())
 	if err != nil {
@@ -999,7 +983,7 @@ func (aH *APIHandler) setCustomRetentionTTL(w http.ResponseWriter, r *http.Reque
 	}
 
 	// Context is not used here as TTL is long duration DB operation
-	result, apiErr := aH.reader.SetTTLV2(context.Background(), claims.OrgID, &params)
+	result, apiErr := aH.reader.SetCustomRetentionTTL(context.Background(), claims.OrgID, &params)
 	if apiErr != nil {
 		render.Error(w, errorsV2.New(errorsV2.TypeInvalidInput, errorsV2.CodeInternal, apiErr.Error()))
 		return

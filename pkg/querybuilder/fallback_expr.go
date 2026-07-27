@@ -103,8 +103,7 @@ func CollisionHandledFinalExpr(
 			return "", nil, err
 		}
 
-		// first if condition covers the older tests and second if condition covers the array conditions
-		if !BodyJSONQueryEnabled && field.FieldContext == telemetrytypes.FieldContextBody && jsonKeyToKey != nil {
+		if field.FieldContext == telemetrytypes.FieldContextBody && jsonKeyToKey != nil {
 			return "", nil, errors.NewInvalidInputf(errors.CodeInvalidInput, "Group by/Aggregation isn't available for the body column")
 		} else if strings.Contains(field.Name, telemetrytypes.ArraySep) || strings.Contains(field.Name, telemetrytypes.ArrayAnyIndex) {
 			return "", nil, errors.NewInvalidInputf(errors.CodeInvalidInput, "Group by/Aggregation isn't available for the Array Paths: %s", field.Name)

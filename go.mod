@@ -7,7 +7,7 @@ require (
 	github.com/AfterShip/clickhouse-sql-parser v0.4.16
 	github.com/ClickHouse/clickhouse-go/v2 v2.45.0
 	github.com/DATA-DOG/go-sqlmock v1.5.2
-	github.com/SigInsight/OtelCollector v1.0.2
+	github.com/SigInsight/OtelCollector v1.1.2
 	github.com/SigNoz/govaluate v0.0.0-20240203125216-988004ccc7fd
 	github.com/antlr4-go/antlr/v4 v4.13.1
 	github.com/cespare/xxhash/v2 v2.3.0
@@ -18,7 +18,6 @@ require (
 	github.com/go-openapi/strfmt v0.26.1
 	github.com/go-redis/redismock/v9 v9.2.0
 	github.com/go-viper/mapstructure/v2 v2.5.0
-	github.com/gojek/heimdall/v7 v7.0.3
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/handlers v1.5.1
@@ -27,7 +26,6 @@ require (
 	github.com/json-iterator/go v1.1.13-0.20220915233716-71ac16282d12
 	github.com/knadh/koanf v1.5.0
 	github.com/knadh/koanf/v2 v2.3.4
-	github.com/mailru/easyjson v0.9.0
 	github.com/open-telemetry/opamp-go v0.22.0
 	github.com/openfga/api/proto v0.0.0-20260319214821-f153694bfc20
 	github.com/openfga/language/pkg/go v0.2.1
@@ -55,7 +53,6 @@ require (
 	go.opentelemetry.io/collector/confmap v1.58.0
 	go.opentelemetry.io/contrib/config v0.10.0
 	go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux v0.63.0
-	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.69.0
 	go.opentelemetry.io/otel v1.44.0
 	go.opentelemetry.io/otel/metric v1.44.0
 	go.opentelemetry.io/otel/sdk v1.44.0
@@ -130,6 +127,7 @@ require (
 	github.com/x448/float16 v0.8.4 // indirect
 	go.opentelemetry.io/collector/internal/componentalias v0.152.0 // indirect
 	go.opentelemetry.io/collector/pdata v1.58.0 // indirect
+	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.69.0 // indirect
 	go.uber.org/goleak v1.3.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.4 // indirect
@@ -193,7 +191,6 @@ require (
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/goccy/go-json v0.10.5 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
-	github.com/gojek/valkyrie v0.0.0-20180215180059-6aee720afcdf // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/golang/snappy v1.0.0 // indirect
 	github.com/google/btree v1.1.3 // indirect
@@ -218,7 +215,6 @@ require (
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jessevdk/go-flags v1.6.1 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
-	github.com/josharian/intern v1.0.0 // indirect
 	github.com/jpillora/backoff v1.0.0 // indirect
 	github.com/klauspost/compress v1.18.6 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
@@ -239,7 +235,7 @@ require (
 	github.com/mwitkow/go-conntrack v0.0.0-20190716064945-2f068394615f // indirect
 	github.com/natefinch/wrap v0.2.0 // indirect
 	github.com/oklog/run v1.2.0 // indirect
-	github.com/oklog/ulid/v2 v2.1.1
+	github.com/oklog/ulid/v2 v2.1.1 // indirect
 	github.com/open-feature/go-sdk v1.17.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/exp/metrics v0.152.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatautil v0.152.0 // indirect

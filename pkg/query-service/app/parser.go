@@ -11,8 +11,6 @@ import (
 
 	"github.com/SigNoz/signoz/pkg/types/thirdpartyapitypes"
 
-	"github.com/gorilla/mux"
-
 	errorsV2 "github.com/SigNoz/signoz/pkg/errors"
 	baseconstants "github.com/SigNoz/signoz/pkg/query-service/constants"
 	"github.com/SigNoz/signoz/pkg/query-service/model"
@@ -58,48 +56,6 @@ func parseGetServicesRequest(r *http.Request) (*model.GetServicesParams, error) 
 
 	postData.Period = int(postData.End.Unix() - postData.Start.Unix())
 	return postData, nil
-}
-
-func ParseSearchTracesParams(r *http.Request) (*model.SearchTracesParams, error) {
-	vars := mux.Vars(r)
-	params := &model.SearchTracesParams{}
-	params.TraceID = vars["traceId"]
-	params.SpanID = r.URL.Query().Get("spanId")
-
-	levelUpStr := r.URL.Query().Get("levelUp")
-	levelDownStr := r.URL.Query().Get("levelDown")
-	SpanRenderLimitStr := r.URL.Query().Get("spanRenderLimit")
-	if levelUpStr == "" || levelUpStr == "null" {
-		levelUpStr = "0"
-	}
-	if levelDownStr == "" || levelDownStr == "null" {
-		levelDownStr = "0"
-	}
-	if SpanRenderLimitStr == "" || SpanRenderLimitStr == "null" {
-		SpanRenderLimitStr = baseconstants.SpanRenderLimitStr
-	}
-
-	levelUpInt, err := strconv.Atoi(levelUpStr)
-	if err != nil {
-		return nil, err
-	}
-	levelDownInt, err := strconv.Atoi(levelDownStr)
-	if err != nil {
-		return nil, err
-	}
-	SpanRenderLimitInt, err := strconv.Atoi(SpanRenderLimitStr)
-	if err != nil {
-		return nil, err
-	}
-	MaxSpansInTraceInt, err := strconv.Atoi(baseconstants.MaxSpansInTraceStr)
-	if err != nil {
-		return nil, err
-	}
-	params.LevelUp = levelUpInt
-	params.LevelDown = levelDownInt
-	params.SpansRenderLimit = SpanRenderLimitInt
-	params.MaxSpansInTrace = MaxSpansInTraceInt
-	return params, nil
 }
 
 func DoesExistInSlice(item string, list []string) bool {
@@ -258,8 +214,8 @@ func parseTTLParams(r *http.Request) (*model.TTLParams, error) {
 	}
 
 	// Validate the type parameter
-	if typeTTL != baseconstants.TraceTTL && typeTTL != baseconstants.MetricsTTL && typeTTL != baseconstants.LogsTTL {
-		return nil, fmt.Errorf("type param should be metrics|traces|logs, got %v", typeTTL)
+	if typeTTL != baseconstants.TraceTTL && typeTTL != baseconstants.MetricsTTL {
+		return nil, fmt.Errorf("type param should be metrics|traces, got %v", typeTTL)
 	}
 
 	// Validate the TTL duration.
@@ -297,8 +253,8 @@ func parseGetTTL(r *http.Request) (*model.GetTTLParams, error) {
 		return nil, fmt.Errorf("type param cannot be empty from the query")
 	} else {
 		// Validate the type parameter
-		if typeTTL != baseconstants.TraceTTL && typeTTL != baseconstants.MetricsTTL && typeTTL != baseconstants.LogsTTL {
-			return nil, fmt.Errorf("type param should be metrics|traces|logs, got %v", typeTTL)
+		if typeTTL != baseconstants.TraceTTL && typeTTL != baseconstants.MetricsTTL {
+			return nil, fmt.Errorf("type param should be metrics|traces, got %v", typeTTL)
 		}
 	}
 

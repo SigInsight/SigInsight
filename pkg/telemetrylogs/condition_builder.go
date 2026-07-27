@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	schema "github.com/SigInsight/OtelCollector/cmd/signozschemamigrator/schema_migrator"
+	schema "github.com/SigInsight/OtelCollector/cmd/siginsightschemamigrator/schema_migrator"
 	"github.com/SigNoz/signoz/pkg/errors"
 	"github.com/SigNoz/signoz/pkg/querybuilder"
 	qbtypes "github.com/SigNoz/signoz/pkg/types/querybuildertypes/querybuildertypesv5"
@@ -33,15 +33,6 @@ func (c *conditionBuilder) conditionFor(
 		return "", err
 	}
 
-	if column.Type.GetType() == schema.ColumnTypeEnumJSON && querybuilder.BodyJSONQueryEnabled && key.Name != messageSubField {
-		valueType, value := InferDataType(value, operator, key)
-		cond, err := NewJSONConditionBuilder(key, valueType).buildJSONCondition(operator, value, sb)
-		if err != nil {
-			return "", err
-		}
-		return cond, nil
-	}
-
 	if operator.IsStringSearchOperator() {
 		value = querybuilder.FormatValueForContains(value)
 	}
@@ -52,14 +43,14 @@ func (c *conditionBuilder) conditionFor(
 	}
 
 	// Check if this is a body JSON search - either by FieldContext
-	if key.FieldContext == telemetrytypes.FieldContextBody && !querybuilder.BodyJSONQueryEnabled {
+	if key.FieldContext == telemetrytypes.FieldContextBody {
 		tblFieldName, value = GetBodyJSONKey(ctx, key, operator, value)
 	}
 
 	tblFieldName, value = querybuilder.DataTypeCollisionHandledFieldName(key, value, tblFieldName, operator)
 
 	// make use of case insensitive index for body
-	if tblFieldName == "body" || tblFieldName == messageSubColumn {
+	if tblFieldName == "body" {
 		switch operator {
 		case qbtypes.FilterOperatorLike:
 			return sb.ILike(tblFieldName, value), nil
@@ -162,7 +153,7 @@ func (c *conditionBuilder) conditionFor(
 	// in the UI based query builder, `exists` and `not exists` are used for
 	// key membership checks, so depending on the column type, the condition changes
 	case qbtypes.FilterOperatorExists, qbtypes.FilterOperatorNotExists:
-		if key.FieldContext == telemetrytypes.FieldContextBody && !querybuilder.BodyJSONQueryEnabled {
+		if key.FieldContext == telemetrytypes.FieldContextBody {
 			if operator == qbtypes.FilterOperatorExists {
 				return GetBodyJSONKeyForExists(ctx, key, operator, value), nil
 			} else {
@@ -253,11 +244,7 @@ func (c *conditionBuilder) ConditionFor(
 	case telemetrytypes.FieldContextResource, telemetrytypes.FieldContextAttribute:
 		// build exist condition for resource and attribute fields based on filter operator
 	case telemetrytypes.FieldContextBody:
-		// Querying JSON fields already account for Nullability of fields
-		// so additional exists checks are not needed
-		if querybuilder.BodyJSONQueryEnabled {
-			return condition, nil
-		}
+		// JSON string extraction includes its own existence predicate below.
 	}
 
 	if buildExistCondition {

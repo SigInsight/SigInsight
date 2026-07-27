@@ -701,21 +701,6 @@ func (v *filterExpressionVisitor) VisitFunctionCall(ctx *grammar.FunctionCallCon
 		return ""
 	}
 
-	// filter arrays from keys
-	if BodyJSONQueryEnabled && functionName != "hasToken" {
-		filteredKeys := []*telemetrytypes.TelemetryFieldKey{}
-		for _, key := range keys {
-			if key.FieldDataType.IsArray() {
-				filteredKeys = append(filteredKeys, key)
-			}
-		}
-		if len(filteredKeys) == 0 {
-			v.errors = append(v.errors, fmt.Sprintf("function `%s` expects key parameter to be an array field; no array fields found", functionName))
-			return ""
-		}
-		keys = filteredKeys
-	}
-
 	value := params[1:]
 	var conds []string
 	for _, key := range keys {
@@ -742,16 +727,7 @@ func (v *filterExpressionVisitor) VisitFunctionCall(ctx *grammar.FunctionCallCon
 		} else {
 			// this is that all other functions only support array fields
 			if key.FieldContext == telemetrytypes.FieldContextBody {
-				var err error
-				if BodyJSONQueryEnabled {
-					fieldName, err = v.fieldMapper.FieldFor(context.Background(), key)
-					if err != nil {
-						v.errors = append(v.errors, fmt.Sprintf("failed to get field name for key %s: %s", key.Name, err.Error()))
-						return ""
-					}
-				} else {
-					fieldName, _ = v.jsonKeyToKey(context.Background(), key, qbtypes.FilterOperatorUnknown, value)
-				}
+				fieldName, _ = v.jsonKeyToKey(context.Background(), key, qbtypes.FilterOperatorUnknown, value)
 			} else {
 				// TODO(add docs for json body search)
 				if v.mainErrorURL == "" {
@@ -883,10 +859,7 @@ func (v *filterExpressionVisitor) VisitKey(ctx *grammar.KeyContext) any {
 	// if there is a field with the same name as attribute/resource attribute
 	// Since it will ORed with the fieldKeysForName, it will not result empty
 	// when either of them have values
-	// Note: Skip this logic if body json query is enabled so we can look up the key inside fields
-	//
-	// TODO(Piyush): After entire migration this is supposed to be removed.
-	if !BodyJSONQueryEnabled && fieldKey.FieldContext == telemetrytypes.FieldContextBody {
+	if fieldKey.FieldContext == telemetrytypes.FieldContextBody {
 		fieldKeysForName = append(fieldKeysForName, &fieldKey)
 	}
 

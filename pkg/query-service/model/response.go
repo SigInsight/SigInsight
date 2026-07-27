@@ -2,9 +2,7 @@ package model
 
 import (
 	"encoding/json"
-	"fmt"
 	"math"
-	"strconv"
 	"time"
 
 	"github.com/pkg/errors"
@@ -217,14 +215,6 @@ type ServiceOverviewItem struct {
 	ErrorRate    float64   `json:"errorRate" ch:"errorRate"`
 }
 
-type SearchSpansResult struct {
-	StartTimestampMillis uint64          `json:"startTimestampMillis"`
-	EndTimestampMillis   uint64          `json:"endTimestampMillis"`
-	Columns              []string        `json:"columns"`
-	Events               [][]interface{} `json:"events"`
-	IsSubTree            bool            `json:"isSubTree"`
-}
-
 type GetFilterSpansResponseItem struct {
 	Timestamp          time.Time `ch:"timestamp" json:"timestamp"`
 	SpanID             string    `ch:"spanID" json:"spanID"`
@@ -254,26 +244,6 @@ type Event struct {
 	TimeUnixNano uint64                 `json:"timeUnixNano,omitempty"`
 	AttributeMap map[string]interface{} `json:"attributeMap,omitempty"`
 	IsError      bool                   `json:"isError,omitempty"`
-}
-
-//easyjson:json
-type SearchSpanResponseItem struct {
-	TimeUnixNano     uint64            `json:"timestamp"`
-	DurationNano     int64             `json:"durationNano"`
-	SpanID           string            `json:"spanId"`
-	RootSpanID       string            `json:"rootSpanId"`
-	TraceID          string            `json:"traceId"`
-	HasError         bool              `json:"hasError"`
-	Kind             int32             `json:"kind"`
-	ServiceName      string            `json:"serviceName"`
-	Name             string            `json:"name"`
-	References       []OtelSpanRef     `json:"references,omitempty"`
-	TagMap           map[string]string `json:"tagMap"`
-	Events           []string          `json:"event"`
-	RootName         string            `json:"rootName"`
-	StatusMessage    string            `json:"statusMessage"`
-	StatusCodeString string            `json:"statusCodeString"`
-	SpanKind         string            `json:"spanKind"`
 }
 
 type Span struct {
@@ -344,39 +314,6 @@ type OtelSpanRef struct {
 	RefType string `json:"refType,omitempty"`
 }
 
-func (ref *OtelSpanRef) ToString() string {
-
-	retString := fmt.Sprintf(`{TraceId=%s, SpanId=%s, RefType=%s}`, ref.TraceId, ref.SpanId, ref.RefType)
-
-	return retString
-}
-
-func (item *SearchSpanResponseItem) GetValues() []interface{} {
-
-	references := []OtelSpanRef{}
-	jsonbody, _ := json.Marshal(item.References)
-	_ = json.Unmarshal(jsonbody, &references)
-
-	referencesStringArray := []string{}
-	for _, item := range references {
-		referencesStringArray = append(referencesStringArray, item.ToString())
-	}
-
-	if item.Events == nil {
-		item.Events = []string{}
-	}
-	keys := make([]string, 0, len(item.TagMap))
-	values := make([]string, 0, len(item.TagMap))
-
-	for k, v := range item.TagMap {
-		keys = append(keys, k)
-		values = append(values, v)
-	}
-	returnArray := []interface{}{item.TimeUnixNano, item.SpanID, item.TraceID, item.ServiceName, item.Name, strconv.Itoa(int(item.Kind)), strconv.FormatInt(item.DurationNano, 10), keys, values, referencesStringArray, item.Events, item.HasError, item.StatusMessage, item.StatusCodeString, item.SpanKind}
-
-	return returnArray
-}
-
 type TagFilters struct {
 	StringTagKeys []string `json:"stringTagKeys" ch:"stringTagKeys"`
 	NumberTagKeys []string `json:"numberTagKeys" ch:"numberTagKeys"`
@@ -437,14 +374,10 @@ type GetTTLResponseItem struct {
 	MetricsMoveTime         int    `json:"metrics_move_ttl_duration_hrs,omitempty"`
 	TracesTime              int    `json:"traces_ttl_duration_hrs,omitempty"`
 	TracesMoveTime          int    `json:"traces_move_ttl_duration_hrs,omitempty"`
-	LogsTime                int    `json:"logs_ttl_duration_hrs,omitempty"`
-	LogsMoveTime            int    `json:"logs_move_ttl_duration_hrs,omitempty"`
 	ExpectedMetricsTime     int    `json:"expected_metrics_ttl_duration_hrs,omitempty"`
 	ExpectedMetricsMoveTime int    `json:"expected_metrics_move_ttl_duration_hrs,omitempty"`
 	ExpectedTracesTime      int    `json:"expected_traces_ttl_duration_hrs,omitempty"`
 	ExpectedTracesMoveTime  int    `json:"expected_traces_move_ttl_duration_hrs,omitempty"`
-	ExpectedLogsTime        int    `json:"expected_logs_ttl_duration_hrs,omitempty"`
-	ExpectedLogsMoveTime    int    `json:"expected_logs_move_ttl_duration_hrs,omitempty"`
 	Status                  string `json:"status"`
 }
 

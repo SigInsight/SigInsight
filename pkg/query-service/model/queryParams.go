@@ -281,15 +281,6 @@ type GetFilteredSpanAggregatesParams struct {
 	End                *time.Time
 }
 
-type SearchTracesParams struct {
-	TraceID          string `json:"traceId"`
-	LevelUp          int    `json:"levelUp"`
-	LevelDown        int    `json:"levelDown"`
-	SpanID           string `json:"spanId"`
-	SpansRenderLimit int    `json:"spansRenderLimit"`
-	MaxSpansInTrace  int    `json:"maxSpansInTrace"`
-}
-
 type GetWaterfallSpansForTraceWithMetadataParams struct {
 	SelectedSpanID              string   `json:"selectedSpanId"`
 	IsSelectedSpanIDUnCollapsed bool     `json:"isSelectedSpanIDUnCollapsed"`
@@ -384,16 +375,7 @@ type FilterCondition struct {
 }
 
 type GetCustomRetentionTTLResponse struct {
-	Version string `json:"version"`
-	Status  string `json:"status"`
-
-	// V1 fields
-	// LogsTime             int `json:"logs_ttl_duration_hrs,omitempty"`
-	// LogsMoveTime         int `json:"logs_move_ttl_duration_hrs,omitempty"`
-	ExpectedLogsTime     int `json:"expected_logs_ttl_duration_hrs,omitempty"`
-	ExpectedLogsMoveTime int `json:"expected_logs_move_ttl_duration_hrs,omitempty"`
-
-	// V2 fields
+	Status             string                `json:"status"`
 	DefaultTTLDays     int                   `json:"default_ttl_days,omitempty"`
 	TTLConditions      []CustomRetentionRule `json:"ttl_conditions,omitempty"`
 	ColdStorageVolume  string                `json:"cold_storage_volume,omitempty"`

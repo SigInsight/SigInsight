@@ -25,6 +25,12 @@ func TestRemoveUnusedProductData(t *testing.T) {
 		`CREATE TABLE tuple (object_id TEXT NOT NULL)`,
 		`CREATE TABLE changelog (object_id TEXT NOT NULL)`,
 		`CREATE TABLE factor_api_key (id TEXT PRIMARY KEY)`,
+		`CREATE TABLE public_dashboard (id TEXT PRIMARY KEY)`,
+		`CREATE TABLE dashboard (id TEXT PRIMARY KEY)`,
+		`CREATE TABLE dashboards (id TEXT PRIMARY KEY)`,
+		`CREATE TABLE virtual_field (id TEXT PRIMARY KEY)`,
+		`CREATE TABLE license (id TEXT PRIMARY KEY)`,
+		`CREATE TABLE user_invite (id TEXT PRIMARY KEY)`,
 		`CREATE TABLE service_account_role (id TEXT PRIMARY KEY)`,
 		`CREATE TABLE service_account (id TEXT PRIMARY KEY)`,
 		`CREATE TABLE cloud_integration_service (id TEXT PRIMARY KEY)`,
@@ -45,6 +51,7 @@ func TestRemoveUnusedProductData(t *testing.T) {
 	require.NoError(t, migration.Up(ctx, db))
 
 	for _, table := range []string{
+		"public_dashboard", "dashboard", "dashboards", "virtual_field", "license", "user_invite",
 		"factor_api_key", "service_account_role", "service_account",
 		"cloud_integration_service", "cloud_integrations_service_configs",
 		"cloud_integrations_accounts", "cloud_integration", "installed_integration",

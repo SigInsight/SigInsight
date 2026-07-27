@@ -493,70 +493,6 @@ def test_set_custom_retention_ttl_basic_with_cold_storage(
     )
 
 
-def test_set_custom_retention_ttl_basic_fallback(
-    signoz: types.SigNoz,
-    get_token,
-    ttl_legacy_logs_v2_table_setup,  # pylint: disable=unused-argument
-    ttl_legacy_logs_v2_resource_table_setup,  # pylint: disable=unused-argument,
-):
-    """Test setting TTL for logs using the new setTTLLogs method."""
-
-    test_retention_days = 101  # 101 days
-    test_retention_days_cold = 17  # 17 days
-    payload = {
-        "type": "logs",
-        "defaultTTLDays": test_retention_days,
-        "ttlConditions": [],
-        "coldStorageVolume": "cold",
-        "coldStorageDurationDays": test_retention_days_cold,
-    }
-
-    headers = {
-        "Authorization": f"Bearer {get_token(USER_ADMIN_EMAIL, USER_ADMIN_PASSWORD)}"
-    }
-
-    response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v5/settings/logs/ttl"),
-        json=payload,
-        headers=headers,
-        timeout=30,
-    )
-
-    assert response.status_code == HTTPStatus.OK
-    response_data = response.json()
-    assert "message" in response_data
-    assert "successfully set up" in response_data["message"].lower()
-
-    # Verify TTL settings in Clickhouse
-    # Allow some time for the TTL to be applied
-    time.sleep(2)
-
-    # Check TTL settings on relevant logs tables
-    verify_table_retention_expression(
-        signoz,
-        {
-            # 101 days in seconds
-            "logs_v2": f"toIntervalSecond({test_retention_days * 24 * 3600})",
-            # 101 days in seconds
-            "logs_v2_resource": f"toIntervalSecond({test_retention_days * 24 * 3600})",
-            # Cold storage retention is not applicable for attribute keys table
-            "logs_attribute_keys": f"toIntervalSecond({test_retention_days * 24 * 3600})",
-            # Cold storage retention is not applicable for resource keys table
-            "logs_resource_keys": f"toIntervalSecond({test_retention_days * 24 * 3600})",
-        },
-    )
-
-    verify_table_retention_expression(
-        signoz,
-        {
-            # 17 days in seconds
-            "logs_v2": f"toIntervalSecond({test_retention_days_cold * 24 * 3600}) TO VOLUME 'cold'",
-            # 17 days in seconds
-            "logs_v2_resource": f"toIntervalSecond({test_retention_days_cold * 24 * 3600}) TO VOLUME 'cold'",
-        },
-    )
-
-
 def test_set_custom_retention_ttl_basic_101_times(
     signoz: types.SigNoz,
     get_token,
@@ -894,50 +830,6 @@ def test_get_custom_retention_ttl(
     assert response_data["ttl_conditions"][0]["conditions"][0]["values"] == [
         "test-service"
     ]
-
-
-def test_set_ttl_logs_success(
-    signoz: types.SigNoz,
-    get_token,
-    ttl_legacy_logs_v2_table_setup,  # pylint: disable=unused-argument
-    ttl_legacy_logs_v2_resource_table_setup,  # pylint: disable=unused-argument
-):
-    """Test setting TTL for logs using the new setTTLLogs method."""
-
-    test_retention_days = 150  # 150 days
-    payload = {
-        "type": "logs",
-        "duration": f"{test_retention_days * 24}h",
-    }
-
-    headers = {
-        "Authorization": f"Bearer {get_token(USER_ADMIN_EMAIL, USER_ADMIN_PASSWORD)}"
-    }
-
-    response = requests.post(
-        signoz.self.host_configs["8080"].get("/api/v5/settings/ttl"),
-        params=payload,
-        headers=headers,
-        timeout=30,
-    )
-
-    assert response.status_code == HTTPStatus.OK
-    response_data = response.json()
-    assert "message" in response_data
-    assert "successfully set up" in response_data["message"].lower()
-
-    time.sleep(2)
-
-    # Verify TTL settings in Clickhouse
-    verify_table_retention_expression(
-        signoz,
-        {
-            "logs_v2": f"toIntervalSecond({test_retention_days * 24 * 3600})",  # 150 days in seconds
-            "logs_v2_resource": f"toIntervalSecond({test_retention_days * 24 * 3600})",  # 150 days in seconds
-            "logs_attribute_keys": f"toIntervalSecond({test_retention_days * 24 * 3600})",  # 150 days in seconds
-            "logs_resource_keys": f"toIntervalSecond({test_retention_days * 24 * 3600})",  # 150 days in seconds
-        },
-    )
 
 
 def test_get_ttl_traces_success(

@@ -36,45 +36,7 @@ type TelemetryFieldKey struct {
 	FieldContext  FieldContext  `json:"fieldContext,omitzero"`
 	FieldDataType FieldDataType `json:"fieldDataType,omitzero"`
 
-	JSONDataType *JSONDataType       `json:"-"`
-	JSONPlan     JSONAccessPlan      `json:"-"`
-	Indexes      []JSONDataTypeIndex `json:"-"`
-	Materialized bool                `json:"-"` // refers to promoted in case of body.... fields
-}
-
-func (f *TelemetryFieldKey) KeyNameContainsArray() bool {
-	return strings.Contains(f.Name, ArraySep) || strings.Contains(f.Name, ArrayAnyIndex)
-}
-
-// ArrayPathSegments returns just the individual segments of the path
-// e.g., "education[].awards[].type" -> ["education", "awards", "type"]
-func (f *TelemetryFieldKey) ArrayPathSegments() []string {
-	return strings.Split(strings.ReplaceAll(f.Name, ArrayAnyIndex, ArraySep), ArraySep)
-}
-
-func (f *TelemetryFieldKey) ArrayParentPaths() []string {
-	parts := f.ArrayPathSegments()
-	paths := make([]string, 0, len(parts))
-	for i := range parts {
-		paths = append(paths, strings.Join(parts[:i+1], ArraySep))
-	}
-	return paths
-}
-
-func (f *TelemetryFieldKey) ArrayParentSelectors() []*FieldKeySelector {
-	paths := f.ArrayParentPaths()
-	selectors := make([]*FieldKeySelector, 0, len(paths))
-	for i := range paths {
-		selectors = append(selectors, &FieldKeySelector{
-			Name:              paths[i],
-			SelectorMatchType: FieldSelectorMatchTypeExact,
-			Signal:            f.Signal,
-			FieldContext:      f.FieldContext,
-			Limit:             1,
-		})
-	}
-
-	return selectors
+	Materialized bool `json:"-"`
 }
 
 func (f TelemetryFieldKey) String() string {
@@ -89,19 +51,6 @@ func (f TelemetryFieldKey) String() string {
 	if f.Materialized {
 		sb.WriteString(",materialized=true")
 	}
-	if f.JSONDataType != nil {
-		fmt.Fprintf(&sb, ",jsondatatype=%s", f.JSONDataType.StringValue())
-	}
-	if len(f.Indexes) > 0 {
-		sb.WriteString(",indexes=[")
-		for i, index := range f.Indexes {
-			if i > 0 {
-				sb.WriteString("; ")
-			}
-			fmt.Fprintf(&sb, "{type=%s, columnExpr=%s, indexExpr=%s}", index.Type.StringValue(), index.ColumnExpression, index.IndexExpression)
-		}
-		sb.WriteString("]")
-	}
 	return sb.String()
 }
 
@@ -114,10 +63,7 @@ func (f TelemetryFieldKey) Text() string {
 func (f *TelemetryFieldKey) OverrideMetadataFrom(src *TelemetryFieldKey) {
 	f.FieldContext = src.FieldContext
 	f.FieldDataType = src.FieldDataType
-	f.JSONDataType = src.JSONDataType
-	f.Indexes = src.Indexes
 	f.Materialized = src.Materialized
-	f.JSONPlan = src.JSONPlan
 }
 
 func (f *TelemetryFieldKey) Equal(key *TelemetryFieldKey) bool {

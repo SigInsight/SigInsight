@@ -50,9 +50,15 @@ func (migration *removeUnusedProductData) Up(ctx context.Context, db *bun.DB) er
 	}
 
 	for _, statement := range []string{
+		`DROP TABLE IF EXISTS public_dashboard`,
+		`DROP TABLE IF EXISTS dashboard`,
+		`DROP TABLE IF EXISTS dashboards`,
 		`DROP TABLE IF EXISTS planned_maintenance_rule`,
 		`DROP TABLE IF EXISTS planned_maintenance`,
 		`DROP TABLE IF EXISTS route_policy`,
+		`DROP TABLE IF EXISTS virtual_field`,
+		`DROP TABLE IF EXISTS license`,
+		`DROP TABLE IF EXISTS user_invite`,
 		`DROP TABLE IF EXISTS factor_api_key`,
 		`DROP TABLE IF EXISTS service_account_role`,
 		`DROP TABLE IF EXISTS service_account`,
