@@ -31,7 +31,7 @@ Open http://localhost:8081 in your favourite browser.
 By default, the compose files use these GHCR images:
 
 ```sh
-ghcr.io/siginsight/siginsight:v1.6.0
+ghcr.io/siginsight/siginsight:v1.6.2
 ghcr.io/siginsight/siginsight-otel-collector:v1.1.2
 ghcr.io/siginsight/clickhouse-init-histogram-quantile:25.5.6-latest
 ```
@@ -41,7 +41,7 @@ The complete deployment currently supports Linux AMD64 hosts only because the `v
 You can override their tags with environment variables:
 
 ```sh
-export VERSION=v1.6.0
+export VERSION=v1.6.2
 export OTELCOL_TAG=v1.1.2
 export HISTOGRAM_QUANTILE_INIT_IMAGE=ghcr.io/siginsight/clickhouse-init-histogram-quantile:25.5.6-latest
 ```
@@ -49,7 +49,7 @@ export HISTOGRAM_QUANTILE_INIT_IMAGE=ghcr.io/siginsight/clickhouse-init-histogra
 To use a different SigInsight registry or repository, set the complete image reference:
 
 ```sh
-export SIGINSIGHT_IMAGE=ghcr.io/siginsight/siginsight:v1.6.0
+export SIGINSIGHT_IMAGE=ghcr.io/siginsight/siginsight:v1.6.2
 ```
 
 To start collecting logs and metrics from your infrastructure, run the following command:
