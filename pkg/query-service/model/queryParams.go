@@ -47,7 +47,6 @@ type GetServicesParams struct {
 	Period    int
 	Start     *time.Time
 	End       *time.Time
-	Tags      []TagQueryParam `json:"tags"`
 }
 
 type GetServiceOverviewParams struct {

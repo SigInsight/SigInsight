@@ -27,7 +27,7 @@ import (
 // unquotedDottedNamePattern matches unquoted identifiers containing dots
 // that appear in metric or label name positions. This helps detect queries
 // using the old syntax that needs migration to UTF-8 quoted syntax.
-// Examples it matches: k8s.pod.name, deployment.environment, http.status_code
+// Examples it matches: service.name, deployment.environment, http.status_code
 var unquotedDottedNamePattern = regexp.MustCompile(`(?:^|[{,(\s])([a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z0-9_]+)+)(?:[}\s,=!~)\[]|$)`)
 
 // quotedMetricOutsideBracesPattern matches the incorrect syntax where a quoted

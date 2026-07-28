@@ -214,7 +214,6 @@ export const defaultOpenSections = [
 	'has_error',
 	'duration_nano',
 	'service.name',
-	'deployment.environment',
 ];
 
 export const defaultClosedSections = Object.keys(AllTraceFilterKeyValue).filter(

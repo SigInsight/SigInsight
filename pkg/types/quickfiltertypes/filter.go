@@ -141,7 +141,6 @@ func NewSignalFilterFromStorableQuickFilter(storableQuickFilter *StorableQuickFi
 func NewDefaultQuickFilter(orgID valuer.UUID) ([]*StorableQuickFilter, error) {
 	tracesFilters := []map[string]interface{}{
 		{"key": "duration_nano", "dataType": "float64", "type": "tag"},
-		{"key": "deployment.environment", "dataType": "string", "type": "resource"},
 		{"key": "has_error", "dataType": "bool", "type": "tag"},
 		{"key": "service.name", "dataType": "string", "type": "resource"},
 		{"key": "name", "dataType": "string", "type": "tag"},
@@ -156,33 +155,21 @@ func NewDefaultQuickFilter(orgID valuer.UUID) ([]*StorableQuickFilter, error) {
 
 	logsFilters := []map[string]interface{}{
 		{"key": "severity_text", "dataType": "string", "type": "resource"},
-		{"key": "deployment.environment", "dataType": "string", "type": "resource"},
 		{"key": "service.name", "dataType": "string", "type": "resource"},
 		{"key": "host.name", "dataType": "string", "type": "resource"},
-		{"key": "k8s.cluster.name", "dataType": "string", "type": "resource"},
-		{"key": "k8s.deployment.name", "dataType": "string", "type": "resource"},
-		{"key": "k8s.namespace.name", "dataType": "string", "type": "resource"},
-		{"key": "k8s.pod.name", "dataType": "string", "type": "resource"},
 	}
 
 	apiMonitoringFilters := []map[string]interface{}{
-		{"key": "deployment.environment", "dataType": "string", "type": "resource"},
 		{"key": "service.name", "dataType": "string", "type": "resource"},
 		{"key": "rpc.method", "dataType": "string", "type": "tag"},
 	}
 
 	exceptionsFilters := []map[string]interface{}{
-		{"key": "deployment.environment", "dataType": "string", "type": "resource"},
 		{"key": "service.name", "dataType": "string", "type": "resource"},
 		{"key": "host.name", "dataType": "string", "type": "resource"},
-		{"key": "k8s.cluster.name", "dataType": "string", "type": "resource"},
-		{"key": "k8s.deployment.name", "dataType": "string", "type": "resource"},
-		{"key": "k8s.namespace.name", "dataType": "string", "type": "resource"},
-		{"key": "k8s.pod.name", "dataType": "string", "type": "resource"},
 	}
 
 	meterFilters := []map[string]interface{}{
-		{"key": "deployment.environment", "dataType": "float64", "type": "Sum"},
 		{"key": "service.name", "dataType": "float64", "type": "Sum"},
 		{"key": "host.name", "dataType": "float64", "type": "Sum"},
 	}

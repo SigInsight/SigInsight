@@ -84,18 +84,6 @@ export const convertFiltersWithUrlHandling = (
 export const ApiMonitoringQuickFiltersConfig: IQuickFiltersConfig[] = [
 	{
 		type: FiltersType.CHECKBOX,
-		title: 'Environment',
-
-		attributeKey: {
-			key: 'deployment.environment',
-			dataType: DataTypes.String,
-			type: 'resource',
-		},
-		dataSource: DataSource.TRACES,
-		defaultOpen: true,
-	},
-	{
-		type: FiltersType.CHECKBOX,
 		title: 'Service Name',
 		attributeKey: {
 			key: 'service.name',

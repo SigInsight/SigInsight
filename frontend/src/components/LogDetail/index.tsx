@@ -9,7 +9,6 @@ import QuerySearch from 'components/QueryBuilder/Query/QuerySearch/QuerySearch';
 import { convertExpressionToFilters } from 'components/QueryBuilder/utils';
 import { LOCALSTORAGE } from 'constants/localStorage';
 import ContextView from 'container/LogDetailedView/ContextView/ContextView';
-import InfraMetrics from 'container/LogDetailedView/InfraMetrics/InfraMetrics';
 import JSONView from 'container/LogDetailedView/JsonView';
 import Overview from 'container/LogDetailedView/Overview';
 import {
@@ -27,7 +26,6 @@ import { cloneDeep } from 'lodash-es';
 import {
 	ArrowDown,
 	ArrowUp,
-	BarChart2,
 	Braces,
 	ChevronDown,
 	ChevronUp,
@@ -40,7 +38,7 @@ import {
 import { Query, TagFilter } from 'types/api/queryBuilder/queryBuilderData';
 import { DataSource, StringOperators } from 'types/common/queryBuilder';
 
-import { RESOURCE_KEYS, VIEW_TYPES, VIEWS } from './constants';
+import { VIEW_TYPES, VIEWS } from './constants';
 import { LogDetailInnerProps, LogDetailProps } from './LogDetail.interfaces';
 
 import './LogDetails.styles.scss';
@@ -406,17 +404,6 @@ function LogDetailInner({
 								Context
 							</div>
 						</Radio.Button>
-						<Radio.Button
-							className={
-								selectedView === VIEW_TYPES.INFRAMETRICS ? 'selected_view tab' : 'tab'
-							}
-							value={VIEW_TYPES.INFRAMETRICS}
-						>
-							<div className="view-title">
-								<BarChart2 size={14} />
-								Metrics
-							</div>
-						</Radio.Button>
 					</Radio.Group>
 
 					<div className="log-detail-drawer__actions">
@@ -483,17 +470,6 @@ function LogDetailInner({
 						isEdit={isEdit}
 					/>
 				)}
-				{selectedView === VIEW_TYPES.INFRAMETRICS && (
-					<InfraMetrics
-						clusterName={log.resources_string?.[RESOURCE_KEYS.CLUSTER_NAME] || ''}
-						podName={log.resources_string?.[RESOURCE_KEYS.POD_NAME] || ''}
-						nodeName={log.resources_string?.[RESOURCE_KEYS.NODE_NAME] || ''}
-						hostName={log.resources_string?.[RESOURCE_KEYS.HOST_NAME] || ''}
-						timestamp={log.timestamp.toString()}
-						dataSource={DataSource.LOGS}
-					/>
-				)}
-
 				{selectedView === VIEW_TYPES.OVERVIEW && (
 					<div className="log-detail-drawer__footer-hint">
 						<div className="log-detail-drawer__footer-hint-content">

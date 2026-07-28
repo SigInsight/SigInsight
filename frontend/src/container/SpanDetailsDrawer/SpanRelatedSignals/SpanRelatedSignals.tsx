@@ -1,27 +1,21 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import { Color, Spacing } from '@signozhq/design-tokens';
-import { Button, Divider, Drawer, RadioChangeEvent, Typography } from 'antd';
-import LogsIcon from 'assets/AlertHistory/LogsIcon';
-import AppRadioGroup from 'components/AppRadioGroup/AppRadioGroup';
+import { Button, Divider, Drawer, Typography } from 'antd';
 import { QueryParams } from 'constants/query';
 import {
 	initialQueryBuilderFormValuesMap,
 	initialQueryState,
 } from 'constants/queryBuilder';
 import ROUTES from 'constants/routes';
-import InfraMetrics from 'container/LogDetailedView/InfraMetrics/InfraMetrics';
 import { getEmptyLogsListConfig } from 'container/LogsExplorerList/utils';
-import dayjs from 'dayjs';
 import { useIsDarkMode } from 'hooks/useDarkMode';
-import { BarChart2, Compass, X } from 'lucide-react';
+import { Compass, X } from 'lucide-react';
 import { BaseAutocompleteData } from 'types/api/queryBuilder/queryAutocompleteResponse';
 import { Span } from 'types/api/trace/getTraceWaterfall';
-import { DataSource, LogsAggregatorOperator } from 'types/common/queryBuilder';
+import { LogsAggregatorOperator } from 'types/common/queryBuilder';
 
-import { RelatedSignalsViews } from '../constants';
 import SpanLogs from '../SpanLogs/SpanLogs';
 import { useSpanContextLogs } from '../SpanLogs/useSpanContextLogs';
-import { hasInfraMetadata } from '../utils';
 
 import './SpanRelatedSignals.styles.scss';
 
@@ -33,7 +27,6 @@ interface SpanRelatedSignalsProps {
 	traceEndTime: number;
 	isOpen: boolean;
 	onClose: () => void;
-	initialView: RelatedSignalsViews;
 }
 
 function SpanRelatedSignals({
@@ -42,28 +35,8 @@ function SpanRelatedSignals({
 	traceEndTime,
 	isOpen,
 	onClose,
-	initialView,
 }: SpanRelatedSignalsProps): JSX.Element {
-	const [selectedView, setSelectedView] = useState<RelatedSignalsViews>(
-		initialView,
-	);
 	const isDarkMode = useIsDarkMode();
-
-	// Extract infrastructure metadata from span attributes
-	const infraMetadata = useMemo(() => {
-		// Only return metadata if span has infrastructure metadata
-		if (!hasInfraMetadata(selectedSpan)) {
-			return null;
-		}
-
-		return {
-			clusterName: selectedSpan.tagMap['k8s.cluster.name'] || '',
-			podName: selectedSpan.tagMap['k8s.pod.name'] || '',
-			nodeName: selectedSpan.tagMap['k8s.node.name'] || '',
-			hostName: selectedSpan.tagMap['host.name'] || '',
-			spanTimestamp: dayjs(selectedSpan.timestamp).format(),
-		};
-	}, [selectedSpan]);
 	const {
 		logs,
 		isLoading,
@@ -80,39 +53,6 @@ function SpanRelatedSignals({
 		},
 		isDrawerOpen: isOpen,
 	});
-
-	const handleTabChange = useCallback((e: RadioChangeEvent): void => {
-		setSelectedView(e.target.value);
-	}, []);
-
-	const tabOptions = useMemo(() => {
-		const baseOptions = [
-			{
-				label: (
-					<div className="view-title">
-						<LogsIcon width={14} height={14} />
-						Logs
-					</div>
-				),
-				value: RelatedSignalsViews.LOGS,
-			},
-		];
-
-		// Add Infra option if infrastructure metadata is available
-		if (infraMetadata) {
-			baseOptions.push({
-				label: (
-					<div className="view-title">
-						<BarChart2 size={14} />
-						Metrics
-					</div>
-				),
-				value: RelatedSignalsViews.INFRA,
-			});
-		}
-
-		return baseOptions;
-	}, [infraMetadata]);
 
 	const handleExplorerPageRedirect = useCallback((): void => {
 		const startTimeMs = traceStartTime - FIVE_MINUTES_IN_MS;
@@ -199,52 +139,31 @@ function SpanRelatedSignals({
 			{selectedSpan && (
 				<div className="span-related-signals-drawer__content">
 					<div className="views-tabs-container">
-						<AppRadioGroup
-							value={selectedView}
-							options={tabOptions}
-							onChange={handleTabChange}
-							className="related-signals-radio"
-						/>
-						{selectedView === RelatedSignalsViews.LOGS && (
-							<Button
-								icon={<Compass size={18} />}
-								className="open-in-explorer"
-								onClick={handleExplorerPageRedirect}
-								data-testid="open-in-explorer-button"
-							>
-								Open in Logs Explorer
-							</Button>
-						)}
+						<Button
+							icon={<Compass size={18} />}
+							className="open-in-explorer"
+							onClick={handleExplorerPageRedirect}
+							data-testid="open-in-explorer-button"
+						>
+							Open in Logs Explorer
+						</Button>
 					</div>
 
-					{selectedView === RelatedSignalsViews.LOGS && (
-						<SpanLogs
-							traceId={selectedSpan.traceId}
-							spanId={selectedSpan.spanId}
-							timeRange={{
-								startTime: traceStartTime - FIVE_MINUTES_IN_MS,
-								endTime: traceEndTime + FIVE_MINUTES_IN_MS,
-							}}
-							logs={logs}
-							isLoading={isLoading}
-							isError={isError}
-							isFetching={isFetching}
-							isLogSpanRelated={isLogSpanRelated}
-							handleExplorerPageRedirect={handleExplorerPageRedirect}
-							emptyStateConfig={!hasTraceIdLogs ? emptyStateConfig : undefined}
-						/>
-					)}
-
-					{selectedView === RelatedSignalsViews.INFRA && infraMetadata && (
-						<InfraMetrics
-							clusterName={infraMetadata.clusterName}
-							podName={infraMetadata.podName}
-							nodeName={infraMetadata.nodeName}
-							hostName={infraMetadata.hostName}
-							timestamp={infraMetadata.spanTimestamp}
-							dataSource={DataSource.TRACES}
-						/>
-					)}
+					<SpanLogs
+						traceId={selectedSpan.traceId}
+						spanId={selectedSpan.spanId}
+						timeRange={{
+							startTime: traceStartTime - FIVE_MINUTES_IN_MS,
+							endTime: traceEndTime + FIVE_MINUTES_IN_MS,
+						}}
+						logs={logs}
+						isLoading={isLoading}
+						isError={isError}
+						isFetching={isFetching}
+						isLogSpanRelated={isLogSpanRelated}
+						handleExplorerPageRedirect={handleExplorerPageRedirect}
+						emptyStateConfig={!hasTraceIdLogs ? emptyStateConfig : undefined}
+					/>
 				</div>
 			)}
 		</Drawer>

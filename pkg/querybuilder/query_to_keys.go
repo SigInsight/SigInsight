@@ -8,7 +8,7 @@ import (
 
 // QueryStringToKeysSelectors converts a query string to a list of field key selectors
 //
-//	e.g. "service.name="query-service" AND http.status_code=200 AND resource.k8s.namespace.name="application"" -> []*telemetrytypes.FieldKeySelector{
+//	e.g. "service.name="query-service" AND http.status_code=200 AND resource.deployment.environment="production"" -> []*telemetrytypes.FieldKeySelector{
 //		{
 //			Name: "service.name",
 //			FieldContext: telemetrytypes.FieldContextUnspecified,
@@ -20,7 +20,7 @@ import (
 //			FieldDataType: telemetrytypes.FieldDataTypeUnspecified,
 //		},
 //		{
-//			Name: "resource.k8s.namespace.name",
+//			Name: "resource.deployment.environment",
 //			FieldContext: telemetrytypes.FieldContextResource,
 //			FieldDataType: telemetrytypes.FieldDataTypeUnspecified,
 //		},
