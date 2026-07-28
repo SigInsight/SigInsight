@@ -35,7 +35,6 @@ import useClickOutside from 'hooks/useClickOutside';
 import { generateColor } from 'lib/uPlotLib/utils/generateColor';
 import {
 	Anvil,
-	BarChart2,
 	Bookmark,
 	Check,
 	ChevronDown,
@@ -51,12 +50,10 @@ import { Span } from 'types/api/trace/getTraceWaterfall';
 import { formatEpochTimestamp } from 'utils/timeUtils';
 
 import Attributes from './Attributes/Attributes';
-import { RelatedSignalsViews } from './constants';
 import EventAttribute from './Events/components/EventAttribute';
 import Events from './Events/Events';
 import LinkedSpans from './LinkedSpans/LinkedSpans';
 import SpanRelatedSignals from './SpanRelatedSignals/SpanRelatedSignals';
-import { hasInfraMetadata } from './utils';
 
 import './SpanDetailsDrawer.styles.scss';
 
@@ -130,10 +127,6 @@ function SpanDetailsDrawer(props: ISpanDetailsDrawerProps): JSX.Element {
 	const [isRelatedSignalsOpen, setIsRelatedSignalsOpen] = useState<boolean>(
 		false,
 	);
-	const [activeDrawerView, setActiveDrawerView] = useState<RelatedSignalsViews>(
-		RelatedSignalsViews.LOGS,
-	);
-
 	const [selectedTimeRange, setSelectedTimeRange] = useState<number>(1);
 	const [
 		resourceAttributesSearchQuery,
@@ -199,46 +192,13 @@ function SpanDetailsDrawer(props: ISpanDetailsDrawerProps): JSX.Element {
 		themeColors.traceDetailColors,
 	);
 
-	const handleRelatedSignalsClick = useCallback(
-		(view: RelatedSignalsViews): void => {
-			setActiveDrawerView(view);
-			setIsRelatedSignalsOpen(true);
-		},
-		[],
-	);
+	const handleRelatedSignalsClick = useCallback((): void => {
+		setIsRelatedSignalsOpen(true);
+	}, []);
 
 	const handleRelatedSignalsClose = useCallback((): void => {
 		setIsRelatedSignalsOpen(false);
 	}, []);
-
-	const relatedSignalsOptions = useMemo(() => {
-		const baseOptions = [
-			{
-				label: (
-					<div className="view-title">
-						<LogsIcon width={14} height={14} />
-						Logs
-					</div>
-				),
-				value: RelatedSignalsViews.LOGS,
-			},
-		];
-
-		// Only show Infra option if span has infrastructure metadata
-		if (hasInfraMetadata(selectedSpan)) {
-			baseOptions.push({
-				label: (
-					<div className="view-title">
-						<BarChart2 size={14} />
-						Metrics
-					</div>
-				),
-				value: RelatedSignalsViews.INFRA,
-			});
-		}
-
-		return baseOptions;
-	}, [selectedSpan]);
 
 	function getItems(span: Span, startTime: number): TabsProps['items'] {
 		return [
@@ -953,16 +913,12 @@ function SpanDetailsDrawer(props: ISpanDetailsDrawerProps): JSX.Element {
 								related signals
 							</Typography.Text>
 							<div className="related-signals-section">
-								<Button.Group className="related-signals-button-group">
-									{relatedSignalsOptions.map((option) => (
-										<Button
-											key={option.value}
-											onClick={(): void => handleRelatedSignalsClick(option.value)}
-										>
-											{option.label}
-										</Button>
-									))}
-								</Button.Group>
+								<Button onClick={handleRelatedSignalsClick}>
+									<div className="view-title">
+										<LogsIcon width={14} height={14} />
+										Logs
+									</div>
+								</Button>
 							</div>
 						</div>
 					</section>
@@ -1002,8 +958,6 @@ function SpanDetailsDrawer(props: ISpanDetailsDrawerProps): JSX.Element {
 					traceEndTime={traceEndTime}
 					isOpen={isRelatedSignalsOpen}
 					onClose={handleRelatedSignalsClose}
-					initialView={activeDrawerView}
-					key={activeDrawerView}
 				/>
 			)}
 

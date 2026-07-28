@@ -6,11 +6,6 @@ import { connect } from 'react-redux';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { Card } from 'antd';
 import Spinner from 'components/Spinner';
-import TextToolTip from 'components/TextToolTip';
-import ResourceAttributesFilter from 'container/ResourceAttributesFilter';
-import useResourceAttribute from 'hooks/useResourceAttribute';
-import { whilelistedKeys } from 'hooks/useResourceAttribute/config';
-import { IResourceAttribute } from 'hooks/useResourceAttribute/types';
 import { getDetailedServiceMapItems, ServiceMapStore } from 'store/actions';
 import { AppState } from 'store/reducers';
 import styled from 'styled-components';
@@ -41,10 +36,7 @@ const Container = styled.div`
 interface ServiceMapProps extends RouteComponentProps<any> {
 	serviceMap: ServiceMapStore;
 	globalTime: GlobalTime;
-	getDetailedServiceMapItems: (
-		time: GlobalTime,
-		queries: IResourceAttribute[],
-	) => void;
+	getDetailedServiceMapItems: (time: GlobalTime) => void;
 }
 interface graphNode {
 	id: string;
@@ -68,15 +60,13 @@ function ServiceMap(props: ServiceMapProps): JSX.Element {
 
 	const { getDetailedServiceMapItems, globalTime, serviceMap } = props;
 
-	const { queries } = useResourceAttribute();
-
 	useEffect(() => {
 		/*
 			Call the apis only when the route is loaded.
 			Check this issue: https://github.com/SigInsight/signoz/issues/110
 		 */
-		getDetailedServiceMapItems(globalTime, queries);
-	}, [globalTime, getDetailedServiceMapItems, queries]);
+		getDetailedServiceMapItems(globalTime);
+	}, [globalTime, getDetailedServiceMapItems]);
 
 	useEffect(() => {
 		fgRef.current && fgRef.current.d3Force('charge').strength(-400);
@@ -89,25 +79,12 @@ function ServiceMap(props: ServiceMapProps): JSX.Element {
 	if (!serviceMap.loading && serviceMap.items.length === 0) {
 		return (
 			<Container>
-				<ResourceAttributesFilter />
 				<Card>No Service Found</Card>
 			</Container>
 		);
 	}
 	return (
 		<div className="service-map-container">
-			<ResourceAttributesFilter
-				suffixIcon={
-					<TextToolTip
-						{...{
-							text: `Currently, service map supports filtering of ${whilelistedKeys.join(
-								', ',
-							)} only, in resource attributes`,
-						}}
-					/>
-				}
-			/>
-
 			<Map fgRef={fgRef} serviceMap={serviceMap} />
 		</div>
 	);
@@ -116,7 +93,7 @@ function ServiceMap(props: ServiceMapProps): JSX.Element {
 const mapStateToProps = (
 	state: AppState,
 ): {
-	serviceMap: serviceMapStore;
+	serviceMap: ServiceMapStore;
 	globalTime: GlobalTime;
 } => ({
 	serviceMap: state.serviceMap,

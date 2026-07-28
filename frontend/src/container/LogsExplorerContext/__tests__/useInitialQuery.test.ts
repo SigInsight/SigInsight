@@ -127,35 +127,27 @@ describe('useInitialQuery - Priority-Based Resource Filtering', () => {
 		});
 	};
 
-	describe('K8s Environment Context Flow', () => {
-		it('should include service.name and k8s.pod.name when user opens log context from Kubernetes pod', () => {
-			// Log from k8s pod with multiple resource attributes
+	describe('Unsupported Resource Context Flow', () => {
+		it('should ignore unsupported deployment and orchestrator attributes', () => {
 			const testLog = createTestLog({
 				'service.name': 'frontend-service',
 				'deployment.environment': 'production',
-				'k8s.pod.name': 'frontend-pod-abc123',
-				'k8s.pod.uid': 'pod-uid-xyz789',
-				'k8s.deployment.name': 'frontend-deployment',
-				'host.name': 'worker-node-1',
-				'container.id': 'container-abc123',
+				'k8s.container.name': 'frontend',
+				'orchestrator.workload.name': 'frontend-workload',
+				'orchestrator.instance.id': 'instance-xyz789',
 				'random.attribute': 'should-be-filtered-out',
 			});
 
-			// User opens log context (hook executes)
 			const { result } = renderHook(() => useInitialQuery(testLog));
-
-			// Query includes only service.name + first k8s priority item
 			const generatedQuery = result.current;
 			expect(generatedQuery).toBeDefined();
 
-			// Verify that updateAllQueriesOperators was called with correct params
 			expect(mockUpdateAllQueriesOperators).toHaveBeenCalledWith(
-				expect.any(Object), // initialQueriesMap.logs
-				'list', // PANEL_TYPES.LIST
+				expect.any(Object),
+				'list',
 				DataSource.LOGS,
 			);
 
-			// Verify convertFiltersToExpression was called
 			expect(mockedConvertFiltersToExpression).toHaveBeenCalledWith(
 				expect.objectContaining({
 					items: expect.arrayContaining([
@@ -163,40 +155,29 @@ describe('useInitialQuery - Priority-Based Resource Filtering', () => {
 							key: expect.objectContaining({ key: 'service.name' }),
 							value: 'frontend-service',
 						}),
-						expect.objectContaining({
-							key: expect.objectContaining({ key: 'deployment.environment' }),
-							value: 'production',
-						}),
-						expect.objectContaining({
-							key: expect.objectContaining({ key: 'k8s.pod.uid' }), // First priority k8s item
-							value: 'pod-uid-xyz789',
-						}),
 					]),
 				}),
 			);
 
-			// Verify exact count of filter items (should be exactly 3)
 			const calledWith = mockedConvertFiltersToExpression.mock.calls[0][0];
-			expect(calledWith.items).toHaveLength(3);
+			expect(calledWith.items).toHaveLength(1);
 
-			// Verify specific unwanted keys are excluded
 			assertKeysNotPresent(calledWith.items, [
-				'k8s.pod.name', // Other k8s attributes should be excluded
-				'k8s.deployment.name',
-				'host.name', // Lower priority attributes should be excluded
-				'container.id',
-				'random.attribute', // Non-matching attributes should be excluded
+				'deployment.environment',
+				'k8s.container.name',
+				'orchestrator.workload.name',
+				'orchestrator.instance.id',
+				'random.attribute',
 			]);
 
-			// Verify exact call counts to catch unintended multiple invocations
 			expect(mockedConvertFiltersToExpression).toHaveBeenCalledTimes(1);
 			expect(mockUpdateAllQueriesOperators).toHaveBeenCalledTimes(1);
 		});
 	});
 
 	describe('Cloud Environment Flow', () => {
-		it('should include service.name and cloud.resource_id when user opens log context from cloud service without k8s', () => {
-			// Log from cloud service (no k8s attributes)
+		it('should include service.name and cloud.resource_id when user opens log context from cloud service', () => {
+			// Log from cloud service
 			const testLog = createTestLog({
 				'service.name': 'api-gateway',
 				env: 'staging',
@@ -260,8 +241,8 @@ describe('useInitialQuery - Priority-Based Resource Filtering', () => {
 	});
 
 	describe('Fallback Environment Flow', () => {
-		it('should include service.name and deployment.name when user opens log context from basic deployment without priority attributes', () => {
-			// Log from basic deployment (no k8s, cloud, host, or container)
+		it('should exclude deployment.environment while retaining useful fallback attributes', () => {
+			// Log from basic deployment (no cloud, host, or container)
 			const testLog = createTestLog({
 				'service.name': 'legacy-app',
 				'deployment.environment': 'production',
@@ -286,10 +267,6 @@ describe('useInitialQuery - Priority-Based Resource Filtering', () => {
 							value: 'legacy-app',
 						}),
 						expect.objectContaining({
-							key: expect.objectContaining({ key: 'deployment.environment' }),
-							value: 'production',
-						}),
-						expect.objectContaining({
 							key: expect.objectContaining({ key: 'deployment.name' }), // Fallback regex match
 							value: 'legacy-deployment',
 						}),
@@ -301,9 +278,9 @@ describe('useInitialQuery - Priority-Based Resource Filtering', () => {
 				}),
 			);
 
-			// Verify exact count of filter items (should be exactly 4)
+			// service.name plus deployment.name and file.path fallback attributes
 			const calledWith = mockedConvertFiltersToExpression.mock.calls[0][0];
-			expect(calledWith.items).toHaveLength(4);
+			expect(calledWith.items).toHaveLength(3);
 
 			// Verify specific unwanted keys are excluded
 			assertKeysNotPresent(calledWith.items, ['random.key', 'another.attribute']);
@@ -352,12 +329,11 @@ describe('useInitialQuery - Priority-Based Resource Filtering', () => {
 			);
 			expect(serviceItems.length).toBe(1);
 
-			// Verify no priority items (k8s, cloud, host, container) are included
+			// Verify no priority items (cloud, host, container) are included
 			const priorityItems = calledWith.items.filter(
 				(item: TagFilterItem) =>
 					item.key?.key &&
-					(item.key.key.startsWith('k8s.') ||
-						item.key.key.startsWith('cloud.') ||
+					(item.key.key.startsWith('cloud.') ||
 						item.key.key.startsWith('host.') ||
 						item.key.key.startsWith('container.')),
 			);
@@ -365,6 +341,7 @@ describe('useInitialQuery - Priority-Based Resource Filtering', () => {
 
 			// Verify specific unwanted keys are excluded
 			assertKeysNotPresent(calledWith.items, [
+				'deployment.environment',
 				'custom.tag', // Non-matching attributes should be excluded
 				'user.id',
 				'request.id',

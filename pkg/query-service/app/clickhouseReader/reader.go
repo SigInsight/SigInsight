@@ -39,7 +39,6 @@ import (
 
 	"log/slog"
 
-	"github.com/SigNoz/signoz/pkg/query-service/app/services"
 	"github.com/SigNoz/signoz/pkg/query-service/app/traces/tracedetail"
 	"github.com/SigNoz/signoz/pkg/query-service/common"
 	"github.com/SigNoz/signoz/pkg/query-service/constants"
@@ -849,10 +848,7 @@ func (r *ClickHouseReader) GetDependencyGraph(ctx context.Context, queryParams *
 		r.TraceDB, r.dependencyGraphTable,
 	)
 
-	tags := createTagQueryFromTagQueryParams(queryParams.Tags)
-	filterQuery, filterArgs := services.BuildServiceMapQuery(tags)
-	query += filterQuery + " GROUP BY src, dest;"
-	args = append(args, filterArgs...)
+	query += " GROUP BY src, dest;"
 
 	r.logger.Debug("GetDependencyGraph query", "query", query, "args", args)
 

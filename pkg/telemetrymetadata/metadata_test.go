@@ -162,6 +162,101 @@ func TestGetTraceDefaultFieldKey(t *testing.T) {
 	require.NoError(t, mock.ExpectationsWereMet())
 }
 
+func TestGetTraceStaticBoolFieldValues(t *testing.T) {
+	mockTelemetryStore := telemetrystoretest.New(telemetrystore.Config{}, &regexMatcher{})
+	metadata := newTestTelemetryMetaStoreTestHelper(mockTelemetryStore)
+
+	values, complete, err := metadata.GetAllValues(context.Background(), &telemetrytypes.FieldValueSelector{
+		FieldKeySelector: &telemetrytypes.FieldKeySelector{
+			Signal:        telemetrytypes.SignalTraces,
+			Name:          "has_error",
+			FieldDataType: telemetrytypes.FieldDataTypeBool,
+		},
+		Limit: 50,
+	})
+
+	require.NoError(t, err)
+	assert.True(t, complete)
+	assert.Equal(t, []bool{true, false}, values.BoolValues)
+	require.NoError(t, mockTelemetryStore.Mock().ExpectationsWereMet())
+}
+
+func TestGetTraceStaticStringFieldValuesFromTraceTable(t *testing.T) {
+	mockTelemetryStore := telemetrystoretest.New(telemetrystore.Config{}, &regexMatcher{})
+	mock := mockTelemetryStore.Mock()
+	metadata := newTestTelemetryMetaStoreTestHelper(mockTelemetryStore)
+
+	mock.ExpectQuery(`SELECT DISTINCT.*http_method.*FROM signoz_traces.signoz_index_v3.*http_method.*<>.*timestamp >= toDateTime64.*LOWER\(http_method\) LIKE LOWER`).
+		WithArgs("", "%GE%", 3).
+		WillReturnRows(cmock.NewRows([]cmock.ColumnType{
+			{Name: "http_method", Type: "String"},
+		}, [][]any{{"GET"}, {"MERGE"}}))
+
+	values, complete, err := metadata.GetAllValues(context.Background(), &telemetrytypes.FieldValueSelector{
+		FieldKeySelector: &telemetrytypes.FieldKeySelector{
+			Signal: telemetrytypes.SignalTraces,
+			Name:   "http_method",
+		},
+		Value: "GE",
+		Limit: 2,
+	})
+
+	require.NoError(t, err)
+	assert.True(t, complete)
+	assert.Equal(t, []string{"GET", "MERGE"}, values.StringValues)
+	require.NoError(t, mock.ExpectationsWereMet())
+}
+
+func TestGetTraceAttributeFieldValuesFallsBackToMetadata(t *testing.T) {
+	mockTelemetryStore := telemetrystoretest.New(telemetrystore.Config{}, &regexMatcher{})
+	mock := mockTelemetryStore.Mock()
+	metadata := newTestTelemetryMetaStoreTestHelper(mockTelemetryStore)
+
+	mock.ExpectQuery(`SELECT DISTINCT string_value, number_value FROM signoz_traces.tag_attributes_v2`).
+		WithArgs("custom.field", telemetrytypes.FieldContextAttribute.TagType(), telemetrytypes.FieldDataTypeString.TagDataType(), "%value%", 3).
+		WillReturnRows(cmock.NewRows([]cmock.ColumnType{
+			{Name: "string_value", Type: "String"},
+			{Name: "number_value", Type: "Float64"},
+		}, [][]any{{"value-one", float64(0)}}))
+
+	values, complete, err := metadata.GetAllValues(context.Background(), &telemetrytypes.FieldValueSelector{
+		FieldKeySelector: &telemetrytypes.FieldKeySelector{
+			Signal:        telemetrytypes.SignalTraces,
+			Name:          "custom.field",
+			FieldContext:  telemetrytypes.FieldContextAttribute,
+			FieldDataType: telemetrytypes.FieldDataTypeString,
+		},
+		Value: "value",
+		Limit: 2,
+	})
+
+	require.NoError(t, err)
+	assert.True(t, complete)
+	assert.Equal(t, []string{"value-one"}, values.StringValues)
+	require.NoError(t, mock.ExpectationsWereMet())
+}
+
+func TestTraceStaticFieldColumnMappings(t *testing.T) {
+	for name, expectedColumn := range map[string]string{
+		"service.name":         "resource_string_service$$name",
+		"http.route":           "attribute_string_http$$route",
+		"rpc.method":           "attribute_string_rpc$$method",
+		"has_error":            "has_error",
+		"response_status_code": "response_status_code",
+		"http_host":            "http_host",
+		"http_method":          "http_method",
+		"http_url":             "http_url",
+		"trace_id":             "trace_id",
+	} {
+		_, column, ok := traceStaticField(name)
+		assert.True(t, ok, name)
+		assert.Equal(t, expectedColumn, column, name)
+	}
+
+	_, _, ok := traceStaticField("custom.field")
+	assert.False(t, ok)
+}
+
 func TestGetKeysMultiDoesNotAddAliases(t *testing.T) {
 	tests := []struct {
 		name           string

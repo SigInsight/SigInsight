@@ -73,7 +73,7 @@ func (v *TelemetryFieldVisitor) VisitColumnDef(expr *parser.ColumnDef) error {
 	}
 
 	// Extract field name from the DEFAULT expression
-	// The DEFAULT expression should be something like: resources_string['k8s.cluster.name']
+	// The DEFAULT expression should be something like: resources_string['service.namespace']
 	// We need to extract the key inside the square brackets
 	defaultExprStr := expr.DefaultExpr.String()
 

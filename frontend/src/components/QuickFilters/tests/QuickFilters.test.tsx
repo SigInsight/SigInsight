@@ -39,7 +39,7 @@ const fieldsKeysURL = `${BASE_URL}/api/v5/fields/keys`;
 const fieldsValuesURL = `${BASE_URL}/api/v5/fields/values`;
 
 const FILTER_OS_DESCRIPTION = 'os.description';
-const FILTER_K8S_DEPLOYMENT_NAME = 'k8s.deployment.name';
+const FILTER_CLOUD_AVAILABILITY_ZONE = 'cloud.availability_zone';
 const ADDED_FILTERS_LABEL = /ADDED FILTERS/i;
 const OTHER_FILTERS_LABEL = /OTHER FILTERS/i;
 const SAVE_CHANGES_TEXT = 'Save changes';
@@ -296,7 +296,7 @@ describe('Quick Filters', () => {
 									items: expect.arrayContaining([
 										expect.objectContaining({
 											key: expect.objectContaining({
-												key: 'deployment.environment',
+												key: 'service.name',
 											}),
 											value: 'mq-kafka',
 										}),
@@ -355,7 +355,7 @@ describe('Quick Filters with custom filters', () => {
 
 		const otherSection = screen.getByText(OTHER_FILTERS_LABEL).parentElement!;
 		expect(otherSection).toContainElement(
-			await screen.findByText(FILTER_K8S_DEPLOYMENT_NAME),
+			await screen.findByText(FILTER_CLOUD_AVAILABILITY_ZONE),
 		);
 	});
 
@@ -369,14 +369,16 @@ describe('Quick Filters with custom filters', () => {
 		const settingsButton = icon.closest('button') ?? icon;
 		await user.click(settingsButton);
 
-		const otherFilterItem = await screen.findByText(FILTER_K8S_DEPLOYMENT_NAME);
+		const otherFilterItem = await screen.findByText(
+			FILTER_CLOUD_AVAILABILITY_ZONE,
+		);
 		const addButton = otherFilterItem.parentElement?.querySelector('button');
 		expect(addButton).not.toBeNull();
 		await user.click(addButton as HTMLButtonElement);
 
 		const addedSection = screen.getByText(ADDED_FILTERS_LABEL).parentElement!;
 		await waitFor(() => {
-			expect(addedSection).toHaveTextContent(FILTER_K8S_DEPLOYMENT_NAME);
+			expect(addedSection).toHaveTextContent(FILTER_CLOUD_AVAILABILITY_ZONE);
 		});
 	});
 

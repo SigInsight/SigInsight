@@ -73,12 +73,12 @@ describe('textContainsVariableReference', () => {
 
 	describe('embedded in larger text', () => {
 		it('finds variable in a multi-line query', () => {
-			const query = `SELECT JSONExtractString(labels, 'k8s_node_name') AS k8s_node_name
+			const query = `SELECT JSONExtractString(labels, 'host_name') AS host_name
 FROM signoz_metrics.time_series_v4_1day
-WHERE metric_name = 'k8s_node_cpu_time' AND JSONExtractString(labels, 'k8s_cluster_name') = {{.k8s_cluster_name}}
-GROUP BY k8s_node_name`;
-			expect(textContainsVariableReference(query, 'k8s_cluster_name')).toBe(true);
-			expect(textContainsVariableReference(query, 'k8s_node_name')).toBe(false); // plain text, not a variable reference
+WHERE metric_name = 'host_cpu_time' AND JSONExtractString(labels, 'cloud_region') = {{.cloud_region}}
+GROUP BY host_name`;
+			expect(textContainsVariableReference(query, 'cloud_region')).toBe(true);
+			expect(textContainsVariableReference(query, 'host_name')).toBe(false); // plain text, not a variable reference
 		});
 	});
 

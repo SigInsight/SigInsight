@@ -32,7 +32,7 @@ describe('useResourceAttribute component hook', () => {
 		const { result } = renderHook(() => useResourceAttribute(), { wrapper });
 
 		act(() => {
-			result.current.handleEnvironmentChange(['production']);
+			result.current.handleClearAll();
 		});
 
 		await waitFor(() =>

@@ -12,7 +12,6 @@ export const AllTraceFilterKeyValue = {
 	durationNanoMin: 'Duration',
 	duration_nano: 'Duration',
 	durationNanoMax: 'Duration',
-	'deployment.environment': 'Environment',
 	has_error: 'Status',
 	'service.name': 'Service Name',
 	name: 'Operation / Name',
@@ -201,12 +200,6 @@ export const traceFilterKeys = defineTraceFilterKeys({
 		id: 'service.name--string--resource--false',
 	},
 
-	'deployment.environment': {
-		key: 'deployment.environment',
-		dataType: DataTypes.String,
-		type: 'resource',
-		id: 'deployment.environment--string--resource--false',
-	},
 	name: {
 		key: 'name',
 		dataType: DataTypes.String,

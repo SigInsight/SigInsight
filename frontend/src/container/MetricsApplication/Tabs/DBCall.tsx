@@ -15,7 +15,6 @@ import {
 import useResourceAttribute from 'hooks/useResourceAttribute';
 import {
 	convertRawQueriesToTraceSelectedTags,
-	getResourceDeploymentKeys,
 	resourceAttributesToTagFilterItems,
 } from 'hooks/useResourceAttribute/utils';
 import { useSafeNavigate } from 'hooks/useSafeNavigate';
@@ -151,12 +150,7 @@ function DBCall(): JSX.Element {
 
 	useEffect(() => {
 		if (!logEventCalledRef.current) {
-			const selectedEnvironments = queries.find(
-				(val) => val.tagKey === getResourceDeploymentKeys(dotMetricsEnabled),
-			)?.tagValue;
-
 			logEvent('APM: Service detail page visited', {
-				selectedEnvironments,
 				resourceAttributeUsed: !!queries?.length,
 				section: 'dbMetrics',
 			});
