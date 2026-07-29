@@ -12,10 +12,24 @@ import (
 func NewSQLStore(store sqlstore.SQLStore, config authz.Config) (storage.OpenFGADatastore, error) {
 	switch store.BunDB().Dialect().Name().String() {
 	case "sqlite":
-		return sqlite.NewWithDB(store.SQLDB(), &sqlcommon.Config{
+		datastore, err := sqlite.NewWithDB(store.SQLDB(), &sqlcommon.Config{
 			MaxTuplesPerWriteField: 100,
 			MaxTypesPerModelField:  100,
 		})
+		if err != nil {
+			return nil, err
+		}
+
+		return sharedSQLDatastore{OpenFGADatastore: datastore}, nil
 	}
 	return nil, errors.Newf(errors.TypeInvalidInput, errors.CodeInvalidInput, "invalid store type: %s", store.BunDB().Dialect().Name().String())
 }
+
+// sharedSQLDatastore borrows a connection managed by SigInsight's SQLStore.
+// OpenFGA closes its datastore during shutdown, but that must not close the
+// shared database while other services, such as Alertmanager, are flushing.
+type sharedSQLDatastore struct {
+	storage.OpenFGADatastore
+}
+
+func (sharedSQLDatastore) Close() {}

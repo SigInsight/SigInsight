@@ -4,7 +4,7 @@ import { PANEL_TYPES } from 'constants/queryBuilder';
 import { getInitialStackedBands } from 'container/PanelVisualization/charts/utils/stackSeriesUtils';
 import { getLegend } from 'lib/dashboard/getQueryResults';
 import getLabelName from 'lib/getLabelName';
-import { OnClickPluginOpts } from 'lib/uPlotLib/plugins/onClickPlugin';
+import { OnClickPluginOpts } from 'lib/uPlotShared/onClickPlugin';
 import { DrawStyle } from 'lib/uPlotV2/config/types';
 import { UPlotConfigBuilder } from 'lib/uPlotV2/config/UPlotConfigBuilder';
 import { get } from 'lodash-es';
@@ -41,7 +41,7 @@ export function prepareBarPanelConfig({
 	widget: Widgets;
 	isDarkMode: boolean;
 	currentQuery: Query;
-	onClick: OnClickPluginOpts['onClick'];
+	onClick?: OnClickPluginOpts['onClick'];
 	onDragSelect: (startTime: number, endTime: number) => void;
 	apiResponse?: MetricRangePayloadProps;
 	timezone: Timezone;

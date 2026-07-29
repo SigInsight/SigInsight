@@ -15,7 +15,7 @@ jest.mock(
 	}),
 );
 
-jest.mock('lib/uPlotLib/plugins/onClickPlugin', () => ({
+jest.mock('lib/uPlotShared/onClickPlugin', () => ({
 	__esModule: true,
 	default: jest.fn().mockReturnValue({ name: 'onClickPlugin' }),
 }));

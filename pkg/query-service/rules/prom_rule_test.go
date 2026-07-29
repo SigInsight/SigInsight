@@ -17,7 +17,7 @@ import (
 	"github.com/SigNoz/signoz/pkg/instrumentation/instrumentationtest"
 	"github.com/SigNoz/signoz/pkg/prometheus"
 	"github.com/SigNoz/signoz/pkg/prometheus/prometheustest"
-	"github.com/SigNoz/signoz/pkg/query-service/app/clickhouseReader"
+	"github.com/SigNoz/signoz/pkg/query-service/app/rulestatehistorystore"
 	"github.com/SigNoz/signoz/pkg/query-service/model/querytypes"
 	qslabels "github.com/SigNoz/signoz/pkg/query-service/utils/labels"
 	"github.com/SigNoz/signoz/pkg/telemetrystore"
@@ -964,8 +964,7 @@ func TestPromRuleUnitCombinations(t *testing.T) {
 			"summary":     "The rule threshold is set to {{$threshold}}, and the observed metric value is {{$value}}",
 		}
 
-		options := clickhouseReader.NewOptions("", "", "archiveNamespace")
-		reader := clickhouseReader.NewReader(slog.Default(), nil, telemetryStore, promProvider, time.Second, nil, nil, options)
+		reader := rulestatehistorystore.New(slog.Default(), telemetryStore.ClickhouseDB(), rulestatehistorystore.DefaultConfig())
 		rule, err := NewPromRule("69", valuer.GenerateUUID(), &postableRule, logger, reader, promProvider)
 		if err != nil {
 			assert.NoError(t, err)
@@ -1074,8 +1073,7 @@ func _Enable_this_after_9146_issue_fix_is_merged_TestPromRuleNoData(t *testing.T
 			"summary":     "The rule threshold is set to {{$threshold}}, and the observed metric value is {{$value}}",
 		}
 
-		options := clickhouseReader.NewOptions("", "", "archiveNamespace")
-		reader := clickhouseReader.NewReader(slog.Default(), nil, telemetryStore, promProvider, time.Second, nil, nil, options)
+		reader := rulestatehistorystore.New(slog.Default(), telemetryStore.ClickhouseDB(), rulestatehistorystore.DefaultConfig())
 		rule, err := NewPromRule("69", valuer.GenerateUUID(), &postableRule, logger, reader, promProvider)
 		if err != nil {
 			assert.NoError(t, err)
@@ -1300,8 +1298,7 @@ func TestMultipleThresholdPromRule(t *testing.T) {
 			"summary":     "The rule threshold is set to {{$threshold}}, and the observed metric value is {{$value}}",
 		}
 
-		options := clickhouseReader.NewOptions("", "", "archiveNamespace")
-		reader := clickhouseReader.NewReader(slog.Default(), nil, telemetryStore, promProvider, time.Second, nil, nil, options)
+		reader := rulestatehistorystore.New(slog.Default(), telemetryStore.ClickhouseDB(), rulestatehistorystore.DefaultConfig())
 		rule, err := NewPromRule("69", valuer.GenerateUUID(), &postableRule, logger, reader, promProvider)
 		if err != nil {
 			assert.NoError(t, err)
@@ -1432,8 +1429,7 @@ func TestPromRule_NoData(t *testing.T) {
 				_ = promProvider.Close()
 			}()
 
-			options := clickhouseReader.NewOptions("primaryNamespace")
-			reader := clickhouseReader.NewReader(slog.Default(), nil, telemetryStore, promProvider, time.Second, nil, nil, options)
+			reader := rulestatehistorystore.New(slog.Default(), telemetryStore.ClickhouseDB(), rulestatehistorystore.DefaultConfig())
 			rule, err := NewPromRule("some-id", valuer.GenerateUUID(), &postableRule, logger, reader, promProvider)
 			require.NoError(t, err)
 
@@ -1577,8 +1573,7 @@ func TestPromRule_NoData_AbsentFor(t *testing.T) {
 				_ = promProvider.Close()
 			}()
 
-			options := clickhouseReader.NewOptions("primaryNamespace")
-			reader := clickhouseReader.NewReader(slog.Default(), nil, telemetryStore, promProvider, time.Second, nil, nil, options)
+			reader := rulestatehistorystore.New(slog.Default(), telemetryStore.ClickhouseDB(), rulestatehistorystore.DefaultConfig())
 			rule, err := NewPromRule("some-id", valuer.GenerateUUID(), &postableRule, logger, reader, promProvider)
 			require.NoError(t, err)
 
@@ -1731,8 +1726,7 @@ func TestPromRuleEval_RequireMinPoints(t *testing.T) {
 				_ = promProvider.Close()
 			}()
 
-			options := clickhouseReader.NewOptions("primaryNamespace")
-			reader := clickhouseReader.NewReader(slog.Default(), nil, telemetryStore, promProvider, time.Second, nil, nil, options)
+			reader := rulestatehistorystore.New(slog.Default(), telemetryStore.ClickhouseDB(), rulestatehistorystore.DefaultConfig())
 			rule, err := NewPromRule("some-id", valuer.GenerateUUID(), &postableRule, logger, reader, promProvider)
 			require.NoError(t, err)
 

@@ -1,11 +1,11 @@
 import { ReactNode } from 'react';
 import { Popover, Typography } from 'antd';
 import { DATE_TIME_FORMATS } from 'constants/dateTimeFormats';
-import { convertTimeToRelevantUnit } from 'container/TraceDetail/utils';
 import dayjs from 'dayjs';
 import { useTimezone } from 'providers/Timezone';
 import { Span } from 'types/api/trace/getTraceWaterfall';
 import { toFixed } from 'utils/toFixed';
+import { convertTimeToRelevantUnit } from 'utils/trace';
 
 import './SpanHoverCard.styles.scss';
 

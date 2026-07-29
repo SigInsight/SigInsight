@@ -26,13 +26,21 @@ import (
 	"github.com/SigNoz/signoz/pkg/prometheus"
 	"github.com/SigNoz/signoz/pkg/querier"
 	"github.com/SigNoz/signoz/pkg/query-service/agentconfig"
-	"github.com/SigNoz/signoz/pkg/query-service/app/clickhouseReader"
+	"github.com/SigNoz/signoz/pkg/query-service/app/clickhousehealth"
+	"github.com/SigNoz/signoz/pkg/query-service/app/metricmetadatastore"
+	"github.com/SigNoz/signoz/pkg/query-service/app/metricsexplorerstore"
 	"github.com/SigNoz/signoz/pkg/query-service/app/opamp"
 	opAmpModel "github.com/SigNoz/signoz/pkg/query-service/app/opamp/model"
+	"github.com/SigNoz/signoz/pkg/query-service/app/retentionstore"
+	"github.com/SigNoz/signoz/pkg/query-service/app/rulestatehistorystore"
+	"github.com/SigNoz/signoz/pkg/query-service/app/storageconfig"
+	"github.com/SigNoz/signoz/pkg/query-service/app/traces/exceptionstore"
+	"github.com/SigNoz/signoz/pkg/query-service/app/traces/servicestore"
+	"github.com/SigNoz/signoz/pkg/query-service/app/traces/tracedetailstore"
+	"github.com/SigNoz/signoz/pkg/query-service/app/traces/tracefunnelstore"
 	"github.com/SigNoz/signoz/pkg/query-service/interfaces"
 	"github.com/SigNoz/signoz/pkg/signoz"
 	"github.com/SigNoz/signoz/pkg/sqlstore"
-	"github.com/SigNoz/signoz/pkg/telemetrystore"
 	"github.com/SigNoz/signoz/pkg/web"
 
 	"log/slog"
@@ -75,23 +83,78 @@ func NewServer(config signoz.Config, signoz *signoz.SigNoz) (*Server, error) {
 		return nil, err
 	}
 
-	reader := clickhouseReader.NewReader(
-		signoz.Instrumentation.Logger(),
-		signoz.SQLStore,
-		signoz.TelemetryStore,
-		signoz.Prometheus,
-		config.Querier.FluxInterval,
+	logger := signoz.Instrumentation.Logger()
+	storageConfig := storageconfig.Default()
+	traceStorageConfig := storageConfig.Trace
+	retentionStorageConfig := storageConfig.Retention
+	clickhouseDB := signoz.TelemetryStore.ClickhouseDB()
+
+	metricMetadataReader := metricmetadatastore.New(logger, clickhouseDB, signoz.Cache)
+	metricsExplorerReader := metricsexplorerstore.New(logger, clickhouseDB, metricMetadataReader)
+	traceDetailReader := tracedetailstore.New(
+		logger,
+		clickhouseDB,
 		cacheForTraceDetail,
-		signoz.Cache,
-		nil,
+		tracedetailstore.Config{
+			TraceDB:           traceStorageConfig.Database,
+			TraceTableName:    traceStorageConfig.IndexTable,
+			TraceSummaryTable: traceStorageConfig.SummaryTable,
+			FluxInterval:      config.Querier.FluxInterval,
+		},
+	)
+	exceptionReader := exceptionstore.New(
+		logger,
+		clickhouseDB,
+		exceptionstore.Config{
+			TraceDB:    traceStorageConfig.Database,
+			ErrorTable: traceStorageConfig.ErrorTable,
+		},
+	)
+	serviceReader := servicestore.New(
+		logger,
+		clickhouseDB,
+		servicestore.Config{
+			TraceDB:                 traceStorageConfig.Database,
+			DependencyGraphTable:    traceStorageConfig.DependencyGraphTable,
+			TopLevelOperationsTable: traceStorageConfig.TopLevelOperationsTable,
+		},
+	)
+	clickHouseHealthReader := clickhousehealth.New(clickhouseDB)
+	traceFunnelReader := tracefunnelstore.New(logger, clickhouseDB)
+	ruleStateHistoryReader := rulestatehistorystore.New(
+		logger,
+		clickhouseDB,
+		rulestatehistorystore.DefaultConfig(),
+	)
+	retentionReader := retentionstore.New(
+		logger,
+		signoz.SQLStore,
+		clickhouseDB,
+		retentionstore.Config{
+			TraceDB:                retentionStorageConfig.TraceDB,
+			TraceTable:             retentionStorageConfig.TraceTable,
+			TraceLocalTable:        retentionStorageConfig.TraceLocalTable,
+			TraceResourceTable:     retentionStorageConfig.TraceResourceTable,
+			ErrorTable:             retentionStorageConfig.ErrorTable,
+			UsageExplorerTable:     retentionStorageConfig.UsageExplorerTable,
+			DependencyGraphTable:   retentionStorageConfig.DependencyGraphTable,
+			TraceSummaryTable:      retentionStorageConfig.TraceSummaryTable,
+			SpanAttributeKeysTable: retentionStorageConfig.SpanAttributeKeysTable,
+			LogsDB:                 retentionStorageConfig.LogsDB,
+			LogsTable:              retentionStorageConfig.LogsTable,
+			LogsLocalTable:         retentionStorageConfig.LogsLocalTable,
+			LogsResourceTable:      retentionStorageConfig.LogsResourceTable,
+			LogsResourceLocalTable: retentionStorageConfig.LogsResourceLocalTable,
+			LogsAttributeKeysTable: retentionStorageConfig.LogsAttributeKeysTable,
+			LogsResourceKeysTable:  retentionStorageConfig.LogsResourceKeysTable,
+		},
 	)
 
 	rm, err := makeRulesManager(
-		reader,
+		ruleStateHistoryReader,
 		signoz.Cache,
 		signoz.Alertmanager,
 		signoz.SQLStore,
-		signoz.TelemetryStore,
 		signoz.TelemetryMetadataStore,
 		signoz.Prometheus,
 		signoz.Modules.OrgGetter,
@@ -104,10 +167,18 @@ func NewServer(config signoz.Config, signoz *signoz.SigNoz) (*Server, error) {
 	}
 
 	apiHandler, err := NewAPIHandler(APIHandlerOpts{
-		Reader:          reader,
-		RuleManager:     rm,
-		AlertmanagerAPI: alertmanager.NewAPI(signoz.Alertmanager),
-		Signoz:          signoz,
+		Services:         serviceReader,
+		Retention:        retentionReader,
+		Exceptions:       exceptionReader,
+		TraceDetail:      traceDetailReader,
+		RuleStateHistory: ruleStateHistoryReader,
+		ClickHouseHealth: clickHouseHealthReader,
+		MetricMetadata:   metricMetadataReader,
+		MetricsExplorer:  metricsExplorerReader,
+		TraceFunnelQuery: traceFunnelReader,
+		RuleManager:      rm,
+		AlertmanagerAPI:  alertmanager.NewAPI(signoz.Alertmanager),
+		Signoz:           signoz,
 	}, config)
 	if err != nil {
 		return nil, err
@@ -283,11 +354,10 @@ func (s *Server) Stop(ctx context.Context) error {
 }
 
 func makeRulesManager(
-	ch interfaces.Reader,
+	ch interfaces.RuleStateHistoryReader,
 	cache cache.Cache,
 	alertmanager alertmanager.Alertmanager,
 	sqlstore sqlstore.SQLStore,
-	telemetryStore telemetrystore.TelemetryStore,
 	metadataStore telemetrytypes.MetadataStore,
 	prometheus prometheus.Prometheus,
 	orgGetter organization.Getter,
@@ -298,20 +368,19 @@ func makeRulesManager(
 	ruleStore := sqlrulestore.NewRuleStore(sqlstore, queryParser, providerSettings)
 	// create manager opts
 	managerOpts := &rules.ManagerOptions{
-		TelemetryStore: telemetryStore,
-		MetadataStore:  metadataStore,
-		Prometheus:     prometheus,
-		Context:        context.Background(),
-		Reader:         ch,
-		Querier:        querier,
-		Logger:         providerSettings.Logger,
-		Cache:          cache,
-		EvalDelay:      constants.GetEvalDelay(),
-		OrgGetter:      orgGetter,
-		Alertmanager:   alertmanager,
-		RuleStore:      ruleStore,
-		SqlStore:       sqlstore,
-		QueryParser:    queryParser,
+		MetadataStore: metadataStore,
+		Prometheus:    prometheus,
+		Context:       context.Background(),
+		Reader:        ch,
+		Querier:       querier,
+		Logger:        providerSettings.Logger,
+		Cache:         cache,
+		EvalDelay:     constants.GetEvalDelay(),
+		OrgGetter:     orgGetter,
+		Alertmanager:  alertmanager,
+		RuleStore:     ruleStore,
+		SqlStore:      sqlstore,
+		QueryParser:   queryParser,
 	}
 
 	// create Manager

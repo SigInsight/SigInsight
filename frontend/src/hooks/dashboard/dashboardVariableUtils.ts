@@ -402,7 +402,7 @@ function buildQueryPart(attribute: string, values: string[]): string {
 
 /**
  * Builds a filter query string from sibling dynamic variables' selected values.
- * e.g. `k8s.namespace.name IN ['zeus', 'gene'] AND doc_op_type = 'test'`
+ * e.g. `cloud.region IN ['us-east-1', 'eu-west-1'] AND doc_op_type = 'test'`
  */
 export function buildExistingDynamicVariableQuery(
 	existingVariables: IDashboardVariables | null,

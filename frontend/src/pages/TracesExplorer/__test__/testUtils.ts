@@ -4,11 +4,7 @@ import {
 	PANEL_TYPES,
 } from 'constants/queryBuilder';
 import { noop } from 'lodash-es';
-import { screen, waitFor } from 'tests/test-utils';
-import { DataTypes } from 'types/api/queryBuilder/queryAutocompleteResponse';
 import { Query } from 'types/api/queryBuilder/queryBuilderData';
-
-import { AllTraceFilterKeyValue } from '../Filter/filterUtils';
 
 export const optionMenuReturn = {
 	options: {
@@ -118,45 +114,6 @@ export const optionMenuReturn = {
 	},
 };
 
-export const compositeQuery: Query = {
-	...initialQueriesMap.traces,
-	builder: {
-		...initialQueriesMap.traces.builder,
-		queryData: [
-			{
-				...initialQueryBuilderFormValues,
-				filters: {
-					items: [
-						{
-							id: '95564eb1',
-							key: {
-								key: 'name',
-								dataType: DataTypes.String,
-								type: 'tag',
-								id: 'name--string--tag--true',
-							},
-							op: 'in',
-							value: ['HTTP GET /customer'],
-						},
-						{
-							id: '3337951c',
-							key: {
-								key: 'service.name',
-								dataType: DataTypes.String,
-								type: 'resource',
-								id: 'service.name--string--resource--false',
-							},
-							op: 'in',
-							value: ['demo-app'],
-						},
-					],
-					op: 'AND',
-				},
-			},
-		],
-	},
-};
-
 export const redirectWithQueryBuilderData = jest.fn();
 
 export const qbProviderValue = {
@@ -193,40 +150,3 @@ export const qbProviderValue = {
 	handleOnUnitsChange: noop,
 	isStagedQueryUpdated: (): boolean => false,
 } as any;
-
-export function checkIfSectionIsOpen(
-	getByTestId: (testId: string) => HTMLElement,
-	panelName: string,
-): void {
-	const section = getByTestId(`collapse-${panelName}`);
-	expect(section.querySelector('.ant-collapse-item-active')).not.toBeNull();
-}
-
-export function checkIfSectionIsNotOpen(
-	getByTestId: (testId: string) => HTMLElement,
-	panelName: string,
-): void {
-	const section = getByTestId(`collapse-${panelName}`);
-	expect(section.querySelector('.ant-collapse-item-active')).toBeNull();
-}
-
-export const defaultOpenSections = [
-	'has_error',
-	'duration_nano',
-	'service.name',
-	'deployment.environment',
-];
-
-export const defaultClosedSections = Object.keys(AllTraceFilterKeyValue).filter(
-	(section) =>
-		![...defaultOpenSections, 'durationNanoMin', 'durationNanoMax'].includes(
-			section,
-		),
-);
-
-export async function checkForSectionContent(values: string[]): Promise<void> {
-	for (const val of values) {
-		const sectionContent = await screen.findByText(val);
-		await waitFor(() => expect(sectionContent).toBeInTheDocument());
-	}
-}

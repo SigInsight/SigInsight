@@ -7,29 +7,22 @@ import {
 } from 'types/api/queryBuilder/queryBuilderData';
 import { v4 as uuid } from 'uuid';
 
-const FALLBACK_STARTS_WITH_REGEX = /^(k8s|cloud|host|deployment)/; // regex to filter out resources that start with the specified keywords
-const FALLBACK_CONTAINS_REGEX = /(env|service|file|container|tenant)/; // regex to filter out resources that contains the specified keywords
+const FALLBACK_RESOURCE_PREFIX_REGEX = /^(cloud|host|deployment|container|file|tenant|service)\./;
 
 // Priority categories for filter selection
 // Strategy:
-// - Always include: service.name, deployment.environment, env, environment
+// - Always include: service.name and generic env/environment attributes
 // - Select ONE category only: stops at the first category with a matching attribute
 // - Within category: picks the first available attribute by order
-// - Order (highest to lowest priority): Kubernetes > Cloud > Host > Container
+// - Order (highest to lowest priority): Cloud > Host > Container
 // - Fallback: If no priority match, uses regex-based filtering (excludes the above attributes)
 const PRIORITY_CATEGORIES = [
-	['k8s.pod.uid', 'k8s.pod.name', 'k8s.deployment.name'],
 	['cloud.resource_id', 'cloud.provider', 'cloud.region'],
 	['host.id', 'host.name'],
 	['container.id', 'container.name'],
 ];
 
-const SERVICE_AND_ENVIRONMENT_KEYS = [
-	'service.name',
-	'deployment.environment',
-	'env',
-	'environment',
-];
+const SERVICE_AND_ENVIRONMENT_KEYS = ['service.name', 'env', 'environment'];
 
 export const getFiltersFromResources = (
 	resources: ILog['resources_string'],
@@ -72,10 +65,11 @@ export const getFallbackItems = (items: TagFilterItem[]): TagFilterItem[] =>
 		}
 
 		const { key } = item.key;
+		if (key === 'deployment.environment') {
+			return false;
+		}
 
-		return (
-			FALLBACK_STARTS_WITH_REGEX.test(key) || FALLBACK_CONTAINS_REGEX.test(key)
-		);
+		return FALLBACK_RESOURCE_PREFIX_REGEX.test(key);
 	});
 
 export const updateFilters = (filters: TagFilter): TagFilter => {

@@ -186,7 +186,7 @@ export const filterKeyForField = (field: string): string => {
 	// Must work for all 3 of the following types of cases
 	// timestamp -> timestamp
 	// attributes_string.log.file -> log.file
-	// resources_string.k8s.pod.name -> k8s.pod.name
+	// resources_string.service.name -> service.name
 	const fieldAttribs = getFieldAttributes(field);
 	return fieldAttribs?.newField || field;
 };

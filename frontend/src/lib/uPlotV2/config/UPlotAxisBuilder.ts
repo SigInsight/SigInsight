@@ -1,9 +1,9 @@
 import { getToolTipValue } from 'components/Graph/yAxisConfig';
 import { PANEL_TYPES } from 'constants/queryBuilder';
+import { uPlotXAxisValuesFormat } from 'lib/uPlotShared/uPlotXAxisValuesFormat';
 import uPlot, { Axis } from 'uplot';
 
-import { uPlotXAxisValuesFormat } from '../../uPlotLib/utils/constants';
-import getGridColor from '../../uPlotLib/utils/getGridColor';
+import getGridColor from '../../uPlotShared/getGridColor';
 import { buildYAxisSizeCalculator } from '../utils/axis';
 import { AxisProps, ConfigBuilder } from './types';
 

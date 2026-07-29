@@ -7,7 +7,7 @@ import {
 } from 'container/PanelVisualization/panels/utils';
 import { getLegend } from 'lib/dashboard/getQueryResults';
 import getLabelName from 'lib/getLabelName';
-import { OnClickPluginOpts } from 'lib/uPlotLib/plugins/onClickPlugin';
+import { OnClickPluginOpts } from 'lib/uPlotShared/onClickPlugin';
 import {
 	DrawStyle,
 	FillMode,

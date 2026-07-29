@@ -5,12 +5,12 @@ import { TelemetryFieldKey } from 'api/v5/v5';
 import { DATE_TIME_FORMATS } from 'constants/dateTimeFormats';
 import ROUTES from 'constants/routes';
 import { getMs } from 'container/Trace/Filters/Panel/PanelBody/Duration/util';
-import { formUrlParams } from 'container/TraceDetail/utils';
 import { TimestampInput } from 'hooks/useTimezoneFormatter/useTimezoneFormatter';
 import { RowData } from 'lib/query/createTableColumnsFromQuery';
 import LineClampedText from 'periscope/components/LineClampedText/LineClampedText';
 import { ILog } from 'types/api/logs/log';
 import { QueryRangeResult } from 'types/api/widgets/getQuery';
+import { formUrlParams } from 'utils/trace';
 
 export function BlockLink({
 	children,

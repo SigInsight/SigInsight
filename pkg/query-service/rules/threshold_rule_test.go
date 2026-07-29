@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/SigNoz/signoz/pkg/instrumentation/instrumentationtest"
-	"github.com/SigNoz/signoz/pkg/query-service/app/clickhouseReader"
+	"github.com/SigNoz/signoz/pkg/query-service/app/rulestatehistorystore"
 	"github.com/SigNoz/signoz/pkg/query-service/common"
 	"github.com/SigNoz/signoz/pkg/query-service/model/querytypes"
 	"github.com/SigNoz/signoz/pkg/query-service/utils/labels"
@@ -110,17 +110,12 @@ func v5SeriesFromRows(rows [][]any, splitSeries bool) []*qbtypes.TimeSeries {
 	return series
 }
 
-func newRuleStateHistoryTestReader() *clickhouseReader.ClickHouseReader {
+func newRuleStateHistoryTestReader() *rulestatehistorystore.Reader {
 	telemetryStore := telemetrystoretest.New(telemetrystore.Config{}, &queryMatcherAny{})
-	return clickhouseReader.NewReader(
+	return rulestatehistorystore.New(
 		slog.Default(),
-		nil,
-		telemetryStore,
-		nil,
-		time.Second,
-		nil,
-		nil,
-		clickhouseReader.NewOptions("", "", "archiveNamespace"),
+		telemetryStore.ClickhouseDB(),
+		rulestatehistorystore.DefaultConfig(),
 	)
 }
 

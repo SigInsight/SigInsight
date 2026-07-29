@@ -16,14 +16,13 @@ import { getQueryString } from 'container/SideNav/helper';
 import useResourceAttribute from 'hooks/useResourceAttribute';
 import {
 	convertRawQueriesToTraceSelectedTags,
-	getResourceDeploymentKeys,
 	resourceAttributesToTagFilterItems,
 } from 'hooks/useResourceAttribute/utils';
 import { useSafeNavigate } from 'hooks/useSafeNavigate';
 import useUrlQuery from 'hooks/useUrlQuery';
 import getStep from 'lib/getStep';
 import history from 'lib/history';
-import { OnClickPluginOpts } from 'lib/uPlotLib/plugins/onClickPlugin';
+import { OnClickPluginOpts } from 'lib/uPlotShared/onClickPlugin';
 import { defaultTo } from 'lodash-es';
 import { useAppContext } from 'providers/App/App';
 import { UpdateTimeInterval } from 'store/actions';
@@ -101,12 +100,7 @@ function Application(): JSX.Element {
 	const logEventCalledRef = useRef(false);
 	useEffect(() => {
 		if (!logEventCalledRef.current) {
-			const selectedEnvironments = queries.find(
-				(val) => val.tagKey === getResourceDeploymentKeys(dotMetricsEnabled),
-			)?.tagValue;
-
 			logEvent('APM: Service detail page visited', {
-				selectedEnvironments,
 				resourceAttributeUsed: !!queries?.length,
 				section: 'overview',
 			});

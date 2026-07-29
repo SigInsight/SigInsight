@@ -1,25 +1,8 @@
-import { PanelTypeAndGraphManagerVisibilityProps } from './types';
+import { PANEL_TYPES } from 'constants/queryBuilder';
 
-export enum ColumnsKeyAndDataIndex {
-	Index = 'index',
-	Legend = 'legend',
-	Label = 'label',
-	Avg = 'avg',
-	Sum = 'sum',
-	Max = 'max',
-	Min = 'min',
-}
+export type PanelTypeVisibility = Record<keyof typeof PANEL_TYPES, boolean>;
 
-export const ColumnsTitle = {
-	[ColumnsKeyAndDataIndex.Index]: 'Index',
-	[ColumnsKeyAndDataIndex.Label]: 'Label',
-	[ColumnsKeyAndDataIndex.Avg]: 'Avg',
-	[ColumnsKeyAndDataIndex.Sum]: 'Sum',
-	[ColumnsKeyAndDataIndex.Max]: 'Max',
-	[ColumnsKeyAndDataIndex.Min]: 'Min',
-};
-
-export const PANEL_TYPES_VS_FULL_VIEW_TABLE: PanelTypeAndGraphManagerVisibilityProps = {
+export const PANEL_TYPES_VS_FULL_VIEW_TABLE: PanelTypeVisibility = {
 	TIME_SERIES: true,
 	VALUE: false,
 	TABLE: false,

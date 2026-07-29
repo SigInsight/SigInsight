@@ -1,6 +1,4 @@
 import { ApiV5Instance as api } from 'api';
-import { IResourceAttribute } from 'hooks/useResourceAttribute/types';
-import { convertRawQueriesToTraceSelectedTags } from 'hooks/useResourceAttribute/utils';
 // eslint-disable-next-line no-restricted-imports
 import { Dispatch } from 'redux';
 import { GlobalTime } from 'types/actions/globalTime';
@@ -33,21 +31,20 @@ export interface ServiceMapLoading {
 	};
 }
 
-export const getDetailedServiceMapItems = (
-	globalTime: GlobalTime,
-	queries: IResourceAttribute[],
-) => async (dispatch: Dispatch): Promise<void> => {
+export const getDetailedServiceMapItems = (globalTime: GlobalTime) => async (
+	dispatch: Dispatch,
+): Promise<void> => {
 	const start = `${globalTime.minTime}`;
 	const end = `${globalTime.maxTime}`;
 
 	const serviceMapPayload = {
 		start,
 		end,
-		tags: convertRawQueriesToTraceSelectedTags(queries),
 	};
-	const [dependencyGraphResponse] = await Promise.all([
-		api.post<ServicesMapItem[]>(`/services/dependency_graph`, serviceMapPayload),
-	]);
+	const dependencyGraphResponse = await api.post<ServicesMapItem[]>(
+		`/services/dependency_graph`,
+		serviceMapPayload,
+	);
 
 	dispatch<ServiceMapItemAction>({
 		type: ActionTypes.getServiceMapItems,

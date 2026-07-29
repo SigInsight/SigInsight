@@ -1,10 +1,5 @@
-import {
-	convertMetricKeyToTrace,
-	getResourceDeploymentKeys,
-} from 'hooks/useResourceAttribute/utils';
+import { convertMetricKeyToTrace } from 'hooks/useResourceAttribute/utils';
 
-import { FeatureKeys } from '../../../../constants/features';
-import { useAppContext } from '../../../../providers/App/App';
 import { QueryChipContainer, QueryChipItem } from '../../styles';
 import { IQueryChipProps } from './types';
 
@@ -13,19 +8,11 @@ function QueryChip({ queryData, onClose }: IQueryChipProps): JSX.Element {
 		onClose(queryData.id);
 	};
 
-	const { featureFlags } = useAppContext();
-	const dotMetricsEnabled =
-		featureFlags?.find((flag) => flag.name === FeatureKeys.DOT_METRICS_ENABLED)
-			?.active || false;
-
 	return (
 		<QueryChipContainer>
 			<QueryChipItem>{convertMetricKeyToTrace(queryData.tagKey)}</QueryChipItem>
 			<QueryChipItem>{queryData.operator}</QueryChipItem>
-			<QueryChipItem
-				closable={queryData.tagKey !== getResourceDeploymentKeys(dotMetricsEnabled)}
-				onClose={onCloseHandler}
-			>
+			<QueryChipItem closable onClose={onCloseHandler}>
 				{queryData.tagValue.join(', ')}
 			</QueryChipItem>
 		</QueryChipContainer>

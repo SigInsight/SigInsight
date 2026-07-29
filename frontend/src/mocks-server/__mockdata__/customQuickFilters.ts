@@ -29,17 +29,12 @@ export const quickFiltersListResponse = {
 				type: '',
 			},
 			{
-				key: 'deployment.environment',
-				dataType: 'string',
-				type: 'resource',
-			},
-			{
 				key: 'service.namespace',
 				dataType: 'string',
 				type: 'resource',
 			},
 			{
-				key: 'k8s.namespace.name',
+				key: 'cloud.region',
 				dataType: 'string',
 				type: 'resource',
 			},
@@ -49,7 +44,7 @@ export const quickFiltersListResponse = {
 				type: 'resource',
 			},
 			{
-				key: 'k8s.pod.name',
+				key: 'host.arch',
 				dataType: 'string',
 				type: 'resource',
 			},
@@ -72,12 +67,7 @@ export const otherFiltersResponse = {
 				type: 'resource',
 			},
 			{
-				key: 'k8s.deployment.name',
-				dataType: 'string',
-				type: 'resource',
-			},
-			{
-				key: 'deployment.environment',
+				key: 'cloud.availability_zone',
 				dataType: 'string',
 				type: 'resource',
 			},
@@ -87,7 +77,7 @@ export const otherFiltersResponse = {
 				type: 'resource',
 			},
 			{
-				key: 'k8s.namespace.name',
+				key: 'cloud.region',
 				dataType: 'string',
 				type: 'resource',
 			},
@@ -97,12 +87,12 @@ export const otherFiltersResponse = {
 				type: 'resource',
 			},
 			{
-				key: 'k8s.pod.name',
+				key: 'host.arch',
 				dataType: 'string',
 				type: 'resource',
 			},
 			{
-				key: 'k8s.pod.uid',
+				key: 'process.pid',
 				dataType: 'string',
 				type: 'resource',
 			},

@@ -5,9 +5,9 @@ import { FiltersType } from '../types';
 export const QuickFiltersConfig = [
 	{
 		type: FiltersType.CHECKBOX,
-		title: 'Environment',
+		title: 'Service Name',
 		attributeKey: {
-			key: 'deployment.environment',
+			key: 'service.name',
 			dataType: DataTypes.String,
 			type: 'resource',
 		},
@@ -15,9 +15,9 @@ export const QuickFiltersConfig = [
 	},
 	{
 		type: FiltersType.CHECKBOX,
-		title: 'Service Name',
+		title: 'Hostname',
 		attributeKey: {
-			key: 'service.name',
+			key: 'host.name',
 			dataType: DataTypes.String,
 			type: 'resource',
 		},

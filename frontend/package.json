@@ -21,6 +21,7 @@
     "commitlint": "commitlint",
     "test": "jest",
     "test:changedsince": "jest --changedSince=main --coverage --silent",
+    "refactor:baseline": "bash scripts/refactor-baseline.sh",
     "generate:api": "orval --config ./orval.config.ts && sh scripts/post-types-generation.sh",
     "generate:permissions-type": "node scripts/generate-permissions-type.cjs"
   },

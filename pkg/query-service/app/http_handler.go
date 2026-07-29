@@ -62,9 +62,16 @@ func NewRouter() *mux.Router {
 
 // APIHandler implements the query service public API
 type APIHandler struct {
-	logger      *slog.Logger
-	reader      interfaces.Reader
-	ruleManager *rules.Manager
+	logger           *slog.Logger
+	services         interfaces.ServiceReader
+	retention        interfaces.RetentionReader
+	exceptions       interfaces.ExceptionReader
+	traceDetail      interfaces.TraceDetailReader
+	ruleStateHistory interfaces.RuleStateHistoryQueryReader
+	clickHouseHealth interfaces.ClickHouseHealthReader
+	metricMetadata   interfaces.MetricMetadataReader
+	traceFunnelQuery interfaces.TraceFunnelQueryReader
+	ruleManager      *rules.Manager
 
 	// SetupCompleted indicates if SigNoz is ready for general use.
 	// at the moment, we mark the app ready when the first user
@@ -79,8 +86,15 @@ type APIHandler struct {
 }
 
 type APIHandlerOpts struct {
-	// business data reader e.g. clickhouse
-	Reader interfaces.Reader
+	Services         interfaces.ServiceReader
+	Retention        interfaces.RetentionReader
+	Exceptions       interfaces.ExceptionReader
+	TraceDetail      interfaces.TraceDetailReader
+	RuleStateHistory interfaces.RuleStateHistoryQueryReader
+	ClickHouseHealth interfaces.ClickHouseHealthReader
+	MetricMetadata   interfaces.MetricMetadataReader
+	MetricsExplorer  interfaces.MetricsExplorerReader
+	TraceFunnelQuery interfaces.TraceFunnelQueryReader
 
 	// rule manager handles rule crud operations
 	RuleManager *rules.Manager
@@ -92,16 +106,23 @@ type APIHandlerOpts struct {
 
 // NewAPIHandler returns an APIHandler
 func NewAPIHandler(opts APIHandlerOpts, config signoz.Config) (*APIHandler, error) {
-	summaryService := metricsexplorer.NewSummaryService(opts.Reader, opts.RuleManager)
+	summaryService := metricsexplorer.NewSummaryService(opts.MetricsExplorer, opts.RuleManager)
 	//quickFilterModule := quickfilter.NewAPI(opts.QuickFilterModule)
 
 	aH := &APIHandler{
-		logger:          slog.Default(),
-		reader:          opts.Reader,
-		ruleManager:     opts.RuleManager,
-		SummaryService:  summaryService,
-		AlertmanagerAPI: opts.AlertmanagerAPI,
-		Signoz:          opts.Signoz,
+		logger:           slog.Default(),
+		services:         opts.Services,
+		retention:        opts.Retention,
+		exceptions:       opts.Exceptions,
+		traceDetail:      opts.TraceDetail,
+		ruleStateHistory: opts.RuleStateHistory,
+		clickHouseHealth: opts.ClickHouseHealth,
+		metricMetadata:   opts.MetricMetadata,
+		traceFunnelQuery: opts.TraceFunnelQuery,
+		ruleManager:      opts.RuleManager,
+		SummaryService:   summaryService,
+		AlertmanagerAPI:  opts.AlertmanagerAPI,
+		Signoz:           opts.Signoz,
 	}
 
 	// TODO(nitya): remote this in later for multitenancy.
@@ -350,32 +371,41 @@ func (aH *APIHandler) getRule(w http.ResponseWriter, r *http.Request) {
 	aH.Respond(w, ruleResponse)
 }
 
+func ruleIDFromRequest(r *http.Request) (valuer.UUID, error) {
+	return valuer.NewUUID(mux.Vars(r)["id"])
+}
+
 func (aH *APIHandler) getRuleStats(w http.ResponseWriter, r *http.Request) {
-	ruleID := mux.Vars(r)["id"]
-	params := model.QueryRuleStateHistory{}
-	err := json.NewDecoder(r.Body).Decode(&params)
+	ruleID, err := ruleIDFromRequest(r)
 	if err != nil {
 		RespondError(w, &model.ApiError{Typ: model.ErrorBadData, Err: err}, nil)
 		return
 	}
 
-	totalCurrentTriggers, err := aH.reader.GetTotalTriggers(r.Context(), ruleID, &params)
+	params := model.QueryRuleStateHistory{}
+	err = json.NewDecoder(r.Body).Decode(&params)
+	if err != nil {
+		RespondError(w, &model.ApiError{Typ: model.ErrorBadData, Err: err}, nil)
+		return
+	}
+
+	totalCurrentTriggers, err := aH.ruleStateHistory.GetTotalTriggers(r.Context(), ruleID.StringValue(), &params)
 	if err != nil {
 		RespondError(w, &model.ApiError{Typ: model.ErrorInternal, Err: err}, nil)
 		return
 	}
-	currentTriggersSeries, err := aH.reader.GetTriggersByInterval(r.Context(), ruleID, &params)
+	currentTriggersSeries, err := aH.ruleStateHistory.GetTriggersByInterval(r.Context(), ruleID.StringValue(), &params)
 	if err != nil {
 		RespondError(w, &model.ApiError{Typ: model.ErrorInternal, Err: err}, nil)
 		return
 	}
 
-	currentAvgResolutionTime, err := aH.reader.GetAvgResolutionTime(r.Context(), ruleID, &params)
+	currentAvgResolutionTime, err := aH.ruleStateHistory.GetAvgResolutionTime(r.Context(), ruleID.StringValue(), &params)
 	if err != nil {
 		RespondError(w, &model.ApiError{Typ: model.ErrorInternal, Err: err}, nil)
 		return
 	}
-	currentAvgResolutionTimeSeries, err := aH.reader.GetAvgResolutionTimeByInterval(r.Context(), ruleID, &params)
+	currentAvgResolutionTimeSeries, err := aH.ruleStateHistory.GetAvgResolutionTimeByInterval(r.Context(), ruleID.StringValue(), &params)
 	if err != nil {
 		RespondError(w, &model.ApiError{Typ: model.ErrorInternal, Err: err}, nil)
 		return
@@ -390,23 +420,23 @@ func (aH *APIHandler) getRuleStats(w http.ResponseWriter, r *http.Request) {
 		params.End -= 86400000
 	}
 
-	totalPastTriggers, err := aH.reader.GetTotalTriggers(r.Context(), ruleID, &params)
+	totalPastTriggers, err := aH.ruleStateHistory.GetTotalTriggers(r.Context(), ruleID.StringValue(), &params)
 	if err != nil {
 		RespondError(w, &model.ApiError{Typ: model.ErrorInternal, Err: err}, nil)
 		return
 	}
-	pastTriggersSeries, err := aH.reader.GetTriggersByInterval(r.Context(), ruleID, &params)
+	pastTriggersSeries, err := aH.ruleStateHistory.GetTriggersByInterval(r.Context(), ruleID.StringValue(), &params)
 	if err != nil {
 		RespondError(w, &model.ApiError{Typ: model.ErrorInternal, Err: err}, nil)
 		return
 	}
 
-	pastAvgResolutionTime, err := aH.reader.GetAvgResolutionTime(r.Context(), ruleID, &params)
+	pastAvgResolutionTime, err := aH.ruleStateHistory.GetAvgResolutionTime(r.Context(), ruleID.StringValue(), &params)
 	if err != nil {
 		RespondError(w, &model.ApiError{Typ: model.ErrorInternal, Err: err}, nil)
 		return
 	}
-	pastAvgResolutionTimeSeries, err := aH.reader.GetAvgResolutionTimeByInterval(r.Context(), ruleID, &params)
+	pastAvgResolutionTimeSeries, err := aH.ruleStateHistory.GetAvgResolutionTimeByInterval(r.Context(), ruleID.StringValue(), &params)
 	if err != nil {
 		RespondError(w, &model.ApiError{Typ: model.ErrorInternal, Err: err}, nil)
 		return
@@ -433,15 +463,20 @@ func (aH *APIHandler) getRuleStats(w http.ResponseWriter, r *http.Request) {
 }
 
 func (aH *APIHandler) getOverallStateTransitions(w http.ResponseWriter, r *http.Request) {
-	ruleID := mux.Vars(r)["id"]
-	params := model.QueryRuleStateHistory{}
-	err := json.NewDecoder(r.Body).Decode(&params)
+	ruleID, err := ruleIDFromRequest(r)
 	if err != nil {
 		RespondError(w, &model.ApiError{Typ: model.ErrorBadData, Err: err}, nil)
 		return
 	}
 
-	stateItems, err := aH.reader.GetOverallStateTransitions(r.Context(), ruleID, &params)
+	params := model.QueryRuleStateHistory{}
+	err = json.NewDecoder(r.Body).Decode(&params)
+	if err != nil {
+		RespondError(w, &model.ApiError{Typ: model.ErrorBadData, Err: err}, nil)
+		return
+	}
+
+	stateItems, err := aH.ruleStateHistory.GetOverallStateTransitions(r.Context(), ruleID.StringValue(), &params)
 	if err != nil {
 		RespondError(w, &model.ApiError{Typ: model.ErrorInternal, Err: err}, nil)
 		return
@@ -484,8 +519,7 @@ func relatedRuleLinks(rule *ruletypes.GettableRule, start, end time.Time, labels
 }
 
 func (aH *APIHandler) getRuleStateHistory(w http.ResponseWriter, r *http.Request) {
-	idStr := mux.Vars(r)["id"]
-	id, err := valuer.NewUUID(idStr)
+	id, err := ruleIDFromRequest(r)
 	if err != nil {
 		RespondError(w, &model.ApiError{Typ: model.ErrorBadData, Err: err}, nil)
 		return
@@ -502,7 +536,7 @@ func (aH *APIHandler) getRuleStateHistory(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	res, err := aH.reader.ReadRuleStateHistoryByRuleID(r.Context(), id.StringValue(), &params)
+	res, err := aH.ruleStateHistory.ReadRuleStateHistoryByRuleID(r.Context(), id.StringValue(), &params)
 	if err != nil {
 		RespondError(w, &model.ApiError{Typ: model.ErrorInternal, Err: err}, nil)
 		return
@@ -532,8 +566,7 @@ func (aH *APIHandler) getRuleStateHistory(w http.ResponseWriter, r *http.Request
 }
 
 func (aH *APIHandler) getRuleStateHistoryTopContributors(w http.ResponseWriter, r *http.Request) {
-	idStr := mux.Vars(r)["id"]
-	id, err := valuer.NewUUID(idStr)
+	id, err := ruleIDFromRequest(r)
 	if err != nil {
 		RespondError(w, &model.ApiError{Typ: model.ErrorBadData, Err: err}, nil)
 		return
@@ -546,7 +579,7 @@ func (aH *APIHandler) getRuleStateHistoryTopContributors(w http.ResponseWriter, 
 		return
 	}
 
-	res, err := aH.reader.ReadRuleStateHistoryTopContributorsByRuleID(r.Context(), id.StringValue(), &params)
+	res, err := aH.ruleStateHistory.ReadRuleStateHistoryTopContributorsByRuleID(r.Context(), id.StringValue(), &params)
 	if err != nil {
 		RespondError(w, &model.ApiError{Typ: model.ErrorInternal, Err: err}, nil)
 		return
@@ -775,9 +808,9 @@ func (aH *APIHandler) getServicesTopLevelOps(w http.ResponseWriter, r *http.Requ
 		end = time.Unix(0, endEpochInt)
 	}
 
-	result, apiErr := aH.reader.GetTopLevelOperations(r.Context(), start, end, services)
-	if apiErr != nil {
-		RespondError(w, apiErr, nil)
+	result, err := aH.services.GetTopLevelOperations(r.Context(), start, end, services)
+	if err != nil {
+		RespondError(w, &model.ApiError{Typ: model.ErrorInternal, Err: err}, nil)
 		return
 	}
 
@@ -791,8 +824,8 @@ func (aH *APIHandler) dependencyGraph(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result, err := aH.reader.GetDependencyGraph(r.Context(), query)
-	if aH.HandleError(w, err, http.StatusBadRequest) {
+	result, err := aH.services.GetDependencyGraph(r.Context(), query)
+	if aH.HandleError(w, err, http.StatusInternalServerError) {
 		return
 	}
 
@@ -823,7 +856,7 @@ func (aH *APIHandler) GetWaterfallSpansForTraceWithMetadata(w http.ResponseWrite
 		return
 	}
 
-	result, apiErr := aH.reader.GetWaterfallSpansForTraceWithMetadata(r.Context(), orgID, traceID, req)
+	result, apiErr := aH.traceDetail.GetWaterfallSpansForTraceWithMetadata(r.Context(), orgID, traceID, req)
 	if apiErr != nil {
 		render.Error(w, apiErr)
 		return
@@ -857,7 +890,7 @@ func (aH *APIHandler) GetFlamegraphSpansForTrace(w http.ResponseWriter, r *http.
 		return
 	}
 
-	result, apiErr := aH.reader.GetFlamegraphSpansForTrace(r.Context(), orgID, traceID, req)
+	result, apiErr := aH.traceDetail.GetFlamegraphSpansForTrace(r.Context(), orgID, traceID, req)
 	if apiErr != nil {
 		render.Error(w, apiErr)
 		return
@@ -872,8 +905,9 @@ func (aH *APIHandler) listErrors(w http.ResponseWriter, r *http.Request) {
 	if aH.HandleError(w, err, http.StatusBadRequest) {
 		return
 	}
-	result, apiErr := aH.reader.ListErrors(r.Context(), query)
-	if apiErr != nil && aH.HandleError(w, apiErr.Err, http.StatusInternalServerError) {
+	result, err := aH.exceptions.ListErrors(r.Context(), query)
+	if err != nil {
+		render.Error(w, err)
 		return
 	}
 
@@ -886,9 +920,9 @@ func (aH *APIHandler) countErrors(w http.ResponseWriter, r *http.Request) {
 	if aH.HandleError(w, err, http.StatusBadRequest) {
 		return
 	}
-	result, apiErr := aH.reader.CountErrors(r.Context(), query)
-	if apiErr != nil {
-		RespondError(w, apiErr, nil)
+	result, err := aH.exceptions.CountErrors(r.Context(), query)
+	if err != nil {
+		render.Error(w, err)
 		return
 	}
 
@@ -901,9 +935,9 @@ func (aH *APIHandler) getErrorFromErrorID(w http.ResponseWriter, r *http.Request
 	if aH.HandleError(w, err, http.StatusBadRequest) {
 		return
 	}
-	result, apiErr := aH.reader.GetErrorFromErrorID(r.Context(), query)
-	if apiErr != nil {
-		RespondError(w, apiErr, nil)
+	result, err := aH.exceptions.GetErrorFromErrorID(r.Context(), query)
+	if err != nil {
+		render.Error(w, err)
 		return
 	}
 
@@ -916,9 +950,9 @@ func (aH *APIHandler) getNextPrevErrorIDs(w http.ResponseWriter, r *http.Request
 	if aH.HandleError(w, err, http.StatusBadRequest) {
 		return
 	}
-	result, apiErr := aH.reader.GetNextPrevErrorIDs(r.Context(), query)
-	if apiErr != nil {
-		RespondError(w, apiErr, nil)
+	result, err := aH.exceptions.GetNextPrevErrorIDs(r.Context(), query)
+	if err != nil {
+		render.Error(w, err)
 		return
 	}
 
@@ -931,9 +965,9 @@ func (aH *APIHandler) getErrorFromGroupID(w http.ResponseWriter, r *http.Request
 	if aH.HandleError(w, err, http.StatusBadRequest) {
 		return
 	}
-	result, apiErr := aH.reader.GetErrorFromGroupID(r.Context(), query)
-	if apiErr != nil {
-		RespondError(w, apiErr, nil)
+	result, err := aH.exceptions.GetErrorFromGroupID(r.Context(), query)
+	if err != nil {
+		render.Error(w, err)
 		return
 	}
 
@@ -954,13 +988,9 @@ func (aH *APIHandler) setTTL(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Context is not used here as TTL is long duration DB operation
-	result, apiErr := aH.reader.SetTTL(context.Background(), claims.OrgID, ttlParams)
-	if apiErr != nil {
-		if apiErr.Typ == model.ErrorConflict {
-			aH.HandleError(w, apiErr.Err, http.StatusConflict)
-		} else {
-			aH.HandleError(w, apiErr.Err, http.StatusInternalServerError)
-		}
+	result, err := aH.retention.SetTTL(context.Background(), claims.OrgID, ttlParams)
+	if err != nil {
+		render.Error(w, err)
 		return
 	}
 
@@ -983,7 +1013,7 @@ func (aH *APIHandler) setCustomRetentionTTL(w http.ResponseWriter, r *http.Reque
 	}
 
 	// Context is not used here as TTL is long duration DB operation
-	result, apiErr := aH.reader.SetCustomRetentionTTL(context.Background(), claims.OrgID, &params)
+	result, apiErr := aH.retention.SetCustomRetentionTTL(context.Background(), claims.OrgID, &params)
 	if apiErr != nil {
 		render.Error(w, errorsV2.New(errorsV2.TypeInvalidInput, errorsV2.CodeInternal, apiErr.Error()))
 		return
@@ -1000,7 +1030,7 @@ func (aH *APIHandler) getCustomRetentionTTL(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	result, apiErr := aH.reader.GetCustomRetentionTTL(r.Context(), claims.OrgID)
+	result, apiErr := aH.retention.GetCustomRetentionTTL(r.Context(), claims.OrgID)
 	if apiErr != nil {
 		render.Error(w, errorsV2.New(errorsV2.TypeInvalidInput, errorsV2.CodeInternal, apiErr.Error()))
 		return
@@ -1021,16 +1051,17 @@ func (aH *APIHandler) getTTL(w http.ResponseWriter, r *http.Request) {
 		render.Error(w, err)
 		return
 	}
-	result, apiErr := aH.reader.GetTTL(r.Context(), claims.OrgID, ttlParams)
-	if apiErr != nil && aH.HandleError(w, apiErr.Err, http.StatusInternalServerError) {
+	result, err := aH.retention.GetTTL(r.Context(), claims.OrgID, ttlParams)
+	if err != nil {
+		render.Error(w, err)
 		return
 	}
 	aH.WriteJSON(w, r, result)
 }
 
 func (aH *APIHandler) getDisks(w http.ResponseWriter, r *http.Request) {
-	result, apiErr := aH.reader.GetDisks(context.Background())
-	if apiErr != nil && aH.HandleError(w, apiErr.Err, http.StatusInternalServerError) {
+	result, err := aH.retention.GetDisks(context.Background())
+	if err != nil && aH.HandleError(w, err, http.StatusInternalServerError) {
 		return
 	}
 
@@ -1085,7 +1116,7 @@ func (aH *APIHandler) getFeatureFlags(w http.ResponseWriter, r *http.Request) {
 func (aH *APIHandler) getHealth(w http.ResponseWriter, r *http.Request) {
 	_, ok := r.URL.Query()["live"]
 	if ok {
-		err := aH.reader.CheckClickHouse(r.Context())
+		err := aH.clickHouseHealth.CheckClickHouse(r.Context())
 		if err != nil {
 			RespondError(w, &model.ApiError{Err: err, Typ: model.ErrorStatusServiceUnavailable}, nil)
 			return
@@ -1178,7 +1209,7 @@ func (aH *APIHandler) getMetricMetadata(w http.ResponseWriter, r *http.Request) 
 
 	metricName := r.URL.Query().Get("metricName")
 	serviceName := r.URL.Query().Get("serviceName")
-	metricMetadata, err := aH.reader.GetMetricMetadata(r.Context(), orgID, metricName, serviceName)
+	metricMetadata, err := aH.metricMetadata.GetMetricMetadata(r.Context(), orgID, metricName, serviceName)
 	if err != nil {
 		RespondError(w, &model.ApiError{Err: err, Typ: model.ErrorInternal}, nil)
 		return
@@ -1306,6 +1337,15 @@ func (aH *APIHandler) getDomainInfo(w http.ResponseWriter, r *http.Request) {
 	aH.Respond(w, finalResult)
 }
 
+func (aH *APIHandler) respondTraceFunnelQuery(w http.ResponseWriter, r *http.Request, query string) {
+	results, err := aH.traceFunnelQuery.ExecuteTraceFunnelQuery(r.Context(), query)
+	if err != nil {
+		RespondError(w, &model.ApiError{Typ: model.ErrorInternal, Err: fmt.Errorf("error converting clickhouse results to list: %v", err)}, nil)
+		return
+	}
+	aH.Respond(w, results)
+}
+
 // RegisterTraceFunnelsRoutes adds trace funnels routes
 func (aH *APIHandler) RegisterTraceFunnelsRoutes(router *mux.Router, am *middleware.AuthZ) {
 	// Main trace funnels router
@@ -1383,12 +1423,7 @@ func (aH *APIHandler) handleValidateTraces(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	results, err := aH.reader.GetListResult(r.Context(), chq.Query)
-	if err != nil {
-		RespondError(w, &model.ApiError{Typ: model.ErrorInternal, Err: fmt.Errorf("error converting clickhouse results to list: %v", err)}, nil)
-		return
-	}
-	aH.Respond(w, results)
+	aH.respondTraceFunnelQuery(w, r, chq.Query)
 }
 
 func (aH *APIHandler) handleFunnelAnalytics(w http.ResponseWriter, r *http.Request) {
@@ -1420,12 +1455,7 @@ func (aH *APIHandler) handleFunnelAnalytics(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	results, err := aH.reader.GetListResult(r.Context(), chq.Query)
-	if err != nil {
-		RespondError(w, &model.ApiError{Typ: model.ErrorInternal, Err: fmt.Errorf("error converting clickhouse results to list: %v", err)}, nil)
-		return
-	}
-	aH.Respond(w, results)
+	aH.respondTraceFunnelQuery(w, r, chq.Query)
 }
 
 func (aH *APIHandler) handleFunnelStepAnalytics(w http.ResponseWriter, r *http.Request) {
@@ -1457,12 +1487,7 @@ func (aH *APIHandler) handleFunnelStepAnalytics(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	results, err := aH.reader.GetListResult(r.Context(), chq.Query)
-	if err != nil {
-		RespondError(w, &model.ApiError{Typ: model.ErrorInternal, Err: fmt.Errorf("error converting clickhouse results to list: %v", err)}, nil)
-		return
-	}
-	aH.Respond(w, results)
+	aH.respondTraceFunnelQuery(w, r, chq.Query)
 }
 
 func (aH *APIHandler) handleStepAnalytics(w http.ResponseWriter, r *http.Request) {
@@ -1494,12 +1519,7 @@ func (aH *APIHandler) handleStepAnalytics(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	results, err := aH.reader.GetListResult(r.Context(), chq.Query)
-	if err != nil {
-		RespondError(w, &model.ApiError{Typ: model.ErrorInternal, Err: fmt.Errorf("error converting clickhouse results to list: %v", err)}, nil)
-		return
-	}
-	aH.Respond(w, results)
+	aH.respondTraceFunnelQuery(w, r, chq.Query)
 }
 
 func (aH *APIHandler) handleFunnelSlowTraces(w http.ResponseWriter, r *http.Request) {
@@ -1531,12 +1551,7 @@ func (aH *APIHandler) handleFunnelSlowTraces(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	results, err := aH.reader.GetListResult(r.Context(), chq.Query)
-	if err != nil {
-		RespondError(w, &model.ApiError{Typ: model.ErrorInternal, Err: fmt.Errorf("error converting clickhouse results to list: %v", err)}, nil)
-		return
-	}
-	aH.Respond(w, results)
+	aH.respondTraceFunnelQuery(w, r, chq.Query)
 }
 
 func (aH *APIHandler) handleFunnelErrorTraces(w http.ResponseWriter, r *http.Request) {
@@ -1568,12 +1583,7 @@ func (aH *APIHandler) handleFunnelErrorTraces(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	results, err := aH.reader.GetListResult(r.Context(), chq.Query)
-	if err != nil {
-		RespondError(w, &model.ApiError{Typ: model.ErrorInternal, Err: fmt.Errorf("error converting clickhouse results to list: %v", err)}, nil)
-		return
-	}
-	aH.Respond(w, results)
+	aH.respondTraceFunnelQuery(w, r, chq.Query)
 }
 
 func (aH *APIHandler) handleValidateTracesWithPayload(w http.ResponseWriter, r *http.Request) {
@@ -1602,12 +1612,7 @@ func (aH *APIHandler) handleValidateTracesWithPayload(w http.ResponseWriter, r *
 		return
 	}
 
-	results, err := aH.reader.GetListResult(r.Context(), chq.Query)
-	if err != nil {
-		RespondError(w, &model.ApiError{Typ: model.ErrorInternal, Err: fmt.Errorf("error converting clickhouse results to list: %v", err)}, nil)
-		return
-	}
-	aH.Respond(w, results)
+	aH.respondTraceFunnelQuery(w, r, chq.Query)
 }
 
 func (aH *APIHandler) handleFunnelAnalyticsWithPayload(w http.ResponseWriter, r *http.Request) {
@@ -1630,12 +1635,7 @@ func (aH *APIHandler) handleFunnelAnalyticsWithPayload(w http.ResponseWriter, r 
 		return
 	}
 
-	results, err := aH.reader.GetListResult(r.Context(), chq.Query)
-	if err != nil {
-		RespondError(w, &model.ApiError{Typ: model.ErrorInternal, Err: fmt.Errorf("error converting clickhouse results to list: %v", err)}, nil)
-		return
-	}
-	aH.Respond(w, results)
+	aH.respondTraceFunnelQuery(w, r, chq.Query)
 }
 
 func (aH *APIHandler) handleStepAnalyticsWithPayload(w http.ResponseWriter, r *http.Request) {
@@ -1658,12 +1658,7 @@ func (aH *APIHandler) handleStepAnalyticsWithPayload(w http.ResponseWriter, r *h
 		return
 	}
 
-	results, err := aH.reader.GetListResult(r.Context(), chq.Query)
-	if err != nil {
-		RespondError(w, &model.ApiError{Typ: model.ErrorInternal, Err: fmt.Errorf("error converting clickhouse results to list: %v", err)}, nil)
-		return
-	}
-	aH.Respond(w, results)
+	aH.respondTraceFunnelQuery(w, r, chq.Query)
 }
 
 func (aH *APIHandler) handleFunnelStepAnalyticsWithPayload(w http.ResponseWriter, r *http.Request) {
@@ -1686,12 +1681,7 @@ func (aH *APIHandler) handleFunnelStepAnalyticsWithPayload(w http.ResponseWriter
 		return
 	}
 
-	results, err := aH.reader.GetListResult(r.Context(), chq.Query)
-	if err != nil {
-		RespondError(w, &model.ApiError{Typ: model.ErrorInternal, Err: fmt.Errorf("error converting clickhouse results to list: %v", err)}, nil)
-		return
-	}
-	aH.Respond(w, results)
+	aH.respondTraceFunnelQuery(w, r, chq.Query)
 }
 
 func (aH *APIHandler) handleFunnelSlowTracesWithPayload(w http.ResponseWriter, r *http.Request) {
@@ -1714,12 +1704,7 @@ func (aH *APIHandler) handleFunnelSlowTracesWithPayload(w http.ResponseWriter, r
 		return
 	}
 
-	results, err := aH.reader.GetListResult(r.Context(), chq.Query)
-	if err != nil {
-		RespondError(w, &model.ApiError{Typ: model.ErrorInternal, Err: fmt.Errorf("error converting clickhouse results to list: %v", err)}, nil)
-		return
-	}
-	aH.Respond(w, results)
+	aH.respondTraceFunnelQuery(w, r, chq.Query)
 }
 
 func (aH *APIHandler) handleFunnelErrorTracesWithPayload(w http.ResponseWriter, r *http.Request) {
@@ -1742,10 +1727,5 @@ func (aH *APIHandler) handleFunnelErrorTracesWithPayload(w http.ResponseWriter, 
 		return
 	}
 
-	results, err := aH.reader.GetListResult(r.Context(), chq.Query)
-	if err != nil {
-		RespondError(w, &model.ApiError{Typ: model.ErrorInternal, Err: fmt.Errorf("error converting clickhouse results to list: %v", err)}, nil)
-		return
-	}
-	aH.Respond(w, results)
+	aH.respondTraceFunnelQuery(w, r, chq.Query)
 }

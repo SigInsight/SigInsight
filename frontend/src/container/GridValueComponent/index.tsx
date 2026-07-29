@@ -3,8 +3,8 @@ import { useLocation } from 'react-router-dom';
 import { Typography } from 'antd';
 import { getYAxisFormattedValue } from 'components/Graph/yAxisConfig';
 import ValueGraph from 'components/ValueGraph';
-import { generateGridTitle } from 'container/GridPanelSwitch/utils';
 import useGraphContextMenu from 'container/QueryTable/Drilldown/useGraphContextMenu';
+import { generateGridTitle } from 'lib/generateGridTitle';
 import ContextMenu, { useCoordinates } from 'periscope/components/ContextMenu';
 import { EQueryType } from 'types/common/dashboard';
 

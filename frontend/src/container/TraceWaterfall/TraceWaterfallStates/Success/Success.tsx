@@ -15,13 +15,12 @@ import HttpStatusBadge from 'components/HttpStatusBadge/HttpStatusBadge';
 import SpanHoverCard from 'components/SpanHoverCard/SpanHoverCard';
 import { TableV3 } from 'components/TableV3/TableV3';
 import { themeColors } from 'constants/theme';
-import { convertTimeToRelevantUnit } from 'container/TraceDetail/utils';
 import AddSpanToFunnelModal from 'container/TraceWaterfall/AddSpanToFunnelModal/AddSpanToFunnelModal';
 import SpanLineActionButtons from 'container/TraceWaterfall/SpanLineActionButtons';
 import { IInterestedSpan } from 'container/TraceWaterfall/TraceWaterfall';
 import { useSafeNavigate } from 'hooks/useSafeNavigate';
 import useUrlQuery from 'hooks/useUrlQuery';
-import { generateColor } from 'lib/uPlotLib/utils/generateColor';
+import { generateColor } from 'lib/uPlotShared/generateColor';
 import {
 	AlertCircle,
 	ArrowUpRight,
@@ -32,6 +31,7 @@ import {
 import { useAppContext } from 'providers/App/App';
 import { Span } from 'types/api/trace/getTraceWaterfall';
 import { toFixed } from 'utils/toFixed';
+import { convertTimeToRelevantUnit } from 'utils/trace';
 
 import Filters from './Filters/Filters';
 

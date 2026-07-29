@@ -1,21 +1,13 @@
-import { ReactNode, useEffect, useMemo, useState } from 'react';
+import { ReactNode, useMemo } from 'react';
 import { CloseCircleFilled } from '@ant-design/icons';
 import { Button, Select, Spin } from 'antd';
 import useResourceAttribute, {
 	isResourceEmpty,
 } from 'hooks/useResourceAttribute';
-import {
-	convertMetricKeyToTrace,
-	getEnvironmentTagKeys,
-	getEnvironmentTagValues,
-	getResourceDeploymentKeys,
-} from 'hooks/useResourceAttribute/utils';
-import { SelectOption } from 'types/common/select';
+import { convertMetricKeyToTrace } from 'hooks/useResourceAttribute/utils';
 import { popupContainer } from 'utils/selectPopupContainer';
 import { v4 as uuid } from 'uuid';
 
-import { FeatureKeys } from '../../constants/features';
-import { useAppContext } from '../../providers/App/App';
 import QueryChip from './components/QueryChip';
 import { QueryChipItem, SearchContainer } from './styles';
 
@@ -32,82 +24,22 @@ function ResourceAttributesFilter({
 		handleClearAll,
 		handleFocus,
 		handleChange,
-		handleEnvironmentChange,
 		selectedQuery,
 		optionsData,
 		loading,
 	} = useResourceAttribute();
 
-	const [environments, setEnvironments] = useState<
-		SelectOption<string, string>[]
-	>([]);
-
-	const { featureFlags } = useAppContext();
-	const dotMetricsEnabled =
-		featureFlags?.find((flag) => flag.name === FeatureKeys.DOT_METRICS_ENABLED)
-			?.active || false;
-
-	const resourceDeploymentKey = getResourceDeploymentKeys(dotMetricsEnabled);
-
-	const [selectedEnvironments, setSelectedEnvironments] = useState<string[]>([]);
-
-	const queriesExcludingEnvironment = useMemo(
-		() => queries.filter((query) => query.tagKey !== resourceDeploymentKey),
-		[queries, resourceDeploymentKey],
-	);
-
 	const isEmpty = useMemo(
-		() => isResourceEmpty(queriesExcludingEnvironment, staging, selectedQuery),
-		[queriesExcludingEnvironment, selectedQuery, staging],
+		() => isResourceEmpty(queries, staging, selectedQuery),
+		[queries, selectedQuery, staging],
 	);
-	useEffect(() => {
-		const resourceDeploymentEnvironmentQuery = queries.filter(
-			(query) => query.tagKey === resourceDeploymentKey,
-		);
-
-		if (resourceDeploymentEnvironmentQuery?.length > 0) {
-			setSelectedEnvironments(resourceDeploymentEnvironmentQuery[0].tagValue);
-		} else {
-			setSelectedEnvironments([]);
-		}
-	}, [queries, resourceDeploymentKey]);
-
-	useEffect(() => {
-		getEnvironmentTagKeys(dotMetricsEnabled).then((tagKeys) => {
-			if (tagKeys && Array.isArray(tagKeys) && tagKeys.length > 0) {
-				getEnvironmentTagValues(dotMetricsEnabled).then((tagValues) => {
-					setEnvironments(tagValues);
-				});
-			}
-		});
-	}, [dotMetricsEnabled]);
 
 	return (
 		<div className="resourceAttributesFilter-container">
-			<div className="environment-selector">
-				<Select
-					getPopupContainer={popupContainer}
-					key={selectedEnvironments.join('')}
-					showSearch
-					mode="multiple"
-					value={selectedEnvironments}
-					placeholder="Select Environment/s"
-					data-testid="resource-environment-filter"
-					style={{ minWidth: 200, height: 34 }}
-					onChange={handleEnvironmentChange}
-				>
-					{environments.map((opt) => (
-						<Select.Option key={opt.value} value={opt.value}>
-							{opt.label}
-						</Select.Option>
-					))}
-				</Select>
-			</div>
-
 			<div className="resource-attributes-selector">
 				<SearchContainer>
 					<div>
-						{queriesExcludingEnvironment.map((query) => (
+						{queries.map((query) => (
 							<QueryChip key={query.id} queryData={query} onClose={handleClose} />
 						))}
 						{staging.map((query, idx) => (

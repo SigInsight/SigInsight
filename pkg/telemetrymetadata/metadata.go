@@ -1135,6 +1135,10 @@ func (t *telemetryMetaStore) getSpanFieldValues(ctx context.Context, fieldValueS
 		limit = 50
 	}
 
+	if values, complete, handled, err := t.getTraceStaticFieldValues(ctx, fieldValueSelector, limit); handled {
+		return values, complete, err
+	}
+
 	sb := sqlbuilder.Select("DISTINCT string_value, number_value").From(t.tracesDBName + "." + t.tracesFieldsTblName)
 
 	if fieldValueSelector.Name != "" {
@@ -1173,7 +1177,7 @@ func (t *telemetryMetaStore) getSpanFieldValues(ctx context.Context, fieldValueS
 
 	rows, err := t.telemetrystore.ClickhouseDB().Query(ctx, query, args...)
 	if err != nil {
-		return nil, false, errors.Wrap(err, errors.TypeInternal, errors.CodeInternal, ErrFailedToGetLogsKeys.Error())
+		return nil, false, errors.Wrap(err, errors.TypeInternal, errors.CodeInternal, ErrFailedToGetTracesKeys.Error())
 	}
 	defer rows.Close()
 
@@ -1188,7 +1192,7 @@ func (t *telemetryMetaStore) getSpanFieldValues(ctx context.Context, fieldValueS
 		var stringValue string
 		var numberValue float64
 		if err := rows.Scan(&stringValue, &numberValue); err != nil {
-			return nil, false, errors.Wrap(err, errors.TypeInternal, errors.CodeInternal, ErrFailedToGetLogsKeys.Error())
+			return nil, false, errors.Wrap(err, errors.TypeInternal, errors.CodeInternal, ErrFailedToGetTracesKeys.Error())
 		}
 
 		// Only add values if we haven't hit the limit yet
@@ -1210,6 +1214,128 @@ func (t *telemetryMetaStore) getSpanFieldValues(ctx context.Context, fieldValueS
 	complete := rowCount <= limit
 
 	return values, complete, nil
+}
+
+func (t *telemetryMetaStore) getTraceStaticFieldValues(
+	ctx context.Context,
+	selector *telemetrytypes.FieldValueSelector,
+	limit int,
+) (*telemetrytypes.TelemetryFieldValues, bool, bool, error) {
+	key, column, ok := traceStaticField(selector.Name)
+	if !ok {
+		return nil, false, false, nil
+	}
+
+	if selector.FieldContext != telemetrytypes.FieldContextUnspecified && selector.FieldContext != key.FieldContext {
+		return &telemetrytypes.TelemetryFieldValues{}, true, true, nil
+	}
+	if selector.FieldDataType != telemetrytypes.FieldDataTypeUnspecified && selector.FieldDataType != key.FieldDataType {
+		return &telemetrytypes.TelemetryFieldValues{}, true, true, nil
+	}
+
+	if key.FieldDataType == telemetrytypes.FieldDataTypeBool {
+		candidates := []bool{true, false}
+		values := &telemetrytypes.TelemetryFieldValues{}
+		for _, candidate := range candidates {
+			if selector.Value != "" && !strings.Contains(strings.ToLower(fmt.Sprint(candidate)), strings.ToLower(selector.Value)) {
+				continue
+			}
+			if len(values.BoolValues) == limit {
+				return values, false, true, nil
+			}
+			values.BoolValues = append(values.BoolValues, candidate)
+		}
+		return values, true, true, nil
+	}
+
+	escapedColumn := sqlbuilder.Escape(column)
+	selectColumn := escapedColumn
+	if key.FieldDataType == telemetrytypes.FieldDataTypeNumber {
+		selectColumn = "toFloat64(" + escapedColumn + ")"
+	}
+	sb := sqlbuilder.Select("DISTINCT " + selectColumn).
+		From(t.tracesDBName + "." + t.indexV3TblName)
+
+	if key.FieldDataType == telemetrytypes.FieldDataTypeString {
+		sb.Where(sb.NE(column, ""))
+	}
+	if selector.StartUnixMilli > 0 {
+		sb.Where(sb.GE("timestamp", selector.StartUnixMilli*1_000_000))
+		sb.Where(sb.GE("ts_bucket_start", selector.StartUnixMilli/1_000))
+	} else {
+		sb.Where("timestamp >= toDateTime64(now() - INTERVAL 48 HOUR, 9)")
+		sb.Where("ts_bucket_start >= toUInt64(toUnixTimestamp(now() - INTERVAL 48 HOUR))")
+	}
+	if selector.EndUnixMilli > 0 {
+		sb.Where(sb.LE("timestamp", selector.EndUnixMilli*1_000_000))
+		sb.Where(sb.LE("ts_bucket_start", selector.EndUnixMilli/1_000))
+	}
+	if selector.Value != "" {
+		searchColumn := column
+		if key.FieldDataType == telemetrytypes.FieldDataTypeNumber {
+			searchColumn = "toString(" + escapedColumn + ")"
+		}
+		sb.Where(sb.ILike(searchColumn, "%"+escapeForLike(selector.Value)+"%"))
+	}
+	sb.Limit(limit + 1)
+
+	query, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
+	rows, err := t.telemetrystore.ClickhouseDB().Query(ctx, query, args...)
+	if err != nil {
+		return nil, false, true, errors.Wrap(err, errors.TypeInternal, errors.CodeInternal, ErrFailedToGetTracesKeys.Error())
+	}
+	defer rows.Close()
+
+	values := &telemetrytypes.TelemetryFieldValues{}
+	rowCount := 0
+	for rows.Next() {
+		rowCount++
+		if rowCount > limit {
+			break
+		}
+		if key.FieldDataType == telemetrytypes.FieldDataTypeNumber {
+			var value float64
+			if err := rows.Scan(&value); err != nil {
+				return nil, false, true, errors.Wrap(err, errors.TypeInternal, errors.CodeInternal, ErrFailedToGetTracesKeys.Error())
+			}
+			values.NumberValues = append(values.NumberValues, value)
+		} else {
+			var value string
+			if err := rows.Scan(&value); err != nil {
+				return nil, false, true, errors.Wrap(err, errors.TypeInternal, errors.CodeInternal, ErrFailedToGetTracesKeys.Error())
+			}
+			values.StringValues = append(values.StringValues, value)
+		}
+	}
+	if err := rows.Err(); err != nil {
+		return nil, false, true, errors.Wrap(err, errors.TypeInternal, errors.CodeInternal, ErrFailedToGetTracesKeys.Error())
+	}
+
+	return values, rowCount <= limit, true, nil
+}
+
+func traceStaticField(name string) (telemetrytypes.TelemetryFieldKey, string, bool) {
+	key, ok := telemetrytraces.IntrinsicFields[name]
+	if !ok {
+		key, ok = telemetrytraces.CalculatedFields[name]
+	}
+	if !ok {
+		key, ok = telemetrytraces.DefaultFields[name]
+	}
+	if !ok {
+		return telemetrytypes.TelemetryFieldKey{}, "", false
+	}
+
+	column := name
+	switch name {
+	case "http.route":
+		column = "attribute_string_http$$route"
+	case "service.name":
+		column = "resource_string_service$$name"
+	case "rpc.method":
+		column = "attribute_string_rpc$$method"
+	}
+	return key, column, true
 }
 
 func (t *telemetryMetaStore) getLogFieldValues(ctx context.Context, fieldValueSelector *telemetrytypes.FieldValueSelector) (*telemetrytypes.TelemetryFieldValues, bool, error) {

@@ -16,8 +16,8 @@ describe('chooseAutocompleteFromCustomValue', () => {
 			type: '',
 		},
 		{
-			id: 'k8s.cluster.name--string--',
-			key: 'k8s.cluster.name',
+			id: 'cloud.region--string--',
+			key: 'cloud.region',
 			dataType: DataTypes.String,
 			type: '',
 		},

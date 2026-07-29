@@ -305,7 +305,7 @@ export const MOCK_QUERY_RANGE_REQUEST = {
 					disabled: false,
 					filter: {
 						expression:
-							'service.name EXISTS AND trace_id EXISTS AND k8s.pod.name EXISTS service.name in $service.name',
+							'service.name EXISTS AND trace_id EXISTS AND cloud.region EXISTS service.name in $service.name',
 					},
 					groupBy: [
 						{
@@ -319,7 +319,7 @@ export const MOCK_QUERY_RANGE_REQUEST = {
 							fieldContext: '',
 						},
 						{
-							name: 'k8s.pod.name',
+							name: 'cloud.region',
 							fieldDataType: 'string',
 							fieldContext: 'resource',
 						},

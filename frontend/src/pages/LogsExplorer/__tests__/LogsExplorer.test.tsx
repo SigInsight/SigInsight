@@ -47,10 +47,6 @@ jest.mock(
 		},
 );
 
-jest.mock('constants/panelTypes', () => ({
-	AVAILABLE_EXPORT_PANEL_TYPES: ['graph', 'table'],
-}));
-
 jest.mock('d3-interpolate', () => ({
 	interpolate: jest.fn(),
 }));

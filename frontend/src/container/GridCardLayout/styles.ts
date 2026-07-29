@@ -1,8 +1,17 @@
 import RGL, { WidthProvider } from 'react-grid-layout';
 import { Button as ButtonComponent, Card as CardComponent, Space } from 'antd';
 import { PANEL_TYPES } from 'constants/queryBuilder';
-import { StyledCSS } from 'container/GantChart/Trace/styles';
-import styled, { css } from 'styled-components';
+import styled, {
+	css,
+	DefaultTheme,
+	ThemedCssFunction,
+} from 'styled-components';
+
+type StyledCSS =
+	| ReturnType<ThemedCssFunction<DefaultTheme>>
+	| string
+	| false
+	| undefined;
 
 const ReactGridLayoutComponent = WidthProvider(RGL);
 

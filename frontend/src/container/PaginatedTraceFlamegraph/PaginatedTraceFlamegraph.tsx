@@ -6,7 +6,7 @@ import Spinner from 'components/Spinner';
 import { themeColors } from 'constants/theme';
 import useGetTraceFlamegraph from 'hooks/trace/useGetTraceFlamegraph';
 import useUrlQuery from 'hooks/useUrlQuery';
-import { generateColor } from 'lib/uPlotLib/utils/generateColor';
+import { generateColor } from 'lib/uPlotShared/generateColor';
 import { TraceDetailFlamegraphURLProps } from 'types/api/trace/getTraceFlamegraph';
 import { Span } from 'types/api/trace/getTraceWaterfall';
 

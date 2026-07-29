@@ -28,9 +28,9 @@ import {
 } from 'chart.js';
 import annotationPlugin from 'chartjs-plugin-annotation';
 import { DATE_TIME_FORMATS } from 'constants/dateTimeFormats';
-import { generateGridTitle } from 'container/GridPanelSwitch/utils';
 import dayjs from 'dayjs';
 import { useIsDarkMode } from 'hooks/useDarkMode';
+import { generateGridTitle } from 'lib/generateGridTitle';
 import isEqual from 'lodash-es/isEqual';
 import { useTimezone } from 'providers/Timezone';
 

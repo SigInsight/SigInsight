@@ -3,7 +3,7 @@ import { UseQueryResult } from 'react-query';
 import { ToggleGraphProps } from 'components/Graph/types';
 import { GetQueryResultsProps } from 'lib/dashboard/getQueryResults';
 import { RowData } from 'lib/query/createTableColumnsFromQuery';
-import { OnClickPluginOpts } from 'lib/uPlotLib/plugins/onClickPlugin';
+import { OnClickPluginOpts } from 'lib/uPlotShared/onClickPlugin';
 import { IDashboardVariables } from 'providers/Dashboard/store/dashboardVariables/dashboardVariablesStoreTypes';
 import { SuccessResponse } from 'types/api';
 import { Widgets } from 'types/api/dashboard/getAll';
@@ -12,7 +12,7 @@ import { QueryData } from 'types/api/widgets/getQuery';
 import uPlot from 'uplot';
 
 import { MenuItemKeys } from '../WidgetHeader/contants';
-import { LegendEntryProps } from './FullView/types';
+import { LegendEntryProps } from './FullView/utils';
 
 export interface GraphVisibilityLegendEntryProps {
 	graphVisibilityStates: boolean[];

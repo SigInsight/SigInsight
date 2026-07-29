@@ -123,7 +123,7 @@ jest.mock('lib/dashboard/getQueryResults', () => ({
 	GetMetricQueryRange: jest.fn(),
 }));
 
-jest.mock('lib/uPlotLib/utils/generateColor', () => ({
+jest.mock('lib/uPlotShared/generateColor', () => ({
 	generateColor: jest.fn().mockReturnValue('#1f77b4'),
 }));
 

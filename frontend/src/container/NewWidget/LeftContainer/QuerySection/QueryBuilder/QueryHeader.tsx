@@ -7,10 +7,17 @@ import {
 	RightOutlined,
 } from '@ant-design/icons';
 import { Button, Row } from 'antd';
-
-import { QueryWrapper } from '../styles';
+import styled from 'styled-components';
 
 import './QueryHeader.styles.scss';
+
+const QueryWrapper = styled.div`
+	width: 100%;
+	margin: 0;
+	padding: 0.5rem 0;
+	display: flex;
+	flex-direction: column;
+`;
 
 interface IQueryHeaderProps {
 	disabled: boolean;

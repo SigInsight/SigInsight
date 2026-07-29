@@ -16,7 +16,7 @@ import (
 	"github.com/SigNoz/signoz/pkg/prometheus/prometheustest"
 	"github.com/SigNoz/signoz/pkg/querier"
 	"github.com/SigNoz/signoz/pkg/querier/signozquerier"
-	"github.com/SigNoz/signoz/pkg/query-service/app/clickhouseReader"
+	"github.com/SigNoz/signoz/pkg/query-service/app/rulestatehistorystore"
 	"github.com/SigNoz/signoz/pkg/sqlstore"
 	"github.com/SigNoz/signoz/pkg/sqlstore/sqlstoretest"
 	"github.com/SigNoz/signoz/pkg/telemetrystore"
@@ -97,18 +97,12 @@ func NewTestManager(t *testing.T, testOpts *TestManagerOptions) *Manager {
 	})
 	require.NoError(t, err)
 
-	options := clickhouseReader.NewOptions("", "", "archiveNamespace")
 	providerSettings := instrumentationtest.New().ToProviderSettings()
 	prometheus := prometheustest.New(context.Background(), providerSettings, prometheus.Config{Timeout: 2 * time.Minute}, telemetryStore)
-	reader := clickhouseReader.NewReader(
+	reader := rulestatehistorystore.New(
 		instrumentationtest.New().Logger(),
-		nil,
-		telemetryStore,
-		prometheus,
-		time.Duration(time.Second),
-		nil,
-		readerCache,
-		options,
+		telemetryStore.ClickhouseDB(),
+		rulestatehistorystore.DefaultConfig(),
 	)
 
 	flagger, err := flagger.New(context.Background(), instrumentationtest.New().ToProviderSettings(), flagger.Config{}, flagger.MustNewRegistry())
@@ -122,13 +116,12 @@ func NewTestManager(t *testing.T, testOpts *TestManagerOptions) *Manager {
 	require.NoError(t, err)
 
 	mgrOpts := &ManagerOptions{
-		Logger:         instrumentationtest.New().Logger(),
-		Cache:          cacheObj,
-		Alertmanager:   fAlert,
-		Querier:        mockQuerier,
-		TelemetryStore: telemetryStore,
-		Reader:         reader,
-		SqlStore:       sqlStore, // SQLStore needed for SendAlerts to query organizations
+		Logger:       instrumentationtest.New().Logger(),
+		Cache:        cacheObj,
+		Alertmanager: fAlert,
+		Querier:      mockQuerier,
+		Reader:       reader,
+		SqlStore:     sqlStore, // SQLStore needed for SendAlerts to query organizations
 	}
 
 	// Call the ManagerOptions hook if provided to allow customization

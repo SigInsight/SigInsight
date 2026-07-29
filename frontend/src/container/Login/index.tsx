@@ -66,6 +66,10 @@ function Login(): JSX.Element {
 
 	// fetch the sessions context post user entering the email
 	const onNextHandler = async (): Promise<void> => {
+		if (versionLoading) {
+			return;
+		}
+
 		const email = form.getFieldValue('email');
 		setIsLoadingSessionsContext(true);
 		setErrorMessage(undefined);
@@ -240,7 +244,7 @@ function Login(): JSX.Element {
 								required
 								placeholder="e.g. student@example.edu"
 								autoFocus
-								disabled={versionLoading}
+								disabled={sessionsContextLoading || isSubmitting}
 								className="login-form-input"
 								onPressEnter={onNextHandler}
 							/>

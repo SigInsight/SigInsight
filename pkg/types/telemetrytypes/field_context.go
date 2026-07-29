@@ -13,7 +13,7 @@ import (
 //
 // - Use `resource.` prefix to the key to explicitly indicate and enforce resource context. Example
 //   - `resource.service.name`
-//   - `resource.k8s.namespace.name`
+//   - `resource.deployment.environment`
 //
 // - Use `scope.` prefix to explicitly indicate and enforce scope context. Example
 //   - `scope.name`
