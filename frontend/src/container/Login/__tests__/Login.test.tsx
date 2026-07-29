@@ -129,7 +129,8 @@ describe('Login Component', () => {
 			expect(getByPlaceholderText('e.g. student@example.edu')).toBeInTheDocument();
 		});
 
-		it('shows loading state when version data is being fetched', () => {
+		it('keeps email input usable while version data is being fetched', async () => {
+			const user = userEvent.setup({ pointerEventsCheck: 0 });
 			server.use(
 				rest.get(VERSION_ENDPOINT, (_, res, ctx) =>
 					res(
@@ -143,6 +144,11 @@ describe('Login Component', () => {
 			const { getByTestId } = render(<Login />);
 
 			expect(getByTestId('initiate_login')).toBeDisabled();
+
+			const emailInput = getByTestId('email');
+			expect(emailInput).not.toBeDisabled();
+			await user.type(emailInput, PASSWORD_AUTHN_EMAIL);
+			expect(emailInput).toHaveValue(PASSWORD_AUTHN_EMAIL);
 		});
 	});
 
