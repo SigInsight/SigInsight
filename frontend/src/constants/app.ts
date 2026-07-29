@@ -1,14 +1,12 @@
 import ROUTES from './routes';
 
-export const DOCS_BASE_URL = process.env.DOCS_BASE_URL || 'https://signoz.io';
+export const DOCS_BASE_URL = process.env.DOCS_BASE_URL || '';
 
 export const WITHOUT_SESSION_PATH = ['/redirect'];
 
 export const AUTH0_REDIRECT_PATH = '/redirect';
 
 export const DEFAULT_AUTH0_APP_REDIRECTION_PATH = ROUTES.APPLICATION;
-
-export const INVITE_MEMBERS_HASH = '#invite-team-members';
 
 export const AUTO_REFRESH_INTERVAL = 'refreshInterval';
 

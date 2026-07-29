@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { Button } from 'antd';
 import logEvent from 'api/common/logEvent';
 import history from 'lib/history';
-import { ArrowRight, ArrowRightToLine, BookOpenText } from 'lucide-react';
+import { ArrowRight, ArrowRightToLine } from 'lucide-react';
 import { useAppContext } from 'providers/App/App';
 import { USER_ROLES } from 'types/roles';
 
@@ -18,7 +18,6 @@ export type ChecklistItem = {
 	isSkippable?: boolean;
 	skippedPreferenceKey?: string;
 	toRoute?: string;
-	docsLink?: string;
 };
 
 function HomeChecklist({
@@ -89,35 +88,13 @@ function HomeChecklist({
 															step: item.id,
 														});
 
-														if (!item.toRoute && item.docsLink) {
-															window?.open(
-																item.docsLink || '',
-																'_blank',
-																'noopener noreferrer',
-															);
-														} else {
-															history.push(item.toRoute || '');
+														if (item.toRoute) {
+															history.push(item.toRoute);
 														}
 													}}
 												>
 													Get Started &nbsp; <ArrowRight size={16} />
 												</Button>
-
-												{item.docsLink && (
-													<Button
-														type="default"
-														className="periscope-btn secondary"
-														onClick={(): void => {
-															logEvent('Welcome Checklist: Docs clicked', {
-																step: item.id,
-															});
-
-															window?.open(item.docsLink, '_blank', 'noopener noreferrer');
-														}}
-													>
-														<BookOpenText size={16} />
-													</Button>
-												)}
 											</div>
 
 											{!item.isSkipped && item.isSkippable && (

@@ -1,8 +1,7 @@
 import { Button, Typography } from 'antd';
 import ROUTES from 'constants/routes';
 import { useSafeNavigate } from 'hooks/useSafeNavigate';
-import { LifeBuoy, List } from 'lucide-react';
-import { handleContactSupport } from 'pages/Integrations/utils';
+import { List } from 'lucide-react';
 
 import './AlertNotFound.styles.scss';
 
@@ -15,10 +14,6 @@ function AlertNotFound({ isTestAlert }: AlertNotFoundProps): JSX.Element {
 
 	const checkAllRulesHandler = (): void => {
 		safeNavigate(ROUTES.LIST_ALL_ALERT);
-	};
-
-	const contactSupportHandler = (): void => {
-		handleContactSupport();
 	};
 
 	return (
@@ -68,7 +63,7 @@ function AlertNotFound({ isTestAlert }: AlertNotFoundProps): JSX.Element {
 			</section>
 			<section className="none-of-above">
 				<Typography.Text className="text">
-					If you feel the issue is none of the above, please contact support.
+					Review the available alert rules.
 				</Typography.Text>
 				<div className="action-btns">
 					<Button
@@ -77,13 +72,6 @@ function AlertNotFound({ isTestAlert }: AlertNotFoundProps): JSX.Element {
 						onClick={checkAllRulesHandler}
 					>
 						Check all rules
-					</Button>
-					<Button
-						className="action-btn"
-						icon={<LifeBuoy size={14} />}
-						onClick={contactSupportHandler}
-					>
-						Contact Support
 					</Button>
 				</div>
 			</section>

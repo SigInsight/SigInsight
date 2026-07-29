@@ -3,11 +3,7 @@ import { CloseOutlined } from '@ant-design/icons';
 import { Card, InputNumber } from 'antd';
 import Spinner from 'components/Spinner';
 import TextToolTip from 'components/TextToolTip';
-import {
-	apDexToolTipText,
-	apDexToolTipUrl,
-	apDexToolTipUrlText,
-} from 'constants/apDex';
+import { apDexToolTipText } from 'constants/apDex';
 import { themeColors } from 'constants/theme';
 import { useSetApDexSettings } from 'hooks/apDex/useSetApDexSettings';
 import { useNotifications } from 'hooks/useNotifications';
@@ -85,12 +81,7 @@ function ApDexSettings({
 			<AppDexThresholdContainer>
 				<Typography>
 					Apdex threshold (in seconds){' '}
-					<TextToolTip
-						text={apDexToolTipText}
-						url={apDexToolTipUrl}
-						useFilledIcon={false}
-						urlText={apDexToolTipUrlText}
-					/>
+					<TextToolTip text={apDexToolTipText} useFilledIcon={false} />
 				</Typography>
 				<InputNumber
 					value={thresholdValue}

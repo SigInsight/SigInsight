@@ -15,25 +15,22 @@ import useGetTopLevelOperations from 'hooks/useGetTopLevelOperations';
 import useResourceAttribute from 'hooks/useResourceAttribute';
 import { convertRawQueriesToTraceSelectedTags } from 'hooks/useResourceAttribute/utils';
 import { useSafeNavigate } from 'hooks/useSafeNavigate';
-import { ArrowRight, ArrowUpRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import Card from 'periscope/components/Card/Card';
 import { useAppContext } from 'providers/App/App';
-import { IUser } from 'providers/App/types';
 import { AppState } from 'store/reducers';
 import { ServicesList } from 'types/api/metrics/getService';
 import { GlobalReducer } from 'types/reducer/globalTime';
 import { Tags } from 'types/reducer/trace';
-import { USER_ROLES } from 'types/roles';
 
 import { FeatureKeys } from '../../../constants/features';
-import { DOCS_LINKS } from '../constants';
 import { columns, TIME_PICKER_OPTIONS } from './constants';
 
 const homeInterval = 30 * 60 * 1000;
 
 // Extracted EmptyState component
 const EmptyState = memo(
-	({ user }: { user: IUser }): JSX.Element => (
+	(): JSX.Element => (
 		<div className="empty-state-container">
 			<div className="empty-state-content-container">
 				<div className="empty-state-content">
@@ -47,44 +44,6 @@ const EmptyState = memo(
 						Start sending traces to see your services.
 					</div>
 				</div>
-
-				{user?.role !== USER_ROLES.VIEWER && (
-					<div className="empty-actions-container">
-						<Button
-							type="default"
-							className="periscope-btn secondary"
-							onClick={(): void => {
-								logEvent('Homepage: Get Started clicked', {
-									source: 'Service Metrics',
-								});
-
-								window?.open(
-									DOCS_LINKS.ADD_DATA_SOURCE,
-									'_blank',
-									'noopener noreferrer',
-								);
-							}}
-						>
-							Get Started &nbsp; <ArrowRight size={16} />
-						</Button>
-
-						<Button
-							type="link"
-							className="learn-more-link"
-							onClick={(): void => {
-								logEvent('Homepage: Learn more clicked', {
-									source: 'Service Metrics',
-								});
-								window.open(
-									'https://signoz.io/docs/instrumentation/overview/',
-									'_blank',
-								);
-							}}
-						>
-							Learn more <ArrowUpRight size={12} />
-						</Button>
-					</div>
-				)}
 			</div>
 		</div>
 	),
@@ -128,8 +87,6 @@ function ServiceMetrics({
 		AppState,
 		GlobalReducer
 	>((state) => state.globalTime);
-
-	const { user } = useAppContext();
 
 	const [timeRange, setTimeRange] = useState(() => {
 		const now = new Date().getTime();
@@ -313,7 +270,7 @@ function ServiceMetrics({
 				{servicesExist ? (
 					<ServicesListTable services={top5Services} onRowClick={handleRowClick} />
 				) : (
-					<EmptyState user={user} />
+					<EmptyState />
 				)}
 			</Card.Content>
 

@@ -1,13 +1,8 @@
 import { Typography } from 'antd';
-import { ArrowRight } from 'lucide-react';
 
 import './LogsError.styles.scss';
 
 export default function LogsError(): JSX.Element {
-	const handleContactSupport = (): void => {
-		window.open('https://signoz.io/slack', '_blank');
-	};
-
 	return (
 		<div className="logs-error-container">
 			<div className="logs-error-content">
@@ -18,14 +13,8 @@ export default function LogsError(): JSX.Element {
 				/>
 				<Typography.Text>
 					<span className="aww-snap">Aw snap :/ </span> Something went wrong. Please
-					try again or contact support.
+					try again.
 				</Typography.Text>
-
-				<div className="contact-support" onClick={handleContactSupport}>
-					<Typography.Link className="text">Contact Support </Typography.Link>
-
-					<ArrowRight size={14} />
-				</div>
 			</div>
 		</div>
 	);

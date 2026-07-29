@@ -16,10 +16,6 @@ import (
 	sqlbuilder "github.com/huandu/go-sqlbuilder"
 )
 
-var searchTroubleshootingGuideURL = "https://signoz.io/docs/userguide/search-troubleshooting/"
-
-const stringMatchingOperatorDocURL = "https://signoz.io/docs/userguide/operators-reference/#string-matching-operators"
-
 // filterExpressionVisitor implements the FilterQueryVisitor interface
 // to convert the parsed filter expressions into ClickHouse WHERE clause
 type filterExpressionVisitor struct {
@@ -143,7 +139,7 @@ func PrepareWhereClause(query string, opts FilterExprVisitorOpts, startNs uint64
 			}
 		}
 
-		return nil, combinedErrors.WithAdditional(additionals...).WithUrl(searchTroubleshootingGuideURL)
+		return nil, combinedErrors.WithAdditional(additionals...)
 	}
 
 	// Visit the parse tree with our ClickHouse visitor
@@ -157,11 +153,7 @@ func PrepareWhereClause(query string, opts FilterExprVisitorOpts, startNs uint64
 			"Found %d errors while parsing the search expression.",
 			len(visitor.errors),
 		)
-		url := visitor.mainErrorURL
-		if url == "" {
-			url = searchTroubleshootingGuideURL
-		}
-		return nil, combinedErrors.WithAdditional(visitor.errors...).WithUrl(url)
+		return nil, combinedErrors.WithAdditional(visitor.errors...)
 	}
 
 	if cond == "" {
@@ -607,9 +599,6 @@ func (v *filterExpressionVisitor) warnIfLikeWithoutWildcards(op string, value an
 
 	msg := op + " operator used without wildcards (% or _). Consider using = operator for exact matches or add wildcards for pattern matching."
 	v.warnings = append(v.warnings, msg)
-	if v.mainWarnURL == "" {
-		v.mainWarnURL = stringMatchingOperatorDocURL
-	}
 }
 
 // VisitInClause handles IN expressions
@@ -709,17 +698,11 @@ func (v *filterExpressionVisitor) VisitFunctionCall(ctx *grammar.FunctionCallCon
 		if functionName == "hasToken" {
 
 			if key.Name != "body" {
-				if v.mainErrorURL == "" {
-					v.mainErrorURL = "https://signoz.io/docs/userguide/functions-reference/#hastoken-function"
-				}
 				v.errors = append(v.errors, fmt.Sprintf("function `%s` only supports body field as first parameter", functionName))
 			}
 
 			// this will only work with string.
 			if _, ok := value[0].(string); !ok {
-				if v.mainErrorURL == "" {
-					v.mainErrorURL = "https://signoz.io/docs/userguide/functions-reference/#hastoken-function"
-				}
 				v.errors = append(v.errors, fmt.Sprintf("function `%s` expects value parameter to be a string", functionName))
 				return ""
 			}
@@ -730,9 +713,6 @@ func (v *filterExpressionVisitor) VisitFunctionCall(ctx *grammar.FunctionCallCon
 				fieldName, _ = v.jsonKeyToKey(context.Background(), key, qbtypes.FilterOperatorUnknown, value)
 			} else {
 				// TODO(add docs for json body search)
-				if v.mainErrorURL == "" {
-					v.mainErrorURL = "https://signoz.io/docs/userguide/search-troubleshooting/#function-supports-only-body-json-search"
-				}
 				v.errors = append(v.errors, fmt.Sprintf("function `%s` supports only body JSON search", functionName))
 				return ""
 			}
@@ -862,6 +842,7 @@ func (v *filterExpressionVisitor) VisitKey(ctx *grammar.KeyContext) any {
 	if fieldKey.FieldContext == telemetrytypes.FieldContextBody {
 		fieldKeysForName = append(fieldKeysForName, &fieldKey)
 	}
+	fieldKeysForName = deduplicateFieldKeys(fieldKeysForName)
 
 	if len(fieldKeysForName) == 0 {
 		if fieldKey.FieldContext == telemetrytypes.FieldContextBody && keyName == "" {
@@ -870,7 +851,6 @@ func (v *filterExpressionVisitor) VisitKey(ctx *grammar.KeyContext) any {
 			// TODO(srikanthccv): do we want to return an error here?
 			// should we infer the type and auto-magically build a key for expression?
 			v.errors = append(v.errors, fmt.Sprintf("key `%s` not found", fieldKey.Name))
-			v.mainErrorURL = "https://signoz.io/docs/userguide/search-troubleshooting/#key-fieldname-not-found"
 		}
 	}
 
@@ -902,7 +882,6 @@ func (v *filterExpressionVisitor) VisitKey(ctx *grammar.KeyContext) any {
 		}
 
 		if !v.keysWithWarnings[keyName] {
-			v.mainWarnURL = "https://signoz.io/docs/userguide/field-context-data-types/"
 			// this is warning state, we must have a unambiguous key
 			v.warnings = append(v.warnings, warnMsg)
 		}
@@ -911,6 +890,32 @@ func (v *filterExpressionVisitor) VisitKey(ctx *grammar.KeyContext) any {
 	}
 
 	return fieldKeysForName
+}
+
+func deduplicateFieldKeys(keys []*telemetrytypes.TelemetryFieldKey) []*telemetrytypes.TelemetryFieldKey {
+	uniqueKeys := make([]*telemetrytypes.TelemetryFieldKey, 0, len(keys))
+	for _, key := range keys {
+		if key == nil {
+			continue
+		}
+
+		duplicate := false
+		for _, uniqueKey := range uniqueKeys {
+			if uniqueKey.Name == key.Name &&
+				uniqueKey.Signal == key.Signal &&
+				uniqueKey.FieldContext == key.FieldContext &&
+				uniqueKey.FieldDataType == key.FieldDataType &&
+				uniqueKey.Materialized == key.Materialized {
+				duplicate = true
+				break
+			}
+		}
+		if !duplicate {
+			uniqueKeys = append(uniqueKeys, key)
+		}
+	}
+
+	return uniqueKeys
 }
 
 // hasLikeWildcards checks if a value contains LIKE wildcards (% or _)

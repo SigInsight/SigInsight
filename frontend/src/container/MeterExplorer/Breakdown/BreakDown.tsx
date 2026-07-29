@@ -152,16 +152,7 @@ function BreakDown(): JSX.Element {
 						message={
 							<>
 								Meter metrics data is aggregated over 1 hour period. Please select time
-								range accordingly.&nbsp;
-								<a
-									href="https://signoz.io/docs/cost-meter/overview/#accessing-cost-meter"
-									rel="noopener noreferrer"
-									target="_blank"
-									style={{ textDecoration: 'underline' }}
-								>
-									Learn more
-								</a>
-								.
+								range accordingly.
 							</>
 						}
 					/>

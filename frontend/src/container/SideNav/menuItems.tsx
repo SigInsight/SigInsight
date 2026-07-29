@@ -2,31 +2,25 @@ import { Style } from '@signozhq/design-tokens';
 import { MenuProps } from 'antd';
 import ROUTES from 'constants/routes';
 import {
-	ArrowUpRight,
 	BarChart2,
 	BellDot,
 	Binoculars,
-	Book,
 	BugIcon,
 	Building2,
 	ChartArea,
 	Cloudy,
 	DraftingCompass,
 	FileKey2,
-	Github,
 	HardDrive,
 	Home,
 	Keyboard,
 	Layers2,
 	LogOut,
-	MessageSquareText,
-	Plus,
 	Route,
 	ScrollText,
 	Settings,
 	Slack,
 	User,
-	UserPlus,
 	Users,
 } from 'lucide-react';
 
@@ -40,18 +34,6 @@ export const homeMenuItem = {
 	key: ROUTES.HOME,
 	label: 'Home',
 	icon: <Home size={16} />,
-};
-
-export const inviteMemberMenuItem = {
-	key: `${ROUTES.ORG_SETTINGS}#invite-team-members`,
-	label: 'Invite Team Member',
-	icon: <UserPlus size={16} />,
-};
-
-export const helpSupportMenuItem = {
-	key: 'help-support',
-	label: 'Help & Support',
-	icon: <MessageSquareText size={16} />,
 };
 
 export const shortcutMenuItem = {
@@ -265,42 +247,6 @@ export const settingsNavSections: SettingsNavSection[] = [
 				itemKey: 'keyboard-shortcuts',
 			},
 		],
-	},
-];
-
-export const helpSupportDropdownMenuItems: SidebarItem[] = [
-	{
-		key: 'documentation',
-		label: (
-			<div className="nav-item-label-container">
-				<span>Documentation</span>
-				<ArrowUpRight size={14} />
-			</div>
-		),
-		icon: <Book size={14} />,
-		isExternal: true,
-		url: 'https://signoz.io/docs',
-		itemKey: 'documentation',
-	},
-	{
-		key: 'github',
-		label: (
-			<div className="nav-item-label-container">
-				<span>GitHub</span>
-				<ArrowUpRight size={14} />
-			</div>
-		),
-
-		icon: <Github size={14} />,
-		isExternal: true,
-		url: 'https://github.com/signoz/signoz',
-		itemKey: 'github',
-	},
-	{
-		key: 'invite-collaborators',
-		label: 'Invite a Team Member',
-		icon: <Plus size={14} />,
-		itemKey: 'invite-collaborators',
 	},
 ];
 

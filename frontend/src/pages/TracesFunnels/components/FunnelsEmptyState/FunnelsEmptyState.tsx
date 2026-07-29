@@ -1,5 +1,4 @@
 import { Button } from 'antd';
-import LearnMore from 'components/LearnMore/LearnMore';
 import { Plus } from 'lucide-react';
 import { useAppContext } from 'providers/App/App';
 
@@ -42,7 +41,6 @@ function FunnelsEmptyState({
 							New funnel
 						</Button>
 					)}
-					<LearnMore url="https://signoz.io/blog/tracing-funnels-observability-distributed-systems/" />
 				</div>
 			</div>
 		</div>

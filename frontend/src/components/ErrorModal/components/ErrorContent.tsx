@@ -1,9 +1,8 @@
 import { ReactNode } from 'react';
 import { Color } from '@signozhq/design-tokens';
-import { Button } from 'antd';
 import ErrorIcon from 'assets/Error';
 import OverlayScrollbar from 'components/OverlayScrollbar/OverlayScrollbar';
-import { BookOpenText, ChevronsDown } from 'lucide-react';
+import { ChevronsDown } from 'lucide-react';
 import KeyValueLabel from 'periscope/components/KeyValueLabel';
 import APIError from 'types/api/error';
 
@@ -15,12 +14,8 @@ interface ErrorContentProps {
 }
 
 function ErrorContent({ error, icon }: ErrorContentProps): JSX.Element {
-	const {
-		url: errorUrl,
-		errors: errorMessages,
-		code: errorCode,
-		message: errorMessage,
-	} = error?.error?.error || {};
+	const { errors: errorMessages, code: errorCode, message: errorMessage } =
+		error?.error?.error || {};
 	return (
 		<section className="error-content">
 			{/* Summary Header */}
@@ -34,21 +29,6 @@ function ErrorContent({ error, icon }: ErrorContentProps): JSX.Element {
 							<p className="error-content__error-message">{errorMessage}</p>
 						</div>
 					</div>
-
-					{errorUrl && (
-						<div className="error-content__summary-right">
-							<Button
-								type="default"
-								className="error-content__docs-button"
-								href={errorUrl}
-								target="_blank"
-								data-testid="error-docs-button"
-							>
-								<BookOpenText size={14} />
-								Open Docs
-							</Button>
-						</div>
-					)}
 				</header>
 
 				{errorMessages?.length > 0 && (

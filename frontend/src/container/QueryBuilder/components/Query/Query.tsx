@@ -362,16 +362,6 @@ export const Query = memo(function Query({
 													title={
 														<div style={{ textAlign: 'center' }}>
 															Select Aggregate Operator
-															<Typography.Link
-																className="learn-more"
-																href="https://signoz.io/docs/userguide/query-builder/?utm_source=product&utm_medium=query-builder#aggregation"
-																target="_blank"
-																style={{ textDecoration: 'underline' }}
-															>
-																{' '}
-																<br />
-																Learn more
-															</Typography.Link>
 														</div>
 													}
 												>
@@ -427,18 +417,7 @@ export const Query = memo(function Query({
 								<Col flex="5.93rem">
 									<Tooltip
 										title={
-											<div style={{ textAlign: 'center' }}>
-												Select Aggregate Operator
-												<Typography.Link
-													href="https://signoz.io/docs/userguide/query-builder/?utm_source=product&utm_medium=query-builder#aggregation"
-													target="_blank"
-													style={{ textDecoration: 'underline' }}
-												>
-													{' '}
-													<br />
-													Learn more
-												</Typography.Link>
-											</div>
+											<div style={{ textAlign: 'center' }}>Select Aggregate Operator</div>
 										}
 									>
 										<OperatorsSelect
@@ -509,20 +488,7 @@ export const Query = memo(function Query({
 						<Row style={{ width: '100%' }}>
 							<Tooltip
 								placement="right"
-								title={
-									<div style={{ textAlign: 'center' }}>
-										Name of legend
-										<Typography.Link
-											style={{ textDecoration: 'underline' }}
-											href="https://signoz.io/docs/userguide/query-builder/?utm_source=product&utm_medium=query-builder#legend-format"
-											target="_blank"
-										>
-											{' '}
-											<br />
-											Learn more
-										</Typography.Link>
-									</div>
-								}
+								title={<div style={{ textAlign: 'center' }}>Name of legend</div>}
 							>
 								<Input
 									onChange={handleChangeQueryLegend}

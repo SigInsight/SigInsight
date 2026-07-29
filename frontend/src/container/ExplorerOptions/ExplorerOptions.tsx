@@ -665,27 +665,6 @@ function ExplorerOptions({
 		viewsData?.data?.data,
 	]);
 
-	const infoIconText = useMemo(() => {
-		if (isLogsExplorer) {
-			return 'Learn more about Logs explorer';
-		}
-		if (isMetricsExplorer) {
-			return 'Learn more about Metrics explorer';
-		}
-		return 'Learn more about Traces explorer';
-	}, [isLogsExplorer, isMetricsExplorer]);
-
-	const infoIconLink = useMemo(() => {
-		if (isLogsExplorer) {
-			return 'https://signoz.io/docs/product-features/logs-explorer/?utm_source=product&utm_medium=logs-explorer-toolbar';
-		}
-		// TODO: Add metrics explorer info icon link
-		if (isMetricsExplorer) {
-			return '';
-		}
-		return 'https://signoz.io/docs/product-features/trace-explorer/?utm_source=product&utm_medium=trace-explorer-toolbar';
-	}, [isLogsExplorer, isMetricsExplorer]);
-
 	const getQueryName = (query: Query): string => {
 		if (query.builder.queryFormulas.length > 0) {
 			return `Formula ${query.builder.queryFormulas[0].queryName}`;
@@ -862,22 +841,6 @@ function ExplorerOptions({
 					)}
 
 					<div className="actions">
-						{/* Hide the info icon for metrics explorer until we get the docs link */}
-						{!isMetricsExplorer && (
-							<Tooltip
-								title={
-									<div>
-										{infoIconText}
-										<Typography.Link href={infoIconLink} target="_blank">
-											{' '}
-											here
-										</Typography.Link>{' '}
-									</div>
-								}
-							>
-								<InfoCircleOutlined className="info-icon" />
-							</Tooltip>
-						)}
 						<Tooltip title="Hide">
 							<Button
 								disabled={disabled}

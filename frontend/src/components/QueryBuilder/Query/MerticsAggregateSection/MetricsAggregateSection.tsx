@@ -97,18 +97,7 @@ const MetricsAggregateSection = memo(function MetricsAggregateSection({
 					<div className="metrics-time-aggregation-section">
 						<div className="metrics-aggregation-section-content">
 							<div className="metrics-aggregation-section-content-item">
-								<Tooltip
-									title={
-										<a
-											href="https://signoz.io/docs/metrics-management/types-and-aggregation/#aggregation"
-											target="_blank"
-											rel="noopener noreferrer"
-											style={{ color: '#1890ff', textDecoration: 'underline' }}
-										>
-											Learn more about temporal aggregation
-										</a>
-									}
-								>
+								<Tooltip title="Aggregate values within each time series.">
 									<div className="metrics-aggregation-section-content-item-label main-label">
 										AGGREGATE WITHIN TIME SERIES{' '}
 									</div>
@@ -126,20 +115,7 @@ const MetricsAggregateSection = memo(function MetricsAggregateSection({
 							{showAggregationInterval && (
 								<div className="metrics-aggregation-section-content-item">
 									<Tooltip
-										title={
-											<div>
-												Set the time interval for aggregation
-												<br />
-												<a
-													href="https://signoz.io/docs/userguide/query-builder-v5/#time-aggregation-windows"
-													target="_blank"
-													rel="noopener noreferrer"
-													style={{ color: '#1890ff', textDecoration: 'underline' }}
-												>
-													Learn about step intervals
-												</a>
-											</div>
-										}
+										title="Set the time interval for aggregation."
 										placement="top"
 									>
 										<div
@@ -166,18 +142,7 @@ const MetricsAggregateSection = memo(function MetricsAggregateSection({
 					<div className="metrics-space-aggregation-section">
 						<div className="metrics-aggregation-section-content">
 							<div className="metrics-aggregation-section-content-item">
-								<Tooltip
-									title={
-										<a
-											href="https://signoz.io/docs/metrics-management/types-and-aggregation/#aggregation"
-											target="_blank"
-											rel="noopener noreferrer"
-											style={{ color: '#1890ff', textDecoration: 'underline' }}
-										>
-											Learn more about spatial aggregation
-										</a>
-									}
-								>
+								<Tooltip title="Aggregate values across matching time series.">
 									<div className="metrics-aggregation-section-content-item-label main-label">
 										AGGREGATE ACROSS TIME SERIES
 									</div>
@@ -248,23 +213,7 @@ const MetricsAggregateSection = memo(function MetricsAggregateSection({
 							</div>
 						</div>
 						<div className="metrics-aggregation-section-content-item">
-							<Tooltip
-								title={
-									<div>
-										Set the time interval for aggregation
-										<br />
-										<a
-											href="https://signoz.io/docs/userguide/query-builder-v5/#time-aggregation-windows"
-											target="_blank"
-											rel="noopener noreferrer"
-											style={{ color: '#1890ff', textDecoration: 'underline' }}
-										>
-											Learn about step intervals
-										</a>
-									</div>
-								}
-								placement="top"
-							>
+							<Tooltip title="Set the time interval for aggregation." placement="top">
 								<div
 									className="metrics-aggregation-section-content-item-label"
 									style={{ cursor: 'help' }}

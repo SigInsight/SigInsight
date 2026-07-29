@@ -1,7 +1,3 @@
-export const handleContactSupport = (): void => {
-	window.open('https://signoz.io/slack', '_blank');
-};
-
 const BUILTIN_INTEGRATION_IDS = new Set([
 	'builtin-clickhouse',
 	'builtin-mongo',

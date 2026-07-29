@@ -81,17 +81,10 @@ describe('ErrorModal Component', () => {
 		expect(screen.getByText('Third error detail')).toBeInTheDocument();
 	});
 
-	it('should render the open docs button when URL is provided', async () => {
+	it('should not render an external docs button when URL is provided', () => {
 		render(<ErrorModal error={mockError} open onClose={jest.fn()} />);
 
-		// Check if the open docs button is displayed
-		const openDocsButton = screen.getByTestId('error-docs-button');
-
-		expect(openDocsButton).toBeInTheDocument();
-
-		expect(openDocsButton).toHaveAttribute('href', 'https://example.com/docs');
-
-		expect(openDocsButton).toHaveAttribute('target', '_blank');
+		expect(screen.queryByTestId('error-docs-button')).not.toBeInTheDocument();
 	});
 
 	it('should not display scroll for more if there are less than 10 messages', () => {

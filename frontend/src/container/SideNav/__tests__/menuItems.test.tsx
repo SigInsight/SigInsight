@@ -1,7 +1,7 @@
 import { getUserSettingsDropdownMenuItems } from 'container/SideNav/menuItems';
 
 const BASE_PARAMS = {
-	userEmail: 'test@signoz.io',
+	userEmail: 'test@example.com',
 	isWorkspaceBlocked: false,
 	isEnterpriseSelfHostedUser: false,
 	isCommunityEnterpriseUser: false,

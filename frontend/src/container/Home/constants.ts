@@ -14,16 +14,6 @@ export const checkListStepToPreferenceKeyMap = {
 	ADD_DATA_SOURCE: ORG_PREFERENCES.WELCOME_CHECKLIST_ADD_DATA_SOURCE_SKIPPED,
 };
 
-export const DOCS_LINKS = {
-	ADD_DATA_SOURCE: 'https://signoz.io/docs/instrumentation/overview/',
-	SEND_LOGS: 'https://signoz.io/docs/userguide/logs/',
-	SEND_TRACES: 'https://signoz.io/docs/userguide/traces/',
-	SEND_METRICS: 'https://signoz.io/docs/metrics-management/metrics-explorer/',
-	SETUP_ALERTS: 'https://signoz.io/docs/userguide/alerts-management/',
-	SETUP_SAVED_VIEWS:
-		'https://signoz.io/docs/product-features/saved-view/#step-2-save-your-view',
-};
-
 export const defaultChecklistItemsState: ChecklistItem[] = [
 	{
 		id: 'SETUP_WORKSPACE',
@@ -41,7 +31,6 @@ export const defaultChecklistItemsState: ChecklistItem[] = [
 		completed: false,
 		isSkipped: false,
 		skippedPreferenceKey: checkListStepToPreferenceKeyMap.ADD_DATA_SOURCE,
-		docsLink: DOCS_LINKS.ADD_DATA_SOURCE,
 		isSkippable: false,
 	},
 	{
@@ -53,7 +42,6 @@ export const defaultChecklistItemsState: ChecklistItem[] = [
 		isSkipped: false,
 		isSkippable: true,
 		skippedPreferenceKey: checkListStepToPreferenceKeyMap.SEND_LOGS,
-		docsLink: DOCS_LINKS.SEND_LOGS,
 	},
 	{
 		id: 'SEND_TRACES',
@@ -64,7 +52,6 @@ export const defaultChecklistItemsState: ChecklistItem[] = [
 		isSkipped: false,
 		isSkippable: true,
 		skippedPreferenceKey: checkListStepToPreferenceKeyMap.SEND_TRACES,
-		docsLink: DOCS_LINKS.SEND_TRACES,
 	},
 	{
 		id: 'SEND_METRICS',
@@ -75,7 +62,6 @@ export const defaultChecklistItemsState: ChecklistItem[] = [
 		isSkipped: false,
 		isSkippable: true,
 		skippedPreferenceKey: checkListStepToPreferenceKeyMap.SEND_METRICS,
-		docsLink: DOCS_LINKS.SEND_METRICS,
 	},
 	{
 		id: 'SETUP_ALERTS',
@@ -87,7 +73,6 @@ export const defaultChecklistItemsState: ChecklistItem[] = [
 		isSkippable: true,
 		skippedPreferenceKey: checkListStepToPreferenceKeyMap.SETUP_ALERTS,
 		toRoute: ROUTES.ALERTS_NEW,
-		docsLink: DOCS_LINKS.SETUP_ALERTS,
 	},
 	{
 		id: 'SETUP_SAVED_VIEWS',
@@ -99,6 +84,5 @@ export const defaultChecklistItemsState: ChecklistItem[] = [
 		isSkippable: true,
 		skippedPreferenceKey: checkListStepToPreferenceKeyMap.SETUP_SAVED_VIEWS,
 		toRoute: ROUTES.LOGS_EXPLORER,
-		docsLink: DOCS_LINKS.SETUP_SAVED_VIEWS,
 	},
 ];

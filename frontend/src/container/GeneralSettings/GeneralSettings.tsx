@@ -673,12 +673,7 @@ function GeneralSettings({
 			</div>
 
 			<ErrorTextContainer>
-				<TextToolTip
-					{...{
-						text: `More details on how to set retention period`,
-						url: 'https://signoz.io/docs/userguide/retention-period/',
-					}}
-				/>
+				<TextToolTip text="More details on how to set retention period" />
 				{errorText && <ErrorText>{errorText}</ErrorText>}
 			</ErrorTextContainer>
 		</div>

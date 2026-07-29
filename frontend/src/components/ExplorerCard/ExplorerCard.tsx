@@ -34,7 +34,7 @@ import { mapCompositeQueryFromQuery } from 'lib/newQueryBuilder/queryBuilderMapp
 import { DataSource, StringOperators } from 'types/common/queryBuilder';
 import { popupContainer } from 'utils/selectPopupContainer';
 
-import { ExploreHeaderToolTip, SaveButtonText } from './constants';
+import { SaveButtonText } from './constants';
 import MenuItemGenerator from './MenuItemGenerator';
 import SaveViewWithName from './SaveViewWithName';
 import {
@@ -178,8 +178,7 @@ function ExplorerCard({
 							<Space>
 								<Typography>Query Builder</Typography>
 								<TextToolTip
-									url={ExploreHeaderToolTip.url}
-									text={ExploreHeaderToolTip.text}
+									text="More details on how to use query builder"
 									useFilledIcon={false}
 								/>
 							</Space>

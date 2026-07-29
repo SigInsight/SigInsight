@@ -13,30 +13,10 @@ function SkipOnBoardingModal({ onContinueClick }: Props): JSX.Element {
 				</Button>,
 			]}
 		>
-			<>
-				<iframe
-					width="100%"
-					height="265"
-					src="https://www.youtube.com/embed/J1Bof55DOb4"
-					frameBorder="0"
-					allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-					allowFullScreen
-					title="youtube_video"
-				/>
-				<div>
-					<Typography>No instrumentation data.</Typography>
-					<Typography>
-						Please instrument your application as mentioned&nbsp;
-						<a
-							href="https://signoz.io/docs/instrumentation/overview"
-							target="_blank"
-							rel="noreferrer"
-						>
-							here
-						</a>
-					</Typography>
-				</div>
-			</>
+			<div>
+				<Typography>No instrumentation data.</Typography>
+				<Typography>Please instrument your application to continue.</Typography>
+			</div>
 		</Modal>
 	);
 }

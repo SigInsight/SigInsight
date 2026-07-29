@@ -210,21 +210,6 @@ function TooltipExample({
 	);
 }
 
-function TooltipLink(): JSX.Element {
-	return (
-		<div className="tooltip-link">
-			<a
-				href="https://signoz.io/docs"
-				target="_blank"
-				rel="noopener noreferrer"
-				className="tooltip-link-text"
-			>
-				Learn more
-			</a>
-		</div>
-	);
-}
-
 export const getMatchTypeTooltip = (
 	matchType: AlertThresholdMatchType,
 	operator: AlertThresholdOperator,
@@ -267,7 +252,6 @@ export const getMatchTypeTooltip = (
 						Alert triggers ({getMatchingPointsCount()} points {operatorWord}{' '}
 						{thresholdValue})
 					</TooltipExample>
-					<TooltipLink />
 				</TooltipContent>
 			);
 
@@ -288,7 +272,6 @@ export const getMatchTypeTooltip = (
 						Alert triggers (all points {operatorWord} {thresholdValue})<br />
 						If any point was {thresholdValue}, no alert would fire
 					</TooltipExample>
-					<TooltipLink />
 				</TooltipContent>
 			);
 
@@ -311,7 +294,6 @@ export const getMatchTypeTooltip = (
 					>
 						Alert triggers (average = {average})
 					</TooltipExample>
-					<TooltipLink />
 				</TooltipContent>
 			);
 		}
@@ -333,7 +315,6 @@ export const getMatchTypeTooltip = (
 					>
 						Alert triggers (total = {total})
 					</TooltipExample>
-					<TooltipLink />
 				</TooltipContent>
 			);
 		}
@@ -355,7 +336,6 @@ export const getMatchTypeTooltip = (
 					>
 						Alert triggers (last point = {lastPoint})
 					</TooltipExample>
-					<TooltipLink />
 				</TooltipContent>
 			);
 		}

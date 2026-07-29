@@ -157,26 +157,6 @@
 	}
 }
 
-.info-text {
-	color: var(--bg-robin-400) !important;
-	font-family: Inter;
-	font-size: 12px;
-	font-style: normal;
-	font-weight: 500;
-	line-height: 16px; /* 133.333% */
-	letter-spacing: -0.06px;
-}
-
-.info-link-container {
-	.anticon {
-		color: var(--bg-robin-400);
-	}
-
-	:hover {
-		cursor: pointer;
-	}
-}
-
 .lightMode {
 	.alert-list-container {
 		.alert-list-view-content {
@@ -236,16 +216,6 @@
 					}
 				}
 			}
-		}
-	}
-
-	.info-text {
-		color: var(--bg-robin-600) !important;
-	}
-
-	.info-link-container {
-		.anticon {
-			color: var(--bg-robin-400);
 		}
 	}
 }

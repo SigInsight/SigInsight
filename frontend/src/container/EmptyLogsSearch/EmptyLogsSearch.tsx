@@ -2,7 +2,6 @@ import { useEffect, useRef } from 'react';
 import { Typography } from 'antd';
 import logEvent from 'api/common/logEvent';
 import cx from 'classnames';
-import LearnMore from 'components/LearnMore/LearnMore';
 import { EmptyLogsListConfig } from 'container/LogsExplorerList/utils';
 import { Delete } from 'lucide-react';
 import { DataSource, PanelTypeKeys } from 'types/common/queryBuilder';
@@ -97,16 +96,6 @@ export default function EmptyLogsSearch({
 						</Typography.Text>
 					)}
 				</div>
-				{customMessage?.documentationLinks && (
-					<div className="empty-logs-search__resources-card">
-						<div className="empty-logs-search__resources-title">RESOURCES</div>
-						<div className="empty-logs-search__resources-links">
-							{customMessage.documentationLinks.map((link) => (
-								<LearnMore key={link.text} text={link.text} url={link.url} />
-							))}
-						</div>
-					</div>
-				)}
 			</div>
 		</div>
 	);

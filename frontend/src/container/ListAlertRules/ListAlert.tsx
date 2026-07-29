@@ -386,14 +386,7 @@ function ListAlert({ allAlertRules, refetch }: ListAlertProps): JSX.Element {
 							New Alert
 						</Button>
 					)}
-					<TextToolTip
-						{...{
-							text: `More details on how to create alerts`,
-							url:
-								'https://signoz.io/docs/alerts/?utm_source=product&utm_medium=list-alerts',
-							urlText: 'Learn More',
-						}}
-					/>
+					<TextToolTip text="More details on how to create alerts" />
 				</Flex>
 			</SearchContainer>
 			<DynamicColumnTable

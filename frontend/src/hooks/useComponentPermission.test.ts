@@ -5,7 +5,6 @@ import useComponentPermission from './useComponentPermission';
 
 describe('useComponentPermission', () => {
 	const componentList: ComponentTypes[] = [
-		'current_org_settings',
 		'invite_members',
 		'add_new_alert',
 		'add_new_channel',
@@ -23,7 +22,6 @@ describe('useComponentPermission', () => {
 			useComponentPermission(componentList, 'ADMIN'),
 		);
 		const expectedResult = [
-			true, // current_org_settings
 			true, // invite_members
 			true, // add_new_alert
 			true, // add_new_channel
@@ -43,7 +41,6 @@ describe('useComponentPermission', () => {
 			useComponentPermission(componentList, 'EDITOR'),
 		);
 		const expectedResult = [
-			false, // current_org_settings
 			false, // invite_members
 			true, // add_new_alert
 			false, // add_new_channel
@@ -63,7 +60,6 @@ describe('useComponentPermission', () => {
 			useComponentPermission(componentList, 'VIEWER'),
 		);
 		const expectedResult = [
-			false, // current_org_settings
 			false, // invite_members
 			false, // add_new_alert
 			false, // add_new_channel

@@ -84,17 +84,6 @@ describe('ChangelogModal', () => {
 		expect(onClose).toHaveBeenCalled();
 	});
 
-	it('opens migration docs when Update my workspace is clicked', () => {
-		window.open = jest.fn();
-		renderChangelog();
-		fireEvent.click(screen.getByText('Update my workspace'));
-		expect(window.open).toHaveBeenCalledWith(
-			'https://signoz.io/upgrade-path',
-			'_blank',
-			'noopener,noreferrer',
-		);
-	});
-
 	it('scrolls for more when Scroll for more is clicked', () => {
 		renderChangelog();
 		const scrollBtn = screen.getByTestId('scroll-more-btn');

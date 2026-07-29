@@ -1094,8 +1094,7 @@
 	}
 }
 
-.settings-dropdown,
-.help-support-dropdown {
+.settings-dropdown {
 	.ant-dropdown-menu-item {
 		min-height: 32px;
 
@@ -1279,10 +1278,6 @@
 		font-weight: 400;
 		line-height: 20px;
 	}
-}
-
-.help-support-dropdown li.ant-dropdown-menu-item-divider {
-	background-color: var(--secondary) !important;
 }
 
 .lightMode {

@@ -28,7 +28,6 @@ import { Warning } from 'types/api';
 import APIError from 'types/api/error';
 import { DataSource } from 'types/common/queryBuilder';
 import { GlobalReducer } from 'types/reducer/globalTime';
-import DOCLINKS from 'utils/docLinks';
 
 import TraceExplorerControls from '../Controls';
 import { TracesLoading } from '../TraceLoading/TraceLoading';
@@ -140,13 +139,7 @@ function TracesView({
 		<Container>
 			{(tableData || []).length !== 0 && (
 				<ActionsContainer>
-					<Typography>
-						This tab only shows Root Spans. More details
-						<Typography.Link href={DOCLINKS.TRACES_DETAILS_LINK} target="_blank">
-							{' '}
-							here
-						</Typography.Link>
-					</Typography>
+					<Typography>This tab only shows Root Spans.</Typography>
 
 					<div className="trace-explorer-controls">
 						<TraceExplorerControls

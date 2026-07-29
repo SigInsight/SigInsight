@@ -7,15 +7,12 @@ import logEvent from 'api/common/logEvent';
 import ROUTES from 'constants/routes';
 import { useQueryService } from 'hooks/useQueryService';
 import { useSafeNavigate } from 'hooks/useSafeNavigate';
-import { ArrowRight, ArrowUpRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import Card from 'periscope/components/Card/Card';
-import { useAppContext } from 'providers/App/App';
 import { AppState } from 'store/reducers';
 import { ServicesList } from 'types/api/metrics/getService';
 import { GlobalReducer } from 'types/reducer/globalTime';
-import { USER_ROLES } from 'types/roles';
 
-import { DOCS_LINKS } from '../constants';
 import { columns, TIME_PICKER_OPTIONS } from './constants';
 
 const homeInterval = 30 * 60 * 1000;
@@ -30,8 +27,6 @@ export default function ServiceTraces({
 	const { selectedTime } = useSelector<AppState, GlobalReducer>(
 		(state) => state.globalTime,
 	);
-
-	const { user } = useAppContext();
 
 	const now = new Date().getTime();
 	const [timeRange, setTimeRange] = useState({
@@ -111,48 +106,10 @@ export default function ServiceTraces({
 							Start sending traces to see your services.
 						</div>
 					</div>
-
-					{user?.role !== USER_ROLES.VIEWER && (
-						<div className="empty-actions-container">
-							<Button
-								type="default"
-								className="periscope-btn secondary"
-								onClick={(): void => {
-									logEvent('Homepage: Get Started clicked', {
-										source: 'Service Traces',
-									});
-
-									window?.open(
-										DOCS_LINKS.ADD_DATA_SOURCE,
-										'_blank',
-										'noopener noreferrer',
-									);
-								}}
-							>
-								Get Started &nbsp; <ArrowRight size={16} />
-							</Button>
-
-							<Button
-								type="link"
-								className="learn-more-link"
-								onClick={(): void => {
-									logEvent('Homepage: Learn more clicked', {
-										source: 'Service Traces',
-									});
-									window.open(
-										'https://signoz.io/docs/instrumentation/overview/',
-										'_blank',
-									);
-								}}
-							>
-								Learn more <ArrowUpRight size={12} />
-							</Button>
-						</div>
-					)}
 				</div>
 			</div>
 		),
-		[user?.role],
+		[],
 	);
 
 	const renderDashboardsList = useCallback(

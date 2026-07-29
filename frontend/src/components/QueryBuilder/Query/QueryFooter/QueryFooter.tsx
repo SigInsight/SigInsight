@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Button, Tooltip, Typography } from 'antd';
+import { Button, Tooltip } from 'antd';
 import WarningPopover from 'components/WarningPopover/WarningPopover';
 import { PANEL_TYPES } from 'constants/queryBuilder';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
@@ -39,20 +39,7 @@ function TraceOperatorSection({
 	return (
 		<div className="qb-trace-operator-button-container">
 			<Tooltip
-				title={
-					<div style={{ textAlign: 'center' }}>
-						Add Trace Matching
-						<Typography.Link
-							href="https://signoz.io/docs/userguide/query-builder-v5/#multi-query-analysis-trace-operators"
-							target="_blank"
-							style={{ textDecoration: 'underline' }}
-						>
-							{' '}
-							<br />
-							Learn more
-						</Typography.Link>
-					</div>
-				}
+				title={<div style={{ textAlign: 'center' }}>Add Trace Matching</div>}
 			>
 				<Button
 					className="add-trace-operator-button periscope-btn"
@@ -101,20 +88,7 @@ export default function QueryFooter({
 				{showAddFormula && (
 					<div className="qb-add-formula">
 						<Tooltip
-							title={
-								<div style={{ textAlign: 'center' }}>
-									Add New Formula
-									<Typography.Link
-										href="https://signoz.io/docs/userguide/query-builder-v5/#multi-query-analysis-advanced-comparisons"
-										target="_blank"
-										style={{ textDecoration: 'underline' }}
-									>
-										{' '}
-										<br />
-										Learn more
-									</Typography.Link>
-								</div>
-							}
+							title={<div style={{ textAlign: 'center' }}>Add New Formula</div>}
 						>
 							<Button
 								className="add-formula-button periscope-btn "

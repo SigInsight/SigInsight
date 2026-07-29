@@ -1264,18 +1264,7 @@ function QuerySearch({
 	]);
 
 	const getTooltipContent = (): JSX.Element => (
-		<div>
-			Need help with search syntax?
-			<br />
-			<a
-				href="https://signoz.io/docs/userguide/search-syntax/"
-				target="_blank"
-				rel="noopener noreferrer"
-				style={{ color: '#1890ff', textDecoration: 'underline' }}
-			>
-				View documentation
-			</a>
-		</div>
+		<div>Use attribute names, operators, and values to refine the results.</div>
 	);
 
 	return (
@@ -1323,10 +1312,7 @@ function QuerySearch({
 					title={<div data-log-detail-ignore="true">{getTooltipContent()}</div>}
 					placement="left"
 				>
-					<a
-						href="https://signoz.io/docs/userguide/search-syntax/"
-						target="_blank"
-						rel="noopener noreferrer"
+					<div
 						style={{
 							position: 'absolute',
 							top: 8,
@@ -1338,7 +1324,6 @@ function QuerySearch({
 							alignItems: 'center',
 							color: '#8c8c8c',
 						}}
-						onClick={(e): void => e.stopPropagation()}
 					>
 						<Info
 							size={14}
@@ -1347,7 +1332,7 @@ function QuerySearch({
 								color: isDarkMode ? Color.BG_VANILLA_100 : Color.BG_INK_500,
 							}}
 						/>
-					</a>
+					</div>
 				</Tooltip>
 
 				<CodeMirror

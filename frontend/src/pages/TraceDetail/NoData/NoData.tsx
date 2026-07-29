@@ -1,6 +1,5 @@
 import { Button, Typography } from 'antd';
-import { LifeBuoy, RefreshCw } from 'lucide-react';
-import { handleContactSupport } from 'pages/Integrations/utils';
+import { RefreshCw } from 'lucide-react';
 
 import './NoData.styles.scss';
 
@@ -36,9 +35,7 @@ function NoData(): JSX.Element {
 				</div>
 			</section>
 			<section className="none-of-above">
-				<Typography.Text className="text">
-					If you feel the issue is none of the above, please contact support.
-				</Typography.Text>
+				<Typography.Text className="text">Try refreshing the page.</Typography.Text>
 				<div className="action-btns">
 					<Button
 						className="action-btn"
@@ -46,13 +43,6 @@ function NoData(): JSX.Element {
 						onClick={(): void => window.location.reload()}
 					>
 						Refresh this page
-					</Button>
-					<Button
-						className="action-btn"
-						icon={<LifeBuoy size={14} />}
-						onClick={(): void => handleContactSupport()}
-					>
-						Contact Support
 					</Button>
 				</div>
 			</section>
