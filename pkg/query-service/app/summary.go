@@ -25,10 +25,10 @@ func (aH *APIHandler) FilterKeysSuggestion(w http.ResponseWriter, r *http.Reques
 		RespondError(w, apiError, nil)
 		return
 	}
-	keys, apiError := aH.SummaryService.FilterKeys(ctx, params)
-	if apiError != nil {
-		slog.ErrorContext(ctx, "error getting filter keys", errors.Attr(apiError.Err))
-		RespondError(w, apiError, nil)
+	keys, err := aH.SummaryService.FilterKeys(ctx, params)
+	if err != nil {
+		slog.ErrorContext(ctx, "error getting filter keys", errors.Attr(err))
+		render.Error(w, err)
 		return
 	}
 	aH.Respond(w, keys)
@@ -56,10 +56,10 @@ func (aH *APIHandler) FilterValuesSuggestion(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	values, apiError := aH.SummaryService.FilterValues(ctx, orgID, params)
-	if apiError != nil {
-		slog.ErrorContext(ctx, "error getting filter values", errors.Attr(apiError.Err))
-		RespondError(w, apiError, nil)
+	values, err := aH.SummaryService.FilterValues(ctx, orgID, params)
+	if err != nil {
+		slog.ErrorContext(ctx, "error getting filter values", errors.Attr(err))
+		render.Error(w, err)
 		return
 	}
 	aH.Respond(w, values)
@@ -75,10 +75,10 @@ func (aH *APIHandler) GetRelatedMetrics(w http.ResponseWriter, r *http.Request) 
 		RespondError(w, apiError, nil)
 		return
 	}
-	result, apiError := aH.SummaryService.GetRelatedMetrics(ctx, params)
-	if apiError != nil {
-		slog.ErrorContext(ctx, "error getting related metrics", errors.Attr(apiError.Err))
-		RespondError(w, apiError, nil)
+	result, err := aH.SummaryService.GetRelatedMetrics(ctx, params)
+	if err != nil {
+		slog.ErrorContext(ctx, "error getting related metrics", errors.Attr(err))
+		render.Error(w, err)
 		return
 	}
 	aH.Respond(w, result)
@@ -95,10 +95,10 @@ func (aH *APIHandler) GetInspectMetricsData(w http.ResponseWriter, r *http.Reque
 		RespondError(w, apiError, nil)
 		return
 	}
-	result, apiError := aH.SummaryService.GetInspectMetrics(ctx, params)
-	if apiError != nil {
-		slog.ErrorContext(ctx, "error getting inspect metrics data", errors.Attr(apiError.Err))
-		RespondError(w, apiError, nil)
+	result, err := aH.SummaryService.GetInspectMetrics(ctx, params)
+	if err != nil {
+		slog.ErrorContext(ctx, "error getting inspect metrics data", errors.Attr(err))
+		render.Error(w, err)
 		return
 	}
 	aH.Respond(w, result)

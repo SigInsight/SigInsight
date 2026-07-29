@@ -36,7 +36,7 @@ func NewPromRule(
 	orgID valuer.UUID,
 	postableRule *ruletypes.PostableRule,
 	logger *slog.Logger,
-	reader interfaces.Reader,
+	reader interfaces.RuleStateHistoryReader,
 	prometheus prometheus.Prometheus,
 	opts ...RuleOption,
 ) (*PromRule, error) {

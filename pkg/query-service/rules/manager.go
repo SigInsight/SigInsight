@@ -25,7 +25,6 @@ import (
 	"github.com/SigNoz/signoz/pkg/query-service/interfaces"
 	"github.com/SigNoz/signoz/pkg/query-service/model"
 	"github.com/SigNoz/signoz/pkg/sqlstore"
-	"github.com/SigNoz/signoz/pkg/telemetrystore"
 	"github.com/SigNoz/signoz/pkg/types"
 	"github.com/SigNoz/signoz/pkg/types/alertmanagertypes"
 	"github.com/SigNoz/signoz/pkg/types/authtypes"
@@ -39,7 +38,7 @@ type PrepareTaskOptions struct {
 	Rule        *ruletypes.PostableRule
 	TaskName    string
 	RuleStore   ruletypes.RuleStore
-	Reader      interfaces.Reader
+	Reader      interfaces.RuleStateHistoryReader
 	Querier     querierV5.Querier
 	Logger      *slog.Logger
 	Cache       cache.Cache
@@ -52,7 +51,7 @@ type PrepareTaskOptions struct {
 type PrepareTestRuleOptions struct {
 	Rule        *ruletypes.PostableRule
 	RuleStore   ruletypes.RuleStore
-	Reader      interfaces.Reader
+	Reader      interfaces.RuleStateHistoryReader
 	Querier     querierV5.Querier
 	Logger      *slog.Logger
 	Cache       cache.Cache
@@ -81,13 +80,12 @@ func prepareTaskName(ruleId interface{}) string {
 
 // ManagerOptions bundles options for the Manager.
 type ManagerOptions struct {
-	TelemetryStore telemetrystore.TelemetryStore
-	MetadataStore  telemetrytypes.MetadataStore
-	Prometheus     prometheus.Prometheus
+	MetadataStore telemetrytypes.MetadataStore
+	Prometheus    prometheus.Prometheus
 
 	Context     context.Context
 	ResendDelay time.Duration
-	Reader      interfaces.Reader
+	Reader      interfaces.RuleStateHistoryReader
 	Querier     querierV5.Querier
 	Logger      *slog.Logger
 	Cache       cache.Cache
@@ -114,7 +112,7 @@ type Manager struct {
 	ruleStore ruletypes.RuleStore
 
 	logger              *slog.Logger
-	reader              interfaces.Reader
+	reader              interfaces.RuleStateHistoryReader
 	cache               cache.Cache
 	prepareTaskFunc     func(opts PrepareTaskOptions) (Task, error)
 	prepareTestRuleFunc func(opts PrepareTestRuleOptions) (int, *model.ApiError)

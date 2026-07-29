@@ -9,12 +9,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/SigNoz/signoz/pkg/cache"
-	"github.com/SigNoz/signoz/pkg/cache/cachetest"
 	"github.com/SigNoz/signoz/pkg/instrumentation/instrumentationtest"
-	"github.com/SigNoz/signoz/pkg/prometheus"
-	"github.com/SigNoz/signoz/pkg/prometheus/prometheustest"
-	"github.com/SigNoz/signoz/pkg/query-service/app/clickhouseReader"
+	"github.com/SigNoz/signoz/pkg/query-service/app/rulestatehistorystore"
 	"github.com/SigNoz/signoz/pkg/query-service/model/querytypes"
 	"github.com/SigNoz/signoz/pkg/query-service/utils/labels"
 	"github.com/SigNoz/signoz/pkg/queryparser"
@@ -682,28 +678,10 @@ func TestBaseRule_FilterNewSeries(t *testing.T) {
 			// Setup metadata query mock
 			mockMetadataStore.SetFirstSeenFromMetricMetadata(tt.firstSeenMap)
 
-			// Create reader with mocked telemetry store
-			readerCache, err := cachetest.New(
-				cache.Config{
-					Provider: "memory",
-					Memory: cache.Memory{
-						NumCounters: 10 * 1000,
-						MaxCost:     1 << 26,
-					},
-				},
-			)
-			require.NoError(t, err)
-
-			options := clickhouseReader.NewOptions("", "", "archiveNamespace")
-			reader := clickhouseReader.NewReader(
+			reader := rulestatehistorystore.New(
 				slog.Default(),
-				nil,
-				telemetryStore,
-				prometheustest.New(context.Background(), settings, prometheus.Config{Timeout: 2 * time.Minute}, telemetryStore),
-				time.Second,
-				nil,
-				readerCache,
-				options,
+				telemetryStore.ClickhouseDB(),
+				rulestatehistorystore.DefaultConfig(),
 			)
 
 			postableRule.NotificationSettings = &ruletypes.NotificationSettings{

@@ -70,7 +70,7 @@ type BaseRule struct {
 	// This is used for missing data alerts.
 	lastTimestampWithDatapoints time.Time
 
-	reader interfaces.Reader
+	reader interfaces.RuleStateHistoryReader
 
 	logger *slog.Logger
 
@@ -137,7 +137,7 @@ func WithMetadataStore(metadataStore telemetrytypes.MetadataStore) RuleOption {
 	}
 }
 
-func NewBaseRule(id string, orgID valuer.UUID, p *ruletypes.PostableRule, reader interfaces.Reader, opts ...RuleOption) (*BaseRule, error) {
+func NewBaseRule(id string, orgID valuer.UUID, p *ruletypes.PostableRule, reader interfaces.RuleStateHistoryReader, opts ...RuleOption) (*BaseRule, error) {
 	if p.RuleCondition == nil || !p.RuleCondition.IsValid() {
 		return nil, fmt.Errorf("invalid rule condition")
 	}

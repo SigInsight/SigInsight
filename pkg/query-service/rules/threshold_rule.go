@@ -37,7 +37,7 @@ func NewThresholdRule(
 	id string,
 	orgID valuer.UUID,
 	p *ruletypes.PostableRule,
-	reader interfaces.Reader,
+	reader interfaces.RuleStateHistoryReader,
 	querier v5querier.Querier,
 	logger *slog.Logger,
 	opts ...RuleOption,

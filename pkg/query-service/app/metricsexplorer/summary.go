@@ -3,6 +3,7 @@ package metricsexplorer
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sort"
 
 	"strings"
@@ -13,7 +14,6 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/SigNoz/signoz/pkg/query-service/interfaces"
-	"github.com/SigNoz/signoz/pkg/query-service/model"
 	"github.com/SigNoz/signoz/pkg/query-service/model/metrics_explorer"
 	"github.com/SigNoz/signoz/pkg/query-service/model/querytypes"
 	"github.com/SigNoz/signoz/pkg/query-service/rules"
@@ -21,19 +21,19 @@ import (
 )
 
 type SummaryService struct {
-	reader       interfaces.Reader
+	reader       interfaces.MetricsExplorerReader
 	rulesManager *rules.Manager
 }
 
-func NewSummaryService(reader interfaces.Reader, alertManager *rules.Manager) *SummaryService {
+func NewSummaryService(reader interfaces.MetricsExplorerReader, alertManager *rules.Manager) *SummaryService {
 	return &SummaryService{reader: reader, rulesManager: alertManager}
 }
 
-func (receiver *SummaryService) FilterKeys(ctx context.Context, params *metrics_explorer.FilterKeyRequest) (*metrics_explorer.FilterKeyResponse, *model.ApiError) {
+func (receiver *SummaryService) FilterKeys(ctx context.Context, params *metrics_explorer.FilterKeyRequest) (*metrics_explorer.FilterKeyResponse, error) {
 	var response metrics_explorer.FilterKeyResponse
-	keys, apiError := receiver.reader.GetAllMetricFilterAttributeKeys(ctx, params)
-	if apiError != nil {
-		return nil, apiError
+	keys, err := receiver.reader.GetAllMetricFilterAttributeKeys(ctx, params)
+	if err != nil {
+		return nil, err
 	}
 	response.AttributeKeys = *keys
 	var availableColumnFilter []string
@@ -44,7 +44,7 @@ func (receiver *SummaryService) FilterKeys(ctx context.Context, params *metrics_
 	return &response, nil
 }
 
-func (receiver *SummaryService) FilterValues(ctx context.Context, orgID valuer.UUID, params *metrics_explorer.FilterValueRequest) (*metrics_explorer.FilterValueResponse, *model.ApiError) {
+func (receiver *SummaryService) FilterValues(ctx context.Context, orgID valuer.UUID, params *metrics_explorer.FilterValueRequest) (*metrics_explorer.FilterValueResponse, error) {
 	var response metrics_explorer.FilterValueResponse
 	switch params.FilterKey {
 	case "metric_name":
@@ -52,7 +52,7 @@ func (receiver *SummaryService) FilterValues(ctx context.Context, orgID valuer.U
 		request := querytypes.AggregateAttributeRequest{DataSource: querytypes.DataSourceMetrics, SearchText: params.SearchText, Limit: params.Limit}
 		attributes, err := receiver.reader.GetMetricAggregateAttributes(ctx, orgID, &request, true)
 		if err != nil {
-			return nil, model.InternalError(err)
+			return nil, err
 		}
 		for _, item := range attributes.AttributeKeys {
 			filterValues = append(filterValues, item.Key)
@@ -60,30 +60,30 @@ func (receiver *SummaryService) FilterValues(ctx context.Context, orgID valuer.U
 		response.FilterValues = filterValues
 		return &response, nil
 	case "metric_unit":
-		attributes, apiErr := receiver.reader.GetAllMetricFilterUnits(ctx, params)
-		if apiErr != nil {
-			return nil, apiErr
+		attributes, err := receiver.reader.GetAllMetricFilterUnits(ctx, params)
+		if err != nil {
+			return nil, err
 		}
 		response.FilterValues = attributes
 		return &response, nil
 	case "metric_type":
-		attributes, apiErr := receiver.reader.GetAllMetricFilterTypes(ctx, params)
-		if apiErr != nil {
-			return nil, apiErr
+		attributes, err := receiver.reader.GetAllMetricFilterTypes(ctx, params)
+		if err != nil {
+			return nil, err
 		}
 		response.FilterValues = attributes
 		return &response, nil
 	default:
-		attributes, apiErr := receiver.reader.GetAllMetricFilterAttributeValues(ctx, params)
-		if apiErr != nil {
-			return nil, apiErr
+		attributes, err := receiver.reader.GetAllMetricFilterAttributeValues(ctx, params)
+		if err != nil {
+			return nil, err
 		}
 		response.FilterValues = attributes
 		return &response, nil
 	}
 }
 
-func (receiver *SummaryService) GetRelatedMetrics(ctx context.Context, params *metrics_explorer.RelatedMetricsRequest) (*metrics_explorer.RelatedMetricsResponse, *model.ApiError) {
+func (receiver *SummaryService) GetRelatedMetrics(ctx context.Context, params *metrics_explorer.RelatedMetricsRequest) (*metrics_explorer.RelatedMetricsResponse, error) {
 	// Get name similarity scores
 	nameSimilarityScores, err := receiver.reader.GetNameSimilarity(ctx, params)
 	if err != nil {
@@ -96,7 +96,7 @@ func (receiver *SummaryService) GetRelatedMetrics(ctx context.Context, params *m
 	attrSimilarityScores, err := receiver.reader.GetAttributeSimilarity(attrCtx, params)
 	if err != nil {
 		// If we hit a deadline exceeded error, proceed with only name similarity
-		if errors.Is(err.Err, context.DeadlineExceeded) {
+		if errors.Is(err, context.DeadlineExceeded) {
 			slog.Warn("attribute similarity calculation timed out, proceeding with name similarity only")
 			attrSimilarityScores = make(map[string]metrics_explorer.RelatedMetricsScore)
 		} else {
@@ -169,7 +169,7 @@ func (receiver *SummaryService) GetRelatedMetrics(ctx context.Context, params *m
 	g.Go(func() error {
 		rulesData, apiError := receiver.rulesManager.GetAlertDetailsForMetricNames(ctx, metricNames)
 		if apiError != nil {
-			return apiError
+			return fmt.Errorf("get alert details for related metrics: %w", apiError.Err)
 		}
 		for s, gettableRules := range rulesData {
 			var metricsRules []metrics_explorer.Alert
@@ -183,15 +183,11 @@ func (receiver *SummaryService) GetRelatedMetrics(ctx context.Context, params *m
 
 	// Check for context cancellation before waiting
 	if ctx.Err() != nil {
-		return nil, &model.ApiError{Typ: "ContextCanceled", Err: ctx.Err()}
+		return nil, ctx.Err()
 	}
 
 	if err := g.Wait(); err != nil {
-		var apiErr *model.ApiError
-		if errors.As(err, &apiErr) {
-			return nil, apiErr
-		}
-		return nil, &model.ApiError{Typ: "InternalError", Err: err}
+		return nil, err
 	}
 
 	// Build response
@@ -270,7 +266,7 @@ func getQueryRangeForRelateMetricsList(metricName string, scores metrics_explore
 	return &query
 }
 
-func (receiver *SummaryService) GetInspectMetrics(ctx context.Context, params *metrics_explorer.InspectMetricsRequest) (*metrics_explorer.InspectMetricsResponse, *model.ApiError) {
+func (receiver *SummaryService) GetInspectMetrics(ctx context.Context, params *metrics_explorer.InspectMetricsRequest) (*metrics_explorer.InspectMetricsResponse, error) {
 	// Capture the original context.
 	parentCtx := ctx
 
@@ -282,9 +278,9 @@ func (receiver *SummaryService) GetInspectMetrics(ctx context.Context, params *m
 
 	// Run the two queries concurrently using the derived context.
 	g.Go(func() error {
-		attrs, apiErr := receiver.reader.GetAttributesForMetricName(egCtx, params.MetricName, &params.Start, &params.End, &params.Filters)
-		if apiErr != nil {
-			return apiErr
+		attrs, err := receiver.reader.GetAttributesForMetricName(egCtx, params.MetricName, &params.Start, &params.End, &params.Filters)
+		if err != nil {
+			return err
 		}
 		if attrs != nil {
 			attributes = *attrs
@@ -293,9 +289,9 @@ func (receiver *SummaryService) GetInspectMetrics(ctx context.Context, params *m
 	})
 
 	g.Go(func() error {
-		resAttrs, apiErr := receiver.reader.GetMetricsAllResourceAttributes(egCtx, params.Start, params.End)
-		if apiErr != nil {
-			return apiErr
+		resAttrs, err := receiver.reader.GetMetricsAllResourceAttributes(egCtx, params.Start, params.End)
+		if err != nil {
+			return err
 		}
 		if resAttrs != nil {
 			resourceAttrs = resAttrs
@@ -305,12 +301,12 @@ func (receiver *SummaryService) GetInspectMetrics(ctx context.Context, params *m
 
 	// Wait for the concurrent operations to complete.
 	if err := g.Wait(); err != nil {
-		return nil, &model.ApiError{Typ: "InternalError", Err: err}
+		return nil, err
 	}
 
 	// Use the parentCtx (or create a new context from it) for the rest of the calls.
 	if parentCtx.Err() != nil {
-		return nil, &model.ApiError{Typ: "ContextCanceled", Err: parentCtx.Err()}
+		return nil, parentCtx.Err()
 	}
 
 	// Build a set of attribute keys for O(1) lookup.
@@ -339,14 +335,14 @@ func (receiver *SummaryService) GetInspectMetrics(ctx context.Context, params *m
 			validAttrs = append(validAttrs, attributes[i].Key)
 		}
 	}
-	fingerprints, apiError := receiver.reader.GetInspectMetricsFingerprints(parentCtx, validAttrs, params)
-	if apiError != nil {
-		return nil, apiError
+	fingerprints, err := receiver.reader.GetInspectMetricsFingerprints(parentCtx, validAttrs, params)
+	if err != nil {
+		return nil, err
 	}
 
-	baseResponse, apiErr := receiver.reader.GetInspectMetrics(parentCtx, params, fingerprints)
-	if apiErr != nil {
-		return nil, apiErr
+	baseResponse, err := receiver.reader.GetInspectMetrics(parentCtx, params, fingerprints)
+	if err != nil {
+		return nil, err
 	}
 
 	return baseResponse, nil
