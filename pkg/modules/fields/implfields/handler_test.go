@@ -31,3 +31,24 @@ func TestGetFieldsValuesIncludesBoolValues(t *testing.T) {
 		}
 	}`, rr.Body.String())
 }
+
+func TestGetLogSeverityTextValues(t *testing.T) {
+	metadata := telemetrytypestest.NewMockMetadataStore()
+	metadata.AllValuesMap["severity_text-logs"] = &telemetrytypes.TelemetryFieldValues{
+		StringValues: []string{"DEBUG", "ERROR", "INFO", "WARN"},
+	}
+	handler := NewHandler(instrumentationtest.New().ToProviderSettings(), metadata)
+	req := httptest.NewRequest(http.MethodGet, "/api/v5/fields/values?signal=logs&name=severity_text", nil)
+	rr := httptest.NewRecorder()
+
+	handler.GetFieldsValues(rr, req)
+
+	require.Equal(t, http.StatusOK, rr.Code)
+	require.JSONEq(t, `{
+		"status":"success",
+		"data":{
+			"values":{"stringValues":["DEBUG","ERROR","INFO","WARN"]},
+			"complete":true
+		}
+	}`, rr.Body.String())
+}

@@ -100,6 +100,7 @@ func NewSQLMigrationProviderFactories() factory.NamedMap[factory.ProviderFactory
 		sqlmigration.NewV15BaselineFactory(sqlmigration.NewConsolidateV5SchemaFactory()),
 		sqlmigration.NewRemoveUnusedProductDataFactory(),
 		sqlmigration.NewRemoveUnusedResourceQuickFiltersFactory(),
+		sqlmigration.NewNormalizeLogSeverityQuickFilterFactory(),
 	)
 }
 

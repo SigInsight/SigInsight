@@ -154,7 +154,7 @@ func NewDefaultQuickFilter(orgID valuer.UUID) ([]*StorableQuickFilter, error) {
 	}
 
 	logsFilters := []map[string]interface{}{
-		{"key": "severity_text", "dataType": "string", "type": "resource"},
+		{"key": "severity_text", "dataType": "string", "type": ""},
 		{"key": "service.name", "dataType": "string", "type": "resource"},
 		{"key": "host.name", "dataType": "string", "type": "resource"},
 	}

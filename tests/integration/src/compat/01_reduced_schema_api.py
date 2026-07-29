@@ -69,26 +69,137 @@ def test_reduced_collector_schema_authenticated_api_smoke(
     headers = _headers(token)
     api = signoz.self.host_configs["8080"]
 
-    _assert_ok(requests.post(api.get("/api/v5/query_range"), headers=headers, json=_query_payload("logs", start, end), timeout=10))
-    _assert_ok(requests.post(api.get("/api/v5/query_range"), headers=headers, json=_query_payload("traces", start, end), timeout=10))
+    _assert_ok(
+        requests.post(
+            api.get("/api/v5/query_range"),
+            headers=headers,
+            json=_query_payload("logs", start, end),
+            timeout=10,
+        )
+    )
+    _assert_ok(
+        requests.post(
+            api.get("/api/v5/query_range"),
+            headers=headers,
+            json=_query_payload("traces", start, end),
+            timeout=10,
+        )
+    )
 
-    _assert_ok(requests.get(api.get("/api/v5/metrics/filters/keys"), headers=headers, params={"searchText": "service", "limit": 10}, timeout=10))
-    _assert_ok(requests.post(api.get("/api/v5/metrics/filters/values"), headers=headers, json={"filterKey": "metric_unit", "searchText": "", "limit": 10}, timeout=10))
-    _assert_ok(requests.post(api.get("/api/v5/metrics/related"), headers=headers, json={"currentMetricName": metric_name, "start": start, "end": end, "filters": {"op": "AND", "items": []}}, timeout=10))
-    _assert_ok(requests.post(api.get("/api/v5/metrics/inspect"), headers=headers, json={"metricName": metric_name, "start": start, "end": end, "filters": {"op": "AND", "items": []}}, timeout=10))
+    _assert_ok(
+        requests.get(
+            api.get("/api/v5/metrics/filters/keys"),
+            headers=headers,
+            params={"searchText": "service", "limit": 10},
+            timeout=10,
+        )
+    )
+    _assert_ok(
+        requests.post(
+            api.get("/api/v5/metrics/filters/values"),
+            headers=headers,
+            json={"filterKey": "metric_unit", "searchText": "", "limit": 10},
+            timeout=10,
+        )
+    )
+    _assert_ok(
+        requests.post(
+            api.get("/api/v5/metrics/related"),
+            headers=headers,
+            json={
+                "currentMetricName": metric_name,
+                "start": start,
+                "end": end,
+                "filters": {"op": "AND", "items": []},
+            },
+            timeout=10,
+        )
+    )
+    _assert_ok(
+        requests.post(
+            api.get("/api/v5/metrics/inspect"),
+            headers=headers,
+            json={
+                "metricName": metric_name,
+                "start": start,
+                "end": end,
+                "filters": {"op": "AND", "items": []},
+            },
+            timeout=10,
+        )
+    )
 
     time_range = {"start": str(start * 1_000_000), "end": str(end * 1_000_000)}
-    _assert_ok(requests.post(api.get("/api/v5/services"), headers=headers, json=time_range, timeout=10))
-    _assert_ok(requests.post(api.get("/api/v5/services/dependency_graph"), headers=headers, json=time_range, timeout=10))
+    _assert_ok(
+        requests.post(
+            api.get("/api/v5/services"), headers=headers, json=time_range, timeout=10
+        )
+    )
+    _assert_ok(
+        requests.post(
+            api.get("/api/v5/services/dependency_graph"),
+            headers=headers,
+            json=time_range,
+            timeout=10,
+        )
+    )
 
     exception_params = {"start": str(start * 1_000_000), "end": str(end * 1_000_000)}
-    _assert_ok(requests.post(api.get("/api/v5/exceptions"), headers=headers, json=exception_params | {"limit": 10}, timeout=10))
-    _assert_ok(requests.post(api.get("/api/v5/exceptions/count"), headers=headers, json=exception_params, timeout=10))
+    _assert_ok(
+        requests.post(
+            api.get("/api/v5/exceptions"),
+            headers=headers,
+            json=exception_params | {"limit": 10},
+            timeout=10,
+        )
+    )
+    _assert_ok(
+        requests.post(
+            api.get("/api/v5/exceptions/count"),
+            headers=headers,
+            json=exception_params,
+            timeout=10,
+        )
+    )
 
-    history_params = {"start": start, "end": end, "limit": 10, "offset": 0, "order": "desc"}
+    history_params = {
+        "start": start,
+        "end": end,
+        "limit": 10,
+        "offset": 0,
+        "order": "desc",
+    }
     rule_history = f"/api/v5/rules/{uuid4()}/history"
-    _assert_ok(requests.post(api.get(rule_history + "/timeline"), headers=headers, json=history_params, timeout=10))
-    _assert_ok(requests.post(api.get(rule_history + "/top_contributors"), headers=headers, json=history_params, timeout=10))
-    _assert_ok(requests.post(api.get(rule_history + "/overall_status"), headers=headers, json=history_params, timeout=10))
+    _assert_ok(
+        requests.post(
+            api.get(rule_history + "/timeline"),
+            headers=headers,
+            json=history_params,
+            timeout=10,
+        )
+    )
+    _assert_ok(
+        requests.post(
+            api.get(rule_history + "/top_contributors"),
+            headers=headers,
+            json=history_params,
+            timeout=10,
+        )
+    )
+    _assert_ok(
+        requests.post(
+            api.get(rule_history + "/overall_status"),
+            headers=headers,
+            json=history_params,
+            timeout=10,
+        )
+    )
 
-    _assert_ok(requests.get(api.get("/api/v5/settings/ttl"), headers=headers, params={"type": "traces"}, timeout=10))
+    _assert_ok(
+        requests.get(
+            api.get("/api/v5/settings/ttl"),
+            headers=headers,
+            params={"type": "traces"},
+            timeout=10,
+        )
+    )

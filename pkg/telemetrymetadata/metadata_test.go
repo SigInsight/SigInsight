@@ -236,6 +236,37 @@ func TestGetTraceAttributeFieldValuesFallsBackToMetadata(t *testing.T) {
 	require.NoError(t, mock.ExpectationsWereMet())
 }
 
+func TestGetLogSeverityTextValuesFromLogFieldIndex(t *testing.T) {
+	mockTelemetryStore := telemetrystoretest.New(telemetrystore.Config{}, &regexMatcher{})
+	mock := mockTelemetryStore.Mock()
+	metadata := newTestTelemetryMetaStoreTestHelper(mockTelemetryStore)
+
+	mock.ExpectQuery(`SELECT DISTINCT string_value, number_value FROM signoz_logs.tag_attributes_v2.*tag_key.*LIMIT \?`).
+		WithArgs("severity_text", 5).
+		WillReturnRows(cmock.NewRows([]cmock.ColumnType{
+			{Name: "string_value", Type: "String"},
+			{Name: "number_value", Type: "Nullable(Float64)"},
+		}, [][]any{
+			{"DEBUG", nil},
+			{"ERROR", nil},
+			{"INFO", nil},
+			{"WARN", nil},
+		}))
+
+	values, complete, err := metadata.GetAllValues(context.Background(), &telemetrytypes.FieldValueSelector{
+		FieldKeySelector: &telemetrytypes.FieldKeySelector{
+			Signal: telemetrytypes.SignalLogs,
+			Name:   "severity_text",
+		},
+		Limit: 4,
+	})
+
+	require.NoError(t, err)
+	assert.True(t, complete)
+	assert.ElementsMatch(t, []string{"DEBUG", "ERROR", "INFO", "WARN"}, values.StringValues)
+	require.NoError(t, mock.ExpectationsWereMet())
+}
+
 func TestTraceStaticFieldColumnMappings(t *testing.T) {
 	for name, expectedColumn := range map[string]string{
 		"service.name":         "resource_string_service$$name",
