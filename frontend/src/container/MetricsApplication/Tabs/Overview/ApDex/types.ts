@@ -1,4 +1,4 @@
-import { OnClickPluginOpts } from 'lib/uPlotLib/plugins/onClickPlugin';
+import { OnClickPluginOpts } from 'lib/uPlotShared/onClickPlugin';
 import { TagFilterItem } from 'types/api/queryBuilder/queryBuilderData';
 
 export interface ApDexApplicationProps {

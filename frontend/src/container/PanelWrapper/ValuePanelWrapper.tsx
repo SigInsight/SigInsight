@@ -1,5 +1,5 @@
 import GridValueComponent from 'container/GridValueComponent';
-import { getUPlotChartData } from 'lib/uPlotLib/utils/getUplotChartData';
+import { getUPlotChartData } from 'lib/uPlotShared/getUPlotChartData';
 
 import { PanelWrapperProps } from './panelWrapper.types';
 

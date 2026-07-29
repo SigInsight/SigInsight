@@ -3,7 +3,7 @@ import { PANEL_TYPES } from 'constants/queryBuilder';
 import { ThresholdProps } from 'features/query-visualization/threshold';
 import onClickPlugin, {
 	OnClickPluginOpts,
-} from 'lib/uPlotLib/plugins/onClickPlugin';
+} from 'lib/uPlotShared/onClickPlugin';
 import {
 	DistributionType,
 	SelectionPreferencesSource,

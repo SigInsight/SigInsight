@@ -1,9 +1,6 @@
 import { Dispatch, SetStateAction } from 'react';
-import { UseQueryResult } from 'react-query';
 import { MetricsexplorertypesMetricMetadataDTO } from 'api/generated/services/sigNoz.schemas';
-import { RelatedMetric } from 'api/metricsExplorer/getRelatedMetrics';
-import { SuccessResponse, Warning } from 'types/api';
-import { MetricRangePayloadProps } from 'types/api/metrics/getQueryRange';
+import { Warning } from 'types/api';
 
 export enum ExplorerTabs {
 	TIME_SERIES = 'time-series',
@@ -23,28 +20,4 @@ export interface TimeSeriesProps {
 	yAxisUnit: string | undefined;
 	setYAxisUnit: (unit: string) => void;
 	showYAxisUnitSelector: boolean;
-}
-
-export interface RelatedMetricsProps {
-	metricNames: string[];
-}
-
-export interface RelatedMetricsCardProps {
-	metric: RelatedMetricWithQueryResult;
-}
-
-export interface UseGetRelatedMetricsGraphsProps {
-	selectedMetricName: string | null;
-	startMs: number;
-	endMs: number;
-}
-
-export interface UseGetRelatedMetricsGraphsReturn {
-	relatedMetrics: RelatedMetricWithQueryResult[];
-	isRelatedMetricsLoading: boolean;
-	isRelatedMetricsError: boolean;
-}
-
-export interface RelatedMetricWithQueryResult extends RelatedMetric {
-	queryResult: UseQueryResult<SuccessResponse<MetricRangePayloadProps>, unknown>;
 }

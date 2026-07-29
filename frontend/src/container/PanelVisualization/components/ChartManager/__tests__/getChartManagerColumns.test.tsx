@@ -37,7 +37,6 @@ describe('getChartManagerColumns', () => {
 
 	it('returns columns with expected structure', () => {
 		const columns = getChartManagerColumns({
-			tableDataSet,
 			graphVisibilityState,
 			onToggleSeriesOnOff,
 			onToggleSeriesVisibility,
@@ -54,7 +53,6 @@ describe('getChartManagerColumns', () => {
 
 	it('includes Label column with title', () => {
 		const columns = getChartManagerColumns({
-			tableDataSet,
 			graphVisibilityState,
 			onToggleSeriesOnOff,
 			onToggleSeriesVisibility,
@@ -66,7 +64,6 @@ describe('getChartManagerColumns', () => {
 
 	it('formats column titles with yAxisUnit', () => {
 		const columns = getChartManagerColumns({
-			tableDataSet,
 			graphVisibilityState,
 			onToggleSeriesOnOff,
 			onToggleSeriesVisibility,
@@ -81,7 +78,6 @@ describe('getChartManagerColumns', () => {
 
 	it('numeric column render returns formatted string with yAxisUnit', () => {
 		const columns = getChartManagerColumns({
-			tableDataSet,
 			graphVisibilityState,
 			onToggleSeriesOnOff,
 			onToggleSeriesVisibility,
@@ -99,7 +95,6 @@ describe('getChartManagerColumns', () => {
 
 	it('numeric column render formats zero when value is undefined', () => {
 		const columns = getChartManagerColumns({
-			tableDataSet,
 			graphVisibilityState,
 			onToggleSeriesOnOff,
 			onToggleSeriesVisibility,
@@ -120,7 +115,6 @@ describe('getChartManagerColumns', () => {
 
 	it('label column render displays label text and is clickable', () => {
 		const columns = getChartManagerColumns({
-			tableDataSet,
 			graphVisibilityState,
 			onToggleSeriesOnOff,
 			onToggleSeriesVisibility,
@@ -143,7 +137,6 @@ describe('getChartManagerColumns', () => {
 
 	it('index column render renders checkbox with correct checked state', () => {
 		const columns = getChartManagerColumns({
-			tableDataSet,
 			graphVisibilityState,
 			onToggleSeriesOnOff,
 			onToggleSeriesVisibility,

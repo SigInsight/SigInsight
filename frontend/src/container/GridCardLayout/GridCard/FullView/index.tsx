@@ -227,7 +227,7 @@ function FullView({
 
 	const canModifyChart = useChartMutable({
 		panelType: selectedPanelType,
-		panelTypeAndGraphManagerVisibility: PANEL_TYPES_VS_FULL_VIEW_TABLE,
+		panelTypeVisibility: PANEL_TYPES_VS_FULL_VIEW_TABLE,
 	});
 
 	if (response.data && selectedPanelType === PANEL_TYPES.BAR) {

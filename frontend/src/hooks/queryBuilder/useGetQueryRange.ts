@@ -25,6 +25,39 @@ type UseGetQueryRange = (
 	headers?: Record<string, string>,
 ) => UseQueryResult<MetricQueryRangeSuccessResponse, Error>;
 
+const NON_RETRYABLE_NETWORK_ERROR_CODES = new Set([
+	'ECONNABORTED',
+	'ECONNREFUSED',
+	'ERR_NETWORK',
+	'ETIMEDOUT',
+]);
+
+export const shouldRetryQueryRange = (
+	failureCount: number,
+	error: Error,
+): boolean => {
+	let status: number | undefined;
+	let code: string | undefined;
+
+	if (error instanceof APIError) {
+		status = error.getHttpStatusCode();
+		code = error.getErrorCode();
+	} else if (isAxiosError(error)) {
+		status = error.response?.status;
+		code = error.code;
+	}
+
+	if (code && NON_RETRYABLE_NETWORK_ERROR_CODES.has(code)) {
+		return false;
+	}
+
+	if (status && status >= 400 && status < 500) {
+		return false;
+	}
+
+	return failureCount < 3;
+};
+
 export const useGetQueryRange: UseGetQueryRange = (
 	requestData,
 	options,
@@ -123,21 +156,7 @@ export const useGetQueryRange: UseGetQueryRange = (
 		if (options?.retry !== undefined) {
 			return options.retry;
 		}
-		return (failureCount: number, error: Error): boolean => {
-			let status: number | undefined;
-
-			if (error instanceof APIError) {
-				status = error.getHttpStatusCode();
-			} else if (isAxiosError(error)) {
-				status = error.response?.status;
-			}
-
-			if (status && status >= 400 && status < 500) {
-				return false;
-			}
-
-			return failureCount < 3;
-		};
+		return shouldRetryQueryRange;
 	}, [options?.retry]);
 
 	return useQuery<MetricQueryRangeSuccessResponse, APIError | Error>({

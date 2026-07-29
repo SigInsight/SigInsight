@@ -28,12 +28,6 @@ jest.mock('container/PanelVisualization/charts/BarChart/BarChart', () => ({
 		.mockImplementation(() => <div data-testid="bar-chart-mock" />),
 }));
 
-jest.mock('hooks/useGetGraphCustomSeries', () => ({
-	useGetGraphCustomSeries: (): { getCustomSeries: jest.Mock } => ({
-		getCustomSeries: jest.fn(),
-	}),
-}));
-
 jest.mock('hooks/useNavigateToExplorer', () => ({
 	useNavigateToExplorer: (): { navigateToExplorer: jest.Mock } => ({
 		navigateToExplorer: jest.fn(),
@@ -90,11 +84,7 @@ jest.mock('providers/Timezone', () => ({
 	}),
 }));
 
-jest.mock('lib/uPlotLib/getUplotChartOptions', () => ({
-	getUPlotChartOptions: jest.fn().mockReturnValue({}),
-}));
-
-jest.mock('lib/uPlotLib/utils/getUplotChartData', () => ({
+jest.mock('lib/uPlotShared/getUPlotChartData', () => ({
 	getUPlotChartData: jest.fn().mockReturnValue([]),
 }));
 

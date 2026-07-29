@@ -73,11 +73,11 @@ jest.mock('components/HttpStatusBadge/HttpStatusBadge', () => {
 });
 
 // Mock other utilities that might cause issues
-jest.mock('lib/uPlotLib/utils/generateColor', () => ({
+jest.mock('lib/uPlotShared/generateColor', () => ({
 	generateColor: (): string => '#1890ff',
 }));
 
-jest.mock('container/TraceDetail/utils', () => ({
+jest.mock('utils/trace', () => ({
 	convertTimeToRelevantUnit: (
 		value: number,
 	): { time: number; timeUnitName: string } => ({

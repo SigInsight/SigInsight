@@ -4,11 +4,15 @@ import { useSelector } from 'react-redux';
 import { Color } from '@signozhq/design-tokens';
 import { Button, Skeleton, Switch, Typography } from 'antd';
 import logEvent from 'api/common/logEvent';
-import Uplot from 'components/Uplot';
 import { useIsDarkMode } from 'hooks/useDarkMode';
 import { useResizeObserver } from 'hooks/useDimensions';
+import UPlotChart from 'lib/uPlotV2/components/UPlotChart/UPlotChart';
+import { DrawStyle, LineInterpolation } from 'lib/uPlotV2/config/types';
+import { UPlotConfigBuilder } from 'lib/uPlotV2/config/UPlotConfigBuilder';
+import { PlotContextProvider } from 'lib/uPlotV2/context/PlotContext';
 import { AppState } from 'store/reducers';
 import { GlobalReducer } from 'types/reducer/globalTime';
+import type uPlot from 'uplot';
 
 import { MetricsExplorerEventKeys, MetricsExplorerEvents } from '../events';
 import { formatNumberIntoHumanReadableFormat } from '../Summary/utils';
@@ -72,111 +76,93 @@ function GraphView({
 		};
 	}, [popoverRef, graphRef]);
 
-	const options: uPlot.Options = useMemo(
-		() => ({
-			width: dimensions.width,
-			height: 500,
-			legend: {
-				show: false,
+	const config = useMemo(() => {
+		const builder = new UPlotConfigBuilder({ id: 'metrics-explorer-inspect' });
+		const axisStroke = isDarkMode ? Color.TEXT_VANILLA_400 : Color.BG_SLATE_400;
+
+		builder.addScale({ scaleKey: 'x', time: true, min: start, max: end });
+		builder.addScale({ scaleKey: 'y', time: false });
+		builder.addAxis({
+			scaleKey: 'x',
+			stroke: axisStroke,
+			grid: { show: false },
+			values: (_, values): string[] =>
+				values.map((value) => {
+					const date = new Date(value);
+					const day = `${String(date.getDate()).padStart(2, '0')}/${String(
+						date.getMonth() + 1,
+					).padStart(2, '0')}`;
+					const time = `${String(date.getHours()).padStart(2, '0')}:${String(
+						date.getMinutes(),
+					).padStart(2, '0')}:${String(date.getSeconds()).padStart(2, '0')}`;
+					return `${day}\n${time}`;
+				}),
+		});
+		builder.addAxis({
+			scaleKey: 'y',
+			side: 3,
+			label: metricUnit || '',
+			stroke: axisStroke,
+			grid: {
+				show: true,
+				stroke: isDarkMode ? Color.BG_SLATE_500 : Color.BG_SLATE_200,
 			},
-			axes: [
-				{
-					stroke: isDarkMode ? Color.TEXT_VANILLA_400 : Color.BG_SLATE_400,
-					grid: {
-						show: false,
-					},
-					values: (_, vals): string[] =>
-						vals.map((v) => {
-							const d = new Date(v);
-							const date = `${String(d.getDate()).padStart(2, '0')}/${String(
-								d.getMonth() + 1,
-							).padStart(2, '0')}`;
-							const time = `${String(d.getHours()).padStart(2, '0')}:${String(
-								d.getMinutes(),
-							).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}`;
-							return `${date}\n${time}`; // two-line label
-						}),
-				},
-				{
-					label: metricUnit || '',
-					stroke: isDarkMode ? Color.TEXT_VANILLA_400 : Color.BG_SLATE_400,
-					grid: {
-						show: true,
-						stroke: isDarkMode ? Color.BG_SLATE_500 : Color.BG_SLATE_200,
-					},
-					values: (_, vals): string[] =>
-						vals.map((v) => formatNumberIntoHumanReadableFormat(v, false)),
-				},
-			],
-			series: [
-				{ label: 'Time' }, // This config is required as a placeholder for x-axis,
-				...formattedInspectMetricsTimeSeries.slice(1).map((_, index) => ({
-					drawStyle: 'line',
-					lineInterpolation: 'spline',
-					show: true,
-					label: String.fromCharCode(65 + (index % 26)),
-					stroke: inspectMetricsTimeSeries[index]?.strokeColor,
-					width: 2,
-					spanGaps: true,
-					points: {
-						size: 5,
-						show: false,
-						stroke: inspectMetricsTimeSeries[index]?.strokeColor,
-					},
-					scales: {
-						x: {
-							min: start,
-							max: end,
-						},
-					},
-				})),
-			],
-			hooks: {
-				ready: [
-					(u: uPlot): void => {
-						u.over.addEventListener('click', (e) => {
-							onGraphClick(
-								e,
-								u,
-								popoverRef,
-								setPopoverOptions,
-								inspectMetricsTimeSeries,
-								showGraphPopover,
-								setShowGraphPopover,
-								formattedInspectMetricsTimeSeries,
-							);
-						});
-						u.over.addEventListener('mousemove', (e) => {
-							onGraphHover(
-								e,
-								u,
-								setHoverPopoverOptions,
-								inspectMetricsTimeSeries,
-								formattedInspectMetricsTimeSeries,
-							);
-						});
-						u.over.addEventListener('mouseenter', () => {
-							setShowHoverPopover(true);
-						});
-						u.over.addEventListener('mouseleave', () => {
-							setShowHoverPopover(false);
-						});
-					},
-				],
-			},
-		}),
-		[
-			dimensions.width,
-			isDarkMode,
-			metricUnit,
-			formattedInspectMetricsTimeSeries,
-			inspectMetricsTimeSeries,
-			start,
-			end,
-			setPopoverOptions,
-			showGraphPopover,
-		],
-	);
+			values: (_, values): string[] =>
+				values.map((value) => formatNumberIntoHumanReadableFormat(value, false)),
+		});
+		formattedInspectMetricsTimeSeries.slice(1).forEach((_, index) => {
+			builder.addSeries({
+				scaleKey: 'y',
+				colorMapping: {},
+				drawStyle: DrawStyle.Line,
+				lineInterpolation: LineInterpolation.Spline,
+				show: true,
+				label: String.fromCharCode(65 + (index % 26)),
+				lineColor: inspectMetricsTimeSeries[index]?.strokeColor,
+				lineWidth: 2,
+				spanGaps: true,
+				pointSize: 5,
+				showPoints: false,
+			});
+		});
+		builder.setLegend({ show: false });
+		builder.addHook('ready', (plot: uPlot): void => {
+			plot.over.addEventListener('click', (event) => {
+				onGraphClick(
+					event,
+					plot,
+					popoverRef,
+					setPopoverOptions,
+					inspectMetricsTimeSeries,
+					showGraphPopover,
+					setShowGraphPopover,
+					formattedInspectMetricsTimeSeries,
+				);
+			});
+			plot.over.addEventListener('mousemove', (event) => {
+				onGraphHover(
+					event,
+					plot,
+					setHoverPopoverOptions,
+					inspectMetricsTimeSeries,
+					formattedInspectMetricsTimeSeries,
+				);
+			});
+			plot.over.addEventListener('mouseenter', () => setShowHoverPopover(true));
+			plot.over.addEventListener('mouseleave', () => setShowHoverPopover(false));
+		});
+
+		return builder;
+	}, [
+		end,
+		isDarkMode,
+		metricUnit,
+		formattedInspectMetricsTimeSeries,
+		inspectMetricsTimeSeries,
+		start,
+		setPopoverOptions,
+		showGraphPopover,
+	]);
 
 	const MetricTypeIcon = metricType ? METRIC_TYPE_TO_ICON_MAP[metricType] : null;
 
@@ -226,7 +212,15 @@ function GraphView({
 					(isInspectMetricsRefetching ? (
 						<Skeleton active />
 					) : (
-						<Uplot data={formattedInspectMetricsTimeSeries} options={options} />
+						<PlotContextProvider>
+							<UPlotChart
+								config={config}
+								data={formattedInspectMetricsTimeSeries}
+								width={dimensions.width}
+								height={500}
+								data-testid="metrics-inspect-graph"
+							/>
+						</PlotContextProvider>
 					))}
 
 				{viewType === 'table' && (

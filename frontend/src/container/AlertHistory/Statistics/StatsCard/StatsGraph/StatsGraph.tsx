@@ -1,7 +1,10 @@
 import { useMemo, useRef } from 'react';
 import { Color } from '@signozhq/design-tokens';
-import Uplot from 'components/Uplot';
 import { useResizeObserver } from 'hooks/useDimensions';
+import UPlotChart from 'lib/uPlotV2/components/UPlotChart/UPlotChart';
+import { DrawStyle, FillMode } from 'lib/uPlotV2/config/types';
+import { UPlotConfigBuilder } from 'lib/uPlotV2/config/UPlotConfigBuilder';
+import { PlotContextProvider } from 'lib/uPlotV2/context/PlotContext';
 import { AlertRuleStats } from 'types/api/alerts/def';
 
 type Props = {
@@ -30,6 +33,37 @@ const getStyle = (
 	};
 };
 
+export const buildStatsGraphConfig = (
+	changeDirection: number,
+): UPlotConfigBuilder => {
+	const style = getStyle(changeDirection);
+	const builder = new UPlotConfigBuilder({ id: 'alert-history-stats' });
+
+	builder.addScale({ scaleKey: 'x', time: true });
+	builder.addScale({ scaleKey: 'y', time: false });
+	builder.addAxis({ scaleKey: 'x', show: false });
+	builder.addAxis({ scaleKey: 'y', show: false });
+	builder.addSeries({
+		scaleKey: 'y',
+		colorMapping: {},
+		drawStyle: DrawStyle.Line,
+		lineColor: style.stroke,
+		fillColor: style.fill,
+		fillMode: FillMode.Solid,
+		lineWidth: 1.4,
+		showPoints: false,
+	});
+	builder.setLegend({ show: false });
+	builder.setCursor({
+		x: false,
+		y: false,
+		drag: { x: false, y: false },
+	});
+	builder.setPadding([0, 0, 2, 0]);
+
+	return builder;
+};
+
 function StatsGraph({ timeSeries, changeDirection }: Props): JSX.Element {
 	const { xData, yData } = useMemo(
 		() => ({
@@ -43,46 +77,21 @@ function StatsGraph({ timeSeries, changeDirection }: Props): JSX.Element {
 
 	const containerDimensions = useResizeObserver(graphRef);
 
-	const options: uPlot.Options = useMemo(
-		() => ({
-			width: containerDimensions.width,
-			height: containerDimensions.height,
-
-			legend: {
-				show: false,
-			},
-			cursor: {
-				x: false,
-				y: false,
-				drag: {
-					x: false,
-					y: false,
-				},
-			},
-			padding: [0, 0, 2, 0],
-			series: [
-				{},
-				{
-					...getStyle(changeDirection),
-					points: {
-						show: false,
-					},
-					width: 1.4,
-				},
-			],
-			axes: [
-				{ show: false },
-				{
-					show: false,
-				},
-			],
-		}),
-		[changeDirection, containerDimensions.height, containerDimensions.width],
-	);
+	const config = useMemo(() => buildStatsGraphConfig(changeDirection), [
+		changeDirection,
+	]);
 
 	return (
 		<div style={{ height: '100%', width: '100%' }} ref={graphRef}>
-			<Uplot data={[xData, yData]} options={options} />
+			<PlotContextProvider>
+				<UPlotChart
+					config={config}
+					data={[xData, yData]}
+					width={containerDimensions.width}
+					height={containerDimensions.height}
+					data-testid="alert-history-stats-graph"
+				/>
+			</PlotContextProvider>
 		</div>
 	);
 }

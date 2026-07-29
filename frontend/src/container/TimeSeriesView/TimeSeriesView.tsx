@@ -12,15 +12,24 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
 import logEvent from 'api/common/logEvent';
 import ErrorInPlace from 'components/ErrorInPlace/ErrorInPlace';
-import Uplot from 'components/Uplot';
 import { QueryParams } from 'constants/query';
 import { PANEL_TYPES } from 'constants/queryBuilder';
 import EmptyLogsSearch from 'container/EmptyLogsSearch/EmptyLogsSearch';
-import { getLocalStorageGraphVisibilityState } from 'container/GridCardLayout/GridCard/utils';
 import { LogsLoading } from 'container/LogsLoading/LogsLoading';
 import EmptyMetricsSearch from 'container/MetricsExplorer/Explorer/EmptyMetricsSearch';
 import { MetricsLoading } from 'container/MetricsExplorer/MetricsLoading/MetricsLoading';
 import NoLogs from 'container/NoLogs/NoLogs';
+import BarChart from 'container/PanelVisualization/charts/BarChart/BarChart';
+import TimeSeries from 'container/PanelVisualization/charts/TimeSeries/TimeSeries';
+import {
+	prepareBarPanelConfig,
+	prepareBarPanelData,
+} from 'container/PanelVisualization/panels/BarPanel/utils';
+import {
+	prepareChartData,
+	prepareUPlotConfig,
+} from 'container/PanelVisualization/panels/TimeSeriesPanel/utils';
+import { PanelMode } from 'container/PanelVisualization/panels/types';
 import { CustomTimeType } from 'container/TopNav/DateTimeSelectionV2/types';
 import { TracesLoading } from 'container/TracesExplorer/TraceLoading/TraceLoading';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
@@ -30,19 +39,18 @@ import useUrlQuery from 'hooks/useUrlQuery';
 import GetMinMax from 'lib/getMinMax';
 import getTimeString from 'lib/getTimeString';
 import history from 'lib/history';
-import { getUPlotChartOptions } from 'lib/uPlotLib/getUplotChartOptions';
-import { getUPlotChartData } from 'lib/uPlotLib/utils/getUplotChartData';
+import { LegendPosition } from 'lib/uPlotV2/components/types';
 import { isEmpty } from 'lodash-es';
 import { useTimezone } from 'providers/Timezone';
 import { UpdateTimeInterval } from 'store/actions';
 import { AppState } from 'store/reducers';
 import { SuccessResponse, Warning } from 'types/api';
-import { LegendPosition } from 'types/api/dashboard/getAll';
+import { Widgets } from 'types/api/dashboard/getAll';
 import APIError from 'types/api/error';
 import { MetricRangePayloadProps } from 'types/api/metrics/getQueryRange';
 import { DataSource } from 'types/common/queryBuilder';
 import { GlobalReducer } from 'types/reducer/globalTime';
-import uPlot from 'uplot';
+import { AlignedData } from 'uplot';
 import { getTimeRange } from 'utils/getTimeRange';
 
 import './TimeSeriesView.styles.scss';
@@ -65,9 +73,15 @@ function TimeSeriesView({
 	const location = useLocation();
 	const { currentQuery } = useQueryBuilder();
 
-	const chartData = useMemo(() => getUPlotChartData(data?.payload), [
-		data?.payload,
-	]);
+	const chartData = useMemo<AlignedData>(
+		() =>
+			data?.payload
+				? panelType === PANEL_TYPES.BAR
+					? prepareBarPanelData(data.payload)
+					: prepareChartData(data.payload)
+				: ([[], []] as AlignedData),
+		[data?.payload, panelType],
+	);
 
 	useEffect(() => {
 		if (data?.payload) {
@@ -81,15 +95,6 @@ function TimeSeriesView({
 
 	const [minTimeScale, setMinTimeScale] = useState<number>();
 	const [maxTimeScale, setMaxTimeScale] = useState<number>();
-	const [graphVisibility, setGraphVisibility] = useState<boolean[]>([]);
-
-	const legendScrollPositionRef = useRef<{
-		scrollTop: number;
-		scrollLeft: number;
-	}>({
-		scrollTop: 0,
-		scrollLeft: 0,
-	});
 
 	const { minTime, maxTime, selectedTime: globalSelectedInterval } = useSelector<
 		AppState,
@@ -102,19 +107,6 @@ function TimeSeriesView({
 		setMinTimeScale(startTime);
 		setMaxTimeScale(endTime);
 	}, [maxTime, minTime, globalSelectedInterval, data]);
-
-	// Initialize graph visibility from localStorage
-	useEffect(() => {
-		if (data?.payload?.data?.result) {
-			const {
-				graphVisibilityStates: localStoredVisibilityState,
-			} = getLocalStorageGraphVisibilityState({
-				apiResponse: data.payload.data.result,
-				name: 'time-series-explorer',
-			});
-			setGraphVisibility(localStoredVisibilityState);
-		}
-	}, [data?.payload?.data?.result]);
 
 	const onDragSelect = useCallback(
 		(start: number, end: number): void => {
@@ -187,39 +179,61 @@ function TimeSeriesView({
 	}, [isLoading, isError, chartData, dataSource]);
 
 	const { timezone } = useTimezone();
-
-	const chartOptions = getUPlotChartOptions({
-		id: 'time-series-explorer',
-		onDragSelect,
-		yAxisUnit: yAxisUnit || '',
-		apiResponse: data?.payload,
-		dimensions: {
-			width: containerDimensions.width,
-			height: containerDimensions.height,
-		},
-		isDarkMode,
-		minTimeScale,
-		maxTimeScale,
-		softMax: null,
-		softMin: null,
-		panelType,
-		tzDate: (timestamp: number) =>
-			uPlot.tzDate(new Date(timestamp * 1e3), timezone.value),
-		timezone: timezone.value,
-		currentQuery,
-		query: currentQuery,
-		graphsVisibilityStates: graphVisibility,
-		setGraphsVisibilityStates: setGraphVisibility,
-		enhancedLegend: true,
-		legendPosition: LegendPosition.BOTTOM,
-		legendScrollPosition: legendScrollPositionRef.current,
-		setLegendScrollPosition: (position: {
-			scrollTop: number;
-			scrollLeft: number;
-		}) => {
-			legendScrollPositionRef.current = position;
-		},
-	});
+	const widget = useMemo<Widgets>(
+		() => ({
+			id: 'time-series-explorer',
+			panelTypes: panelType,
+			title: '',
+			description: '',
+			opacity: '',
+			nullZeroValues: '',
+			timePreferance: 'GLOBAL_TIME',
+			yAxisUnit: yAxisUnit || '',
+			softMin: null,
+			softMax: null,
+			selectedLogFields: null,
+			selectedTracesFields: null,
+			query: currentQuery,
+		}),
+		[currentQuery, panelType, yAxisUnit],
+	);
+	const config = useMemo(
+		() =>
+			panelType === PANEL_TYPES.BAR
+				? prepareBarPanelConfig({
+						widget,
+						isDarkMode,
+						currentQuery,
+						onDragSelect,
+						apiResponse: data?.payload,
+						timezone,
+						panelMode: PanelMode.STANDALONE_VIEW,
+						minTimeScale,
+						maxTimeScale,
+				  })
+				: prepareUPlotConfig({
+						widget,
+						isDarkMode,
+						currentQuery,
+						onDragSelect,
+						apiResponse: data?.payload,
+						timezone,
+						panelMode: PanelMode.STANDALONE_VIEW,
+						minTimeScale,
+						maxTimeScale,
+				  }),
+		[
+			currentQuery,
+			data?.payload,
+			isDarkMode,
+			maxTimeScale,
+			minTimeScale,
+			onDragSelect,
+			panelType,
+			timezone,
+			widget,
+		],
+	);
 
 	return (
 		<div className="time-series-view">
@@ -265,7 +279,29 @@ function TimeSeriesView({
 					!isError &&
 					chartData &&
 					!isEmpty(chartData?.[0]) &&
-					chartOptions && <Uplot data={chartData} options={chartOptions} />}
+					containerDimensions.width > 0 &&
+					containerDimensions.height > 0 &&
+					(panelType === PANEL_TYPES.BAR ? (
+						<BarChart
+							config={config}
+							data={chartData}
+							width={containerDimensions.width}
+							height={containerDimensions.height}
+							legendConfig={{ position: LegendPosition.BOTTOM }}
+							timezone={timezone}
+							yAxisUnit={yAxisUnit}
+						/>
+					) : (
+						<TimeSeries
+							config={config}
+							data={chartData}
+							width={containerDimensions.width}
+							height={containerDimensions.height}
+							legendConfig={{ position: LegendPosition.BOTTOM }}
+							timezone={timezone}
+							yAxisUnit={yAxisUnit}
+						/>
+					))}
 			</div>
 		</div>
 	);

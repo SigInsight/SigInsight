@@ -1,4 +1,4 @@
-import { LegendEntryProps } from '../FullView/types';
+import { LegendEntryProps } from '../FullView/utils';
 
 export const mocklegendEntryResult: LegendEntryProps[] = [
 	{

@@ -114,7 +114,6 @@ export default function ChartManager({
 	const columns = useMemo(
 		() =>
 			getChartManagerColumns({
-				tableDataSet,
 				graphVisibilityState,
 				onToggleSeriesOnOff: handleToggleSeriesOnOff,
 				onToggleSeriesVisibility,
@@ -123,7 +122,6 @@ export default function ChartManager({
 				decimalPrecision,
 			}),
 		[
-			tableDataSet,
 			graphVisibilityState,
 			handleToggleSeriesOnOff,
 			onToggleSeriesVisibility,

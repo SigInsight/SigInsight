@@ -4,7 +4,7 @@ import { SOMETHING_WENT_WRONG } from 'constants/api';
 import { ENTITY_VERSION_V5 } from 'constants/app';
 import Graph from 'container/GridCardLayout/GridCard';
 import { Card, GraphContainer } from 'container/MetricsApplication/styles';
-import { OnClickPluginOpts } from 'lib/uPlotLib/plugins/onClickPlugin';
+import { OnClickPluginOpts } from 'lib/uPlotShared/onClickPlugin';
 import { Widgets } from 'types/api/dashboard/getAll';
 
 function TopLevelOperation({

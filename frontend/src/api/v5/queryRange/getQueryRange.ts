@@ -7,6 +7,8 @@ import {
 	QueryRangePayloadV5,
 } from 'types/api/v5/queryRange';
 
+export const QUERY_RANGE_REQUEST_TIMEOUT_MS = 65_000;
+
 export const getQueryRangeV5 = async (
 	props: QueryRangePayloadV5,
 	signal?: AbortSignal,
@@ -16,6 +18,7 @@ export const getQueryRangeV5 = async (
 		const response = await ApiV5Instance.post('/query_range', props, {
 			signal,
 			headers,
+			timeout: QUERY_RANGE_REQUEST_TIMEOUT_MS,
 		});
 
 		return {

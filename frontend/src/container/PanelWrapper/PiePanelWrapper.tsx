@@ -9,7 +9,7 @@ import { getPieChartClickData } from 'container/QueryTable/Drilldown/drilldownUt
 import useGraphContextMenu from 'container/QueryTable/Drilldown/useGraphContextMenu';
 import { useIsDarkMode } from 'hooks/useDarkMode';
 import getLabelName from 'lib/getLabelName';
-import { generateColor } from 'lib/uPlotLib/utils/generateColor';
+import { generateColor } from 'lib/uPlotShared/generateColor';
 import { isNaN } from 'lodash-es';
 import ContextMenu, { useCoordinates } from 'periscope/components/ContextMenu';
 

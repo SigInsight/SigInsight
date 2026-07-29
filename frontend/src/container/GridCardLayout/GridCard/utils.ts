@@ -13,8 +13,8 @@ import { DataSource } from 'types/common/queryBuilder';
 
 import { GraphClickProps } from '../useGraphClickToShowButton';
 import { NavigateToExplorerPagesProps } from '../useNavigateToExplorerPages';
-import { LegendEntryProps } from './FullView/types';
 import {
+	LegendEntryProps,
 	showAllDataSet,
 	showAllDataSetFromApiResponse,
 } from './FullView/utils';

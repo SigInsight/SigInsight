@@ -1,8 +1,8 @@
 import { useCallback } from 'react';
 import { Button, Tooltip, Typography } from 'antd';
 import ROUTES from 'constants/routes';
-import { formUrlParams } from 'container/TraceDetail/utils';
 import { Span } from 'types/api/trace/getTraceWaterfall';
+import { formUrlParams } from 'utils/trace';
 
 import NoData from '../NoData/NoData';
 

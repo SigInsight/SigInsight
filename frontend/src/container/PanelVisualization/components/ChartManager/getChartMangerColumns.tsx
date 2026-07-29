@@ -1,7 +1,7 @@
 import { TableColumnType as ColumnType } from 'antd';
 import { PrecisionOption, PrecisionOptionsEnum } from 'components/Graph/types';
-import CustomCheckBox from 'container/GridCardLayout/GridCard/FullView/TableRender/CustomCheckBox';
 
+import { SeriesCheckbox } from './SeriesCheckbox';
 import { SeriesLabel } from './SeriesLabel';
 import {
 	ExtendedChartDataset,
@@ -10,7 +10,6 @@ import {
 } from './utils';
 
 export interface GetChartManagerColumnsParams {
-	tableDataSet: ExtendedChartDataset[];
 	graphVisibilityState: boolean[];
 	onToggleSeriesOnOff: (index: number) => void;
 	onToggleSeriesVisibility: (index: number) => void;
@@ -20,7 +19,6 @@ export interface GetChartManagerColumnsParams {
 }
 
 export function getChartManagerColumns({
-	tableDataSet,
 	graphVisibilityState,
 	onToggleSeriesOnOff,
 	onToggleSeriesVisibility,
@@ -35,12 +33,11 @@ export function getChartManagerColumns({
 			dataIndex: 'index',
 			key: 'index',
 			render: (_: unknown, record: ExtendedChartDataset): JSX.Element => (
-				<CustomCheckBox
-					data={tableDataSet}
-					graphVisibilityState={graphVisibilityState}
-					index={record.index}
+				<SeriesCheckbox
+					color={record.stroke?.toString()}
+					checked={graphVisibilityState[record.index] ?? false}
 					disabled={isGraphDisabled}
-					checkBoxOnChangeHandler={(_e, idx): void => onToggleSeriesOnOff(idx)}
+					onChange={(): void => onToggleSeriesOnOff(record.index)}
 				/>
 			),
 		},

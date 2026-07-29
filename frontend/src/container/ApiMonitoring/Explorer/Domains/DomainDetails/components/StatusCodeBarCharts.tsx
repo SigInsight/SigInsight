@@ -18,7 +18,7 @@ import { useIsDarkMode } from 'hooks/useDarkMode';
 import { useResizeObserver } from 'hooks/useDimensions';
 import { useNavigateToExplorer } from 'hooks/useNavigateToExplorer';
 import { useNotifications } from 'hooks/useNotifications';
-import { getUPlotChartData } from 'lib/uPlotLib/utils/getUplotChartData';
+import { getUPlotChartData } from 'lib/uPlotShared/getUPlotChartData';
 import { LegendPosition } from 'lib/uPlotV2/components/types';
 import { useTimezone } from 'providers/Timezone';
 import { SuccessResponse } from 'types/api';

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 // eslint-disable-next-line no-restricted-imports
 import { useDispatch, useSelector } from 'react-redux';
@@ -10,9 +10,9 @@ import { QueryParams } from 'constants/query';
 import { initialQueriesMap, PANEL_TYPES } from 'constants/queryBuilder';
 import { INITIAL_CRITICAL_THRESHOLD } from 'container/CreateAlertV2/context/constants';
 import { Threshold } from 'container/CreateAlertV2/context/types';
-import { getLocalStorageGraphVisibilityState } from 'container/GridCardLayout/GridCard/utils';
-import GridPanelSwitch from 'container/GridPanelSwitch';
 import { populateMultipleResults } from 'container/NewWidget/LeftContainer/WidgetGraph/util';
+import { PanelMode } from 'container/PanelVisualization/panels/types';
+import PanelWrapper from 'container/PanelWrapper/PanelWrapper';
 import {
 	CustomTimeType,
 	Time,
@@ -21,29 +21,22 @@ import { getFormatNameByOptionId } from 'features/query-visualization/formats';
 import { timePreferenceType } from 'features/query-visualization/timePreference';
 import { useGetQueryRange } from 'hooks/queryBuilder/useGetQueryRange';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
-import { useIsDarkMode } from 'hooks/useDarkMode';
-import { useResizeObserver } from 'hooks/useDimensions';
 import useUrlQuery from 'hooks/useUrlQuery';
 import GetMinMax from 'lib/getMinMax';
 import getTimeString from 'lib/getTimeString';
 import history from 'lib/history';
-import { getUPlotChartOptions } from 'lib/uPlotLib/getUplotChartOptions';
-import { getUPlotChartData } from 'lib/uPlotLib/utils/getUplotChartData';
 import { isEmpty } from 'lodash-es';
-import { useTimezone } from 'providers/Timezone';
 import { UpdateTimeInterval } from 'store/actions';
 import { AppState } from 'store/reducers';
 import { Warning } from 'types/api';
 import { AlertDef } from 'types/api/alerts/def';
-import { LegendPosition } from 'types/api/dashboard/getAll';
+import { LegendPosition, Widgets } from 'types/api/dashboard/getAll';
 import APIError from 'types/api/error';
 import { Query } from 'types/api/queryBuilder/queryBuilderData';
 import { EQueryType } from 'types/common/dashboard';
 import { GlobalReducer } from 'types/reducer/globalTime';
-import uPlot from 'uplot';
 import { getGraphType } from 'utils/getGraphType';
 import { getSortedSeriesData } from 'utils/getSortedSeriesData';
-import { getTimeRange } from 'utils/getTimeRange';
 
 import { ChartContainer } from './styles';
 import { getThresholds } from './utils';
@@ -98,22 +91,11 @@ function ChartPreview({
 		],
 	);
 
-	const [minTimeScale, setMinTimeScale] = useState<number>();
-	const [maxTimeScale, setMaxTimeScale] = useState<number>();
-	const [graphVisibility, setGraphVisibility] = useState<boolean[]>([]);
-	const legendScrollPositionRef = useRef<{
-		scrollTop: number;
-		scrollLeft: number;
-	}>({
-		scrollTop: 0,
-		scrollLeft: 0,
-	});
 	const { currentQuery } = useQueryBuilder();
 
-	const { minTime, maxTime, selectedTime: globalSelectedInterval } = useSelector<
-		AppState,
-		GlobalReducer
-	>((state) => state.globalTime);
+	const { minTime, maxTime } = useSelector<AppState, GlobalReducer>(
+		(state) => state.globalTime,
+	);
 
 	const handleBackNavigation = (): void => {
 		const searchParams = new URLSearchParams(window.location.search);
@@ -185,29 +167,9 @@ function ChartPreview({
 		},
 	);
 
-	const graphRef = useRef<HTMLDivElement>(null);
-
-	useEffect((): void => {
-		const { startTime, endTime } = getTimeRange(queryResponse);
-		if (setQueryStatus) {
-			setQueryStatus(queryResponse.status);
-		}
-		setMinTimeScale(startTime);
-		setMaxTimeScale(endTime);
-	}, [maxTime, minTime, globalSelectedInterval, queryResponse, setQueryStatus]);
-
-	// Initialize graph visibility from localStorage
 	useEffect(() => {
-		if (queryResponse?.data?.payload?.data?.result) {
-			const {
-				graphVisibilityStates: localStoredVisibilityState,
-			} = getLocalStorageGraphVisibilityState({
-				apiResponse: queryResponse.data.payload.data.result,
-				name: 'alert-chart-preview',
-			});
-			setGraphVisibility(localStoredVisibilityState);
-		}
-	}, [queryResponse?.data?.payload?.data?.result]);
+		setQueryStatus?.(queryResponse.status);
+	}, [queryResponse.status, setQueryStatus]);
 
 	if (queryResponse.data && graphType === PANEL_TYPES.BAR) {
 		const sortedSeriesData = getSortedSeriesData(
@@ -221,9 +183,6 @@ function ChartPreview({
 		queryResponse.data = transformedData;
 	}
 
-	const containerDimensions = useResizeObserver(graphRef);
-
-	const isDarkMode = useIsDarkMode();
 	const urlQuery = useUrlQuery();
 	const location = useLocation();
 
@@ -252,8 +211,6 @@ function ChartPreview({
 		[dispatch, location.pathname, urlQuery],
 	);
 
-	const { timezone } = useTimezone();
-
 	const legendPosition = useMemo(() => {
 		if (!showSideLegend) {
 			return LegendPosition.BOTTOM;
@@ -266,69 +223,41 @@ function ChartPreview({
 		return LegendPosition.RIGHT;
 	}, [queryResponse?.data?.payload?.data?.result?.length, showSideLegend]);
 
-	const options = useMemo(
-		() =>
-			getUPlotChartOptions({
-				id: 'alert_legend_widget',
-				yAxisUnit,
-				apiResponse: queryResponse?.data?.payload,
-				dimensions: {
-					height: containerDimensions?.height ? containerDimensions.height - 48 : 0,
-					width: containerDimensions?.width,
-				},
-				minTimeScale,
-				maxTimeScale,
-				isDarkMode,
-				onDragSelect,
-				thresholds: getThresholds(thresholds, t, optionName, yAxisUnit),
-				softMax: null,
-				softMin: null,
-				panelType: graphType,
-				tzDate: (timestamp: number) =>
-					uPlot.tzDate(new Date(timestamp * 1e3), timezone.value),
-				timezone: timezone.value,
-				currentQuery,
-				query: query || currentQuery,
-				graphsVisibilityStates: graphVisibility,
-				setGraphsVisibilityStates: setGraphVisibility,
-				enhancedLegend: true,
-				legendPosition,
-				legendScrollPosition: legendScrollPositionRef.current,
-				setLegendScrollPosition: (position: {
-					scrollTop: number;
-					scrollLeft: number;
-				}) => {
-					legendScrollPositionRef.current = position;
-				},
-			}),
-		[
+	const previewWidget = useMemo<Widgets>(
+		() => ({
+			id: 'alert_legend_widget',
+			panelTypes: graphType,
+			title: name,
+			description: '',
+			opacity: '',
+			nullZeroValues: '',
+			timePreferance: selectedTime,
 			yAxisUnit,
-			queryResponse?.data?.payload,
-			containerDimensions,
-			minTimeScale,
-			maxTimeScale,
-			isDarkMode,
-			onDragSelect,
-			thresholds,
-			t,
-			optionName,
-			graphType,
-			timezone.value,
-			currentQuery,
-			query,
-			graphVisibility,
+			thresholds: getThresholds(thresholds, t, optionName, yAxisUnit),
+			softMin: null,
+			softMax: null,
+			selectedLogFields: null,
+			selectedTracesFields: null,
 			legendPosition,
+			query: query || currentQuery || initialQueriesMap.metrics,
+		}),
+		[
+			currentQuery,
+			graphType,
+			legendPosition,
+			name,
+			optionName,
+			query,
+			selectedTime,
+			t,
+			thresholds,
+			yAxisUnit,
 		],
 	);
 
-	const chartData = getUPlotChartData(queryResponse?.data?.payload);
-
-	const chartDataAvailable =
-		chartData && !queryResponse.isError && !queryResponse.isLoading;
-
 	const isWarning = !isEmpty(queryResponse.data?.warning);
 	return (
-		<div className="alert-chart-container" ref={graphRef}>
+		<div className="alert-chart-container">
 			<ChartContainer>
 				<div className="chart-preview-header">
 					{headline}
@@ -345,19 +274,16 @@ function ChartPreview({
 						<ErrorInPlace error={queryResponse.error as APIError} />
 					)}
 
-					{chartDataAvailable && (
-						<GridPanelSwitch
-							options={options}
-							panelType={graphType}
-							data={chartData}
-							name={name || 'Chart Preview'}
-							panelData={
-								queryResponse.data?.payload?.data?.queryResult?.data?.result || []
-							}
-							query={query || initialQueriesMap.metrics}
-							yAxisUnit={yAxisUnit}
-						/>
-					)}
+					{queryResponse.data &&
+						!queryResponse.isError &&
+						!queryResponse.isLoading && (
+							<PanelWrapper
+								panelMode={PanelMode.STANDALONE_VIEW}
+								widget={previewWidget}
+								queryResponse={queryResponse}
+								onDragSelect={onDragSelect}
+							/>
+						)}
 				</div>
 			</ChartContainer>
 		</div>
