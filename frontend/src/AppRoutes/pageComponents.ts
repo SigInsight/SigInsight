@@ -170,8 +170,3 @@ export const AlertTypeSelectionPage = Loadable(
 			/* webpackChunkName: "Alert Type Selection Page" */ 'pages/AlertTypeSelection'
 		),
 );
-
-export const MeterExplorerPage = Loadable(
-	() =>
-		import(/* webpackChunkName: "Meter Explorer Page" */ 'pages/MeterExplorer'),
-);

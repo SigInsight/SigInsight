@@ -3,9 +3,6 @@ import { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useHistory, useLocation } from 'react-router-dom';
 import { Alert, Typography } from 'antd';
-import getLocalStorageApi from 'api/browser/localstorage/get';
-import setLocalStorageApi from 'api/browser/localstorage/set';
-import { LOCALSTORAGE } from 'constants/localStorage';
 import { QueryParams } from 'constants/query';
 import { PANEL_TYPES } from 'constants/queryBuilder';
 import GridCard from 'container/GridCardLayout/GridCard';
@@ -30,7 +27,7 @@ import {
 	getTotalTraceSizeWidgetData,
 } from './graphs';
 
-import './BreakDown.styles.scss';
+import './CostMeter.styles.scss';
 
 type MetricSection = {
 	id: string;
@@ -116,34 +113,20 @@ function Section(section: MetricSection): JSX.Element {
 	);
 }
 
-function BreakDown(): JSX.Element {
+function CostMeter(): JSX.Element {
 	const { maxTime, minTime } = useSelector<AppState, GlobalReducer>(
 		(state) => state.globalTime,
 	);
 
-	const showInfo =
-		getLocalStorageApi(LOCALSTORAGE.DISSMISSED_COST_METER_INFO) !== 'true';
 	const showShortRangeWarning = (maxTime - minTime) / 1e6 < 61 * 60 * 1000;
 
 	return (
-		<div className="meter-explorer-breakdown">
-			<section className="meter-explorer-date-time">
+		<section className="cost-meter" aria-label="Cost meter">
+			<div className="cost-meter-header">
+				<Typography.Title level={4}>Cost Meter</Typography.Title>
 				<DateTimeSelectionV2 showAutoRefresh={false} />
-			</section>
-			<section className="meter-explorer-graphs">
-				{showInfo && (
-					<Alert
-						type="info"
-						showIcon
-						closable
-						onClose={(): void => {
-							setLocalStorageApi(LOCALSTORAGE.DISSMISSED_COST_METER_INFO, 'true');
-						}}
-						message="Billing is calculated in UTC. To match your meter data with billing, select full-day ranges in UTC time (00:00 – 23:59 UTC). 
-						For example, if you’re in PT, for the billing of Jan 1, select your time range as Dec 31, 4:00 PM – Jan 1, 3:59 PM PT."
-					/>
-				)}
-
+			</div>
+			<div className="cost-meter-graphs">
 				{showShortRangeWarning && (
 					<Alert
 						type="warning"
@@ -178,9 +161,9 @@ function BreakDown(): JSX.Element {
 						/>
 					);
 				})}
-			</section>
-		</div>
+			</div>
+		</section>
 	);
 }
 
-export default BreakDown;
+export default CostMeter;

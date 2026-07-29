@@ -7,7 +7,6 @@ import {
 	Binoculars,
 	BugIcon,
 	Building2,
-	ChartArea,
 	Cloudy,
 	DraftingCompass,
 	FileKey2,
@@ -175,15 +174,6 @@ export const defaultMoreMenuItems: SidebarItem[] = [
 		icon: <Binoculars size={16} />,
 		isEnabled: true,
 		itemKey: 'external-apis',
-	},
-	{
-		key: ROUTES.METER,
-		label: 'Cost Meter',
-		icon: <ChartArea size={16} />,
-		isNew: false,
-		isEnabled: true,
-		isBeta: false,
-		itemKey: 'meter-explorer',
 	},
 	{
 		key: ROUTES.SERVICE_MAP,

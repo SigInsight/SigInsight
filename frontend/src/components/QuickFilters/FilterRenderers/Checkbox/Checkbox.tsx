@@ -16,7 +16,6 @@ import { DEBOUNCE_DELAY } from 'constants/queryBuilderFilterConfig';
 import { getOperatorValue } from 'container/QueryBuilder/filters/QueryBuilderSearch/utils';
 import { useGetAggregateValues } from 'hooks/queryBuilder/useGetAggregateValues';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
-import { useGetQueryKeyValueSuggestions } from 'hooks/querySuggestions/useGetQueryKeyValueSuggestions';
 import useDebouncedFn from 'hooks/useDebouncedFunction';
 import { cloneDeep, isArray, isFunction } from 'lodash-es';
 import { ChevronDown, ChevronRight } from 'lucide-react';
@@ -121,59 +120,18 @@ export default function CheckboxFilter(props: ICheckboxProps): JSX.Element {
 			searchText: searchText ?? '',
 		},
 		{
-			enabled: isOpen && source !== QuickFiltersSource.METER_EXPLORER,
+			enabled: isOpen,
 			keepPreviousData: true,
 		},
 	);
 
-	const {
-		data: keyValueSuggestions,
-		isLoading: isLoadingKeyValueSuggestions,
-	} = useGetQueryKeyValueSuggestions({
-		key: filter.attributeKey.key,
-		signal: filter.dataSource || DataSource.LOGS,
-		signalSource: 'meter',
-		options: {
-			enabled: isOpen && source === QuickFiltersSource.METER_EXPLORER,
-			keepPreviousData: true,
-		},
-	});
-
 	const attributeValues: string[] = useMemo(() => {
 		const dataType = filter.attributeKey.dataType || DataTypes.String;
-
-		if (source === QuickFiltersSource.METER_EXPLORER && keyValueSuggestions) {
-			// Process the response data
-			const responseData = keyValueSuggestions?.data as any;
-			const values = responseData.data?.values || {};
-			const stringValues = values.stringValues || [];
-			const numberValues = values.numberValues || [];
-
-			// Generate options from string values - explicitly handle empty strings
-			const stringOptions = stringValues
-				// Strict filtering for empty string - we'll handle it as a special case if needed
-				.filter(
-					(value: string | null | undefined): value is string =>
-						value !== null && value !== undefined && value !== '',
-				);
-
-			// Generate options from number values
-			const numberOptions = numberValues
-				.filter(
-					(value: number | null | undefined): value is number =>
-						value !== null && value !== undefined,
-				)
-				.map((value: number) => value.toString());
-
-			// Combine all options and make sure we don't have duplicate labels
-			return [...stringOptions, ...numberOptions];
-		}
-
 		const key = DATA_TYPE_VS_ATTRIBUTE_VALUES_KEY[dataType];
 		return (data?.payload?.[key] || []).filter(
 			(val) => val !== undefined && val !== null,
 		);
-	}, [data?.payload, filter.attributeKey.dataType, keyValueSuggestions, source]);
+	}, [data?.payload, filter.attributeKey.dataType]);
 
 	const setSearchTextDebounced = useDebouncedFn((...args) => {
 		setSearchText(args[0] as string);
@@ -591,14 +549,12 @@ export default function CheckboxFilter(props: ICheckboxProps): JSX.Element {
 					)}
 				</section>
 			</section>
-			{isOpen &&
-				(isLoading || isLoadingKeyValueSuggestions) &&
-				!attributeValues.length && (
-					<section className="loading">
-						<Skeleton paragraph={{ rows: 4 }} />
-					</section>
-				)}
-			{isOpen && !isLoading && !isLoadingKeyValueSuggestions && (
+			{isOpen && isLoading && !attributeValues.length && (
+				<section className="loading">
+					<Skeleton paragraph={{ rows: 4 }} />
+				</section>
+			)}
+			{isOpen && !isLoading && (
 				<>
 					{!isEmptyStateWithDocsEnabled && (
 						<section className="search">
