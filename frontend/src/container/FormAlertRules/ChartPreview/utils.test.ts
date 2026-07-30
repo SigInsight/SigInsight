@@ -31,6 +31,31 @@ describe('Convert One Unit to another unit', () => {
 		).toEqual(['A']);
 	});
 
+	it('does not fall back to input queries when the selected formula has no result', () => {
+		const payload = ({
+			data: {
+				result: [
+					{ queryName: 'A', metric: {}, values: [[1, '2']] },
+					{ queryName: 'B', metric: {}, values: [[1, '3']] },
+				] as MetricRangePayloadProps['data']['result'],
+				resultType: 'matrix',
+				queryResult: {
+					data: {
+						result: [
+							{ queryName: 'A', legend: '', series: null },
+							{ queryName: 'B', legend: '', series: null },
+						],
+						resultType: 'matrix',
+					},
+				},
+			},
+		} as unknown) as MetricRangePayloadProps;
+
+		const selected = selectAlertQueryResult(payload, 'F1');
+		expect(selected.data.result).toEqual([]);
+		expect(selected.data.queryResult.data.result).toEqual([]);
+	});
+
 	it('should convert from BitsIEC to BytesIEC', () => {
 		const result = covertIntoDataFormats({
 			value: 8,

@@ -156,7 +156,7 @@ export const selectAlertQueryResult = (
 	const result = payload.data.result.filter(
 		(item) => item.queryName === selectedQueryName,
 	);
-	if (!result.length || result.length === payload.data.result.length) {
+	if (result.length === payload.data.result.length) {
 		return payload;
 	}
 
