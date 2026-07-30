@@ -45,7 +45,7 @@ class MetricsTimeSeries(ABC):
     ) -> None:
         # Create a copy of labels to avoid mutating the caller's dictionary
         labels = dict(labels)
-        # Add metric_name to the labels to support promql queries
+        # Include the metric name in the generated label set.
         labels["__name__"] = metric_name
         self.env = env
         self.metric_name = metric_name

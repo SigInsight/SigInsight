@@ -148,14 +148,6 @@ export const QueryTableProps: any = {
 			},
 		],
 		id: '1e08128f-c6a3-42ff-8033-4e38d291cf0a',
-		promql: [
-			{
-				disabled: false,
-				legend: '',
-				name: 'A',
-				query: '',
-			},
-		],
 		queryType: 'builder',
 	},
 	columns: [
@@ -302,14 +294,6 @@ export const WidgetHeaderProps: any = {
 				},
 			],
 			id: '1e08128f-c6a3-42ff-8033-4e38d291cf0a',
-			promql: [
-				{
-					disabled: false,
-					legend: '',
-					name: 'A',
-					query: '',
-				},
-			],
 			queryType: 'builder',
 		},
 		selectedLogFields: [

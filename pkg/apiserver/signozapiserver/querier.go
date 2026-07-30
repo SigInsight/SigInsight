@@ -14,7 +14,7 @@ func (provider *provider) addQuerierRoutes(router *mux.Router) error {
 		ID:                 "QueryRangeV5",
 		Tags:               []string{"querier"},
 		Summary:            "Query range",
-		Description:        "Execute a composite query over a time range. Supports builder queries (traces, logs, metrics), formulas, trace operators, PromQL, and ClickHouse SQL.",
+		Description:        "Execute a composite query over a time range. Supports builder queries (traces, logs, metrics), formulas, trace operators, and ClickHouse SQL.",
 		Request:            new(qbtypes.QueryRangeRequest),
 		RequestContentType: "application/json",
 		RequestExamples: []handler.OpenAPIExample{
@@ -326,28 +326,6 @@ func (provider *provider) addQuerierRoutes(router *mux.Router) error {
 								"spec": map[string]any{
 									"name":       "error_rate",
 									"expression": "A / B * 100",
-								},
-							},
-						},
-					},
-				},
-			},
-			{
-				Name:    "promql",
-				Summary: "PromQL: request rate with UTF-8 metric name",
-				Value: map[string]any{
-					"schemaVersion": "v1",
-					"start":         1640995200000,
-					"end":           1640998800000,
-					"requestType":   "time_series",
-					"compositeQuery": map[string]any{
-						"queries": []any{
-							map[string]any{
-								"type": "promql",
-								"spec": map[string]any{
-									"name":  "request_rate",
-									"query": "sum(rate({\"http.server.duration.count\"}[5m])) by (\"service.name\")",
-									"step":  60,
 								},
 							},
 						},

@@ -7,7 +7,6 @@ import {
 	initialClickHouseData,
 	initialFormulaBuilderFormValues,
 	initialQueryBuilderFormValues,
-	initialQueryPromQLData,
 } from 'constants/queryBuilder';
 import { FORMULA_REGEXP } from 'constants/regExp';
 import { QUERY_TABLE_CONFIG } from 'container/QueryTable/config';
@@ -17,7 +16,6 @@ import {
 	IBuilderFormula,
 	IBuilderQuery,
 	IClickHouseQuery,
-	IPromQLQuery,
 	Query,
 } from 'types/api/queryBuilder/queryBuilderData';
 import {
@@ -41,7 +39,7 @@ export type RowData = {
 };
 
 export type DynamicColumn = {
-	query: IBuilderQuery | IBuilderFormula | IClickHouseQuery | IPromQLQuery;
+	query: IBuilderQuery | IBuilderFormula | IClickHouseQuery;
 	field: string;
 	dataIndex: string;
 	title: string;
@@ -90,7 +88,7 @@ const getQueryByName = <T extends keyof QueryBuilderData>(
 	query: Query,
 	currentQueryName: string,
 	type: T,
-): IBuilderQuery | IBuilderFormula | IClickHouseQuery | IPromQLQuery => {
+): IBuilderQuery | IBuilderFormula | IClickHouseQuery => {
 	if (query.queryType === EQueryType.CLICKHOUSE) {
 		const queryArray = query.clickhouse_sql;
 		const defaultQueryValue = initialClickHouseData;
@@ -117,16 +115,11 @@ const getQueryByName = <T extends keyof QueryBuilderData>(
 			: IBuilderFormula;
 	}
 
-	const queryArray = query.promql;
-	const defaultQueryValue = initialQueryPromQLData;
-
-	return (
-		queryArray.find((q) => q.name === currentQueryName) || defaultQueryValue
-	);
+	throw new Error(`Unsupported query type: ${query.queryType}`);
 };
 
 const addLabels = (
-	query: IBuilderQuery | IBuilderFormula | IClickHouseQuery | IPromQLQuery,
+	query: IBuilderQuery | IBuilderFormula | IClickHouseQuery,
 	label: string,
 	dynamicColumns: DynamicColumns,
 	columnId?: string,
@@ -149,7 +142,7 @@ const addLabels = (
 };
 
 const addOperatorFormulaColumns = (
-	query: IBuilderFormula | IBuilderQuery | IClickHouseQuery | IPromQLQuery,
+	query: IBuilderFormula | IBuilderQuery | IClickHouseQuery,
 	dynamicColumns: DynamicColumns,
 	queryType: EQueryType,
 	customLabel?: string,
@@ -222,36 +215,11 @@ const addOperatorFormulaColumns = (
 
 		dynamicColumns.push(operatorColumn);
 	}
-
-	if (queryType === EQueryType.PROM) {
-		const currentQueryData = query as IPromQLQuery;
-		let operatorLabel = `${currentQueryData.name}`;
-
-		if (currentQueryData.legend) {
-			operatorLabel = currentQueryData.legend;
-		}
-
-		const operatorColumn: DynamicColumn = {
-			query,
-			field: currentQueryData.name,
-			dataIndex: currentQueryData.name,
-			title: customLabel || operatorLabel,
-			data: [],
-			type: 'operator',
-			id: columnId,
-		};
-
-		dynamicColumns.push(operatorColumn);
-	}
 };
 
 const processTableColumns = (
 	table: NonNullable<QueryRangeResult['table']>,
-	currentStagedQuery:
-		| IBuilderQuery
-		| IBuilderFormula
-		| IClickHouseQuery
-		| IPromQLQuery,
+	currentStagedQuery: IBuilderQuery | IBuilderFormula | IClickHouseQuery,
 	dynamicColumns: DynamicColumns,
 	queryType: EQueryType,
 ): void => {
@@ -274,11 +242,7 @@ const processTableColumns = (
 
 const processSeriesColumns = (
 	series: NonNullable<QueryRangeResult['series']>,
-	currentStagedQuery:
-		| IBuilderQuery
-		| IBuilderFormula
-		| IClickHouseQuery
-		| IPromQLQuery,
+	currentStagedQuery: IBuilderQuery | IBuilderFormula | IClickHouseQuery,
 	dynamicColumns: DynamicColumns,
 	queryType: EQueryType,
 	currentQuery: QueryRangeResult,

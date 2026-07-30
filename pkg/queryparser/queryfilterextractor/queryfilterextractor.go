@@ -15,7 +15,6 @@ type ExtractorType struct {
 
 var (
 	ExtractorTypeClickHouseSQL = ExtractorType{valuer.NewString("qfe_ch")}
-	ExtractorTypePromQL        = ExtractorType{valuer.NewString("qfe_promql")}
 )
 
 // ColumnInfo represents a column in the query
@@ -57,8 +56,6 @@ func NewExtractor(extractorType ExtractorType) (FilterExtractor, error) {
 	switch extractorType {
 	case ExtractorTypeClickHouseSQL:
 		return NewClickHouseFilterExtractor(), nil
-	case ExtractorTypePromQL:
-		return NewPromQLFilterExtractor(), nil
 	default:
 		return nil, errors.NewInvalidInputf(errors.CodeInvalidInput, "invalid extractor type: %s", extractorType)
 	}

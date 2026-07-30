@@ -1,7 +1,6 @@
 import { ENTITY_VERSION_V5 } from 'constants/app';
 import {
 	initialQueryBuilderFormValuesMap,
-	initialQueryPromQLData,
 	PANEL_TYPES,
 } from 'constants/queryBuilder';
 import { AlertTypes } from 'types/api/alerts/alertTypes';
@@ -34,7 +33,6 @@ export const alertDefaults: AlertDef = {
 			builderQueries: {
 				A: initialQueryBuilderFormValuesMap.metrics,
 			},
-			promQueries: { A: initialQueryPromQLData },
 			chQueries: {
 				A: {
 					name: 'A',
@@ -68,7 +66,6 @@ export const logAlertDefaults: AlertDef = {
 			builderQueries: {
 				A: initialQueryBuilderFormValuesMap.logs,
 			},
-			promQueries: { A: initialQueryPromQLData },
 			chQueries: {
 				A: {
 					name: 'A',
@@ -100,7 +97,6 @@ export const traceAlertDefaults: AlertDef = {
 			builderQueries: {
 				A: initialQueryBuilderFormValuesMap.traces,
 			},
-			promQueries: { A: initialQueryPromQLData },
 			chQueries: {
 				A: {
 					name: 'A',
@@ -132,7 +128,6 @@ export const exceptionAlertDefaults: AlertDef = {
 			builderQueries: {
 				A: initialQueryBuilderFormValuesMap.traces,
 			},
-			promQueries: { A: initialQueryPromQLData },
 			chQueries: {
 				A: {
 					name: 'A',

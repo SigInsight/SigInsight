@@ -152,24 +152,6 @@ export const createDynamicVariableToWidgetsMap = (
 						});
 					}
 				});
-			} else if (widget.query?.queryType === EQueryType.PROM) {
-				if (!Array.isArray(widget.query.promql)) {
-					return;
-				}
-
-				widget.query.promql.forEach((promqlQuery) => {
-					dynamicVariables.forEach((variable) => {
-						if (
-							variable.dynamicVariablesAttribute &&
-							variable.name &&
-							promqlQuery.query &&
-							textContainsVariableReference(promqlQuery.query, variable.name) &&
-							!dynamicVariableToWidgetsMap[variable.id].includes(widget.id)
-						) {
-							dynamicVariableToWidgetsMap[variable.id].push(widget.id);
-						}
-					});
-				});
 			} else if (widget.query?.queryType === EQueryType.CLICKHOUSE) {
 				if (!Array.isArray(widget.query.clickhouse_sql)) {
 					return;

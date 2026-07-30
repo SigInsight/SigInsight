@@ -10,7 +10,6 @@ import {
 	LogAggregation,
 	LogBuilderQuery,
 	MetricBuilderQuery,
-	PromQuery,
 	QueryBuilderFormula as V5QueryBuilderFormula,
 	QueryEnvelope,
 	QueryRangePayloadV5,
@@ -86,7 +85,6 @@ describe('prepareQueryRangePayloadV5', () => {
 				queryType: EQueryType.QUERY_BUILDER,
 				id: 'q1',
 				unit: undefined,
-				promql: [],
 				clickhouse_sql: [],
 				builder: {
 					queryData: [baseBuilderQuery()],
@@ -200,84 +198,12 @@ describe('prepareQueryRangePayloadV5', () => {
 		expect(formulaSpec.legend).toBe('Formula Legend');
 	});
 
-	it('builds payload for PromQL queries and respects originalGraphType for formatting', () => {
-		const props: GetQueryResultsProps = {
-			query: {
-				queryType: EQueryType.PROM,
-				id: 'q2',
-				unit: undefined,
-				promql: [
-					{
-						name: 'A',
-						query: 'up',
-						disabled: false,
-						legend: 'LP',
-					},
-				],
-				clickhouse_sql: [],
-				builder: { queryData: [], queryFormulas: [], queryTraceOperator: [] },
-			},
-			graphType: PANEL_TYPES.TIME_SERIES,
-			originalGraphType: PANEL_TYPES.TABLE,
-			selectedTime: 'GLOBAL_TIME',
-			start,
-			end,
-		};
-
-		const result = prepareQueryRangePayloadV5(props);
-
-		expect(result).toEqual(
-			expect.objectContaining({
-				legendMap: { A: 'LP' },
-				queryPayload: expect.objectContaining({
-					compositeQuery: expect.objectContaining({
-						queries: [
-							{
-								type: 'promql',
-								spec: expect.objectContaining({
-									name: 'A',
-									query: 'up',
-									legend: 'LP',
-									stats: false,
-								}),
-							},
-						],
-					}),
-					requestType: 'time_series',
-					formatOptions: expect.objectContaining({
-						formatTableResultForUI: true,
-						fillGaps: false,
-					}),
-					start: start * 1000,
-					end: end * 1000,
-					variables: {},
-				}),
-			}),
-		);
-
-		expect(result.legendMap).toEqual({ A: 'LP' });
-
-		const payload: QueryRangePayloadV5 = result.queryPayload;
-		expect(payload.requestType).toBe('time_series');
-		expect(payload.formatOptions?.formatTableResultForUI).toBe(true);
-		expect(payload.compositeQuery.queries).toHaveLength(1);
-
-		const prom = payload.compositeQuery.queries[0];
-		expect(prom.type).toBe('promql');
-		const promSpec = prom.spec as PromQuery;
-		expect(promSpec.name).toBe('A');
-		expect(promSpec.query).toBe('up');
-		expect(promSpec.legend).toBe('LP');
-		expect(promSpec.stats).toBe(false);
-	});
-
 	it('builds payload for ClickHouse queries and maps requestType from panel', () => {
 		const props: GetQueryResultsProps = {
 			query: {
 				queryType: EQueryType.CLICKHOUSE,
 				id: 'q3',
 				unit: undefined,
-				promql: [],
 				clickhouse_sql: [
 					{
 						name: 'Q',
@@ -343,7 +269,6 @@ describe('prepareQueryRangePayloadV5', () => {
 				queryType: EQueryType.QUERY_BUILDER,
 				id: 'q4',
 				unit: undefined,
-				promql: [],
 				clickhouse_sql: [],
 				builder: { queryData: [], queryFormulas: [], queryTraceOperator: [] },
 			},
@@ -381,7 +306,6 @@ describe('prepareQueryRangePayloadV5', () => {
 				queryType: EQueryType.QUERY_BUILDER,
 				id: 'q5',
 				unit: undefined,
-				promql: [],
 				clickhouse_sql: [],
 				builder: {
 					queryData: [baseBuilderQuery()],
@@ -455,7 +379,6 @@ describe('prepareQueryRangePayloadV5', () => {
 				queryType: EQueryType.QUERY_BUILDER,
 				id: 'q6',
 				unit: undefined,
-				promql: [],
 				clickhouse_sql: [],
 				builder: {
 					queryData: [logsQuery],
@@ -524,7 +447,6 @@ describe('prepareQueryRangePayloadV5', () => {
 				queryType: EQueryType.QUERY_BUILDER,
 				id: 'e643e387-1996-4449-97b6-9ef4498a0573',
 				unit: undefined,
-				promql: [{ name: 'A', query: '', legend: '', disabled: false }],
 				clickhouse_sql: [{ name: 'A', legend: '', disabled: false, query: '' }],
 				builder: {
 					queryData: [
@@ -640,7 +562,6 @@ describe('prepareQueryRangePayloadV5', () => {
 				queryType: EQueryType.QUERY_BUILDER,
 				id: 'q8',
 				unit: undefined,
-				promql: [],
 				clickhouse_sql: [],
 				builder: {
 					queryData: [
@@ -706,7 +627,6 @@ describe('prepareQueryRangePayloadV5', () => {
 				queryType: EQueryType.QUERY_BUILDER,
 				id: 'q9',
 				unit: undefined,
-				promql: [],
 				clickhouse_sql: [],
 				builder: {
 					queryData: [
@@ -740,7 +660,6 @@ describe('prepareQueryRangePayloadV5', () => {
 				queryType: EQueryType.QUERY_BUILDER,
 				id: 'q10',
 				unit: undefined,
-				promql: [],
 				clickhouse_sql: [],
 				builder: {
 					queryData: [
@@ -784,7 +703,6 @@ describe('prepareQueryRangePayloadV5', () => {
 				queryType: EQueryType.QUERY_BUILDER,
 				id: 'q11',
 				unit: undefined,
-				promql: [],
 				clickhouse_sql: [],
 				builder: {
 					queryData: [
@@ -828,7 +746,6 @@ describe('prepareQueryRangePayloadV5', () => {
 				queryType: EQueryType.QUERY_BUILDER,
 				id: 'q12',
 				unit: undefined,
-				promql: [],
 				clickhouse_sql: [],
 				builder: {
 					queryData: [
@@ -862,7 +779,6 @@ describe('prepareQueryRangePayloadV5', () => {
 				queryType: EQueryType.QUERY_BUILDER,
 				id: 'q13',
 				unit: undefined,
-				promql: [],
 				clickhouse_sql: [],
 				builder: {
 					queryData: [

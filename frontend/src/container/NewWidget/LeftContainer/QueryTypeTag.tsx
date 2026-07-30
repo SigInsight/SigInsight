@@ -7,8 +7,6 @@ function QueryTypeTag({ queryType }: IQueryTypeTagProps): JSX.Element {
 
 		case EQueryType.CLICKHOUSE:
 			return <span>ClickHouse Query</span>;
-		case EQueryType.PROM:
-			return <span>PromQL</span>;
 		default:
 			return <span />;
 	}

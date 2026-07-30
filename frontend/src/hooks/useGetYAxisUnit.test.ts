@@ -38,7 +38,6 @@ function createMockCurrentQuery(
 ): Query {
 	return {
 		queryType,
-		promql: [],
 		builder: {
 			queryData,
 			queryFormulas: [],
@@ -68,18 +67,6 @@ describe('useGetYAxisUnit', () => {
 		expect(result.current.yAxisUnit).toBeUndefined();
 		expect(result.current.isLoading).toBe(false);
 		expect(result.current.isError).toBe(false);
-		expect(mockUseGetMetrics).toHaveBeenCalledWith([], false);
-	});
-
-	it('should return undefined yAxisUnit when queryType is PROM', async () => {
-		const mockCurrentQuery = createMockCurrentQuery(EQueryType.PROM);
-		mockUseQueryBuilder.mockReturnValueOnce(({
-			currentQuery: mockCurrentQuery,
-		} as Partial<QueryBuilderContextType>) as QueryBuilderContextType);
-
-		const { result } = renderHook(() => useGetYAxisUnit());
-
-		expect(result.current.yAxisUnit).toBeUndefined();
 		expect(mockUseGetMetrics).toHaveBeenCalledWith([], false);
 	});
 

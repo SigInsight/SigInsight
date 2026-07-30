@@ -1,7 +1,6 @@
 import { PANEL_TYPES } from 'constants/queryBuilder';
 import {
 	BuilderClickHouseResource,
-	BuilderPromQLResource,
 	BuilderQueryDataResourse,
 	Query,
 } from 'types/api/queryBuilder/queryBuilderData';
@@ -28,6 +27,5 @@ export interface ICompositeMetricQuery {
 export interface ICompositeMetricQueryInput
 	extends Omit<ICompositeMetricQuery, 'queries'> {
 	builderQueries?: BuilderQueryDataResourse;
-	promQueries?: BuilderPromQLResource;
 	chQueries?: BuilderClickHouseResource;
 }

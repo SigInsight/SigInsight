@@ -86,7 +86,6 @@ const mockWidget: Widgets = {
 			queryFormulas: [],
 			queryTraceOperator: [],
 		},
-		promql: [],
 		clickhouse_sql: [],
 		id: 'test-query-id',
 		queryType: EQueryType.QUERY_BUILDER,

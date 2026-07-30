@@ -129,8 +129,6 @@ function ChartPreview({
 		}
 
 		switch (query?.queryType) {
-			case EQueryType.PROM:
-				return query.promql?.length > 0 && query.promql[0].query !== '';
 			case EQueryType.CLICKHOUSE:
 				return (
 					query.clickhouse_sql?.length > 0 &&

@@ -183,12 +183,11 @@ const (
 	QueryTypeUnknown       QueryType = "unknown"
 	QueryTypeBuilder       QueryType = "builder"
 	QueryTypeClickHouseSQL QueryType = "clickhouse_sql"
-	QueryTypePromQL        QueryType = "promql"
 )
 
 func (q QueryType) Validate() error {
 	switch q {
-	case QueryTypeBuilder, QueryTypeClickHouseSQL, QueryTypePromQL:
+	case QueryTypeBuilder, QueryTypeClickHouseSQL:
 		return nil
 	default:
 		return fmt.Errorf("invalid query type: %s", q)

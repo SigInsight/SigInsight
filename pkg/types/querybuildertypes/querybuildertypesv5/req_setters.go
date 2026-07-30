@@ -56,20 +56,8 @@ func (q *QueryEnvelope) SetSource(source telemetrytypes.Source) {
 // SetQuery sets the raw query string of the spec, if applicable.
 func (q *QueryEnvelope) SetQuery(query string) {
 	switch spec := q.Spec.(type) {
-	case PromQuery:
-		spec.Query = query
-		q.Spec = spec
 	case ClickHouseQuery:
 		spec.Query = query
-		q.Spec = spec
-	}
-}
-
-// SetStats sets the PromQL stats flag, if applicable.
-func (q *QueryEnvelope) SetStats(stats bool) {
-	switch spec := q.Spec.(type) {
-	case PromQuery:
-		spec.Stats = stats
 		q.Spec = spec
 	}
 }
@@ -131,9 +119,6 @@ func (q *QueryEnvelope) SetQueryName(name string) {
 	case QueryBuilderJoin:
 		spec.Name = name
 		q.Spec = spec
-	case PromQuery:
-		spec.Name = name
-		q.Spec = spec
 	case ClickHouseQuery:
 		spec.Name = name
 		q.Spec = spec
@@ -159,9 +144,6 @@ func (q *QueryEnvelope) SetDisabled(disabled bool) {
 		spec.Disabled = disabled
 		q.Spec = spec
 	case QueryBuilderJoin:
-		spec.Disabled = disabled
-		q.Spec = spec
-	case PromQuery:
 		spec.Disabled = disabled
 		q.Spec = spec
 	case ClickHouseQuery:
@@ -370,9 +352,6 @@ func (q *QueryEnvelope) SetLegend(legend string) {
 	case QueryBuilderFormula:
 		spec.Legend = legend
 		q.Spec = spec
-	case PromQuery:
-		spec.Legend = legend
-		q.Spec = spec
 	case ClickHouseQuery:
 		spec.Legend = legend
 		q.Spec = spec
@@ -411,9 +390,6 @@ func (q *QueryEnvelope) SetStepInterval(step Step) {
 		q.Spec = spec
 	case QueryBuilderQuery[MetricAggregation]:
 		spec.StepInterval = step
-		q.Spec = spec
-	case PromQuery:
-		spec.Step = step
 		q.Spec = spec
 	}
 }

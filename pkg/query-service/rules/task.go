@@ -8,8 +8,7 @@ import (
 type TaskType string
 
 const (
-	TaskTypeProm = "promql_ruletask"
-	TaskTypeCh   = "ch_ruletask"
+	TaskTypeCh = "ch_ruletask"
 )
 
 type Task interface {
@@ -30,8 +29,5 @@ type Task interface {
 // newTask returns an appropriate group for
 // rule type
 func newTask(taskType TaskType, name, file string, frequency time.Duration, rules []Rule, opts *ManagerOptions, notify NotifyFunc) Task {
-	if taskType == TaskTypeCh {
-		return NewRuleTask(name, file, frequency, rules, opts, notify)
-	}
-	return NewPromRuleTask(name, file, frequency, rules, opts, notify)
+	return NewRuleTask(name, file, frequency, rules, opts, notify)
 }

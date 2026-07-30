@@ -105,7 +105,6 @@ GROUP BY host_name`;
 const baseQuery: Query = {
 	id: 'test-query',
 	queryType: EQueryType.QUERY_BUILDER,
-	promql: [],
 	builder: { queryData: [], queryFormulas: [], queryTraceOperator: [] },
 	clickhouse_sql: [],
 };
@@ -181,22 +180,6 @@ describe('extractQueryTextStrings', () => {
 		expect(extractQueryTextStrings(query)).toEqual([]);
 	});
 
-	it('extracts promql query strings', () => {
-		const query: Query = {
-			...baseQuery,
-			queryType: EQueryType.PROM,
-			promql: [
-				{ name: 'A', query: 'up{env="$env"}', legend: '', disabled: false },
-				{ name: 'B', query: 'cpu{ns="$namespace"}', legend: '', disabled: false },
-			],
-		};
-
-		expect(extractQueryTextStrings(query)).toEqual([
-			'up{env="$env"}',
-			'cpu{ns="$namespace"}',
-		]);
-	});
-
 	it('extracts clickhouse sql query strings', () => {
 		const query: Query = {
 			...baseQuery,
@@ -268,19 +251,6 @@ describe('extractQueryTextStrings', () => {
 		]);
 	});
 
-	it('skips promql entries with empty query strings', () => {
-		const query: Query = {
-			...baseQuery,
-			queryType: EQueryType.PROM,
-			promql: [
-				{ name: 'A', query: '', legend: '', disabled: false },
-				{ name: 'B', query: 'up{env="$env"}', legend: '', disabled: false },
-			],
-		};
-
-		expect(extractQueryTextStrings(query)).toEqual(['up{env="$env"}']);
-	});
-
 	it('skips clickhouse entries with empty query strings', () => {
 		const query: Query = {
 			...baseQuery,
@@ -347,25 +317,6 @@ describe('getVariableReferencesInQuery', () => {
 		expect(result).toEqual(['deployment_environment', 'service_name']);
 	});
 
-	it('detects variables in promql queries', () => {
-		const query: Query = {
-			...baseQuery,
-			queryType: EQueryType.PROM,
-			promql: [
-				{
-					name: 'A',
-					query:
-						'http_requests{env="{{.deployment_environment}}", endpoint="$endpoint"}',
-					legend: '',
-					disabled: false,
-				},
-			],
-		};
-
-		const result = getVariableReferencesInQuery(query, variableNames);
-		expect(result).toEqual(['deployment_environment', 'endpoint']);
-	});
-
 	it('detects variables in clickhouse sql queries', () => {
 		const query: Query = {
 			...baseQuery,
@@ -407,39 +358,5 @@ describe('getVariableReferencesInQuery', () => {
 
 		const result = getVariableReferencesInQuery(query, variableNames);
 		expect(result).toEqual(['deployment_environment', 'service_name']);
-	});
-
-	it('returns empty array when no variables are referenced', () => {
-		const query: Query = {
-			...baseQuery,
-			queryType: EQueryType.PROM,
-			promql: [
-				{
-					name: 'A',
-					query: 'up{job="api"}',
-					legend: '',
-					disabled: false,
-				},
-			],
-		};
-
-		expect(getVariableReferencesInQuery(query, variableNames)).toEqual([]);
-	});
-
-	it('returns empty array when variableNames list is empty', () => {
-		const query: Query = {
-			...baseQuery,
-			queryType: EQueryType.PROM,
-			promql: [
-				{
-					name: 'A',
-					query: 'up{env="$deployment_environment"}',
-					legend: '',
-					disabled: false,
-				},
-			],
-		};
-
-		expect(getVariableReferencesInQuery(query, [])).toEqual([]);
 	});
 });

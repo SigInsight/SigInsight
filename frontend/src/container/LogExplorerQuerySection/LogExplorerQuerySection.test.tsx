@@ -178,7 +178,6 @@ const createMockQuery = (filterExpression?: string): Query => ({
 		queryTraceOperator: [],
 	},
 	clickhouse_sql: [],
-	promql: [],
 });
 
 // Helper function to verify CodeMirror content

@@ -19,7 +19,6 @@ import (
 	"github.com/SigNoz/signoz/pkg/instrumentation"
 	"github.com/SigNoz/signoz/pkg/modules/organization/implorganization"
 	"github.com/SigNoz/signoz/pkg/modules/user/impluser"
-	"github.com/SigNoz/signoz/pkg/prometheus"
 	"github.com/SigNoz/signoz/pkg/querier"
 	"github.com/SigNoz/signoz/pkg/queryparser"
 	"github.com/SigNoz/signoz/pkg/sharder"
@@ -50,7 +49,6 @@ type SigNoz struct {
 	SQLStore               sqlstore.SQLStore
 	TelemetryStore         telemetrystore.TelemetryStore
 	TelemetryMetadataStore telemetrytypes.MetadataStore
-	Prometheus             prometheus.Prometheus
 	Alertmanager           alertmanager.Alertmanager
 	Querier                querier.Querier
 	APIServer              apiserver.APIServer
@@ -187,24 +185,12 @@ func New(
 		return nil, err
 	}
 
-	// Initialize prometheus from the available prometheus provider factories
-	prometheus, err := factory.NewProviderFromNamedMap(
-		ctx,
-		providerSettings,
-		config.Prometheus,
-		NewPrometheusProviderFactories(telemetrystore),
-		config.Prometheus.Provider(),
-	)
-	if err != nil {
-		return nil, err
-	}
-
 	// Initialize querier from the available querier provider factories
 	querier, err := factory.NewProviderFromNamedMap(
 		ctx,
 		providerSettings,
 		config.Querier,
-		NewQuerierProviderFactories(telemetrystore, prometheus, cache, flagger),
+		NewQuerierProviderFactories(telemetrystore, cache, flagger),
 		config.Querier.Provider(),
 	)
 	if err != nil {
@@ -416,7 +402,6 @@ func New(
 		SQLStore:               sqlstore,
 		TelemetryStore:         telemetrystore,
 		TelemetryMetadataStore: telemetryMetadataStore,
-		Prometheus:             prometheus,
 		Alertmanager:           alertmanager,
 		Querier:                querier,
 		APIServer:              apiserverInstance,

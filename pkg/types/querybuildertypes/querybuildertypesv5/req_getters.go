@@ -51,21 +51,10 @@ func (q *QueryEnvelope) GetSource() telemetrytypes.Source {
 // GetQuery returns the raw query string.
 func (q *QueryEnvelope) GetQuery() string {
 	switch spec := q.Spec.(type) {
-	case PromQuery:
-		return spec.Query
 	case ClickHouseQuery:
 		return spec.Query
 	}
 	return ""
-}
-
-// GetStats returns the PromQL stats flag.
-func (q *QueryEnvelope) GetStats() bool {
-	switch spec := q.Spec.(type) {
-	case PromQuery:
-		return spec.Stats
-	}
-	return false
 }
 
 // GetLeft returns the left query reference of a join.
@@ -119,8 +108,6 @@ func (q *QueryEnvelope) GetQueryName() string {
 		return spec.Name
 	case QueryBuilderJoin:
 		return spec.Name
-	case PromQuery:
-		return spec.Name
 	case ClickHouseQuery:
 		return spec.Name
 	}
@@ -141,8 +128,6 @@ func (q *QueryEnvelope) IsDisabled() bool {
 	case QueryBuilderFormula:
 		return spec.Disabled
 	case QueryBuilderJoin:
-		return spec.Disabled
-	case PromQuery:
 		return spec.Disabled
 	case ClickHouseQuery:
 		return spec.Disabled
@@ -310,8 +295,6 @@ func (q *QueryEnvelope) GetLegend() string {
 		return spec.Legend
 	case QueryBuilderFormula:
 		return spec.Legend
-	case PromQuery:
-		return spec.Legend
 	case ClickHouseQuery:
 		return spec.Legend
 	}
@@ -344,8 +327,6 @@ func (q *QueryEnvelope) GetStepInterval() Step {
 		return spec.StepInterval
 	case QueryBuilderQuery[MetricAggregation]:
 		return spec.StepInterval
-	case PromQuery:
-		return spec.Step
 	}
 	return Step{}
 }

@@ -39,7 +39,7 @@ func TestConsolidateV5Schema(t *testing.T) {
 		{"legacy", `{"version":"v4","panelType":"table"}`, "", 0},
 		{"current", `{"version":"v5","panelType":"table","queries":[{"type":"clickhouse_sql","spec":{"name":"A","query":"SELECT 1"}}]}`, "clickhouse_sql", 1},
 		{"builder", `{"version":"v4","builderQueries":{"A":{}}}`, "builder_formula", 1},
-		{"promql", `{"version":"v4","promQueries":{"A":{"query":"up","disabled":false}}}`, "promql", 1},
+		{"promql", `{"version":"v4","promQueries":{"A":{"query":"up","disabled":false}}}`, "", 0},
 		{"clickhouse", `{"version":"v4","chQueries":{"A":{"query":"SELECT 1","disabled":false}}}`, "clickhouse_sql", 1},
 	}
 	for _, testCase := range testCases {

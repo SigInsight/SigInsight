@@ -194,8 +194,6 @@ func (r *PostableRule) processRuleDefaults() {
 			if r.RuleType == "" {
 				r.RuleType = RuleTypeThreshold
 			}
-		case querytypes.QueryTypePromQL:
-			r.RuleType = RuleTypeProm
 		}
 
 		//added alerts v2 fields

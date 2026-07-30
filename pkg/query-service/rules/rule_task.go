@@ -345,11 +345,6 @@ func (g *RuleTask) Eval(ctx context.Context, ts time.Time) {
 
 				g.logger.WarnContext(ctx, "evaluating rule failed", "rule_id", rule.ID(), errors.Attr(err))
 
-				// Canceled queries are intentional termination of queries. This normally
-				// happens on shutdown and thus we skip logging of any errors here.
-				//! if _, ok := err.(promql.ErrQueryCanceled); !ok {
-				//	level.Warn(g.logger).Log("msg", "Evaluating rule failed", "rule", rule, "err", err)
-				//}
 				return
 			}
 

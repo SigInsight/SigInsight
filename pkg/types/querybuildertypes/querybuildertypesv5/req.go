@@ -14,7 +14,7 @@ import (
 
 type QueryEnvelope struct {
 	// Type is the type of the query.
-	Type QueryType `json:"type"` // "builder_query" | "builder_formula" | "builder_sub_query" | "builder_join" | "promql" | "clickhouse_sql"
+	Type QueryType `json:"type"` // "builder_query" | "builder_formula" | "builder_sub_query" | "builder_join" | "clickhouse_sql"
 	// Spec is the deferred decoding of the query if any.
 	Spec any `json:"spec"`
 }
@@ -55,12 +55,6 @@ type queryEnvelopeTraceOperator struct {
 	Spec QueryBuilderTraceOperator `json:"spec" description:"The trace operator specification."`
 }
 
-// queryEnvelopePromQL is the OpenAPI schema for a QueryEnvelope with type=promql.
-type queryEnvelopePromQL struct {
-	Type QueryType `json:"type" description:"The type of the query."`
-	Spec PromQuery `json:"spec" description:"The PromQL query specification."`
-}
-
 // queryEnvelopeClickHouseSQL is the OpenAPI schema for a QueryEnvelope with type=clickhouse_sql.
 type queryEnvelopeClickHouseSQL struct {
 	Type QueryType       `json:"type" description:"The type of the query."`
@@ -79,7 +73,6 @@ func (QueryEnvelope) JSONSchemaOneOf() []any {
 		queryEnvelopeFormula{},
 		// queryEnvelopeJoin{},
 		queryEnvelopeTraceOperator{},
-		queryEnvelopePromQL{},
 		queryEnvelopeClickHouseSQL{},
 	}
 }
@@ -162,14 +155,6 @@ func (q *QueryEnvelope) UnmarshalJSON(data []byte) error {
 		}
 		q.Spec = spec
 
-	case QueryTypePromQL:
-		var spec PromQuery
-		// TODO(srikanthccv): use json.Unmarshal here after implementing custom unmarshaler for PromQuery
-		if err := UnmarshalJSONWithContext(shadow.Spec, &spec, "PromQL spec"); err != nil {
-			return wrapUnmarshalError(err, "invalid PromQL spec: %v", err)
-		}
-		q.Spec = spec
-
 	case QueryTypeClickHouseSQL:
 		var spec ClickHouseQuery
 		// TODO(srikanthccv): use json.Unmarshal here after implementing custom unmarshaler for ClickHouseQuery
@@ -184,7 +169,7 @@ func (q *QueryEnvelope) UnmarshalJSON(data []byte) error {
 			"unknown query type %q",
 			shadow.Type,
 		).WithAdditional(
-			"Valid query types are: builder_query, builder_sub_query, builder_formula, builder_join, builder_trace_operator, promql, clickhouse_sql",
+			"Valid query types are: builder_query, builder_sub_query, builder_formula, builder_join, builder_trace_operator, clickhouse_sql",
 		)
 	}
 
@@ -301,7 +286,7 @@ type QueryRangeRequest struct {
 
 // PrepareJSONSchema adds description to the QueryRangeRequest schema.
 func (q *QueryRangeRequest) PrepareJSONSchema(schema *jsonschema.Schema) error {
-	schema.WithDescription("Request body for the v5 query range endpoint. Supports builder queries (traces, logs, metrics), formulas, joins, trace operators, PromQL, and ClickHouse SQL queries.")
+	schema.WithDescription("Request body for the v5 query range endpoint. Supports builder queries (traces, logs, metrics), formulas, joins, trace operators, and ClickHouse SQL queries.")
 	return nil
 }
 
@@ -315,8 +300,6 @@ func (r *QueryRangeRequest) StepIntervalForQuery(name string) int64 {
 			stepsMap[spec.Name] = spec.StepInterval.Milliseconds()
 		case QueryBuilderQuery[MetricAggregation]:
 			stepsMap[spec.Name] = spec.StepInterval.Milliseconds()
-		case PromQuery:
-			stepsMap[spec.Name] = spec.Step.Milliseconds()
 		}
 	}
 
@@ -522,10 +505,6 @@ func (r *QueryRangeRequest) TraceOperatorQueryIndex() int {
 func (r *QueryRangeRequest) SkipFillGaps(name string) bool {
 	for _, query := range r.CompositeQuery.Queries {
 		switch spec := query.Spec.(type) {
-		case PromQuery:
-			if spec.Name == name {
-				return true
-			}
 		case ClickHouseQuery:
 			if spec.Name == name {
 				return true

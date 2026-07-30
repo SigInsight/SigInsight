@@ -217,8 +217,6 @@ function ChartPreview({ alertDef }: ChartPreviewProps): JSX.Element {
 		<div className="chart-preview-container">
 			{currentQuery.queryType === EQueryType.QUERY_BUILDER &&
 				renderQBChartPreview()}
-			{currentQuery.queryType === EQueryType.PROM &&
-				renderPromAndChQueryChartPreview()}
 			{currentQuery.queryType === EQueryType.CLICKHOUSE &&
 				renderPromAndChQueryChartPreview()}
 		</div>

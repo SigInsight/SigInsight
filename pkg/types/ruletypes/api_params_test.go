@@ -28,7 +28,6 @@ func TestIsAllQueriesDisabled(t *testing.T) {
 				{Spec: qbtypes.QueryBuilderFormula{Disabled: true}},
 				{Spec: qbtypes.QueryBuilderJoin{Disabled: true}},
 				{Spec: qbtypes.QueryBuilderTraceOperator{Disabled: true}},
-				{Spec: qbtypes.PromQuery{Disabled: true}},
 				{Spec: qbtypes.ClickHouseQuery{Disabled: true}},
 			}},
 			expected: true,
@@ -36,7 +35,6 @@ func TestIsAllQueriesDisabled(t *testing.T) {
 		{
 			name: "one query enabled",
 			compositeQuery: &CompositeQuery{Queries: []qbtypes.QueryEnvelope{
-				{Spec: qbtypes.PromQuery{Disabled: true}},
 				{Spec: qbtypes.QueryBuilderFormula{Disabled: false}},
 			}},
 			expected: false,
@@ -144,40 +142,6 @@ func TestParseIntoRule(t *testing.T) {
 				queries := rule.RuleCondition.CompositeQuery.Queries
 				if len(queries) != 1 || queries[0].GetQueryName() != "A" {
 					t.Errorf("Expected V5 query 'A', got %#v", queries)
-				}
-			},
-		},
-		{
-			name:     "PromQL rule type detection",
-			initRule: PostableRule{},
-			content: []byte(`{
-				"alert": "PromQLRule",
-				"version": "v5",
-				"condition": {
-					"compositeQuery": {
-						"queryType": "promql",
-						"queries": [{
-							"type": "promql",
-							"spec": {"name": "A", "query": "rate(http_requests_total[5m])", "disabled": false}
-						}]
-					},
-					"target": 10.0,
-					"matchType": "1",
-					"op": "1",
-					"selectedQuery": "A"
-				}
-			}`),
-			kind:        RuleDataKindJson,
-			expectError: false,
-			validate: func(t *testing.T, rule *PostableRule) {
-				if rule.RuleType != RuleTypeProm {
-					t.Errorf("Expected rule type 'PROM_QL_RULE', got '%s'", rule.RuleType)
-				}
-				if rule.RuleCondition.Thresholds.Kind.IsZero() {
-					t.Error("Expected thresholds to be populated")
-				}
-				if rule.RuleCondition.Target == nil {
-					t.Error("Expected target to be populated")
 				}
 			},
 		},

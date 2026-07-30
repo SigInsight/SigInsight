@@ -88,7 +88,6 @@ function External(): JSX.Element {
 			getWidgetQueryBuilder({
 				query: {
 					queryType: EQueryType.QUERY_BUILDER,
-					promql: [],
 					builder: externalCallErrorPercent({
 						servicename,
 						legend: legend.address,
@@ -116,7 +115,6 @@ function External(): JSX.Element {
 			getWidgetQueryBuilder({
 				query: {
 					queryType: EQueryType.QUERY_BUILDER,
-					promql: [],
 					builder: externalCallDuration({
 						servicename,
 						tagFilterItems,
@@ -178,7 +176,6 @@ function External(): JSX.Element {
 			getWidgetQueryBuilder({
 				query: {
 					queryType: EQueryType.QUERY_BUILDER,
-					promql: [],
 					builder: externalCallRpsByAddress({
 						servicename,
 						legend: legend.address,
@@ -202,7 +199,6 @@ function External(): JSX.Element {
 			getWidgetQueryBuilder({
 				query: {
 					queryType: EQueryType.QUERY_BUILDER,
-					promql: [],
 					builder: externalCallDurationByAddress({
 						servicename,
 						legend: legend.address,

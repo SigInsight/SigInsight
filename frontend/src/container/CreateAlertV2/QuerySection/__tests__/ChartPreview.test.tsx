@@ -201,30 +201,6 @@ describe('ChartPreview', () => {
 		expect(screen.getByTestId('selected-interval')).toBeInTheDocument();
 	});
 
-	it('renders PromQL chart preview when query type is PROM', () => {
-		useQueryBuilder.mockReturnValue({
-			...mockUseQueryBuilder,
-			currentQuery: {
-				...mockUseQueryBuilder.currentQuery,
-				queryType: EQueryType.PROM,
-			},
-			stagedQuery: {
-				queryType: EQueryType.PROM,
-				unit: REQUESTS_PER_SEC,
-			},
-		});
-
-		renderChartPreview();
-
-		expect(
-			screen.getByTestId(CHART_PREVIEW_COMPONENT_TEST_ID),
-		).toBeInTheDocument();
-		expect(screen.getByTestId('name')).toHaveTextContent(CHART_PREVIEW_NAME);
-		expect(screen.getByTestId(QUERY_TYPE_TEST_ID)).toHaveTextContent(
-			EQueryType.PROM,
-		);
-	});
-
 	it('renders ClickHouse chart preview when query type is CLICKHOUSE', () => {
 		useQueryBuilder.mockReturnValue({
 			...mockUseQueryBuilder,

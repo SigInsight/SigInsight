@@ -42,7 +42,6 @@ function GridValueComponent({
 		widgetId: widget?.id || '',
 		query: widget?.query || {
 			queryType: EQueryType.QUERY_BUILDER,
-			promql: [],
 			builder: {
 				queryFormulas: [],
 				queryData: [],

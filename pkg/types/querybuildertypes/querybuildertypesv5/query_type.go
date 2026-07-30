@@ -14,7 +14,6 @@ var (
 	QueryTypeJoin          = QueryType{valuer.NewString("builder_join")}
 	QueryTypeTraceOperator = QueryType{valuer.NewString("builder_trace_operator")}
 	QueryTypeClickHouseSQL = QueryType{valuer.NewString("clickhouse_sql")}
-	QueryTypePromQL        = QueryType{valuer.NewString("promql")}
 )
 
 // Enum returns the acceptable values for QueryType.
@@ -27,6 +26,5 @@ func (QueryType) Enum() []any {
 		// QueryTypeJoin,
 		QueryTypeTraceOperator,
 		QueryTypeClickHouseSQL,
-		QueryTypePromQL,
 	}
 }

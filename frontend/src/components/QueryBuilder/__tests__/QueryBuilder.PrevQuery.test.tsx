@@ -96,7 +96,6 @@ describe('MetricsSelect - signal source switching (standalone)', () => {
 			id: 'test',
 			unit: undefined,
 			queryType: EQueryType.CLICKHOUSE,
-			promql: [],
 			clickhouse_sql: [],
 			builder: {
 				queryData: [metricsQuery],
@@ -252,7 +251,6 @@ describe('DataSource change - Logs to Traces', () => {
 			id: 'test-logs',
 			unit: undefined,
 			queryType: EQueryType.CLICKHOUSE,
-			promql: [],
 			clickhouse_sql: [],
 			builder: {
 				queryData: [logsQuery],

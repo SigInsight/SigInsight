@@ -13,12 +13,12 @@ To create a new provider, create a directory in the `pkg/` directory named after
 - **Implementation** (`pkg/<name>/<implname><name>/provider.go`): Contains the provider implementation, including a `NewProvider` function that returns a `factory.Provider` interface from [factory/provider.go](/pkg/factory/provider.go).
 - **Mock** (`pkg/<name>/<name>test.go`): Provides mocks for the provider, typically used by dependent packages for unit testing.
 
-For example, the [prometheus](/pkg/prometheus) provider delivers a prometheus engine to the application:
+For example, the [sqlstore](/pkg/sqlstore) provider delivers SQL persistence to the application:
 
-- `pkg/prometheus/prometheus.go` - Interface definition
-- `pkg/prometheus/config.go` - Configuration
-- `pkg/prometheus/clickhouseprometheus/provider.go` - Clickhouse-powered implementation
-- `pkg/prometheus/prometheustest/provider.go` - Mock implementation
+- `pkg/sqlstore/sqlstore.go` - Interface definition
+- `pkg/sqlstore/config.go` - Configuration
+- `pkg/sqlstore/sqlitesqlstore/provider.go` - SQLite implementation
+- `pkg/sqlstore/sqlstoretest/provider.go` - Test implementation
 
 ## How to wire it up?
 
@@ -80,14 +80,14 @@ func New(...) (*SigNoz, error) {
 
 ## How to use it?
 
-To use a provider, import its interface. For example, to use the prometheus provider, import `pkg/prometheus/prometheus.go`:
+To use a provider, import its interface. For example, to use the SQL store provider:
 
 ```go
-import "github.com/SigNoz/signoz/pkg/prometheus/prometheus"
+import "github.com/SigNoz/signoz/pkg/sqlstore"
 
-func CreateSomething(ctx context.Context, prometheus prometheus.Prometheus) {
+func CreateSomething(ctx context.Context, store sqlstore.SQLStore) {
     ...
-    prometheus.DoSomething()
+    store.BunDB().NewSelect()
     ...
 }
 ```

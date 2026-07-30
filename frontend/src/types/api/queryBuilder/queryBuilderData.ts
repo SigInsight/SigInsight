@@ -98,16 +98,9 @@ export interface IClickHouseQuery {
 	disabled: boolean;
 	query: string;
 }
-export interface IPromQLQuery {
-	query: string;
-	legend: string;
-	disabled: boolean;
-	name: string;
-}
 
 export interface Query {
 	queryType: EQueryType;
-	promql: IPromQLQuery[];
 	builder: QueryBuilderData;
 	clickhouse_sql: IClickHouseQuery[];
 	id: string;
@@ -119,7 +112,6 @@ export interface Query {
 export type QueryState = Omit<Query, 'queryType'>;
 
 export type BuilderClickHouseResource = Record<string, IClickHouseQuery>;
-export type BuilderPromQLResource = Record<string, IPromQLQuery>;
 export type BuilderQueryDataResourse = Record<
 	string,
 	IBuilderQuery | IBuilderFormula | IBuilderTraceOperator
@@ -129,8 +121,7 @@ export type MapData =
 	| IBuilderQuery
 	| IBuilderFormula
 	| IBuilderTraceOperator
-	| IClickHouseQuery
-	| IPromQLQuery;
+	| IClickHouseQuery;
 
 export type MapQueryDataToApiResult<T> = {
 	data: T;

@@ -24,8 +24,6 @@ func getQueryIdentifier(envelope QueryEnvelope, index int) string {
 		typeLabel = "trace operator"
 	case QueryTypeJoin:
 		typeLabel = "join"
-	case QueryTypePromQL:
-		typeLabel = "PromQL query"
 	case QueryTypeClickHouseSQL:
 		typeLabel = "ClickHouse query"
 	default:
@@ -603,21 +601,6 @@ func validateQueryEnvelope(envelope QueryEnvelope, opts ...ValidationOption) err
 			)
 		}
 		return nil
-	case QueryTypePromQL:
-		spec, ok := envelope.Spec.(PromQuery)
-		if !ok {
-			return errors.NewInvalidInputf(
-				errors.CodeInvalidInput,
-				"invalid PromQL spec",
-			)
-		}
-		if spec.Query == "" {
-			return errors.NewInvalidInputf(
-				errors.CodeInvalidInput,
-				"PromQL query is required",
-			)
-		}
-		return nil
 	case QueryTypeClickHouseSQL:
 		spec, ok := envelope.Spec.(ClickHouseQuery)
 		if !ok {
@@ -639,7 +622,7 @@ func validateQueryEnvelope(envelope QueryEnvelope, opts ...ValidationOption) err
 			"unknown query type: %s",
 			envelope.Type,
 		).WithAdditional(
-			"Valid query types are: builder_query, builder_sub_query, builder_formula, builder_join, promql, clickhouse_sql, trace_operator",
+			"Valid query types are: builder_query, builder_sub_query, builder_formula, builder_join, clickhouse_sql, trace_operator",
 		)
 	}
 }

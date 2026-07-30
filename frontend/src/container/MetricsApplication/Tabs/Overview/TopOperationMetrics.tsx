@@ -52,7 +52,6 @@ function TopOperationMetrics(): JSX.Element {
 			getWidgetQueryBuilder({
 				query: {
 					queryType: EQueryType.QUERY_BUILDER,
-					promql: [],
 					builder: topOperationQueries({
 						servicename,
 						dotMetricsEnabled,

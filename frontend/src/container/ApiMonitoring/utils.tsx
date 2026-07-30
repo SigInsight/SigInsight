@@ -476,14 +476,6 @@ export const getDomainMetricsQueryPayload = (
 				},
 			],
 			id: '315b15fa-ff0c-442f-89f8-2bf4fb1af2f2',
-			promql: [
-				{
-					disabled: false,
-					legend: '',
-					name: 'A',
-					query: '',
-				},
-			],
 			queryType: EQueryType.QUERY_BUILDER,
 		},
 		variables: {},
@@ -792,14 +784,6 @@ export const getEndPointsQueryPayload = (
 					},
 				],
 				id: '315b15fa-ff0c-442f-89f8-2bf4fb1af2f2',
-				promql: [
-					{
-						disabled: false,
-						legend: '',
-						name: 'A',
-						query: '',
-					},
-				],
 				queryType: EQueryType.QUERY_BUILDER,
 			},
 			variables: {},
@@ -1538,14 +1522,6 @@ export const getEndPointDetailsQueryPayload = (
 				},
 			],
 			id: '315b15fa-ff0c-442f-89f8-2bf4fb1af2f2',
-			promql: [
-				{
-					disabled: false,
-					legend: '',
-					name: 'A',
-					query: '',
-				},
-			],
 			queryType: EQueryType.QUERY_BUILDER,
 		},
 		variables: {},
@@ -1682,14 +1658,6 @@ export const getEndPointDetailsQueryPayload = (
 				},
 			],
 			id: '315b15fa-ff0c-442f-89f8-2bf4fb1af2f2',
-			promql: [
-				{
-					disabled: false,
-					legend: '',
-					name: 'A',
-					query: '',
-				},
-			],
 			queryType: EQueryType.QUERY_BUILDER,
 		},
 		variables: {},
@@ -1753,14 +1721,6 @@ export const getEndPointDetailsQueryPayload = (
 				},
 			],
 			id: '315b15fa-ff0c-442f-89f8-2bf4fb1af2f2',
-			promql: [
-				{
-					disabled: false,
-					legend: '',
-					name: 'A',
-					query: '',
-				},
-			],
 			queryType: EQueryType.QUERY_BUILDER,
 		},
 		variables: {},
@@ -1943,14 +1903,6 @@ export const getEndPointDetailsQueryPayload = (
 				},
 			],
 			id: '315b15fa-ff0c-442f-89f8-2bf4fb1af2f2',
-			promql: [
-				{
-					disabled: false,
-					legend: '',
-					name: 'A',
-					query: '',
-				},
-			],
 			queryType: EQueryType.QUERY_BUILDER,
 		},
 		variables: {},
@@ -2014,14 +1966,6 @@ export const getEndPointDetailsQueryPayload = (
 				},
 			],
 			id: '315b15fa-ff0c-442f-89f8-2bf4fb1af2f2',
-			promql: [
-				{
-					disabled: false,
-					legend: '',
-					name: 'A',
-					query: '',
-				},
-			],
 			queryType: EQueryType.QUERY_BUILDER,
 		},
 		variables: {},
@@ -2085,14 +2029,6 @@ export const getEndPointDetailsQueryPayload = (
 				},
 			],
 			id: '315b15fa-ff0c-442f-89f8-2bf4fb1af2f2',
-			promql: [
-				{
-					disabled: false,
-					legend: '',
-					name: 'A',
-					query: '',
-				},
-			],
 			queryType: EQueryType.QUERY_BUILDER,
 		},
 		variables: {},
@@ -2180,14 +2116,6 @@ export const getEndPointZeroStateQueryPayload = (
 				},
 			],
 			id: '315b15fa-ff0c-442f-89f8-2bf4fb1af2f2',
-			promql: [
-				{
-					disabled: false,
-					legend: '',
-					name: 'A',
-					query: '',
-				},
-			],
 			queryType: EQueryType.QUERY_BUILDER,
 		},
 		variables: {},
@@ -2755,14 +2683,6 @@ export const getStatusCodeBarChartWidgetData = (
 			},
 		],
 		id: '315b15fa-ff0c-442f-89f8-2bf4fb1af2f2',
-		promql: [
-			{
-				disabled: false,
-				legend: '',
-				name: 'A',
-				query: '',
-			},
-		],
 		queryType: EQueryType.QUERY_BUILDER,
 	},
 	description: '',

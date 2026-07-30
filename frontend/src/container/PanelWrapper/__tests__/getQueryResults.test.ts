@@ -23,18 +23,6 @@ describe('getLegend', () => {
 		expect(legendsData).toBe(MOCK_LABEL_NAME);
 	});
 
-	it('should directly return the label name for promql query', () => {
-		const legendsData = getLegend(
-			mockQueryData,
-			getMockQuery({
-				queryType: EQueryType.PROM,
-			}),
-			MOCK_LABEL_NAME,
-		);
-		expect(legendsData).toBeDefined();
-		expect(legendsData).toBe(MOCK_LABEL_NAME);
-	});
-
 	it('should return alias when single builder query with single aggregation and alias (logs)', () => {
 		const payloadQuery = getMockQuery({
 			...mockQuery,

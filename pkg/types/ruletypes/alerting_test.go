@@ -33,9 +33,7 @@ func TestRuleConditionIsValidRequiresV5Queries(t *testing.T) {
 	require.False(t, (*RuleCondition)(nil).IsValid())
 
 	condition := &RuleCondition{
-		CompositeQuery: &CompositeQuery{
-			QueryType: querytypes.QueryTypePromQL,
-		},
+		CompositeQuery: &CompositeQuery{QueryType: querytypes.QueryTypeClickHouseSQL},
 	}
 
 	require.False(t, condition.IsValid())
@@ -170,10 +168,10 @@ func TestValidateRejectsUnitsWithoutResultUnit(t *testing.T) {
 
 func v5CompositeQuery(name string) *CompositeQuery {
 	return &CompositeQuery{
-		QueryType: querytypes.QueryTypePromQL,
+		QueryType: querytypes.QueryTypeClickHouseSQL,
 		Queries: []qbtypes.QueryEnvelope{{
-			Type: qbtypes.QueryTypePromQL,
-			Spec: qbtypes.PromQuery{Name: name, Query: "up"},
+			Type: qbtypes.QueryTypeClickHouseSQL,
+			Spec: qbtypes.ClickHouseQuery{Name: name, Query: "SELECT 1"},
 		}},
 	}
 }

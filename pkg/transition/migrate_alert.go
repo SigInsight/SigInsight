@@ -143,25 +143,6 @@ func (m *alertMigrateV5) Migrate(ctx context.Context, ruleData map[string]any) b
 		}
 	}
 
-	// Migrate prom queries
-	if promQueries, ok := compositeQuery["promQueries"].(map[string]any); ok && len(promQueries) > 0 && queryType == "promql" {
-		for name, query := range promQueries {
-			if queryMap, ok := query.(map[string]any); ok {
-				envelope := map[string]any{
-					"type": "promql",
-					"spec": map[string]any{
-						"name":     name,
-						"query":    queryMap["query"],
-						"disabled": queryMap["disabled"],
-						"legend":   queryMap["legend"],
-					},
-				}
-				compositeQuery["queries"] = append(compositeQuery["queries"].([]any), envelope)
-				updated = true
-			}
-		}
-	}
-
 	// Migrate clickhouse queries
 	if chQueries, ok := compositeQuery["chQueries"].(map[string]any); ok && len(chQueries) > 0 && queryType == "clickhouse_sql" {
 		for name, query := range chQueries {

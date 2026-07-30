@@ -71,11 +71,6 @@ export function getAlertUnitInferenceKey({
 					(item) => item.queryName === selectedQueryName,
 				);
 			break;
-		case EQueryType.PROM:
-			selectedQuery = query.promql?.find(
-				(item) => item.name === selectedQueryName,
-			);
-			break;
 		case EQueryType.CLICKHOUSE:
 			selectedQuery = selectedSQLQuery(query.clickhouse_sql, selectedQueryName);
 			break;

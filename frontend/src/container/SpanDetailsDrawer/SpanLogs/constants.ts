@@ -25,7 +25,6 @@ export const getSpanLogsQueryPayload = (
 	selectedTime: 'GLOBAL_TIME',
 	query: {
 		clickhouse_sql: [],
-		promql: [],
 		builder: {
 			queryData: [
 				{

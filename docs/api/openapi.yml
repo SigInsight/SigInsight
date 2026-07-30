@@ -1031,21 +1031,6 @@ components:
       - asc
       - desc
       type: string
-    Querybuildertypesv5PromQuery:
-      properties:
-        disabled:
-          type: boolean
-        legend:
-          type: string
-        name:
-          type: string
-        query:
-          type: string
-        stats:
-          type: boolean
-        step:
-          $ref: '#/components/schemas/Querybuildertypesv5Step'
-      type: object
     Querybuildertypesv5QueryBuilderFormula:
       properties:
         disabled:
@@ -1285,7 +1270,6 @@ components:
       - $ref: '#/components/schemas/Querybuildertypesv5QueryEnvelopeBuilderMetric'
       - $ref: '#/components/schemas/Querybuildertypesv5QueryEnvelopeFormula'
       - $ref: '#/components/schemas/Querybuildertypesv5QueryEnvelopeTraceOperator'
-      - $ref: '#/components/schemas/Querybuildertypesv5QueryEnvelopePromQL'
       - $ref: '#/components/schemas/Querybuildertypesv5QueryEnvelopeClickHouseSQL'
       properties:
         spec: {}
@@ -1327,13 +1311,6 @@ components:
         type:
           $ref: '#/components/schemas/Querybuildertypesv5QueryType'
       type: object
-    Querybuildertypesv5QueryEnvelopePromQL:
-      properties:
-        spec:
-          $ref: '#/components/schemas/Querybuildertypesv5PromQuery'
-        type:
-          $ref: '#/components/schemas/Querybuildertypesv5QueryType'
-      type: object
     Querybuildertypesv5QueryEnvelopeTraceOperator:
       properties:
         spec:
@@ -1343,8 +1320,8 @@ components:
       type: object
     Querybuildertypesv5QueryRangeRequest:
       description: Request body for the v5 query range endpoint. Supports builder
-        queries (traces, logs, metrics), formulas, joins, trace operators, PromQL,
-        and ClickHouse SQL queries.
+        queries (traces, logs, metrics), formulas, joins, trace operators, and ClickHouse
+        SQL queries.
       properties:
         compositeQuery:
           $ref: '#/components/schemas/Querybuildertypesv5CompositeQuery'
@@ -1387,7 +1364,6 @@ components:
       - builder_formula
       - builder_trace_operator
       - clickhouse_sql
-      - promql
       type: string
     Querybuildertypesv5QueryWarnData:
       properties:
@@ -3376,8 +3352,7 @@ paths:
     post:
       deprecated: false
       description: Execute a composite query over a time range. Supports builder queries
-        (traces, logs, metrics), formulas, trace operators, PromQL, and ClickHouse
-        SQL.
+        (traces, logs, metrics), formulas, trace operators, and ClickHouse SQL.
       operationId: QueryRangeV5
       requestBody:
         content:
@@ -3634,20 +3609,6 @@ paths:
                       type: builder_query
                   end: 1640998800000
                   requestType: scalar
-                  schemaVersion: v1
-                  start: 1640995200000
-              promql:
-                summary: 'PromQL: request rate with UTF-8 metric name'
-                value:
-                  compositeQuery:
-                    queries:
-                    - spec:
-                        name: request_rate
-                        query: sum(rate({"http.server.duration.count"}[5m])) by ("service.name")
-                        step: 60
-                      type: promql
-                  end: 1640998800000
-                  requestType: time_series
                   schemaVersion: v1
                   start: 1640995200000
               traces_raw:

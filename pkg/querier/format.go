@@ -148,34 +148,3 @@ func quoteEscapedString(str string) string {
 	str = strings.ReplaceAll(str, `'`, `\'`)
 	return str
 }
-
-// formatValueForProm formats the value to be used in promql
-func formatValueForProm(v any) string {
-	switch x := v.(type) {
-	case int:
-		return fmt.Sprintf("%d", x)
-	case float32, float64:
-		return fmt.Sprintf("%f", x)
-	case string:
-		return x
-	case bool:
-		return fmt.Sprintf("%v", x)
-	case []interface{}:
-		if len(x) == 0 {
-			return ""
-		}
-		switch x[0].(type) {
-		case string, int, float32, float64, bool:
-			// list of values joined by | for promql - a value can contain whitespace
-			var str []string
-			for _, sVal := range x {
-				str = append(str, fmt.Sprintf("%v", sVal))
-			}
-			return strings.Join(str, "|")
-		default:
-			return ""
-		}
-	default:
-		return ""
-	}
-}

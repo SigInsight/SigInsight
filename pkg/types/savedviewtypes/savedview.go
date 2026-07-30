@@ -46,12 +46,11 @@ type QueryType string
 const (
 	QueryTypeBuilder       QueryType = "builder"
 	QueryTypeClickHouseSQL QueryType = "clickhouse_sql"
-	QueryTypePromQL        QueryType = "promql"
 )
 
 func (queryType QueryType) Validate() error {
 	switch queryType {
-	case QueryTypeBuilder, QueryTypeClickHouseSQL, QueryTypePromQL:
+	case QueryTypeBuilder, QueryTypeClickHouseSQL:
 		return nil
 	default:
 		return errors.Newf(errors.TypeInvalidInput, errors.CodeInvalidInput, "invalid query type: %s", queryType)

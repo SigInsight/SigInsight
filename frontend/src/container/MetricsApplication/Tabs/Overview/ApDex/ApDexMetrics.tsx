@@ -41,7 +41,6 @@ function ApDexMetrics({
 			getWidgetQueryBuilder({
 				query: {
 					queryType: EQueryType.QUERY_BUILDER,
-					promql: [],
 					builder: apDexMetricsQueryBuilderQueries({
 						servicename,
 						tagFilterItems,

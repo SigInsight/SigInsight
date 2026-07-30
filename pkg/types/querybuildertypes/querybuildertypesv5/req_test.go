@@ -686,7 +686,7 @@ func TestQueryRangeRequest_UnmarshalJSON(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "valid PromQL query",
+			name: "PromQL query is rejected",
 			jsonData: `{
 				"schemaVersion": "v1",
 				"start": 1640995200000,
@@ -703,23 +703,7 @@ func TestQueryRangeRequest_UnmarshalJSON(t *testing.T) {
 					}]
 				}
 			}`,
-			expected: QueryRangeRequest{
-				SchemaVersion: "v1",
-				Start:         1640995200000,
-				End:           1640998800000,
-				RequestType:   RequestTypeTimeSeries,
-				CompositeQuery: CompositeQuery{
-					Queries: []QueryEnvelope{{
-						Type: QueryTypePromQL,
-						Spec: PromQuery{
-							Name:     "cpu_usage",
-							Query:    "rate(cpu_usage_total[5m])",
-							Disabled: false,
-						},
-					}},
-				},
-			},
-			wantErr: false,
+			wantErr: true,
 		},
 		{
 			name: "valid ClickHouse SQL query",
@@ -1003,13 +987,6 @@ func TestQueryRangeRequest_UnmarshalJSON(t *testing.T) {
 							assert.Equal(t, expectedOrder.Direction, actualSpec.Order[i].Direction)
 						}
 					}
-				case QueryTypePromQL:
-					expectedSpec := expectedQuery.Spec.(PromQuery)
-					actualSpec, ok := actualQuery.Spec.(PromQuery)
-					require.True(t, ok, "Expected PromQuery but got %T", actualQuery.Spec)
-					assert.Equal(t, expectedSpec.Name, actualSpec.Name)
-					assert.Equal(t, expectedSpec.Query, actualSpec.Query)
-					assert.Equal(t, expectedSpec.Disabled, actualSpec.Disabled)
 				case QueryTypeClickHouseSQL:
 					expectedSpec := expectedQuery.Spec.(ClickHouseQuery)
 					actualSpec, ok := actualQuery.Spec.(ClickHouseQuery)

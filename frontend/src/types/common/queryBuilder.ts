@@ -8,7 +8,6 @@ import {
 	IBuilderQuery,
 	IBuilderTraceOperator,
 	IClickHouseQuery,
-	IPromQLQuery,
 	Query,
 	QueryState,
 } from 'types/api/queryBuilder/queryBuilderData';
@@ -251,8 +250,8 @@ export type QueryBuilderContextType = {
 	handleSetFormulaData: (index: number, formulaData: IBuilderFormula) => void;
 	handleSetQueryItemData: (
 		index: number,
-		type: EQueryType.PROM | EQueryType.CLICKHOUSE,
-		newQueryData: IPromQLQuery | IClickHouseQuery,
+		type: EQueryType.CLICKHOUSE,
+		newQueryData: IClickHouseQuery,
 	) => void;
 	handleSetConfig: (
 		newPanelType: PANEL_TYPES,
@@ -264,7 +263,7 @@ export type QueryBuilderContextType = {
 	) => void;
 	removeAllQueryBuilderEntities: (type: keyof QueryBuilderData) => void;
 	removeQueryTypeItemByIndex: (
-		type: EQueryType.PROM | EQueryType.CLICKHOUSE,
+		type: EQueryType.CLICKHOUSE,
 		index: number,
 	) => void;
 	addNewBuilderQuery: () => void;
@@ -272,7 +271,7 @@ export type QueryBuilderContextType = {
 	removeTraceOperator: () => void;
 	addTraceOperator: (expression?: string) => void;
 	cloneQuery: (type: string, query: IBuilderQuery) => void;
-	addNewQueryItem: (type: EQueryType.PROM | EQueryType.CLICKHOUSE) => void;
+	addNewQueryItem: (type: EQueryType.CLICKHOUSE) => void;
 	redirectWithQueryBuilderData: (
 		query: Query,
 		searchParams?: Record<string, unknown>,

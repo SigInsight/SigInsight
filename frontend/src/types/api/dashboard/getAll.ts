@@ -152,10 +152,6 @@ export interface Widgets extends IBaseWidget {
 	hiddenColumns?: string[];
 }
 
-export interface PromQLWidgets extends IBaseWidget {
-	query: { query: string; legend: string }[];
-}
-
 export interface IQueryBuilderTagFilterItems {
 	id: string;
 	key: string;

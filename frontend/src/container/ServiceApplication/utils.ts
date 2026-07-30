@@ -33,7 +33,6 @@ export const getQueryRangeRequestData = ({
 		const serviceMetricsWidget = getWidgetQueryBuilder({
 			query: {
 				queryType: EQueryType.QUERY_BUILDER,
-				promql: [],
 				builder: serviceMetricsQuery(operation, dotMetricsEnabled),
 				clickhouse_sql: [],
 				id: uuid(),

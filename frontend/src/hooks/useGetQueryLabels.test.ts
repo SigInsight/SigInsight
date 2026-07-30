@@ -2,7 +2,6 @@ import { renderHook } from '@testing-library/react';
 import {
 	IBuilderFormula,
 	IClickHouseQuery,
-	IPromQLQuery,
 	Query,
 } from 'types/api/queryBuilder/queryBuilderData';
 import { EQueryType } from 'types/common/dashboard';
@@ -22,7 +21,6 @@ function buildQuery(overrides: Partial<Query> = {}): Query {
 			queryFormulas: [],
 			queryTraceOperator: [],
 		},
-		promql: [],
 		clickhouse_sql: [],
 		...overrides,
 	};
@@ -93,36 +91,6 @@ describe('useGetQueryLabels', () => {
 			expect(result.current).toEqual([
 				{ label: 'query_a', value: 'query_a' },
 				{ label: 'query_b', value: 'query_b' },
-			]);
-		});
-	});
-
-	describe('PROM type (default)', () => {
-		it('returns empty array when promql is undefined', () => {
-			const query = buildQuery({
-				queryType: EQueryType.PROM,
-				promql: (undefined as unknown) as IPromQLQuery[],
-			});
-
-			const { result } = renderHook(() => useGetQueryLabels(query));
-
-			expect(result.current).toEqual([]);
-		});
-
-		it('returns labels from promql when populated', () => {
-			const query = buildQuery({
-				queryType: EQueryType.PROM,
-				promql: [
-					({ name: 'prom_1' } as unknown) as IPromQLQuery,
-					({ name: 'prom_2' } as unknown) as IPromQLQuery,
-				],
-			});
-
-			const { result } = renderHook(() => useGetQueryLabels(query));
-
-			expect(result.current).toEqual([
-				{ label: 'prom_1', value: 'prom_1' },
-				{ label: 'prom_2', value: 'prom_2' },
 			]);
 		});
 	});

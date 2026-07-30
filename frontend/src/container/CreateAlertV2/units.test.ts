@@ -28,7 +28,6 @@ const builderQuery = (dataSource: DataSource, expression: string): Query =>
 			queryFormulas: [],
 			queryTraceOperator: [],
 		},
-		promql: [],
 		clickhouse_sql: [],
 	} as unknown) as Query);
 

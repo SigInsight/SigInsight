@@ -16,14 +16,6 @@ export const valuePanelWidget = {
 				query: '',
 			},
 		],
-		promql: [
-			{
-				name: 'A',
-				query: '',
-				legend: '',
-				disabled: false,
-			},
-		],
 		builder: {
 			queryData: [
 				{

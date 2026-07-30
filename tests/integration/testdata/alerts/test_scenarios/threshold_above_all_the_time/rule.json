@@ -1,6 +1,6 @@
 {
   "alert": "threshold_above_all_the_time",
-  "ruleType": "promql_rule",
+  "ruleType": "threshold_rule",
   "alertType": "METRIC_BASED_ALERT",
   "condition": {
     "thresholds": {
@@ -18,14 +18,21 @@
       ]
     },
     "compositeQuery": {
-      "queryType": "promql",
+      "queryType": "builder",
       "panelType": "graph",
       "queries": [
         {
-          "type": "promql",
+          "type": "builder_query",
           "spec": {
             "name": "A",
-            "query": "{\"cpu_percent_threshold_above_all_the_time\"}"
+            "signal": "metrics",
+            "aggregations": [
+              {
+                "metricName": "cpu_percent_threshold_above_all_the_time",
+                "timeAggregation": "avg",
+                "spaceAggregation": "avg"
+              }
+            ]
           }
         }
       ]

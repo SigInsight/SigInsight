@@ -65,7 +65,6 @@ describe('mapQueryDataFromApi', () => {
 			stepInterval: 240,
 			filter: { expression: "service.name = 'frontend'" },
 		});
-		expect(output.promql).toEqual([]);
 		expect(output.clickhouse_sql).toEqual([]);
 	});
 
@@ -83,17 +82,13 @@ describe('mapQueryDataFromApi', () => {
 		]);
 	});
 
-	it('maps V5 PromQL and ClickHouse envelopes', () => {
+	it('maps V5 ClickHouse envelopes', () => {
 		const output = mapQueryDataFromApi(
 			compositeQuery([
 				{
-					type: 'promql',
-					spec: { name: 'A', query: 'up', legend: 'up', disabled: false },
-				} as QueryEnvelope,
-				{
 					type: 'clickhouse_sql',
 					spec: {
-						name: 'B',
+						name: 'A',
 						query: 'SELECT 1',
 						legend: 'one',
 						disabled: false,
@@ -102,11 +97,8 @@ describe('mapQueryDataFromApi', () => {
 			]),
 		);
 
-		expect(output.promql).toEqual([
-			{ name: 'A', query: 'up', legend: 'up', disabled: false },
-		]);
 		expect(output.clickhouse_sql).toEqual([
-			{ name: 'B', query: 'SELECT 1', legend: 'one', disabled: false },
+			{ name: 'A', query: 'SELECT 1', legend: 'one', disabled: false },
 		]);
 	});
 
@@ -116,7 +108,6 @@ describe('mapQueryDataFromApi', () => {
 		expect(output.builder.queryData).toEqual([]);
 		expect(output.builder.queryFormulas).toEqual([]);
 		expect(output.builder.queryTraceOperator).toEqual([]);
-		expect(output.promql).toEqual([]);
 		expect(output.clickhouse_sql).toEqual([]);
 	});
 });

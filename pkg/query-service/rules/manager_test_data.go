@@ -20,20 +20,6 @@ type ThresholdRuleTestCase struct {
 	ExpectValue  float64
 }
 
-// PromRuleTestValue represents a single value point in a PromQL rule test case
-type PromRuleTestValue struct {
-	Offset time.Duration // offset from baseTime (negative = in the past)
-	Value  float64
-}
-
-// PromRuleTestCase defines test case structure for PromQL rule test notifications
-type PromRuleTestCase struct {
-	Name         string
-	Values       []PromRuleTestValue
-	ExpectAlerts int
-	ExpectValue  float64
-}
-
 // ThresholdRuleAtLeastOnceValueAbove creates a PostableRule for threshold rule test notifications
 func ThresholdRuleAtLeastOnceValueAbove(target float64, recovery *float64) ruletypes.PostableRule {
 	return ruletypes.PostableRule{
@@ -94,61 +80,6 @@ func ThresholdRuleAtLeastOnceValueAbove(target float64, recovery *float64) rulet
 	}
 }
 
-// BuildPromAtLeastOnceValueAbove creates a PostableRule for PromQL rule test notifications
-func BuildPromAtLeastOnceValueAbove(target float64, recovery *float64) ruletypes.PostableRule {
-	return ruletypes.PostableRule{
-		AlertName: "test-prom-alert",
-		AlertType: ruletypes.AlertTypeMetric,
-		RuleType:  ruletypes.RuleTypeProm,
-		Evaluation: &ruletypes.EvaluationEnvelope{Kind: ruletypes.RollingEvaluation, Spec: ruletypes.RollingWindow{
-			EvalWindow: valuer.MustParseTextDuration("5m"),
-			Frequency:  valuer.MustParseTextDuration("1m"),
-		}},
-		Labels: map[string]string{
-			"service.name": "frontend",
-		},
-		Annotations: map[string]string{
-			"value": "{{$value}}",
-		},
-		Version: "v5",
-		RuleCondition: &ruletypes.RuleCondition{
-			MatchType:     ruletypes.AtleastOnce,
-			SelectedQuery: "A",
-			CompareOp:     ruletypes.ValueIsAbove,
-			Target:        &target,
-			CompositeQuery: &ruletypes.CompositeQuery{
-				QueryType: querytypes.QueryTypePromQL,
-				PanelType: querytypes.PanelTypeGraph,
-				Queries: []qbtypes.QueryEnvelope{
-					{
-						Type: qbtypes.QueryTypePromQL,
-						Spec: qbtypes.PromQuery{
-							Name:     "A",
-							Query:    "{\"test_metric\"}",
-							Disabled: false,
-							Stats:    false,
-						},
-					},
-				},
-			},
-			Thresholds: &ruletypes.RuleThresholdData{
-				Kind: ruletypes.BasicThresholdKind,
-				Spec: ruletypes.BasicRuleThresholds{
-					{
-						Name:           "primary",
-						TargetValue:    &target,
-						RecoveryTarget: recovery,
-						MatchType:      ruletypes.AtleastOnce,
-						CompareOp:      ruletypes.ValueIsAbove,
-						Channels:       []string{"slack"},
-					},
-				},
-			},
-		},
-		NotificationSettings: &ruletypes.NotificationSettings{},
-	}
-}
-
 var (
 	// TcTestNotiSendUnmatchedThresholdRule contains test cases for threshold rule test notifications
 	TcTestNotiSendUnmatchedThresholdRule = []ThresholdRuleTestCase{
@@ -183,45 +114,6 @@ var (
 				{float64(2), "attr", time.Now().Add(1 * time.Minute)},
 				{float64(3), "attr", time.Now().Add(2 * time.Minute)},
 				{float64(12), "attr", time.Now().Add(3 * time.Minute)},
-			},
-			ExpectAlerts: 1,
-			ExpectValue:  12,
-		},
-	}
-
-	// TcTestNotificationSendUnmatchedPromRule contains test cases for PromQL rule test notifications
-	TcTestNotificationSendUnmatchedPromRule = []PromRuleTestCase{
-		{
-			Name: "return first valid point in case of test notification",
-			Values: []PromRuleTestValue{
-				{Offset: -4 * time.Minute, Value: 3},
-				{Offset: -3 * time.Minute, Value: 4},
-			},
-			ExpectAlerts: 1,
-			ExpectValue:  3,
-		},
-		{
-			Name:         "No data in DB so no alerts fired",
-			Values:       []PromRuleTestValue{},
-			ExpectAlerts: 0,
-		},
-		{
-			Name: "return first valid point in case of test notification skips NaN and Inf",
-			Values: []PromRuleTestValue{
-				{Offset: -4 * time.Minute, Value: math.NaN()},
-				{Offset: -3 * time.Minute, Value: math.Inf(1)},
-				{Offset: -2 * time.Minute, Value: 7},
-			},
-			ExpectAlerts: 1,
-			ExpectValue:  7,
-		},
-		{
-			Name: "If found matching alert with given target value, return the alerting value rather than first valid point",
-			Values: []PromRuleTestValue{
-				{Offset: -4 * time.Minute, Value: 1},
-				{Offset: -3 * time.Minute, Value: 2},
-				{Offset: -2 * time.Minute, Value: 3},
-				{Offset: -1 * time.Minute, Value: 12},
 			},
 			ExpectAlerts: 1,
 			ExpectValue:  12,

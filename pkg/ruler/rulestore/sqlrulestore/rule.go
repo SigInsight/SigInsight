@@ -163,18 +163,6 @@ func (r *rule) GetStoredRulesByMetricName(ctx context.Context, orgID string, met
 						}
 					}
 				}
-			case qbtypes.QueryTypePromQL:
-				if spec, ok := queryEnvelope.Spec.(qbtypes.PromQuery); ok {
-					result, err := r.queryParser.AnalyzeQueryFilter(ctx, qbtypes.QueryTypePromQL, spec.Query)
-					if err != nil {
-						r.logger.WarnContext(ctx, "failed to parse PromQL query", slog.String("query", spec.Query), errors.Attr(err))
-						continue
-					}
-					if slices.Contains(result.MetricNames, metricName) {
-						found = true
-						break
-					}
-				}
 			case qbtypes.QueryTypeClickHouseSQL:
 				if spec, ok := queryEnvelope.Spec.(qbtypes.ClickHouseQuery); ok {
 					result, err := r.queryParser.AnalyzeQueryFilter(ctx, qbtypes.QueryTypeClickHouseSQL, spec.Query)
