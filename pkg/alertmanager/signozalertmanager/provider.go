@@ -162,12 +162,12 @@ func (provider *provider) CreateChannel(ctx context.Context, orgID string, recei
 		return nil, err
 	}
 
-	if err := config.CreateReceiver(receiver); err != nil {
+	channel, err := alertmanagertypes.NewChannelFromReceiver(receiver, orgID)
+	if err != nil {
 		return nil, err
 	}
 
-	channel, err := alertmanagertypes.NewChannelFromReceiver(receiver, orgID)
-	if err != nil {
+	if err := config.CreateReceiver(receiver); err != nil {
 		return nil, err
 	}
 
