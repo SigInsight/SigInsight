@@ -220,7 +220,8 @@ export function buildCreateThresholdAlertRulePayload(
 		chQueries: mapQueryDataToApi(query.clickhouse_sql, 'name').data,
 		queryType: query.queryType,
 		panelType: PANEL_TYPES.TIME_SERIES,
-		unit: basicAlertState.yAxisUnit,
+		resultUnit: basicAlertState.resultUnit,
+		displayUnit: basicAlertState.displayUnit,
 	});
 
 	// Thresholds
@@ -231,7 +232,7 @@ export function buildCreateThresholdAlertRulePayload(
 			matchType: thresholdState.matchType,
 			op: thresholdState.operator,
 			channels: threshold.channels,
-			targetUnit: threshold.unit,
+			targetUnit: threshold.targetUnit,
 		}),
 	);
 
@@ -306,7 +307,8 @@ export function buildCreateAnomalyAlertRulePayload(
 		chQueries: mapQueryDataToApi(query.clickhouse_sql, 'name').data,
 		queryType: query.queryType,
 		panelType: PANEL_TYPES.TIME_SERIES,
-		unit: basicAlertState.yAxisUnit,
+		resultUnit: basicAlertState.resultUnit,
+		displayUnit: basicAlertState.displayUnit,
 	});
 
 	const alertOnAbsentProps = getAlertOnAbsentProps(advancedOptions);

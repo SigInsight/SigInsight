@@ -69,7 +69,8 @@ export function CreateAlertProvider(
 			...INITIAL_CREATE_ALERT_STATE,
 			basic: {
 				...INITIAL_CREATE_ALERT_STATE.basic,
-				yAxisUnit: currentQuery.unit,
+				resultUnit: currentQuery.resultUnit,
+				displayUnit: currentQuery.displayUnit ?? currentQuery.unit,
 			},
 		},
 	);

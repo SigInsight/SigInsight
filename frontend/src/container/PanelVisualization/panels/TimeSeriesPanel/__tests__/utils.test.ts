@@ -106,6 +106,23 @@ describe('TimeSeriesPanel utils', () => {
 			expect(data[1]).toEqual([10, 20]);
 		});
 
+		it('converts raw result values into the frontend display unit', () => {
+			const apiResponse = createApiResponse([
+				{
+					metric: {},
+					queryName: 'Q',
+					values: [
+						[1000, '1000000'],
+						[2000, '2500000'],
+					],
+				} as MetricRangePayloadProps['data']['result'][0],
+			]);
+
+			const data = prepareChartData(apiResponse, 'ns', 'ms');
+
+			expect(data[1]).toEqual([1, 2.5]);
+		});
+
 		it('merges timestamps and fills missing values with null for multiple series', () => {
 			const apiResponse = createApiResponse([
 				{

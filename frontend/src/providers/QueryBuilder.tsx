@@ -230,6 +230,8 @@ export function QueryBuilderProvider({
 				},
 				id: query.id,
 				unit: query.unit,
+				resultUnit: query.resultUnit,
+				displayUnit: query.displayUnit,
 			};
 
 			const nextQuery: Query = {
@@ -976,6 +978,8 @@ export function QueryBuilderProvider({
 				clickhouse_sql: clickhouseSql,
 				id: uuid(),
 				unit: query.unit || initialQueryState.unit,
+				resultUnit: query.resultUnit,
+				displayUnit: query.displayUnit,
 			};
 
 			const pagination = urlQuery.get(QueryParams.pagination);

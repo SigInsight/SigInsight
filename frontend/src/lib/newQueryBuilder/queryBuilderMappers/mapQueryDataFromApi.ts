@@ -79,7 +79,12 @@ const mapQueryFromV5 = (compositeQuery: ICompositeMetricQuery): Query => {
 		clickhouse_sql: clickhouseQueries,
 		queryType: compositeQuery.queryType,
 		id: uuid(),
-		unit: compositeQuery.unit,
+		unit: compositeQuery.displayUnit ?? compositeQuery.unit,
+		resultUnit: compositeQuery.resultUnit ?? compositeQuery.unit,
+		displayUnit:
+			compositeQuery.displayUnit ??
+			compositeQuery.resultUnit ??
+			compositeQuery.unit,
 	};
 };
 

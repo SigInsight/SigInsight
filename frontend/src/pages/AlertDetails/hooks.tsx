@@ -31,7 +31,6 @@ import history from 'lib/history';
 import { History, Table } from 'lucide-react';
 import EditRules from 'pages/EditRules';
 import { OrderPreferenceItems } from 'pages/Logs/config';
-import BetaTag from 'periscope/components/BetaTag/BetaTag';
 import PaginationInfoText from 'periscope/components/PaginationInfoText/PaginationInfoText';
 import { useAlertRule } from 'providers/Alert';
 import { ErrorResponse, SuccessResponse } from 'types/api';
@@ -44,7 +43,6 @@ import {
 	AlertRuleTopContributorsPayload,
 } from 'types/api/alerts/def';
 import { PayloadProps } from 'types/api/alerts/get';
-import { TagFilter } from 'types/api/queryBuilder/queryBuilderData';
 import { nanoToMilli } from 'utils/timeUtils';
 
 export const useAlertHistoryQueryParams = (): {
@@ -129,7 +127,6 @@ export const useRouteTabUtils = (): { routes: TabRoutes[] } => {
 				<div className="tab-item">
 					<History size={14} />
 					History
-					<BetaTag />
 				</div>
 			),
 			route: getRouteUrl(AlertDetailsTab.HISTORY),
@@ -255,11 +252,7 @@ type GetAlertRuleDetailsTimelineTableProps = GetAlertRuleDetailsApiProps & {
 		| undefined;
 };
 
-export const useGetAlertRuleDetailsTimelineTable = ({
-	filters,
-}: {
-	filters: TagFilter;
-}): GetAlertRuleDetailsTimelineTableProps => {
+export const useGetAlertRuleDetailsTimelineTable = (): GetAlertRuleDetailsTimelineTableProps => {
 	const { ruleId, startTime, endTime, params } = useAlertHistoryQueryParams();
 	const { updatedOrder, offset } = useMemo(
 		() => ({
@@ -283,7 +276,6 @@ export const useGetAlertRuleDetailsTimelineTable = ({
 			timelineFilter,
 			updatedOrder,
 			offset,
-			JSON.stringify(filters.items),
 		],
 		{
 			queryFn: () =>
@@ -294,7 +286,6 @@ export const useGetAlertRuleDetailsTimelineTable = ({
 					limit: TIMELINE_TABLE_PAGE_SIZE,
 					order: updatedOrder,
 					offset,
-					filters,
 					...(timelineFilter && timelineFilter !== TimelineFilter.ALL
 						? {
 								state: timelineFilter === TimelineFilter.FIRED ? 'firing' : 'normal',

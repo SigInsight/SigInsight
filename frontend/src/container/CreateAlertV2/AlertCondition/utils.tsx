@@ -1,8 +1,6 @@
 import { Button, Flex, SelectProps, Typography } from 'antd';
-import type { BaseOptionType, DefaultOptionType } from 'antd/es/select';
+import type { BaseOptionType } from 'antd/es/select';
 import { getInvolvedQueriesInTraceOperator } from 'components/QueryBuilder/Query/TraceOperator/utils/utils';
-import { YAxisSource } from 'components/YAxisUnitSelector/types';
-import { getYAxisCategories } from 'components/YAxisUnitSelector/utils';
 import ROUTES from 'constants/routes';
 import {
 	AlertThresholdMatchType,
@@ -33,36 +31,6 @@ export function getQueryNames(currentQuery: Query): BaseOptionType[] {
 	};
 
 	return queryConfig[currentQuery.queryType]?.() || [];
-}
-
-export function getCategoryByOptionId(id: string): string | undefined {
-	const categories = getYAxisCategories(YAxisSource.ALERTS);
-	return categories.find((category) =>
-		category.units.some((unit) => unit.id === id),
-	)?.name;
-}
-
-export function getCategorySelectOptionByName(
-	name: string | undefined,
-): DefaultOptionType[] {
-	if (!name) {
-		return [];
-	}
-
-	const categories = getYAxisCategories(YAxisSource.ALERTS);
-	if (!categories.length) {
-		return [];
-	}
-
-	return (
-		categories
-			.find((category) => category.name === name)
-			?.units.map((unit) => ({
-				label: unit.name,
-				value: unit.id,
-				'data-testid': `threshold-unit-select-option-${unit.id}`,
-			})) || []
-	);
 }
 
 const getOperatorWord = (op: AlertThresholdOperator): string => {

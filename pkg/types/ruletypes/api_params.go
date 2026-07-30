@@ -15,6 +15,7 @@ import (
 	"github.com/SigNoz/signoz/pkg/query-service/utils/times"
 	"github.com/SigNoz/signoz/pkg/query-service/utils/timestamp"
 	"github.com/SigNoz/signoz/pkg/types/alertmanagertypes"
+	"github.com/SigNoz/signoz/pkg/units"
 	"github.com/SigNoz/signoz/pkg/valuer"
 )
 
@@ -231,6 +232,8 @@ func (r *PostableRule) processRuleDefaults() {
 			}
 		}
 	}
+
+	normalizeRuleUnits(r)
 }
 
 func (r *PostableRule) MarshalJSON() ([]byte, error) {
@@ -310,6 +313,32 @@ func (r *PostableRule) validate() error {
 
 	if isAllQueriesDisabled(r.RuleCondition.CompositeQuery) {
 		errs = append(errs, signozError.NewInvalidInputf(signozError.CodeInvalidInput, "all queries are disabled in rule condition"))
+	}
+
+	if r.RuleCondition.CompositeQuery != nil {
+		query := r.RuleCondition.CompositeQuery
+		resultUnit := query.EffectiveResultUnit()
+		if r.SchemaVersion != DefaultSchemaVersion && resultUnit == "" && query.DisplayUnit != "" {
+			errs = append(errs, signozError.NewInvalidInputf(signozError.CodeInvalidInput, "display unit requires a result unit"))
+		}
+		if inferredUnit := inferredRuleResultUnit(r); inferredUnit != "" && resultUnit != inferredUnit {
+			errs = append(errs, signozError.NewInvalidInputf(signozError.CodeInvalidInput, "result unit %q is invalid for the selected query; expected %q", resultUnit, inferredUnit))
+		}
+		if resultUnit != "" && query.DisplayUnit != "" && !units.AreCompatible(units.Unit(resultUnit), units.Unit(query.DisplayUnit)) {
+			errs = append(errs, signozError.NewInvalidInputf(signozError.CodeInvalidInput, "display unit %q is incompatible with result unit %q", query.DisplayUnit, resultUnit))
+		}
+		if r.RuleCondition.Thresholds != nil {
+			if thresholds, ok := r.RuleCondition.Thresholds.Spec.(BasicRuleThresholds); ok {
+				for _, threshold := range thresholds {
+					if r.SchemaVersion != DefaultSchemaVersion && resultUnit == "" && threshold.TargetUnit != "" {
+						errs = append(errs, signozError.NewInvalidInputf(signozError.CodeInvalidInput, "target unit requires a result unit"))
+					}
+					if resultUnit != "" && threshold.TargetUnit != "" && !units.AreCompatible(units.Unit(resultUnit), units.Unit(threshold.TargetUnit)) {
+						errs = append(errs, signozError.NewInvalidInputf(signozError.CodeInvalidInput, "target unit %q is incompatible with result unit %q", threshold.TargetUnit, resultUnit))
+					}
+				}
+			}
+		}
 	}
 
 	for k, v := range r.Labels {

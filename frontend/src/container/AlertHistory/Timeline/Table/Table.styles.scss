@@ -79,11 +79,6 @@
 			}
 		}
 	}
-	.alert-history-label-search {
-		.ant-select-selector {
-			border: none;
-		}
-	}
 }
 
 .lightMode {
@@ -102,12 +97,6 @@
 				border-color: var(--bg-vanilla-300);
 			}
 		}
-		.alert-history-label-search {
-			.ant-select-selector {
-				background: var(--bg-vanilla-200);
-			}
-		}
-
 		.alert-rule {
 			&__value,
 			&__created-at {

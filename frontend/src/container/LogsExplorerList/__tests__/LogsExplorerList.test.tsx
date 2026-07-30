@@ -145,9 +145,13 @@ describe('LogsExplorerList - empty states', () => {
 			screen.getByText('No logs are associated with this particular trace/span.'),
 		).toBeInTheDocument();
 
-		// Check for documentation links
-		expect(screen.getByText('Sending logs to SigInsight')).toBeInTheDocument();
-		expect(screen.getByText('Correlate traces and logs')).toBeInTheDocument();
+		// External documentation links are intentionally not rendered.
+		expect(
+			screen.queryByText('Sending logs to SigInsight'),
+		).not.toBeInTheDocument();
+		expect(
+			screen.queryByText('Correlate traces and logs'),
+		).not.toBeInTheDocument();
 	});
 
 	it('should display empty state when filters are applied and no results are found', async () => {

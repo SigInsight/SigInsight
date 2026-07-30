@@ -22,7 +22,8 @@ import {
 export const INITIAL_ALERT_STATE: AlertState = {
 	name: '',
 	labels: {},
-	yAxisUnit: undefined,
+	resultUnit: undefined,
+	displayUnit: undefined,
 };
 
 export const INITIAL_CRITICAL_THRESHOLD: Threshold = {
@@ -30,7 +31,7 @@ export const INITIAL_CRITICAL_THRESHOLD: Threshold = {
 	label: 'critical',
 	thresholdValue: 0,
 	recoveryThresholdValue: null,
-	unit: '',
+	targetUnit: '',
 	channels: [],
 	color: Color.BG_SAKURA_500,
 };
@@ -40,7 +41,7 @@ export const INITIAL_WARNING_THRESHOLD: Threshold = {
 	label: 'warning',
 	thresholdValue: 0,
 	recoveryThresholdValue: null,
-	unit: '',
+	targetUnit: '',
 	channels: [],
 	color: Color.BG_AMBER_500,
 };
@@ -50,7 +51,7 @@ export const INITIAL_INFO_THRESHOLD: Threshold = {
 	label: 'info',
 	thresholdValue: 0,
 	recoveryThresholdValue: null,
-	unit: '',
+	targetUnit: '',
 	channels: [],
 	color: Color.BG_ROBIN_500,
 };
@@ -60,7 +61,7 @@ export const INITIAL_RANDOM_THRESHOLD: Threshold = {
 	label: '',
 	thresholdValue: 0,
 	recoveryThresholdValue: null,
-	unit: '',
+	targetUnit: '',
 	channels: [],
 	color: getRandomColor(),
 };

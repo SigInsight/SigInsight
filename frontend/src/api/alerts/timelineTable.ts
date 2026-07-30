@@ -18,8 +18,6 @@ const timelineTable = async (
 			limit: props.limit,
 			order: props.order,
 			state: props.state,
-			// TODO(shaheer): implement filters
-			filters: props.filters,
 		});
 
 		return {

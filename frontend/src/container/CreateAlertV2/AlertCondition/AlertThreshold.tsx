@@ -17,14 +17,10 @@ import {
 } from '../context/constants';
 import { AlertThresholdMatchType } from '../context/types';
 import EvaluationSettings from '../EvaluationSettings/EvaluationSettings';
+import { getCompatibleUnitOptions } from '../units';
 import ThresholdItem from './ThresholdItem';
 import { AnomalyAndThresholdProps, UpdateThreshold } from './types';
-import {
-	getCategoryByOptionId,
-	getCategorySelectOptionByName,
-	getMatchTypeTooltip,
-	getQueryNames,
-} from './utils';
+import { getMatchTypeTooltip, getQueryNames } from './utils';
 
 import './styles.scss';
 import '../EvaluationSettings/styles.scss';
@@ -58,10 +54,7 @@ function AlertThreshold({
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [queryNames, thresholdState.selectedQuery]);
 
-	const selectedCategory = getCategoryByOptionId(alertState.yAxisUnit || '');
-	const categorySelectOptions = getCategorySelectOptionByName(
-		selectedCategory || '',
-	);
+	const categorySelectOptions = getCompatibleUnitOptions(alertState.resultUnit);
 
 	const addThreshold = (): void => {
 		let newThreshold;

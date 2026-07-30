@@ -261,12 +261,17 @@ func (r *BaseRule) GeneratorURL() string {
 	return ruletypes.PrepareRuleGeneratorURL(r.ID(), r.source)
 }
 
-func (r *BaseRule) Unit() string {
+func (r *BaseRule) ResultUnit() string {
 	if r.ruleCondition != nil && r.ruleCondition.CompositeQuery != nil {
-		return r.ruleCondition.CompositeQuery.Unit
+		return r.ruleCondition.CompositeQuery.EffectiveResultUnit()
 	}
 	return ""
 }
+
+// Unit is kept for source compatibility with existing tests and external
+// callers. Alert evaluation code must use ResultUnit so display metadata can
+// never become part of threshold calculation.
+func (r *BaseRule) Unit() string { return r.ResultUnit() }
 
 func (r *BaseRule) Timestamps(ts time.Time) (time.Time, time.Time) {
 	st, en := r.evaluation.NextWindowFor(ts)

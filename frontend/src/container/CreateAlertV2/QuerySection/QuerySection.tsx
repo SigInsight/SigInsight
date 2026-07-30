@@ -106,7 +106,7 @@ function QuerySection(): JSX.Element {
 	return (
 		<div className="query-section">
 			<Stepper stepNumber={1} label="Define the query" />
-			<ChartPreview alertDef={alertDef} source={source} />
+			<ChartPreview alertDef={alertDef} />
 			<div className="query-section-tabs">
 				<div className="query-section-query-actions">
 					{tabs.map((tab) => (

@@ -37,6 +37,21 @@ export const ChartContainer = styled(Card)`
 	.ant-card-body {
 		padding: 1.5rem 0;
 		height: 57vh;
-		/* padding-bottom: 2rem; */
+		box-sizing: border-box;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.chart-preview-header {
+		flex: 0 0 auto;
+	}
+
+	.threshold-alert-uplot-chart-container {
+		flex: 1 1 0;
+		min-height: 0;
+
+		.panel-container {
+			height: 100%;
+		}
 	}
 `;

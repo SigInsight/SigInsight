@@ -3,11 +3,6 @@ export enum AlertDetailsTab {
 	HISTORY = 'HISTORY',
 }
 
-export enum TimelineTab {
-	OVERALL_STATUS = 'OVERALL_STATUS',
-	TOP_5_CONTRIBUTORS = 'TOP_5_CONTRIBUTORS',
-}
-
 export enum TimelineFilter {
 	ALL = 'ALL',
 	FIRED = 'FIRED',

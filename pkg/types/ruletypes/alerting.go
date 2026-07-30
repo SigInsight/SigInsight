@@ -124,11 +124,16 @@ type RuleCondition struct {
 // CompositeQuery is the alert-rule query entity. Query execution is V5-only,
 // while the remaining metadata controls alert formatting and presentation.
 type CompositeQuery struct {
-	Queries   []qbtypes.QueryEnvelope `json:"queries"`
-	PanelType querytypes.PanelType    `json:"panelType"`
-	QueryType querytypes.QueryType    `json:"queryType"`
-	Unit      string                  `json:"unit,omitempty"`
-	FillGaps  bool                    `json:"fillGaps,omitempty"`
+	Queries     []qbtypes.QueryEnvelope `json:"queries"`
+	PanelType   querytypes.PanelType    `json:"panelType"`
+	QueryType   querytypes.QueryType    `json:"queryType"`
+	ResultUnit  string                  `json:"resultUnit,omitempty"`
+	DisplayUnit string                  `json:"displayUnit,omitempty"`
+	FillGaps    bool                    `json:"fillGaps,omitempty"`
+
+	// Unit is retained as an in-process compatibility field for callers that
+	// still construct CompositeQuery values directly. It is never serialized.
+	Unit string `json:"-"`
 }
 
 func (c *CompositeQuery) UnmarshalJSON(data []byte) error {
@@ -138,11 +143,13 @@ func (c *CompositeQuery) UnmarshalJSON(data []byte) error {
 	}
 
 	validFields := map[string]struct{}{
-		"queries":   {},
-		"panelType": {},
-		"queryType": {},
-		"unit":      {},
-		"fillGaps":  {},
+		"queries":     {},
+		"panelType":   {},
+		"queryType":   {},
+		"resultUnit":  {},
+		"displayUnit": {},
+		"unit":        {},
+		"fillGaps":    {},
 	}
 	for field := range fields {
 		if _, ok := validFields[field]; !ok {
@@ -151,7 +158,33 @@ func (c *CompositeQuery) UnmarshalJSON(data []byte) error {
 	}
 
 	type alias CompositeQuery
-	return json.Unmarshal(data, (*alias)(c))
+	var decoded struct {
+		alias
+		LegacyUnit string `json:"unit,omitempty"`
+	}
+	if err := json.Unmarshal(data, &decoded); err != nil {
+		return err
+	}
+
+	*c = CompositeQuery(decoded.alias)
+	c.Unit = decoded.LegacyUnit
+	if c.ResultUnit == "" {
+		c.ResultUnit = decoded.LegacyUnit
+	}
+	if c.DisplayUnit == "" {
+		c.DisplayUnit = c.ResultUnit
+	}
+	return nil
+}
+
+func (c *CompositeQuery) EffectiveResultUnit() string {
+	if c == nil {
+		return ""
+	}
+	if c.ResultUnit != "" {
+		return c.ResultUnit
+	}
+	return c.Unit
 }
 
 func (rc *RuleCondition) GetSelectedQueryName() string {

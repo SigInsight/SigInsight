@@ -23,12 +23,14 @@ function ThresholdItem({
 	const { thresholdState } = useCreateAlertState();
 	const [showRecoveryThreshold, setShowRecoveryThreshold] = useState(false);
 
-	const yAxisUnitSelect = useMemo(() => {
+	const targetUnitSelect = useMemo(() => {
 		let component = (
 			<Select
 				placeholder="Unit"
-				value={threshold.unit ? threshold.unit : null}
-				onChange={(value): void => updateThreshold(threshold.id, 'unit', value)}
+				value={threshold.targetUnit ? threshold.targetUnit : null}
+				onChange={(value): void =>
+					updateThreshold(threshold.id, 'targetUnit', value)
+				}
 				style={{ width: 150 }}
 				options={units}
 				disabled={units.length === 0}
@@ -40,8 +42,10 @@ function ThresholdItem({
 				<Tooltip trigger="hover" title="No compatible units available">
 					<Select
 						placeholder="Unit"
-						value={threshold.unit ? threshold.unit : null}
-						onChange={(value): void => updateThreshold(threshold.id, 'unit', value)}
+						value={threshold.targetUnit ? threshold.targetUnit : null}
+						onChange={(value): void =>
+							updateThreshold(threshold.id, 'targetUnit', value)
+						}
 						style={{ width: 150 }}
 						options={units}
 						disabled={units.length === 0}
@@ -51,7 +55,7 @@ function ThresholdItem({
 			);
 		}
 		return component;
-	}, [units, threshold.unit, updateThreshold, threshold.id]);
+	}, [units, threshold.targetUnit, updateThreshold, threshold.id]);
 
 	const getOperatorSymbol = (): string => {
 		switch (thresholdState.operator) {
@@ -111,7 +115,7 @@ function ThresholdItem({
 						type="number"
 						data-testid="threshold-value-input"
 					/>
-					{yAxisUnitSelect}
+					{targetUnitSelect}
 					<>
 						<Typography.Text className="sentence-text">send to</Typography.Text>
 						<Select

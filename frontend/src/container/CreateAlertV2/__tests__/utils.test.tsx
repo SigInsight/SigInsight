@@ -303,7 +303,7 @@ describe('CreateAlertV2 utils', () => {
 					label: 'critical',
 					thresholdValue: 1,
 					recoveryThresholdValue: null,
-					unit: UniversalYAxisUnit.MINUTES,
+					targetUnit: UniversalYAxisUnit.MINUTES,
 					color: Color.BG_SAKURA_500,
 					channels: ['email'],
 				},
@@ -342,7 +342,8 @@ describe('CreateAlertV2 utils', () => {
 						severity: 'warning',
 						team: 'test-team',
 					},
-					yAxisUnit: UniversalYAxisUnit.MINUTES,
+					resultUnit: UniversalYAxisUnit.MINUTES,
+					displayUnit: UniversalYAxisUnit.MINUTES,
 				},
 				// as we have already verified these utils in their respective tests
 				threshold: expect.any(Object),

@@ -156,7 +156,7 @@ func (r *PromRule) buildAndRunQuery(ctx context.Context, ts time.Time) (ruletype
 			)
 			continue
 		}
-		resultSeries, err := r.Threshold.Eval(*series, r.Unit(), ruletypes.EvalData{
+		resultSeries, err := r.Threshold.Eval(*series, r.ResultUnit(), ruletypes.EvalData{
 			ActiveAlerts:  r.ActiveAlertsLabelFP(),
 			SendUnmatched: r.ShouldSendUnmatched(),
 		})
@@ -170,7 +170,7 @@ func (r *PromRule) buildAndRunQuery(ctx context.Context, ts time.Time) (ruletype
 
 func (r *PromRule) Eval(ctx context.Context, ts time.Time) (int, error) {
 	prevState := r.State()
-	valueFormatter := units.FormatterFromUnit(r.Unit())
+	valueFormatter := units.FormatterFromUnit(r.ResultUnit())
 
 	// prepare query, run query get data and filter the data based on the threshold
 	results, err := r.buildAndRunQuery(ctx, ts)
@@ -200,7 +200,7 @@ func (r *PromRule) Eval(ctx context.Context, ts time.Time) (int, error) {
 
 		threshold := valueFormatter.Format(result.Target, result.TargetUnit)
 
-		tmplData := ruletypes.AlertTemplateData(l, valueFormatter.Format(result.V, r.Unit()), threshold)
+		tmplData := ruletypes.AlertTemplateData(l, valueFormatter.Format(result.V, r.ResultUnit()), threshold)
 		// Inject some convenience variables that are easier to remember for users
 		// who are not used to Go's templating system.
 		defs := "{{$labels := .Labels}}{{$value := .Value}}{{$threshold := .Threshold}}"

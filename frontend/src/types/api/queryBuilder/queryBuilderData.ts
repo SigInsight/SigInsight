@@ -112,6 +112,8 @@ export interface Query {
 	clickhouse_sql: IClickHouseQuery[];
 	id: string;
 	unit?: Format['id'];
+	resultUnit?: Format['id'];
+	displayUnit?: Format['id'];
 }
 
 export type QueryState = Omit<Query, 'queryType'>;

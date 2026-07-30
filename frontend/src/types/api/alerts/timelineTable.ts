@@ -1,4 +1,3 @@
-import { TagFilter } from '../queryBuilder/queryBuilderData';
 import { AlertDef } from './def';
 
 export interface GetTimelineTableRequestProps {
@@ -8,6 +7,5 @@ export interface GetTimelineTableRequestProps {
 	offset: number;
 	limit: number;
 	order: string;
-	filters?: TagFilter;
 	state?: string;
 }

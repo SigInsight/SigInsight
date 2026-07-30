@@ -12,7 +12,12 @@ import { QueryEnvelope } from '../v5/queryRange';
 export interface ICompositeMetricQuery {
 	queryType: EQueryType;
 	panelType: PANEL_TYPES;
-	unit: Query['unit'];
+	/** Unit of the raw values returned by the selected alert query. */
+	resultUnit?: string;
+	/** Frontend-only unit used to format and scale chart values. */
+	displayUnit?: string;
+	/** @deprecated Read compatibility for alert rules created before unit split. */
+	unit?: Query['unit'];
 	queries: QueryEnvelope[];
 }
 

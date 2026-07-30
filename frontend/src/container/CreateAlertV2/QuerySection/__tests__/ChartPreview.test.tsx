@@ -39,7 +39,8 @@ jest.mock(
 					<div data-testid="selected-interval">
 						{props.selectedInterval?.startTime}
 					</div>
-					<div data-testid="y-axis-unit">{props.yAxisUnit}</div>
+					<div data-testid="result-unit">{props.resultUnit}</div>
+					<div data-testid="display-unit">{props.displayUnit}</div>
 					<div data-testid={GRAPH_TYPE_TEST_ID}>{props.graphType}</div>
 				</div>
 			);
@@ -120,7 +121,8 @@ jest.mock('../../context', () => ({
 	useCreateAlertState: (): any => ({
 		alertState: {
 			...INITIAL_ALERT_STATE,
-			yAxisUnit: REQUESTS_PER_SEC,
+			resultUnit: REQUESTS_PER_SEC,
+			displayUnit: REQUESTS_PER_SEC,
 		},
 		thresholdState: INITIAL_ALERT_THRESHOLD_STATE,
 		setAlertState: jest.fn(),
@@ -187,7 +189,10 @@ describe('ChartPreview', () => {
 		expect(screen.getByTestId(QUERY_TYPE_TEST_ID)).toHaveTextContent(
 			EQueryType.QUERY_BUILDER,
 		);
-		expect(screen.getByTestId('y-axis-unit')).toHaveTextContent(REQUESTS_PER_SEC);
+		expect(screen.getByTestId('result-unit')).toHaveTextContent(REQUESTS_PER_SEC);
+		expect(screen.getByTestId('display-unit')).toHaveTextContent(
+			REQUESTS_PER_SEC,
+		);
 		expect(screen.getByTestId(GRAPH_TYPE_TEST_ID)).toHaveTextContent(
 			PANEL_TYPES.TIME_SERIES,
 		);

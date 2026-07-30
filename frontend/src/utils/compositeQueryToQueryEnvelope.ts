@@ -115,7 +115,11 @@ export function compositeQueryToQueryEnvelope(
 	return {
 		queryType,
 		panelType,
-		unit: compositeQuery.unit,
+		resultUnit: compositeQuery.resultUnit ?? compositeQuery.unit,
+		displayUnit:
+			compositeQuery.displayUnit ??
+			compositeQuery.resultUnit ??
+			compositeQuery.unit,
 		queries,
 	};
 }

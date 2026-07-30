@@ -19,7 +19,8 @@ export function buildAlertDefForChartPreview({
 		ruleType: AlertRuleType.THRESHOLD,
 		condition: {
 			...initialAlertDef.condition,
-			targetUnit: thresholdState.thresholds?.[0].unit,
+			targetUnit: thresholdState.thresholds?.[0].targetUnit,
+			selectedQueryName: thresholdState.selectedQuery,
 		},
 	};
 }

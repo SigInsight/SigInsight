@@ -1,8 +1,36 @@
 import { DataFormats } from 'features/query-visualization/types';
+import { MetricRangePayloadProps } from 'types/api/metrics/getQueryRange';
 
-import { covertIntoDataFormats } from './utils';
+import { covertIntoDataFormats, selectAlertQueryResult } from './utils';
 
 describe('Convert One Unit to another unit', () => {
+	it('keeps only the selected alert query when results have mixed units', () => {
+		const payload = ({
+			data: {
+				result: [
+					{ queryName: 'A', metric: {}, values: [[1, '2']] },
+					{ queryName: 'B', metric: {}, values: [[1, '3']] },
+				] as MetricRangePayloadProps['data']['result'],
+				resultType: 'matrix',
+				queryResult: {
+					data: {
+						result: [
+							{ queryName: 'A', legend: '', series: null },
+							{ queryName: 'B', legend: '', series: null },
+						],
+						resultType: 'matrix',
+					},
+				},
+			},
+		} as unknown) as MetricRangePayloadProps;
+
+		const selected = selectAlertQueryResult(payload, 'A');
+		expect(selected.data.result.map((item) => item.queryName)).toEqual(['A']);
+		expect(
+			selected.data.queryResult.data.result.map((item) => item.queryName),
+		).toEqual(['A']);
+	});
+
 	it('should convert from BitsIEC to BytesIEC', () => {
 		const result = covertIntoDataFormats({
 			value: 8,

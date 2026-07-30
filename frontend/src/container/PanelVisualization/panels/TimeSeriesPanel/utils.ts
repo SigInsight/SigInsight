@@ -6,6 +6,7 @@ import {
 	getXAxisTimestamps,
 } from 'container/PanelVisualization/panels/utils';
 import { getLegend } from 'lib/dashboard/getQueryResults';
+import { convertValue } from 'lib/getConvertedValue';
 import getLabelName from 'lib/getLabelName';
 import { OnClickPluginOpts } from 'lib/uPlotShared/onClickPlugin';
 import {
@@ -27,10 +28,22 @@ import { buildBaseConfig } from '../utils/baseConfigBuilder';
 
 export const prepareChartData = (
 	apiResponse: MetricRangePayloadProps,
+	resultUnit?: string,
+	displayUnit?: string,
 ): uPlot.AlignedData => {
 	const seriesList = apiResponse?.data?.result || [];
 	const timestampArr = getXAxisTimestamps(seriesList);
-	const yAxisValuesArr = fillMissingXAxisTimestamps(timestampArr, seriesList);
+	const yAxisValuesArr = fillMissingXAxisTimestamps(
+		timestampArr,
+		seriesList,
+	).map((series) =>
+		series.map((value) => {
+			if (value === null || !resultUnit || !displayUnit) {
+				return value;
+			}
+			return convertValue(value, resultUnit, displayUnit) ?? value;
+		}),
+	);
 
 	return [timestampArr, ...yAxisValuesArr];
 };
