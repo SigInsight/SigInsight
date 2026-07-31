@@ -5,10 +5,12 @@ package litequery
 import (
 	"context"
 	"os"
+	"reflect"
 	"testing"
 	"time"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
+	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
 )
 
 func TestCompilerExecutesOnCurrentClickHouseSchema(t *testing.T) {
@@ -25,6 +27,7 @@ func TestCompilerExecutesOnCurrentClickHouseSchema(t *testing.T) {
 		t.Fatalf("Open() error = %v", err)
 	}
 	defer conn.Close()
+	ctx := context.Background()
 	now := time.Now().UnixMilli()
 	seedMetricCompilerData(t, conn, now)
 
@@ -97,6 +100,51 @@ func TestCompilerExecutesOnCurrentClickHouseSchema(t *testing.T) {
 			}
 		}
 	}
+
+	plan, err := (DefaultPlanner{}).Plan(Request{
+		Range: TimeRange{StartMS: now - 3_000, EndMS: now + 1_000}, ResultType: ResultTimeSeries, StepMS: 1_000,
+		Queries: []Query{
+			MeterQuery{Common: CommonQuery{Name: "A", GroupBy: []FieldRef{{Name: "service.name", Context: FieldContextLabel, Type: ValueTypeString}}}, Aggregation: MetricAggregation{MetricName: "signoz.meter.log.size", Type: MetricSum, Temporality: TemporalityDelta, TimeAggregation: TimeAggregateSum, SpaceAggregation: SpaceAggregateSum}},
+			MeterQuery{Common: CommonQuery{Name: "B", GroupBy: []FieldRef{{Name: "service.name", Context: FieldContextLabel, Type: ValueTypeString}}}, Aggregation: MetricAggregation{MetricName: "signoz.meter.log.size", Type: MetricSum, Temporality: TemporalityDelta, TimeAggregation: TimeAggregateSum, SpaceAggregation: SpaceAggregateSum}},
+		},
+		Formulas: []Formula{{Name: "F", Expression: "A + B"}},
+	})
+	if err != nil {
+		t.Fatalf("Plan executor formula error = %v", err)
+	}
+	result, err := (Executor{Query: func(ctx context.Context, query string, args ...any) (Rows, error) {
+		rows, err := conn.Query(ctx, query, args...)
+		if err != nil {
+			return nil, err
+		}
+		return &clickHouseRows{Rows: rows}, nil
+	}}).Execute(ctx, plan)
+	if err != nil {
+		t.Fatalf("Executor.Execute() error = %v", err)
+	}
+	if len(result.Queries) != 3 || len(result.Queries[2].Rows) == 0 {
+		t.Fatalf("Executor result = %#v", result)
+	}
+}
+
+// clickHouseRows is a test-side driver adapter. The lightweight executor stays
+// independent of ClickHouse's concrete Scan requirements, while production
+// adapters can make the same conversion at the infrastructure boundary.
+type clickHouseRows struct{ driver.Rows }
+
+func (r *clickHouseRows) Scan(destinations ...any) error {
+	types := r.ColumnTypes()
+	values := make([]any, len(types))
+	for index, columnType := range types {
+		values[index] = reflect.New(columnType.ScanType()).Interface()
+	}
+	if err := r.Rows.Scan(values...); err != nil {
+		return err
+	}
+	for index, value := range values {
+		*destinations[index].(*any) = reflect.ValueOf(value).Elem().Interface()
+	}
+	return nil
 }
 
 func assertPositiveMetricRows(t *testing.T, name string, rows interface {

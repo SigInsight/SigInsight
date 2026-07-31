@@ -17,9 +17,6 @@ func NewCompiler(catalog Catalog) Compiler {
 }
 
 func (c Compiler) Compile(plan Plan) ([]Statement, error) {
-	if len(plan.Formulas) != 0 {
-		return nil, newError(ErrorUnsupported, "formulas", "formula execution is not available until the executor milestone")
-	}
 	statements := make([]Statement, 0, len(plan.Queries))
 	for _, queryPlan := range plan.Queries {
 		var (
