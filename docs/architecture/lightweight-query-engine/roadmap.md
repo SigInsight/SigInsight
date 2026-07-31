@@ -242,6 +242,18 @@ Explorer、详情页和保存查询兼容层使用的 DTO、状态、自动补�
 
 提交锚点：`refactor(frontend): remove unreachable legacy query editor`
 
+## M11：清理无调用的 Legacy QueryBuilder Helper
+
+目标：在不触及仍服务于 metadata 和专用读取路径的 parser/field mapper 前提下，删除无
+生产调用的旧 V5 helper。
+
+退出条件：
+
+- CTE、collision、Having、矛盾检测与旧 aggregation 注册表没有代码或测试残留。
+- 保留的 field collision、where-clause parser、key selector 和时间归一化通过直接包测试。
+
+提交锚点：`refactor(query): remove unused legacy builder helpers`
+
 ## 阶段提交准则
 
 每个生产代码提交至少满足一项：
