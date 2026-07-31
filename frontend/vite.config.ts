@@ -114,6 +114,9 @@ export default defineConfig(
 				'process.env.TUNNEL_URL': JSON.stringify(env.VITE_TUNNEL_URL),
 				'process.env.TUNNEL_DOMAIN': JSON.stringify(env.VITE_TUNNEL_DOMAIN),
 				'process.env.DOCS_BASE_URL': JSON.stringify(env.VITE_DOCS_BASE_URL),
+				'process.env.LIGHTWEIGHT_QUERY_EDITOR_ENABLED': JSON.stringify(
+					env.VITE_LIGHTWEIGHT_QUERY_EDITOR_ENABLED,
+				),
 			},
 			build: {
 				sourcemap: true,

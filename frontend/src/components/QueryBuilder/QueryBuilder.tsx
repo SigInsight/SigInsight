@@ -2,6 +2,9 @@ import { memo, useCallback, useEffect, useMemo, useRef } from 'react';
 import { OPERATORS, PANEL_TYPES } from 'constants/queryBuilder';
 import { Formula } from 'container/QueryBuilder/components/Formula';
 import { QueryBuilderProps } from 'container/QueryBuilder/QueryBuilder.interfaces';
+import { isLiteQueryState } from 'features/lite-query/capabilities';
+import { LiteQueryBuilder } from 'features/lite-query/LiteQueryBuilder';
+import { isLightweightQueryEditorEnabled } from 'features/lite-query/rollout';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
 import { IBuilderTraceOperator } from 'types/api/queryBuilder/queryBuilderData';
 import { DataSource } from 'types/common/queryBuilder';
@@ -14,7 +17,7 @@ import { QueryBuilderProvider } from './QueryBuilderContext';
 
 import './QueryBuilder.styles.scss';
 
-export const QueryBuilder = memo(function QueryBuilder({
+function LegacyQueryBuilder({
 	config,
 	panelType: newPanelType,
 	filterConfigs = {},
@@ -298,4 +301,24 @@ export const QueryBuilder = memo(function QueryBuilder({
 			</div>
 		</QueryBuilderProvider>
 	);
+}
+
+export const QueryBuilder = memo(function QueryBuilder(
+	props: QueryBuilderProps,
+): JSX.Element {
+	const { currentQuery } = useQueryBuilder();
+	if (
+		isLightweightQueryEditorEnabled() &&
+		isLiteQueryState(currentQuery, props.panelType)
+	) {
+		return (
+			<LiteQueryBuilder
+				panelType={props.panelType}
+				config={props.config}
+				onSignalSourceChange={props.onSignalSourceChange}
+				signalSourceChangeEnabled={props.signalSourceChangeEnabled}
+			/>
+		);
+	}
+	return <LegacyQueryBuilder {...props} />;
 });
