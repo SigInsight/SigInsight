@@ -6,7 +6,7 @@
 ## 总体依赖
 
 ```text
-M0 -> M1 -> M2 -> M3 -> M4 -> M5 -> M6 -> M7 -> M8 -> M9
+M0 -> M1 -> M2 -> M3 -> M4 -> M5 -> M6 -> M7 -> M8 -> M9 -> M10
 ```
 
 M2 的 Logs 和 Traces compiler 可以分子提交实现。M3 必须在 M2 建立的 Schema Catalog 和 Compiler contract 上完成，禁止形成另一套 Metrics 专用基础设施。
@@ -221,6 +221,26 @@ M2 的 Logs 和 Traces compiler 可以分子提交实现。M3 必须在 M2 建�
 - 对比报告记录 p50/p95 延迟、read rows、read bytes 并给出删除候选清单。
 
 提交锚点：`perf(query): resolve materialized columns through explicit catalog`
+
+## M10：退役不可达的 Legacy 编辑渲染树
+
+目标：删除 Lite Query Builder 已替代、且没有生产入口的旧编辑器渲染组件，同时保留仍由
+Explorer、详情页和保存查询兼容层使用的 DTO、状态、自动补全及独立筛选控件。
+
+任务：
+
+- 证明 `components/QueryBuilder/QueryBuilder.tsx` 不再渲染旧 Query/Formula/函数编辑组件。
+- 删除旧 Query、Formula、聚合、Having、函数链、数据源切换及它们专属样式和测试。
+- 将仅为旧 Query 组件存在的类型下沉到共享 operations 类型中。
+- 以 production import 扫描、TypeScript 编译和 Lite Builder 测试验证删除。
+
+退出条件：
+
+- 旧编辑渲染树没有静态或路由入口。
+- Provider、V5 DTO、metadata autocomplete 和独立筛选控件保持可编译、可测试。
+- 删除清单与保留依赖在阶段文档中可审计。
+
+提交锚点：`refactor(frontend): remove unreachable legacy query editor`
 
 ## 阶段提交准则
 

@@ -21,6 +21,7 @@
 - [M7：协作验证与受控切换](milestones/m7-collaboration-rollout.md)
 - [M8：Legacy 删除准备与量化收敛](milestones/m8-deletion-readiness.md)
 - [M9：物化列加速查询](milestones/m9-materialized-column-acceleration.md)
+- [M10：退役不可达的 Legacy 编辑渲染树](milestones/m10-legacy-editor-render-tree.md)
 - [架构决策记录规范](decisions/README.md)
 - [ADR 模板](decisions/000-template.md)
 - [ADR-001：采用受约束的类型化查询语言](decisions/001-constrained-query-language.md)
@@ -51,6 +52,7 @@
 | M7 协作验证与切换 | Complete | 当前 Collector 在 ClickHouse 25.5.6 的 Logs、Traces、Metrics、Meter 写入和认证 V5 读回均已验证；受控能力协商已完成 |
 | M8 Legacy 删除准备与量化收敛 | Complete | legacy executor、editor、rollout flag 与过渡 compiler 已删除；V5 边界为 Lite-only capability error |
 | M9 物化列加速查询 | In Progress | Trace v1 baseline 的静态 manifest、非 manifest Map 路径、认证 API 与 query-log 路径已验证；待代表性 workload 性能采样 |
+| M10 Legacy 编辑渲染树 | Complete | 已删除不可达的 Query/Formula/函数/聚合渲染树，保留共享状态、DTO 与独立筛选控件 |
 | 机器可读能力矩阵 | Accepted | `capability-matrix.json` 是后续协议和 UI 的约束来源 |
 
 ## 变更规则
