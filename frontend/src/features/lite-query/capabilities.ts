@@ -247,7 +247,9 @@ export function isLiteQueryState(
 	return (
 		isLitePanelType(panelType) &&
 		traceOperators.length === 0 &&
-		queryData.length > 0 &&
+		// LiteQueryBuilder edits one builder query. Rendering a multi-query state
+		// here would silently hide every query after the first one.
+		queryData.length === 1 &&
 		queryData.every(isLiteBuilderQuery) &&
 		queryFormulas.every(isLiteFormula)
 	);

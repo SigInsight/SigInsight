@@ -78,6 +78,18 @@ describe('lightweight query capabilities', () => {
 					...baseState,
 					builder: {
 						...baseState.builder,
+						queryData: [baseQuery, { ...baseQuery, queryName: 'B' }],
+					},
+				},
+				PANEL_TYPES.TIME_SERIES,
+			),
+		).toBe(false);
+		expect(
+			isLiteQueryState(
+				{
+					...baseState,
+					builder: {
+						...baseState.builder,
 						queryData: [{ ...baseQuery, functions: [{ name: 'ewma3', args: [] }] }],
 					},
 				},

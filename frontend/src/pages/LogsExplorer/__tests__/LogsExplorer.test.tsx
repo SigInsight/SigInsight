@@ -170,7 +170,7 @@ describe('Logs Explorer Tests', () => {
 	test('Multiple Current Queries', async () => {
 		// mocking the query range API to return the logs
 		logsQueryServerRequest();
-		const { queryAllByText } = render(
+		const { getByRole, getByText } = render(
 			<MemoryRouter
 				initialEntries={[
 					'/logs-explorer/?panelType=list&selectedExplorerView=list',
@@ -230,10 +230,12 @@ describe('Logs Explorer Tests', () => {
 			</MemoryRouter>,
 		);
 
-		const queries = queryAllByText(
-			"Enter your filter query (e.g., http.status_code >= 500 AND service.name = 'frontend')",
-		);
-		expect(queries.length).toBe(1);
+		expect(
+			getByText(
+				'This saved query uses capabilities that are not supported by the lightweight query engine.',
+			),
+		).toBeInTheDocument();
+		expect(getByRole('button', { name: 'Replace query' })).toBeInTheDocument();
 	});
 
 	test('frequency chart visibility and switch toggle', async () => {
