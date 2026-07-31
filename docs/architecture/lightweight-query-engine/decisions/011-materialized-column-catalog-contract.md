@@ -50,8 +50,8 @@ M9 采用"显式物化目录"：物化列不通过运行时逐查询探测进入
 
 - Catalog 需要版本化的物化列集合；Collector fingerprint 测试成为物化列新增/删除的
   跨仓库协作契约。
-- 同一语义字段可能编译出两种物理路径（物化列 / Map），golden SQL 必须覆盖两种
-  schema 状态。
+- manifest 命中的语义字段始终编译为物化列；未命中 manifest 的字段始终编译为 Map。
+  缺少 manifest 列的 schema 不兼容，而不是运行时 Map fallback。
 - 性能收益由真实查询的 read rows、read bytes 与延迟对比证明；收益不达标的物化列
   进入删除候选清单，由独立 ADR 处理。
 
@@ -62,7 +62,8 @@ M9 采用"显式物化目录"：物化列不通过运行时逐查询探测进入
 
 ## 验证
 
-- 有/无物化列两种 schema 状态下的 golden SQL 与真实 ClickHouse 25.5.6 执行。
+- manifest 命中物化列和非 manifest Map 字段的 golden SQL 与真实 ClickHouse 25.5.6
+  执行。
 - Collector migration fingerprint 与 manifest 物理列名的协作验证。
 - 同 fixture 的 Map vs 物化列查询延迟、read rows、read bytes 对比报告。
 

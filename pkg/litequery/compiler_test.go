@@ -122,6 +122,41 @@ func TestDefaultCatalogMaterializedManifestHasTrustedTraceColumns(t *testing.T) 
 	}
 }
 
+func TestDefaultCatalogResolvesEveryMaterializedManifestField(t *testing.T) {
+	tests := []struct {
+		field        FieldRef
+		column       string
+		existsColumn string
+	}{
+		{FieldRef{Name: "service.name", Context: FieldContextResource, Type: ValueTypeString}, "resource_string_service$$name", "resource_string_service$$name_exists"},
+		{FieldRef{Name: "http.route", Context: FieldContextAttribute, Type: ValueTypeString}, "attribute_string_http$$route", "attribute_string_http$$route_exists"},
+		{FieldRef{Name: "messaging.system", Context: FieldContextAttribute, Type: ValueTypeString}, "attribute_string_messaging$$system", "attribute_string_messaging$$system_exists"},
+		{FieldRef{Name: "messaging.operation", Context: FieldContextAttribute, Type: ValueTypeString}, "attribute_string_messaging$$operation", "attribute_string_messaging$$operation_exists"},
+		{FieldRef{Name: "db.system", Context: FieldContextAttribute, Type: ValueTypeString}, "attribute_string_db$$system", "attribute_string_db$$system_exists"},
+		{FieldRef{Name: "rpc.system", Context: FieldContextAttribute, Type: ValueTypeString}, "attribute_string_rpc$$system", "attribute_string_rpc$$system_exists"},
+		{FieldRef{Name: "rpc.service", Context: FieldContextAttribute, Type: ValueTypeString}, "attribute_string_rpc$$service", "attribute_string_rpc$$service_exists"},
+		{FieldRef{Name: "rpc.method", Context: FieldContextAttribute, Type: ValueTypeString}, "attribute_string_rpc$$method", "attribute_string_rpc$$method_exists"},
+		{FieldRef{Name: "peer.service", Context: FieldContextAttribute, Type: ValueTypeString}, "attribute_string_peer$$service", "attribute_string_peer$$service_exists"},
+	}
+
+	for _, test := range tests {
+		t.Run(test.field.Name, func(t *testing.T) {
+			got, err := (DefaultCatalog{}).Resolve(SignalTraces, test.field)
+			if err != nil {
+				t.Fatalf("Resolve() error = %v", err)
+			}
+			want := ResolvedField{
+				SQL:               quoteIdentifier(test.column),
+				ExistsSQL:         quoteIdentifier(test.existsColumn),
+				RequiresExistence: true,
+			}
+			if !reflect.DeepEqual(got, want) {
+				t.Fatalf("Resolve() = %#v, want %#v", got, want)
+			}
+		})
+	}
+}
+
 func TestCompilerQualifiesLogTimeBucketForClickHouseAliasResolution(t *testing.T) {
 	statement := compileOne(t, Request{
 		Range: TimeRange{StartMS: 1_000, EndMS: 61_000}, ResultType: ResultTimeSeries, StepMS: 1_000,
