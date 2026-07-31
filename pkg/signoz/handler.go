@@ -16,8 +16,6 @@ import (
 	"github.com/SigNoz/signoz/pkg/modules/metricsexplorer/implmetricsexplorer"
 	"github.com/SigNoz/signoz/pkg/modules/quickfilter"
 	"github.com/SigNoz/signoz/pkg/modules/quickfilter/implquickfilter"
-	"github.com/SigNoz/signoz/pkg/modules/rawdataexport"
-	"github.com/SigNoz/signoz/pkg/modules/rawdataexport/implrawdataexport"
 	"github.com/SigNoz/signoz/pkg/modules/savedview"
 	"github.com/SigNoz/signoz/pkg/modules/savedview/implsavedview"
 	"github.com/SigNoz/signoz/pkg/modules/services"
@@ -36,7 +34,6 @@ type Handlers struct {
 	Apdex           apdex.Handler
 	QuickFilter     quickfilter.Handler
 	TraceFunnel     tracefunnel.Handler
-	RawDataExport   rawdataexport.Handler
 	SpanPercentile  spanpercentile.Handler
 	Services        services.Handler
 	MetricsExplorer metricsexplorer.Handler
@@ -63,7 +60,6 @@ func NewHandlers(
 		Apdex:           implapdex.NewHandler(modules.Apdex),
 		QuickFilter:     implquickfilter.NewHandler(modules.QuickFilter),
 		TraceFunnel:     impltracefunnel.NewHandler(modules.TraceFunnel),
-		RawDataExport:   implrawdataexport.NewHandler(modules.RawDataExport),
 		Services:        implservices.NewHandler(modules.Services),
 		MetricsExplorer: implmetricsexplorer.NewHandler(modules.MetricsExplorer),
 		SpanPercentile:  implspanpercentile.NewHandler(modules.SpanPercentile),

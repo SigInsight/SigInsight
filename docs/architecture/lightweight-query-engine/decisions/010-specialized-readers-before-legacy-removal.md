@@ -23,7 +23,7 @@ Percentile 构造了 Lite 不表达的多聚合 V5 请求；Raw Export 和 Live 
 
 - Services 使用专用 Trace service/operation statistics reader；
 - Span Percentile 使用专用 percentile reader；
-- Raw Export 和 Live Logs 分别使用明确的分页/流式读取契约；
+- Raw Export 作为非核心高级能力下线；Live Logs 使用明确的流式读取契约；
 - threshold rules 只接纳 Lite capability matrix 中的基本查询，其他规则在保存或评估
   时返回稳定的不支持错误。
 
@@ -34,6 +34,7 @@ parser，但不得返回 V5 `QueryRangeResponse` 或重新建立通用 Query Bui
 
 - legacy V5 删除顺序由外部依赖清零决定，而不是由前端是否已显示 Lite editor 决定；
 - Services/Percentile 的必要多聚合留在小型领域 SQL 中，不污染 Lite 的单聚合模型；
-- Raw Export 和 Live Logs 成为显式保留或单独下线的产品决定；
+- Raw Export 的下载入口、API、V5 offset/Trace Operator 导出链已删除；Live Logs
+  仍是显式保留或单独下线的产品决定；
 - 当所有专用调用迁出后，legacy 的 builder/compiler/cache/postprocess 才能按可验证的
   依赖图删除。

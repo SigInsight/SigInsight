@@ -2145,19 +2145,6 @@ export type AuthzResources200 = {
 export type ChangePasswordPathParameters = {
 	id: string;
 };
-export type HandleExportRawDataPOSTParams = {
-	/**
-	 * @enum csv,jsonl
-	 * @type string
-	 * @description The output format for the export.
-	 */
-	format?: HandleExportRawDataPOSTFormat;
-};
-
-export enum HandleExportRawDataPOSTFormat {
-	csv = 'csv',
-	jsonl = 'jsonl',
-}
 export type GetFeatures200 = {
 	/**
 	 * @type array

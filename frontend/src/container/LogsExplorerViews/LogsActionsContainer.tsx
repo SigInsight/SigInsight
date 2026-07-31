@@ -1,5 +1,4 @@
 import { Switch, Typography } from 'antd';
-import DownloadOptionsMenu from 'components/DownloadOptionsMenu/DownloadOptionsMenu';
 import LogsFormatOptionsMenu from 'components/LogsFormatOptionsMenu/LogsFormatOptionsMenu';
 import ListViewOrderBy from 'components/OrderBy/ListViewOrderBy';
 import { LOCALSTORAGE } from 'constants/localStorage';
@@ -89,12 +88,6 @@ function LogsActionsContainer({
 									value={orderBy}
 									onChange={(value): void => setOrderBy(value)}
 									dataSource={DataSource.LOGS}
-								/>
-							</div>
-							<div className="download-options-container">
-								<DownloadOptionsMenu
-									dataSource={DataSource.LOGS}
-									selectedColumns={options?.selectColumns}
 								/>
 							</div>
 							<div className="format-options-container">

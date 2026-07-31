@@ -172,7 +172,6 @@ func NewAPIServerProviderFactories(orgGetter organization.Getter, authz authz.Au
 			handlers.MetricsExplorer,
 			handlers.Fields,
 			handlers.AuthzHandler,
-			handlers.RawDataExport,
 			handlers.QuerierHandler,
 			handlers.RegistryHandler,
 			handlers.Assistant,
