@@ -99,6 +99,21 @@ export const QueryBuilderContext = createContext<QueryBuilderContextType>({
 	isDefaultQuery: () => false,
 });
 
+export const getInitialPanelType = (
+	pathname: string,
+	panelTypeQueryParam: PANEL_TYPES | null,
+): PANEL_TYPES | null => {
+	if (panelTypeQueryParam) {
+		return panelTypeQueryParam;
+	}
+
+	if (pathname === ROUTES.LOGS_EXPLORER || pathname === ROUTES.TRACES_EXPLORER) {
+		return PANEL_TYPES.LIST;
+	}
+
+	return null;
+};
+
 export function QueryBuilderProvider({
 	children,
 }: PropsWithChildren): JSX.Element {
@@ -125,8 +140,8 @@ export function QueryBuilderProvider({
 		QueryParams.panelTypes,
 	) as PANEL_TYPES | null;
 
-	const [panelType, setPanelType] = useState<PANEL_TYPES | null>(
-		panelTypeQueryParams,
+	const [panelType, setPanelType] = useState<PANEL_TYPES | null>(() =>
+		getInitialPanelType(location.pathname, panelTypeQueryParams),
 	);
 
 	const [currentQuery, setCurrentQuery] = useState<QueryState>(queryState);

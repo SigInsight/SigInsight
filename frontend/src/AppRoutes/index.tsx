@@ -34,6 +34,7 @@ function App(): JSX.Element {
 		isFetchingUser,
 		isFetchingFeatureFlags,
 		userFetchError,
+		featureFlagsFetchError,
 		isLoggedIn: isLoggedInState,
 		featureFlags,
 	} = useAppContext();
@@ -60,12 +61,19 @@ function App(): JSX.Element {
 		// if the required calls fails then return a something went wrong error
 		// this needs to be on top of data missing error because if there is an error, data will never be loaded and it will
 		// move to indefinitive loading
-		if (userFetchError && pathname !== ROUTES.SOMETHING_WENT_WRONG) {
+		if (
+			(userFetchError || featureFlagsFetchError) &&
+			pathname !== ROUTES.SOMETHING_WENT_WRONG
+		) {
 			history.replace(ROUTES.SOMETHING_WENT_WRONG);
 		}
 
 		// if all of the data is not set then return a spinner, this is required because there is some gap between loading states and data setting
-		if ((!user.email || !featureFlags) && !userFetchError) {
+		if (
+			(!user.email || !featureFlags) &&
+			!userFetchError &&
+			!featureFlagsFetchError
+		) {
 			return <Spinner tip="Loading..." />;
 		}
 	}
