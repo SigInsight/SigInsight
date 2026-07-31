@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestLikeAndILikeWithoutWildcards_Warns Tests that LIKE/ILIKE without wildcards add warnings and include docs URL
+// TestLikeAndILikeWithoutWildcards_Warns tests that LIKE/ILIKE without wildcards add warnings.
 func TestLikeAndILikeWithoutWildcards_Warns(t *testing.T) {
 	fm := NewFieldMapper()
 	cb := NewConditionBuilder(fm)
@@ -39,7 +39,7 @@ func TestLikeAndILikeWithoutWildcards_Warns(t *testing.T) {
 
 			require.NotEmpty(t, clause.Warnings, "expected warning for: %s", expr)
 			require.Contains(t, clause.Warnings[0], "operator used without wildcards")
-			require.Contains(t, clause.WarningsDocURL, "operators-reference/#string-matching-operators")
+			require.Empty(t, clause.WarningsDocURL)
 		})
 	}
 }

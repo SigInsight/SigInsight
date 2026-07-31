@@ -160,6 +160,9 @@ func (service *Service) TestAlert(ctx context.Context, orgID string, receiversMa
 }
 
 func (service *Service) Stop(ctx context.Context) error {
+	service.serversMtx.Lock()
+	defer service.serversMtx.Unlock()
+
 	var errs []error
 	for _, server := range service.servers {
 		if err := server.Stop(ctx); err != nil {

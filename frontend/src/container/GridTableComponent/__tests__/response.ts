@@ -90,14 +90,6 @@ export const widgetQueryWithLegend = {
 			query: '',
 		},
 	],
-	promql: [
-		{
-			name: 'A',
-			query: '',
-			legend: '',
-			disabled: false,
-		},
-	],
 	builder: {
 		queryData: [
 			{
@@ -313,26 +305,6 @@ export const widgetQueryQBv5MultiAggregations = {
 			legend: 'max',
 			disabled: false,
 			query: '',
-		},
-	],
-	promql: [
-		{
-			name: 'A',
-			query: '',
-			legend: 'p99',
-			disabled: false,
-		},
-		{
-			name: 'B',
-			query: '',
-			legend: '',
-			disabled: false,
-		},
-		{
-			name: 'C',
-			query: '',
-			legend: 'max',
-			disabled: false,
 		},
 	],
 	builder: {

@@ -12,8 +12,8 @@ func alertRuleWithQueries(names ...string) map[string]any {
 	queries := make([]any, 0, len(names))
 	for _, name := range names {
 		queries = append(queries, map[string]any{
-			"type": "promql",
-			"spec": map[string]any{"name": name, "query": "up"},
+			"type": "builder_query",
+			"spec": map[string]any{"name": name},
 		})
 	}
 	return map[string]any{
@@ -37,7 +37,7 @@ func TestEnsureAlertSelectedQuery(t *testing.T) {
 	require.False(t, EnsureAlertSelectedQuery(map[string]any{}))
 }
 
-func TestAlertMigrateV5PromQL(t *testing.T) {
+func TestAlertMigrateV5DiscardsPromQL(t *testing.T) {
 	rule := map[string]any{
 		"version": "v4",
 		"condition": map[string]any{
@@ -55,10 +55,10 @@ func TestAlertMigrateV5PromQL(t *testing.T) {
 	require.Equal(t, "v5", rule["version"])
 
 	condition := rule["condition"].(map[string]any)
-	require.Equal(t, "A", condition["selectedQueryName"])
+	require.NotContains(t, condition, "selectedQueryName")
 	compositeQuery := condition["compositeQuery"].(map[string]any)
 	require.NotContains(t, compositeQuery, "promQueries")
-	require.Len(t, compositeQuery["queries"], 1)
+	require.Empty(t, compositeQuery["queries"])
 
 	require.False(t, migrator.Migrate(context.Background(), rule))
 }

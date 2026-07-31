@@ -197,9 +197,6 @@ function TopOperationsTable({
 
 	const entryPointSpanInfo = {
 		text: 'Shows the spans where requests enter new services for the first time',
-		url:
-			'https://signoz.io/docs/traces-management/guides/entry-point-spans-service-overview/',
-		urlText: 'Learn more about Entrypoint Spans.',
 	};
 
 	return (
@@ -219,12 +216,7 @@ function TopOperationsTable({
 						size="small"
 					/>
 					<span className="top-operation__entry-point-label">Entrypoint Spans</span>
-					<TextToolTip
-						text={entryPointSpanInfo.text}
-						url={entryPointSpanInfo.url}
-						useFilledIcon={false}
-						urlText={entryPointSpanInfo.urlText}
-					/>
+					<TextToolTip text={entryPointSpanInfo.text} useFilledIcon={false} />
 				</div>
 			</div>
 			<ResizeTable

@@ -54,11 +54,4 @@ describe('AlertNotFound', () => {
 		await user.click(screen.getByText('Check all rules'));
 		expect(mockSafeNavigate).toHaveBeenCalledWith(ROUTES.LIST_ALL_ALERT);
 	});
-
-	it('should open slack support page when the contact support button is clicked', async () => {
-		const user = userEvent.setup();
-		render(<AlertNotFound isTestAlert={false} />);
-		await user.click(screen.getByText('Contact Support'));
-		expect(window.open).toHaveBeenCalledWith('https://signoz.io/slack', '_blank');
-	});
 });

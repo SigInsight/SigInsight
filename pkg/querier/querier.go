@@ -15,7 +15,6 @@ import (
 
 	"github.com/SigNoz/signoz/pkg/errors"
 	"github.com/SigNoz/signoz/pkg/factory"
-	"github.com/SigNoz/signoz/pkg/prometheus"
 	"github.com/SigNoz/signoz/pkg/query-service/utils"
 	"github.com/SigNoz/signoz/pkg/querybuilder"
 	"github.com/SigNoz/signoz/pkg/telemetrystore"
@@ -36,7 +35,6 @@ type querier struct {
 	logger                   *slog.Logger
 	telemetryStore           telemetrystore.TelemetryStore
 	metadataStore            telemetrytypes.MetadataStore
-	promEngine               prometheus.Prometheus
 	traceStmtBuilder         qbtypes.StatementBuilder[qbtypes.TraceAggregation]
 	logStmtBuilder           qbtypes.StatementBuilder[qbtypes.LogAggregation]
 	metricStmtBuilder        qbtypes.StatementBuilder[qbtypes.MetricAggregation]
@@ -52,7 +50,6 @@ func New(
 	settings factory.ProviderSettings,
 	telemetryStore telemetrystore.TelemetryStore,
 	metadataStore telemetrytypes.MetadataStore,
-	promEngine prometheus.Prometheus,
 	traceStmtBuilder qbtypes.StatementBuilder[qbtypes.TraceAggregation],
 	logStmtBuilder qbtypes.StatementBuilder[qbtypes.LogAggregation],
 	metricStmtBuilder qbtypes.StatementBuilder[qbtypes.MetricAggregation],
@@ -65,7 +62,6 @@ func New(
 		logger:                   querierSettings.Logger(),
 		telemetryStore:           telemetryStore,
 		metadataStore:            metadataStore,
-		promEngine:               promEngine,
 		traceStmtBuilder:         traceStmtBuilder,
 		logStmtBuilder:           logStmtBuilder,
 		metricStmtBuilder:        metricStmtBuilder,
@@ -239,17 +235,6 @@ func (q *querier) QueryRange(ctx context.Context, orgID valuer.UUID, req *qbtype
 				}
 				req.CompositeQuery.Queries[idx].Spec = spec
 			}
-		case qbtypes.QueryTypePromQL:
-			event.MetricsUsed = true
-			switch spec := query.Spec.(type) {
-			case qbtypes.PromQuery:
-				if spec.Step.Seconds() == 0 {
-					spec.Step = qbtypes.Step{
-						Duration: time.Second * time.Duration(querybuilder.RecommendedStepIntervalForMetric(req.Start, req.End)),
-					}
-				}
-				req.CompositeQuery.Queries[idx].Spec = spec
-			}
 		case qbtypes.QueryTypeClickHouseSQL:
 			switch spec := query.Spec.(type) {
 			case qbtypes.ClickHouseQuery:
@@ -293,10 +278,6 @@ func (q *querier) QueryRange(ctx context.Context, orgID valuer.UUID, req *qbtype
 				queryName = spec.Name
 				isTraceOperator = true
 			}
-		case qbtypes.QueryTypePromQL:
-			if spec, ok := query.Spec.(qbtypes.PromQuery); ok {
-				queryName = spec.Name
-			}
 		case qbtypes.QueryTypeClickHouseSQL:
 			if spec, ok := query.Spec.(qbtypes.ClickHouseQuery); ok {
 				queryName = spec.Name
@@ -317,14 +298,6 @@ func (q *querier) QueryRange(ctx context.Context, orgID valuer.UUID, req *qbtype
 		}
 
 		switch query.Type {
-		case qbtypes.QueryTypePromQL:
-			promQuery, ok := query.Spec.(qbtypes.PromQuery)
-			if !ok {
-				return nil, errors.NewInvalidInputf(errors.CodeInvalidInput, "invalid promql query spec %T", query.Spec)
-			}
-			promqlQuery := newPromqlQuery(q.logger, q.promEngine, promQuery, qbtypes.TimeRange{From: req.Start, To: req.End}, req.RequestType, tmplVars)
-			queries[promQuery.Name] = promqlQuery
-			steps[promQuery.Name] = promQuery.Step
 		case qbtypes.QueryTypeClickHouseSQL:
 			chQuery, ok := query.Spec.(qbtypes.ClickHouseQuery)
 			if !ok {
@@ -787,10 +760,6 @@ func (q *querier) executeWithCache(ctx context.Context, orgID valuer.UUID, query
 func (q *querier) createRangedQuery(originalQuery qbtypes.Query, timeRange qbtypes.TimeRange) qbtypes.Query {
 	// this is called in a goroutine, so we create a copy of the query to avoid race conditions
 	switch qt := originalQuery.(type) {
-	case *promqlQuery:
-		queryCopy := qt.query.Copy()
-		return newPromqlQuery(q.logger, q.promEngine, queryCopy, timeRange, qt.requestType, qt.vars)
-
 	case *chSQLQuery:
 		queryCopy := qt.query.Copy()
 		argsCopy := make([]any, len(qt.args))

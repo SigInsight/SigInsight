@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useMutation } from 'react-query';
-import { CheckOutlined, CloseOutlined } from '@ant-design/icons';
+import { CloseOutlined } from '@ant-design/icons';
 import { Button, Modal } from 'antd';
 import updateUserPreference from 'api/v5/user/preferences/name/update';
 import cx from 'classnames';
@@ -82,14 +82,6 @@ function ChangelogModal({ changelog, onClose }: Props): JSX.Element {
 		};
 	}, [checkScroll]);
 
-	const onClickUpdateWorkspace = (): void => {
-		window.open(
-			'https://signoz.io/upgrade-path',
-			'_blank',
-			'noopener,noreferrer',
-		);
-	};
-
 	const onClickScrollForMore = (): void => {
 		if (changelogContentSectionRef.current) {
 			changelogContentSectionRef.current.scrollTo({
@@ -118,13 +110,6 @@ function ChangelogModal({ changelog, onClose }: Props): JSX.Element {
 					<div className="changelog-modal-footer-ctas">
 						<Button type="default" icon={<CloseOutlined />} onClick={onClose}>
 							Skip for now
-						</Button>
-						<Button
-							type="primary"
-							icon={<CheckOutlined />}
-							onClick={onClickUpdateWorkspace}
-						>
-							Update my workspace
 						</Button>
 					</div>
 					{changelog && (

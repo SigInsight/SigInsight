@@ -7,7 +7,6 @@ import {
 	IBuilderQuery,
 	IBuilderTraceOperator,
 	IClickHouseQuery,
-	IPromQLQuery,
 } from 'types/api/queryBuilder/queryBuilderData';
 
 // toChartInterval converts eval window to chart selection time interval
@@ -54,11 +53,7 @@ export const getUpdatedStepInterval = (evalWindow?: string): number => {
 
 export const getSelectedQueryOptions = (
 	queries: Array<
-		| IBuilderQuery
-		| IBuilderTraceOperator
-		| IBuilderFormula
-		| IClickHouseQuery
-		| IPromQLQuery
+		IBuilderQuery | IBuilderTraceOperator | IBuilderFormula | IClickHouseQuery
 	>,
 ): SelectProps['options'] =>
 	queries

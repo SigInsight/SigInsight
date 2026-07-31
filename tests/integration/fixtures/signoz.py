@@ -67,7 +67,6 @@ def create_signoz(
                 "SIGNOZ_WEB_ENABLED": False,
                 "SIGNOZ_WEB_DIRECTORY": "/root/web",
                 "SIGNOZ_INSTRUMENTATION_LOGS_LEVEL": "debug",
-                "SIGNOZ_PROMETHEUS_ACTIVE__QUERY__TRACKER_ENABLED": False,
                 "SIGNOZ_TOKENIZER_JWT_SECRET": "secret",
                 "SIGNOZ_USER_PASSWORD_RESET_ALLOW__SELF": True,
                 "SIGNOZ_USER_PASSWORD_RESET_MAX__TOKEN__LIFETIME": "6h",

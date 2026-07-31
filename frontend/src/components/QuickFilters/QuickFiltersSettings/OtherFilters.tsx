@@ -6,10 +6,7 @@ import { SignalType } from 'components/QuickFilters/types';
 import { REACT_QUERY_KEY } from 'constants/reactQueryKeys';
 import { useGetAggregateKeys } from 'hooks/queryBuilder/useGetAggregateKeys';
 import { useGetAttributeSuggestions } from 'hooks/queryBuilder/useGetAttributeSuggestions';
-import { useGetQueryKeySuggestions } from 'hooks/querySuggestions/useGetQueryKeySuggestions';
-import { BaseAutocompleteData } from 'types/api/queryBuilder/queryAutocompleteResponse';
 import { TagFilter } from 'types/api/queryBuilder/queryBuilderData';
-import { QueryKeyDataSuggestionsProps } from 'types/api/querySuggestions/types';
 import { Filter as FilterType } from 'types/api/quickFilters/getCustomFilters';
 import { DataSource } from 'types/common/queryBuilder';
 
@@ -43,11 +40,6 @@ function OtherFilters({
 		() => SIGNAL_DATA_SOURCE_MAP[signal as SignalType] === DataSource.LOGS,
 		[signal],
 	);
-	const isMeterDataSource = useMemo(
-		() => signal && signal === SignalType.METER_EXPLORER,
-		[signal],
-	);
-
 	const {
 		data: suggestionsData,
 		isFetching: isFetchingSuggestions,
@@ -76,22 +68,7 @@ function OtherFilters({
 		},
 		{
 			queryKey: [REACT_QUERY_KEY.GET_OTHER_FILTERS, inputValue],
-			enabled: !!signal && !isLogDataSource && !isMeterDataSource,
-		},
-	);
-
-	const {
-		data: fieldKeysData,
-		isLoading: isLoadingFieldKeys,
-	} = useGetQueryKeySuggestions(
-		{
-			searchText: inputValue,
-			signal: SIGNAL_DATA_SOURCE_MAP[signal as SignalType],
-			signalSource: 'meter',
-		},
-		{
-			queryKey: [REACT_QUERY_KEY.GET_OTHER_FILTERS, inputValue],
-			enabled: !!signal && isMeterDataSource,
+			enabled: !!signal && !isLogDataSource,
 		},
 	);
 
@@ -99,33 +76,13 @@ function OtherFilters({
 		let filterAttributes;
 		if (isLogDataSource) {
 			filterAttributes = suggestionsData?.payload?.attributes || [];
-		} else if (isMeterDataSource) {
-			const fieldKeys: QueryKeyDataSuggestionsProps[] = Object.values(
-				fieldKeysData?.data?.data?.keys || {},
-			)?.flat();
-			filterAttributes = fieldKeys.map(
-				(attr) =>
-					({
-						key: attr.name,
-						dataType: attr.fieldDataType,
-						type: attr.fieldContext,
-						signal: attr.signal,
-					} as BaseAutocompleteData),
-			);
 		} else {
 			filterAttributes = aggregateKeysData?.payload?.attributeKeys || [];
 		}
 		return filterAttributes?.filter(
 			(attr) => !addedFilters.some((filter) => filter.key === attr.key),
 		);
-	}, [
-		suggestionsData,
-		aggregateKeysData,
-		addedFilters,
-		isLogDataSource,
-		fieldKeysData,
-		isMeterDataSource,
-	]);
+	}, [suggestionsData, aggregateKeysData, addedFilters, isLogDataSource]);
 
 	const handleAddFilter = (filter: FilterType): void => {
 		setAddedFilters((prev) => [
@@ -139,8 +96,7 @@ function OtherFilters({
 	};
 
 	const renderFilters = (): React.ReactNode => {
-		const isLoading =
-			isFetchingSuggestions || isFetchingAggregateKeys || isLoadingFieldKeys;
+		const isLoading = isFetchingSuggestions || isFetchingAggregateKeys;
 		if (isLoading) {
 			return <OtherFiltersSkeleton />;
 		}

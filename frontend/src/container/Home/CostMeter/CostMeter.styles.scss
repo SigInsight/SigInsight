@@ -1,16 +1,24 @@
-.meter-explorer-breakdown {
+.cost-meter {
 	display: flex;
 	flex-direction: column;
+	margin: 0 16px 16px;
+	border-top: 1px solid var(--bg-slate-500);
 
-	.meter-explorer-date-time {
+	.cost-meter-header {
 		display: flex;
 		min-height: 30px;
-		justify-content: end;
-		border-bottom: 1px solid var(--bg-slate-500);
+		justify-content: space-between;
+		align-items: center;
+		gap: 16px;
 		padding: 10px 16px;
+
+		.ant-typography {
+			margin: 0;
+			font-size: 16px;
+		}
 	}
 
-	.meter-explorer-graphs {
+	.cost-meter-graphs {
 		display: flex;
 		flex-direction: column;
 		padding: 20px;
@@ -78,12 +86,8 @@
 }
 
 .lightMode {
-	.meter-explorer-breakdown {
-		.meter-explorer-date-time {
-			border-bottom: none;
-		}
-
-		.meter-explorer-graphs {
+	.cost-meter {
+		.cost-meter-graphs {
 			.meter-column-graph {
 				.row-card {
 					background-color: var(--bg-vanilla-300);
@@ -92,6 +96,16 @@
 						color: var(--bg-ink-400);
 					}
 				}
+			}
+		}
+	}
+}
+
+@media (max-width: 960px) {
+	.cost-meter {
+		.cost-meter-graphs {
+			.meter-page-grid {
+				grid-template-columns: 1fr;
 			}
 		}
 	}

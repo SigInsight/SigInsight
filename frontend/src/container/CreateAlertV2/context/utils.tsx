@@ -51,10 +51,15 @@ export const alertCreationReducer = (
 				...state,
 				labels: action.payload,
 			};
-		case 'SET_Y_AXIS_UNIT':
+		case 'SET_RESULT_UNIT':
 			return {
 				...state,
-				yAxisUnit: action.payload,
+				resultUnit: action.payload,
+			};
+		case 'SET_DISPLAY_UNIT':
+			return {
+				...state,
+				displayUnit: action.payload,
 			};
 		case 'RESET':
 			return INITIAL_ALERT_STATE;

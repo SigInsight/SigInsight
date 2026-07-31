@@ -23,7 +23,6 @@ export enum SignalType {
 	LOGS = 'logs',
 	API_MONITORING = 'api_monitoring',
 	EXCEPTIONS = 'exceptions',
-	METER_EXPLORER = 'meter',
 }
 
 export interface IQuickFiltersConfig {
@@ -54,5 +53,4 @@ export enum QuickFiltersSource {
 	TRACES_EXPLORER = 'traces-explorer',
 	API_MONITORING = 'api-monitoring',
 	EXCEPTIONS = 'exceptions',
-	METER_EXPLORER = 'meter',
 }

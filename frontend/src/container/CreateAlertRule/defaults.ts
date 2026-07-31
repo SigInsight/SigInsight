@@ -1,7 +1,6 @@
 import { ENTITY_VERSION_V5 } from 'constants/app';
 import {
 	initialQueryBuilderFormValuesMap,
-	initialQueryPromQLData,
 	PANEL_TYPES,
 } from 'constants/queryBuilder';
 import { AlertTypes } from 'types/api/alerts/alertTypes';
@@ -34,7 +33,6 @@ export const alertDefaults: AlertDef = {
 			builderQueries: {
 				A: initialQueryBuilderFormValuesMap.metrics,
 			},
-			promQueries: { A: initialQueryPromQLData },
 			chQueries: {
 				A: {
 					name: 'A',
@@ -68,11 +66,10 @@ export const logAlertDefaults: AlertDef = {
 			builderQueries: {
 				A: initialQueryBuilderFormValuesMap.logs,
 			},
-			promQueries: { A: initialQueryPromQLData },
 			chQueries: {
 				A: {
 					name: 'A',
-					query: `select \ntoStartOfInterval(fromUnixTimestamp64Nano(timestamp), INTERVAL 30 MINUTE) AS interval, \ntoFloat64(count()) as value \nFROM signoz_logs.logs_v2  \nWHERE timestamp BETWEEN {{.start_timestamp_nano}} AND {{.end_timestamp_nano}} \nAND ts_bucket_start BETWEEN {{.start_timestamp}} - 1800 AND {{.end_timestamp}} \nGROUP BY interval;\n\n-- Please check docs here https://signoz.io/docs/userguide/logs_clickhouse_queries/\n\n-- available variables:\n-- \t{{.start_timestamp_nano}}\n-- \t{{.end_timestamp_nano}}\n-- \t{{.start_timestamp}}\n-- \t{{.end_timestamp}}\n\n-- required columns (or alias):\n-- \tvalue\n-- \tinterval`,
+					query: `select \ntoStartOfInterval(fromUnixTimestamp64Nano(timestamp), INTERVAL 30 MINUTE) AS interval, \ntoFloat64(count()) as value \nFROM signoz_logs.logs_v2  \nWHERE timestamp BETWEEN {{.start_timestamp_nano}} AND {{.end_timestamp_nano}} \nAND ts_bucket_start BETWEEN {{.start_timestamp}} - 1800 AND {{.end_timestamp}} \nGROUP BY interval;\n\n-- available variables:\n-- \t{{.start_timestamp_nano}}\n-- \t{{.end_timestamp_nano}}\n-- \t{{.start_timestamp}}\n-- \t{{.end_timestamp}}\n\n-- required columns (or alias):\n-- \tvalue\n-- \tinterval`,
 					legend: '',
 					disabled: false,
 				},
@@ -100,11 +97,10 @@ export const traceAlertDefaults: AlertDef = {
 			builderQueries: {
 				A: initialQueryBuilderFormValuesMap.traces,
 			},
-			promQueries: { A: initialQueryPromQLData },
 			chQueries: {
 				A: {
 					name: 'A',
-					query: `SELECT \n\ttoStartOfInterval(timestamp, INTERVAL 1 MINUTE) AS interval, \n\tresource_string_service$$name AS \`service.name\`, \n\ttoFloat64(avg(duration_nano)) AS value \nFROM signoz_traces.signoz_index_v3  \nWHERE resource_string_service$$name !='' \nAND timestamp BETWEEN {{.start_datetime}} AND {{.end_datetime}} \nAND ts_bucket_start BETWEEN {{.start_timestamp}} - 1800 AND {{.end_timestamp}} \nGROUP BY (\`service.name\`, interval);\n\n-- Please check docs here https://signoz.io/docs/userguide/writing-clickhouse-traces-query/\n\n-- available variables:\n-- \t{{.start_datetime}}\n-- \t{{.end_datetime}}\n-- \t{{.start_timestamp}}\n-- \t{{.end_timestamp}}\n\n-- required column alias:\n-- \tvalue\n-- \tinterval`,
+					query: `SELECT \n\ttoStartOfInterval(timestamp, INTERVAL 1 MINUTE) AS interval, \n\tresource_string_service$$name AS \`service.name\`, \n\ttoFloat64(avg(duration_nano)) AS value \nFROM signoz_traces.signoz_index_v3  \nWHERE resource_string_service$$name !='' \nAND timestamp BETWEEN {{.start_datetime}} AND {{.end_datetime}} \nAND ts_bucket_start BETWEEN {{.start_timestamp}} - 1800 AND {{.end_timestamp}} \nGROUP BY (\`service.name\`, interval);\n\n-- available variables:\n-- \t{{.start_datetime}}\n-- \t{{.end_datetime}}\n-- \t{{.start_timestamp}}\n-- \t{{.end_timestamp}}\n\n-- required column alias:\n-- \tvalue\n-- \tinterval`,
 					legend: '',
 					disabled: false,
 				},
@@ -132,7 +128,6 @@ export const exceptionAlertDefaults: AlertDef = {
 			builderQueries: {
 				A: initialQueryBuilderFormValuesMap.traces,
 			},
-			promQueries: { A: initialQueryPromQLData },
 			chQueries: {
 				A: {
 					name: 'A',

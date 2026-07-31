@@ -251,7 +251,7 @@ function InviteMembersModal({
 									<div className="team-member-cell email-cell">
 										<Input
 											type="email"
-											placeholder="john@signoz.io"
+											placeholder="john@example.com"
 											value={row.email}
 											onChange={(e): void => updateEmail(row.id, e.target.value)}
 											className="team-member-email-input"

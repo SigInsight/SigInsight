@@ -11,6 +11,7 @@ import { uPlotXAxisValuesFormat } from 'lib/uPlotShared/uPlotXAxisValuesFormat';
 import UPlotChart from 'lib/uPlotV2/components/UPlotChart/UPlotChart';
 import { DrawStyle } from 'lib/uPlotV2/config/types';
 import { UPlotConfigBuilder } from 'lib/uPlotV2/config/UPlotConfigBuilder';
+import { PlotContextProvider } from 'lib/uPlotV2/context/PlotContext';
 import timelinePlugin from 'lib/uPlotV2/plugins/timelinePlugin';
 import { UpdateTimeInterval } from 'store/actions';
 import { AlertRuleTimelineGraphResponse } from 'types/api/alerts/def';
@@ -109,11 +110,13 @@ function Graph({ type, data }: Props): JSX.Element | null {
 
 	return (
 		<div ref={graphRef}>
-			<HorizontalTimelineGraph
-				isDarkMode={isDarkMode}
-				width={containerDimensions.width}
-				data={data}
-			/>
+			<PlotContextProvider>
+				<HorizontalTimelineGraph
+					isDarkMode={isDarkMode}
+					width={containerDimensions.width}
+					data={data}
+				/>
+			</PlotContextProvider>
 		</div>
 	);
 }

@@ -62,23 +62,6 @@ func (m *savedViewMigrateV5) Migrate(ctx context.Context, data map[string]any) b
 	}
 	delete(data, "builderQueries")
 
-	if promQueries, ok := data["promQueries"].(map[string]any); ok {
-		for name, query := range promQueries {
-			queryMap, ok := query.(map[string]any)
-			if !ok {
-				continue
-			}
-			queries = append(queries, map[string]any{
-				"type": "promql",
-				"spec": map[string]any{
-					"name":     name,
-					"query":    queryMap["query"],
-					"disabled": queryMap["disabled"],
-					"legend":   queryMap["legend"],
-				},
-			})
-		}
-	}
 	delete(data, "promQueries")
 
 	if clickHouseQueries, ok := data["chQueries"].(map[string]any); ok {

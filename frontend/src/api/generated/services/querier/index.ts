@@ -21,7 +21,7 @@ import type {
 } from '../sigNoz.schemas';
 
 /**
- * Execute a composite query over a time range. Supports builder queries (traces, logs, metrics), formulas, trace operators, PromQL, and ClickHouse SQL.
+ * Execute a composite query over a time range. Supports builder queries (traces, logs, metrics), formulas, trace operators, and ClickHouse SQL.
  * @summary Query range
  */
 export const queryRangeV5 = (

@@ -121,7 +121,7 @@ export const getDefaultOption = (route: string): Time => {
 		return Options[2].value;
 	}
 
-	if (route === ROUTES.METER) {
+	if (route === ROUTES.HOME) {
 		return Options[5].value;
 	}
 	return Options[2].value;
@@ -143,7 +143,6 @@ export const routesToSkip = [
 	ROUTES.TRACE_DETAIL,
 	ROUTES.ALL_CHANNELS,
 	ROUTES.VERSION,
-	ROUTES.ORG_SETTINGS,
 	ROUTES.MEMBERS_SETTINGS,
 	ROUTES.ERROR_DETAIL,
 	ROUTES.LOGS,
@@ -167,9 +166,6 @@ export const routesToSkip = [
 	ROUTES.ALL_ERROR,
 	ROUTES.UN_AUTHORIZED,
 	ROUTES.NOT_FOUND,
-	ROUTES.METER_EXPLORER,
-	ROUTES.METER,
-	ROUTES.METER_EXPLORER_VIEWS,
 	ROUTES.SOMETHING_WENT_WRONG,
 ];
 

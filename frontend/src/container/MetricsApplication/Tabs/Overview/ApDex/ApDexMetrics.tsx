@@ -2,11 +2,7 @@ import { ReactNode, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { Space, Typography } from 'antd';
 import TextToolTip from 'components/TextToolTip';
-import {
-	apDexToolTipText,
-	apDexToolTipUrl,
-	apDexToolTipUrlText,
-} from 'constants/apDex';
+import { apDexToolTipText } from 'constants/apDex';
 import { ENTITY_VERSION_V5 } from 'constants/app';
 import { PANEL_TYPES } from 'constants/queryBuilder';
 import Graph from 'container/GridCardLayout/GridCard';
@@ -45,7 +41,6 @@ function ApDexMetrics({
 			getWidgetQueryBuilder({
 				query: {
 					queryType: EQueryType.QUERY_BUILDER,
-					promql: [],
 					builder: apDexMetricsQueryBuilderQueries({
 						servicename,
 						tagFilterItems,
@@ -61,12 +56,7 @@ function ApDexMetrics({
 				title: (
 					<Space>
 						<Typography>{GraphTitle.APDEX}</Typography>
-						<TextToolTip
-							text={apDexToolTipText}
-							url={apDexToolTipUrl}
-							useFilledIcon={false}
-							urlText={apDexToolTipUrlText}
-						/>
+						<TextToolTip text={apDexToolTipText} useFilledIcon={false} />
 					</Space>
 				),
 				panelTypes: PANEL_TYPES.TIME_SERIES,

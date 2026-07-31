@@ -25,8 +25,5 @@ export const useGetQueryLabels = (
 				value: q.name,
 			}));
 		}
-		return (currentQuery?.promql ?? []).map((q) => ({
-			label: q.name,
-			value: q.name,
-		}));
+		return [];
 	}, [currentQuery]);

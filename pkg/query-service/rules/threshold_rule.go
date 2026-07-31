@@ -282,7 +282,7 @@ func (r *ThresholdRule) buildAndRunQuery(ctx context.Context, orgID valuer.UUID,
 			r.logger.InfoContext(ctx, "not enough data points to evaluate series, skipping", "ruleid", r.ID(), "numPoints", len(series.Points), "requiredPoints", r.Condition().RequiredNumPoints)
 			continue
 		}
-		resultSeries, err := r.Threshold.Eval(*series, r.Unit(), ruletypes.EvalData{
+		resultSeries, err := r.Threshold.Eval(*series, r.ResultUnit(), ruletypes.EvalData{
 			ActiveAlerts:  r.ActiveAlertsLabelFP(),
 			SendUnmatched: r.ShouldSendUnmatched(),
 		})
@@ -298,7 +298,7 @@ func (r *ThresholdRule) buildAndRunQuery(ctx context.Context, orgID valuer.UUID,
 func (r *ThresholdRule) Eval(ctx context.Context, ts time.Time) (int, error) {
 	prevState := r.State()
 
-	valueFormatter := units.FormatterFromUnit(r.Unit())
+	valueFormatter := units.FormatterFromUnit(r.ResultUnit())
 
 	r.logger.InfoContext(ctx, "running query")
 	res, err := r.buildAndRunQuery(ctx, r.orgID, ts)
@@ -325,7 +325,7 @@ func (r *ThresholdRule) Eval(ctx context.Context, ts time.Time) (int, error) {
 			l[lbl.Name] = lbl.Value
 		}
 
-		value := valueFormatter.Format(smpl.V, r.Unit())
+		value := valueFormatter.Format(smpl.V, r.ResultUnit())
 		// todo(aniket): handle different threshold
 		threshold := valueFormatter.Format(smpl.Target, smpl.TargetUnit)
 		r.logger.DebugContext(ctx, "Alert template data for rule", "rule_name", r.Name(), "formatter", valueFormatter.Name(), "value", value, "threshold", threshold)

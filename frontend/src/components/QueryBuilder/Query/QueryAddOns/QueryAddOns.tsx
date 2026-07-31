@@ -8,7 +8,7 @@ import { ReduceToFilter } from 'container/QueryBuilder/filters/ReduceToFilter/Re
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
 import { useQueryOperations } from 'hooks/queryBuilder/useQueryBuilderOperations';
 import { get, isEmpty } from 'lodash-es';
-import { BarChart2, ChevronUp, ExternalLink, ScrollText } from 'lucide-react';
+import { BarChart2, ChevronUp, ScrollText } from 'lucide-react';
 import { IBuilderQuery } from 'types/api/queryBuilder/queryBuilderData';
 import { MetricAggregation } from 'types/api/v5/queryRange';
 import { DataSource, ReduceOperators } from 'types/common/queryBuilder';
@@ -23,7 +23,6 @@ interface AddOn {
 	label: string;
 	key: string;
 	description?: string;
-	docLink?: string;
 }
 
 const ADD_ONS_KEYS = {
@@ -51,7 +50,6 @@ const ADD_ONS = [
 		key: ADD_ONS_KEYS.GROUP_BY,
 		description:
 			'Break down data by attributes like service name, endpoint, status code, or region. Essential for spotting patterns and comparing performance across different segments.',
-		docLink: 'https://signoz.io/docs/userguide/query-builder-v5/#grouping',
 	},
 	{
 		icon: <ScrollText size={14} />,
@@ -59,8 +57,6 @@ const ADD_ONS = [
 		key: ADD_ONS_KEYS.HAVING,
 		description:
 			'Filter grouped results based on aggregate conditions. Show only groups meeting specific criteria, like error rates > 5% or p99 latency > 500',
-		docLink:
-			'https://signoz.io/docs/userguide/query-builder-v5/#conditional-filtering-with-having',
 	},
 	{
 		icon: <ScrollText size={14} />,
@@ -68,8 +64,6 @@ const ADD_ONS = [
 		key: ADD_ONS_KEYS.ORDER_BY,
 		description:
 			'Sort results to surface what matters most. Quickly identify slowest operations, most frequent errors, or highest resource consumers.',
-		docLink:
-			'https://signoz.io/docs/userguide/query-builder-v5/#sorting--limiting',
 	},
 	{
 		icon: <ScrollText size={14} />,
@@ -77,8 +71,6 @@ const ADD_ONS = [
 		key: ADD_ONS_KEYS.LIMIT,
 		description:
 			'Show only the top/bottom N results. Perfect for focusing on outliers, reducing noise, and improving dashboard performance.',
-		docLink:
-			'https://signoz.io/docs/userguide/query-builder-v5/#sorting--limiting',
 	},
 	{
 		icon: <ScrollText size={14} />,
@@ -86,8 +78,6 @@ const ADD_ONS = [
 		key: ADD_ONS_KEYS.LEGEND_FORMAT,
 		description:
 			'Customize series labels using variables like {{service.name}}-{{endpoint}}. Makes charts readable at a glance during incident investigation.',
-		docLink:
-			'https://signoz.io/docs/userguide/query-builder-v5/#legend-formatting',
 	},
 ];
 
@@ -97,8 +87,6 @@ const REDUCE_TO = {
 	key: ADD_ONS_KEYS.REDUCE_TO,
 	description:
 		'Apply mathematical operations like sum, average, min, max, or percentiles to reduce multiple time series into a single value.',
-	docLink:
-		'https://signoz.io/docs/userguide/query-builder-v5/#reduce-operations',
 };
 
 const hasValue = (value: unknown): boolean =>
@@ -108,11 +96,9 @@ const hasValue = (value: unknown): boolean =>
 function TooltipContent({
 	label,
 	description,
-	docLink,
 }: {
 	label: string;
 	description?: string;
-	docLink?: string;
 }): JSX.Element {
 	return (
 		<div
@@ -126,25 +112,6 @@ function TooltipContent({
 			<strong style={{ fontSize: '14px' }}>{label}</strong>
 			{description && (
 				<span style={{ fontSize: '12px', lineHeight: '1.5' }}>{description}</span>
-			)}
-			{docLink && (
-				<a
-					href={docLink}
-					target="_blank"
-					rel="noopener noreferrer"
-					onClick={(e): void => e.stopPropagation()}
-					style={{
-						display: 'flex',
-						alignItems: 'center',
-						gap: '4px',
-						color: '#4096ff',
-						fontSize: '12px',
-						marginTop: '4px',
-					}}
-				>
-					Learn more
-					<ExternalLink size={12} />
-				</a>
 			)}
 		</div>
 	);
@@ -347,7 +314,6 @@ function QueryAddOns({
 										<TooltipContent
 											label="Group By"
 											description="Break down data by attributes like service name, endpoint, status code, or region. Essential for spotting patterns and comparing performance across different segments."
-											docLink="https://signoz.io/docs/userguide/query-builder-v5/#grouping"
 										/>
 									}
 									placement="top"
@@ -383,7 +349,6 @@ function QueryAddOns({
 										<TooltipContent
 											label="Having"
 											description="Filter grouped results based on aggregate conditions. Show only groups meeting specific criteria, like error rates > 5% or p99 latency > 500"
-											docLink="https://signoz.io/docs/userguide/query-builder-v5/#conditional-filtering-with-having"
 										/>
 									}
 									placement="top"
@@ -432,7 +397,6 @@ function QueryAddOns({
 										<TooltipContent
 											label="Order By"
 											description="Sort results to surface what matters most. Quickly identify slowest operations, most frequent errors, or highest resource consumers."
-											docLink="https://signoz.io/docs/userguide/query-builder-v5/#sorting--limiting"
 										/>
 									}
 									placement="top"
@@ -469,7 +433,6 @@ function QueryAddOns({
 										<TooltipContent
 											label="Reduce to"
 											description="Apply mathematical operations like sum, average, min, max, or percentiles to reduce multiple time series into a single value."
-											docLink="https://signoz.io/docs/userguide/query-builder-v5/#reduce-operations"
 										/>
 									}
 									placement="top"
@@ -521,11 +484,7 @@ function QueryAddOns({
 						<Tooltip
 							key={addOn.key}
 							title={
-								<TooltipContent
-									label={addOn.label}
-									description={addOn.description}
-									docLink={addOn.docLink}
-								/>
+								<TooltipContent label={addOn.label} description={addOn.description} />
 							}
 							placement="top"
 							mouseEnterDelay={0.5}

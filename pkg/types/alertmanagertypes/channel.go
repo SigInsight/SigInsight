@@ -128,7 +128,6 @@ func NewConfigFromChannels(globalConfig GlobalConfig, routeConfig RouteConfig, c
 		if err != nil {
 			return nil, err
 		}
-
 		err = cfg.CreateReceiver(receiver)
 		if err != nil {
 			return nil, err

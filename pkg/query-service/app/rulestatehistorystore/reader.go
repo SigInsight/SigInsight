@@ -21,15 +21,15 @@ import (
 	chErrors "github.com/SigNoz/signoz/pkg/query-service/errors"
 	"github.com/SigNoz/signoz/pkg/query-service/interfaces"
 	"github.com/SigNoz/signoz/pkg/query-service/model"
-	"github.com/SigNoz/signoz/pkg/query-service/model/querytypes"
 	"github.com/SigNoz/signoz/pkg/types/ctxtypes"
 	"github.com/SigNoz/signoz/pkg/types/instrumentationtypes"
 	"github.com/SigNoz/signoz/pkg/types/timeseriestypes"
 )
 
 const (
-	defaultDatabase = "signoz_analytics"
-	defaultTable    = "rule_state_history_v0"
+	defaultDatabase               = "signoz_analytics"
+	defaultTable                  = "rule_state_history_v0"
+	ruleStateHistorySelectColumns = "rule_id, rule_name, overall_state, overall_state_changed, state, state_changed, unix_milli, labels, fingerprint, value"
 )
 
 type Config struct {
@@ -364,8 +364,8 @@ func (r *Reader) GetLastSavedRuleStateHistory(ctx context.Context, ruleID string
 		instrumentationtypes.CodeNamespace:    "clickhouse-reader",
 		instrumentationtypes.CodeFunctionName: "GetLastSavedRuleStateHistory",
 	})
-	query := fmt.Sprintf("SELECT * FROM %s.%s WHERE rule_id = ? AND state_changed = true ORDER BY unix_milli DESC LIMIT 1 BY fingerprint",
-		r.database, r.table)
+	query := fmt.Sprintf("SELECT %s FROM %s.%s WHERE rule_id = ? AND state_changed = true ORDER BY unix_milli DESC LIMIT 1 BY fingerprint",
+		ruleStateHistorySelectColumns, r.database, r.table)
 
 	history := []model.RuleStateHistory{}
 	err := r.db.Select(ctx, &history, query, ruleID)
@@ -398,56 +398,6 @@ func buildRuleStateHistoryConditions(ruleID string, params *model.QueryRuleState
 		args = append(args, params.State)
 	}
 
-	if params.Filters == nil || len(params.Filters.Items) == 0 {
-		return strings.Join(conditions, " AND "), args, nil
-	}
-
-	for _, item := range params.Filters.Items {
-		value := item.Value
-		op := querytypes.FilterOperator(strings.ToLower(strings.TrimSpace(string(item.Operator))))
-		if op == querytypes.FilterOperatorContains || op == querytypes.FilterOperatorNotContains {
-			value = fmt.Sprintf("%%%s%%", value)
-		}
-		label := "JSONExtractString(labels, ?)"
-		args = append(args, item.Key.Key)
-
-		switch op {
-		case querytypes.FilterOperatorEqual:
-			conditions = append(conditions, label+" = ?")
-		case querytypes.FilterOperatorNotEqual:
-			conditions = append(conditions, label+" != ?")
-		case querytypes.FilterOperatorIn:
-			conditions = append(conditions, label+" IN ?")
-		case querytypes.FilterOperatorNotIn:
-			conditions = append(conditions, label+" NOT IN ?")
-		case querytypes.FilterOperatorLike, querytypes.FilterOperatorContains:
-			conditions = append(conditions, "like("+label+", ?)")
-		case querytypes.FilterOperatorNotLike, querytypes.FilterOperatorNotContains:
-			conditions = append(conditions, "notLike("+label+", ?)")
-		case querytypes.FilterOperatorRegex:
-			conditions = append(conditions, "match("+label+", ?)")
-		case querytypes.FilterOperatorNotRegex:
-			conditions = append(conditions, "not match("+label+", ?)")
-		case querytypes.FilterOperatorGreaterThan:
-			conditions = append(conditions, label+" > ?")
-		case querytypes.FilterOperatorGreaterThanOrEq:
-			conditions = append(conditions, label+" >= ?")
-		case querytypes.FilterOperatorLessThan:
-			conditions = append(conditions, label+" < ?")
-		case querytypes.FilterOperatorLessThanOrEq:
-			conditions = append(conditions, label+" <= ?")
-		case querytypes.FilterOperatorExists:
-			conditions = append(conditions, "has(JSONExtractKeys(labels), ?)")
-			continue
-		case querytypes.FilterOperatorNotExists:
-			conditions = append(conditions, "not has(JSONExtractKeys(labels), ?)")
-			continue
-		default:
-			return "", nil, fmt.Errorf("unsupported filter operator")
-		}
-		args = append(args, value)
-	}
-
 	return strings.Join(conditions, " AND "), args, nil
 }
 
@@ -467,8 +417,8 @@ func (r *Reader) ReadRuleStateHistoryByRuleID(
 		return nil, err
 	}
 
-	query := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s ORDER BY unix_milli %s LIMIT %d OFFSET %d",
-		r.database, r.table, whereClause, order, params.Limit, params.Offset)
+	query := fmt.Sprintf("SELECT %s FROM %s.%s WHERE %s ORDER BY unix_milli %s LIMIT %d OFFSET %d",
+		ruleStateHistorySelectColumns, r.database, r.table, whereClause, order, params.Limit, params.Offset)
 
 	history := []model.RuleStateHistory{}
 	r.logger.Debug("rule state history query", "query", query)
@@ -487,35 +437,9 @@ func (r *Reader) ReadRuleStateHistoryByRuleID(
 		return nil, err
 	}
 
-	labelsQuery := fmt.Sprintf("SELECT DISTINCT labels FROM %s.%s WHERE rule_id = $1",
-		r.database, r.table)
-	rows, err := r.db.Query(ctx, labelsQuery, ruleID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	labelsMap := make(map[string][]string)
-	for rows.Next() {
-		var rawLabel string
-		err = rows.Scan(&rawLabel)
-		if err != nil {
-			return nil, err
-		}
-		label := map[string]string{}
-		err = json.Unmarshal([]byte(rawLabel), &label)
-		if err != nil {
-			return nil, err
-		}
-		for k, v := range label {
-			labelsMap[k] = append(labelsMap[k], v)
-		}
-	}
-
 	timeline := &model.RuleStateTimeline{
-		Items:  history,
-		Total:  total,
-		Labels: labelsMap,
+		Items: history,
+		Total: total,
 	}
 
 	return timeline, nil

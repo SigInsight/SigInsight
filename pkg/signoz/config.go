@@ -19,7 +19,6 @@ import (
 	"github.com/SigNoz/signoz/pkg/modules/metricsexplorer"
 	"github.com/SigNoz/signoz/pkg/modules/user"
 	"github.com/SigNoz/signoz/pkg/pprof"
-	"github.com/SigNoz/signoz/pkg/prometheus"
 	"github.com/SigNoz/signoz/pkg/querier"
 	"github.com/SigNoz/signoz/pkg/ruler"
 	"github.com/SigNoz/signoz/pkg/sharder"
@@ -69,9 +68,6 @@ type Config struct {
 	// TelemetryStore config
 	TelemetryStore telemetrystore.Config `mapstructure:"telemetrystore"`
 
-	// Prometheus config
-	Prometheus prometheus.Config `mapstructure:"prometheus"`
-
 	// Alertmanager config
 	Alertmanager alertmanager.Config `mapstructure:"alertmanager" yaml:"alertmanager"`
 
@@ -118,7 +114,6 @@ func NewConfig(ctx context.Context, logger *slog.Logger, resolverConfig config.R
 		sqlmigrator.NewConfigFactory(),
 		apiserver.NewConfigFactory(),
 		telemetrystore.NewConfigFactory(),
-		prometheus.NewConfigFactory(),
 		alertmanager.NewConfigFactory(),
 		querier.NewConfigFactory(),
 		ruler.NewConfigFactory(),

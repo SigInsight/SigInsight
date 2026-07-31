@@ -246,7 +246,7 @@ export function getThresholdStateFromAlertDef(
 				label: threshold.name,
 				thresholdValue: threshold.target,
 				recoveryThresholdValue: null,
-				unit: threshold.targetUnit,
+				targetUnit: threshold.targetUnit,
 				color: getColorForThreshold(threshold.name),
 				channels: threshold.channels,
 			})) || [],
@@ -278,7 +278,13 @@ export function getCreateAlertLocalStateFromAlertDef(
 		...INITIAL_ALERT_STATE,
 		name: alertDef.alert,
 		labels: alertDef.labels || {},
-		yAxisUnit: alertDef.condition.compositeQuery.unit,
+		resultUnit:
+			alertDef.condition.compositeQuery.resultUnit ??
+			alertDef.condition.compositeQuery.unit,
+		displayUnit:
+			alertDef.condition.compositeQuery.displayUnit ??
+			alertDef.condition.compositeQuery.resultUnit ??
+			alertDef.condition.compositeQuery.unit,
 	};
 
 	const thresholdState = getThresholdStateFromAlertDef(alertDef);

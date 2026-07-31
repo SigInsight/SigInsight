@@ -15,7 +15,6 @@ import (
 
 	chErrors "github.com/SigNoz/signoz/pkg/query-service/errors"
 	"github.com/SigNoz/signoz/pkg/query-service/model"
-	"github.com/SigNoz/signoz/pkg/query-service/model/querytypes"
 )
 
 type ruleHistoryQueryConn struct {
@@ -25,6 +24,15 @@ type ruleHistoryQueryConn struct {
 
 func (c ruleHistoryQueryConn) Query(ctx context.Context, query string, args ...any) (driver.Rows, error) {
 	return c.query(ctx, query, args...)
+}
+
+type ruleHistorySelectConn struct {
+	clickhouse.Conn
+	selectRows func(context.Context, any, string, ...any) error
+}
+
+func (c ruleHistorySelectConn) Select(ctx context.Context, dest any, query string, args ...any) error {
+	return c.selectRows(ctx, dest, query, args...)
 }
 
 func TestReadRowMapsTimestampValueAndLabels(t *testing.T) {
@@ -76,30 +84,16 @@ func TestPersonalisedErrorPreservesUnknownError(t *testing.T) {
 func TestBuildRuleStateHistoryConditionsBindsUserInput(t *testing.T) {
 	ruleID := "rule' OR 1=1 --"
 	state := "fir'ing"
-	labelKey := "service'name"
-	labelValue := "api'backend"
-	presentKey := "present'key"
 	conditions, args, err := buildRuleStateHistoryConditions(ruleID, &model.QueryRuleStateHistory{
 		Start: 100,
 		End:   200,
 		State: state,
-		Filters: &querytypes.FilterSet{Items: []querytypes.FilterItem{
-			{
-				Key:      querytypes.AttributeKey{Key: labelKey},
-				Operator: querytypes.FilterOperatorEqual,
-				Value:    labelValue,
-			},
-			{
-				Key:      querytypes.AttributeKey{Key: presentKey},
-				Operator: querytypes.FilterOperatorExists,
-			},
-		}},
 	})
 
 	require.NoError(t, err)
-	require.Equal(t, "rule_id = ? AND unix_milli >= ? AND unix_milli < ? AND state = ? AND JSONExtractString(labels, ?) = ? AND has(JSONExtractKeys(labels), ?)", conditions)
-	require.Equal(t, []any{ruleID, int64(100), int64(200), state, labelKey, labelValue, presentKey}, args)
-	for _, value := range []string{ruleID, state, labelKey, labelValue, presentKey} {
+	require.Equal(t, "rule_id = ? AND unix_milli >= ? AND unix_milli < ? AND state = ?", conditions)
+	require.Equal(t, []any{ruleID, int64(100), int64(200), state}, args)
+	for _, value := range []string{ruleID, state} {
 		require.False(t, strings.Contains(conditions, value))
 	}
 }
@@ -111,6 +105,23 @@ func TestRuleStateHistoryOrderOnlyAllowsKnownDirections(t *testing.T) {
 
 	_, err = ruleStateHistoryOrder("desc; DROP TABLE rule_state_history_v0")
 	require.EqualError(t, err, "order must be asc or desc")
+}
+
+func TestGetLastSavedRuleStateHistorySelectsOnlyModelColumns(t *testing.T) {
+	var capturedQuery string
+	reader := New(slog.New(slog.NewTextHandler(io.Discard, nil)), ruleHistorySelectConn{
+		selectRows: func(_ context.Context, _ any, query string, _ ...any) error {
+			capturedQuery = query
+			return nil
+		},
+	}, DefaultConfig())
+
+	_, err := reader.GetLastSavedRuleStateHistory(context.Background(), "rule-id")
+
+	require.NoError(t, err)
+	require.Contains(t, capturedQuery, "SELECT "+ruleStateHistorySelectColumns+" FROM")
+	require.NotContains(t, capturedQuery, "SELECT *")
+	require.NotContains(t, capturedQuery, "_retention_days")
 }
 
 func TestGetTriggersByIntervalPreservesQueryError(t *testing.T) {

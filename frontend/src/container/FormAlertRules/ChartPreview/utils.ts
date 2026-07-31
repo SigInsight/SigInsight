@@ -11,6 +11,7 @@ import {
 	TimeFormats,
 } from 'features/query-visualization/types';
 import { TFunction } from 'i18next';
+import { MetricRangePayloadProps } from 'types/api/metrics/getQueryRange';
 
 import {
 	dataFormatConfig,
@@ -110,10 +111,10 @@ export const getThresholds = (
 				`${t('preview_chart_threshold_label')} (y=${getThresholdLabel(
 					optionName,
 					threshold.thresholdValue,
-					threshold.unit,
+					threshold.targetUnit,
 					yAxisUnit,
 				)})`,
-			thresholdUnit: threshold.unit,
+			thresholdUnit: threshold.targetUnit,
 			thresholdColor: threshold.color || Color.TEXT_SAKURA_500,
 		};
 		thresholdsToReturn.push(mainThreshold);
@@ -131,14 +132,51 @@ export const getThresholds = (
 					: `${t('preview_chart_threshold_label')} (y=${getThresholdLabel(
 							optionName,
 							threshold.thresholdValue,
-							threshold.unit,
+							threshold.targetUnit,
 							yAxisUnit,
 					  )})`,
-				thresholdUnit: threshold.unit,
+				thresholdUnit: threshold.targetUnit,
 				thresholdColor: threshold.color || Color.TEXT_SAKURA_500,
 			};
 			thresholdsToReturn.push(recoveryThreshold);
 		}
 	});
 	return thresholdsToReturn;
+};
+
+/** Keep an alert preview on the single query selected for evaluation. */
+export const selectAlertQueryResult = (
+	payload: MetricRangePayloadProps,
+	selectedQueryName?: string,
+): MetricRangePayloadProps => {
+	if (!selectedQueryName || !payload?.data?.result?.length) {
+		return payload;
+	}
+
+	const result = payload.data.result.filter(
+		(item) => item.queryName === selectedQueryName,
+	);
+	if (result.length === payload.data.result.length) {
+		return payload;
+	}
+
+	const queryResult = payload.data.queryResult;
+	return {
+		...payload,
+		data: {
+			...payload.data,
+			result,
+			queryResult: queryResult
+				? {
+						...queryResult,
+						data: {
+							...queryResult.data,
+							result: queryResult.data.result.filter(
+								(item) => item.queryName === selectedQueryName,
+							),
+						},
+				  }
+				: queryResult,
+		},
+	};
 };

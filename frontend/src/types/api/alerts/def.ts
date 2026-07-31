@@ -1,4 +1,3 @@
-import { AlertLabelsProps } from 'pages/AlertDetails/AlertHeader/AlertLabels/AlertLabels';
 import { ICompositeMetricQuery } from 'types/api/alerts/compositeQuery';
 
 // default match type for threshold
@@ -106,7 +105,6 @@ export type AlertRuleTimelineTableResponsePayload = {
 	data: {
 		items: AlertRuleTimelineTableResponse[];
 		total: number;
-		labels: AlertLabelsProps['labels'];
 	};
 };
 type AlertState = 'firing' | 'normal' | 'no-data' | 'muted';

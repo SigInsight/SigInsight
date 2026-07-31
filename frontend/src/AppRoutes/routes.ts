@@ -21,7 +21,6 @@ import {
 	LogsExplorer,
 	LogsIndexToFields,
 	LogsSaveViews,
-	MeterExplorerPage,
 	MetricsExplorer,
 	PasswordReset,
 	ServiceMapPage,
@@ -294,27 +293,6 @@ const routes: AppRoutes[] = [
 		isPrivate: true,
 	},
 
-	{
-		path: ROUTES.METER,
-		exact: true,
-		component: MeterExplorerPage,
-		key: 'METER',
-		isPrivate: true,
-	},
-	{
-		path: ROUTES.METER_EXPLORER,
-		exact: true,
-		component: MeterExplorerPage,
-		key: 'METER_EXPLORER',
-		isPrivate: true,
-	},
-	{
-		path: ROUTES.METER_EXPLORER_VIEWS,
-		exact: true,
-		component: MeterExplorerPage,
-		key: 'METER_EXPLORER_VIEWS',
-		isPrivate: true,
-	},
 	{
 		path: ROUTES.API_MONITORING,
 		exact: true,

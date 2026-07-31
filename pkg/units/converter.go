@@ -60,6 +60,23 @@ func ConverterFromUnit(u Unit) Converter {
 	}
 }
 
+// AreCompatible reports whether values can be converted between two units.
+// Unknown units are compatible only when they are identical.
+func AreCompatible(from Unit, to Unit) bool {
+	if from == "" || to == "" {
+		return false
+	}
+	if from == to {
+		return true
+	}
+	fromConverter := ConverterFromUnit(from)
+	toConverter := ConverterFromUnit(to)
+	if fromConverter.Name() == NoneConverter.Name() || toConverter.Name() == NoneConverter.Name() {
+		return false
+	}
+	return fromConverter.Name() == toConverter.Name()
+}
+
 func UnitToName(u string) string {
 	switch u {
 	case "ns":

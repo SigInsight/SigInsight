@@ -73,7 +73,6 @@ describe('mapQueryDataFromApi', (): void => {
 		const result = mapQueryDataFromApi(compositeQuery);
 
 		expect(result.queryType).toBe(EQueryType.QUERY_BUILDER);
-		expect(result.promql).toEqual([]);
 		expect(result.clickhouse_sql).toEqual([]);
 
 		// Expect one builder query mapped and merged using base query fields
@@ -168,7 +167,6 @@ describe('mapQueryDataFromApi', (): void => {
 				],
 				queryFormulas: [],
 			},
-			promql: [],
 			clickhouse_sql: [],
 			id: 'b5f4b7db-799c-47d2-bf32-090340995e20',
 		};
@@ -204,7 +202,6 @@ describe('mapQueryDataFromApi', (): void => {
 				],
 				queryFormulas: [],
 			},
-			promql: [],
 			clickhouse_sql: [],
 			id: 'b5f4b7db-799c-47d2-bf32-090340995e20',
 		});

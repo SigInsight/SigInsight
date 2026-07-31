@@ -65,7 +65,6 @@ function ServiceOverview({
 			getWidgetQueryBuilder({
 				query: {
 					queryType: EQueryType.QUERY_BUILDER,
-					promql: [],
 					builder: latency({
 						servicename,
 						tagFilterItems,

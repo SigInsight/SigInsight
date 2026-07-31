@@ -62,51 +62,6 @@ var (
 	  ]
 	`
 
-	promQueryWithGrouping = `
-	[
-	    {
-	      "type":"promql",
-	      "spec":{
-	        "name":"P1",
-	        "query":"sum by (pod,region) (rate(http_requests_total[5m]))",
-	        "disabled":false,
-	        "step":0,
-	        "stats":false
-	      }
-	    }
-	  ]
-	`
-
-	promQuerySingleGrouping = `
-	[
-	    {
-	      "type":"promql",
-	      "spec":{
-	        "name":"P2",
-	        "query":"sum by (env)(rate(cpu_usage_seconds_total{job=\"api\"}[5m]))",
-	        "disabled":false,
-	        "step":0,
-	        "stats":false
-	      }
-	    }
-	  ]
-	`
-
-	promQueryNoGrouping = `
-	[
-	    {
-	      "type":"promql",
-	      "spec":{
-	        "name":"P3",
-	        "query":"rate(node_cpu_seconds_total[1m])",
-	        "disabled":false,
-	        "step":0,
-	        "stats":false
-	      }
-	    }
-	  ]
-	`
-
 	clickHouseQueryWithGrouping = `
 [
     {

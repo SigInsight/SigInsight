@@ -119,6 +119,14 @@ func newRuleStateHistoryTestReader() *rulestatehistorystore.Reader {
 	)
 }
 
+func getVectorValues(vector ruletypes.Vector) []float64 {
+	values := make([]float64, 0, len(vector))
+	for _, sample := range vector {
+		values = append(values, sample.V)
+	}
+	return values
+}
+
 func TestRuleSeriesFromTimeSeries(t *testing.T) {
 	series := ruleSeriesFromTimeSeries(&qbtypes.TimeSeries{
 		Labels: []*qbtypes.Label{

@@ -172,36 +172,6 @@ func TestQueryRangeRequest_ValidateAllQueriesNotDisabled(t *testing.T) {
 			errMsg:  "all queries are disabled - at least one query must be enabled",
 		},
 		{
-			name: "all PromQL queries disabled should return error",
-			request: QueryRangeRequest{
-				Start:       1640995200000,
-				End:         1640998800000,
-				RequestType: RequestTypeTimeSeries,
-				CompositeQuery: CompositeQuery{
-					Queries: []QueryEnvelope{
-						{
-							Type: QueryTypePromQL,
-							Spec: PromQuery{
-								Name:     "P1",
-								Query:    "up",
-								Disabled: true,
-							},
-						},
-						{
-							Type: QueryTypePromQL,
-							Spec: PromQuery{
-								Name:     "P2",
-								Query:    "rate(http_requests_total[5m])",
-								Disabled: true,
-							},
-						},
-					},
-				},
-			},
-			wantErr: true,
-			errMsg:  "all queries are disabled - at least one query must be enabled",
-		},
-		{
 			name: "mixed query types with all disabled should return error",
 			request: QueryRangeRequest{
 				Start:       1640995200000,
@@ -230,14 +200,6 @@ func TestQueryRangeRequest_ValidateAllQueriesNotDisabled(t *testing.T) {
 								Name:       "F1",
 								Expression: "A + 1",
 								Disabled:   true,
-							},
-						},
-						{
-							Type: QueryTypePromQL,
-							Spec: PromQuery{
-								Name:     "P1",
-								Query:    "up",
-								Disabled: true,
 							},
 						},
 					},
@@ -521,27 +483,6 @@ func TestQueryRangeRequest_ValidateCompositeQuery(t *testing.T) {
 			errMsg:  "expression is required",
 		},
 		{
-			name: "promql with empty query should return error",
-			request: QueryRangeRequest{
-				Start:       1640995200000,
-				End:         1640998800000,
-				RequestType: RequestTypeTimeSeries,
-				CompositeQuery: CompositeQuery{
-					Queries: []QueryEnvelope{
-						{
-							Type: QueryTypePromQL,
-							Spec: PromQuery{
-								Name:  "P1",
-								Query: "",
-							},
-						},
-					},
-				},
-			},
-			wantErr: true,
-			errMsg:  "PromQL query is required",
-		},
-		{
 			name: "clickhouse with empty query should return error",
 			request: QueryRangeRequest{
 				Start:       1640995200000,
@@ -582,26 +523,6 @@ func TestQueryRangeRequest_ValidateCompositeQuery(t *testing.T) {
 			},
 			wantErr: true,
 			errMsg:  "expression is required",
-		},
-		{
-			name: "valid promql query should pass",
-			request: QueryRangeRequest{
-				Start:       1640995200000,
-				End:         1640998800000,
-				RequestType: RequestTypeTimeSeries,
-				CompositeQuery: CompositeQuery{
-					Queries: []QueryEnvelope{
-						{
-							Type: QueryTypePromQL,
-							Spec: PromQuery{
-								Name:  "P1",
-								Query: "up",
-							},
-						},
-					},
-				},
-			},
-			wantErr: false,
 		},
 		{
 			name: "valid clickhouse query should pass",
@@ -651,13 +572,6 @@ func TestQueryRangeRequest_ValidateCompositeQuery(t *testing.T) {
 								Aggregations: []TraceAggregation{
 									{Expression: "count()"},
 								},
-							},
-						},
-						{
-							Type: QueryTypePromQL,
-							Spec: PromQuery{
-								Name:  "C",
-								Query: "up",
 							},
 						},
 					},
@@ -772,19 +686,6 @@ func TestValidateQueryEnvelope(t *testing.T) {
 			errMsg:      "expression is required",
 		},
 		{
-			name: "promql with empty query should fail",
-			envelope: QueryEnvelope{
-				Type: QueryTypePromQL,
-				Spec: PromQuery{
-					Name:  "P1",
-					Query: "",
-				},
-			},
-			requestType: RequestTypeTimeSeries,
-			wantErr:     true,
-			errMsg:      "PromQL query is required",
-		},
-		{
 			name: "clickhouse with empty query should fail",
 			envelope: QueryEnvelope{
 				Type: QueryTypeClickHouseSQL,
@@ -847,11 +748,6 @@ func TestQueryEnvelope_Helpers(t *testing.T) {
 				want:     "F1",
 			},
 			{
-				name:     "promql",
-				envelope: QueryEnvelope{Type: QueryTypePromQL, Spec: PromQuery{Name: "P1"}},
-				want:     "P1",
-			},
-			{
 				name:     "clickhouse",
 				envelope: QueryEnvelope{Type: QueryTypeClickHouseSQL, Spec: ClickHouseQuery{Name: "CH1"}},
 				want:     "CH1",
@@ -902,11 +798,6 @@ func TestQueryEnvelope_Helpers(t *testing.T) {
 				name:     "disabled formula",
 				envelope: QueryEnvelope{Type: QueryTypeFormula, Spec: QueryBuilderFormula{Disabled: true}},
 				want:     true,
-			},
-			{
-				name:     "enabled promql",
-				envelope: QueryEnvelope{Type: QueryTypePromQL, Spec: PromQuery{Disabled: false}},
-				want:     false,
 			},
 			{
 				name:     "disabled clickhouse",
@@ -965,12 +856,6 @@ func TestGetQueryIdentifier(t *testing.T) {
 			envelope: QueryEnvelope{Type: QueryTypeFormula, Spec: QueryBuilderFormula{}},
 			index:    1,
 			want:     "formula at position 2",
-		},
-		{
-			name:     "promql with name",
-			envelope: QueryEnvelope{Type: QueryTypePromQL, Spec: PromQuery{Name: "P1"}},
-			index:    0,
-			want:     "PromQL query 'P1'",
 		},
 		{
 			name:     "clickhouse with name",

@@ -20,7 +20,6 @@ import (
 	"github.com/SigNoz/signoz/pkg/cache"
 	"github.com/SigNoz/signoz/pkg/errors"
 	"github.com/SigNoz/signoz/pkg/modules/organization"
-	"github.com/SigNoz/signoz/pkg/prometheus"
 	querierV5 "github.com/SigNoz/signoz/pkg/querier"
 	"github.com/SigNoz/signoz/pkg/query-service/interfaces"
 	"github.com/SigNoz/signoz/pkg/query-service/model"
@@ -81,14 +80,12 @@ func prepareTaskName(ruleId interface{}) string {
 // ManagerOptions bundles options for the Manager.
 type ManagerOptions struct {
 	MetadataStore telemetrytypes.MetadataStore
-	Prometheus    prometheus.Prometheus
-
-	Context     context.Context
-	ResendDelay time.Duration
-	Reader      interfaces.RuleStateHistoryReader
-	Querier     querierV5.Querier
-	Logger      *slog.Logger
-	Cache       cache.Cache
+	Context       context.Context
+	ResendDelay   time.Duration
+	Reader        interfaces.RuleStateHistoryReader
+	Querier       querierV5.Querier
+	Logger        *slog.Logger
+	Cache         cache.Cache
 
 	EvalDelay valuer.TextDuration
 
@@ -176,32 +173,8 @@ func defaultPrepareTaskFunc(opts PrepareTaskOptions) (Task, error) {
 		// create ch rule task for evaluation
 		task = newTask(TaskTypeCh, opts.TaskName, taskNameSuffix, evaluation.GetFrequency().Duration(), rules, opts.ManagerOpts, opts.NotifyFunc)
 
-	} else if opts.Rule.RuleType == ruletypes.RuleTypeProm {
-
-		// create promql rule
-		pr, err := NewPromRule(
-			ruleId,
-			opts.OrgID,
-			opts.Rule,
-			opts.Logger,
-			opts.Reader,
-			opts.ManagerOpts.Prometheus,
-			WithSQLStore(opts.SQLStore),
-			WithQueryParser(opts.ManagerOpts.QueryParser),
-			WithMetadataStore(opts.ManagerOpts.MetadataStore),
-		)
-
-		if err != nil {
-			return task, err
-		}
-
-		rules = append(rules, pr)
-
-		// create promql rule task for evaluation
-		task = newTask(TaskTypeProm, opts.TaskName, taskNameSuffix, evaluation.GetFrequency().Duration(), rules, opts.ManagerOpts, opts.NotifyFunc)
-
 	} else {
-		return nil, fmt.Errorf("unsupported rule type %s. Supported types: %s, %s", opts.Rule.RuleType, ruletypes.RuleTypeProm, ruletypes.RuleTypeThreshold)
+		return nil, fmt.Errorf("unsupported rule type %s. Supported type: %s", opts.Rule.RuleType, ruletypes.RuleTypeThreshold)
 	}
 
 	return task, nil
@@ -1023,12 +996,6 @@ func (m *Manager) GetAlertDetailsForMetricNames(ctx context.Context, metricNames
 				for _, aggregation := range spec.Aggregations {
 					if aggregation.MetricName != "" {
 						metricRulesMap[aggregation.MetricName] = append(metricRulesMap[aggregation.MetricName], rule)
-					}
-				}
-			case qbtypes.PromQuery:
-				for _, metricName := range metricNames {
-					if strings.Contains(spec.Query, metricName) {
-						metricRulesMap[metricName] = append(metricRulesMap[metricName], rule)
 					}
 				}
 			case qbtypes.ClickHouseQuery:

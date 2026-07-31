@@ -68,7 +68,6 @@ export const getWidgetQuery = ({
 	columnUnits,
 	query: {
 		queryType: EQueryType.QUERY_BUILDER,
-		promql: [],
 		builder: {
 			queryData,
 			queryFormulas: queryFormulas || [],

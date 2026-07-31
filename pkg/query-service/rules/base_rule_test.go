@@ -209,35 +209,6 @@ func TestBaseRule_FilterNewSeries(t *testing.T) {
 			}, // svc-old and svc-missing should be included; svc-new is filtered out
 		},
 		{
-			name: "all new series - PromQL query",
-			compositeQuery: &ruletypes.CompositeQuery{
-				QueryType: querytypes.QueryTypePromQL,
-				Queries: []qbtypes.QueryEnvelope{
-					{
-						Type: qbtypes.QueryTypePromQL,
-						Spec: qbtypes.PromQuery{
-							Name:     "P1",
-							Query:    "sum by (service_name,env) (rate(request_total[5m]))",
-							Disabled: false,
-							Step:     qbtypes.Step{Duration: 0},
-							Stats:    false,
-						},
-					},
-				},
-			},
-			series: []*timeseriestypes.Series{
-				createTestSeries(map[string]string{"service_name": "svc-new1", "env": "prod"}, nil),
-				createTestSeries(map[string]string{"service_name": "svc-new2", "env": "stage"}, nil),
-			},
-			firstSeenMap: mergeFirstSeenMaps(
-				createFirstSeenMap("request_total", defaultGroupByFields, defaultEvalTime, defaultDelay, false, "svc-new1", "prod"),
-				createFirstSeenMap("request_total", defaultGroupByFields, defaultEvalTime, defaultDelay, false, "svc-new2", "stage"),
-			),
-			newGroupEvalDelay: defaultNewGroupEvalDelay,
-			evalTime:          defaultEvalTime,
-			expectedFiltered:  []*timeseriestypes.Series{}, // all should be filtered out (new series)
-		},
-		{
 			name: "all old series - ClickHouse query",
 			compositeQuery: &ruletypes.CompositeQuery{
 				QueryType: querytypes.QueryTypeClickHouseSQL,
@@ -365,36 +336,6 @@ func TestBaseRule_FilterNewSeries(t *testing.T) {
 			expectedFiltered: []*timeseriestypes.Series{
 				createTestSeries(map[string]string{"status": "200"}, nil),
 			}, // series included as we can't decide if it's new or old
-		},
-		{
-			name: "series with missing metadata - PromQL",
-			compositeQuery: &ruletypes.CompositeQuery{
-				QueryType: querytypes.QueryTypePromQL,
-				Queries: []qbtypes.QueryEnvelope{
-					{
-						Type: qbtypes.QueryTypePromQL,
-						Spec: qbtypes.PromQuery{
-							Name:     "P1",
-							Query:    "sum by (service_name,env) (rate(request_total[5m]))",
-							Disabled: false,
-							Step:     qbtypes.Step{Duration: 0},
-							Stats:    false,
-						},
-					},
-				},
-			},
-			series: []*timeseriestypes.Series{
-				createTestSeries(map[string]string{"service_name": "svc-old", "env": "prod"}, nil),
-				createTestSeries(map[string]string{"service_name": "svc-no-metadata", "env": "prod"}, nil),
-			},
-			firstSeenMap: createFirstSeenMap("request_total", defaultGroupByFields, defaultEvalTime, defaultDelay, true, "svc-old", "prod"),
-			// svc-no-metadata has no entry in firstSeenMap
-			newGroupEvalDelay: defaultNewGroupEvalDelay,
-			evalTime:          defaultEvalTime,
-			expectedFiltered: []*timeseriestypes.Series{
-				createTestSeries(map[string]string{"service_name": "svc-old", "env": "prod"}, nil),
-				createTestSeries(map[string]string{"service_name": "svc-no-metadata", "env": "prod"}, nil),
-			}, // both should be included - svc-old is old, svc-no-metadata can't be decided
 		},
 		{
 			name: "series with partial metadata - ClickHouse",

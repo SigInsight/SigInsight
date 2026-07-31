@@ -86,14 +86,6 @@ const mockProps: WidgetGraphComponentProps = {
 				},
 			],
 			id: '47449208-2c76-4465-9c62-a37fb4f5f11f',
-			promql: [
-				{
-					disabled: false,
-					legend: '',
-					name: 'A',
-					query: '',
-				},
-			],
 			queryType: EQueryType.QUERY_BUILDER,
 		},
 		selectedLogFields: [

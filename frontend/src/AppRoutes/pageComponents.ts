@@ -107,10 +107,6 @@ export const StatusPage = Loadable(
 	() => import(/* webpackChunkName: "All Status" */ 'pages/Status'),
 );
 
-export const OrganizationSettings = Loadable(
-	() => import(/* webpackChunkName: "All Settings" */ 'pages/Settings'),
-);
-
 export const MySettings = Loadable(
 	() => import(/* webpackChunkName: "All MySettings" */ 'pages/Settings'),
 );
@@ -173,9 +169,4 @@ export const AlertTypeSelectionPage = Loadable(
 		import(
 			/* webpackChunkName: "Alert Type Selection Page" */ 'pages/AlertTypeSelection'
 		),
-);
-
-export const MeterExplorerPage = Loadable(
-	() =>
-		import(/* webpackChunkName: "Meter Explorer Page" */ 'pages/MeterExplorer'),
 );

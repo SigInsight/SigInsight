@@ -18,7 +18,6 @@ import { lightenColor, tooltipStyles } from './utils';
 
 import './PiePanelWrapper.styles.scss';
 
-// reference: https://www.youtube.com/watch?v=bL3P9CqQkKw
 function PiePanelWrapper({
 	queryResponse,
 	widget,

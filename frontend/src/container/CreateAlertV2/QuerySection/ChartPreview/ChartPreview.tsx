@@ -1,8 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 // eslint-disable-next-line no-restricted-imports
 import { useSelector } from 'react-redux';
+import { Select, Space, Tag, Typography } from 'antd';
 import YAxisUnitSelector from 'components/YAxisUnitSelector';
 import { YAxisSource } from 'components/YAxisUnitSelector/types';
+import { getUniversalNameFromMetricUnit } from 'components/YAxisUnitSelector/utils';
 import { PANEL_TYPES } from 'constants/queryBuilder';
 import { useCreateAlertState } from 'container/CreateAlertV2/context';
 import ChartPreviewComponent from 'container/FormAlertRules/ChartPreview';
@@ -10,24 +12,29 @@ import PlotTag from 'container/NewWidget/LeftContainer/WidgetGraph/PlotTag';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
 import useGetYAxisUnit from 'hooks/useGetYAxisUnit';
 import { AppState } from 'store/reducers';
-import { AlertTypes } from 'types/api/alerts/alertTypes';
 import { AlertDef } from 'types/api/alerts/def';
 import { EQueryType } from 'types/common/dashboard';
 import { GlobalReducer } from 'types/reducer/globalTime';
 
+import {
+	getAlertUnitInferenceKey,
+	getCompatibleUnitOptions,
+	inferAlertResultUnit,
+	isUnitCompatible,
+} from '../../units';
+
 export interface ChartPreviewProps {
 	alertDef: AlertDef;
-	source?: YAxisSource;
 }
 
-function ChartPreview({ alertDef, source }: ChartPreviewProps): JSX.Element {
+function ChartPreview({ alertDef }: ChartPreviewProps): JSX.Element {
 	const { currentQuery, panelType, stagedQuery } = useQueryBuilder();
 	const {
 		alertType,
 		thresholdState,
 		alertState,
 		setAlertState,
-		isEditMode,
+		setThresholdState,
 	} = useCreateAlertState();
 	const { selectedTime: globalSelectedInterval } = useSelector<
 		AppState,
@@ -35,29 +42,111 @@ function ChartPreview({ alertDef, source }: ChartPreviewProps): JSX.Element {
 	>((state) => state.globalTime);
 	const [, setQueryStatus] = useState<string>('');
 
-	const yAxisUnit = alertState.yAxisUnit || '';
-
-	// Only update automatically when creating a new metrics-based alert rule
-	const shouldUpdateYAxisUnit = useMemo(() => {
-		// Do not update if we are coming to the page from dashboards (we still show warning)
-		if (source === YAxisSource.DASHBOARDS) {
-			return false;
-		}
-		return !isEditMode && alertType === AlertTypes.METRICS_BASED_ALERT;
-	}, [isEditMode, alertType, source]);
+	const resultUnit = alertState.resultUnit || '';
+	const displayUnit = alertState.displayUnit || '';
 
 	const selectedQueryName = thresholdState.selectedQuery;
-	const { yAxisUnit: initialYAxisUnit, isLoading } = useGetYAxisUnit(
+	const { yAxisUnit: metricUnit, isLoading } = useGetYAxisUnit(
 		selectedQueryName,
 	);
 
-	// Every time a new metric is selected, set the y-axis unit to its unit value if present
-	// Only for metrics-based alerts in create mode
+	const unitQuery = stagedQuery || currentQuery;
+	const inferredResultUnit = useMemo(
+		() =>
+			inferAlertResultUnit({
+				query: unitQuery,
+				selectedQueryName,
+				metricUnit,
+				alertType,
+			}),
+		[unitQuery, selectedQueryName, metricUnit, alertType],
+	);
+	const unitInferenceKey = useMemo(
+		() =>
+			getAlertUnitInferenceKey({
+				query: unitQuery,
+				selectedQueryName,
+				metricUnit,
+				alertType,
+			}),
+		[unitQuery, selectedQueryName, metricUnit, alertType],
+	);
+	const previousUnitInferenceKey = useRef(unitInferenceKey);
+
+	const compatibleDisplayUnits = useMemo(
+		() => getCompatibleUnitOptions(resultUnit),
+		[resultUnit],
+	);
+
 	useEffect(() => {
-		if (shouldUpdateYAxisUnit) {
-			setAlertState({ type: 'SET_Y_AXIS_UNIT', payload: initialYAxisUnit });
+		const selectedQueryChanged =
+			previousUnitInferenceKey.current !== unitInferenceKey;
+		previousUnitInferenceKey.current = unitInferenceKey;
+
+		if (!inferredResultUnit) {
+			const hasOrphanedUnits =
+				!alertState.resultUnit &&
+				(Boolean(alertState.displayUnit) ||
+					thresholdState.thresholds.some((threshold) => threshold.targetUnit));
+			if (selectedQueryChanged || hasOrphanedUnits) {
+				setAlertState({ type: 'SET_RESULT_UNIT', payload: undefined });
+				setAlertState({ type: 'SET_DISPLAY_UNIT', payload: undefined });
+				setThresholdState({
+					type: 'SET_THRESHOLDS',
+					payload: thresholdState.thresholds.map((threshold) => ({
+						...threshold,
+						targetUnit: '',
+					})),
+				});
+			}
+			return;
 		}
-	}, [initialYAxisUnit, setAlertState, shouldUpdateYAxisUnit]);
+
+		if (alertState.resultUnit !== inferredResultUnit) {
+			setAlertState({ type: 'SET_RESULT_UNIT', payload: inferredResultUnit });
+		}
+		if (!isUnitCompatible(alertState.displayUnit, inferredResultUnit)) {
+			setAlertState({ type: 'SET_DISPLAY_UNIT', payload: inferredResultUnit });
+		}
+
+		const normalizedThresholds = thresholdState.thresholds.map((threshold) => ({
+			...threshold,
+			targetUnit: isUnitCompatible(threshold.targetUnit, inferredResultUnit)
+				? threshold.targetUnit
+				: inferredResultUnit,
+		}));
+		if (
+			normalizedThresholds.some(
+				(threshold, index) =>
+					threshold.targetUnit !== thresholdState.thresholds[index].targetUnit,
+			)
+		) {
+			setThresholdState({
+				type: 'SET_THRESHOLDS',
+				payload: normalizedThresholds,
+			});
+		}
+	}, [
+		alertState.displayUnit,
+		alertState.resultUnit,
+		inferredResultUnit,
+		unitInferenceKey,
+		setAlertState,
+		setThresholdState,
+		thresholdState.thresholds,
+	]);
+
+	const setDeclaredResultUnit = (value: string | undefined): void => {
+		setAlertState({ type: 'SET_RESULT_UNIT', payload: value });
+		setAlertState({ type: 'SET_DISPLAY_UNIT', payload: value });
+		setThresholdState({
+			type: 'SET_THRESHOLDS',
+			payload: thresholdState.thresholds.map((threshold) => ({
+				...threshold,
+				targetUnit: value || '',
+			})),
+		});
+	};
 
 	const headline = (
 		<div className="chart-preview-headline">
@@ -65,15 +154,32 @@ function ChartPreview({ alertDef, source }: ChartPreviewProps): JSX.Element {
 				queryType={currentQuery.queryType}
 				panelType={panelType || PANEL_TYPES.TIME_SERIES}
 			/>
-			<YAxisUnitSelector
-				value={yAxisUnit}
-				initialValue={initialYAxisUnit}
-				onChange={(value): void => {
-					setAlertState({ type: 'SET_Y_AXIS_UNIT', payload: value });
-				}}
-				source={YAxisSource.ALERTS}
-				loading={isLoading}
-			/>
+			<Space size={8} wrap>
+				<Typography.Text type="secondary">Result unit</Typography.Text>
+				{inferredResultUnit ? (
+					<Tag>{getUniversalNameFromMetricUnit(inferredResultUnit)}</Tag>
+				) : (
+					<YAxisUnitSelector
+						value={resultUnit}
+						onChange={setDeclaredResultUnit}
+						source={YAxisSource.ALERTS}
+						loading={isLoading}
+						placeholder="Declare result unit"
+					/>
+				)}
+				<Typography.Text type="secondary">Display unit</Typography.Text>
+				<Select
+					value={displayUnit || undefined}
+					onChange={(value): void =>
+						setAlertState({ type: 'SET_DISPLAY_UNIT', payload: value })
+					}
+					options={compatibleDisplayUnits}
+					disabled={!resultUnit || compatibleDisplayUnits.length <= 1}
+					style={{ width: 150 }}
+					placeholder="Display unit"
+					data-testid="alert-display-unit-select"
+				/>
+			</Space>
 		</div>
 	);
 
@@ -84,7 +190,8 @@ function ChartPreview({ alertDef, source }: ChartPreviewProps): JSX.Element {
 			query={stagedQuery}
 			selectedInterval={globalSelectedInterval}
 			alertDef={alertDef}
-			yAxisUnit={yAxisUnit || ''}
+			resultUnit={resultUnit}
+			displayUnit={displayUnit}
 			graphType={panelType || PANEL_TYPES.TIME_SERIES}
 			setQueryStatus={setQueryStatus}
 			additionalThresholds={thresholdState.thresholds}
@@ -98,7 +205,8 @@ function ChartPreview({ alertDef, source }: ChartPreviewProps): JSX.Element {
 			query={stagedQuery}
 			alertDef={alertDef}
 			selectedInterval={globalSelectedInterval}
-			yAxisUnit={yAxisUnit || ''}
+			resultUnit={resultUnit}
+			displayUnit={displayUnit}
 			graphType={panelType || PANEL_TYPES.TIME_SERIES}
 			setQueryStatus={setQueryStatus}
 			additionalThresholds={thresholdState.thresholds}
@@ -109,8 +217,6 @@ function ChartPreview({ alertDef, source }: ChartPreviewProps): JSX.Element {
 		<div className="chart-preview-container">
 			{currentQuery.queryType === EQueryType.QUERY_BUILDER &&
 				renderQBChartPreview()}
-			{currentQuery.queryType === EQueryType.PROM &&
-				renderPromAndChQueryChartPreview()}
 			{currentQuery.queryType === EQueryType.CLICKHOUSE &&
 				renderPromAndChQueryChartPreview()}
 		</div>

@@ -39,7 +39,8 @@ jest.mock(
 					<div data-testid="selected-interval">
 						{props.selectedInterval?.startTime}
 					</div>
-					<div data-testid="y-axis-unit">{props.yAxisUnit}</div>
+					<div data-testid="result-unit">{props.resultUnit}</div>
+					<div data-testid="display-unit">{props.displayUnit}</div>
 					<div data-testid={GRAPH_TYPE_TEST_ID}>{props.graphType}</div>
 				</div>
 			);
@@ -120,7 +121,8 @@ jest.mock('../../context', () => ({
 	useCreateAlertState: (): any => ({
 		alertState: {
 			...INITIAL_ALERT_STATE,
-			yAxisUnit: REQUESTS_PER_SEC,
+			resultUnit: REQUESTS_PER_SEC,
+			displayUnit: REQUESTS_PER_SEC,
 		},
 		thresholdState: INITIAL_ALERT_THRESHOLD_STATE,
 		setAlertState: jest.fn(),
@@ -187,37 +189,16 @@ describe('ChartPreview', () => {
 		expect(screen.getByTestId(QUERY_TYPE_TEST_ID)).toHaveTextContent(
 			EQueryType.QUERY_BUILDER,
 		);
-		expect(screen.getByTestId('y-axis-unit')).toHaveTextContent(REQUESTS_PER_SEC);
+		expect(screen.getByTestId('result-unit')).toHaveTextContent(REQUESTS_PER_SEC);
+		expect(screen.getByTestId('display-unit')).toHaveTextContent(
+			REQUESTS_PER_SEC,
+		);
 		expect(screen.getByTestId(GRAPH_TYPE_TEST_ID)).toHaveTextContent(
 			PANEL_TYPES.TIME_SERIES,
 		);
 		expect(screen.getByTestId('name')).toHaveTextContent('');
 		expect(screen.getByTestId('headline')).toBeInTheDocument();
 		expect(screen.getByTestId('selected-interval')).toBeInTheDocument();
-	});
-
-	it('renders PromQL chart preview when query type is PROM', () => {
-		useQueryBuilder.mockReturnValue({
-			...mockUseQueryBuilder,
-			currentQuery: {
-				...mockUseQueryBuilder.currentQuery,
-				queryType: EQueryType.PROM,
-			},
-			stagedQuery: {
-				queryType: EQueryType.PROM,
-				unit: REQUESTS_PER_SEC,
-			},
-		});
-
-		renderChartPreview();
-
-		expect(
-			screen.getByTestId(CHART_PREVIEW_COMPONENT_TEST_ID),
-		).toBeInTheDocument();
-		expect(screen.getByTestId('name')).toHaveTextContent(CHART_PREVIEW_NAME);
-		expect(screen.getByTestId(QUERY_TYPE_TEST_ID)).toHaveTextContent(
-			EQueryType.PROM,
-		);
 	});
 
 	it('renders ClickHouse chart preview when query type is CLICKHOUSE', () => {

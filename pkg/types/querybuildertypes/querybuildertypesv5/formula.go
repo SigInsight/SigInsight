@@ -313,6 +313,13 @@ func (fe *FormulaEvaluator) EvaluateFormula(timeSeriesData map[string]*TimeSerie
 		resultSeries = append(resultSeries, series)
 	}
 
+	// Formula series are evaluated concurrently and originate from maps. Keep the
+	// response order stable so a chart does not assign different colors to the
+	// same label set between evaluations.
+	slices.SortFunc(resultSeries, func(a, b *TimeSeries) int {
+		return strings.Compare(fe.buildSeriesKey("", 0, a.Labels), fe.buildSeriesKey("", 0, b.Labels))
+	})
+
 	return resultSeries, nil
 }
 

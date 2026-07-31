@@ -149,7 +149,6 @@ function Application(): JSX.Element {
 			getWidgetQueryBuilder({
 				query: {
 					queryType: EQueryType.QUERY_BUILDER,
-					promql: [],
 					builder: operationPerSec({
 						servicename,
 						tagFilterItems,
@@ -172,7 +171,6 @@ function Application(): JSX.Element {
 			getWidgetQueryBuilder({
 				query: {
 					queryType: EQueryType.QUERY_BUILDER,
-					promql: [],
 					builder: errorPercentage({
 						servicename,
 						tagFilterItems,

@@ -10,12 +10,11 @@ import {
 	keyboardShortcuts,
 	membersSettings,
 	mySettings,
-	organizationSettings,
 } from './config';
 
 export const getRoutes = (
 	userRole: ROLES | null,
-	isCurrentOrgSettings: boolean,
+	_isCurrentOrgSettings: boolean,
 	isWorkspaceBlocked: boolean,
 	t: TFunction,
 ): RouteTabProps['routes'] => {
@@ -25,7 +24,6 @@ export const getRoutes = (
 
 	if (isWorkspaceBlocked && isAdmin) {
 		settings.push(
-			...organizationSettings(t),
 			...membersSettings(t),
 			...mySettings(t),
 			...keyboardShortcuts(t),
@@ -35,10 +33,6 @@ export const getRoutes = (
 	}
 
 	settings.push(...generalSettings(t));
-
-	if (isCurrentOrgSettings) {
-		settings.push(...organizationSettings(t));
-	}
 
 	settings.push(...alertChannels(t));
 

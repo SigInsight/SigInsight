@@ -85,7 +85,6 @@ describe('QueryBuilder + Query - base render', () => {
 			id: 'test',
 			unit: undefined,
 			queryType: EQueryType.CLICKHOUSE,
-			promql: [],
 			clickhouse_sql: [],
 			builder: {
 				queryData: [baseQuery],

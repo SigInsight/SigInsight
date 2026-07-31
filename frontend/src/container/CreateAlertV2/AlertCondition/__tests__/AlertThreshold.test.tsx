@@ -97,15 +97,6 @@ jest.mock('api/channels/getAll', () => ({
 	),
 }));
 
-// Mock alert format categories
-jest.mock('features/query-visualization/formats', () => ({
-	getCategoryByOptionId: jest.fn(() => ({ name: 'bytes' })),
-	getCategorySelectOptionByName: jest.fn(() => [
-		{ label: 'Bytes', value: 'bytes' },
-		{ label: 'KB', value: 'kb' },
-	]),
-}));
-
 jest.mock('container/CreateAlertV2/utils', () => ({
 	...jest.requireActual('container/CreateAlertV2/utils'),
 }));

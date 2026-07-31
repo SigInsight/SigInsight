@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, Tooltip, Typography } from 'antd';
+import { Button, Tooltip } from 'antd';
 import cx from 'classnames';
 import { useIsDarkMode } from 'hooks/useDarkMode';
 import { cloneDeep, pullAt } from 'lodash-es';
@@ -217,18 +217,7 @@ export default function QueryFunctions({
 							hasAnomalyFunction ? 2 : 3
 						} function as of now.`
 					) : (
-						<div style={{ textAlign: 'center' }}>
-							Add new function
-							<Typography.Link
-								style={{ textDecoration: 'underline' }}
-								href="https://signoz.io/docs/userguide/query-builder/?utm_source=product&utm_medium=query-builder#functions-for-extended-data-analysis"
-								target="_blank"
-							>
-								{' '}
-								<br />
-								Learn more
-							</Typography.Link>
-						</div>
+						<div style={{ textAlign: 'center' }}>Add new function</div>
 					)
 				}
 				placement="right"

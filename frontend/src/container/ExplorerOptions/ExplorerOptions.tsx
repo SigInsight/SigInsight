@@ -9,7 +9,6 @@ import {
 	useState,
 } from 'react';
 import { useHistory } from 'react-router-dom';
-import { InfoCircleOutlined } from '@ant-design/icons';
 import { Color } from '@signozhq/design-tokens';
 import {
 	Button,
@@ -100,7 +99,7 @@ function ExplorerOptions({
 
 	const isLogsExplorer = sourcepage === DataSource.LOGS;
 	const isMetricsExplorer = sourcepage === DataSource.METRICS;
-	const isMeterExplorer = signalSource === 'meter';
+	const isMeterQuery = signalSource === 'meter';
 
 	const PRESERVED_VIEW_LOCAL_STORAGE_KEY = LOCALSTORAGE.LAST_USED_SAVED_VIEWS;
 
@@ -111,11 +110,8 @@ function ExplorerOptions({
 		if (isMetricsExplorer) {
 			return PreservedViewsTypes.METRICS;
 		}
-		if (isMeterExplorer) {
-			return PreservedViewsTypes.METER;
-		}
 		return PreservedViewsTypes.TRACES;
-	}, [isLogsExplorer, isMetricsExplorer, isMeterExplorer]);
+	}, [isLogsExplorer, isMetricsExplorer]);
 
 	const {
 		currentQuery,
@@ -138,10 +134,6 @@ function ExplorerOptions({
 			logEvent(MetricsExplorerEvents.SaveViewClicked, {
 				[MetricsExplorerEventKeys.Tab]: 'explorer',
 				[MetricsExplorerEventKeys.OneChartPerQueryEnabled]: isOneChartPerQuery,
-				panelType,
-			});
-		} else if (isMeterExplorer) {
-			logEvent('Meter Explorer: Save view clicked', {
 				panelType,
 			});
 		}
@@ -238,7 +230,7 @@ function ExplorerOptions({
 		error,
 		isRefetching,
 		refetch: refetchAllView,
-	} = useGetAllViews(isMeterExplorer ? 'meter' : sourcepage);
+	} = useGetAllViews(sourcepage);
 
 	const compositeQuery = mapCompositeQueryFromQuery(currentQuery, panelType);
 
@@ -311,7 +303,7 @@ function ExplorerOptions({
 		compositeQuery,
 		viewKey,
 		extraData: updatedExtraData,
-		sourcePage: isMeterExplorer ? 'meter' : sourcepage,
+		sourcePage: sourcepage,
 		viewName,
 	});
 
@@ -327,7 +319,7 @@ function ExplorerOptions({
 				compositeQuery: mapCompositeQueryFromQuery(currentQuery, panelType),
 				viewKey,
 				extraData: updatedExtraData,
-				sourcePage: isMeterExplorer ? 'meter' : sourcepage,
+				sourcePage: sourcepage,
 				viewName,
 			},
 			{
@@ -471,11 +463,6 @@ function ExplorerOptions({
 				panelType,
 				viewName: option?.value,
 			});
-		} else if (isMeterExplorer) {
-			logEvent('Meter Explorer: Select view', {
-				panelType,
-				viewName: option?.value,
-			});
 		}
 
 		updatePreservedViewInLocalStorage(option);
@@ -521,11 +508,6 @@ function ExplorerOptions({
 					? defaultTraceSelectedColumns
 					: defaultLogsSelectedColumns,
 		});
-
-		if (signalSource === 'meter') {
-			history.replace(ROUTES.METER_EXPLORER);
-			return;
-		}
 
 		if (handleChangeSelectedView) {
 			handleChangeSelectedView(panelTypeToExplorerView[PANEL_TYPES.LIST]);
@@ -575,7 +557,7 @@ function ExplorerOptions({
 			redirectWithQueryBuilderData,
 			refetchAllView,
 			saveViewAsync,
-			sourcePage: isMeterExplorer ? 'meter' : sourcepage,
+			sourcePage: sourcepage,
 			viewName: newViewName,
 			setNewViewName,
 		});
@@ -664,27 +646,6 @@ function ExplorerOptions({
 		viewName,
 		viewsData?.data?.data,
 	]);
-
-	const infoIconText = useMemo(() => {
-		if (isLogsExplorer) {
-			return 'Learn more about Logs explorer';
-		}
-		if (isMetricsExplorer) {
-			return 'Learn more about Metrics explorer';
-		}
-		return 'Learn more about Traces explorer';
-	}, [isLogsExplorer, isMetricsExplorer]);
-
-	const infoIconLink = useMemo(() => {
-		if (isLogsExplorer) {
-			return 'https://signoz.io/docs/product-features/logs-explorer/?utm_source=product&utm_medium=logs-explorer-toolbar';
-		}
-		// TODO: Add metrics explorer info icon link
-		if (isMetricsExplorer) {
-			return '';
-		}
-		return 'https://signoz.io/docs/product-features/trace-explorer/?utm_source=product&utm_medium=trace-explorer-toolbar';
-	}, [isLogsExplorer, isMetricsExplorer]);
 
 	const getQueryName = (query: Query): string => {
 		if (query.builder.queryFormulas.length > 0) {
@@ -855,29 +816,13 @@ function ExplorerOptions({
 
 					<hr className={isEditDeleteSupported ? '' : 'hidden'} />
 
-					{signalSource !== 'meter' && (
+					{!isMeterQuery && (
 						<div className={cx('actions', isEditDeleteSupported ? '' : 'hidden')}>
 							{CreateAlertButton}
 						</div>
 					)}
 
 					<div className="actions">
-						{/* Hide the info icon for metrics explorer until we get the docs link */}
-						{!isMetricsExplorer && (
-							<Tooltip
-								title={
-									<div>
-										{infoIconText}
-										<Typography.Link href={infoIconLink} target="_blank">
-											{' '}
-											here
-										</Typography.Link>{' '}
-									</div>
-								}
-							>
-								<InfoCircleOutlined className="info-icon" />
-							</Tooltip>
-						)}
 						<Tooltip title="Hide">
 							<Button
 								disabled={disabled}

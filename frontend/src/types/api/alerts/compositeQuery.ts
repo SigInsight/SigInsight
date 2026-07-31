@@ -1,7 +1,6 @@
 import { PANEL_TYPES } from 'constants/queryBuilder';
 import {
 	BuilderClickHouseResource,
-	BuilderPromQLResource,
 	BuilderQueryDataResourse,
 	Query,
 } from 'types/api/queryBuilder/queryBuilderData';
@@ -12,7 +11,12 @@ import { QueryEnvelope } from '../v5/queryRange';
 export interface ICompositeMetricQuery {
 	queryType: EQueryType;
 	panelType: PANEL_TYPES;
-	unit: Query['unit'];
+	/** Unit of the raw values returned by the selected alert query. */
+	resultUnit?: string;
+	/** Frontend-only unit used to format and scale chart values. */
+	displayUnit?: string;
+	/** @deprecated Read compatibility for alert rules created before unit split. */
+	unit?: Query['unit'];
 	queries: QueryEnvelope[];
 }
 
@@ -23,6 +27,5 @@ export interface ICompositeMetricQuery {
 export interface ICompositeMetricQueryInput
 	extends Omit<ICompositeMetricQuery, 'queries'> {
 	builderQueries?: BuilderQueryDataResourse;
-	promQueries?: BuilderPromQLResource;
 	chQueries?: BuilderClickHouseResource;
 }

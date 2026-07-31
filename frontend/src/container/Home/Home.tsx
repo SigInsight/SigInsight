@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery } from 'react-query';
 import { Color } from '@signozhq/design-tokens';
-import { Compass, Dot, House, Plus, Wrench } from '@signozhq/icons';
+import { Compass, Dot, House } from '@signozhq/icons';
 import { Button, Popover } from 'antd';
 import logEvent from 'api/common/logEvent';
 import listUserPreferences from 'api/v5/user/preferences/list';
@@ -20,15 +20,14 @@ import cloneDeep from 'lodash-es/cloneDeep';
 import { AnimatePresence } from 'motion/react';
 import * as motion from 'motion/react-client';
 import Card from 'periscope/components/Card/Card';
-import { useAppContext } from 'providers/App/App';
 import { UserPreference } from 'types/api/preferences/preference';
 import { DataSource } from 'types/common/queryBuilder';
-import { USER_ROLES } from 'types/roles';
 import { isIngestionActive } from 'utils/app';
 import { popupContainer } from 'utils/selectPopupContainer';
 
 import AlertRules from './AlertRules/AlertRules';
 import { defaultChecklistItemsState } from './constants';
+import CostMeter from './CostMeter/CostMeter';
 import DataSourceInfo from './DataSourceInfo/DataSourceInfo';
 import HomeChecklist, { ChecklistItem } from './HomeChecklist/HomeChecklist';
 import SavedViews from './SavedViews/SavedViews';
@@ -41,7 +40,6 @@ const homeInterval = 30 * 60 * 1000;
 
 // eslint-disable-next-line sonarjs/cognitive-complexity
 export default function Home(): JSX.Element {
-	const { user } = useAppContext();
 	const isDarkMode = useIsDarkMode();
 
 	const [startTime, setStartTime] = useState<number | null>(null);
@@ -466,131 +464,13 @@ export default function Home(): JSX.Element {
 						)}
 					</div>
 
-					{user?.role !== USER_ROLES.VIEWER && (
-						<div className="explorers-container">
-							<Card className="explorer-card">
-								<Card.Content>
-									<div className="section-container">
-										<div className="section-content">
-											<div className="section-icon">
-												<img
-													src="/Icons/wrench.svg"
-													alt="wrench"
-													width={16}
-													height={16}
-													loading="lazy"
-												/>
-											</div>
-
-											<div className="section-title">
-												<div className="title">Filter and save views with the Explorer</div>
-
-												<div className="description">
-													Explore your data, and save useful views for everyone in the team.
-												</div>
-											</div>
-										</div>
-
-										<div className="section-actions">
-											<Button
-												type="default"
-												className="periscope-btn secondary"
-												icon={<Wrench size={14} />}
-												onClick={(): void => {
-													logEvent('Homepage: Explore clicked', {
-														source: 'Logs',
-													});
-													history.push(ROUTES.LOGS_EXPLORER);
-												}}
-											>
-												Open Logs Explorer
-											</Button>
-
-											<Button
-												type="default"
-												className="periscope-btn secondary"
-												icon={<Wrench size={14} />}
-												onClick={(): void => {
-													logEvent('Homepage: Explore clicked', {
-														source: 'Traces',
-													});
-													history.push(ROUTES.TRACES_EXPLORER);
-												}}
-											>
-												Open Traces Explorer
-											</Button>
-
-											<Button
-												type="default"
-												className="periscope-btn secondary"
-												icon={<Wrench size={14} />}
-												onClick={(): void => {
-													logEvent('Homepage: Explore clicked', {
-														source: 'Metrics',
-													});
-													history.push(ROUTES.METRICS_EXPLORER_EXPLORER);
-												}}
-											>
-												Open Metrics Explorer
-											</Button>
-										</div>
-									</div>
-								</Card.Content>
-							</Card>
-
-							<Card className="explorer-card">
-								<Card.Content>
-									<div className="section-container">
-										<div className="section-content">
-											<div className="section-icon">
-												<img
-													src="/Icons/cracker.svg"
-													alt="cracker"
-													width={16}
-													height={16}
-													loading="lazy"
-												/>
-											</div>
-
-											<div className="section-title">
-												<div className="title">Add an alert</div>
-
-												<div className="description">
-													Create bespoke alerting rules to suit your needs.
-												</div>
-											</div>
-										</div>
-
-										<div className="section-actions">
-											<Button
-												type="default"
-												className="periscope-btn secondary"
-												icon={<Plus size={14} />}
-												onClick={(): void => {
-													logEvent('Homepage: Explore clicked', {
-														source: 'Alerts',
-													});
-													history.push(ROUTES.ALERTS_NEW);
-												}}
-											>
-												Create an alert
-											</Button>
-										</div>
-									</div>
-								</Card.Content>
-							</Card>
-						</div>
-					)}
-
 					{(isLogsIngestionActive ||
 						isTracesIngestionActive ||
 						isMetricsIngestionActive) && (
-						<>
-							<AlertRules
-								onUpdateChecklistDoneItem={handleUpdateChecklistDoneItem}
-								loadingUserPreferences={loadingUserPreferences}
-							/>
-						</>
+						<SavedViews
+							onUpdateChecklistDoneItem={handleUpdateChecklistDoneItem}
+							loadingUserPreferences={loadingUserPreferences}
+						/>
 					)}
 				</div>
 				<div className="home-right-content">
@@ -662,7 +542,7 @@ export default function Home(): JSX.Element {
 								onUpdateChecklistDoneItem={handleUpdateChecklistDoneItem}
 								loadingUserPreferences={loadingUserPreferences}
 							/>
-							<SavedViews
+							<AlertRules
 								onUpdateChecklistDoneItem={handleUpdateChecklistDoneItem}
 								loadingUserPreferences={loadingUserPreferences}
 							/>
@@ -670,6 +550,7 @@ export default function Home(): JSX.Element {
 					)}
 				</div>
 			</div>
+			<CostMeter />
 		</div>
 	);
 }

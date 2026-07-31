@@ -151,6 +151,38 @@ func TestVisitKey(t *testing.T) {
 			expectedMainWrnURL: "",
 		},
 		{
+			name:    "Duplicate field metadata is not ambiguous",
+			keyText: "has_error",
+			fieldKeys: map[string][]*telemetrytypes.TelemetryFieldKey{
+				"has_error": {
+					{
+						Name:          "has_error",
+						Signal:        telemetrytypes.SignalTraces,
+						FieldContext:  telemetrytypes.FieldContextSpan,
+						FieldDataType: telemetrytypes.FieldDataTypeBool,
+					},
+					{
+						Name:          "has_error",
+						Signal:        telemetrytypes.SignalTraces,
+						FieldContext:  telemetrytypes.FieldContextSpan,
+						FieldDataType: telemetrytypes.FieldDataTypeBool,
+					},
+				},
+			},
+			expectedKeys: []telemetrytypes.TelemetryFieldKey{
+				{
+					Name:          "has_error",
+					Signal:        telemetrytypes.SignalTraces,
+					FieldContext:  telemetrytypes.FieldContextSpan,
+					FieldDataType: telemetrytypes.FieldDataTypeBool,
+				},
+			},
+			expectedErrors:     nil,
+			expectedMainErrURL: "",
+			expectedWarnings:   nil,
+			expectedMainWrnURL: "",
+		},
+		{
 			name:    "Key not found",
 			keyText: "unknown_key",
 			fieldKeys: map[string][]*telemetrytypes.TelemetryFieldKey{
@@ -165,7 +197,7 @@ func TestVisitKey(t *testing.T) {
 			},
 			expectedKeys:       []telemetrytypes.TelemetryFieldKey{},
 			expectedErrors:     []string{"key `unknown_key` not found"},
-			expectedMainErrURL: "https://signoz.io/docs/userguide/search-troubleshooting/#key-fieldname-not-found",
+			expectedMainErrURL: "",
 			expectedWarnings:   nil,
 			expectedMainWrnURL: "",
 		},
@@ -196,7 +228,7 @@ func TestVisitKey(t *testing.T) {
 			expectedErrors:     nil,
 			expectedMainErrURL: "",
 			expectedWarnings:   []string{"ambiguous"},
-			expectedMainWrnURL: "https://signoz.io/docs/userguide/field-context-data-types/",
+			expectedMainWrnURL: "",
 		},
 		// Context prefixed keys tests
 		{
@@ -347,7 +379,7 @@ func TestVisitKey(t *testing.T) {
 			ignoreNotFoundKeys: false,
 			expectedKeys:       []telemetrytypes.TelemetryFieldKey{},
 			expectedErrors:     []string{"key `unknown_key` not found"},
-			expectedMainErrURL: "https://signoz.io/docs/userguide/search-troubleshooting/#key-fieldname-not-found",
+			expectedMainErrURL: "",
 			expectedWarnings:   nil,
 			expectedMainWrnURL: "",
 		},
@@ -399,7 +431,7 @@ func TestVisitKey(t *testing.T) {
 			expectedErrors:     nil,
 			expectedMainErrURL: "",
 			expectedWarnings:   []string{"ambiguous"},
-			expectedMainWrnURL: "https://signoz.io/docs/userguide/field-context-data-types/",
+			expectedMainWrnURL: "",
 		},
 		{
 			name:    "Ambiguous key with different data types",
@@ -433,7 +465,7 @@ func TestVisitKey(t *testing.T) {
 			expectedErrors:     nil,
 			expectedMainErrURL: "",
 			expectedWarnings:   []string{"ambiguous"},
-			expectedMainWrnURL: "https://signoz.io/docs/userguide/field-context-data-types/",
+			expectedMainWrnURL: "",
 		},
 		// These 3 unit tests have both attibute.custom_field and custom_field in the map
 		{
@@ -532,7 +564,7 @@ func TestVisitKey(t *testing.T) {
 			expectedErrors:     nil,
 			expectedMainErrURL: "",
 			expectedWarnings:   []string{"ambiguous"},
-			expectedMainWrnURL: "https://signoz.io/docs/userguide/field-context-data-types/",
+			expectedMainWrnURL: "",
 		},
 		// Resource attribute ambiguity - resource context is preferred
 		{
@@ -562,7 +594,7 @@ func TestVisitKey(t *testing.T) {
 			expectedErrors:     nil,
 			expectedMainErrURL: "",
 			expectedWarnings:   []string{"ambiguous", "attribute.deployment.environment"},
-			expectedMainWrnURL: "https://signoz.io/docs/userguide/field-context-data-types/",
+			expectedMainWrnURL: "",
 		},
 	}
 

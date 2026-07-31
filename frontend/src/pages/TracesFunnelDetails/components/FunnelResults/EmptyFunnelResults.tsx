@@ -1,5 +1,3 @@
-import LearnMore from 'components/LearnMore/LearnMore';
-
 import './EmptyFunnelResults.styles.scss';
 
 function EmptyFunnelResults({
@@ -17,9 +15,6 @@ function EmptyFunnelResults({
 				</div>
 				<div className="empty-funnel-results__title">{title}</div>
 				<div className="empty-funnel-results__description">{description}</div>
-				<div className="empty-funnel-results__learn-more">
-					<LearnMore url="https://signoz.io/blog/tracing-funnels-observability-distributed-systems/" />
-				</div>
 			</div>
 		</div>
 	);

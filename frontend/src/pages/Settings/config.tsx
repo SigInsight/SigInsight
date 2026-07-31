@@ -5,12 +5,10 @@ import CreateAlertChannels from 'container/CreateAlertChannels';
 import { ChannelType } from 'container/CreateAlertChannels/config';
 import GeneralSettings from 'container/GeneralSettings';
 import MySettings from 'container/MySettings';
-import OrganizationSettings from 'container/OrganizationSettings';
 import { TFunction } from 'i18next';
 import {
 	Backpack,
 	BellDot,
-	Building,
 	Keyboard,
 	Pencil,
 	Plus,
@@ -20,19 +18,6 @@ import {
 import ChannelsEdit from 'pages/ChannelsEdit';
 import MembersSettings from 'pages/MembersSettings';
 import Shortcuts from 'pages/Shortcuts';
-
-export const organizationSettings = (t: TFunction): RouteTabProps['routes'] => [
-	{
-		Component: OrganizationSettings,
-		name: (
-			<div className="periscope-tab">
-				<Building size={16} /> {t('routes:organization_settings').toString()}
-			</div>
-		),
-		route: ROUTES.ORG_SETTINGS,
-		key: ROUTES.ORG_SETTINGS,
-	},
-];
 
 export const alertChannels = (t: TFunction): RouteTabProps['routes'] => [
 	{

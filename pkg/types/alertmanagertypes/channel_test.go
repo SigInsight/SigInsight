@@ -27,6 +27,66 @@ func TestNewConfigFromChannelsAcceptsSupportedChannels(t *testing.T) {
 	assert.Len(t, cfg.alertmanagerConfig.Receivers, 3)
 }
 
+func TestEmailChannelCreatedBeforeDefaultsInheritsGlobalSMTPConfig(t *testing.T) {
+	receiver, err := NewReceiver(`{
+		"name":"email",
+		"email_configs":[{"to":"alerts@example.com"}]
+	}`)
+	require.NoError(t, err)
+	channel, err := NewChannelFromReceiver(receiver, "org")
+	require.NoError(t, err)
+	assert.NotContains(t, channel.Data, "smtp.example.com")
+
+	global := GlobalConfig{
+		SMTPFrom:         "current@example.com",
+		SMTPHello:        "current-host",
+		SMTPSmarthost:    config.HostPort{Host: "smtp.example.com", Port: "587"},
+		SMTPAuthUsername: "current-user",
+		SMTPAuthPassword: "current-password",
+		SMTPRequireTLS:   true,
+	}
+
+	cfg, err := NewConfigFromChannels(
+		global,
+		RouteConfig{GroupInterval: time.Minute, GroupWait: time.Minute, RepeatInterval: time.Minute},
+		Channels{channel},
+		"org",
+	)
+	require.NoError(t, err)
+	receiver, err = cfg.GetReceiver("email")
+	require.NoError(t, err)
+	require.Len(t, receiver.EmailConfigs, 1)
+	emailConfig := receiver.EmailConfigs[0]
+	assert.Equal(t, global.SMTPFrom, emailConfig.From)
+	assert.Equal(t, global.SMTPHello, emailConfig.Hello)
+	assert.Equal(t, global.SMTPSmarthost, emailConfig.Smarthost)
+	assert.Equal(t, global.SMTPAuthUsername, emailConfig.AuthUsername)
+	assert.Equal(t, global.SMTPAuthPassword, emailConfig.AuthPassword)
+	require.NotNil(t, emailConfig.RequireTLS)
+	assert.True(t, *emailConfig.RequireTLS)
+}
+
+func TestEmailChannelDataPreservesExplicitSMTPTransport(t *testing.T) {
+	receiver, err := NewReceiver(`{
+		"name":"email",
+		"email_configs":[{
+			"to":"alerts@example.com",
+			"from":"sender@example.com",
+			"smarthost":"smtp.example.com:587",
+			"auth_username":"user",
+			"auth_password":"secret"
+		}]
+	}`)
+	require.NoError(t, err)
+
+	channel, err := NewChannelFromReceiver(receiver, "org")
+	require.NoError(t, err)
+	assert.Contains(t, channel.Data, "smtp.example.com:587")
+	assert.Contains(t, channel.Data, "sender@example.com")
+	assert.Contains(t, channel.Data, "auth_username")
+	assert.Contains(t, channel.Data, "alerts@example.com")
+}
+
 func TestNewConfigFromChannelsRejectsUnsupportedChannel(t *testing.T) {
 	_, err := NewConfigFromChannels(
 		GlobalConfig{},

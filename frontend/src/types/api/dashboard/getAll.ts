@@ -120,6 +120,8 @@ export interface IBaseWidget {
 	timePreferance: timePreferenceType;
 	stepSize?: number;
 	yAxisUnit?: string;
+	/** Raw query-result unit used when chart values need display conversion. */
+	resultUnit?: string;
 	decimalPrecision?: PrecisionOption; // number of decimals or 'full precision'
 	stackedBarChart?: boolean;
 	bucketCount?: number;
@@ -148,10 +150,6 @@ export interface Widgets extends IBaseWidget {
 	renderColumnCell?: QueryTableProps['renderColumnCell'];
 	customColTitles?: Record<string, string>;
 	hiddenColumns?: string[];
-}
-
-export interface PromQLWidgets extends IBaseWidget {
-	query: { query: string; legend: string }[];
 }
 
 export interface IQueryBuilderTagFilterItems {

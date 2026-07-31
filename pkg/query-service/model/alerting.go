@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/SigNoz/signoz/pkg/types/timeseriestypes"
 
-	"github.com/SigNoz/signoz/pkg/query-service/model/querytypes"
 	"github.com/pkg/errors"
 )
 
@@ -124,9 +123,8 @@ func (l LabelsString) String() string {
 }
 
 type RuleStateTimeline struct {
-	Items  []RuleStateHistory  `json:"items"`
-	Total  uint64              `json:"total"`
-	Labels map[string][]string `json:"labels"`
+	Items []RuleStateHistory `json:"items"`
+	Total uint64             `json:"total"`
 }
 
 type RuleStateHistory struct {
@@ -148,13 +146,12 @@ type RuleStateHistory struct {
 }
 
 type QueryRuleStateHistory struct {
-	Start   int64                 `json:"start"`
-	End     int64                 `json:"end"`
-	State   string                `json:"state"`
-	Filters *querytypes.FilterSet `json:"filters"`
-	Offset  int64                 `json:"offset"`
-	Limit   int64                 `json:"limit"`
-	Order   string                `json:"order"`
+	Start  int64  `json:"start"`
+	End    int64  `json:"end"`
+	State  string `json:"state"`
+	Offset int64  `json:"offset"`
+	Limit  int64  `json:"limit"`
+	Order  string `json:"order"`
 }
 
 func (r *QueryRuleStateHistory) Validate() error {

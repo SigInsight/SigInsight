@@ -6,8 +6,6 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/prometheus/prometheus/promql/parser"
-	"github.com/prometheus/prometheus/util/stats"
 	"k8s.io/apimachinery/pkg/labels"
 )
 
@@ -128,17 +126,6 @@ func WrapApiError(err *ApiError, msg string) *ApiError {
 		Typ: err.Type(),
 		Err: errors.Wrap(err.ToError(), msg),
 	}
-}
-
-type QueryDataV2 struct {
-	ResultType parser.ValueType `json:"resultType"`
-	Result     parser.Value     `json:"result"`
-}
-
-type QueryData struct {
-	ResultType parser.ValueType  `json:"resultType"`
-	Result     parser.Value      `json:"result"`
-	Stats      *stats.QueryStats `json:"stats,omitempty"`
 }
 
 type RuleResponseItem struct {
@@ -568,23 +555,21 @@ type TagsInfo struct {
 }
 
 type AlertsInfo struct {
-	TotalAlerts                  int      `json:"totalAlerts"`
-	TotalActiveAlerts            int      `json:"totalActiveAlerts"`
-	LogsBasedAlerts              int      `json:"logsBasedAlerts"`
-	MetricBasedAlerts            int      `json:"metricBasedAlerts"`
-	TracesBasedAlerts            int      `json:"tracesBasedAlerts"`
-	TotalChannels                int      `json:"totalChannels"`
-	WebHookChannels              int      `json:"webHookChannels"`
-	EmailChannels                int      `json:"emailChannels"`
-	MetricsBuilderQueries        int      `json:"metricsBuilderQueries"`
-	MetricsClickHouseQueries     int      `json:"metricsClickHouseQueries"`
-	MetricsPrometheusQueries     int      `json:"metricsPrometheusQueries"`
-	SpanMetricsPrometheusQueries int      `json:"spanMetricsPrometheusQueries"`
-	AlertNames                   []string `json:"alertNames"`
-	AlertsWithTSV2               int      `json:"alertsWithTSv2"`
-	AlertsWithLogsChQuery        int      `json:"alertsWithLogsChQuery"`
-	AlertsWithTraceChQuery       int      `json:"alertsWithTraceChQuery"`
-	AlertsWithLogsContainsOp     int      `json:"alertsWithLogsContainsOp"`
+	TotalAlerts              int      `json:"totalAlerts"`
+	TotalActiveAlerts        int      `json:"totalActiveAlerts"`
+	LogsBasedAlerts          int      `json:"logsBasedAlerts"`
+	MetricBasedAlerts        int      `json:"metricBasedAlerts"`
+	TracesBasedAlerts        int      `json:"tracesBasedAlerts"`
+	TotalChannels            int      `json:"totalChannels"`
+	WebHookChannels          int      `json:"webHookChannels"`
+	EmailChannels            int      `json:"emailChannels"`
+	MetricsBuilderQueries    int      `json:"metricsBuilderQueries"`
+	MetricsClickHouseQueries int      `json:"metricsClickHouseQueries"`
+	AlertNames               []string `json:"alertNames"`
+	AlertsWithTSV2           int      `json:"alertsWithTSv2"`
+	AlertsWithLogsChQuery    int      `json:"alertsWithLogsChQuery"`
+	AlertsWithTraceChQuery   int      `json:"alertsWithTraceChQuery"`
+	AlertsWithLogsContainsOp int      `json:"alertsWithLogsContainsOp"`
 }
 
 type SavedViewsInfo struct {

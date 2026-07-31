@@ -78,14 +78,16 @@
 	gap: 1rem;
 
 	.home-left-content {
-		width: 50%;
+		flex: 1 1 0;
+		min-width: 0;
 		display: flex;
 		flex-direction: column;
 		gap: 1rem;
 	}
 
 	.home-right-content {
-		width: 50%;
+		flex: 1 1 0;
+		min-width: 0;
 		display: flex;
 		flex-direction: column;
 		gap: 1rem;
@@ -342,98 +344,6 @@
 
 		.periscope-card-content {
 			padding: 0px !important;
-		}
-	}
-}
-
-.explorers-container {
-	display: flex;
-	flex-direction: column;
-
-	.explorer-card:not(:last-child) {
-		border-bottom-left-radius: 0px;
-		border-bottom-right-radius: 0px;
-		border-bottom: 0px;
-	}
-
-	.explorer-card:not(:first-child) {
-		border-top-left-radius: 0px;
-		border-top-right-radius: 0px;
-	}
-
-	.section-container {
-		display: flex;
-		flex-direction: row;
-		justify-content: space-between;
-
-		.section-content {
-			display: flex;
-			flex-direction: row;
-			gap: 14px;
-			align-items: flex-start;
-
-			.section-icon {
-				display: flex;
-				flex-direction: row;
-				gap: 14px;
-				margin-top: 3px;
-			}
-
-			.section-title {
-				display: flex;
-				flex-direction: column;
-				gap: 6px;
-
-				color: var(--Vanilla-400, #c0c1c3);
-				font-family: Inter;
-				font-size: 12px;
-				font-style: normal;
-				font-weight: 400;
-				line-height: 20px; /* 166.667% */
-				letter-spacing: -0.06px;
-
-				.title {
-					color: var(--Vanilla-100, #fff);
-					font-family: Inter;
-					font-size: 13px;
-					font-style: normal;
-					font-weight: 400;
-					line-height: 20px; /* 142.857% */
-					letter-spacing: -0.07px;
-				}
-			}
-		}
-
-		.section-actions {
-			display: flex;
-			flex-direction: column;
-			gap: 14px;
-
-			justify-content: flex-end;
-
-			.ant-btn {
-				color: var(--Vanilla-400, #c0c1c3);
-				font-family: Inter;
-				font-size: 11px;
-				font-style: normal;
-				font-weight: 400;
-				line-height: 18px; /* 150% */
-				letter-spacing: 0.12px;
-
-				padding: 8px;
-
-				justify-content: flex-start;
-
-				&:hover {
-					background-color: var(--bg-ink-300) !important;
-				}
-			}
-
-			.periscope-btn.secondary {
-				border-radius: 2px;
-				border: 1px solid var(--Slate-400, #1d212d);
-				background: var(--Ink-300, #16181d);
-			}
 		}
 	}
 }
@@ -888,36 +798,6 @@
 
 				&:hover {
 					background-color: var(--bg-vanilla-100);
-				}
-			}
-		}
-	}
-
-	.explorers-container {
-		.section-container {
-			.section-content {
-				.section-title {
-					color: var(--bg-slate-300);
-
-					.title {
-						color: var(--bg-slate-300);
-					}
-				}
-			}
-
-			.section-actions {
-				.ant-btn {
-					color: var(--bg-slate-300);
-
-					&:hover {
-						background-color: var(--bg-vanilla-100) !important;
-					}
-				}
-
-				.periscope-btn.secondary {
-					border-radius: 2px;
-					border: 1px solid var(--bg-vanilla-300);
-					background: var(--bg-vanilla-100);
 				}
 			}
 		}

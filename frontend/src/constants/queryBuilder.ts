@@ -16,7 +16,6 @@ import {
 	IBuilderQuery,
 	IBuilderTraceOperator,
 	IClickHouseQuery,
-	IPromQLQuery,
 	Query,
 	QueryState,
 	TagFilter,
@@ -272,13 +271,6 @@ export const initialQueryBuilderFormTraceOperatorValues: IBuilderTraceOperator =
 	queryName: TRACE_OPERATOR_QUERY_NAME,
 };
 
-export const initialQueryPromQLData: IPromQLQuery = {
-	name: createNewBuilderItemName({ existNames: [], sourceNames: alphabet }),
-	query: '',
-	legend: '',
-	disabled: false,
-};
-
 export const initialClickHouseData: IClickHouseQuery = {
 	name: createNewBuilderItemName({ existNames: [], sourceNames: alphabet }),
 	legend: '',
@@ -293,15 +285,14 @@ export const initialQueryBuilderData: QueryBuilderData = {
 };
 
 export const initialSingleQueryMap: Record<
-	EQueryType.PROM | EQueryType.CLICKHOUSE,
-	IClickHouseQuery | IPromQLQuery
-> = { clickhouse_sql: initialClickHouseData, promql: initialQueryPromQLData };
+	EQueryType.CLICKHOUSE,
+	IClickHouseQuery
+> = { clickhouse_sql: initialClickHouseData };
 
 export const initialQueryState: QueryState = {
 	id: uuid(),
 	builder: initialQueryBuilderData,
 	clickhouse_sql: [initialClickHouseData],
-	promql: [initialQueryPromQLData],
 	unit: '',
 };
 

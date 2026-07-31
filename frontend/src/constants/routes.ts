@@ -24,7 +24,6 @@ const ROUTES = {
 	VERSION: '/status',
 	SETTINGS: '/settings',
 	MY_SETTINGS: '/settings/my-settings',
-	ORG_SETTINGS: '/settings/org-settings',
 	SOMETHING_WENT_WRONG: '/something-went-wrong',
 	UN_AUTHORIZED: '/un-authorized',
 	NOT_FOUND: '/not-found',
@@ -47,9 +46,6 @@ const ROUTES = {
 	API_MONITORING_BASE: '/api-monitoring',
 	API_MONITORING: '/api-monitoring/explorer',
 	METRICS_EXPLORER_BASE: '/metrics-explorer',
-	METER: '/meter',
-	METER_EXPLORER: '/meter/explorer',
-	METER_EXPLORER_VIEWS: '/meter/explorer/views',
 	HOME_PAGE: '/',
 } as const;
 

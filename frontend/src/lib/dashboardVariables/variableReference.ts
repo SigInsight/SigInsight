@@ -37,7 +37,6 @@ export function textContainsVariableReference(
  * Extracts all text strings from a widget Query that could contain variable
  * references. Covers:
  * - QUERY_BUILDER: filter items' string values + filter.expression
- * - PROM: each promql[].query
  * - CLICKHOUSE: each clickhouse_sql[].query
  */
 function extractQueryBuilderTexts(query: Query): string[] {
@@ -67,18 +66,6 @@ function extractQueryBuilderTexts(query: Query): string[] {
 	return texts;
 }
 
-function extractPromQLTexts(query: Query): string[] {
-	const texts: string[] = [];
-	if (isArray(query.promql)) {
-		query.promql.forEach((promqlQuery) => {
-			if (promqlQuery.query) {
-				texts.push(promqlQuery.query);
-			}
-		});
-	}
-	return texts;
-}
-
 function extractClickhouseSQLTexts(query: Query): string[] {
 	const texts: string[] = [];
 	if (isArray(query.clickhouse_sql)) {
@@ -95,16 +82,11 @@ function extractClickhouseSQLTexts(query: Query): string[] {
  * Extracts all text strings from a widget Query that could contain variable
  * references. Covers:
  * - QUERY_BUILDER: filter items' string values + filter.expression
- * - PROM: each promql[].query
  * - CLICKHOUSE: each clickhouse_sql[].query
  */
 export function extractQueryTextStrings(query: Query): string[] {
 	if (query.queryType === EQueryType.QUERY_BUILDER) {
 		return extractQueryBuilderTexts(query);
-	}
-
-	if (query.queryType === EQueryType.PROM) {
-		return extractPromQLTexts(query);
 	}
 
 	if (query.queryType === EQueryType.CLICKHOUSE) {

@@ -1,9 +1,5 @@
-import { Button } from '@signozhq/button';
 import { Skeleton } from 'antd';
-import logEvent from 'api/common/logEvent';
 import Card from 'periscope/components/Card/Card';
-
-import { DOCS_LINKS } from '../constants';
 
 function DataSourceInfo({
 	dataSentToSigNoz,
@@ -13,12 +9,6 @@ function DataSourceInfo({
 	isLoading: boolean;
 }): JSX.Element {
 	const notSendingData = !dataSentToSigNoz;
-
-	const handleConnect = (): void => {
-		logEvent('Homepage: Connect dataSource clicked', {});
-
-		window?.open(DOCS_LINKS.ADD_DATA_SOURCE, '_blank', 'noopener noreferrer');
-	};
 
 	const renderNotSendingData = (): JSX.Element => (
 		<>
@@ -40,24 +30,6 @@ function DataSourceInfo({
 								<img src="/Icons/hurray.svg" alt="hurray" />
 								Your workspace is ready
 							</span>
-
-							<Button
-								variant="solid"
-								color="primary"
-								size="sm"
-								className="periscope-btn primary"
-								prefixIcon={<img src="/Icons/container-plus.svg" alt="plus" />}
-								onClick={handleConnect}
-								role="button"
-								tabIndex={0}
-								onKeyDown={(e): void => {
-									if (e.key === 'Enter') {
-										handleConnect();
-									}
-								}}
-							>
-								Connect Data Source
-							</Button>
 						</div>
 					</div>
 				</Card.Content>

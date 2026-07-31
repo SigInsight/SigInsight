@@ -1,9 +1,9 @@
 import { ReactNode, useMemo } from 'react';
 import { Color } from '@signozhq/design-tokens';
-import { Button, Popover, PopoverProps } from 'antd';
+import { Popover, PopoverProps } from 'antd';
 import ErrorIcon from 'assets/Error';
 import OverlayScrollbar from 'components/OverlayScrollbar/OverlayScrollbar';
-import { BookOpenText, ChevronsDown, TriangleAlert } from 'lucide-react';
+import { ChevronsDown, TriangleAlert } from 'lucide-react';
 import KeyValueLabel from 'periscope/components/KeyValueLabel';
 import { Warning } from 'types/api';
 
@@ -15,7 +15,6 @@ interface WarningContentProps {
 
 export function WarningContent({ warning }: WarningContentProps): JSX.Element {
 	const {
-		url: warningUrl,
 		warnings: warningMessages,
 		code: warningCode,
 		message: warningMessage,
@@ -40,21 +39,6 @@ export function WarningContent({ warning }: WarningContentProps): JSX.Element {
 							<p className="warning-content__warning-message">{warningMessage}</p>
 						</div>
 					</div>
-
-					{warningUrl && (
-						<div className="warning-content__summary-right">
-							<Button
-								type="default"
-								className="warning-content__docs-button"
-								href={warningUrl}
-								target="_blank"
-								data-testid="warning-docs-button"
-							>
-								<BookOpenText size={14} />
-								Open Docs
-							</Button>
-						</div>
-					)}
 				</header>
 
 				{warningMessages?.length > 0 && (

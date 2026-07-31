@@ -8,7 +8,6 @@ import { useGetAllViews } from 'hooks/saveViews/useGetAllViews';
 import { useHandleExplorerTabChange } from 'hooks/useHandleExplorerTabChange';
 import {
 	ArrowRight,
-	ArrowUpRight,
 	BarChart,
 	CompassIcon,
 	DraftingCompass,
@@ -181,25 +180,6 @@ export default function SavedViews({
 								Get Started &nbsp; <ArrowRight size={16} />
 							</Button>
 						</Link>
-
-						<Button
-							type="link"
-							className="learn-more-link"
-							onClick={(): void => {
-								logEvent('Homepage: Learn more clicked', {
-									source: 'Saved Views',
-									entity: selectedEntity,
-								});
-
-								window.open(
-									'https://signoz.io/docs/product-features/saved-view/',
-									'_blank',
-									'noopener noreferrer',
-								);
-							}}
-						>
-							Learn more <ArrowUpRight size={12} />
-						</Button>
 					</div>
 				)}
 			</div>

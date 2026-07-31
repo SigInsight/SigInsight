@@ -675,14 +675,6 @@ function QueryAggregationSelect({
 							<br />• <strong>rate</strong> - per-interval rate
 						</span>
 						<br />
-						<a
-							href="https://signoz.io/docs/userguide/query-builder-v5/#core-aggregation-functions"
-							target="_blank"
-							rel="noopener noreferrer"
-							style={{ color: '#1890ff', textDecoration: 'underline' }}
-						>
-							View documentation
-						</a>
 					</div>
 				}
 				placement="left"

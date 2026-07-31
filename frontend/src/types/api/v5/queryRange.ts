@@ -20,8 +20,7 @@ export type QueryType =
 	| 'builder_formula'
 	| 'builder_sub_query'
 	| 'builder_join'
-	| 'clickhouse_sql'
-	| 'promql';
+	| 'clickhouse_sql';
 
 export type OrderDirection = 'asc' | 'desc';
 
@@ -281,15 +280,6 @@ export interface QueryBuilderJoin {
 	functions?: QueryFunction[];
 }
 
-export interface PromQuery {
-	name: string;
-	query: string;
-	disabled?: boolean;
-	step?: Step;
-	stats?: boolean;
-	legend?: string;
-}
-
 export interface ClickHouseQuery {
 	name: string;
 	query: string;
@@ -305,7 +295,6 @@ export interface QueryEnvelope {
 		| BuilderQuery // Will be same for both builder_query and builder_sub_query
 		| QueryBuilderFormula
 		| QueryBuilderJoin
-		| PromQuery
 		| ClickHouseQuery;
 }
 

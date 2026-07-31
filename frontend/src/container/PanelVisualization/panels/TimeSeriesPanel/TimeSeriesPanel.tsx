@@ -54,8 +54,12 @@ function TimeSeriesPanel(props: PanelWrapperProps): JSX.Element {
 		if (!queryResponse?.data?.payload) {
 			return [];
 		}
-		return prepareChartData(queryResponse?.data?.payload);
-	}, [queryResponse?.data?.payload]);
+		return prepareChartData(
+			queryResponse?.data?.payload,
+			widget.resultUnit,
+			widget.yAxisUnit,
+		);
+	}, [queryResponse?.data?.payload, widget.resultUnit, widget.yAxisUnit]);
 
 	const config = useMemo(() => {
 		return prepareUPlotConfig({

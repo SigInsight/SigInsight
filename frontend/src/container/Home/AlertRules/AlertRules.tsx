@@ -8,7 +8,7 @@ import { QueryParams } from 'constants/query';
 import ROUTES from 'constants/routes';
 import history from 'lib/history';
 import { mapQueryDataFromApi } from 'lib/newQueryBuilder/queryBuilderMappers/mapQueryDataFromApi';
-import { ArrowRight, ArrowUpRight, Plus } from 'lucide-react';
+import { ArrowRight, Plus } from 'lucide-react';
 import Card from 'periscope/components/Card/Card';
 import { useAppContext } from 'providers/App/App';
 import { GettableAlert } from 'types/api/alerts/get';
@@ -94,24 +94,6 @@ export default function AlertRules({
 								Create Alert Rule
 							</Button>
 						</Link>
-
-						<Button
-							type="link"
-							className="learn-more-link"
-							onClick={(): void => {
-								logEvent('Homepage: Learn more clicked', {
-									source: 'Alert Rules',
-								});
-
-								window.open(
-									'https://signoz.io/docs/alerts/',
-									'_blank',
-									'noreferrer noopener',
-								);
-							}}
-						>
-							Learn more <ArrowUpRight size={12} />
-						</Button>
 					</div>
 				)}
 			</div>

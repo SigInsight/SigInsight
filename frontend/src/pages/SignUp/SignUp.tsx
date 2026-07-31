@@ -153,7 +153,7 @@ function SignUp(): JSX.Element {
 								<Label htmlFor="signupEmail">Email address</Label>
 								<FormContainer.Item noStyle name="email">
 									<Input
-										placeholder="e.g. john@signoz.io"
+										placeholder="e.g. john@example.com"
 										type="email"
 										autoFocus
 										required

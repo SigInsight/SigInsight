@@ -1,7 +1,6 @@
 import {
 	initialClickHouseData,
 	initialQueryBuilderFormValuesMap,
-	initialQueryPromQLData,
 	PANEL_TYPES,
 } from 'constants/queryBuilder';
 import { IDashboardVariable, Widgets } from 'types/api/dashboard/getAll';
@@ -41,38 +40,6 @@ const createBaseWidget = (id: string, query: Query): Widgets => ({
 	query,
 });
 
-const createMockPromQLWidget = (
-	id: string,
-	queries: {
-		query: string;
-		name?: string;
-		legend?: string;
-		disabled?: boolean;
-	}[],
-): Widgets => {
-	const promqlQueries = queries.map((q) => ({
-		...initialQueryPromQLData,
-		query: q.query,
-		name: q.name || 'A',
-		legend: q.legend || '',
-		disabled: q.disabled ?? false,
-	}));
-
-	const query: Query = {
-		queryType: EQueryType.PROM,
-		promql: promqlQueries,
-		builder: {
-			queryData: [],
-			queryFormulas: [],
-			queryTraceOperator: [],
-		},
-		clickhouse_sql: [],
-		id: 'query-1',
-	};
-
-	return createBaseWidget(id, query);
-};
-
 const createMockClickHouseWidget = (
 	id: string,
 	queries: {
@@ -92,7 +59,6 @@ const createMockClickHouseWidget = (
 
 	const query: Query = {
 		queryType: EQueryType.CLICKHOUSE,
-		promql: [],
 		builder: {
 			queryData: [],
 			queryFormulas: [],
@@ -125,7 +91,6 @@ const createMockQueryBuilderWidget = (
 
 	const query: Query = {
 		queryType: EQueryType.QUERY_BUILDER,
-		promql: [],
 		builder: {
 			queryData: [queryData],
 			queryFormulas: [],
@@ -149,12 +114,6 @@ describe('createDynamicVariableToWidgetsMap', () => {
 		];
 
 		const widgets = [
-			createMockPromQLWidget('widget-promql-pass', [
-				{ query: 'up{service="$service.name123"}' },
-			]),
-			createMockPromQLWidget('widget-promql-fail', [
-				{ query: 'up{service="$service.name"}' },
-			]),
 			createMockClickHouseWidget('widget-clickhouse-pass', [
 				{ query: "SELECT * FROM logs WHERE service_name = '$service.name123'" },
 			]),
@@ -171,11 +130,9 @@ describe('createDynamicVariableToWidgetsMap', () => {
 
 		const result = createDynamicVariableToWidgetsMap(dynamicVariables, widgets);
 
-		expect(result['var-1']).toContain('widget-promql-pass');
 		expect(result['var-1']).toContain('widget-clickhouse-pass');
 		expect(result['var-1']).toContain('widget-builder-pass');
 
-		expect(result['var-1']).not.toContain('widget-promql-fail');
 		expect(result['var-1']).not.toContain('widget-clickhouse-fail');
 		expect(result['var-1']).not.toContain('widget-builder-fail');
 	});

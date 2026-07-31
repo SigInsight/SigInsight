@@ -226,7 +226,6 @@ describe('TableViewActions', () => {
 				queryFormulas: [],
 				queryTraceOperator: [],
 			},
-			promql: [],
 			clickhouse_sql: [],
 		};
 

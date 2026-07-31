@@ -95,7 +95,6 @@ function DBCall(): JSX.Element {
 			getWidgetQueryBuilder({
 				query: {
 					queryType: EQueryType.QUERY_BUILDER,
-					promql: [],
 					builder: databaseCallsRPS({
 						servicename,
 						legend,
@@ -118,7 +117,6 @@ function DBCall(): JSX.Element {
 			getWidgetQueryBuilder({
 				query: {
 					queryType: EQueryType.QUERY_BUILDER,
-					promql: [],
 					builder: databaseCallsAvgDuration({
 						servicename,
 						tagFilterItems,

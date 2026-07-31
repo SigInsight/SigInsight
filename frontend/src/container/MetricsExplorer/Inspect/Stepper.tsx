@@ -1,9 +1,8 @@
 import { Color } from '@signozhq/design-tokens';
 import { Button, Typography } from 'antd';
 import classNames from 'classnames';
-import { ArrowUpRightFromSquare, RefreshCcw } from 'lucide-react';
+import { RefreshCcw } from 'lucide-react';
 
-import { SPACE_AGGREGATION_LINK, TEMPORAL_AGGREGATION_LINK } from './constants';
 import { InspectionStep, StepperProps } from './types';
 
 import '../../Home/HomeChecklist/HomeChecklist.styles.scss';
@@ -37,11 +36,7 @@ function Stepper({
 								inspectionStep <= InspectionStep.TIME_AGGREGATION,
 						})}
 					>
-						First, align the data by selecting a{' '}
-						<Typography.Link href={TEMPORAL_AGGREGATION_LINK} target="_blank">
-							Temporal Aggregation{' '}
-							<ArrowUpRightFromSquare color={Color.BG_ROBIN_500} size={10} />
-						</Typography.Link>
+						First, align the data by selecting a Temporal Aggregation.
 					</div>
 				</div>
 
@@ -61,11 +56,7 @@ function Stepper({
 								inspectionStep <= InspectionStep.SPACE_AGGREGATION,
 						})}
 					>
-						Add a{' '}
-						<Typography.Link href={SPACE_AGGREGATION_LINK} target="_blank">
-							Spatial Aggregation{' '}
-							<ArrowUpRightFromSquare color={Color.BG_ROBIN_500} size={10} />
-						</Typography.Link>
+						Add a Spatial Aggregation.
 					</div>
 				</div>
 			</div>

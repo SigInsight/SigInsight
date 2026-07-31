@@ -1,31 +1,11 @@
 import { useCallback, useState } from 'react';
 import { PlusOutlined } from '@ant-design/icons';
-import { Button, Divider, Typography } from 'antd';
-import logEvent from 'api/common/logEvent';
+import { Button, Typography } from 'antd';
 import ROUTES from 'constants/routes';
 import useComponentPermission from 'hooks/useComponentPermission';
 import history from 'lib/history';
 import { useAppContext } from 'providers/App/App';
-import { DataSource } from 'types/common/queryBuilder';
-
-import AlertInfoCard from './AlertInfoCard';
-import { ALERT_CARDS, ALERT_INFO_LINKS } from './alertLinks';
-import InfoLinkText from './InfoLinkText';
-
 import './AlertsEmptyState.styles.scss';
-
-const alertLogEvents = (
-	title: string,
-	link: string,
-	dataSource?: DataSource,
-): void => {
-	const attributes = {
-		link,
-		page: 'Alert empty state page',
-	};
-
-	logEvent(title, dataSource ? { ...attributes, dataSource } : attributes);
-};
 
 export function AlertsEmptyState(): JSX.Element {
 	const { user } = useAppContext();
@@ -79,65 +59,9 @@ export function AlertsEmptyState(): JSX.Element {
 							>
 								New Alert Rule
 							</Button>
-							<InfoLinkText
-								infoText="Watch a tutorial on creating a sample alert"
-								link="https://youtu.be/xjxNIqiv4_M"
-								leftIconVisible
-								rightIconVisible
-								onClick={(): void =>
-									alertLogEvents(
-										'Alert: Video tutorial link clicked',
-										'https://youtu.be/xjxNIqiv4_M',
-									)
-								}
-							/>
 						</div>
-
-						{ALERT_INFO_LINKS.map((info) => {
-							const logEventTriggered = (): void =>
-								alertLogEvents(
-									'Alert: Tutorial doc link clicked',
-									info.link,
-									info.dataSource,
-								);
-							return (
-								<InfoLinkText
-									key={info.link}
-									infoText={info.infoText}
-									link={info.link}
-									leftIconVisible={info.leftIconVisible}
-									rightIconVisible={info.rightIconVisible}
-									onClick={logEventTriggered}
-								/>
-							);
-						})}
 					</div>
 				</section>
-				<div className="get-started-text">
-					<Divider>
-						<Typography.Text className="get-started-text">
-							Or get started with these sample alerts
-						</Typography.Text>
-					</Divider>
-				</div>
-
-				{ALERT_CARDS.map((card) => {
-					const logEventTriggered = (): void =>
-						alertLogEvents(
-							'Alert: Sample alert link clicked',
-							card.link,
-							card.dataSource,
-						);
-					return (
-						<AlertInfoCard
-							key={card.link}
-							header={card.header}
-							subheader={card.subheader}
-							link={card.link}
-							onClick={logEventTriggered}
-						/>
-					);
-				})}
 			</div>
 		</div>
 	);

@@ -9,7 +9,6 @@ import { getQueryString } from 'container/SideNav/helper';
 import { settingsNavSections } from 'container/SideNav/menuItems';
 import NavItem from 'container/SideNav/NavItem/NavItem';
 import { SidebarItem } from 'container/SideNav/sideNav.types';
-import useComponentPermission from 'hooks/useComponentPermission';
 import history from 'lib/history';
 import { Cog } from 'lucide-react';
 import { useAppContext } from 'providers/App/App';
@@ -30,10 +29,6 @@ function SettingsPage(): JSX.Element {
 
 	const isAdmin = user.role === USER_ROLES.ADMIN;
 
-	const [isCurrentOrgSettings] = useComponentPermission(
-		['current_org_settings'],
-		user.role,
-	);
 	const { t } = useTranslation(['routes']);
 
 	// eslint-disable-next-line sonarjs/cognitive-complexity
@@ -41,24 +36,21 @@ function SettingsPage(): JSX.Element {
 		setSettingsMenuItems((prevItems) => {
 			let updatedItems = [...prevItems];
 
-			// Community edition: enable admin settings.
+			// Administrators can manage workspace members.
 			if (isAdmin) {
 				updatedItems = updatedItems.map((item) => ({
 					...item,
-					isEnabled:
-						item.key === ROUTES.ORG_SETTINGS || item.key === ROUTES.MEMBERS_SETTINGS
-							? true
-							: item.isEnabled,
+					isEnabled: item.key === ROUTES.MEMBERS_SETTINGS ? true : item.isEnabled,
 				}));
 			}
 			return updatedItems;
 		});
 	}, [isAdmin, pathname]);
 
-	const routes = useMemo(
-		() => getRoutes(user.role, isCurrentOrgSettings, false, t),
-		[user.role, isCurrentOrgSettings, t],
-	);
+	const routes = useMemo(() => getRoutes(user.role, false, false, t), [
+		user.role,
+		t,
+	]);
 
 	const isCtrlMetaKey = (e: MouseEvent): boolean => e.ctrlKey || e.metaKey;
 

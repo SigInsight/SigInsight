@@ -20,7 +20,6 @@ import {
 	initialQueriesMap,
 	initialQueryBuilderFormTraceOperatorValues,
 	initialQueryBuilderFormValuesMap,
-	initialQueryPromQLData,
 	initialQueryState,
 	initialSingleQueryMap,
 	MAX_FORMULAS,
@@ -50,7 +49,6 @@ import {
 	IBuilderQuery,
 	IBuilderTraceOperator,
 	IClickHouseQuery,
-	IPromQLQuery,
 	Query,
 	QueryState,
 } from 'types/api/queryBuilder/queryBuilderData';
@@ -211,11 +209,6 @@ export function QueryBuilderProvider({
 				return currentElement;
 			});
 
-			const promql: IPromQLQuery[] = query.promql.map((item) => ({
-				...initialQueryPromQLData,
-				...item,
-			}));
-
 			const clickHouse: IClickHouseQuery[] = query.clickhouse_sql.map((item) => ({
 				...initialClickHouseData,
 				...item,
@@ -223,13 +216,14 @@ export function QueryBuilderProvider({
 
 			const newQueryState: QueryState = {
 				clickhouse_sql: clickHouse,
-				promql,
 				builder: {
 					...builder,
 					queryData: setupedQueryData,
 				},
 				id: query.id,
 				unit: query.unit,
+				resultUnit: query.resultUnit,
+				displayUnit: query.displayUnit,
 			};
 
 			const nextQuery: Query = {
@@ -444,9 +438,9 @@ export function QueryBuilderProvider({
 	);
 
 	const removeQueryTypeItemByIndex = useCallback(
-		(type: EQueryType.PROM | EQueryType.CLICKHOUSE, index: number) => {
+		(type: EQueryType.CLICKHOUSE, index: number) => {
 			setCurrentQuery((prevState) => {
-				const targetArray: (IPromQLQuery | IClickHouseQuery)[] = prevState[type];
+				const targetArray: IClickHouseQuery[] = prevState[type];
 				return {
 					...prevState,
 					[type]: targetArray.filter((_, i) => index !== i),
@@ -454,7 +448,7 @@ export function QueryBuilderProvider({
 			});
 			// eslint-disable-next-line sonarjs/no-identical-functions
 			setSupersetQuery((prevState) => {
-				const targetArray: (IPromQLQuery | IClickHouseQuery)[] = prevState[type];
+				const targetArray: IClickHouseQuery[] = prevState[type];
 				return {
 					...prevState,
 					[type]: targetArray.filter((_, i) => index !== i),
@@ -518,12 +512,12 @@ export function QueryBuilderProvider({
 
 	const createNewQueryTypeItem = useCallback(
 		(
-			itemArray: QueryState['clickhouse_sql'] | QueryState['promql'],
-			type: EQueryType.CLICKHOUSE | EQueryType.PROM,
-		): IPromQLQuery | IClickHouseQuery => {
+			itemArray: QueryState['clickhouse_sql'],
+			type: EQueryType.CLICKHOUSE,
+		): IClickHouseQuery => {
 			const existNames = itemArray.map((item) => item.name);
 
-			const newItem: IPromQLQuery | IClickHouseQuery = {
+			const newItem: IClickHouseQuery = {
 				...initialSingleQueryMap[type],
 				name: createNewBuilderItemName({
 					existNames,
@@ -537,7 +531,7 @@ export function QueryBuilderProvider({
 	);
 
 	const addNewQueryItem = useCallback(
-		(type: EQueryType.CLICKHOUSE | EQueryType.PROM) => {
+		(type: EQueryType.CLICKHOUSE) => {
 			setCurrentQuery((prevState) => {
 				if (prevState[type].length >= MAX_QUERIES) {
 					return prevState;
@@ -779,8 +773,8 @@ export function QueryBuilderProvider({
 	const handleSetQueryItemData = useCallback(
 		(
 			index: number,
-			type: EQueryType.PROM | EQueryType.CLICKHOUSE,
-			newQueryData: IPromQLQuery | IClickHouseQuery,
+			type: EQueryType.CLICKHOUSE,
+			newQueryData: IClickHouseQuery,
 		) => {
 			setCurrentQuery((prevState) => {
 				const updatedQueryBuilderData = updateQueryBuilderData(
@@ -959,11 +953,6 @@ export function QueryBuilderProvider({
 					? initialQueryState.builder
 					: query.builder;
 
-			const promql =
-				!query.promql || query.promql.length === 0
-					? initialQueryState.promql
-					: query.promql;
-
 			const clickhouseSql =
 				!query.clickhouse_sql || query.clickhouse_sql.length === 0
 					? initialQueryState.clickhouse_sql
@@ -972,10 +961,11 @@ export function QueryBuilderProvider({
 			const currentGeneratedQuery: Query = {
 				queryType,
 				builder,
-				promql,
 				clickhouse_sql: clickhouseSql,
 				id: uuid(),
 				unit: query.unit || initialQueryState.unit,
+				resultUnit: query.resultUnit,
+				displayUnit: query.displayUnit,
 			};
 
 			const pagination = urlQuery.get(QueryParams.pagination);
@@ -1061,7 +1051,6 @@ export function QueryBuilderProvider({
 				...updateStepInterval({
 					builder: currentQueryData.builder,
 					clickhouse_sql: currentQueryData.clickhouse_sql,
-					promql: currentQueryData.promql,
 					id: currentQueryData.id,
 					queryType,
 					unit: currentQueryData.unit,

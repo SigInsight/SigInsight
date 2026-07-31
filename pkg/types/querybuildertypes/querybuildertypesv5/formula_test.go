@@ -684,6 +684,39 @@ func TestNoDefaultZero(t *testing.T) {
 	assert.Equal(t, 0, len(result))
 }
 
+func TestFormulaSeriesHaveDeterministicLabelOrder(t *testing.T) {
+	tsData := map[string]*TimeSeriesData{
+		"A": createFormulaTestTimeSeriesData("A", []*TimeSeries{
+			{
+				Labels: createLabels(map[string]string{"service_name": "worker"}),
+				Values: createValues(map[int64]float64{1: 2}),
+			},
+			{
+				Labels: createLabels(map[string]string{"service_name": "api"}),
+				Values: createValues(map[int64]float64{1: 1}),
+			},
+		}),
+		"B": createFormulaTestTimeSeriesData("B", []*TimeSeries{
+			{
+				Labels: createLabels(map[string]string{"service_name": "frontend"}),
+				Values: createValues(map[int64]float64{1: 3}),
+			},
+		}),
+	}
+
+	evaluator, err := NewFormulaEvaluator("A + B", map[string]bool{"A": true, "B": true})
+	require.NoError(t, err)
+
+	for range 10 {
+		result, err := evaluator.EvaluateFormula(tsData)
+		require.NoError(t, err)
+		require.Len(t, result, 3)
+		assert.Equal(t, "api", result[0].Labels[0].Value)
+		assert.Equal(t, "frontend", result[1].Labels[0].Value)
+		assert.Equal(t, "worker", result[2].Labels[0].Value)
+	}
+}
+
 func TestMixedQueries(t *testing.T) {
 	tsData := map[string]*TimeSeriesData{
 		"A": createFormulaTestTimeSeriesData("A", []*TimeSeries{

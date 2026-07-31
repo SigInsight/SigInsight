@@ -422,27 +422,6 @@ export function convertTraceOperatorToV5(
 }
 
 /**
- * Converts PromQL queries to V5 format
- */
-export function convertPromQueriesToV5(
-	promQueries: Record<string, any>,
-): QueryEnvelope[] {
-	return Object.entries(promQueries).map(
-		([queryName, queryData]): QueryEnvelope => ({
-			type: 'promql' as QueryType,
-			spec: {
-				name: queryName,
-				query: queryData.query,
-				disabled: queryData.disabled || false,
-				step: queryData?.stepInterval,
-				legend: isEmpty(queryData.legend) ? undefined : queryData.legend,
-				stats: false, // PromQL specific field
-			},
-		}),
-	);
-}
-
-/**
  * Converts ClickHouse queries to V5 format
  */
 export function convertClickHouseQueriesToV5(
@@ -456,7 +435,6 @@ export function convertClickHouseQueriesToV5(
 				query: queryData.query,
 				disabled: queryData.disabled || false,
 				legend: isEmpty(queryData.legend) ? undefined : queryData.legend,
-				// ClickHouse doesn't have step or stats like PromQL
 			},
 		}),
 	);
@@ -565,12 +543,6 @@ export const prepareQueryRangePayloadV5 = ({
 
 			// Combine all query types
 			queries = [...builderQueries, ...formulaQueries, ...traceOperatorQueries];
-			break;
-		}
-		case EQueryType.PROM: {
-			const promQueries = reduceQueriesToObject(query[query.queryType]);
-			queries = convertPromQueriesToV5(promQueries.queries);
-			legendMap = promQueries.legends;
 			break;
 		}
 		case EQueryType.CLICKHOUSE: {

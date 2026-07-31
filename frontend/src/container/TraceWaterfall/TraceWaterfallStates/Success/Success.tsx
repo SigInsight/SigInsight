@@ -21,13 +21,7 @@ import { IInterestedSpan } from 'container/TraceWaterfall/TraceWaterfall';
 import { useSafeNavigate } from 'hooks/useSafeNavigate';
 import useUrlQuery from 'hooks/useUrlQuery';
 import { generateColor } from 'lib/uPlotShared/generateColor';
-import {
-	AlertCircle,
-	ArrowUpRight,
-	ChevronDown,
-	ChevronRight,
-	Leaf,
-} from 'lucide-react';
+import { AlertCircle, ChevronDown, ChevronRight, Leaf } from 'lucide-react';
 import { useAppContext } from 'providers/App/App';
 import { Span } from 'types/api/trace/getTraceWaterfall';
 import { toFixed } from 'utils/toFixed';
@@ -541,19 +535,6 @@ function Success(props: ISuccessProps): JSX.Element {
 							This trace has missing spans
 						</Typography.Text>
 					</section>
-					<Button
-						icon={<ArrowUpRight size={14} />}
-						className="right-info"
-						type="text"
-						onClick={(): WindowProxy | null =>
-							window.open(
-								'https://signoz.io/docs/userguide/traces/#missing-spans',
-								'_blank',
-							)
-						}
-					>
-						Learn More
-					</Button>
 				</div>
 			)}
 			<Filters

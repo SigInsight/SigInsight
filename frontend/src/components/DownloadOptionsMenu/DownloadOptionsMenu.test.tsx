@@ -74,7 +74,6 @@ const createMockStagedQuery = (dataSource: DataSource): Query => ({
 		queryFormulas: [],
 		queryTraceOperator: [],
 	},
-	promql: [],
 	clickhouse_sql: [],
 });
 

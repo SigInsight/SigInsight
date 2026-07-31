@@ -39,7 +39,7 @@ import { getGraphType } from 'utils/getGraphType';
 import { getSortedSeriesData } from 'utils/getSortedSeriesData';
 
 import { ChartContainer } from './styles';
-import { getThresholds } from './utils';
+import { getThresholds, selectAlertQueryResult } from './utils';
 
 export interface ChartPreviewProps {
 	name: string;
@@ -51,7 +51,8 @@ export interface ChartPreviewProps {
 	alertDef?: AlertDef;
 	userQueryKey?: string;
 	allowSelectedIntervalForStepGen?: boolean;
-	yAxisUnit: string;
+	resultUnit: string;
+	displayUnit: string;
 	setQueryStatus?: (status: string) => void;
 	showSideLegend?: boolean;
 	additionalThresholds?: Threshold[];
@@ -68,7 +69,8 @@ function ChartPreview({
 	userQueryKey,
 	allowSelectedIntervalForStepGen = false,
 	alertDef,
-	yAxisUnit,
+	resultUnit,
+	displayUnit,
 	setQueryStatus,
 	showSideLegend = false,
 	additionalThresholds,
@@ -81,7 +83,7 @@ function ChartPreview({
 				{
 					...INITIAL_CRITICAL_THRESHOLD,
 					thresholdValue: alertDef?.condition.target || 0,
-					unit: alertDef?.condition.targetUnit || '',
+					targetUnit: alertDef?.condition.targetUnit || '',
 				},
 			],
 		[
@@ -127,8 +129,6 @@ function ChartPreview({
 		}
 
 		switch (query?.queryType) {
-			case EQueryType.PROM:
-				return query.promql?.length > 0 && query.promql[0].query !== '';
 			case EQueryType.CLICKHOUSE:
 				return (
 					query.clickhouse_sql?.length > 0 &&
@@ -167,20 +167,37 @@ function ChartPreview({
 		},
 	);
 
+	const chartQueryResponse = useMemo(() => {
+		if (!queryResponse.data) {
+			return queryResponse;
+		}
+		const payload = selectAlertQueryResult(
+			queryResponse.data.payload,
+			alertDef?.condition.selectedQueryName,
+		);
+		if (payload === queryResponse.data.payload) {
+			return queryResponse;
+		}
+		return {
+			...queryResponse,
+			data: { ...queryResponse.data, payload },
+		};
+	}, [alertDef?.condition.selectedQueryName, queryResponse]);
+
 	useEffect(() => {
 		setQueryStatus?.(queryResponse.status);
 	}, [queryResponse.status, setQueryStatus]);
 
-	if (queryResponse.data && graphType === PANEL_TYPES.BAR) {
+	if (chartQueryResponse.data && graphType === PANEL_TYPES.BAR) {
 		const sortedSeriesData = getSortedSeriesData(
-			queryResponse.data?.payload.data.result,
+			chartQueryResponse.data?.payload.data.result,
 		);
-		queryResponse.data.payload.data.result = sortedSeriesData;
+		chartQueryResponse.data.payload.data.result = sortedSeriesData;
 	}
 
-	if (queryResponse.data && graphType === PANEL_TYPES.PIE) {
-		const transformedData = populateMultipleResults(queryResponse?.data);
-		queryResponse.data = transformedData;
+	if (chartQueryResponse.data && graphType === PANEL_TYPES.PIE) {
+		const transformedData = populateMultipleResults(chartQueryResponse?.data);
+		chartQueryResponse.data = transformedData;
 	}
 
 	const urlQuery = useUrlQuery();
@@ -232,8 +249,9 @@ function ChartPreview({
 			opacity: '',
 			nullZeroValues: '',
 			timePreferance: selectedTime,
-			yAxisUnit,
-			thresholds: getThresholds(thresholds, t, optionName, yAxisUnit),
+			resultUnit,
+			yAxisUnit: displayUnit,
+			thresholds: getThresholds(thresholds, t, optionName, displayUnit),
 			softMin: null,
 			softMax: null,
 			selectedLogFields: null,
@@ -251,36 +269,39 @@ function ChartPreview({
 			selectedTime,
 			t,
 			thresholds,
-			yAxisUnit,
+			displayUnit,
+			resultUnit,
 		],
 	);
 
-	const isWarning = !isEmpty(queryResponse.data?.warning);
+	const isWarning = !isEmpty(chartQueryResponse.data?.warning);
 	return (
 		<div className="alert-chart-container">
 			<ChartContainer>
 				<div className="chart-preview-header">
 					{headline}
 					{isWarning && (
-						<WarningPopover warningData={queryResponse.data?.warning as Warning} />
+						<WarningPopover
+							warningData={chartQueryResponse.data?.warning as Warning}
+						/>
 					)}
 				</div>
 
 				<div className="threshold-alert-uplot-chart-container">
-					{queryResponse.isLoading && (
+					{chartQueryResponse.isLoading && (
 						<Spinner size="large" tip="Loading..." height="100%" />
 					)}
-					{(queryResponse?.isError || queryResponse?.error) && (
-						<ErrorInPlace error={queryResponse.error as APIError} />
+					{(chartQueryResponse?.isError || chartQueryResponse?.error) && (
+						<ErrorInPlace error={chartQueryResponse.error as APIError} />
 					)}
 
-					{queryResponse.data &&
-						!queryResponse.isError &&
-						!queryResponse.isLoading && (
+					{chartQueryResponse.data &&
+						!chartQueryResponse.isError &&
+						!chartQueryResponse.isLoading && (
 							<PanelWrapper
 								panelMode={PanelMode.STANDALONE_VIEW}
 								widget={previewWidget}
-								queryResponse={queryResponse}
+								queryResponse={chartQueryResponse}
 								onDragSelect={onDragSelect}
 							/>
 						)}

@@ -66,7 +66,6 @@ export function getWidgetQuery(
 		columnUnits,
 		query: {
 			queryType: EQueryType.QUERY_BUILDER,
-			promql: [],
 			builder: {
 				queryData: props.queryData,
 				queryFormulas: (props.queryFormulas as IBuilderFormula[]) || [],

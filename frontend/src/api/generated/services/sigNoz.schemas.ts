@@ -1220,30 +1220,6 @@ export enum Querybuildertypesv5OrderDirectionDTO {
 	asc = 'asc',
 	desc = 'desc',
 }
-export interface Querybuildertypesv5PromQueryDTO {
-	/**
-	 * @type boolean
-	 */
-	disabled?: boolean;
-	/**
-	 * @type string
-	 */
-	legend?: string;
-	/**
-	 * @type string
-	 */
-	name?: string;
-	/**
-	 * @type string
-	 */
-	query?: string;
-	/**
-	 * @type boolean
-	 */
-	stats?: boolean;
-	step?: Querybuildertypesv5StepDTO;
-}
-
 export interface Querybuildertypesv5QueryBuilderFormulaDTO {
 	/**
 	 * @type boolean
@@ -1549,10 +1525,6 @@ export type Querybuildertypesv5QueryEnvelopeDTO =
 			spec?: unknown;
 			type?: Querybuildertypesv5QueryTypeDTO;
 	  })
-	| (Querybuildertypesv5QueryEnvelopePromQLDTO & {
-			spec?: unknown;
-			type?: Querybuildertypesv5QueryTypeDTO;
-	  })
 	| (Querybuildertypesv5QueryEnvelopeClickHouseSQLDTO & {
 			spec?: unknown;
 			type?: Querybuildertypesv5QueryTypeDTO;
@@ -1583,11 +1555,6 @@ export interface Querybuildertypesv5QueryEnvelopeFormulaDTO {
 	type?: Querybuildertypesv5QueryTypeDTO;
 }
 
-export interface Querybuildertypesv5QueryEnvelopePromQLDTO {
-	spec?: Querybuildertypesv5PromQueryDTO;
-	type?: Querybuildertypesv5QueryTypeDTO;
-}
-
 export interface Querybuildertypesv5QueryEnvelopeTraceOperatorDTO {
 	spec?: Querybuildertypesv5QueryBuilderTraceOperatorDTO;
 	type?: Querybuildertypesv5QueryTypeDTO;
@@ -1598,7 +1565,7 @@ export type Querybuildertypesv5QueryRangeRequestDTOVariables = {
 };
 
 /**
- * Request body for the v5 query range endpoint. Supports builder queries (traces, logs, metrics), formulas, joins, trace operators, PromQL, and ClickHouse SQL queries.
+ * Request body for the v5 query range endpoint. Supports builder queries (traces, logs, metrics), formulas, joins, trace operators, and ClickHouse SQL queries.
  */
 export interface Querybuildertypesv5QueryRangeRequestDTO {
 	compositeQuery?: Querybuildertypesv5CompositeQueryDTO;
@@ -1643,7 +1610,6 @@ export enum Querybuildertypesv5QueryTypeDTO {
 	builder_formula = 'builder_formula',
 	builder_trace_operator = 'builder_trace_operator',
 	clickhouse_sql = 'clickhouse_sql',
-	promql = 'promql',
 }
 export interface Querybuildertypesv5QueryWarnDataDTO {
 	/**

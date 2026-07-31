@@ -2,7 +2,6 @@ import ROUTES from 'constants/routes';
 import { ROLES } from 'types/roles';
 
 export type ComponentTypes =
-	| 'current_org_settings'
 	| 'invite_members'
 	| 'add_new_alert'
 	| 'add_new_channel'
@@ -15,7 +14,6 @@ export type ComponentTypes =
 	| 'add_panel';
 
 export const componentPermission: Record<ComponentTypes, ROLES[]> = {
-	current_org_settings: ['ADMIN'],
 	invite_members: ['ADMIN'],
 	add_new_alert: ['ADMIN', 'EDITOR'],
 	add_new_channel: ['ADMIN'],
@@ -31,7 +29,6 @@ export const componentPermission: Record<ComponentTypes, ROLES[]> = {
 export const routePermission: Record<keyof typeof ROUTES, ROLES[]> = {
 	HOME: ['ADMIN', 'EDITOR', 'VIEWER'],
 	ALERTS_NEW: ['ADMIN', 'EDITOR'],
-	ORG_SETTINGS: ['ADMIN'],
 	MY_SETTINGS: ['ADMIN', 'EDITOR', 'VIEWER'],
 	SERVICE_MAP: ['ADMIN', 'EDITOR', 'VIEWER'],
 	ALL_CHANNELS: ['ADMIN', 'EDITOR', 'VIEWER'],
@@ -77,8 +74,5 @@ export const routePermission: Record<keyof typeof ROUTES, ROLES[]> = {
 	API_MONITORING: ['ADMIN', 'EDITOR', 'VIEWER'],
 	METRICS_EXPLORER_BASE: ['ADMIN', 'EDITOR', 'VIEWER'],
 	API_MONITORING_BASE: ['ADMIN', 'EDITOR', 'VIEWER'],
-	METER_EXPLORER: ['ADMIN', 'EDITOR', 'VIEWER'],
-	METER: ['ADMIN', 'EDITOR', 'VIEWER'],
-	METER_EXPLORER_VIEWS: ['ADMIN', 'EDITOR', 'VIEWER'],
 	ALERT_TYPE_SELECTION: ['ADMIN', 'EDITOR'],
 };

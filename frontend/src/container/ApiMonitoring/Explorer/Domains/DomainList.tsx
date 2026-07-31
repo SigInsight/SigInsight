@@ -15,13 +15,11 @@ import { useQueryOperations } from 'hooks/queryBuilder/useQueryBuilderOperations
 import { useShareBuilderUrl } from 'hooks/queryBuilder/useShareBuilderUrl';
 import { useListOverview } from 'hooks/thirdPartyApis/useListOverview';
 import { get } from 'lodash-es';
-import { MoveUpRight } from 'lucide-react';
 import { AppState } from 'store/reducers';
 import { BaseAutocompleteData } from 'types/api/queryBuilder/queryAutocompleteResponse';
 import { HandleChangeQueryDataV5 } from 'types/common/operations.types';
 import { DataSource } from 'types/common/queryBuilder';
 import { GlobalReducer } from 'types/reducer/globalTime';
-import DOCLINKS from 'utils/docLinks';
 
 import { ApiMonitoringHardcodedAttributeKeys } from '../../constants';
 import { DEFAULT_PARAMS, useApiMonitoringParams } from '../../queryParams';
@@ -147,15 +145,6 @@ function DomainList(): JSX.Element {
 								<span className="attribute">url.full</span> or{' '}
 								<span className="attribute">http.url</span> attribute.
 							</div>
-							<a
-								href={DOCLINKS.EXTERNAL_API_MONITORING}
-								target="_blank"
-								rel="noreferrer"
-								className="external-api-doc-link"
-							>
-								Learn how External API monitoring works in SigInsight{' '}
-								<MoveUpRight size={14} />
-							</a>
 						</div>
 					</div>
 				</div>

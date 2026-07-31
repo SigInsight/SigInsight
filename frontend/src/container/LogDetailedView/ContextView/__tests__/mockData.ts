@@ -62,7 +62,6 @@ export const mockQuery: Query = {
 	},
 	clickhouse_sql: [],
 	id: 'test-query-id',
-	promql: [],
 };
 
 const mockBaseAutocompleteData: BaseAutocompleteData = {

@@ -55,41 +55,6 @@ func TestBaseRule_ExtractMetricAndGroupBys(t *testing.T) {
 			},
 		},
 		{
-			name:    "promql multiple grouping",
-			payload: promQueryWithGrouping,
-			wantResults: map[string]*queryfilterextractor.FilterResult{
-				"P1": {
-					MetricNames: []string{"http_requests_total"},
-					GroupByColumns: []queryfilterextractor.ColumnInfo{
-						{Name: "pod", Alias: "", OriginExpr: "pod", OriginField: "pod"},
-						{Name: "region", Alias: "", OriginExpr: "region", OriginField: "region"},
-					},
-				},
-			},
-		},
-		{
-			name:    "promql single grouping",
-			payload: promQuerySingleGrouping,
-			wantResults: map[string]*queryfilterextractor.FilterResult{
-				"P2": {
-					MetricNames: []string{"cpu_usage_seconds_total"},
-					GroupByColumns: []queryfilterextractor.ColumnInfo{
-						{Name: "env", Alias: "", OriginExpr: "env", OriginField: "env"},
-					},
-				},
-			},
-		},
-		{
-			name:    "promql no grouping",
-			payload: promQueryNoGrouping,
-			wantResults: map[string]*queryfilterextractor.FilterResult{
-				"P3": {
-					MetricNames:    []string{"node_cpu_seconds_total"},
-					GroupByColumns: []queryfilterextractor.ColumnInfo{},
-				},
-			},
-		},
-		{
 			name:    "clickhouse multiple grouping",
 			payload: clickHouseQueryWithGrouping,
 			wantResults: map[string]*queryfilterextractor.FilterResult{

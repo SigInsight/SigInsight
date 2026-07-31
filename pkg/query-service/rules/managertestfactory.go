@@ -3,7 +3,6 @@ package rules
 import (
 	"context"
 	"testing"
-	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/SigNoz/signoz/pkg/alertmanager"
@@ -12,8 +11,6 @@ import (
 	"github.com/SigNoz/signoz/pkg/cache/cachetest"
 	"github.com/SigNoz/signoz/pkg/flagger"
 	"github.com/SigNoz/signoz/pkg/instrumentation/instrumentationtest"
-	"github.com/SigNoz/signoz/pkg/prometheus"
-	"github.com/SigNoz/signoz/pkg/prometheus/prometheustest"
 	"github.com/SigNoz/signoz/pkg/querier"
 	"github.com/SigNoz/signoz/pkg/querier/signozquerier"
 	"github.com/SigNoz/signoz/pkg/query-service/app/rulestatehistorystore"
@@ -44,10 +41,6 @@ type TestManagerOptions struct {
 	// TelemetryStoreHook is a function that will be called with the TelemetryStore mock
 	// after it's created but before it's used. This allows customizing the mock behavior.
 	TelemetryStoreHook func(telemetrystore.TelemetryStore)
-
-	// ManagerOptionsHook is a function that will be called with the ManagerOptions
-	// before the manager is created. This allows customizing the manager options (e.g., setting Prometheus).
-	ManagerOptionsHook func(*ManagerOptions)
 }
 
 // NewTestManager creates a Manager instance for testing purposes.
@@ -98,7 +91,6 @@ func NewTestManager(t *testing.T, testOpts *TestManagerOptions) *Manager {
 	require.NoError(t, err)
 
 	providerSettings := instrumentationtest.New().ToProviderSettings()
-	prometheus := prometheustest.New(context.Background(), providerSettings, prometheus.Config{Timeout: 2 * time.Minute}, telemetryStore)
 	reader := rulestatehistorystore.New(
 		instrumentationtest.New().Logger(),
 		telemetryStore.ClickhouseDB(),
@@ -111,7 +103,7 @@ func NewTestManager(t *testing.T, testOpts *TestManagerOptions) *Manager {
 	}
 
 	// Create mock querierV5 with test values
-	providerFactory := signozquerier.NewFactory(telemetryStore, prometheus, readerCache, flagger)
+	providerFactory := signozquerier.NewFactory(telemetryStore, readerCache, flagger)
 	mockQuerier, err := providerFactory.New(context.Background(), providerSettings, querier.Config{})
 	require.NoError(t, err)
 
@@ -122,11 +114,6 @@ func NewTestManager(t *testing.T, testOpts *TestManagerOptions) *Manager {
 		Querier:      mockQuerier,
 		Reader:       reader,
 		SqlStore:     sqlStore, // SQLStore needed for SendAlerts to query organizations
-	}
-
-	// Call the ManagerOptions hook if provided to allow customization
-	if testOpts != nil && testOpts.ManagerOptionsHook != nil {
-		testOpts.ManagerOptionsHook(mgrOpts)
 	}
 
 	mgr, err := NewManager(mgrOpts)

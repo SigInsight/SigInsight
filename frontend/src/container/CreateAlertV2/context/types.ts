@@ -65,13 +65,15 @@ export enum AlertCreationStep {
 export interface AlertState {
 	name: string;
 	labels: Labels;
-	yAxisUnit: string | undefined;
+	resultUnit: string | undefined;
+	displayUnit: string | undefined;
 }
 
 export type CreateAlertAction =
 	| { type: 'SET_ALERT_NAME'; payload: string }
 	| { type: 'SET_ALERT_LABELS'; payload: Labels }
-	| { type: 'SET_Y_AXIS_UNIT'; payload: string | undefined }
+	| { type: 'SET_RESULT_UNIT'; payload: string | undefined }
+	| { type: 'SET_DISPLAY_UNIT'; payload: string | undefined }
 	| { type: 'SET_INITIAL_STATE'; payload: AlertState }
 	| { type: 'RESET' };
 
@@ -80,7 +82,7 @@ export interface Threshold {
 	label: string;
 	thresholdValue: number;
 	recoveryThresholdValue: number | null;
-	unit: string;
+	targetUnit: string;
 	channels: string[];
 	color: string;
 }

@@ -1,9 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Color } from '@signozhq/design-tokens';
 import { Button, Tabs, Tooltip, Typography } from 'antd';
 import logEvent from 'api/common/logEvent';
-import PromQLIcon from 'assets/Dashboard/PromQl';
 import { QueryBuilder } from 'components/QueryBuilder/QueryBuilder';
 import { ALERTS_DATA_SOURCE_MAP } from 'constants/alerts';
 import { ENTITY_VERSION_V5 } from 'constants/app';
@@ -11,7 +9,6 @@ import { PANEL_TYPES } from 'constants/queryBuilder';
 import { QBShortcuts } from 'constants/shortcuts/QBShortcuts';
 import RunQueryBtn from 'container/QueryBuilder/components/RunQueryBtn/RunQueryBtn';
 import { useKeyboardHotkeys } from 'hooks/hotkeys/useKeyboardHotkeys';
-import { useIsDarkMode } from 'hooks/useDarkMode';
 import { isEmpty } from 'lodash-es';
 import { Atom, Terminal } from 'lucide-react';
 import { AlertTypes } from 'types/api/alerts/alertTypes';
@@ -19,7 +16,6 @@ import { AlertDef } from 'types/api/alerts/def';
 import { EQueryType } from 'types/common/dashboard';
 
 import ChQuerySection from './ChQuerySection';
-import PromqlSection from './PromqlSection';
 import { FormContainer, StepHeading } from './styles';
 
 import './QuerySection.styles.scss';
@@ -44,11 +40,7 @@ function QuerySection({
 		setCurrentTab(queryType as EQueryType);
 	};
 
-	const renderPromqlUI = (): JSX.Element => <PromqlSection />;
-
 	const renderChQueryUI = (): JSX.Element => <ChQuerySection />;
-
-	const isDarkMode = useIsDarkMode();
 
 	const handleSignalSourceChange = (value: string): void => {
 		setSignalSource(value);
@@ -119,21 +111,8 @@ function QuerySection({
 				),
 				key: EQueryType.CLICKHOUSE,
 			},
-			{
-				label: (
-					<Tooltip title="PromQL">
-						<Button className="nav-btns">
-							<PromQLIcon
-								fillColor={isDarkMode ? Color.BG_VANILLA_200 : Color.BG_INK_300}
-							/>
-							<Typography.Text>PromQL</Typography.Text>
-						</Button>
-					</Tooltip>
-				),
-				key: EQueryType.PROM,
-			},
 		],
-		[isDarkMode],
+		[],
 	);
 
 	const { registerShortcut, deregisterShortcut } = useKeyboardHotkeys();
@@ -202,8 +181,6 @@ function QuerySection({
 	};
 	const renderQuerySection = (c: EQueryType): JSX.Element | null => {
 		switch (c) {
-			case EQueryType.PROM:
-				return renderPromqlUI();
 			case EQueryType.CLICKHOUSE:
 				return renderChQueryUI();
 			case EQueryType.QUERY_BUILDER:

@@ -136,10 +136,6 @@ export function getQueryLegend(
 				(query) => query.name === queryName,
 			)?.legend;
 			break;
-		case EQueryType.PROM:
-			legend = currentQuery?.promql?.find((query) => query.name === queryName)
-				?.legend;
-			break;
 		default:
 			legend = undefined;
 			break;

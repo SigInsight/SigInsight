@@ -1,8 +1,6 @@
 import { Button, Flex, SelectProps, Typography } from 'antd';
-import type { BaseOptionType, DefaultOptionType } from 'antd/es/select';
+import type { BaseOptionType } from 'antd/es/select';
 import { getInvolvedQueriesInTraceOperator } from 'components/QueryBuilder/Query/TraceOperator/utils/utils';
-import { YAxisSource } from 'components/YAxisUnitSelector/types';
-import { getYAxisCategories } from 'components/YAxisUnitSelector/utils';
 import ROUTES from 'constants/routes';
 import {
 	AlertThresholdMatchType,
@@ -27,42 +25,11 @@ export function getQueryNames(currentQuery: Query): BaseOptionType[] {
 			...(getSelectedQueryOptions(currentQuery.builder.queryFormulas) || []),
 			...(getSelectedQueryOptions(currentQuery.builder.queryTraceOperator) || []),
 		],
-		[EQueryType.PROM]: () => getSelectedQueryOptions(currentQuery.promql),
 		[EQueryType.CLICKHOUSE]: () =>
 			getSelectedQueryOptions(currentQuery.clickhouse_sql),
 	};
 
 	return queryConfig[currentQuery.queryType]?.() || [];
-}
-
-export function getCategoryByOptionId(id: string): string | undefined {
-	const categories = getYAxisCategories(YAxisSource.ALERTS);
-	return categories.find((category) =>
-		category.units.some((unit) => unit.id === id),
-	)?.name;
-}
-
-export function getCategorySelectOptionByName(
-	name: string | undefined,
-): DefaultOptionType[] {
-	if (!name) {
-		return [];
-	}
-
-	const categories = getYAxisCategories(YAxisSource.ALERTS);
-	if (!categories.length) {
-		return [];
-	}
-
-	return (
-		categories
-			.find((category) => category.name === name)
-			?.units.map((unit) => ({
-				label: unit.name,
-				value: unit.id,
-				'data-testid': `threshold-unit-select-option-${unit.id}`,
-			})) || []
-	);
 }
 
 const getOperatorWord = (op: AlertThresholdOperator): string => {
@@ -210,21 +177,6 @@ function TooltipExample({
 	);
 }
 
-function TooltipLink(): JSX.Element {
-	return (
-		<div className="tooltip-link">
-			<a
-				href="https://signoz.io/docs"
-				target="_blank"
-				rel="noopener noreferrer"
-				className="tooltip-link-text"
-			>
-				Learn more
-			</a>
-		</div>
-	);
-}
-
 export const getMatchTypeTooltip = (
 	matchType: AlertThresholdMatchType,
 	operator: AlertThresholdOperator,
@@ -267,7 +219,6 @@ export const getMatchTypeTooltip = (
 						Alert triggers ({getMatchingPointsCount()} points {operatorWord}{' '}
 						{thresholdValue})
 					</TooltipExample>
-					<TooltipLink />
 				</TooltipContent>
 			);
 
@@ -288,7 +239,6 @@ export const getMatchTypeTooltip = (
 						Alert triggers (all points {operatorWord} {thresholdValue})<br />
 						If any point was {thresholdValue}, no alert would fire
 					</TooltipExample>
-					<TooltipLink />
 				</TooltipContent>
 			);
 
@@ -311,7 +261,6 @@ export const getMatchTypeTooltip = (
 					>
 						Alert triggers (average = {average})
 					</TooltipExample>
-					<TooltipLink />
 				</TooltipContent>
 			);
 		}
@@ -333,7 +282,6 @@ export const getMatchTypeTooltip = (
 					>
 						Alert triggers (total = {total})
 					</TooltipExample>
-					<TooltipLink />
 				</TooltipContent>
 			);
 		}
@@ -355,7 +303,6 @@ export const getMatchTypeTooltip = (
 					>
 						Alert triggers (last point = {lastPoint})
 					</TooltipExample>
-					<TooltipLink />
 				</TooltipContent>
 			);
 		}

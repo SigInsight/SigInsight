@@ -1,7 +1,6 @@
 import { ENTITY_VERSION_V5 } from 'constants/app';
 import {
 	initialQueryBuilderFormValuesMap,
-	initialQueryPromQLData,
 	PANEL_TYPES,
 } from 'constants/queryBuilder';
 import {
@@ -45,7 +44,6 @@ export const defaultPostableAlertRule: PostableAlertRule = {
 			builderQueries: {
 				A: initialQueryBuilderFormValuesMap.metrics,
 			},
-			promQueries: { A: initialQueryPromQLData },
 			chQueries: {
 				A: {
 					name: 'A',

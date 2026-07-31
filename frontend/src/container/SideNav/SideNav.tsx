@@ -34,30 +34,24 @@ import ROUTES from 'constants/routes';
 import { GlobalShortcuts } from 'constants/shortcuts/globalShortcuts';
 import { USER_PREFERENCES } from 'constants/userPreferences';
 import { useKeyboardHotkeys } from 'hooks/hotkeys/useKeyboardHotkeys';
-import useComponentPermission from 'hooks/useComponentPermission';
 import { useNotifications } from 'hooks/useNotifications';
 import history from 'lib/history';
 import { isArray } from 'lodash-es';
 import {
-	ArrowUpRight,
 	Check,
 	ChevronDown,
 	ChevronsDown,
 	ChevronUp,
 	Cog,
 	Ellipsis,
-	GitCommitVertical,
 	GripVertical,
-	LampDesk,
 	Logs,
 	MousePointerClick,
-	ScrollText,
 	X,
 } from 'lucide-react';
 import { useAppContext } from 'providers/App/App';
 import { AppState } from 'store/reducers';
 import AppReducer from 'types/reducer/app';
-import { USER_ROLES } from 'types/roles';
 import { checkVersionState } from 'utils/app';
 import { showErrorNotification } from 'utils/error';
 
@@ -67,16 +61,10 @@ import { getQueryString } from './helper';
 import {
 	defaultMoreMenuItems,
 	getUserSettingsDropdownMenuItems,
-	helpSupportDropdownMenuItems as DefaultHelpSupportDropdownMenuItems,
-	helpSupportMenuItem,
 	primaryMenuItems,
 } from './menuItems';
 import NavItem from './NavItem/NavItem';
-import {
-	CHANGELOG_LABEL,
-	DropdownSeparator,
-	SidebarItem,
-} from './sideNav.types';
+import { SidebarItem } from './sideNav.types';
 import { getActiveMenuKeyFromPath } from './sideNav.utils';
 
 import './SideNav.styles.scss';
@@ -127,8 +115,6 @@ function SideNav({ isPinned }: { isPinned: boolean }): JSX.Element {
 	const {
 		user,
 		userPreferences,
-		changelog,
-		toggleChangelogModal,
 		updateUserPreferenceInContext,
 	} = useAppContext();
 
@@ -141,13 +127,6 @@ function SideNav({ isPinned }: { isPinned: boolean }): JSX.Element {
 				showErrorNotification(notifications, error);
 			},
 		},
-	);
-
-	const [
-		helpSupportDropdownMenuItems,
-		setHelpSupportDropdownMenuItems,
-	] = useState<(SidebarItem | DropdownSeparator)[]>(
-		DefaultHelpSupportDropdownMenuItems,
 	);
 
 	const [tempPinnedMenuItems, setTempPinnedMenuItems] = useState<SidebarItem[]>(
@@ -207,8 +186,6 @@ function SideNav({ isPinned }: { isPinned: boolean }): JSX.Element {
 			}
 		};
 	}, [checkScroll]);
-
-	const isAdmin = user.role === USER_ROLES.ADMIN;
 
 	// Compute initial pinned items and secondary menu items synchronously to avoid flash
 	const computedPinnedMenuItems = useMemo(() => {
@@ -436,90 +413,7 @@ function SideNav({ isPinned }: { isPinned: boolean }): JSX.Element {
 		[user.email, isWorkspaceBlocked],
 	);
 
-	useEffect(() => {
-		if (!isAdmin) {
-			setHelpSupportDropdownMenuItems((prevState) =>
-				prevState.filter(
-					(item) => !('key' in item) || item.key !== 'invite-collaborators',
-				),
-			);
-		}
-
-		if (changelog) {
-			const firstTwoFeatures = changelog.features.slice(0, 2);
-			const dropdownItems: SidebarItem[] = firstTwoFeatures.map(
-				(feature, idx) => ({
-					key: `changelog-${idx + 1}`,
-					label: (
-						<div className="nav-item-label-container">
-							<span>{feature.title}</span>
-						</div>
-					),
-					icon: idx === 0 ? <LampDesk size={14} /> : <GitCommitVertical size={14} />,
-					itemKey: `changelog-${idx + 1}`,
-				}),
-			);
-			const changelogKey = CHANGELOG_LABEL.toLowerCase().replace(' ', '-');
-			setHelpSupportDropdownMenuItems((prevState) => {
-				if (dropdownItems.length === 0) {
-					return [
-						...prevState,
-						{
-							type: 'divider',
-						},
-						{
-							key: changelogKey,
-							label: (
-								<div className="nav-item-label-container">
-									<span>{CHANGELOG_LABEL}</span>
-									<ArrowUpRight size={14} />
-								</div>
-							),
-							icon: <ScrollText size={14} />,
-							itemKey: changelogKey,
-							isExternal: true,
-							url: 'https://signoz.io/changelog/',
-						},
-					];
-				}
-
-				return [
-					...prevState,
-					{
-						type: 'divider',
-					},
-					{
-						type: 'group',
-						label: "WHAT'S NEW",
-					},
-					...dropdownItems,
-					{
-						key: changelogKey,
-						label: (
-							<div className="nav-item-label-container">
-								<span>{CHANGELOG_LABEL}</span>
-								<ArrowUpRight size={14} />
-							</div>
-						),
-						icon: <ScrollText size={14} />,
-						itemKey: changelogKey,
-						isExternal: true,
-						url: 'https://signoz.io/changelog/',
-					},
-				];
-			});
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [isAdmin, changelog]);
-
-	const [isCurrentOrgSettings] = useComponentPermission(
-		['current_org_settings'],
-		user.role,
-	);
-
-	const settingsRoute = isCurrentOrgSettings
-		? ROUTES.ORG_SETTINGS
-		: ROUTES.SETTINGS;
+	const settingsRoute = ROUTES.SETTINGS;
 
 	const handleMenuItemClick = (event: MouseEvent, item: SidebarItem): void => {
 		if (item.key === ROUTES.SETTINGS) {
@@ -671,35 +565,6 @@ function SideNav({ isPinned }: { isPinned: boolean }): JSX.Element {
 		}
 	};
 
-	const handleHelpSupportMenuItemClick = (info: SidebarItem): void => {
-		const item = helpSupportDropdownMenuItems.find(
-			(item) => !('type' in item) && item.key === info.key,
-		);
-
-		if (item && !('type' in item) && item.isExternal && item.url) {
-			window.open(item.url, '_blank');
-		}
-
-		if (item && !('type' in item)) {
-			logEvent('Help Popover: Item clicked', {
-				menuRoute: item.key,
-				menuLabel: String(item.label),
-			});
-
-			switch (item.key) {
-				case 'invite-collaborators':
-					history.push(`${ROUTES.ORG_SETTINGS}#invite-team-members`);
-					break;
-				case 'changelog-1':
-				case 'changelog-2':
-					toggleChangelogModal();
-					break;
-				default:
-					break;
-			}
-		}
-	};
-
 	const handleSettingsMenuItemClick = (info: SidebarItem): void => {
 		const item = (userSettingsDropdownMenuItems ?? []).find(
 			(item) => item?.key === info.key,
@@ -769,12 +634,10 @@ function SideNav({ isPinned }: { isPinned: boolean }): JSX.Element {
 							<div
 								className={cx(
 									'brand-title-section',
-									showVersionUpdateNotification &&
-										changelog &&
-										'version-update-notification',
+									showVersionUpdateNotification && 'version-update-notification',
 								)}
 							>
-								<span className="license-type"> Community </span>
+								<span className="license-type">SigInsight</span>
 							</div>
 						</div>
 					</div>
@@ -902,27 +765,6 @@ function SideNav({ isPinned }: { isPinned: boolean }): JSX.Element {
 
 					<div className="nav-bottom-section">
 						<div className="secondary-nav-items">
-							<div className="nav-dropdown-item">
-								<Dropdown
-									menu={{
-										items: helpSupportDropdownMenuItems,
-										onClick: handleHelpSupportMenuItemClick,
-									}}
-									placement="topLeft"
-									overlayClassName="nav-dropdown-overlay help-support-dropdown"
-									trigger={['click']}
-									onOpenChange={(open): void => setIsDropdownOpen(open)}
-								>
-									<div className="nav-item">
-										<div className="nav-item-data" data-testid="help-support-nav-item">
-											<div className="nav-item-icon">{helpSupportMenuItem.icon}</div>
-
-											<div className="nav-item-label">{helpSupportMenuItem.label}</div>
-										</div>
-									</div>
-								</Dropdown>
-							</div>
-
 							<div className="nav-dropdown-item">
 								<Dropdown
 									menu={{

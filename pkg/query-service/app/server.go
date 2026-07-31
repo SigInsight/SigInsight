@@ -23,7 +23,6 @@ import (
 	"github.com/SigNoz/signoz/pkg/cache"
 	"github.com/SigNoz/signoz/pkg/http/middleware"
 	"github.com/SigNoz/signoz/pkg/modules/organization"
-	"github.com/SigNoz/signoz/pkg/prometheus"
 	"github.com/SigNoz/signoz/pkg/querier"
 	"github.com/SigNoz/signoz/pkg/query-service/agentconfig"
 	"github.com/SigNoz/signoz/pkg/query-service/app/clickhousehealth"
@@ -156,7 +155,6 @@ func NewServer(config signoz.Config, signoz *signoz.SigNoz) (*Server, error) {
 		signoz.Alertmanager,
 		signoz.SQLStore,
 		signoz.TelemetryMetadataStore,
-		signoz.Prometheus,
 		signoz.Modules.OrgGetter,
 		signoz.Querier,
 		signoz.Instrumentation.ToProviderSettings(),
@@ -359,7 +357,6 @@ func makeRulesManager(
 	alertmanager alertmanager.Alertmanager,
 	sqlstore sqlstore.SQLStore,
 	metadataStore telemetrytypes.MetadataStore,
-	prometheus prometheus.Prometheus,
 	orgGetter organization.Getter,
 	querier querier.Querier,
 	providerSettings factory.ProviderSettings,
@@ -369,7 +366,6 @@ func makeRulesManager(
 	// create manager opts
 	managerOpts := &rules.ManagerOptions{
 		MetadataStore: metadataStore,
-		Prometheus:    prometheus,
 		Context:       context.Background(),
 		Reader:        ch,
 		Querier:       querier,

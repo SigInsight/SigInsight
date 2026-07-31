@@ -3,7 +3,6 @@ import { PANEL_TYPES } from 'constants/queryBuilder';
 import { AlertRuleType } from 'features/alerting/types';
 import { mapQueryDataToApi } from 'lib/newQueryBuilder/queryBuilderMappers/mapQueryDataToApi';
 import { BasicThreshold, PostableAlertRule } from 'types/api/alerts/alertRule';
-import { EQueryType } from 'types/common/dashboard';
 import { compositeQueryToQueryEnvelope } from 'utils/compositeQueryToQueryEnvelope';
 
 import {
@@ -216,11 +215,11 @@ export function buildCreateThresholdAlertRulePayload(
 			...mapQueryDataToApi(query.builder.queryData, 'queryName').data,
 			...mapQueryDataToApi(query.builder.queryFormulas, 'queryName').data,
 		},
-		promQueries: mapQueryDataToApi(query.promql, 'name').data,
 		chQueries: mapQueryDataToApi(query.clickhouse_sql, 'name').data,
 		queryType: query.queryType,
 		panelType: PANEL_TYPES.TIME_SERIES,
-		unit: basicAlertState.yAxisUnit,
+		resultUnit: basicAlertState.resultUnit,
+		displayUnit: basicAlertState.displayUnit,
 	});
 
 	// Thresholds
@@ -231,7 +230,7 @@ export function buildCreateThresholdAlertRulePayload(
 			matchType: thresholdState.matchType,
 			op: thresholdState.operator,
 			channels: threshold.channels,
-			targetUnit: threshold.unit,
+			targetUnit: threshold.targetUnit,
 		}),
 	);
 
@@ -251,14 +250,9 @@ export function buildCreateThresholdAlertRulePayload(
 	// Evaluation
 	const evaluationProps = getEvaluationProps(evaluationWindow, advancedOptions);
 
-	let ruleType: string = AlertRuleType.THRESHOLD;
-	if (query.queryType === EQueryType.PROM) {
-		ruleType = 'promql_rule';
-	}
-
 	return {
 		alert: basicAlertState.name,
-		ruleType,
+		ruleType: AlertRuleType.THRESHOLD,
 		alertType,
 		condition: {
 			thresholds: {
@@ -302,11 +296,11 @@ export function buildCreateAnomalyAlertRulePayload(
 			...mapQueryDataToApi(query.builder.queryData, 'queryName').data,
 			...mapQueryDataToApi(query.builder.queryFormulas, 'queryName').data,
 		},
-		promQueries: mapQueryDataToApi(query.promql, 'name').data,
 		chQueries: mapQueryDataToApi(query.clickhouse_sql, 'name').data,
 		queryType: query.queryType,
 		panelType: PANEL_TYPES.TIME_SERIES,
-		unit: basicAlertState.yAxisUnit,
+		resultUnit: basicAlertState.resultUnit,
+		displayUnit: basicAlertState.displayUnit,
 	});
 
 	const alertOnAbsentProps = getAlertOnAbsentProps(advancedOptions);
