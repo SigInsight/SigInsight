@@ -169,11 +169,8 @@ func builderToLite(spec any, resultType litequery.ResultType, metadata MetricMet
 }
 
 func commonToLite(name string, filter *qbtypes.Filter, selectFields []telemetrytypes.TelemetryFieldKey, groupBy []qbtypes.GroupByKey, order []qbtypes.OrderBy, limit, offset int, cursor string, limitBy *qbtypes.LimitBy, having *qbtypes.Having, secondary []qbtypes.SecondaryAggregation, functions []qbtypes.Function, signal litequery.Signal) (litequery.CommonQuery, error) {
-	if offset != 0 {
-		return litequery.CommonQuery{}, unsupported("offset")
-	}
-	if limit < 0 {
-		return litequery.CommonQuery{}, fmt.Errorf("query limit must not be negative")
+	if limit < 0 || offset < 0 {
+		return litequery.CommonQuery{}, fmt.Errorf("query limit and offset must not be negative")
 	}
 	if limitBy != nil || len(secondary) != 0 || (having != nil && strings.TrimSpace(having.Expression) != "") {
 		return litequery.CommonQuery{}, unsupported("limitBy, secondary aggregation, or arbitrary having")
@@ -184,7 +181,7 @@ func commonToLite(name string, filter *qbtypes.Filter, selectFields []telemetryt
 	if cursor != "" {
 		return litequery.CommonQuery{}, unsupported("cursor pagination")
 	}
-	common := litequery.CommonQuery{Name: name, Limit: uint32(limit), Cursor: cursor}
+	common := litequery.CommonQuery{Name: name, Limit: uint32(limit), Offset: uint32(offset), Cursor: cursor}
 	for _, field := range selectFields {
 		converted, err := fieldToLite(field, signal, litequery.ValueTypeString)
 		if err != nil {
@@ -280,10 +277,29 @@ func metricAggregation(aggregation qbtypes.MetricAggregation, metadata MetricMet
 	if temporalityValue == "" {
 		temporalityValue = litequery.TemporalityUnspecified
 	}
+	// Histogram points carry their aggregation semantics in the bucket value.
+	// V5 metadata can still report the instrument temporality, but the
+	// lightweight query contract deliberately does not accept it for histograms.
+	if typeValue == litequery.MetricHistogram {
+		temporalityValue = litequery.TemporalityUnspecified
+	}
+	timeAggregation := litequery.TimeAggregation(aggregation.TimeAggregation.StringValue())
+	spaceAggregation := litequery.SpaceAggregation(aggregation.SpaceAggregation.StringValue())
+	// The V5 editor historically serializes a histogram percentile as the
+	// timeAggregation (for example p95) while the lightweight IR models the
+	// percentile at the histogram reduction phase. Normalize that wire-level
+	// spelling at the boundary so the core remains small and unambiguous.
+	if typeValue == litequery.MetricHistogram {
+		switch timeAggregation {
+		case litequery.TimeAggregation("p50"), litequery.TimeAggregation("p90"), litequery.TimeAggregation("p95"), litequery.TimeAggregation("p99"):
+			spaceAggregation = litequery.SpaceAggregation(timeAggregation)
+			timeAggregation = litequery.TimeAggregateCount
+		}
+	}
 	return litequery.MetricAggregation{
 		MetricName: aggregation.MetricName, Type: typeValue, Temporality: temporalityValue,
-		TimeAggregation:  litequery.TimeAggregation(aggregation.TimeAggregation.StringValue()),
-		SpaceAggregation: litequery.SpaceAggregation(aggregation.SpaceAggregation.StringValue()),
+		TimeAggregation:  timeAggregation,
+		SpaceAggregation: spaceAggregation,
 	}, nil
 }
 

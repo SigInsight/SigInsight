@@ -76,11 +76,11 @@ func TestGetSpansForTraceReturnsEmptyWhenSummaryIsMissing(t *testing.T) {
 	reader := New(slog.New(slog.NewTextHandler(io.Discard, nil)), traceSummaryConn{
 		queryRow: func(_ context.Context, query string, args ...any) driver.Row {
 			queries++
-			require.Contains(t, query, "FROM signoz_traces.trace_summaries")
+			require.Contains(t, query, "FROM siginsight_traces.trace_summaries")
 			require.Equal(t, []any{"missing-trace"}, args)
 			return traceDetailRow{err: sql.ErrNoRows}
 		},
-	}, nil, Config{TraceDB: "signoz_traces", TraceSummaryTable: "trace_summaries"})
+	}, nil, Config{TraceDB: "siginsight_traces", TraceSummaryTable: "trace_summaries"})
 
 	spans, apiErr := reader.getSpansForTrace(context.Background(), "missing-trace", "SELECT should_not_run")
 	require.Nil(t, apiErr)
@@ -94,20 +94,20 @@ func TestGetSpansForTraceUsesSummaryTimeWindow(t *testing.T) {
 	reader := New(slog.New(slog.NewTextHandler(io.Discard, nil)), traceDetailSelectConn{
 		traceSummaryConn: traceSummaryConn{
 			queryRow: func(_ context.Context, query string, args ...any) driver.Row {
-				require.Contains(t, query, "FROM signoz_traces.trace_summaries")
+				require.Contains(t, query, "FROM siginsight_traces.trace_summaries")
 				require.Equal(t, []any{"trace-1"}, args)
 				return traceDetailSummaryRow{traceID: "trace-1", start: start, end: end, numSpans: 1}
 			},
 		},
 		selectFn: func(_ context.Context, dest any, query string, args ...any) error {
-			require.Contains(t, query, "FROM signoz_traces.spans")
+			require.Contains(t, query, "FROM siginsight_traces.spans")
 			require.Equal(t, []any{"trace-1", "200", "3000"}, args)
 			*dest.(*[]model.SpanItemV2) = []model.SpanItemV2{{SpanID: "span-1", TraceID: "trace-1"}}
 			return nil
 		},
-	}, nil, Config{TraceDB: "signoz_traces", TraceTableName: "spans", TraceSummaryTable: "trace_summaries"})
+	}, nil, Config{TraceDB: "siginsight_traces", TraceTableName: "spans", TraceSummaryTable: "trace_summaries"})
 
-	spans, apiErr := reader.getSpansForTrace(context.Background(), "trace-1", "SELECT * FROM signoz_traces.spans")
+	spans, apiErr := reader.getSpansForTrace(context.Background(), "trace-1", "SELECT * FROM siginsight_traces.spans")
 	require.Nil(t, apiErr)
 	require.Equal(t, []model.SpanItemV2{{SpanID: "span-1", TraceID: "trace-1"}}, spans)
 }
@@ -154,7 +154,7 @@ func TestGetWaterfallSpansBuildsNestedAndMissingParentTrees(t *testing.T) {
 			}
 			return nil
 		},
-	}, cache, Config{TraceDB: "signoz_traces", TraceTableName: "spans", TraceSummaryTable: "trace_summaries", FluxInterval: time.Minute})
+	}, cache, Config{TraceDB: "siginsight_traces", TraceTableName: "spans", TraceSummaryTable: "trace_summaries", FluxInterval: time.Minute})
 
 	response, err := reader.GetWaterfallSpansForTraceWithMetadata(context.Background(), valuer.GenerateUUID(), "trace-1", &model.GetWaterfallSpansForTraceWithMetadataParams{UncollapsedSpans: []string{"root", "absent"}})
 

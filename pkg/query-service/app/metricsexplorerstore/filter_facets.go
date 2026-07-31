@@ -29,7 +29,7 @@ func (r *Reader) getMetricMetadataFacet(ctx context.Context, req *metrics_explor
 		instrumentationtypes.CodeNamespace:    "clickhouse-reader",
 		instrumentationtypes.CodeFunctionName: operation,
 	})
-	query := fmt.Sprintf("SELECT DISTINCT %s FROM %s.%s WHERE %s ILIKE $1 AND %s IS NOT NULL ORDER BY %s", column, signozMetricDBName, signozTSTableNameV41Day, column, column, column)
+	query := fmt.Sprintf("SELECT DISTINCT %s FROM %s.%s WHERE %s ILIKE $1 AND %s IS NOT NULL ORDER BY %s", column, siginsightMetricDBName, siginsightTSTableNameV41Day, column, column, column)
 	if req.Limit != 0 {
 		query += fmt.Sprintf(" LIMIT %d;", req.Limit)
 	}

@@ -55,7 +55,7 @@ func NewFactory(
 	factoryHandler factory.Handler,
 	assistantHandler assistant.Handler,
 ) factory.ProviderFactory[apiserver.APIServer, apiserver.Config] {
-	return factory.NewProviderFactory(factory.MustNewName("signoz"), func(ctx context.Context, providerSettings factory.ProviderSettings, config apiserver.Config) (apiserver.APIServer, error) {
+	return factory.NewProviderFactory(factory.MustNewName("siginsight"), func(ctx context.Context, providerSettings factory.ProviderSettings, config apiserver.Config) (apiserver.APIServer, error) {
 		return newProvider(
 			ctx,
 			providerSettings,

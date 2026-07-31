@@ -13,7 +13,7 @@ pipeline 的前提下，提供 Gauge、Sum、explicit Histogram 与 Meter 所需
 ## 范围
 
 - `samples_v4 + time_series_v4` 的 Metrics source、label/resource/scope/attribute filters。
-- `signoz_meter.samples` 的 Meter source 和 label filters。
+- `siginsight_meter.samples` 的 Meter source 和 label filters。
 - 受约束的 time/space aggregation，Sum/Meter 的 rate/increase，explicit Histogram
   p50/p90/p95/p99。
 - 固定原始表的参数化 SQL、golden tests 和 ClickHouse 25.5.6 真实执行测试。

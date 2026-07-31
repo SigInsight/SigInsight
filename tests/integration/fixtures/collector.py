@@ -12,11 +12,11 @@ from fixtures import types
 
 
 def _collector_root() -> Path:
-    configured = os.environ.get("SIGNOZ_OTEL_COLLECTOR_ROOT", "/home/cbw/code/OtelCollector")
+    configured = os.environ.get("SIGINSIGHT_OTEL_COLLECTOR_ROOT", "/home/cbw/code/OtelCollector")
     root = Path(configured).resolve()
     if not (root / "cmd/siginsightotelcollector/main.go").is_file():
         raise RuntimeError(
-            "SIGNOZ_OTEL_COLLECTOR_ROOT must point to a Collector checkout containing "
+            "SIGINSIGHT_OTEL_COLLECTOR_ROOT must point to a Collector checkout containing "
             "cmd/siginsightotelcollector/main.go"
         )
     return root
@@ -30,8 +30,8 @@ def _free_tcp_port() -> int:
 
 def _host_clickhouse_dsn(clickhouse: types.TestContainerClickhouse, database: str) -> str:
     host = clickhouse.container.host_configs["9000"]
-    username = clickhouse.env["SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_USERNAME"]
-    password = clickhouse.env["SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_PASSWORD"]
+    username = clickhouse.env["SIGINSIGHT_TELEMETRYSTORE_CLICKHOUSE_USERNAME"]
+    password = clickhouse.env["SIGINSIGHT_TELEMETRYSTORE_CLICKHOUSE_PASSWORD"]
     suffix = f"/{database}" if database else ""
     return f"tcp://{username}:{password}@{host.address}:{host.port}{suffix}"
 
@@ -85,11 +85,11 @@ def current_collector(
     port = _free_tcp_port()
     environment = os.environ | {
         "SIGINSIGHT_TEST_OTLP_HTTP_ENDPOINT": f"127.0.0.1:{port}",
-        "SIGINSIGHT_TEST_TRACES_DSN": _host_clickhouse_dsn(clickhouse, "signoz_traces"),
-        "SIGINSIGHT_TEST_LOGS_DSN": _host_clickhouse_dsn(clickhouse, "signoz_logs"),
-        "SIGINSIGHT_TEST_METRICS_DSN": _host_clickhouse_dsn(clickhouse, "signoz_metrics"),
-        "SIGINSIGHT_TEST_METER_DSN": _host_clickhouse_dsn(clickhouse, "signoz_meter"),
-        "SIGINSIGHT_TEST_METADATA_DSN": _host_clickhouse_dsn(clickhouse, "signoz_metadata"),
+        "SIGINSIGHT_TEST_TRACES_DSN": _host_clickhouse_dsn(clickhouse, "siginsight_traces"),
+        "SIGINSIGHT_TEST_LOGS_DSN": _host_clickhouse_dsn(clickhouse, "siginsight_logs"),
+        "SIGINSIGHT_TEST_METRICS_DSN": _host_clickhouse_dsn(clickhouse, "siginsight_metrics"),
+        "SIGINSIGHT_TEST_METER_DSN": _host_clickhouse_dsn(clickhouse, "siginsight_meter"),
+        "SIGINSIGHT_TEST_METADATA_DSN": _host_clickhouse_dsn(clickhouse, "siginsight_metadata"),
     }
     config = root / "tests/integration-fixtures/lightweight-query-engine.yaml"
     process = subprocess.Popen(  # pylint: disable=consider-using-with

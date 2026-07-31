@@ -178,7 +178,7 @@ func assertPositiveMetricRows(t *testing.T, name string, rows interface {
 func seedMetricCompilerData(t *testing.T, conn clickhouse.Conn, now int64) {
 	t.Helper()
 	ctx := context.Background()
-	series := "INSERT INTO signoz_metrics.time_series_v4 (temporality, metric_name, type, fingerprint, unix_milli, labels, __normalized) VALUES (?, ?, ?, ?, ?, ?, ?)"
+	series := "INSERT INTO siginsight_metrics.time_series_v4 (temporality, metric_name, type, fingerprint, unix_milli, labels, __normalized) VALUES (?, ?, ?, ?, ?, ?, ?)"
 	for _, row := range [][]any{
 		{"Cumulative", "http.server.request.count", "Sum", uint64(101), now - 2_000, `{"service.name":"api"}`, false},
 		{"Cumulative", "http.server.duration.bucket", "Histogram", uint64(201), now - 2_000, `{"le":"10"}`, false},
@@ -188,7 +188,7 @@ func seedMetricCompilerData(t *testing.T, conn clickhouse.Conn, now int64) {
 			t.Fatalf("insert metric series error = %v", err)
 		}
 	}
-	points := "INSERT INTO signoz_metrics.samples_v4 (temporality, metric_name, fingerprint, unix_milli, value, inserted_at_unix_milli) VALUES (?, ?, ?, ?, ?, ?)"
+	points := "INSERT INTO siginsight_metrics.samples_v4 (temporality, metric_name, fingerprint, unix_milli, value, inserted_at_unix_milli) VALUES (?, ?, ?, ?, ?, ?)"
 	for _, row := range [][]any{
 		{"Cumulative", "http.server.request.count", uint64(101), now - 2_000, 10.0, now - 2_000},
 		{"Cumulative", "http.server.request.count", uint64(101), now - 1_000, 15.0, now - 1_000},
@@ -201,7 +201,7 @@ func seedMetricCompilerData(t *testing.T, conn clickhouse.Conn, now int64) {
 			t.Fatalf("insert metric point error = %v", err)
 		}
 	}
-	meter := "INSERT INTO signoz_meter.samples (temporality, metric_name, type, labels, fingerprint, unix_milli, value) VALUES (?, ?, ?, ?, ?, ?, ?)"
+	meter := "INSERT INTO siginsight_meter.samples (temporality, metric_name, type, labels, fingerprint, unix_milli, value) VALUES (?, ?, ?, ?, ?, ?, ?)"
 	for _, row := range [][]any{
 		{"Delta", "signoz.meter.log.size", "Sum", `{"service.name":"api"}`, uint64(301), now - 2_000, 4.0},
 		{"Delta", "signoz.meter.log.size", "Sum", `{"service.name":"api"}`, uint64(301), now - 1_000, 6.0},
@@ -211,10 +211,10 @@ func seedMetricCompilerData(t *testing.T, conn clickhouse.Conn, now int64) {
 		}
 	}
 	var seriesCount, pointsCount uint64
-	if err := conn.QueryRow(ctx, "SELECT count() FROM signoz_metrics.time_series_v4 WHERE metric_name = ?", "http.server.request.count").Scan(&seriesCount); err != nil {
+	if err := conn.QueryRow(ctx, "SELECT count() FROM siginsight_metrics.time_series_v4 WHERE metric_name = ?", "http.server.request.count").Scan(&seriesCount); err != nil {
 		t.Fatalf("count metric series error = %v", err)
 	}
-	if err := conn.QueryRow(ctx, "SELECT count() FROM signoz_metrics.samples_v4 WHERE metric_name = ?", "http.server.request.count").Scan(&pointsCount); err != nil {
+	if err := conn.QueryRow(ctx, "SELECT count() FROM siginsight_metrics.samples_v4 WHERE metric_name = ?", "http.server.request.count").Scan(&pointsCount); err != nil {
 		t.Fatalf("count metric points error = %v", err)
 	}
 	if seriesCount != 1 || pointsCount != 2 {

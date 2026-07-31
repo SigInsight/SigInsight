@@ -121,14 +121,14 @@ export function isLiteFilterSet(filters: TagFilter | undefined): boolean {
 	return Boolean(
 		filters &&
 			(filters.op === 'AND' || filters.op === 'OR') &&
+			Array.isArray(filters.items) &&
 			filters.items.every(
 				(filter) =>
 					// A newly added filter has no field yet. Keep that transient edit in
-					// the Lite UI instead of switching editors between keystrokes.
-					!filter.key?.key ||
-					(allowedFilterOperators.has(filter.op) &&
-						(isNoValueLiteFilter(filter.op) ||
-							String(filter.value ?? '').trim() !== '')),
+					// the Lite UI instead of switching editors between keystrokes. The
+					// same applies after the field is typed but before its value is
+					// entered; the value is an editor intermediate state.
+					!filter.key?.key || allowedFilterOperators.has(filter.op),
 			),
 	);
 }
@@ -195,15 +195,18 @@ function supportedMetricAggregation(query: IBuilderQuery): boolean {
 
 export function isLiteBuilderQuery(query: IBuilderQuery): boolean {
 	if (
-		query.functions.length > 0 ||
+		(query.functions?.length ?? 0) > 0 ||
 		hasAdvancedHaving(query) ||
-		query.orderBy.length > 1 ||
+		(query.orderBy?.length ?? 0) > 1 ||
 		(query.limit !== null && query.limit < 0) ||
 		(query.filter?.expression && !isLiteFilterSet(query.filters))
 	) {
 		return false;
 	}
-	if (query.filters?.items.length && !isLiteFilterSet(query.filters)) {
+	if (
+		(query.filters?.items?.length ?? 0) > 0 &&
+		!isLiteFilterSet(query.filters)
+	) {
 		return false;
 	}
 	if (query.dataSource === DataSource.METRICS) {
@@ -238,11 +241,14 @@ export function isLiteQueryState(
 	query: Query,
 	panelType: PANEL_TYPES,
 ): boolean {
+	const traceOperators = query.builder.queryTraceOperator ?? [];
+	const queryData = query.builder.queryData ?? [];
+	const queryFormulas = query.builder.queryFormulas ?? [];
 	return (
 		isLitePanelType(panelType) &&
-		query.builder.queryTraceOperator.length === 0 &&
-		query.builder.queryData.length > 0 &&
-		query.builder.queryData.every(isLiteBuilderQuery) &&
-		query.builder.queryFormulas.every(isLiteFormula)
+		traceOperators.length === 0 &&
+		queryData.length > 0 &&
+		queryData.every(isLiteBuilderQuery) &&
+		queryFormulas.every(isLiteFormula)
 	);
 }

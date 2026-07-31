@@ -128,6 +128,9 @@ func validateCommon(common CommonQuery, resultType ResultType, limits Limits) er
 	if common.Limit > limits.MaxRawLimit {
 		return newError(ErrorBudgetExceeded, "query.limit", "limit exceeds %d", limits.MaxRawLimit)
 	}
+	if common.Offset != 0 && resultType != ResultRaw && resultType != ResultTrace {
+		return newError(ErrorInvalidRequest, "query.offset", "offset is only valid for raw and trace results")
+	}
 	if common.Cursor != "" && resultType != ResultRaw && resultType != ResultTrace {
 		return newError(ErrorInvalidRequest, "query.cursor", "cursor is only valid for raw and trace results")
 	}

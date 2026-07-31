@@ -21,7 +21,7 @@ def sqlite(
 
     def create() -> types.TestContainerSQL:
         tmpdir = tmpfs("sqlite")
-        path = tmpdir / "signoz.db"
+        path = tmpdir / "siginsight.db"
 
         engine = create_engine(f"sqlite:///{path}")
         with engine.connect() as conn:
@@ -36,8 +36,8 @@ def sqlite(
             ),
             conn=engine,
             env={
-                "SIGNOZ_SQLSTORE_PROVIDER": "sqlite",
-                "SIGNOZ_SQLSTORE_SQLITE_PATH": str(path),
+                "SIGINSIGHT_SQLSTORE_PROVIDER": "sqlite",
+                "SIGINSIGHT_SQLSTORE_SQLITE_PATH": str(path),
             },
         )
 
@@ -45,7 +45,7 @@ def sqlite(
         pass
 
     def restore(cache: dict) -> types.TestContainerSQL:
-        path = cache["env"].get("SIGNOZ_SQLSTORE_SQLITE_PATH")
+        path = cache["env"].get("SIGINSIGHT_SQLSTORE_SQLITE_PATH")
 
         engine = create_engine(f"sqlite:///{path}")
         with engine.connect() as conn:

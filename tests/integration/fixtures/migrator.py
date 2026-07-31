@@ -28,7 +28,7 @@ def migrator(
             f"ghcr.io/siginsight/siginsight-otel-collector:{version}",
         )
         client = docker.from_env()
-        dsn = clickhouse.env["SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN"]
+        dsn = clickhouse.env["SIGINSIGHT_TELEMETRYSTORE_CLICKHOUSE_DSN"]
 
         container = client.containers.run(
             image=image,

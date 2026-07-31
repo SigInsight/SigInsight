@@ -102,7 +102,7 @@ def test_trace_materialized_catalog_uses_all_manifest_columns(
     for column in manifest_columns:
         queries = clickhouse.conn.query(
             "SELECT query FROM system.query_log "
-            "WHERE query LIKE '%FROM signoz_traces.signoz_index_v3%' "
+            "WHERE query LIKE '%FROM siginsight_traces.span_index_v3%' "
             "AND query LIKE {column:String} "
             "ORDER BY event_time_microseconds DESC LIMIT 1",
             parameters={"column": f"%{column}%"},

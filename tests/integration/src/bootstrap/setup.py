@@ -26,12 +26,12 @@ def test_telemetry_databases_exist(signoz: types.SigNoz) -> None:
     arr: np.ndarray = signoz.telemetrystore.conn.query_np("SHOW DATABASES")
     databases = arr.tolist() if arr.size > 0 else []
     required_databases = [
-        "signoz_metrics",
-        "signoz_logs",
-        "signoz_traces",
-        "signoz_metadata",
-        "signoz_analytics",
-        "signoz_meter",
+        "siginsight_metrics",
+        "siginsight_logs",
+        "siginsight_traces",
+        "siginsight_metadata",
+        "siginsight_analytics",
+        "siginsight_meter",
     ]
 
     for db_name in required_databases:

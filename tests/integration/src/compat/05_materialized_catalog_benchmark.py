@@ -50,11 +50,11 @@ def test_materialized_trace_catalog_benchmark(
     assert 10_000 <= rows <= 1_000_000, "benchmark rows must be between 10000 and 1000000"
 
     run_id = uuid.uuid4().hex
-    table = "signoz_traces.signoz_index_v3"
+    table = "siginsight_traces.span_index_v3"
     clickhouse.conn.command(f"TRUNCATE TABLE {table}")
     try:
         clickhouse.conn.command(
-            "INSERT INTO signoz_traces.signoz_index_v3 "
+            "INSERT INTO siginsight_traces.span_index_v3 "
             "(timestamp, resources_string, attributes_string) "
             "SELECT now64(9), map('service.name', 'benchmark-api'), "
             "map('http.route', if(number % 20 = 0, '/checkout', '/health')) "

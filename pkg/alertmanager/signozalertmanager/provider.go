@@ -28,7 +28,7 @@ type provider struct {
 }
 
 func NewFactory(sqlstore sqlstore.SQLStore, orgGetter organization.Getter, notificationManager nfmanager.NotificationManager) factory.ProviderFactory[alertmanager.Alertmanager, alertmanager.Config] {
-	return factory.NewProviderFactory(factory.MustNewName("signoz"), func(ctx context.Context, settings factory.ProviderSettings, config alertmanager.Config) (alertmanager.Alertmanager, error) {
+	return factory.NewProviderFactory(factory.MustNewName("siginsight"), func(ctx context.Context, settings factory.ProviderSettings, config alertmanager.Config) (alertmanager.Alertmanager, error) {
 		return New(ctx, settings, config, sqlstore, orgGetter, notificationManager)
 	})
 }
@@ -42,7 +42,7 @@ func New(ctx context.Context, providerSettings factory.ProviderSettings, config 
 		service: alertmanager.New(
 			ctx,
 			settings,
-			config.Signoz.Config,
+			config.SigInsight.Config,
 			stateStore,
 			configStore,
 			orgGetter,
@@ -65,7 +65,7 @@ func (provider *provider) Start(ctx context.Context) error {
 		return err
 	}
 
-	ticker := time.NewTicker(provider.config.Signoz.PollInterval)
+	ticker := time.NewTicker(provider.config.SigInsight.PollInterval)
 	defer ticker.Stop()
 	for {
 		select {
@@ -190,7 +190,7 @@ func (provider *provider) GetConfig(ctx context.Context, orgID string) (*alertma
 }
 
 func (provider *provider) SetDefaultConfig(ctx context.Context, orgID string) error {
-	config, err := alertmanagertypes.NewDefaultConfig(provider.config.Signoz.Config.Global, provider.config.Signoz.Config.Route, orgID)
+	config, err := alertmanagertypes.NewDefaultConfig(provider.config.SigInsight.Config.Global, provider.config.SigInsight.Config.Route, orgID)
 	if err != nil {
 		return err
 	}

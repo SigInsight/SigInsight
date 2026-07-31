@@ -35,7 +35,7 @@ export default defineConfig({
 	use: {
 		/* Base URL to use in actions like `await page.goto('/')`. */
 		baseURL:
-			process.env.SIGNOZ_E2E_BASE_URL || 'https://app.us.staging.signoz.cloud',
+			process.env.SIGINSIGHT_E2E_BASE_URL || 'https://app.us.staging.signoz.cloud',
 
 		/* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
 		trace: 'on-first-retry',
@@ -54,7 +54,8 @@ export default defineConfig({
 				colorScheme: 'dark',
 				locale: 'en-US',
 				baseURL:
-					process.env.SIGNOZ_E2E_BASE_URL || 'https://app.us.staging.signoz.cloud',
+					process.env.SIGINSIGHT_E2E_BASE_URL ||
+					'https://app.us.staging.signoz.cloud',
 				trace: 'on-first-retry',
 			},
 		},

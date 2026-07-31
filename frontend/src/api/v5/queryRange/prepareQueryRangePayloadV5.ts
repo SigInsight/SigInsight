@@ -227,25 +227,28 @@ export function createAggregation(
 			panelType === PANEL_TYPES.VALUE);
 
 	if (queryData.dataSource === DataSource.METRICS) {
-		return [
-			{
-				metricName:
-					queryData?.aggregations?.[0]?.metricName ||
-					queryData?.aggregateAttribute?.key,
-				temporality:
-					queryData?.aggregations?.[0]?.temporality ||
-					queryData?.aggregateAttribute?.temporality,
-				timeAggregation:
-					queryData?.aggregations?.[0]?.timeAggregation ||
-					queryData?.timeAggregation,
-				spaceAggregation:
-					queryData?.aggregations?.[0]?.spaceAggregation ||
-					queryData?.spaceAggregation,
-				reduceTo: haveReduceTo
-					? queryData?.aggregations?.[0]?.reduceTo || queryData?.reduceTo
-					: undefined,
-			},
-		];
+		const aggregation: MetricAggregation = {
+			metricName:
+				queryData?.aggregations?.[0]?.metricName ||
+				queryData?.aggregateAttribute?.key,
+			temporality:
+				queryData?.aggregations?.[0]?.temporality ||
+				queryData?.aggregateAttribute?.temporality,
+			timeAggregation:
+				queryData?.aggregations?.[0]?.timeAggregation || queryData?.timeAggregation,
+			spaceAggregation:
+				queryData?.aggregations?.[0]?.spaceAggregation ||
+				queryData?.spaceAggregation,
+			reduceTo: haveReduceTo
+				? queryData?.aggregations?.[0]?.reduceTo || queryData?.reduceTo
+				: undefined,
+		};
+		if (
+			String(queryData?.aggregateAttribute?.type).toLowerCase() === 'histogram'
+		) {
+			delete (aggregation as Partial<MetricAggregation>).temporality;
+		}
+		return [aggregation];
 	}
 
 	if (queryData.aggregations?.length > 0) {

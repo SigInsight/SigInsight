@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	DBName                           = "signoz_metrics"
+	DBName                           = "siginsight_metrics"
 	UpdatedMetadataTableName         = "updated_metadata"
 	UpdatedMetadataLocalTableName    = "updated_metadata"
 	SamplesV4TableName               = "samples_v4"

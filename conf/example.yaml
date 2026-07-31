@@ -1,4 +1,4 @@
-##################### SigNoz Configuration Example #####################
+##################### SigInsight Configuration Example #####################
 #
 # Do not modify this file
 #
@@ -46,7 +46,7 @@ web:
   # The prefix to serve web on
   prefix: /
   # The directory containing the static build files.
-  directory: /etc/signoz/web
+  directory: /etc/siginsight/web
 
 ##################### Cache #####################
 cache:
@@ -77,7 +77,7 @@ sqlstore:
   max_open_conns: 100
   sqlite:
     # The path to the SQLite database file.
-    path: /var/lib/signoz/signoz.db
+    path: /var/lib/siginsight/siginsight.db
     # Mode is the mode to use for the sqlite database.
     mode: delete
     # BusyTimeout is the timeout for the sqlite database to wait for a lock.
@@ -131,8 +131,8 @@ telemetrystore:
 ##################### Alertmanager #####################
 alertmanager:
   # Specifies the alertmanager provider to use.
-  provider: signoz
-  signoz:
+  provider: siginsight
+  siginsight:
     # The poll interval for periodically syncing the alertmanager with the config in the store.
     poll_interval: 1m
     # The URL under which Alertmanager is externally reachable (for example, if Alertmanager is served via a reverse proxy). Used for generating relative and absolute links back to Alertmanager itself.
@@ -175,7 +175,7 @@ emailing:
   enabled: false
   templates:
     # The directory containing the email templates. This directory should contain a list of files defined at pkg/types/emailtypes/template.go.
-    directory: /opt/signoz/conf/templates/email
+    directory: /opt/siginsight/conf/templates/email
     format:
       header:
         enabled: false

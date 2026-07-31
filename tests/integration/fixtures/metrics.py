@@ -437,7 +437,7 @@ def insert_metrics(
 
         if len(time_series_map) > 0:
             clickhouse.conn.insert(
-                database="signoz_metrics",
+                database="siginsight_metrics",
                 table="time_series_v4",
                 column_names=[
                     "env",
@@ -461,7 +461,7 @@ def insert_metrics(
         samples = [metric.sample for metric in metrics]
         if len(samples) > 0:
             clickhouse.conn.insert(
-                database="signoz_metrics",
+                database="siginsight_metrics",
                 table="samples_v4",
                 column_names=[
                     "env",
@@ -530,7 +530,7 @@ def insert_metrics(
 
         if len(metadata_map) > 0:
             clickhouse.conn.insert(
-                database="signoz_metrics",
+                database="siginsight_metrics",
                 table="metadata",
                 column_names=[
                     "temporality",
@@ -557,7 +557,7 @@ def insert_metrics(
         "metadata",
     ]
     for table in tables_to_truncate:
-        clickhouse.conn.query(f"TRUNCATE TABLE signoz_metrics.{table}")
+        clickhouse.conn.query(f"TRUNCATE TABLE siginsight_metrics.{table}")
 
 
 @pytest.fixture(name="remove_metrics_ttl_and_storage_settings", scope="function")
@@ -580,10 +580,10 @@ def remove_metrics_ttl_and_storage_settings(signoz: types.SigNoz):
     for table in tables:
         try:
             signoz.telemetrystore.conn.query(
-                f"ALTER TABLE signoz_metrics.{table} REMOVE TTL"
+                f"ALTER TABLE siginsight_metrics.{table} REMOVE TTL"
             )
             signoz.telemetrystore.conn.query(
-                f"ALTER TABLE signoz_metrics.{table} RESET SETTING storage_policy;"
+                f"ALTER TABLE siginsight_metrics.{table} RESET SETTING storage_policy;"
             )
         except Exception as e:  # pylint: disable=broad-exception-caught
             print(f"ttl and storage policy reset failed for {table}: {e}")

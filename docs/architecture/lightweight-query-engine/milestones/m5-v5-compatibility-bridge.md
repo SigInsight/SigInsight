@@ -52,7 +52,7 @@ tests/integration/scripts/run-litequery-v5-bridge-integration.sh
 
 `liteadapter` 单测覆盖结构化 filter、metric metadata 注入、不支持 V5 feature 和 V5 result
 整形。最后一条脚本启动当前分支 SigInsight、SQLite 和 ClickHouse 25.5.6，以
-`SIGNOZ_QUERIER_LIGHTWEIGHT__ENGINE__ENABLED=true` 发起认证的 `/api/v5/query_range` 请求。
+`SIGINSIGHT_QUERIER_LIGHTWEIGHT__ENGINE__ENABLED=true` 发起认证的 `/api/v5/query_range` 请求。
 容器日志确认每个请求进入 Lite bridge；Metrics、Meter 和 `meter * 2` formula 返回非空 V5 series。
 
 Logs/Traces 请求也已通过认证 API、V5 转换和实际 SQL 执行，但 integration fixture 的 synthetic

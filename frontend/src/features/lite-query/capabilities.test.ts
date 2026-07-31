@@ -13,6 +13,7 @@ import { DataSource } from 'types/common/queryBuilder';
 import {
 	createLiteFilter,
 	getLiteMetricAggregationOptions,
+	isLiteFilterSet,
 	isLiteFormula,
 	isLiteQueryState,
 	toLiteFilterExpression,
@@ -60,6 +61,15 @@ describe('lightweight query capabilities', () => {
 		);
 	});
 
+	it('keeps a filter in Lite state while its value is being entered', () => {
+		expect(
+			isLiteFilterSet({
+				items: [createLiteFilter('severity_text')],
+				op: 'AND',
+			}),
+		).toBe(true);
+	});
+
 	it('keeps advanced saved state out of the Lite editor', () => {
 		expect(isLiteQueryState(baseState, PANEL_TYPES.TIME_SERIES)).toBe(true);
 		expect(
@@ -86,6 +96,25 @@ describe('lightweight query capabilities', () => {
 				PANEL_TYPES.TIME_SERIES,
 			),
 		).toBe(false);
+	});
+
+	it('accepts historical builder queries that omit optional editor fields', () => {
+		const historicalQuery = ({
+			...baseQuery,
+			functions: undefined,
+			filters: undefined,
+			orderBy: undefined,
+		} as unknown) as IBuilderQuery;
+		const historicalState = ({
+			...baseState,
+			builder: {
+				queryData: [historicalQuery],
+				queryFormulas: undefined,
+				queryTraceOperator: undefined,
+			},
+		} as unknown) as Query;
+
+		expect(isLiteQueryState(historicalState, PANEL_TYPES.TIME_SERIES)).toBe(true);
 	});
 
 	it('restricts metrics and formulas to the documented subset', () => {

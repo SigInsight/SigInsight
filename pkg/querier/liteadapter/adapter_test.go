@@ -9,6 +9,7 @@ import (
 	"github.com/SigNoz/signoz/pkg/types/metrictypes"
 	qbtypes "github.com/SigNoz/signoz/pkg/types/querybuildertypes/querybuildertypesv5"
 	"github.com/SigNoz/signoz/pkg/types/telemetrytypes"
+	"github.com/SigNoz/signoz/pkg/valuer"
 )
 
 func TestToLiteConvertsStructuredLogFilter(t *testing.T) {
@@ -45,6 +46,27 @@ func TestToLiteConvertsStructuredLogFilter(t *testing.T) {
 	}
 }
 
+func TestToLitePreservesRawLogOffset(t *testing.T) {
+	request := &qbtypes.QueryRangeRequest{
+		Start: 1_000, End: 61_000, RequestType: qbtypes.RequestTypeRaw,
+		CompositeQuery: qbtypes.CompositeQuery{Queries: []qbtypes.QueryEnvelope{{
+			Type: qbtypes.QueryTypeBuilder,
+			Spec: qbtypes.QueryBuilderQuery[qbtypes.LogAggregation]{
+				Name: "A", Signal: telemetrytypes.SignalLogs, Offset: 100,
+				Aggregations: []qbtypes.LogAggregation{{Expression: "count()"}},
+			},
+		}}},
+	}
+	converted, err := ToLite(request, MetricMetadata{})
+	if err != nil {
+		t.Fatalf("ToLite() error = %v", err)
+	}
+	query, ok := converted.Queries[0].(litequery.LogQuery)
+	if !ok || query.Common.Offset != 100 {
+		t.Fatalf("query = %#v, want raw log offset 100", converted.Queries[0])
+	}
+}
+
 func TestToLiteUsesMetricMetadata(t *testing.T) {
 	request := &qbtypes.QueryRangeRequest{
 		Start: 1_000, End: 61_000, RequestType: qbtypes.RequestTypeTimeSeries,
@@ -69,6 +91,37 @@ func TestToLiteUsesMetricMetadata(t *testing.T) {
 	}
 	if query.Aggregation.Type != litequery.MetricSum || query.Aggregation.Temporality != litequery.TemporalityCumulative {
 		t.Fatalf("aggregation = %#v", query.Aggregation)
+	}
+}
+
+func TestToLiteDoesNotApplyMetadataTemporalityToHistogram(t *testing.T) {
+	request := &qbtypes.QueryRangeRequest{
+		Start: 1_000, End: 61_000, RequestType: qbtypes.RequestTypeTimeSeries,
+		CompositeQuery: qbtypes.CompositeQuery{Queries: []qbtypes.QueryEnvelope{{
+			Type: qbtypes.QueryTypeBuilder,
+			Spec: qbtypes.QueryBuilderQuery[qbtypes.MetricAggregation]{
+				Name: "A", Signal: telemetrytypes.SignalMetrics, StepInterval: qbtypes.Step{Duration: time.Minute},
+				Aggregations: []qbtypes.MetricAggregation{{MetricName: "http.server.request.duration", TimeAggregation: metrictypes.TimeAggregation{String: valuer.NewString("p95")}, SpaceAggregation: metrictypes.SpaceAggregationSum}},
+			},
+		}}},
+	}
+
+	converted, err := ToLite(request, MetricMetadata{
+		Temporality: map[string]metrictypes.Temporality{"http.server.request.duration": metrictypes.Cumulative},
+		Types:       map[string]metrictypes.Type{"http.server.request.duration": metrictypes.HistogramType},
+	})
+	if err != nil {
+		t.Fatalf("ToLite() error = %v", err)
+	}
+	query, ok := converted.Queries[0].(litequery.MetricQuery)
+	if !ok {
+		t.Fatalf("query type = %T, want MetricQuery", converted.Queries[0])
+	}
+	if query.Aggregation.Type != litequery.MetricHistogram || query.Aggregation.Temporality != litequery.TemporalityUnspecified || query.Aggregation.TimeAggregation != litequery.TimeAggregateCount || query.Aggregation.SpaceAggregation != litequery.SpaceAggregateP95 {
+		t.Fatalf("aggregation = %#v, want histogram with unspecified temporality", query.Aggregation)
+	}
+	if _, err := (litequery.DefaultPlanner{}).Plan(converted); err != nil {
+		t.Fatalf("Plan() error = %v", err)
 	}
 }
 

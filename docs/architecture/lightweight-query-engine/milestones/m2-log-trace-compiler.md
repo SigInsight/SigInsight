@@ -11,7 +11,7 @@
 ## 范围
 
 - `pkg/litequery` 中的 Schema Catalog、Statement 和 Logs/Traces compiler。
-- `logs_v2` 与 `signoz_index_v3` 的核心字段映射。
+- `logs_v2` 与 `span_index_v3` 的核心字段映射。
 - resource/attribute Map、普通 log/span 字段、`body String` JSON path 映射。
 - raw、trace、time series、scalar statement。
 - typed filter AST、group/order/limit、聚合后 predicate。
@@ -84,7 +84,7 @@ tests/integration/scripts/run-litequery-compiler-integration.sh
 ## 实现结果
 
 - 新增 `DefaultCatalog`，将 Logs/Traces 的语义 `FieldRef` 映射到受信任的
-  `logs_v2` 和 `signoz_index_v3` 物理表达式。
+  `logs_v2` 和 `span_index_v3` 物理表达式。
 - 新增独立 Compiler，支持 Logs raw/time-series/scalar，Traces raw/summary/
   time-series/scalar，以及受约束的聚合、过滤、分组、排序、limit 和聚合 predicate。
 - 新增 `Statement` 和 `ResultColumn`。SQL 中仅使用生成的 `field_N` / `group_N`
@@ -107,7 +107,7 @@ OtelCollector 执行 `bootstrap`、`sync up`、`async up` 后，在真实 schema
 
 验证中发现 ClickHouse 25.5.6 在 `GROUP BY` 中会把未限定的 `timestamp` 解析成
 SELECT alias（epoch `Int64`），而不是 trace 表的 `DateTime64(9)` 物理列。Compiler
-现固定使用 `signoz_index_v3.timestamp` 生成 trace bucket，该行为已进入 SQL golden
+现固定使用 `span_index_v3.timestamp` 生成 trace bucket，该行为已进入 SQL golden
 test 和真实执行测试。
 
 ## 残余风险与后续任务

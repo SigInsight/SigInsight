@@ -23,10 +23,10 @@ import (
 )
 
 const (
-	signozMetricDBName                = "signoz_metrics"
-	signozTSTableNameV4               = "time_series_v4"
-	signozTSTableNameV41Day           = "time_series_v4_1day"
-	signozUpdatedMetricsMetadataTable = "updated_metadata"
+	siginsightMetricDBName                = "siginsight_metrics"
+	siginsightTSTableNameV4               = "time_series_v4"
+	siginsightTSTableNameV41Day           = "time_series_v4_1day"
+	siginsightUpdatedMetricsMetadataTable = "updated_metadata"
 )
 
 type Reader struct {
@@ -70,7 +70,7 @@ func (r *Reader) GetMetricMetadata(ctx context.Context, orgID valuer.UUID, metri
 				AND type = 'Histogram'
 				AND (JSONExtractString(labels, 'service_name') = $3 OR JSONExtractString(labels, 'service.name') = $4)
 			GROUP BY le
-			ORDER BY le`, signozMetricDBName, signozTSTableNameV41Day)
+			ORDER BY le`, siginsightMetricDBName, siginsightTSTableNameV41Day)
 
 		rows, err := r.db.Query(ctx, query, metricName, common.PastDayRoundOff(), serviceName, serviceName)
 		if err != nil {
@@ -124,7 +124,7 @@ func (r *Reader) GetUpdatedMetricsMetadata(ctx context.Context, orgID valuer.UUI
 
 	var stillMissing []string
 	if len(missingMetrics) > 0 {
-		query := fmt.Sprintf(`SELECT metric_name, argMax(type, created_at) AS type, argMax(description, created_at) AS description, argMax(temporality, created_at) AS temporality, argMax(is_monotonic, created_at) AS is_monotonic, argMax(unit, created_at) AS unit FROM %s.%s WHERE metric_name IN ({metric_names:Array(String)}) GROUP BY metric_name;`, signozMetricDBName, signozUpdatedMetricsMetadataTable)
+		query := fmt.Sprintf(`SELECT metric_name, argMax(type, created_at) AS type, argMax(description, created_at) AS description, argMax(temporality, created_at) AS temporality, argMax(is_monotonic, created_at) AS is_monotonic, argMax(unit, created_at) AS unit FROM %s.%s WHERE metric_name IN ({metric_names:Array(String)}) GROUP BY metric_name;`, siginsightMetricDBName, siginsightUpdatedMetricsMetadataTable)
 		rows, err := r.db.Query(
 			context.WithValue(ctx, "clickhouse_max_threads", constants.MetricsExplorerClickhouseThreads),
 			query,
@@ -153,7 +153,7 @@ func (r *Reader) GetUpdatedMetricsMetadata(ctx context.Context, orgID valuer.UUI
 	}
 
 	if len(stillMissing) > 0 {
-		query := fmt.Sprintf(`SELECT DISTINCT metric_name, type, description, temporality, is_monotonic, unit FROM %s.%s WHERE metric_name IN ({metric_names:Array(String)})`, signozMetricDBName, signozTSTableNameV4)
+		query := fmt.Sprintf(`SELECT DISTINCT metric_name, type, description, temporality, is_monotonic, unit FROM %s.%s WHERE metric_name IN ({metric_names:Array(String)})`, siginsightMetricDBName, siginsightTSTableNameV4)
 		rows, err := r.db.Query(
 			context.WithValue(ctx, "clickhouse_max_threads", constants.MetricsExplorerClickhouseThreads),
 			query,

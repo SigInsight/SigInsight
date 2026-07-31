@@ -172,11 +172,11 @@ def _has_values(result: dict) -> bool:
 
 def _collector_row_counts(clickhouse: types.TestContainerClickhouse) -> dict[str, int]:
     tables = {
-        "logs": "signoz_logs.logs_v2",
-        "traces": "signoz_traces.signoz_index_v3",
-        "metrics": "signoz_metrics.samples_v4",
-        "metric_series": "signoz_metrics.time_series_v4",
-        "meter": "signoz_meter.samples",
+        "logs": "siginsight_logs.logs_v2",
+        "traces": "siginsight_traces.span_index_v3",
+        "metrics": "siginsight_metrics.samples_v4",
+        "metric_series": "siginsight_metrics.time_series_v4",
+        "meter": "siginsight_meter.samples",
     }
     return {
         signal: int(clickhouse.conn.query(f"SELECT count() FROM {table}").result_rows[0][0])
@@ -187,10 +187,10 @@ def _collector_row_counts(clickhouse: types.TestContainerClickhouse) -> dict[str
 def _collector_time_ranges(clickhouse: types.TestContainerClickhouse) -> dict[str, list]:
     return {
         "logs": clickhouse.conn.query(
-            "SELECT min(timestamp), max(timestamp) FROM signoz_logs.logs_v2"
+            "SELECT min(timestamp), max(timestamp) FROM siginsight_logs.logs_v2"
         ).result_rows[0],
         "traces": clickhouse.conn.query(
-            "SELECT min(timestamp), max(timestamp) FROM signoz_traces.signoz_index_v3"
+            "SELECT min(timestamp), max(timestamp) FROM siginsight_traces.span_index_v3"
         ).result_rows[0],
     }
 
@@ -199,7 +199,7 @@ def _collector_meter_name(clickhouse: types.TestContainerClickhouse) -> str:
     """Select an actual Delta Sum emitted by the current Collector."""
 
     rows = clickhouse.conn.query(
-        "SELECT metric_name FROM signoz_meter.samples "
+        "SELECT metric_name FROM siginsight_meter.samples "
         "WHERE lower(temporality) = 'delta' AND lower(type) = 'sum' "
         "GROUP BY metric_name ORDER BY metric_name ASC LIMIT 1"
     ).result_rows
@@ -211,7 +211,7 @@ def _collector_meter_range(clickhouse: types.TestContainerClickhouse) -> tuple[i
     """Return a request range containing Collector's hour-rounded meter rows."""
 
     start, end = clickhouse.conn.query(
-        "SELECT min(unix_milli), max(unix_milli) FROM signoz_meter.samples"
+        "SELECT min(unix_milli), max(unix_milli) FROM siginsight_meter.samples"
     ).result_rows[0]
     assert start is not None and end is not None, "Collector did not timestamp meter samples"
     return int(start), int(end) + 60_000
@@ -228,12 +228,12 @@ def _direct_lite_log_buckets(
     """
 
     return clickhouse.conn.query(
-        "SELECT intDiv(signoz_logs.logs_v2.timestamp, toUInt64({step_ns:UInt64})) "
+        "SELECT intDiv(siginsight_logs.logs_v2.timestamp, toUInt64({step_ns:UInt64})) "
         "* toUInt64({step_ms:UInt64}) AS timestamp, count() AS value "
-        "FROM signoz_logs.logs_v2 "
-        "WHERE signoz_logs.logs_v2.timestamp >= toUInt64({start_ns:UInt64}) "
-        "AND signoz_logs.logs_v2.timestamp < toUInt64({end_ns:UInt64}) "
-        "GROUP BY intDiv(signoz_logs.logs_v2.timestamp, toUInt64({step_ns:UInt64})) "
+        "FROM siginsight_logs.logs_v2 "
+        "WHERE siginsight_logs.logs_v2.timestamp >= toUInt64({start_ns:UInt64}) "
+        "AND siginsight_logs.logs_v2.timestamp < toUInt64({end_ns:UInt64}) "
+        "GROUP BY intDiv(siginsight_logs.logs_v2.timestamp, toUInt64({step_ns:UInt64})) "
         "* toUInt64({step_ms:UInt64}) "
         "ORDER BY timestamp ASC LIMIT {limit:UInt64}",
         parameters={
@@ -287,16 +287,16 @@ def _assert_no_lite_query_errors(clickhouse: types.TestContainerClickhouse) -> N
     failures = clickhouse.conn.query(
         "SELECT query, exception_code, exception FROM system.query_log "
         "WHERE exception_code != 0 AND ("
-        "query LIKE '%FROM signoz_logs.logs_v2%' "
-        "OR query LIKE '%FROM signoz_traces.signoz_index_v3%' "
-        "OR query LIKE '%FROM signoz_metrics.samples_v4%' "
-        "OR query LIKE '%FROM signoz_meter.samples%') "
+        "query LIKE '%FROM siginsight_logs.logs_v2%' "
+        "OR query LIKE '%FROM siginsight_traces.span_index_v3%' "
+        "OR query LIKE '%FROM siginsight_metrics.samples_v4%' "
+        "OR query LIKE '%FROM siginsight_meter.samples%') "
         "ORDER BY event_time_microseconds DESC LIMIT 20"
     ).result_rows
     assert not failures, f"lightweight query emitted ClickHouse errors: {failures}"
 
 
-def _signoz_logs(signoz: types.SigNoz) -> str:
+def _siginsight_logs(signoz: types.SigNoz) -> str:
     return docker.from_env().containers.get(signoz.self.id).logs().decode()[-8_000:]
 
 
@@ -378,10 +378,10 @@ def test_lite_query_reads_data_written_by_current_collector(
     ]
 
     physical_tables = {
-        "logs": "signoz_logs.logs_v2",
-        "traces": "signoz_traces.signoz_index_v3",
-        "metrics": "signoz_metrics.samples_v4",
-        "meter": "signoz_meter.samples",
+        "logs": "siginsight_logs.logs_v2",
+        "traces": "siginsight_traces.span_index_v3",
+        "metrics": "siginsight_metrics.samples_v4",
+        "meter": "siginsight_meter.samples",
     }
     for spec in specs:
         query_start_ms, query_end_ms = start_ms, end_ms
@@ -399,7 +399,7 @@ def test_lite_query_reads_data_written_by_current_collector(
             f"Collector data was not visible for Lite {spec['name']}: result={lite_result}, "
             f"rows={row_counts}, ranges={_collector_time_ranges(clickhouse)}, "
             f"query_log={_query_log(clickhouse, 'signoz_' + spec['name'] + '.')}, "
-            f"siginsight_logs={_signoz_logs(signoz_current_collector)}"
+            f"siginsight_logs={_siginsight_logs(signoz_current_collector)}"
         )
         lite_query_log = _latest_query_log(clickhouse, physical_tables[spec["name"]])
 

@@ -110,6 +110,10 @@ func TestValidateRejectsUnsupportedOrInvalidRequests(t *testing.T) {
 			req: Request{Range: TimeRange{StartMS: 1, EndMS: 2}, ResultType: ResultRaw, Queries: []Query{LogQuery{Common: CommonQuery{Name: "A", Filter: Predicate{Field: FieldRef{Name: "duration", Context: FieldContextLog, Type: ValueTypeNumber}, Op: FilterGreaterThan, Value: Value{Kind: ValueNumber, Number: math.NaN()}}}, Aggregation: LogAggregateCount}}},
 		},
 		{
+			name: "time series rejects offset", code: ErrorInvalidRequest,
+			req: Request{Range: TimeRange{StartMS: 1, EndMS: 2}, ResultType: ResultTimeSeries, StepMS: 1, Queries: []Query{LogQuery{Common: CommonQuery{Name: "A", Offset: 1}, Aggregation: LogAggregateCount}}},
+		},
+		{
 			name: "literal division by zero", code: ErrorInvalidFormula,
 			req: Request{Range: TimeRange{StartMS: 1, EndMS: 2}, ResultType: ResultScalar, Queries: []Query{validLog}, Formulas: []Formula{{Name: "F", Expression: "A / 0"}}},
 		},

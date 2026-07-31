@@ -34,7 +34,7 @@ func TestServiceConfig(t *testing.T) {
 			"traces": map[string]interface{}{
 				"receivers": []interface{}{"jaeger", "otlp"},
 				"processors": []interface{}{
-					"signozspanmetrics/cumulative", "batch",
+					"siginsightspanmetrics/cumulative", "batch",
 				},
 				"exporters": []interface{}{
 					"clickhousetraces",

@@ -57,10 +57,10 @@ def create_signoz(
             tag="siginsight:integration",
             buildargs={
                 "TARGETARCH": arch,
-                "APT_MIRROR": environ.get("SIGNOZ_APT_MIRROR", ""),
-                "APT_SECURITY_MIRROR": environ.get("SIGNOZ_APT_SECURITY_MIRROR", ""),
-                "GOPROXY": environ.get("SIGNOZ_GOPROXY", environ.get("GOPROXY", "")),
-                "NPM_REGISTRY": environ.get("SIGNOZ_NPM_REGISTRY", ""),
+                "APT_MIRROR": environ.get("SIGINSIGHT_APT_MIRROR", ""),
+                "APT_SECURITY_MIRROR": environ.get("SIGINSIGHT_APT_SECURITY_MIRROR", ""),
+                "GOPROXY": environ.get("SIGINSIGHT_GOPROXY", environ.get("GOPROXY", "")),
+                "NPM_REGISTRY": environ.get("SIGINSIGHT_NPM_REGISTRY", ""),
             },
         )
 
@@ -68,23 +68,23 @@ def create_signoz(
 
         env = (
             {
-                "SIGNOZ_WEB_ENABLED": False,
-                "SIGNOZ_WEB_DIRECTORY": "/root/web",
-                "SIGNOZ_INSTRUMENTATION_LOGS_LEVEL": "debug",
-                "SIGNOZ_TOKENIZER_JWT_SECRET": "secret",
-                "SIGNOZ_USER_PASSWORD_RESET_ALLOW__SELF": True,
-                "SIGNOZ_USER_PASSWORD_RESET_MAX__TOKEN__LIFETIME": "6h",
+                "SIGINSIGHT_WEB_ENABLED": False,
+                "SIGINSIGHT_WEB_DIRECTORY": "/root/web",
+                "SIGINSIGHT_INSTRUMENTATION_LOGS_LEVEL": "debug",
+                "SIGINSIGHT_TOKENIZER_JWT_SECRET": "secret",
+                "SIGINSIGHT_USER_PASSWORD_RESET_ALLOW__SELF": True,
+                "SIGINSIGHT_USER_PASSWORD_RESET_MAX__TOKEN__LIFETIME": "6h",
                 "RULES_EVAL_DELAY": "0s",
-                "SIGNOZ_ALERTMANAGER_SIGNOZ_POLL__INTERVAL": "5s",
-                "SIGNOZ_ALERTMANAGER_SIGNOZ_ROUTE_GROUP__WAIT": "1s",
-                "SIGNOZ_ALERTMANAGER_SIGNOZ_ROUTE_GROUP__INTERVAL": "5s",
+                "SIGINSIGHT_ALERTMANAGER_SIGINSIGHT_POLL__INTERVAL": "5s",
+                "SIGINSIGHT_ALERTMANAGER_SIGINSIGHT_ROUTE_GROUP__WAIT": "1s",
+                "SIGINSIGHT_ALERTMANAGER_SIGINSIGHT_ROUTE_GROUP__INTERVAL": "5s",
             }
             | sqlstore.env
             | clickhouse.env
         )
 
         if with_web:
-            env["SIGNOZ_WEB_ENABLED"] = True
+            env["SIGINSIGHT_WEB_ENABLED"] = True
 
         if env_overrides:
             env = env | env_overrides
@@ -97,7 +97,7 @@ def create_signoz(
 
         provider = request.config.getoption("--sqlstore-provider")
         if provider == "sqlite":
-            dir_path = path.dirname(sqlstore.env["SIGNOZ_SQLSTORE_SQLITE_PATH"])
+            dir_path = path.dirname(sqlstore.env["SIGINSIGHT_SQLSTORE_SQLITE_PATH"])
             container.with_volume_mapping(
                 dir_path,
                 dir_path,

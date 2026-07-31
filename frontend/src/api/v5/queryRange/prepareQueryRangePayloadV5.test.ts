@@ -367,6 +367,45 @@ describe('prepareQueryRangePayloadV5', () => {
 		expect(builderSpec.aggregations?.[0].reduceTo).toBe('avg');
 	});
 
+	it('omits temporality from Histogram metric queries', () => {
+		const histogramQuery = baseBuilderQuery({
+			aggregateAttribute: {
+				id: 'histogram',
+				key: 'http.server.request.duration.bucket',
+				dataType: DataTypes.Float64,
+				type: 'Histogram',
+			},
+			aggregations: [
+				{
+					metricName: 'http.server.request.duration.bucket',
+					temporality: 'cumulative',
+					timeAggregation: 'p95',
+					spaceAggregation: 'sum',
+				},
+			],
+		});
+		const result = prepareQueryRangePayloadV5({
+			query: {
+				queryType: EQueryType.QUERY_BUILDER,
+				id: 'histogram',
+				clickhouse_sql: [],
+				builder: {
+					queryData: [histogramQuery],
+					queryFormulas: [],
+					queryTraceOperator: [],
+				},
+			},
+			graphType: PANEL_TYPES.TIME_SERIES,
+			selectedTime: 'GLOBAL_TIME',
+			start,
+			end,
+		});
+
+		const builderSpec = result.queryPayload.compositeQuery.queries[0]
+			.spec as MetricBuilderQuery;
+		expect(builderSpec.aggregations?.[0]).not.toHaveProperty('temporality');
+	});
+
 	it('omits aggregations for raw request type (LIST panel)', () => {
 		const logAgg: LogAggregation[] = [{ expression: 'count()' }];
 		const logsQuery = baseBuilderQuery({

@@ -38,14 +38,14 @@ Threshold rules -----+-> Lite RuleQueryRunner
 API Monitoring ------/ (removed as non-core)
 ```
 
-Services 已迁移为专用的 parameterized reader，直接读取 `signoz_index_v3` 和
+Services 已迁移为专用的 parameterized reader，直接读取 `span_index_v3` 和
 `top_level_operations`，不再构造 V5 request/response 或依赖 `Querier`。其查询保留
 resource/span attribute 的 `in`/`notin`、服务概览、Top Operations、Entry Point
 Operations 所需的固定多聚合。ClickHouse 25.5.6 不支持绑定 `LIMIT` 参数，因此仅将
 经过 `1..5000` 校验的整数内联；所有 tag 键和值继续使用命名参数绑定。
 
 Span Percentile 同样已迁移为单行的 parameterized reader：固定 p50/p90/p99、阈值
-位置和 resource attribute 等值筛选直接执行在 `signoz_index_v3`，并在零 span 时保留
+位置和 resource attribute 等值筛选直接执行在 `span_index_v3`，并在零 span 时保留
 `NotFound` 响应。它们都不是 Lite 的遗漏能力，而是 ADR-010 所定义的专用读取边界。
 
 ## 删除顺序

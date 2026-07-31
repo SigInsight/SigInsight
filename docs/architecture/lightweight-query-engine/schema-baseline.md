@@ -16,12 +16,12 @@ ClickHouse：`clickhouse/clickhouse-server:25.5.6`
 
 | Database | Tables | Table hash | Columns | Column hash |
 | --- | ---: | ---: | ---: | ---: |
-| `signoz_analytics` | 1 | 573356622719098860 | 11 | 4111144204702223109 |
-| `signoz_logs` | 6 | 10013745453448773421 | 43 | 15143235747694373747 |
-| `signoz_metadata` | 2 | 9471719162152962200 | 13 | 11073036235476819325 |
-| `signoz_meter` | 3 | 5731232586497943347 | 38 | 8743824752276981965 |
-| `signoz_metrics` | 18 | 4727395258706994518 | 196 | 954080453982615115 |
-| `signoz_traces` | 21 | 15141153314076288482 | 235 | 12795843324237009066 |
+| `siginsight_analytics` | 1 | 573356622719098860 | 11 | 4111144204702223109 |
+| `siginsight_logs` | 6 | 10013745453448773421 | 43 | 15143235747694373747 |
+| `siginsight_metadata` | 2 | 9471719162152962200 | 13 | 11073036235476819325 |
+| `siginsight_meter` | 3 | 5731232586497943347 | 38 | 8743824752276981965 |
+| `siginsight_metrics` | 18 | 4727395258706994518 | 196 | 954080453982615115 |
+| `siginsight_traces` | 21 | 15141153314076288482 | 235 | 12795843324237009066 |
 
 来源：`OtelCollector/cmd/siginsightschemamigrator/schema_migrator/v1_baseline_migrations.go`。
 
@@ -31,10 +31,10 @@ ClickHouse：`clickhouse/clickhouse-server:25.5.6`
 
 | Signal | 核心表 | 核心物理字段 |
 | --- | --- | --- |
-| Logs | `signoz_logs.logs_v2` | `timestamp`、`body`、`resource`、attributes/resource maps |
-| Traces | `signoz_traces.signoz_index_v3` | `timestamp`、`trace_id`、`span_id`、`resource`、span/resource maps |
-| Metrics | `signoz_metrics.samples_v4`、`time_series_v4` | `metric_name`、`fingerprint`、`unix_milli`、`value`、labels/attrs/resource attrs |
-| Meter | `signoz_meter.samples`、`samples_agg_1d` | `metric_name`、`fingerprint`、`unix_milli`、`value`、labels |
+| Logs | `siginsight_logs.logs_v2` | `timestamp`、`body`、`resource`、attributes/resource maps |
+| Traces | `siginsight_traces.span_index_v3` | `timestamp`、`trace_id`、`span_id`、`resource`、span/resource maps |
+| Metrics | `siginsight_metrics.samples_v4`、`time_series_v4` | `metric_name`、`fingerprint`、`unix_milli`、`value`、labels/attrs/resource attrs |
+| Meter | `siginsight_meter.samples`、`samples_agg_1d` | `metric_name`、`fingerprint`、`unix_milli`、`value`、labels |
 
 本基线明确不依赖 `body_v2`、`body_promoted`、JSON path metadata tables、`samples_v2`、`time_series_v2`、旧 distributed tables 或 `span_attributes`。日志 body JSON 查询使用 `body String` 上的 ClickHouse JSON 函数。
 

@@ -14,7 +14,7 @@ Collector migration 建立的高频 attribute 物化列（`attribute_string_<key
 ## 范围
 
 - `pkg/litequery` Catalog 的物化目录层：基线探测、fingerprint 绑定、解析优先级。
-- Traces `signoz_index_v3` 的 v1 baseline resource/attribute 物化列。Logs `logs_v2`
+- Traces `span_index_v3` 的 v1 baseline resource/attribute 物化列。Logs `logs_v2`
   没有内建物化列，继续走 Map，不能把运维手工列隐式纳入查询。
 - manifest 命中物化列和非 manifest Map 路径的 golden SQL 与真实执行测试。
 - 同 fixture 的 Map vs 物化列性能对比（延迟、read rows、read bytes）。

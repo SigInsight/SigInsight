@@ -10,9 +10,9 @@
 函数链和 response 后处理混在同一条 builder pipeline 中。其 SQL 可支持很宽的能力，
 但无法作为轻量引擎的稳定基础。
 
-Collector 的当前 schema 将普通点保存于 `signoz_metrics.samples_v4`，并把标签与
+Collector 的当前 schema 将普通点保存于 `siginsight_metrics.samples_v4`，并把标签与
 resource/scope/point attributes 保存于 `time_series_v4`。Meter 则在
-`signoz_meter.samples` 中将标签和点一起保存。显式 Histogram 被展开为以 `.bucket`
+`siginsight_meter.samples` 中将标签和点一起保存。显式 Histogram 被展开为以 `.bucket`
 结尾、带 `le` label 的累计 bucket series。
 
 ## 决策
@@ -21,8 +21,8 @@ M3 使用固定的原始数据源：
 
 | Signal | 点表 | series/标签表 |
 | --- | --- | --- |
-| Metrics Gauge/Sum/explicit Histogram | `signoz_metrics.samples_v4` | `signoz_metrics.time_series_v4` |
-| Meter | `signoz_meter.samples` | 同一张点表的 `labels` |
+| Metrics Gauge/Sum/explicit Histogram | `siginsight_metrics.samples_v4` | `siginsight_metrics.time_series_v4` |
+| Meter | `siginsight_meter.samples` | 同一张点表的 `labels` |
 
 Metrics 查询始终分两阶段：
 

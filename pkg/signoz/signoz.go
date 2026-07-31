@@ -289,7 +289,7 @@ func New(
 		providerSettings,
 		config.Ruler,
 		NewRulerProviderFactories(sqlstore, queryParser),
-		"signoz",
+		"siginsight",
 	)
 	if err != nil {
 		return nil, err
@@ -387,7 +387,7 @@ func New(
 		providerSettings,
 		config.APIServer,
 		NewAPIServerProviderFactories(orgGetter, authz, modules, handlers),
-		"signoz",
+		"siginsight",
 	)
 	if err != nil {
 		return nil, err

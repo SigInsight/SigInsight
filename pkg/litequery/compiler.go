@@ -132,9 +132,14 @@ func (c Compiler) compileRaw(table string, signal Signal, plan Plan, common Comm
 		limit = 100
 	}
 	args = append(args, limit)
+	suffix := " LIMIT ?"
+	if common.Offset != 0 {
+		suffix += " OFFSET ?"
+		args = append(args, common.Offset)
+	}
 	return Statement{
 		Name:    common.Name,
-		SQL:     "SELECT " + strings.Join(selects, ", ") + " FROM " + table + " WHERE " + where + " ORDER BY " + order + " LIMIT ?",
+		SQL:     "SELECT " + strings.Join(selects, ", ") + " FROM " + table + " WHERE " + where + " ORDER BY " + order + suffix,
 		Args:    args,
 		Columns: columns,
 	}, nil
@@ -159,10 +164,15 @@ func (c Compiler) compileTraceSummary(table string, plan Plan, common CommonQuer
 		limit = 100
 	}
 	args = append(args, limit)
+	suffix := " LIMIT ?"
+	if common.Offset != 0 {
+		suffix += " OFFSET ?"
+		args = append(args, common.Offset)
+	}
 	return Statement{
 		Name: common.Name,
 		SQL: "SELECT trace_id, max(timestamp) AS timestamp, count() AS span_count, sum(duration_nano) AS duration_nano " +
-			"FROM " + table + " WHERE " + where + " GROUP BY trace_id ORDER BY " + order + " LIMIT ?",
+			"FROM " + table + " WHERE " + where + " GROUP BY trace_id ORDER BY " + order + suffix,
 		Args: args,
 		Columns: []ResultColumn{
 			{Name: "trace_id"},
@@ -396,9 +406,9 @@ func timeRangeCondition(signal Signal, timeRange TimeRange) (string, []any, erro
 		// in WHERE by default; a time-series result also aliases its millisecond
 		// bucket as timestamp, which would otherwise compare milliseconds to the
 		// log table's nanosecond timestamp and filter out every row.
-		return "signoz_logs.logs_v2.timestamp >= toUInt64(?) AND signoz_logs.logs_v2.timestamp < toUInt64(?)", []any{timeRange.StartMS * 1_000_000, timeRange.EndMS * 1_000_000}, nil
+		return "siginsight_logs.logs_v2.timestamp >= toUInt64(?) AND siginsight_logs.logs_v2.timestamp < toUInt64(?)", []any{timeRange.StartMS * 1_000_000, timeRange.EndMS * 1_000_000}, nil
 	case SignalTraces:
-		return "signoz_traces.signoz_index_v3.timestamp >= fromUnixTimestamp64Milli(?) AND signoz_traces.signoz_index_v3.timestamp < fromUnixTimestamp64Milli(?)", []any{timeRange.StartMS, timeRange.EndMS}, nil
+		return "siginsight_traces.span_index_v3.timestamp >= fromUnixTimestamp64Milli(?) AND siginsight_traces.span_index_v3.timestamp < fromUnixTimestamp64Milli(?)", []any{timeRange.StartMS, timeRange.EndMS}, nil
 	default:
 		return "", nil, newError(ErrorUnsupported, "signal", "no time range mapping for %q", signal)
 	}
@@ -414,9 +424,9 @@ func timeBucket(signal Signal, stepMS int64) (string, []any, error) {
 		// resolving `timestamp` in GROUP BY to the SELECT output alias.
 		// The physical column is UInt64 nanoseconds; cast placeholders so the
 		// native driver cannot infer signed operands for time arithmetic.
-		return "intDiv(signoz_logs.logs_v2.timestamp, toUInt64(?)) * toUInt64(?)", []any{stepMS * 1_000_000, stepMS}, nil
+		return "intDiv(siginsight_logs.logs_v2.timestamp, toUInt64(?)) * toUInt64(?)", []any{stepMS * 1_000_000, stepMS}, nil
 	case SignalTraces:
-		return "intDiv(toUnixTimestamp64Milli(signoz_index_v3.timestamp), ?) * ?", []any{stepMS, stepMS}, nil
+		return "intDiv(toUnixTimestamp64Milli(span_index_v3.timestamp), ?) * ?", []any{stepMS, stepMS}, nil
 	default:
 		return "", nil, newError(ErrorUnsupported, "signal", "no time bucket mapping for %q", signal)
 	}

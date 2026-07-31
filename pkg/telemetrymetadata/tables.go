@@ -1,7 +1,7 @@
 package telemetrymetadata
 
 const (
-	DBName                           = "signoz_metadata"
+	DBName                           = "siginsight_metadata"
 	AttributesMetadataTableName      = "attributes_metadata"
 	AttributesMetadataLocalTableName = "attributes_metadata"
 )

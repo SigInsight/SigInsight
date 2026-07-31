@@ -162,7 +162,10 @@ type CommonQuery struct {
 	GroupBy []FieldRef
 	Order   []Order
 	Limit   uint32
-	Cursor  string
+	// Offset is V5-compatible pagination for raw logs and trace summaries.
+	// Time-series and scalar queries deliberately do not accept it.
+	Offset uint32
+	Cursor string
 	// After is a typed raw-log cursor. It is deliberately separate from the
 	// V5-compatible opaque Cursor string: raw log readers need a stable,
 	// lexicographic storage position rather than offset pagination.

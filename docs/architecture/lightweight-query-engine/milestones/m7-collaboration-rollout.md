@@ -49,7 +49,7 @@ The repeatable integration entry point must:
    tables.
 
 `tests/integration/scripts/run-litequery-collector-collaboration.sh` is the
-entry point. It requires `SIGNOZ_OTEL_COLLECTOR_ROOT` only when the Collector
+entry point. It requires `SIGINSIGHT_OTEL_COLLECTOR_ROOT` only when the Collector
 checkout is not `/home/cbw/code/OtelCollector`.
 
 Services, exceptions, rule history and retention retain their existing API
@@ -75,7 +75,7 @@ of the following:
 
 - current Collector migrations complete;
 - OTLP/HTTP Logs, Traces and Metrics are written to their current tables;
-- the `signozmeter` connector writes Meter samples;
+- the `siginsightmeter` connector writes Meter samples;
 - authenticated `/api/v5/query_range` reaches the lightweight compiler and
   returns non-empty Log, Trace, Metric and Meter time-series results;
 - all corresponding ClickHouse query-log entries finish without errors;

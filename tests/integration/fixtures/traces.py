@@ -697,11 +697,11 @@ def insert_traces(
         """
         Insert traces into ClickHouse tables following the same logic as the Go exporter.
         This function handles insertion into multiple tables:
-        - signoz_index_v3 (main traces table)
+        - span_index_v3 (main traces table)
         - traces_v3_resource (resource fingerprints)
         - tag_attributes_v2 (tag attributes)
         - span_attributes_keys (attribute keys)
-        - signoz_error_index_v2 (error events)
+        - error_index_v2 (error events)
         """
         resources: List[TracesResource] = []
         for trace in traces:
@@ -709,7 +709,7 @@ def insert_traces(
 
         if len(resources) > 0:
             clickhouse.conn.insert(
-                database="signoz_traces",
+                database="siginsight_traces",
                 table="traces_v3_resource",
                 data=[resource.np_arr() for resource in resources],
             )
@@ -720,7 +720,7 @@ def insert_traces(
 
         if len(tag_attributes) > 0:
             clickhouse.conn.insert(
-                database="signoz_traces",
+                database="siginsight_traces",
                 table="tag_attributes_v2",
                 data=[tag_attribute.np_arr() for tag_attribute in tag_attributes],
             )
@@ -733,7 +733,7 @@ def insert_traces(
 
         if len(attribute_keys) > 0:
             clickhouse.conn.insert(
-                database="signoz_traces",
+                database="siginsight_traces",
                 table="span_attributes_keys",
                 data=[attribute_key.np_arr() for attribute_key in attribute_keys],
                 column_names=["tagKey", "tagType", "dataType", "isColumn"],
@@ -741,7 +741,7 @@ def insert_traces(
 
         if len(resource_keys) > 0:
             clickhouse.conn.insert(
-                database="signoz_traces",
+                database="siginsight_traces",
                 table="span_attributes_keys",
                 data=[resource_key.np_arr() for resource_key in resource_keys],
                 column_names=["tagKey", "tagType", "dataType", "isColumn"],
@@ -749,8 +749,8 @@ def insert_traces(
 
         # Insert main traces
         clickhouse.conn.insert(
-            database="signoz_traces",
-            table="signoz_index_v3",
+            database="siginsight_traces",
+            table="span_index_v3",
             column_names=[
                 "ts_bucket_start",
                 "resource_fingerprint",
@@ -795,18 +795,18 @@ def insert_traces(
 
         if len(error_events) > 0:
             clickhouse.conn.insert(
-                database="signoz_traces",
-                table="signoz_error_index_v2",
+                database="siginsight_traces",
+                table="error_index_v2",
                 data=[error_event.np_arr() for error_event in error_events],
             )
 
     yield _insert_traces
 
-    clickhouse.conn.query("TRUNCATE TABLE signoz_traces.signoz_index_v3")
-    clickhouse.conn.query("TRUNCATE TABLE signoz_traces.traces_v3_resource")
-    clickhouse.conn.query("TRUNCATE TABLE signoz_traces.tag_attributes_v2")
-    clickhouse.conn.query("TRUNCATE TABLE signoz_traces.span_attributes_keys")
-    clickhouse.conn.query("TRUNCATE TABLE signoz_traces.signoz_error_index_v2")
+    clickhouse.conn.query("TRUNCATE TABLE siginsight_traces.span_index_v3")
+    clickhouse.conn.query("TRUNCATE TABLE siginsight_traces.traces_v3_resource")
+    clickhouse.conn.query("TRUNCATE TABLE siginsight_traces.tag_attributes_v2")
+    clickhouse.conn.query("TRUNCATE TABLE siginsight_traces.span_attributes_keys")
+    clickhouse.conn.query("TRUNCATE TABLE siginsight_traces.error_index_v2")
 
 
 @pytest.fixture(name="remove_traces_ttl_and_storage_settings", scope="function")
@@ -816,9 +816,9 @@ def remove_traces_ttl_and_storage_settings(signoz: types.SigNoz):
     Also resets storage policy to default by recreating tables if needed.
     """
     tables = [
-        "signoz_index_v3",
+        "span_index_v3",
         "traces_v3_resource",
-        "signoz_error_index_v2",
+        "error_index_v2",
         "usage_explorer",
         "dependency_graph_minutes_v2",
         "trace_summary",
@@ -828,10 +828,10 @@ def remove_traces_ttl_and_storage_settings(signoz: types.SigNoz):
     for table in tables:
         try:
             signoz.telemetrystore.conn.query(
-                f"ALTER TABLE signoz_traces.{table} REMOVE TTL"
+                f"ALTER TABLE siginsight_traces.{table} REMOVE TTL"
             )
             signoz.telemetrystore.conn.query(
-                f"ALTER TABLE signoz_traces.{table} RESET SETTING storage_policy;"
+                f"ALTER TABLE siginsight_traces.{table} RESET SETTING storage_policy;"
             )
         except Exception as e:  # pylint: disable=broad-exception-caught
             print(f"ttl and storage policy reset failed for {table}: {e}")

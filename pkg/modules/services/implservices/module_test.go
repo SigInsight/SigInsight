@@ -37,7 +37,7 @@ func TestGetUsesDedicatedAggregateQuery(t *testing.T) {
 	m := &module{TelemetryStore: serviceTelemetryStore{db: serviceQueryConn{query: func(_ context.Context, query string, args ...any) (driver.Rows, error) {
 		queryCount++
 		if queryCount == 1 {
-			require.Contains(t, query, "FROM signoz_traces.signoz_index_v3")
+			require.Contains(t, query, "FROM siginsight_traces.span_index_v3")
 			require.Contains(t, query, "quantile(0.99)(duration_nano)")
 			require.Contains(t, query, "parent_span_id = ''")
 			require.Contains(t, query, "mapContains(resources_string, @filter_0_key)")
@@ -48,7 +48,7 @@ func TestGetUsesDedicatedAggregateQuery(t *testing.T) {
 				{Name: "num_calls", Type: "UInt64"}, {Name: "num_errors", Type: "UInt64"}, {Name: "num_4xx", Type: "UInt64"},
 			}, [][]any{{"checkout", 120.0, 50.0, uint64(10), uint64(2), uint64(1)}}), nil
 		}
-		require.Contains(t, query, "FROM signoz_traces.top_level_operations")
+		require.Contains(t, query, "FROM siginsight_traces.top_level_operations")
 		return cmock.NewRows([]cmock.ColumnType{{Name: "name", Type: "String"}, {Name: "serviceName", Type: "String"}, {Name: "ts", Type: "DateTime"}}, [][]any{{"POST /orders", "checkout", time.Unix(1, 0)}}), nil
 	}}}}
 

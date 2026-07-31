@@ -74,7 +74,7 @@ describe('textContainsVariableReference', () => {
 	describe('embedded in larger text', () => {
 		it('finds variable in a multi-line query', () => {
 			const query = `SELECT JSONExtractString(labels, 'host_name') AS host_name
-FROM signoz_metrics.time_series_v4_1day
+FROM siginsight_metrics.time_series_v4_1day
 WHERE metric_name = 'host_cpu_time' AND JSONExtractString(labels, 'cloud_region') = {{.cloud_region}}
 GROUP BY host_name`;
 			expect(textContainsVariableReference(query, 'cloud_region')).toBe(true);

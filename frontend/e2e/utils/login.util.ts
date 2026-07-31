@@ -3,7 +3,7 @@ import { Page } from '@playwright/test';
 // Read credentials from environment variables
 const username = process.env.LOGIN_USERNAME;
 const password = process.env.LOGIN_PASSWORD;
-const baseURL = process.env.BASE_URL;
+const baseURL = process.env.BASE_URL || process.env.SIGINSIGHT_E2E_BASE_URL;
 
 /**
  * Ensures the user is logged in. If not, performs the login steps.
@@ -17,7 +17,7 @@ export async function ensureLoggedIn(page: Page): Promise<void> {
 
 	if (!username || !password) {
 		throw new Error(
-			'E2E_EMAIL and E2E_PASSWORD environment variables must be set.',
+			'LOGIN_USERNAME and LOGIN_PASSWORD environment variables must be set.',
 		);
 	}
 

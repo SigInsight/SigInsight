@@ -8,5 +8,5 @@ set -euo pipefail
 siginsight_root="$(git rev-parse --show-toplevel)"
 
 cd "${siginsight_root}/tests/integration"
-SIGNOZ_INTEGRATION_LIGHTWEIGHT_ENGINE=true \
+SIGINSIGHT_INTEGRATION_LIGHTWEIGHT_ENGINE=true \
 	uv run pytest --clickhouse-version=25.5.6 -vv src/compat/02_litequery_v5_bridge.py

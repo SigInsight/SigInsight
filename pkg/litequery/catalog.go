@@ -80,13 +80,13 @@ var defaultMaterializedFields = map[materializedFieldKey]materializedField{
 func (DefaultCatalog) Table(signal Signal) (string, error) {
 	switch signal {
 	case SignalLogs:
-		return "signoz_logs.logs_v2", nil
+		return "siginsight_logs.logs_v2", nil
 	case SignalTraces:
-		return "signoz_traces.signoz_index_v3", nil
+		return "siginsight_traces.span_index_v3", nil
 	case SignalMetrics:
-		return "signoz_metrics.samples_v4", nil
+		return "siginsight_metrics.samples_v4", nil
 	case SignalMeter:
-		return "signoz_meter.samples", nil
+		return "siginsight_meter.samples", nil
 	default:
 		return "", newError(ErrorUnsupported, "signal", "no ClickHouse table is configured for %q", signal)
 	}
@@ -96,11 +96,11 @@ func (DefaultCatalog) MetricSource(signal Signal) (MetricSource, error) {
 	switch signal {
 	case SignalMetrics:
 		return MetricSource{
-			PointsTable: "signoz_metrics.samples_v4",
-			SeriesTable: "signoz_metrics.time_series_v4",
+			PointsTable: "siginsight_metrics.samples_v4",
+			SeriesTable: "siginsight_metrics.time_series_v4",
 		}, nil
 	case SignalMeter:
-		return MetricSource{PointsTable: "signoz_meter.samples"}, nil
+		return MetricSource{PointsTable: "siginsight_meter.samples"}, nil
 	default:
 		return MetricSource{}, newError(ErrorUnsupported, "signal", "no metric source is configured for %q", signal)
 	}

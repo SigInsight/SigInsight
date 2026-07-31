@@ -178,10 +178,10 @@ func Redeploy(ctx context.Context, orgId valuer.UUID, typ opamptypes.ElementType
 
 		// merge current config with new filter params
 		processorConf := map[string]interface{}{
-			"signoz_tail_sampling": config,
+			"siginsight_tail_sampling": config,
 		}
 
-		opamp.AddToTracePipelineSpec("signoz_tail_sampling")
+		opamp.AddToTracePipelineSpec("siginsight_tail_sampling")
 		configHash, err := opamp.UpsertControlProcessors(ctx, "traces", processorConf, m.OnConfigUpdate)
 		if err != nil {
 			slog.ErrorContext(ctx, "failed to call agent config update for trace processor", errors.Attr(err))
@@ -273,10 +273,10 @@ func UpsertSamplingProcessor(ctx context.Context, orgId valuer.UUID, version int
 
 	// merge current config with new filter params
 	processorConf := map[string]interface{}{
-		"signoz_tail_sampling": config,
+		"siginsight_tail_sampling": config,
 	}
 
-	opamp.AddToTracePipelineSpec("signoz_tail_sampling")
+	opamp.AddToTracePipelineSpec("siginsight_tail_sampling")
 	configHash, err := opamp.UpsertControlProcessors(ctx, "traces", processorConf, m.OnConfigUpdate)
 	if err != nil {
 		slog.ErrorContext(ctx, "failed to call agent config update for trace processor", errors.Attr(err))

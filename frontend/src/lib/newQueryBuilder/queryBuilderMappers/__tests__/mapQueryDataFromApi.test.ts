@@ -68,6 +68,20 @@ describe('mapQueryDataFromApi', () => {
 		expect(output.clickhouse_sql).toEqual([]);
 	});
 
+	it('normalizes omitted V5 functions for the editable builder model', () => {
+		const queryWithoutFunctions = {
+			...builderQuery,
+			spec: {
+				...builderQuery.spec,
+				functions: undefined,
+			},
+		} as QueryEnvelope;
+
+		const output = mapQueryDataFromApi(compositeQuery([queryWithoutFunctions]));
+
+		expect(output.builder.queryData[0].functions).toEqual([]);
+	});
+
 	it('maps V5 formulas alongside builder queries', () => {
 		const output = mapQueryDataFromApi(
 			compositeQuery([builderQuery, formulaQuery]),

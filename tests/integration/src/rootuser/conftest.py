@@ -27,11 +27,11 @@ def signoz_rootuser(
         pytestconfig=pytestconfig,
         cache_key="signoz-rootuser",
         env_overrides={
-            "SIGNOZ_IDENTN_IMPERSONATION_ENABLED": True,
-            "SIGNOZ_IDENTN_TOKENIZER_ENABLED": False,
-            "SIGNOZ_IDENTN_APIKEY_ENABLED": False,
-            "SIGNOZ_USER_ROOT_ENABLED": True,
-            "SIGNOZ_USER_ROOT_EMAIL": ROOT_USER_EMAIL,
-            "SIGNOZ_USER_ROOT_PASSWORD": ROOT_USER_PASSWORD,
+            "SIGINSIGHT_IDENTN_IMPERSONATION_ENABLED": True,
+            "SIGINSIGHT_IDENTN_TOKENIZER_ENABLED": False,
+            "SIGINSIGHT_IDENTN_APIKEY_ENABLED": False,
+            "SIGINSIGHT_USER_ROOT_ENABLED": True,
+            "SIGINSIGHT_USER_ROOT_EMAIL": ROOT_USER_EMAIL,
+            "SIGINSIGHT_USER_ROOT_PASSWORD": ROOT_USER_PASSWORD,
         },
     )

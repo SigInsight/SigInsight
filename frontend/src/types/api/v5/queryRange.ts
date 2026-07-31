@@ -99,6 +99,10 @@ export type TimeAggregation =
 	| 'count_distinct'
 	| 'rate'
 	| 'increase'
+	| 'p50'
+	| 'p90'
+	| 'p95'
+	| 'p99'
 	| '';
 
 export type SpaceAggregation =

@@ -19,7 +19,7 @@ import (
 	"github.com/SigNoz/signoz/pkg/valuer"
 )
 
-const traceIndexTable = "signoz_index_v3"
+const traceIndexTable = "span_index_v3"
 
 type module struct {
 	telemetryStore telemetrystore.TelemetryStore

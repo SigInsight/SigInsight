@@ -16,7 +16,7 @@ import (
 // NewFactory creates a new factory for the signoz querier provider
 func NewFactory(telemetryStore telemetrystore.TelemetryStore) factory.ProviderFactory[querier.Querier, querier.Config] {
 	return factory.NewProviderFactory(
-		factory.MustNewName("signoz"),
+		factory.MustNewName("siginsight"),
 		func(
 			ctx context.Context,
 			settings factory.ProviderSettings,

@@ -119,9 +119,9 @@ func TestGetUpdatedMetricsMetadataCachesFallbackResult(t *testing.T) {
 		query: func(_ context.Context, query string, _ ...any) (driver.Rows, error) {
 			queries++
 			switch {
-			case strings.Contains(query, signozUpdatedMetricsMetadataTable):
+			case strings.Contains(query, siginsightUpdatedMetricsMetadataTable):
 				return cmock.NewRows(metricMetadataColumns, nil), nil
-			case strings.Contains(query, signozTSTableNameV4):
+			case strings.Contains(query, siginsightTSTableNameV4):
 				return cmock.NewRows(metricMetadataColumns, [][]any{{"request.count", "Gauge", "Requests", "Cumulative", true, "requests"}}), nil
 			default:
 				t.Fatalf("unexpected query: %s", query)
@@ -147,7 +147,7 @@ func TestGetUpdatedMetricsMetadataDoesNotFallbackWhenMetadataTableHasResult(t *t
 	cache := &fakeCache{data: map[string][]byte{}}
 	reader := New(slog.New(slog.NewTextHandler(io.Discard, nil)), queryOnlyConn{
 		query: func(_ context.Context, query string, _ ...any) (driver.Rows, error) {
-			require.Contains(t, query, signozUpdatedMetricsMetadataTable)
+			require.Contains(t, query, siginsightUpdatedMetricsMetadataTable)
 			return cmock.NewRows(metricMetadataColumns, [][]any{{"system.cpu", "Gauge", "CPU", "Cumulative", false, "percent"}}), nil
 		},
 	}, cache)
@@ -174,7 +174,7 @@ func TestGetUpdatedMetricsMetadataBindsMetricNames(t *testing.T) {
 			require.Equal(t, "metric_names", named.Name)
 			require.Equal(t, []string{metricName}, named.Value)
 
-			if strings.Contains(query, signozUpdatedMetricsMetadataTable) {
+			if strings.Contains(query, siginsightUpdatedMetricsMetadataTable) {
 				return cmock.NewRows(metricMetadataColumns, nil), nil
 			}
 			return cmock.NewRows(metricMetadataColumns, [][]any{{metricName, "Gauge", "Requests", "Cumulative", true, "requests"}}), nil
@@ -194,7 +194,7 @@ func TestGetUpdatedMetricsMetadataReturnsFallbackRowsError(t *testing.T) {
 	fallbackErr := errors.New("fallback stream interrupted")
 	reader := New(slog.New(slog.NewTextHandler(io.Discard, nil)), queryOnlyConn{
 		query: func(_ context.Context, query string, _ ...any) (driver.Rows, error) {
-			if strings.Contains(query, signozUpdatedMetricsMetadataTable) {
+			if strings.Contains(query, siginsightUpdatedMetricsMetadataTable) {
 				return cmock.NewRows(metricMetadataColumns, nil), nil
 			}
 			return rowsWithError{Rows: cmock.NewRows(metricMetadataColumns, nil), err: fallbackErr}, nil

@@ -69,7 +69,7 @@ func TestCompilerCompilesLogRawWithJSONAndMapParameters(t *testing.T) {
 			Aggregation: LogAggregateCount,
 		}},
 	})
-	wantSQL := "SELECT timestamp AS field_0, JSON_VALUE(body, ?) AS field_1 FROM signoz_logs.logs_v2 WHERE (signoz_logs.logs_v2.timestamp >= toUInt64(?) AND signoz_logs.logs_v2.timestamp < toUInt64(?)) AND ((mapContains(resources_string, ?)) AND (resources_string[?] = ?)) ORDER BY timestamp DESC, id DESC LIMIT ?"
+	wantSQL := "SELECT timestamp AS field_0, JSON_VALUE(body, ?) AS field_1 FROM siginsight_logs.logs_v2 WHERE (siginsight_logs.logs_v2.timestamp >= toUInt64(?) AND siginsight_logs.logs_v2.timestamp < toUInt64(?)) AND ((mapContains(resources_string, ?)) AND (resources_string[?] = ?)) ORDER BY timestamp DESC, id DESC LIMIT ?"
 	wantArgs := []any{"$.request.id", int64(1_000_000_000), int64(2_000_000_000), "service.name", "service.name", "api", uint32(25)}
 	assertStatement(t, statement, wantSQL, wantArgs)
 }
@@ -82,7 +82,7 @@ func TestCompilerCompilesTraceTimeSeriesWithCorrectArgumentOrder(t *testing.T) {
 			Aggregation: TraceAggregateDurationP95,
 		}},
 	})
-	wantSQL := "SELECT intDiv(toUnixTimestamp64Milli(signoz_index_v3.timestamp), ?) * ? AS timestamp, `resource_string_service$$name` AS group_0, quantile(0.95)(duration_nano) AS value FROM signoz_traces.signoz_index_v3 WHERE signoz_traces.signoz_index_v3.timestamp >= fromUnixTimestamp64Milli(?) AND signoz_traces.signoz_index_v3.timestamp < fromUnixTimestamp64Milli(?) GROUP BY intDiv(toUnixTimestamp64Milli(signoz_index_v3.timestamp), ?) * ?, `resource_string_service$$name` ORDER BY timestamp ASC"
+	wantSQL := "SELECT intDiv(toUnixTimestamp64Milli(span_index_v3.timestamp), ?) * ? AS timestamp, `resource_string_service$$name` AS group_0, quantile(0.95)(duration_nano) AS value FROM siginsight_traces.span_index_v3 WHERE siginsight_traces.span_index_v3.timestamp >= fromUnixTimestamp64Milli(?) AND siginsight_traces.span_index_v3.timestamp < fromUnixTimestamp64Milli(?) GROUP BY intDiv(toUnixTimestamp64Milli(span_index_v3.timestamp), ?) * ?, `resource_string_service$$name` ORDER BY timestamp ASC"
 	wantArgs := []any{int64(1_000), int64(1_000), int64(1_000), int64(61_000), int64(1_000), int64(1_000)}
 	assertStatement(t, statement, wantSQL, wantArgs)
 }
@@ -103,7 +103,7 @@ func TestCompilerCompilesTraceMaterializedFilterAndGroupBy(t *testing.T) {
 			Aggregation: TraceAggregateCount,
 		}},
 	})
-	wantSQL := "SELECT intDiv(toUnixTimestamp64Milli(signoz_index_v3.timestamp), ?) * ? AS timestamp, `attribute_string_http$$route` AS group_0, count() AS value FROM signoz_traces.signoz_index_v3 WHERE (signoz_traces.signoz_index_v3.timestamp >= fromUnixTimestamp64Milli(?) AND signoz_traces.signoz_index_v3.timestamp < fromUnixTimestamp64Milli(?)) AND ((`resource_string_service$$name_exists`) AND (`resource_string_service$$name` = ?)) GROUP BY intDiv(toUnixTimestamp64Milli(signoz_index_v3.timestamp), ?) * ?, `attribute_string_http$$route` ORDER BY timestamp ASC"
+	wantSQL := "SELECT intDiv(toUnixTimestamp64Milli(span_index_v3.timestamp), ?) * ? AS timestamp, `attribute_string_http$$route` AS group_0, count() AS value FROM siginsight_traces.span_index_v3 WHERE (siginsight_traces.span_index_v3.timestamp >= fromUnixTimestamp64Milli(?) AND siginsight_traces.span_index_v3.timestamp < fromUnixTimestamp64Milli(?)) AND ((`resource_string_service$$name_exists`) AND (`resource_string_service$$name` = ?)) GROUP BY intDiv(toUnixTimestamp64Milli(span_index_v3.timestamp), ?) * ?, `attribute_string_http$$route` ORDER BY timestamp ASC"
 	wantArgs := []any{int64(1_000), int64(1_000), int64(1_000), int64(61_000), "api", int64(1_000), int64(1_000)}
 	assertStatement(t, statement, wantSQL, wantArgs)
 }
@@ -162,7 +162,7 @@ func TestCompilerQualifiesLogTimeBucketForClickHouseAliasResolution(t *testing.T
 		Range: TimeRange{StartMS: 1_000, EndMS: 61_000}, ResultType: ResultTimeSeries, StepMS: 1_000,
 		Queries: []Query{LogQuery{Common: CommonQuery{Name: "logs"}, Aggregation: LogAggregateCount}},
 	})
-	wantSQL := "SELECT intDiv(signoz_logs.logs_v2.timestamp, toUInt64(?)) * toUInt64(?) AS timestamp, count() AS value FROM signoz_logs.logs_v2 WHERE signoz_logs.logs_v2.timestamp >= toUInt64(?) AND signoz_logs.logs_v2.timestamp < toUInt64(?) GROUP BY intDiv(signoz_logs.logs_v2.timestamp, toUInt64(?)) * toUInt64(?) ORDER BY timestamp ASC"
+	wantSQL := "SELECT intDiv(siginsight_logs.logs_v2.timestamp, toUInt64(?)) * toUInt64(?) AS timestamp, count() AS value FROM siginsight_logs.logs_v2 WHERE siginsight_logs.logs_v2.timestamp >= toUInt64(?) AND siginsight_logs.logs_v2.timestamp < toUInt64(?) GROUP BY intDiv(siginsight_logs.logs_v2.timestamp, toUInt64(?)) * toUInt64(?) ORDER BY timestamp ASC"
 	wantArgs := []any{int64(1_000_000_000), int64(1_000), int64(1_000_000_000), int64(61_000_000_000), int64(1_000_000_000), int64(1_000)}
 	assertStatement(t, statement, wantSQL, wantArgs)
 }
@@ -179,7 +179,7 @@ func TestCompilerCompilesLogAggregationPredicate(t *testing.T) {
 			Field:       FieldRef{Name: "http.response.size", Context: FieldContextAttribute, Type: ValueTypeNumber},
 		}},
 	})
-	wantSQL := "SELECT sum(attributes_number[?]) AS value FROM signoz_logs.logs_v2 WHERE signoz_logs.logs_v2.timestamp >= toUInt64(?) AND signoz_logs.logs_v2.timestamp < toUInt64(?) HAVING sum(attributes_number[?]) > ? ORDER BY value DESC"
+	wantSQL := "SELECT sum(attributes_number[?]) AS value FROM siginsight_logs.logs_v2 WHERE siginsight_logs.logs_v2.timestamp >= toUInt64(?) AND siginsight_logs.logs_v2.timestamp < toUInt64(?) HAVING sum(attributes_number[?]) > ? ORDER BY value DESC"
 	wantArgs := []any{"http.response.size", int64(1_000_000), int64(2_000_000), "http.response.size", float64(10)}
 	assertStatement(t, statement, wantSQL, wantArgs)
 }
@@ -192,9 +192,40 @@ func TestCompilerCompilesTraceSummary(t *testing.T) {
 			Aggregation: TraceAggregateCount,
 		}},
 	})
-	wantSQL := "SELECT trace_id, max(timestamp) AS timestamp, count() AS span_count, sum(duration_nano) AS duration_nano FROM signoz_traces.signoz_index_v3 WHERE signoz_traces.signoz_index_v3.timestamp >= fromUnixTimestamp64Milli(?) AND signoz_traces.signoz_index_v3.timestamp < fromUnixTimestamp64Milli(?) GROUP BY trace_id ORDER BY timestamp DESC, trace_id DESC LIMIT ?"
+	wantSQL := "SELECT trace_id, max(timestamp) AS timestamp, count() AS span_count, sum(duration_nano) AS duration_nano FROM siginsight_traces.span_index_v3 WHERE siginsight_traces.span_index_v3.timestamp >= fromUnixTimestamp64Milli(?) AND siginsight_traces.span_index_v3.timestamp < fromUnixTimestamp64Milli(?) GROUP BY trace_id ORDER BY timestamp DESC, trace_id DESC LIMIT ?"
 	wantArgs := []any{int64(1), int64(2), uint32(20)}
 	assertStatement(t, statement, wantSQL, wantArgs)
+}
+
+func TestCompilerCompilesRawAndTraceOffsets(t *testing.T) {
+	tests := []struct {
+		name     string
+		request  Request
+		wantSQL  string
+		wantArgs []any
+	}{
+		{
+			name: "raw logs",
+			request: Request{Range: TimeRange{StartMS: 1, EndMS: 2}, ResultType: ResultRaw, Queries: []Query{LogQuery{
+				Common: CommonQuery{Name: "logs", Limit: 20, Offset: 100}, Aggregation: LogAggregateCount,
+			}}},
+			wantSQL:  "SELECT timestamp AS field_0, id AS field_1, severity_text AS field_2, body AS field_3, trace_id AS field_4, span_id AS field_5 FROM siginsight_logs.logs_v2 WHERE siginsight_logs.logs_v2.timestamp >= toUInt64(?) AND siginsight_logs.logs_v2.timestamp < toUInt64(?) ORDER BY timestamp DESC, id DESC LIMIT ? OFFSET ?",
+			wantArgs: []any{int64(1_000_000), int64(2_000_000), uint32(20), uint32(100)},
+		},
+		{
+			name: "trace summary",
+			request: Request{Range: TimeRange{StartMS: 1, EndMS: 2}, ResultType: ResultTrace, Queries: []Query{TraceQuery{
+				Common: CommonQuery{Name: "traces", Limit: 20, Offset: 100}, Aggregation: TraceAggregateCount,
+			}}},
+			wantSQL:  "SELECT trace_id, max(timestamp) AS timestamp, count() AS span_count, sum(duration_nano) AS duration_nano FROM siginsight_traces.span_index_v3 WHERE siginsight_traces.span_index_v3.timestamp >= fromUnixTimestamp64Milli(?) AND siginsight_traces.span_index_v3.timestamp < fromUnixTimestamp64Milli(?) GROUP BY trace_id ORDER BY timestamp DESC, trace_id DESC LIMIT ? OFFSET ?",
+			wantArgs: []any{int64(1), int64(2), uint32(20), uint32(100)},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			assertStatement(t, compileOne(t, test.request), test.wantSQL, test.wantArgs)
+		})
+	}
 }
 
 func TestCompilerDoesNotEmbedDynamicMapKeysOrJSONPaths(t *testing.T) {
@@ -242,7 +273,7 @@ func TestCompilerCompilesTypedLiveLogCursor(t *testing.T) {
 			After: &RawLogCursor{TimestampNS: 1_500_000, ID: "last"},
 		}, Aggregation: LogAggregateCount}},
 	})
-	wantSQL := "SELECT timestamp AS field_0, id AS field_1, severity_text AS field_2, body AS field_3, trace_id AS field_4, span_id AS field_5 FROM signoz_logs.logs_v2 WHERE (signoz_logs.logs_v2.timestamp >= toUInt64(?) AND signoz_logs.logs_v2.timestamp < toUInt64(?)) AND ((timestamp > toUInt64(?)) OR (timestamp = toUInt64(?) AND id > ?)) ORDER BY timestamp ASC, id ASC LIMIT ?"
+	wantSQL := "SELECT timestamp AS field_0, id AS field_1, severity_text AS field_2, body AS field_3, trace_id AS field_4, span_id AS field_5 FROM siginsight_logs.logs_v2 WHERE (siginsight_logs.logs_v2.timestamp >= toUInt64(?) AND siginsight_logs.logs_v2.timestamp < toUInt64(?)) AND ((timestamp > toUInt64(?)) OR (timestamp = toUInt64(?) AND id > ?)) ORDER BY timestamp ASC, id ASC LIMIT ?"
 	wantArgs := []any{int64(1_000_000), int64(2_000_000), uint64(1_500_000), uint64(1_500_000), "last", uint32(100)}
 	assertStatement(t, statement, wantSQL, wantArgs)
 }
@@ -316,7 +347,7 @@ func TestCompilerCompilesMeterWithoutMetricMetadataJoin(t *testing.T) {
 			TimeAggregation: TimeAggregateSum, SpaceAggregation: SpaceAggregateSum,
 		}}},
 	})
-	if !strings.Contains(statement.SQL, "signoz_meter.samples") || strings.Contains(statement.SQL, "time_series_v4") {
+	if !strings.Contains(statement.SQL, "siginsight_meter.samples") || strings.Contains(statement.SQL, "time_series_v4") {
 		t.Fatalf("unexpected meter source SQL: %s", statement.SQL)
 	}
 }

@@ -1,7 +1,7 @@
 package telemetrylogs
 
 const (
-	DBName                        = "signoz_logs"
+	DBName                        = "siginsight_logs"
 	LogsV2TableName               = "logs_v2"
 	LogsV2LocalTableName          = "logs_v2"
 	TagAttributesV2TableName      = "tag_attributes_v2"
