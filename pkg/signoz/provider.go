@@ -100,7 +100,6 @@ func NewSQLMigrationProviderFactories() factory.NamedMap[factory.ProviderFactory
 		sqlmigration.NewRemoveUnusedResourceQuickFiltersFactory(),
 		sqlmigration.NewNormalizeLogSeverityQuickFilterFactory(),
 		sqlmigration.NewSplitAlertUnitsFactory(),
-		sqlmigration.NewCleanEmailChannelTransportFactory(),
 	)
 }
 
