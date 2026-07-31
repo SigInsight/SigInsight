@@ -2,7 +2,7 @@
 
 Status: In Progress
 
-关联决策：[ADR-012：在 V5 边界退役 Trace Operator](../decisions/012-retire-trace-operator-at-v5-boundary.md)
+关联决策：[ADR-012：在 V5 边界退役 Trace Operator](../decisions/012-retire-trace-operator-at-v5-boundary.md)、[ADR-013：默认 Lite 部署在 V5 边界拒绝高级能力](../decisions/013-reject-unsupported-v5-capabilities.md)
 
 ## 目标
 
@@ -62,7 +62,8 @@ Span Percentile 同样已迁移为单行的 parameterized reader：固定 p50/p9
    多聚合 legacy translator。它不在核心 UI 范围内，路由、translator、DTO 和测试已删除；
    因而应用中不再有 `/api/v5/query_range` 之外的生产 `Querier.QueryRange` 调用者。
 5. `querier.lightweight_engine_enabled` 已默认开启：core capability 的 Logs、Traces、Metrics
-   与 Meter V5 请求默认走 Lite；高级保存查询暂保留受控 fallback，开关仍可用于回归处置。
+   与 Meter V5 请求默认走 Lite；高级保存查询在 V5 边界返回稳定 capability error，显式关闭
+   开关才可用于旧查询迁移或回归处置（ADR-013）。
 6. Trace Operator 已完成退役：Alert 和 Trace Explorer 不再提供入口，共享 QueryBuilder
    控件、ANTLR parser、V5 执行器和 trace CTE builder 已删除。为兼容已保存 JSON，V5 DTO
    仍能解码 `builder_trace_operator`，但 validation 和 Querier 入口都会在任何 SQL 或
@@ -70,8 +71,8 @@ Span Percentile 同样已迁移为单行的 parameterized reader：固定 p50/p9
 7. 已用同一 Collector 写入的 ClickHouse 25.5.6 fixture 对 Lite 与 legacy 双跑 Logs、
    Traces、Metrics 和 Meter 查询；比较 V5 结果的 labels、时间桶和 values，并检查
    `system.query_log` 没有 SQL exception。
-8. 在 supported UI/default configuration 中移除 legacy fallback；此时不支持的 V5
-   请求必须返回稳定的 capability error。
+8. 默认配置已移除 legacy fallback；不支持的 V5 请求返回稳定 capability error。告警编辑器
+   在 Lite feature flag active 时已移除 ClickHouse SQL 创建入口。
 9. 通过 production import、路由、动态 import 和生成代码引用检查后，按依赖顺序删除
    `builder_query`、`clickhouse_query`、`bucket_cache`、
    `postprocess` 及关联前端高级控件、parser、mocks、测试和样式。

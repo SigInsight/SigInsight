@@ -24,3 +24,17 @@ func TestQueryRangeRejectsRetiredTraceOperatorBeforeExecution(t *testing.T) {
 		t.Fatalf("QueryRange() error = %v, want retired trace operator error", err)
 	}
 }
+
+func TestQueryRangeRejectsUnsupportedCapabilityWhenLightweightEnabled(t *testing.T) {
+	query := &querier{liteQueryEnabled: true}
+	_, err := query.QueryRange(context.Background(), valuer.UUID{}, &qbtypes.QueryRangeRequest{
+		RequestType: qbtypes.RequestTypeTimeSeries,
+		CompositeQuery: qbtypes.CompositeQuery{Queries: []qbtypes.QueryEnvelope{{
+			Type: qbtypes.QueryTypeClickHouseSQL,
+			Spec: qbtypes.ClickHouseQuery{Name: "A", Query: "SELECT 1"},
+		}}},
+	})
+	if err == nil || !strings.Contains(err.Error(), "unsupported lightweight query capability: V5 query type clickhouse_sql") {
+		t.Fatalf("QueryRange() error = %v, want lightweight capability error", err)
+	}
+}

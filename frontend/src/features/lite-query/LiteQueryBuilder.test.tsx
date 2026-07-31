@@ -55,6 +55,7 @@ function renderBuilder(query: Query): QueryBuilderContextType {
 		handleSetConfig: jest.fn(),
 		handleSetQueryData: jest.fn(),
 		handleSetFormulaData: jest.fn(),
+		redirectWithQueryBuilderData: jest.fn(),
 		removeQueryBuilderEntityByIndex: jest.fn(),
 		cloneQuery: jest.fn(),
 		addNewBuilderQuery: jest.fn(),
@@ -114,8 +115,8 @@ describe('LiteQueryBuilder routing', () => {
 		);
 	});
 
-	it('keeps a Trace Operator query on the legacy editor', () => {
-		renderBuilder({
+	it('shows the migration boundary for an unsupported saved query', () => {
+		const context = renderBuilder({
 			...baseQuery,
 			builder: {
 				...baseQuery.builder,
@@ -125,5 +126,22 @@ describe('LiteQueryBuilder routing', () => {
 			},
 		});
 		expect(screen.queryByTestId('lite-query-builder')).not.toBeInTheDocument();
+		expect(
+			screen.getByText(
+				'This saved query uses capabilities that are not supported by the lightweight query engine.',
+			),
+		).toBeInTheDocument();
+		const replace = screen.getByRole('button', { name: 'Replace query' });
+		expect(replace).toBeInTheDocument();
+		fireEvent.click(replace);
+		expect(context.redirectWithQueryBuilderData).toHaveBeenCalledWith(
+			expect.objectContaining({
+				clickhouse_sql: [],
+				builder: expect.objectContaining({
+					queryFormulas: [],
+					queryTraceOperator: [],
+				}),
+			}),
+		);
 	});
 });

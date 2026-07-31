@@ -124,10 +124,7 @@ func (q *querier) QueryRange(ctx context.Context, orgID valuer.UUID, req *qbtype
 	}
 
 	if q.liteQueryEnabled {
-		response, handled, err := q.queryRangeLite(ctx, req)
-		if handled {
-			return response, err
-		}
+		return q.queryRangeLite(ctx, req)
 	}
 
 	tmplVars := req.Variables

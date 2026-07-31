@@ -13,26 +13,30 @@ import (
 	qbtypes "github.com/SigNoz/signoz/pkg/types/querybuildertypes/querybuildertypesv5"
 )
 
-// queryRangeLite is an opt-in bridge. A capability mismatch is deliberately
-// reported to the caller as handled=false, preserving the legacy V5 path until
-// every UI request has a lightweight equivalent.
-func (q *querier) queryRangeLite(ctx context.Context, request *qbtypes.QueryRangeRequest) (*qbtypes.QueryRangeResponse, bool, error) {
+// queryRangeLite executes the constrained V5 contract. When enabled, requests
+// outside that contract are rejected at the boundary instead of silently
+// reaching the legacy SQL engine. Operators can explicitly disable the engine
+// while migrating old saved queries.
+func (q *querier) queryRangeLite(ctx context.Context, request *qbtypes.QueryRangeRequest) (*qbtypes.QueryRangeResponse, error) {
 	metadata, err := q.liteMetricMetadata(ctx, request)
 	if err != nil {
-		return nil, true, err
+		return nil, err
 	}
 	requestLite, err := liteadapter.ToLite(request, metadata)
 	if err != nil {
 		var unsupported *liteadapter.UnsupportedError
 		if stderrors.As(err, &unsupported) {
-			q.logger.DebugContext(ctx, "routing unsupported lightweight request to legacy querier", "feature", unsupported.Feature)
-			return nil, false, nil
+			return nil, errors.NewInvalidInputf(
+				errors.CodeInvalidInput,
+				"unsupported lightweight query capability: %s",
+				unsupported.Feature,
+			)
 		}
-		return nil, true, errors.NewInvalidInputf(errors.CodeInvalidInput, "invalid lightweight query: %v", err)
+		return nil, errors.NewInvalidInputf(errors.CodeInvalidInput, "invalid lightweight query: %v", err)
 	}
 	plan, err := (litequery.DefaultPlanner{}).Plan(requestLite)
 	if err != nil {
-		return nil, true, liteQueryError(err)
+		return nil, liteQueryError(err)
 	}
 	q.logger.DebugContext(ctx, "executing V5 query with lightweight engine", "queries", len(plan.Queries))
 	executor := litequery.Executor{
@@ -48,7 +52,7 @@ func (q *querier) queryRangeLite(ctx context.Context, request *qbtypes.QueryRang
 	}
 	result, err := executor.Execute(ctx, plan)
 	if err != nil {
-		return nil, true, liteQueryError(err)
+		return nil, liteQueryError(err)
 	}
 	rowCounts := make([]string, 0, len(result.Queries))
 	for _, query := range result.Queries {
@@ -57,10 +61,10 @@ func (q *querier) queryRangeLite(ctx context.Context, request *qbtypes.QueryRang
 	q.logger.DebugContext(ctx, "lightweight V5 query completed", "queries", len(result.Queries), "result_rows", strings.Join(rowCounts, ","))
 	response, err := liteadapter.FromLite(request, result)
 	if err != nil {
-		return nil, true, liteQueryError(err)
+		return nil, liteQueryError(err)
 	}
 	response.QBEvent = liteQueryEvent(request)
-	return response, true, nil
+	return response, nil
 }
 
 func (q *querier) liteMetricMetadata(ctx context.Context, request *qbtypes.QueryRangeRequest) (liteadapter.MetricMetadata, error) {

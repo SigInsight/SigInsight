@@ -15,9 +15,9 @@ type Config struct {
 	FluxInterval time.Duration `yaml:"flux_interval" mapstructure:"flux_interval"`
 	// MaxConcurrentQueries is the maximum number of concurrent queries for missing ranges
 	MaxConcurrentQueries int `yaml:"max_concurrent_queries" mapstructure:"max_concurrent_queries"`
-	// EnableLightweightEngine routes V5 requests that fit the documented
-	// lightweight subset through pkg/litequery by default. Unsupported requests
-	// keep using the legacy engine while the migration is in progress.
+	// EnableLightweightEngine routes all V5 requests through the documented
+	// lightweight subset. Requests outside that capability fail at the V5
+	// boundary; set it false only while migrating legacy saved queries.
 	EnableLightweightEngine bool `yaml:"lightweight_engine_enabled" mapstructure:"lightweight_engine_enabled"`
 }
 
