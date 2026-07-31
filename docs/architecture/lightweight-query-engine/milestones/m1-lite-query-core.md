@@ -1,6 +1,6 @@
 # M1：Lite Query Core
 
-状态：In progress
+状态：Complete
 关联 ADR：001、002
 前置条件：M0 capability matrix、schema baseline 和真实协作测试通过
 
@@ -149,6 +149,29 @@ type Error struct {
 - 已建立 `pkg/litequery` 的独立领域模型、Filter AST、预算、公式语法/依赖校验和 Logical Plan。
 - `Plan` 已按 signal 分派 query，但尚未解析字段或生成 SQL。
 - 包只依赖 Go 标准库；`go list -deps` 确认没有 ClickHouse、HTTP、旧 V5 DTO 或现有 signal compiler 依赖。
+
+## 验证结果
+
+2026-07-31 已执行：
+
+```bash
+go test ./pkg/litequery
+go test -race ./pkg/litequery
+go test -fuzz=FuzzValidateFormula -fuzztime=3s ./pkg/litequery
+go list -deps ./pkg/litequery
+yarn --cwd frontend refactor:baseline
+```
+
+- 单元测试和 race 检查通过。
+- Formula fuzz 以 16 workers 执行约 1,154,336 次，没有崩溃或违反 validator contract。
+- dependency scan 未发现 ClickHouse、HTTP、旧 V5 DTO 或现有 signal compiler import。
+- Lightweight query engine：999 production Go LOC，1 个直接测试文件。
+
+## 残余风险与后续任务
+
+- IR 目前是 Go 领域模型，M2 前仍没有 V5 compatibility decoder；旧请求不能直接进入 Lite IR。
+- Filter AST 还没有字段元数据和物理 schema capability 校验，这属于 M2 Schema Catalog。
+- Formula 只做语法和依赖校验，时间序列标签对齐与求值属于 M4。
 
 ## 退出条件
 

@@ -1,0 +1,140 @@
+package litequery
+
+import "strings"
+
+type BooleanOperator string
+
+const (
+	BooleanAnd BooleanOperator = "and"
+	BooleanOr  BooleanOperator = "or"
+)
+
+type FilterOperator string
+
+const (
+	FilterEqual       FilterOperator = "eq"
+	FilterNotEqual    FilterOperator = "neq"
+	FilterGreaterThan FilterOperator = "gt"
+	FilterGreaterEq   FilterOperator = "gte"
+	FilterLessThan    FilterOperator = "lt"
+	FilterLessEq      FilterOperator = "lte"
+	FilterIn          FilterOperator = "in"
+	FilterNotIn       FilterOperator = "not_in"
+	FilterExists      FilterOperator = "exists"
+	FilterNotExists   FilterOperator = "not_exists"
+	FilterContains    FilterOperator = "contains"
+)
+
+type ValueKind string
+
+const (
+	ValueNone       ValueKind = "none"
+	ValueString     ValueKind = "string"
+	ValueNumber     ValueKind = "number"
+	ValueBool       ValueKind = "bool"
+	ValueStringList ValueKind = "string_list"
+)
+
+type Value struct {
+	Kind    ValueKind
+	String  string
+	Number  float64
+	Bool    bool
+	Strings []string
+}
+
+type FilterNode interface {
+	filterNode()
+}
+
+type LogicalFilter struct {
+	Operator BooleanOperator
+	Items    []FilterNode
+}
+
+func (LogicalFilter) filterNode() {}
+
+type Predicate struct {
+	Field FieldRef
+	Op    FilterOperator
+	Value Value
+}
+
+func (Predicate) filterNode() {}
+
+func validateFilter(node FilterNode, depth *int, nodes *int, limits Limits) error {
+	if node == nil {
+		return nil
+	}
+	*depth++
+	defer func() { *depth-- }()
+	if *depth > limits.MaxFilterDepth {
+		return newError(ErrorBudgetExceeded, "filter", "filter nesting exceeds %d", limits.MaxFilterDepth)
+	}
+	*nodes++
+	if *nodes > limits.MaxFilterNodes {
+		return newError(ErrorBudgetExceeded, "filter", "filter contains more than %d nodes", limits.MaxFilterNodes)
+	}
+
+	switch current := node.(type) {
+	case LogicalFilter:
+		if current.Operator != BooleanAnd && current.Operator != BooleanOr {
+			return newError(ErrorInvalidFilter, "filter.operator", "unsupported logical operator %q", current.Operator)
+		}
+		if len(current.Items) < 2 {
+			return newError(ErrorInvalidFilter, "filter.items", "logical filter requires at least two items")
+		}
+		for _, item := range current.Items {
+			if err := validateFilter(item, depth, nodes, limits); err != nil {
+				return err
+			}
+		}
+		return nil
+	case Predicate:
+		return validatePredicate(current)
+	default:
+		return newError(ErrorInvalidFilter, "filter", "unsupported filter node %T", node)
+	}
+}
+
+func validatePredicate(p Predicate) error {
+	if err := validateField(p.Field, "filter.field"); err != nil {
+		return err
+	}
+	switch p.Op {
+	case FilterEqual, FilterNotEqual, FilterGreaterThan, FilterGreaterEq, FilterLessThan, FilterLessEq:
+		if p.Value.Kind == ValueNone || p.Value.Kind == ValueStringList {
+			return newError(ErrorInvalidFilter, "filter.value", "%s requires a scalar value", p.Op)
+		}
+		if !valueMatchesField(p.Value.Kind, p.Field.Type) {
+			return newError(ErrorInvalidFilter, "filter.value", "%s value does not match %s field", p.Value.Kind, p.Field.Type)
+		}
+		if p.Value.Kind == ValueNumber && !finite(p.Value.Number) {
+			return newError(ErrorInvalidFilter, "filter.value", "numeric filter value must be finite")
+		}
+	case FilterIn, FilterNotIn:
+		if p.Value.Kind != ValueStringList || len(p.Value.Strings) == 0 {
+			return newError(ErrorInvalidFilter, "filter.value", "%s requires a non-empty string list", p.Op)
+		}
+		if p.Field.Type != ValueTypeString {
+			return newError(ErrorInvalidFilter, "filter.field", "%s only supports string fields", p.Op)
+		}
+	case FilterExists, FilterNotExists:
+		if p.Value.Kind != ValueNone {
+			return newError(ErrorInvalidFilter, "filter.value", "%s does not accept a value", p.Op)
+		}
+	case FilterContains:
+		if p.Field.Type != ValueTypeString || p.Value.Kind != ValueString || strings.TrimSpace(p.Value.String) == "" {
+			return newError(ErrorInvalidFilter, "filter", "contains requires a non-empty string value and string field")
+		}
+	default:
+		return newError(ErrorInvalidFilter, "filter.operator", "unsupported filter operator %q", p.Op)
+	}
+	return nil
+}
+
+func valueMatchesField(kind ValueKind, fieldType ValueType) bool {
+	return (kind == ValueString && fieldType == ValueTypeString) ||
+		(kind == ValueNumber && fieldType == ValueTypeNumber) ||
+		(kind == ValueBool && fieldType == ValueTypeBool)
+}
