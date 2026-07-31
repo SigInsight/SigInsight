@@ -1,7 +1,7 @@
 # ADR-003：使用 Schema Catalog 隔离查询语义与 ClickHouse schema
 
-状态：Proposed  
-日期：2026-07-31  
+状态：Accepted
+日期：2026-07-31
 关联里程碑：M0、M2、M3、M6
 
 ## 背景
@@ -62,4 +62,3 @@ M2 首先为当前 schema 建立 Catalog，不修改表。任何后续表结构�
 - M0 生成当前核心表 fingerprint。
 - M2 确定 Catalog 的 Go API 和版本策略。
 - 每个 schema 性能优化建立独立 ADR。
-

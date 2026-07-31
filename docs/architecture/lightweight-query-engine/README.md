@@ -8,8 +8,10 @@
 
 - [总体设计与功能边界](design.md)
 - [任务节点与里程碑](roadmap.md)
+- [ClickHouse schema 基线](schema-baseline.md)
 - [阶段工程文档规范](milestones/README.md)
 - [M0：能力与兼容基线](milestones/m0-capability-baseline.md)
+- [M1：Lite Query Core](milestones/m1-lite-query-core.md)
 - [架构决策记录规范](decisions/README.md)
 - [ADR 模板](decisions/000-template.md)
 - [ADR-001：采用受约束的类型化查询语言](decisions/001-constrained-query-language.md)
@@ -23,6 +25,7 @@
 | 总体设计与功能边界 | Proposed | 等待首次工程审核 |
 | 任务节点与里程碑 | Proposed | 等待首次工程审核 |
 | M0 能力与兼容基线 | In progress | 需要补齐请求样本、schema fingerprint 和规模数据 |
+| 机器可读能力矩阵 | Accepted | `capability-matrix.json` 是后续协议和 UI 的约束来源 |
 
 ## 变更规则
 
@@ -31,6 +34,7 @@
 3. 每个里程碑结束时，阶段文档必须包含实现结果、验证证据、已删除内容、残余风险和规模变化。
 4. 代码与文档在同一个里程碑提交中保持一致；禁止只在提交说明中记录关键设计。
 5. 跨 SigInsight 与 OtelCollector 的 schema 或写入协议变化，两个仓库都要记录对应提交和协作验证结果。
+6. `capability-matrix.json` 的每次变化都必须同步更新对应 ADR、阶段文档和测试。
 
 ## 分支与提交
 
