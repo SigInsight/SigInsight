@@ -81,7 +81,10 @@ func timeSeries(query litequery.QueryResult) (*qbtypes.TimeSeriesData, error) {
 			return nil, fmt.Errorf("time series query %q returned invalid timestamp %T", query.Name, row[timestampIndex])
 		}
 		value, ok := number(row[valueIndex])
-		if !ok || math.IsNaN(value) || math.IsInf(value, 0) {
+		if !ok {
+			return nil, fmt.Errorf("time series query %q returned invalid value %T", query.Name, row[valueIndex])
+		}
+		if math.IsNaN(value) || math.IsInf(value, 0) {
 			continue
 		}
 		labels := make([]*qbtypes.Label, 0, len(labelIndexes))
@@ -199,9 +202,21 @@ func stepForQuery(request *qbtypes.QueryRangeRequest, name string) int64 {
 
 func milliseconds(value any) (int64, bool) {
 	switch current := value.(type) {
+	case int8:
+		return int64(current), true
+	case int16:
+		return int64(current), true
+	case int32:
+		return int64(current), true
 	case int64:
 		return current, true
 	case int:
+		return int64(current), true
+	case uint8:
+		return int64(current), true
+	case uint16:
+		return int64(current), true
+	case uint32:
 		return int64(current), true
 	case uint64:
 		if current <= math.MaxInt64 {
@@ -235,9 +250,19 @@ func number(value any) (float64, bool) {
 		return float64(current), true
 	case int:
 		return float64(current), true
+	case int8:
+		return float64(current), true
+	case int16:
+		return float64(current), true
 	case int64:
 		return float64(current), true
 	case int32:
+		return float64(current), true
+	case uint:
+		return float64(current), true
+	case uint8:
+		return float64(current), true
+	case uint16:
 		return float64(current), true
 	case uint64:
 		return float64(current), true

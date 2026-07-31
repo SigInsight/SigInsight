@@ -2,8 +2,11 @@ import { QueryClient, QueryClientProvider } from 'react-query';
 import { MemoryRouter } from 'react-router-dom';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { QueryBuilder } from 'components/QueryBuilder/QueryBuilder';
+import { FeatureKeys } from 'constants/features';
 import { PANEL_TYPES } from 'constants/queryBuilder';
+import { AppContext } from 'providers/App/App';
 import { QueryBuilderContext } from 'providers/QueryBuilder';
+import { getAppContextMock } from 'tests/test-utils';
 import { DataTypes } from 'types/api/queryBuilder/queryAutocompleteResponse';
 import { Query } from 'types/api/queryBuilder/queryBuilderData';
 import { EQueryType } from 'types/common/dashboard';
@@ -61,13 +64,27 @@ function renderBuilder(query: Query): QueryBuilderContextType {
 	render(
 		<QueryClientProvider client={new QueryClient()}>
 			<MemoryRouter>
-				<QueryBuilderContext.Provider value={value}>
-					<QueryBuilder
-						panelType={PANEL_TYPES.TIME_SERIES}
-						config={{ initialDataSource: DataSource.LOGS, queryVariant: 'static' }}
-						version="v5"
-					/>
-				</QueryBuilderContext.Provider>
+				<AppContext.Provider
+					value={getAppContextMock('ADMIN', {
+						featureFlags: [
+							{
+								name: FeatureKeys.LIGHTWEIGHT_QUERY_ENGINE,
+								active: true,
+								usage: 0,
+								usage_limit: -1,
+								route: '',
+							},
+						],
+					})}
+				>
+					<QueryBuilderContext.Provider value={value}>
+						<QueryBuilder
+							panelType={PANEL_TYPES.TIME_SERIES}
+							config={{ initialDataSource: DataSource.LOGS, queryVariant: 'static' }}
+							version="v5"
+						/>
+					</QueryBuilderContext.Provider>
+				</AppContext.Provider>
 			</MemoryRouter>
 		</QueryClientProvider>,
 	);
@@ -75,14 +92,6 @@ function renderBuilder(query: Query): QueryBuilderContextType {
 }
 
 describe('LiteQueryBuilder routing', () => {
-	beforeEach(() => {
-		process.env.LIGHTWEIGHT_QUERY_EDITOR_ENABLED = 'true';
-	});
-
-	afterEach(() => {
-		delete process.env.LIGHTWEIGHT_QUERY_EDITOR_ENABLED;
-	});
-
 	it('uses Lite controls for a supported V5 state', () => {
 		renderBuilder(baseQuery);
 		expect(screen.getByTestId('lite-query-builder')).toBeInTheDocument();

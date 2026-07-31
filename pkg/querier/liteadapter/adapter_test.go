@@ -134,3 +134,28 @@ func TestFromLiteProducesV5TimeSeriesAndRawData(t *testing.T) {
 		t.Fatalf("raw response = %#v", raw)
 	}
 }
+
+func TestFromLiteAcceptsClickHouseUnsignedScanValues(t *testing.T) {
+	request := &qbtypes.QueryRangeRequest{
+		RequestType: qbtypes.RequestTypeTimeSeries,
+		CompositeQuery: qbtypes.CompositeQuery{Queries: []qbtypes.QueryEnvelope{{
+			Type: qbtypes.QueryTypeBuilder,
+			Spec: qbtypes.QueryBuilderQuery[qbtypes.LogAggregation]{
+				Name:         "A",
+				StepInterval: qbtypes.Step{Duration: time.Minute},
+			},
+		}}},
+	}
+	result, err := FromLite(request, litequery.ExecutionResult{Queries: []litequery.QueryResult{{
+		Name:    "A",
+		Columns: []litequery.ResultColumn{{Name: "timestamp"}, {Name: "value"}},
+		Rows:    [][]any{{uint32(60_000), uint16(3)}},
+	}}})
+	if err != nil {
+		t.Fatalf("FromLite() error = %v", err)
+	}
+	data := result.Data.Results[0].(*qbtypes.TimeSeriesData)
+	if len(data.Aggregations[0].Series) != 1 || data.Aggregations[0].Series[0].Values[0].Value != 3 {
+		t.Fatalf("time series response = %#v", data)
+	}
+}

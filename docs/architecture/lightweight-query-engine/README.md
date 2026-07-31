@@ -17,6 +17,7 @@
 - [M4：Executor、Result 与基本 Formula](milestones/m4-executor-result.md)
 - [M5：V5 兼容桥与受控 API 接入](milestones/m5-v5-compatibility-bridge.md)
 - [M6：轻量前端查询体验](milestones/m6-frontend-query-experience.md)
+- [M7：协作验证与受控切换](milestones/m7-collaboration-rollout.md)
 - [架构决策记录规范](decisions/README.md)
 - [ADR 模板](decisions/000-template.md)
 - [ADR-001：采用受约束的类型化查询语言](decisions/001-constrained-query-language.md)
@@ -27,6 +28,7 @@
 - [ADR-006：Executor 与结果扫描边界](decisions/006-execution-and-result-boundary.md)
 - [ADR-007：V5 兼容桥的受控回退](decisions/007-v5-bridge-controlled-fallback.md)
 - [ADR-008：Lite 前端状态桥](decisions/008-lite-frontend-state-bridge.md)
+- [ADR-009：服务端发布的 rollout capability](decisions/009-server-advertised-rollout-capability.md)
 
 ## 文档状态
 
@@ -41,6 +43,7 @@
 | M4 Executor/Result | Complete | 可取消并发执行、动态 row 扫描和 arithmetic formula 已真实验证 |
 | M5 V5 兼容桥 | Complete | 认证 API 已验证 Metrics、Meter 与 formula；Logs/Traces 的当前 Collector 数据回读留作 M7 切换门槛 |
 | M6 Lite Frontend | Complete | 受控 Lite 编辑器复用 V5 状态/协议，具有能力与组件测试；真实协作切换留作 M7 门槛 |
+| M7 协作验证与切换 | Complete | 当前 Collector 在 ClickHouse 25.5.6 的 Logs、Traces、Metrics、Meter 写入和认证 V5 读回均已验证；受控能力协商已完成 |
 | 机器可读能力矩阵 | Accepted | `capability-matrix.json` 是后续协议和 UI 的约束来源 |
 
 ## 变更规则

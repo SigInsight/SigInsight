@@ -83,6 +83,8 @@ type APIHandler struct {
 	AlertmanagerAPI *alertmanager.API
 
 	Signoz *signoz.SigNoz
+
+	lightweightQueryEngineEnabled bool
 }
 
 type APIHandlerOpts struct {
@@ -110,19 +112,20 @@ func NewAPIHandler(opts APIHandlerOpts, config signoz.Config) (*APIHandler, erro
 	//quickFilterModule := quickfilter.NewAPI(opts.QuickFilterModule)
 
 	aH := &APIHandler{
-		logger:           slog.Default(),
-		services:         opts.Services,
-		retention:        opts.Retention,
-		exceptions:       opts.Exceptions,
-		traceDetail:      opts.TraceDetail,
-		ruleStateHistory: opts.RuleStateHistory,
-		clickHouseHealth: opts.ClickHouseHealth,
-		metricMetadata:   opts.MetricMetadata,
-		traceFunnelQuery: opts.TraceFunnelQuery,
-		ruleManager:      opts.RuleManager,
-		SummaryService:   summaryService,
-		AlertmanagerAPI:  opts.AlertmanagerAPI,
-		Signoz:           opts.Signoz,
+		logger:                        slog.Default(),
+		services:                      opts.Services,
+		retention:                     opts.Retention,
+		exceptions:                    opts.Exceptions,
+		traceDetail:                   opts.TraceDetail,
+		ruleStateHistory:              opts.RuleStateHistory,
+		clickHouseHealth:              opts.ClickHouseHealth,
+		metricMetadata:                opts.MetricMetadata,
+		traceFunnelQuery:              opts.TraceFunnelQuery,
+		ruleManager:                   opts.RuleManager,
+		SummaryService:                summaryService,
+		AlertmanagerAPI:               opts.AlertmanagerAPI,
+		Signoz:                        opts.Signoz,
+		lightweightQueryEngineEnabled: config.Querier.EnableLightweightEngine,
 	}
 
 	// TODO(nitya): remote this in later for multitenancy.
@@ -1090,10 +1093,18 @@ func (aH *APIHandler) getFeatureFlags(w http.ResponseWriter, r *http.Request) {
 	evalCtx := featuretypes.NewFlaggerEvaluationContext(orgID)
 	useSpanMetrics := aH.Signoz.Flagger.BooleanOrEmpty(r.Context(), flagger.FeatureUseSpanMetrics, evalCtx)
 
-	featureSet := []*licensetypes.Feature{
+	aH.Respond(w, uiFeatureFlags(
+		constants.IsDotMetricsEnabled,
+		useSpanMetrics,
+		aH.lightweightQueryEngineEnabled,
+	))
+}
+
+func uiFeatureFlags(dotMetricsEnabled, useSpanMetrics, lightweightQueryEngineEnabled bool) []*licensetypes.Feature {
+	return []*licensetypes.Feature{
 		{
 			Name:       licensetypes.DotMetricsEnabled,
-			Active:     constants.IsDotMetricsEnabled,
+			Active:     dotMetricsEnabled,
 			Usage:      0,
 			UsageLimit: -1,
 			Route:      "",
@@ -1105,9 +1116,14 @@ func (aH *APIHandler) getFeatureFlags(w http.ResponseWriter, r *http.Request) {
 			UsageLimit: -1,
 			Route:      "",
 		},
+		{
+			Name:       licensetypes.LightweightQueryEngineEnabled,
+			Active:     lightweightQueryEngineEnabled,
+			Usage:      0,
+			UsageLimit: -1,
+			Route:      "",
+		},
 	}
-
-	aH.Respond(w, featureSet)
 }
 
 // getHealth is used to check the health of the service.

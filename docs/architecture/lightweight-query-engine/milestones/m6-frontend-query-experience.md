@@ -44,12 +44,10 @@ controlled backend fallback until M7 migration marks them compatible.
 
 ## Rollout
 
-`VITE_LIGHTWEIGHT_QUERY_EDITOR_ENABLED=true` is a build-time opt-in for the
-new controls. Operators enable it together with
-`SIGNOZ_QUERIER_LIGHTWEIGHT__ENGINE__ENABLED=true`; either flag can be rolled
-back independently. M7 will replace this paired deployment configuration with
-a server-advertised rollout capability after real Collector readback proves the
-route.
+M6 initially used `VITE_LIGHTWEIGHT_QUERY_EDITOR_ENABLED=true` as a build-time
+opt-in. M7 replaces this paired deployment configuration with the authenticated
+server-advertised capability in ADR-009. Real Collector readback remains the
+gate for a default-on route.
 
 ## Validation
 

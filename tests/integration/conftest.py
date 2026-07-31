@@ -3,6 +3,7 @@ import pytest
 pytest_plugins = [
     "fixtures.auth",
     "fixtures.clickhouse",
+    "fixtures.collector",
     "fixtures.fs",
     "fixtures.http",
     "fixtures.migrator",

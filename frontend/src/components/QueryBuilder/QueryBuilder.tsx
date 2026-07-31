@@ -1,4 +1,15 @@
-import { memo, useCallback, useEffect, useMemo, useRef } from 'react';
+import {
+	memo,
+	useCallback,
+	// The shared QueryBuilder is rendered in isolated legacy tests too. Read
+	// this optional runtime capability directly so a missing AppProvider keeps
+	// those callers on the legacy editor.
+	// eslint-disable-next-line no-restricted-imports
+	useContext,
+	useEffect,
+	useMemo,
+	useRef,
+} from 'react';
 import { OPERATORS, PANEL_TYPES } from 'constants/queryBuilder';
 import { Formula } from 'container/QueryBuilder/components/Formula';
 import { QueryBuilderProps } from 'container/QueryBuilder/QueryBuilder.interfaces';
@@ -6,6 +17,7 @@ import { isLiteQueryState } from 'features/lite-query/capabilities';
 import { LiteQueryBuilder } from 'features/lite-query/LiteQueryBuilder';
 import { isLightweightQueryEditorEnabled } from 'features/lite-query/rollout';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
+import { AppContext } from 'providers/App/App';
 import { IBuilderTraceOperator } from 'types/api/queryBuilder/queryBuilderData';
 import { DataSource } from 'types/common/queryBuilder';
 
@@ -307,8 +319,9 @@ export const QueryBuilder = memo(function QueryBuilder(
 	props: QueryBuilderProps,
 ): JSX.Element {
 	const { currentQuery } = useQueryBuilder();
+	const appContext = useContext(AppContext);
 	if (
-		isLightweightQueryEditorEnabled() &&
+		isLightweightQueryEditorEnabled(appContext?.featureFlags) &&
 		isLiteQueryState(currentQuery, props.panelType)
 	) {
 		return (

@@ -25,6 +25,7 @@ def create_signoz(
     pytestconfig: pytest.Config,
     cache_key: str = "signoz",
     env_overrides: Optional[dict] = None,
+    run_migrator: bool = True,
 ) -> types.SigNoz:
     """
     Factory function for creating a SigNoz container.
@@ -32,8 +33,11 @@ def create_signoz(
     """
 
     def create() -> types.SigNoz:
-        # Run the migrations for clickhouse
-        request.getfixturevalue("migrator")
+        # Most integration suites use the released Collector migrator. The
+        # lightweight-engine collaboration suite runs migrations from the
+        # current Collector checkout before starting this service instead.
+        if run_migrator:
+            request.getfixturevalue("migrator")
 
         # Get the no-web flag
         with_web = pytestconfig.getoption("--with-web")
@@ -216,4 +220,27 @@ def signoz(  # pylint: disable=too-many-arguments,too-many-positional-arguments
         clickhouse=clickhouse,
         request=request,
         pytestconfig=pytestconfig,
+    )
+
+
+@pytest.fixture(name="signoz_current_collector", scope="package")
+def signoz_current_collector(  # pylint: disable=too-many-arguments,too-many-positional-arguments
+    current_collector: str,  # pylint: disable=unused-argument
+    network: Network,
+    sqlstore: types.TestContainerSQL,
+    clickhouse: types.TestContainerClickhouse,
+    request: pytest.FixtureRequest,
+    pytestconfig: pytest.Config,
+) -> types.SigNoz:
+    """Start SigInsight after migrations from the current Collector checkout."""
+
+    return create_signoz(
+        network=network,
+        sqlstore=sqlstore,
+        clickhouse=clickhouse,
+        request=request,
+        pytestconfig=pytestconfig,
+        cache_key="signoz_current_collector",
+        run_migrator=False,
+        env_overrides={"SIGNOZ_QUERIER_LIGHTWEIGHT__ENGINE__ENABLED": True},
     )

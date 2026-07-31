@@ -381,9 +381,13 @@ func (c Compiler) compileOrder(signal Signal, orders []Order, aggregationAllowed
 func timeRangeCondition(signal Signal, timeRange TimeRange) (string, []any, error) {
 	switch signal {
 	case SignalLogs:
-		return "timestamp >= toUInt64(?) AND timestamp < toUInt64(?)", []any{timeRange.StartMS * 1_000_000, timeRange.EndMS * 1_000_000}, nil
+		// Always qualify physical timestamps. ClickHouse resolves SELECT aliases
+		// in WHERE by default; a time-series result also aliases its millisecond
+		// bucket as timestamp, which would otherwise compare milliseconds to the
+		// log table's nanosecond timestamp and filter out every row.
+		return "signoz_logs.logs_v2.timestamp >= toUInt64(?) AND signoz_logs.logs_v2.timestamp < toUInt64(?)", []any{timeRange.StartMS * 1_000_000, timeRange.EndMS * 1_000_000}, nil
 	case SignalTraces:
-		return "timestamp >= fromUnixTimestamp64Milli(?) AND timestamp < fromUnixTimestamp64Milli(?)", []any{timeRange.StartMS, timeRange.EndMS}, nil
+		return "signoz_traces.signoz_index_v3.timestamp >= fromUnixTimestamp64Milli(?) AND signoz_traces.signoz_index_v3.timestamp < fromUnixTimestamp64Milli(?)", []any{timeRange.StartMS, timeRange.EndMS}, nil
 	default:
 		return "", nil, newError(ErrorUnsupported, "signal", "no time range mapping for %q", signal)
 	}
