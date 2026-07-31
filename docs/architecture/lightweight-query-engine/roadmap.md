@@ -207,18 +207,18 @@ M2 的 Logs 和 Traces compiler 可以分子提交实现。M3 必须在 M2 建�
 
 任务：
 
-- 基线探测物化列，生成与 schema fingerprint 绑定的显式物化目录（ADR-011）。
-- `Catalog.Resolve` 支持"物化列优先、Map 回退"的确定性解析。
+- 从基线 DDL 提取物化列，生成与 schema fingerprint 绑定的显式物化目录（ADR-011）。
+- `Catalog.Resolve` 支持"manifest 命中物化列、非 manifest 字段走 Map"的确定性解析。
 - 覆盖 manifest 命中的物化列路径和非 manifest 字段的 Map 路径，并以真实 ClickHouse
   执行测试验证。
-- 同 fixture 双路径性能对比（延迟、read rows、read bytes），输出删除候选。
+- 同 fixture 双路径性能对比（延迟、read rows、read bytes），输出删除候选或明确无候选。
 
 退出条件：
 
 - manifest 列与非 manifest 字段的核心查询矩阵全部通过。
 - fingerprint 变化不能导致目录静默过期或部分加载；缺少 manifest 列的 schema 被视为
   不兼容。
-- 对比报告记录 p50/p95 延迟、read rows、read bytes 并给出删除候选清单。
+- 对比报告记录 p50/p95 延迟、read rows、read bytes，并给出删除候选清单或明确无候选。
 
 提交锚点：`perf(query): resolve materialized columns through explicit catalog`
 

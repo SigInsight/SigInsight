@@ -1,6 +1,6 @@
 # M9：物化列加速查询
 
-状态：In Progress
+状态：Complete
 关联 ADR：011
 前置条件：M8 完成（legacy 引用清零）、ADR-011 审核通过
 
@@ -65,14 +65,14 @@ Catalog.Resolve
 
 ## 测试计划
 
-- manifest 解析优先级、Map 回退和 trusted identifier 单元测试。
-- 两种 schema 状态下 Logs/Traces raw、time-series、scalar golden SQL 与 Args 测试。
+- manifest 解析优先级、非 manifest Map 路径和 trusted identifier 单元测试。
+- manifest 列与非 manifest 字段的 Logs/Traces raw、time-series、scalar golden SQL 与 Args 测试。
 - ClickHouse 25.5.6 + 当前 Collector migration：认证 API 查询与 query-log 物理列断言。
 - 回归：全量 Go、前端 build/test、query log 无未知列错误。
 
 ## 验收矩阵
 
-| 场景 | 有物化列 | 无物化列 | 证据 |
+| 场景 | manifest 路径 | 非 manifest 路径 | 证据 |
 | --- | --- | --- | --- |
 | Traces manifest resource/attribute 过滤 | 物化列路径 | — | golden SQL + 真实执行 |
 | Traces 非 manifest resource/attribute | — | Map 路径 | golden SQL + 真实执行 |
@@ -81,23 +81,28 @@ Catalog.Resolve
 
 ## 实现结果
 
-Trace 9 项 manifest、value/exists SQL 路径和 Map fallback 的单元测试已实现；
+Trace 9 项 manifest、value/exists SQL 路径和非 manifest Map 路径的单元测试已实现；
 `tests/integration/scripts/run-materialized-catalog-integration.sh` 已通过 Collector
-migration、认证 API 和 query-log 物理列断言。可选的 10k/100k 合成数据基准已经验证
-Map 与物化列的物理读取路径；待真实 workload 的同口径报告再评估低频列删除候选。
+migration、认证 API 和 query-log 物理列断言。认证 API workload 将 9 个查询拆为两个
+请求（Lite query budget 为每请求最多 8 个），逐项覆盖所有 manifest 列并从
+`system.query_log` 验证物理路径。可选 10k 合成基准验证 Map 与物化列的延迟和读取字节
+对比。
 
 ## 删除内容
 
-- 不删除物化列；收益不足的低频列输出为删除候选清单，由后续独立 ADR 处理。
+- 当前 workload 的删除候选：**无**。全部 9 个 manifest 列均由认证 API/query-log
+  workload 覆盖，不能据此证明任一列是低频列。
+- 不删除物化列；未来若获得覆盖完整业务周期的生产 query log，可重新形成独立 ADR 的
+  删除候选清单。
 
 ## 度量变化
 
-- `M9_MATERIALIZED_BENCHMARK_ROWS=100000` 可选执行 Map vs 物化列 p50/p95 延迟、
+- `M9_MATERIALIZED_BENCHMARK_ROWS=10000` 可选执行 Map vs 物化列 p50/p95 延迟、
   `read_rows`、`read_bytes` 采样；合成数据仅用于物理路径诊断，生产删除决策仍需
   真实 workload 的相同报告。
 - 记录 Catalog 新增行数与测试文件数。
 
 ## 残余风险与后续任务
 
-- 物化列集合与写入负载相关，收益会随时间变化，需要周期复查。
-- 低频物化列的删除需要独立 ADR 与跨仓库验证（OtelCollector migration）。
+- 物化列集合与写入负载相关，收益会随时间变化；生产 workload 的删除评估必须另行
+  形成 ADR 和跨仓库 migration 验证。
