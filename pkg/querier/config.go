@@ -16,8 +16,8 @@ type Config struct {
 	// MaxConcurrentQueries is the maximum number of concurrent queries for missing ranges
 	MaxConcurrentQueries int `yaml:"max_concurrent_queries" mapstructure:"max_concurrent_queries"`
 	// EnableLightweightEngine routes V5 requests that fit the documented
-	// lightweight subset through pkg/litequery. Unsupported requests keep using
-	// the legacy engine while the migration is in progress.
+	// lightweight subset through pkg/litequery by default. Unsupported requests
+	// keep using the legacy engine while the migration is in progress.
 	EnableLightweightEngine bool `yaml:"lightweight_engine_enabled" mapstructure:"lightweight_engine_enabled"`
 }
 
@@ -29,9 +29,10 @@ func NewConfigFactory() factory.ConfigFactory {
 func newConfig() factory.Config {
 	return Config{
 		// Default values
-		CacheTTL:             168 * time.Hour,
-		FluxInterval:         5 * time.Minute,
-		MaxConcurrentQueries: 4,
+		CacheTTL:                168 * time.Hour,
+		FluxInterval:            5 * time.Minute,
+		MaxConcurrentQueries:    4,
+		EnableLightweightEngine: true,
 	}
 }
 

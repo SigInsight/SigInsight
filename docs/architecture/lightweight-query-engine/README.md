@@ -46,7 +46,7 @@
 | M5 V5 兼容桥 | Complete | 认证 API 已验证 Metrics、Meter 与 formula；Logs/Traces 的当前 Collector 数据回读留作 M7 切换门槛 |
 | M6 Lite Frontend | Complete | 受控 Lite 编辑器复用 V5 状态/协议，具有能力与组件测试；真实协作切换留作 M7 门槛 |
 | M7 协作验证与切换 | Complete | 当前 Collector 在 ClickHouse 25.5.6 的 Logs、Traces、Metrics、Meter 写入和认证 V5 读回均已验证；受控能力协商已完成 |
-| M8 Legacy 删除准备与量化收敛 | In Progress | 已固化外部依赖、规模基线与专用 reader 迁移顺序；尚不具备删除 legacy fallback 的条件 |
+| M8 Legacy 删除准备与量化收敛 | In Progress | Lite 已默认启用；已删除专用 legacy 调用者与非核心 API，尚不具备删除 generic fallback 的条件 |
 | 机器可读能力矩阵 | Accepted | `capability-matrix.json` 是后续协议和 UI 的约束来源 |
 
 ## 变更规则

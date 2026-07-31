@@ -16,16 +16,16 @@
 
 1. adapter 对每个 V5 字段做完整 capability 检查。无法表达的合法 V5 feature 返回
    `UnsupportedError`，绝不产生部分 Lite IR。
-2. 仅在内部 `lightweight_engine_enabled` 开关开启时尝试 adapter。`UnsupportedError` 使请求
-   回落旧 Querier；适配成功后的 validation、ClickHouse execution 和 response mapping 错误则
-   直接返回，不能伪装为“旧引擎成功”。
+2. `lightweight_engine_enabled` 默认开启，因而 capability 内的 V5 请求默认尝试 adapter。
+   `UnsupportedError` 使请求回落旧 Querier；适配成功后的 validation、ClickHouse execution
+   和 response mapping 错误则直接返回，不能伪装为“旧引擎成功”。可将开关关闭以处置回归。
 
 该开关不是 HTTP 协议字段，也不向用户暴露。M6 的新 UI 只能生成 Lite capability matrix 中的
 请求；M7 在双跑证据足够后逐个移除 legacy 回退，M8 才删除旧实现。
 
 ## 后果
 
-- 当前生产行为默认不变，且开关试运行不会改变不支持请求的语义。
+- 核心 capability 请求默认使用 Lite；不支持请求的语义保持 legacy，直到其前端入口被删除。
 - 每个被排除 feature 都有可测试的 adapter 失败点，可作为 UI 隐藏入口和最终删除旧路径的证据。
 - 迁移期存在两套 engine，不能把 fallback 视为完成替换；必须以真实 API 双跑和 query log 证明
   每个核心消费者已无需 legacy。

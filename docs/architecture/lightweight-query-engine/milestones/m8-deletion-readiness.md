@@ -60,11 +60,13 @@ Span Percentile 同样已迁移为单行的 parameterized reader：固定 p50/p9
 4. `/api/v5/api-monitoring/overview/*` 是无前端调用的第三方 domain overview API，依赖
    多聚合 legacy translator。它不在核心 UI 范围内，路由、translator、DTO 和测试已删除；
    因而应用中不再有 `/api/v5/query_range` 之外的生产 `Querier.QueryRange` 调用者。
-5. 收集 Dashboard、Explorer 和 Alert 的生产请求样本；用同一 ClickHouse fixture
+5. `querier.lightweight_engine_enabled` 已默认开启：core capability 的 Logs、Traces、Metrics
+   与 Meter V5 请求默认走 Lite；高级保存查询暂保留受控 fallback，开关仍可用于回归处置。
+6. 收集 Dashboard、Explorer 和 Alert 的生产请求样本；用同一 ClickHouse fixture
    对 Lite 与 legacy 的值、标签、时间桶、分页以及 query-log read rows/read bytes 双跑。
-6. 在 supported UI/default configuration 中移除 legacy fallback；此时不支持的 V5
+7. 在 supported UI/default configuration 中移除 legacy fallback；此时不支持的 V5
    请求必须返回稳定的 capability error。
-7. 通过 production import、路由、动态 import 和生成代码引用检查后，按依赖顺序删除
+8. 通过 production import、路由、动态 import 和生成代码引用检查后，按依赖顺序删除
    `builder_query`、`clickhouse_query`、`trace_operator_query`、`bucket_cache`、
    `postprocess` 及关联前端高级控件、parser、mocks、测试和样式。
 
