@@ -78,6 +78,7 @@ def create_signoz(
                 "SIGNOZ_ALERTMANAGER_SIGNOZ_POLL__INTERVAL": "5s",
                 "SIGNOZ_ALERTMANAGER_SIGNOZ_ROUTE_GROUP__WAIT": "1s",
                 "SIGNOZ_ALERTMANAGER_SIGNOZ_ROUTE_GROUP__INTERVAL": "5s",
+                "SIGNOZ_QUERIER_LIGHTWEIGHT__ENGINE__ENABLED": False,
             }
             | sqlstore.env
             | clickhouse.env
@@ -86,9 +87,8 @@ def create_signoz(
         if with_web:
             env["SIGNOZ_WEB_ENABLED"] = True
 
-        # The lightweight bridge is off by default so the broad integration
-        # suite continues to describe the legacy contract. Dedicated bridge
-        # runs opt in through their shell script.
+        # Keep the broad integration suite on the legacy contract. Dedicated
+        # bridge fixtures explicitly opt in through an environment override.
         if environ.get("SIGNOZ_INTEGRATION_LIGHTWEIGHT_ENGINE") == "true":
             env["SIGNOZ_QUERIER_LIGHTWEIGHT__ENGINE__ENABLED"] = True
 
@@ -243,4 +243,27 @@ def signoz_current_collector(  # pylint: disable=too-many-arguments,too-many-pos
         cache_key="signoz_current_collector",
         run_migrator=False,
         env_overrides={"SIGNOZ_QUERIER_LIGHTWEIGHT__ENGINE__ENABLED": True},
+    )
+
+
+@pytest.fixture(name="signoz_current_collector_legacy", scope="package")
+def signoz_current_collector_legacy(  # pylint: disable=too-many-arguments,too-many-positional-arguments
+    current_collector: str,  # pylint: disable=unused-argument
+    network: Network,
+    sqlstore: types.TestContainerSQL,
+    clickhouse: types.TestContainerClickhouse,
+    request: pytest.FixtureRequest,
+    pytestconfig: pytest.Config,
+) -> types.SigNoz:
+    """Start a legacy-only peer against Collector-created schema and data."""
+
+    return create_signoz(
+        network=network,
+        sqlstore=sqlstore,
+        clickhouse=clickhouse,
+        request=request,
+        pytestconfig=pytestconfig,
+        cache_key="signoz_current_collector_legacy",
+        run_migrator=False,
+        env_overrides={"SIGNOZ_QUERIER_LIGHTWEIGHT__ENGINE__ENABLED": False},
     )

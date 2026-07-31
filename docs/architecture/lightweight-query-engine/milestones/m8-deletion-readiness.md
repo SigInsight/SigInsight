@@ -67,17 +67,37 @@ Span Percentile 同样已迁移为单行的 parameterized reader：固定 p50/p9
    控件、ANTLR parser、V5 执行器和 trace CTE builder 已删除。为兼容已保存 JSON，V5 DTO
    仍能解码 `builder_trace_operator`，但 validation 和 Querier 入口都会在任何 SQL 或
    ClickHouse 调用之前返回稳定的“不再支持”错误。
-7. 收集 Dashboard、Explorer 和 Alert 的生产请求样本；用同一 ClickHouse fixture
-   对 Lite 与 legacy 的值、标签、时间桶、分页以及 query-log read rows/read bytes 双跑。
+7. 已用同一 Collector 写入的 ClickHouse 25.5.6 fixture 对 Lite 与 legacy 双跑 Logs、
+   Traces、Metrics 和 Meter 查询；比较 V5 结果的 labels、时间桶和 values，并检查
+   `system.query_log` 没有 SQL exception。
 8. 在 supported UI/default configuration 中移除 legacy fallback；此时不支持的 V5
    请求必须返回稳定的 capability error。
 9. 通过 production import、路由、动态 import 和生成代码引用检查后，按依赖顺序删除
    `builder_query`、`clickhouse_query`、`bucket_cache`、
    `postprocess` 及关联前端高级控件、parser、mocks、测试和样式。
 
+## 双运行协作证据（2026-07-31）
+
+`tests/integration/scripts/run-litequery-collector-collaboration.sh` 会启动当前
+Collector、两个连接同一 ClickHouse/SQLite 的 SigInsight 实例（Lite 启用和显式禁用），再
+通过认证的 `/api/v5/query_range` 请求读取 Collector 经 OTLP 写入的数据。请求关闭 cache，
+因此每次比较都触发真实 ClickHouse 查询。
+
+在本机 `clickhouse/clickhouse-server:25.5.6` 上，该脚本通过（`1 passed in 104.02s`）：
+
+| 信号 | Lite read rows / bytes | Legacy read rows / bytes | V5 数据契约 |
+| --- | ---: | ---: | --- |
+| Logs | 1 / 8 | 2 / 148 | labels、时间桶和值相等 |
+| Traces | 1 / 8 | 2 / 148 | labels、时间桶和值相等 |
+| Metrics | 2 / 215 | 2 / 172 | labels、时间桶和值相等 |
+| Meter | 4 / 258 | 2 / 129 | labels、时间桶和值相等 |
+
+这些 read rows/read bytes 是仅含少量 OTLP 样本的 fixture 诊断数据，用来发现 SQL 路径或
+schema 回归，不能外推为生产性能结论。该测试不覆盖 legacy 的 opaque cursor、raw export
+offset 或已退役的 Trace Operator；这些能力不属于 Lite 的支持范围。
+
 ## 当前阻塞项
 
-- 尚未构造 Lite-vs-legacy 的可比较 consumer fixture，因此不能删除 fallback。
 - Lite 只实现了 Live Logs 所需的 typed `(timestamp, id)` cursor；V5 opaque cursor 和
   Raw Export 所需的 offset pagination 仍不在 Lite 范围内。
 - V5 的 retired Trace Operator DTO 仍保留只读解码和明确拒绝；这是保护保存查询不被
