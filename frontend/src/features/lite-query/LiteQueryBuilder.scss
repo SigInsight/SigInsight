@@ -39,7 +39,7 @@
 
 .lite-query-control > span,
 .lite-query-field-label {
-	color: var(--text-ink-300, #666);
+	color: var(--si-text-secondary, var(--text-vanilla-400, #c0c1c3));
 	font-size: 12px;
 }
 
