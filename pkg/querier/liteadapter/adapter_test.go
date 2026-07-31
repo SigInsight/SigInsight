@@ -72,6 +72,70 @@ func TestToLiteUsesMetricMetadata(t *testing.T) {
 	}
 }
 
+func TestToLiteInfersUnspecifiedIntrinsicFieldTypes(t *testing.T) {
+	tests := []struct {
+		name  string
+		spec  any
+		field litequery.FieldRef
+	}{
+		{
+			name: "log timestamp",
+			spec: qbtypes.QueryBuilderQuery[qbtypes.LogAggregation]{
+				Name: "A", Signal: telemetrytypes.SignalLogs,
+				Aggregations: []qbtypes.LogAggregation{{Expression: "count()"}},
+				SelectFields: []telemetrytypes.TelemetryFieldKey{{Name: "timestamp"}},
+				GroupBy:      []qbtypes.GroupByKey{{TelemetryFieldKey: telemetrytypes.TelemetryFieldKey{Name: "timestamp"}}},
+				Order:        []qbtypes.OrderBy{{Key: qbtypes.OrderByKey{TelemetryFieldKey: telemetrytypes.TelemetryFieldKey{Name: "timestamp"}}}},
+			},
+			field: litequery.FieldRef{Name: "timestamp", Context: litequery.FieldContextLog, Type: litequery.ValueTypeNumber},
+		},
+		{
+			name: "trace duration",
+			spec: qbtypes.QueryBuilderQuery[qbtypes.TraceAggregation]{
+				Name: "A", Signal: telemetrytypes.SignalTraces,
+				Aggregations: []qbtypes.TraceAggregation{{Expression: "count()"}},
+				SelectFields: []telemetrytypes.TelemetryFieldKey{{Name: "duration_nano"}},
+				GroupBy:      []qbtypes.GroupByKey{{TelemetryFieldKey: telemetrytypes.TelemetryFieldKey{Name: "duration_nano"}}},
+				Order:        []qbtypes.OrderBy{{Key: qbtypes.OrderByKey{TelemetryFieldKey: telemetrytypes.TelemetryFieldKey{Name: "duration_nano"}}}},
+			},
+			field: litequery.FieldRef{Name: "duration_nano", Context: litequery.FieldContextSpan, Type: litequery.ValueTypeNumber},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			request := &qbtypes.QueryRangeRequest{
+				Start: 1_000, End: 61_000, RequestType: qbtypes.RequestTypeRaw,
+				CompositeQuery: qbtypes.CompositeQuery{Queries: []qbtypes.QueryEnvelope{{
+					Type: qbtypes.QueryTypeBuilder, Spec: test.spec,
+				}}},
+			}
+
+			converted, err := ToLite(request, MetricMetadata{})
+			if err != nil {
+				t.Fatalf("ToLite() error = %v", err)
+			}
+			common := converted.Queries[0].GetCommon()
+			if len(common.Select) != 1 || common.Select[0] != test.field {
+				t.Fatalf("Select = %#v, want %#v", common.Select, test.field)
+			}
+			if len(common.GroupBy) != 1 || common.GroupBy[0] != test.field {
+				t.Fatalf("GroupBy = %#v, want %#v", common.GroupBy, test.field)
+			}
+			if len(common.Order) != 1 || common.Order[0].Field != test.field {
+				t.Fatalf("Order = %#v, want field %#v", common.Order, test.field)
+			}
+			plan, err := (litequery.DefaultPlanner{}).Plan(converted)
+			if err != nil {
+				t.Fatalf("Plan() error = %v", err)
+			}
+			if _, err := litequery.NewCompiler(nil).Compile(plan); err != nil {
+				t.Fatalf("Compile() error = %v", err)
+			}
+		})
+	}
+}
+
 func TestToLiteRejectsUnsupportedV5Features(t *testing.T) {
 	tests := []struct {
 		name    string

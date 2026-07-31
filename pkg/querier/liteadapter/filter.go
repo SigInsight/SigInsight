@@ -235,6 +235,11 @@ func fieldToLite(key telemetrytypes.TelemetryFieldKey, signal litequery.Signal, 
 	if err != nil {
 		return litequery.FieldRef{}, err
 	}
+	if key.FieldDataType == telemetrytypes.FieldDataTypeUnspecified {
+		if intrinsicType, ok := litequery.IntrinsicFieldType(signal, context, key.Name); ok {
+			return litequery.FieldRef{Name: key.Name, Context: context, Type: intrinsicType}, nil
+		}
+	}
 	fieldType, err := fieldType(key.FieldDataType, fallback)
 	if err != nil {
 		return litequery.FieldRef{}, err

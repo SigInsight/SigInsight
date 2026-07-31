@@ -270,3 +270,23 @@ var traceIntrinsicFields = map[string]ValueType{
 	"has_error":            ValueTypeBool,
 	"is_remote":            ValueTypeString,
 }
+
+// IntrinsicFieldType returns the schema type for fields whose type is fixed by
+// the Logs or Traces table contract. V5 callers may omit fieldDataType for
+// these fields, so the adapter uses this catalog-owned mapping before applying
+// its generic fallback for dynamic fields.
+func IntrinsicFieldType(signal Signal, context FieldContext, name string) (ValueType, bool) {
+	switch signal {
+	case SignalLogs:
+		if context == FieldContextLog {
+			valueType, ok := logIntrinsicFields[name]
+			return valueType, ok
+		}
+	case SignalTraces:
+		if context == FieldContextSpan {
+			valueType, ok := traceIntrinsicFields[name]
+			return valueType, ok
+		}
+	}
+	return "", false
+}
