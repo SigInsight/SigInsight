@@ -101,7 +101,7 @@ func NewModules(
 		RawDataExport:   implrawdataexport.NewModule(querier),
 		Session:         implsession.NewModule(providerSettings, authNs, userSetter, userGetter, tokenizer, orgGetter),
 		SpanPercentile:  implspanpercentile.NewModule(querier, providerSettings),
-		Services:        implservices.NewModule(querier, telemetryStore),
+		Services:        implservices.NewModule(telemetryStore),
 		MetricsExplorer: implmetricsexplorer.NewModule(telemetryStore, telemetryMetadataStore, cache, ruleStore, providerSettings, config.MetricsExplorer),
 	}
 }
