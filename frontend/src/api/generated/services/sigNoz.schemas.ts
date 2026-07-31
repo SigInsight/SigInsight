@@ -1682,7 +1682,6 @@ export enum Querybuildertypesv5RequestTypeDTO {
 	scalar = 'scalar',
 	time_series = 'time_series',
 	raw = 'raw',
-	raw_stream = 'raw_stream',
 	trace = 'trace',
 }
 export interface Querybuildertypesv5ScalarDataDTO {

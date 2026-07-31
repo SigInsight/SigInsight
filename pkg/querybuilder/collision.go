@@ -251,7 +251,7 @@ func AdjustKeysForAliasExpressions[T any](query *qbtypes.QueryBuilderQuery[T], r
 		But we need to adjust it back to `body.count` with fieldContext as unspecified
 	*/
 	actions := []string{}
-	if requestType != qbtypes.RequestTypeRaw && requestType != qbtypes.RequestTypeRawStream {
+	if requestType != qbtypes.RequestTypeRaw {
 		aliasExpressions := map[string]bool{}
 		for _, agg := range query.Aggregations {
 			switch v := any(agg).(type) {

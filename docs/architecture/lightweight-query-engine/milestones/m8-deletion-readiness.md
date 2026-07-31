@@ -30,7 +30,6 @@ HTTP /api/v5/query_range
 
 Span Percentile -----+-> legacy QueryRange
 Raw Data Export -----/
-Live Logs -----------> legacy QueryRawStream
 Threshold rules -----> QueryRange (only Lite subset is a target)
 ```
 
@@ -52,6 +51,7 @@ Span Percentile 同样已迁移为单行的 parameterized reader：固定 p50/p9
 2. Raw Export 已作为非核心高级能力下线：删除下载入口和 `/api/v5/export_raw_data`，
    不再保留 offset/Trace Operator 导出链。Live Logs 已迁为独立 SSE reader：固定六个
    原始日志列和 500 行批次，复用 Lite filter AST，并以 `(timestamp, id)` 严格游标轮询。
+   失效的 V5 `raw_stream` request type、response stream model 和 generic builder 分支已删除。
 3. threshold rules 已通过独立 `RuleQueryRunner` 迁至 Lite：保存的 V5 定义在执行时完成
    元数据补全、Lite 编译和 V5 结果适配；raw SQL、Trace Operator 等超出 capability 的
    规则返回稳定的不支持错误，不能回退 legacy。现有测试工厂保留 test-only legacy adapter，

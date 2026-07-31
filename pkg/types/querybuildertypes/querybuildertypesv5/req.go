@@ -377,12 +377,12 @@ func (r *QueryRangeRequest) HasOrderSpecified() bool {
 }
 
 // UseDefaultOrderBy applies UseDefaultOrderByForListQuery to every query in the
-// composite query when the request type is a list query (raw, raw_stream, trace).
+// composite query when the request type is a list query (raw, trace).
 func (r *QueryRangeRequest) UseDefaultOrderBy() {
 
 	// Based on the request type, handle default order-bys
 	switch r.RequestType {
-	case RequestTypeRaw, RequestTypeRawStream, RequestTypeTrace:
+	case RequestTypeRaw, RequestTypeTrace:
 		for idx := range r.CompositeQuery.Queries {
 			r.CompositeQuery.Queries[idx].UseDefaultOrderByForListQuery()
 		}

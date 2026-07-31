@@ -1078,7 +1078,6 @@ func TestRequestType_IsAggregation(t *testing.T) {
 		{"scalar is aggregation", RequestTypeScalar, true},
 		{"distribution is aggregation", RequestTypeDistribution, true},
 		{"raw is not aggregation", RequestTypeRaw, false},
-		{"raw_stream is not aggregation", RequestTypeRawStream, false},
 		{"trace is not aggregation", RequestTypeTrace, false},
 		{"unknown is not aggregation", RequestTypeUnknown, false},
 	}
@@ -1162,20 +1161,6 @@ func TestNonAggregationFieldsSkipped(t *testing.T) {
 		err := query.Validate(GetValidationOptions(RequestTypeRaw)...)
 		if err != nil {
 			t.Errorf("expected no error for aggregations with raw request type, got: %v", err)
-		}
-	})
-
-	t.Run("aggregations ignored for raw_stream request type", func(t *testing.T) {
-		query := QueryBuilderQuery[LogAggregation]{
-			Name:   "A",
-			Signal: telemetrytypes.SignalLogs,
-			Aggregations: []LogAggregation{
-				{Expression: "count()"},
-			},
-		}
-		err := query.Validate(GetValidationOptions(RequestTypeRawStream)...)
-		if err != nil {
-			t.Errorf("expected no error for aggregations with raw_stream request type, got: %v", err)
 		}
 	})
 

@@ -1418,7 +1418,6 @@ components:
       - scalar
       - time_series
       - raw
-      - raw_stream
       - trace
       type: string
     Querybuildertypesv5ScalarData:

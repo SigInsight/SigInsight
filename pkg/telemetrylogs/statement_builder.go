@@ -78,7 +78,7 @@ func (b *logQueryStatementBuilder) Build(
 
 	var stmt *qbtypes.Statement
 	switch requestType {
-	case qbtypes.RequestTypeRaw, qbtypes.RequestTypeRawStream:
+	case qbtypes.RequestTypeRaw:
 		stmt, err = b.buildListQuery(ctx, q, query, start, end, keys, variables)
 	case qbtypes.RequestTypeTimeSeries:
 		stmt, err = b.buildTimeSeriesQuery(ctx, q, query, start, end, keys, variables)

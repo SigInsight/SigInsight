@@ -146,7 +146,7 @@ All request types use custom `UnmarshalJSON` that calls `DisallowUnknownFields`.
 
 ### Constraint: Validation is context-sensitive to request type
 
-What's valid depends on the `RequestType`. For aggregation requests (`time_series`, `scalar`, `distribution`), fields like `groupBy`, `aggregations`, `having`, and aggregation-referenced `orderBy` are validated. For non-aggregation requests (`raw`, `raw_stream`, `trace`), these fields are ignored.
+What's valid depends on the `RequestType`. For aggregation requests (`time_series`, `scalar`, `distribution`), fields like `groupBy`, `aggregations`, `having`, and aggregation-referenced `orderBy` are validated. For non-aggregation requests (`raw`, `trace`), these fields are ignored.
 
 **Why:** A raw log query doesn't have aggregations, so requiring `aggregations` would be wrong. But a time-series query without aggregations is meaningless. The validation rules are request-type-aware to avoid both false positives and false negatives.
 
