@@ -31,6 +31,10 @@ func (c Compiler) Compile(plan Plan) ([]Statement, error) {
 			statement, err = c.compileLogs(plan, query)
 		case TraceQuery:
 			statement, err = c.compileTraces(plan, query)
+		case MetricQuery:
+			statement, err = c.compileMetric(plan, query.Aggregation, query.Common, SignalMetrics)
+		case MeterQuery:
+			statement, err = c.compileMetric(plan, query.Aggregation, query.Common, SignalMeter)
 		default:
 			err = newError(ErrorUnsupported, "query", "compiler does not support %T", queryPlan.Query)
 		}

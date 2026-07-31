@@ -13,12 +13,14 @@
 - [M0：能力与兼容基线](milestones/m0-capability-baseline.md)
 - [M1：Lite Query Core](milestones/m1-lite-query-core.md)
 - [M2：Logs/Traces Schema Catalog 与 Compiler](milestones/m2-log-trace-compiler.md)
+- [M3：Metrics/Meter Compiler](milestones/m3-metrics-meter-compiler.md)
 - [架构决策记录规范](decisions/README.md)
 - [ADR 模板](decisions/000-template.md)
 - [ADR-001：采用受约束的类型化查询语言](decisions/001-constrained-query-language.md)
 - [ADR-002：兼容 V5 HTTP 边界而非全部查询能力](decisions/002-v5-compatibility-boundary.md)
 - [ADR-003：使用 Schema Catalog 隔离查询语义与 ClickHouse schema](decisions/003-schema-catalog-contract.md)
 - [ADR-004：Compiler 输出参数化 Statement](decisions/004-parameterized-statement-contract.md)
+- [ADR-005：Metrics/Meter 数据源与双阶段聚合契约](decisions/005-metrics-source-and-aggregation-contract.md)
 
 ## 文档状态
 
@@ -29,6 +31,7 @@
 | M0 能力与兼容基线 | Complete | 已固化请求样本、schema baseline、规模数据和真实协作验证入口 |
 | M1 Lite Query Core | Complete | 独立类型化 IR、校验器、预算和公式依赖检查 |
 | M2 Logs/Traces Compiler | Complete | 参数化 Catalog/Compiler，已在 ClickHouse 25.5.6 真实 schema 验证 |
+| M3 Metrics/Meter Compiler | Complete | 双阶段聚合、counter rate/increase、explicit Histogram 和 Meter 已真实验证 |
 | 机器可读能力矩阵 | Accepted | `capability-matrix.json` 是后续协议和 UI 的约束来源 |
 
 ## 变更规则

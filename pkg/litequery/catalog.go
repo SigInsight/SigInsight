@@ -10,6 +10,15 @@ import (
 type Catalog interface {
 	Table(Signal) (string, error)
 	Resolve(Signal, FieldRef) (ResolvedField, error)
+	MetricSource(Signal) (MetricSource, error)
+}
+
+// MetricSource describes the trusted physical tables used by metric compilers.
+// Metrics keep series identity separately from samples; Meter stores labels with
+// the points and therefore leaves SeriesTable empty.
+type MetricSource struct {
+	PointsTable string
+	SeriesTable string
 }
 
 type ResolvedField struct {
@@ -28,8 +37,26 @@ func (DefaultCatalog) Table(signal Signal) (string, error) {
 		return "signoz_logs.logs_v2", nil
 	case SignalTraces:
 		return "signoz_traces.signoz_index_v3", nil
+	case SignalMetrics:
+		return "signoz_metrics.samples_v4", nil
+	case SignalMeter:
+		return "signoz_meter.samples", nil
 	default:
 		return "", newError(ErrorUnsupported, "signal", "no ClickHouse table is configured for %q", signal)
+	}
+}
+
+func (DefaultCatalog) MetricSource(signal Signal) (MetricSource, error) {
+	switch signal {
+	case SignalMetrics:
+		return MetricSource{
+			PointsTable: "signoz_metrics.samples_v4",
+			SeriesTable: "signoz_metrics.time_series_v4",
+		}, nil
+	case SignalMeter:
+		return MetricSource{PointsTable: "signoz_meter.samples"}, nil
+	default:
+		return MetricSource{}, newError(ErrorUnsupported, "signal", "no metric source is configured for %q", signal)
 	}
 }
 

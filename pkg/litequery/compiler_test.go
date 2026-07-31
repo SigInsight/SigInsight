@@ -144,6 +144,95 @@ func TestCompilerRejectsCursorUntilScannerExists(t *testing.T) {
 	}
 }
 
+func TestCompilerCompilesMetricRateWithTwoAggregationStages(t *testing.T) {
+	service := FieldRef{Name: "service.name", Context: FieldContextLabel, Type: ValueTypeString}
+	statement := compileOne(t, Request{
+		Range: TimeRange{StartMS: 1_000, EndMS: 61_000}, ResultType: ResultTimeSeries, StepMS: 1_000,
+		Queries: []Query{MetricQuery{Common: CommonQuery{
+			Name: "requests", GroupBy: []FieldRef{service},
+			Filter: Predicate{Field: service, Op: FilterEqual, Value: Value{Kind: ValueString, String: "api"}},
+		}, Aggregation: MetricAggregation{
+			MetricName: "http.server.request.count", Type: MetricSum, Temporality: TemporalityCumulative,
+			TimeAggregation: TimeAggregateRate, SpaceAggregation: SpaceAggregateSum,
+		}}},
+	})
+	for _, fragment := range []string{
+		"__lite_series AS", "__lite_bucketed AS", "__lite_temporal AS",
+		"PARTITION BY fingerprint ORDER BY timestamp", "sum(per_series_value) AS value",
+	} {
+		if !strings.Contains(statement.SQL, fragment) {
+			t.Fatalf("SQL does not contain %q:\n%s", fragment, statement.SQL)
+		}
+	}
+	if strings.Contains(statement.SQL, "service.name") || strings.Contains(statement.SQL, "api") {
+		t.Fatalf("SQL contains dynamic metric input: %s", statement.SQL)
+	}
+	wantArgs := []any{
+		"service.name", "http.server.request.count", "Sum", "Cumulative", true,
+		"service.name", "service.name", "api", "service.name", int64(1_000), int64(1_000),
+		"http.server.request.count", "Cumulative", int64(1_000), int64(61_000), int64(1_000), int64(1_000),
+	}
+	if !reflect.DeepEqual(statement.Args, wantArgs) {
+		t.Fatalf("Args = %#v, want %#v\nSQL: %s", statement.Args, wantArgs, statement.SQL)
+	}
+}
+
+func TestCompilerCompilesExplicitHistogramAndRejectsAmbiguousName(t *testing.T) {
+	request := Request{
+		Range: TimeRange{StartMS: 1_000, EndMS: 61_000}, ResultType: ResultTimeSeries, StepMS: 1_000,
+		Queries: []Query{MetricQuery{Common: CommonQuery{Name: "latency"}, Aggregation: MetricAggregation{
+			MetricName: "http.server.duration.bucket", Type: MetricHistogram, Temporality: TemporalityUnspecified,
+			TimeAggregation: TimeAggregateCount, SpaceAggregation: SpaceAggregateP95,
+		}}},
+	}
+	statement := compileOne(t, request)
+	for _, fragment := range []string{"series.le", "quantileExactWeighted", "__lite_histogram_weights AS"} {
+		if !strings.Contains(statement.SQL, fragment) {
+			t.Fatalf("SQL does not contain %q:\n%s", fragment, statement.SQL)
+		}
+	}
+	metric := request.Queries[0].(MetricQuery)
+	metric.Aggregation.MetricName = "http.server.duration"
+	request.Queries = []Query{metric}
+	plan, err := (DefaultPlanner{}).Plan(request)
+	if err != nil {
+		t.Fatalf("Plan() error = %v", err)
+	}
+	_, err = NewCompiler(nil).Compile(plan)
+	var queryErr *Error
+	if !errors.As(err, &queryErr) || queryErr.Code != ErrorInvalidAggregation {
+		t.Fatalf("Compile() error = %v, want invalid aggregation", err)
+	}
+}
+
+func TestCompilerCompilesMeterWithoutMetricMetadataJoin(t *testing.T) {
+	statement := compileOne(t, Request{
+		Range: TimeRange{StartMS: 1_000, EndMS: 2_000}, ResultType: ResultTimeSeries, StepMS: 1_000,
+		Queries: []Query{MeterQuery{Common: CommonQuery{Name: "cost", GroupBy: []FieldRef{{Name: "service.name", Context: FieldContextLabel, Type: ValueTypeString}}}, Aggregation: MetricAggregation{
+			MetricName: "signoz.meter.log.size", Type: MetricSum, Temporality: TemporalityDelta,
+			TimeAggregation: TimeAggregateSum, SpaceAggregation: SpaceAggregateSum,
+		}}},
+	})
+	if !strings.Contains(statement.SQL, "signoz_meter.samples") || strings.Contains(statement.SQL, "time_series_v4") {
+		t.Fatalf("unexpected meter source SQL: %s", statement.SQL)
+	}
+}
+
+func TestCompilerCompilesScalarCumulativeIncreaseOverPointOrder(t *testing.T) {
+	statement := compileOne(t, Request{
+		Range: TimeRange{StartMS: 1_000, EndMS: 61_000}, ResultType: ResultScalar,
+		Queries: []Query{MetricQuery{Common: CommonQuery{Name: "requests"}, Aggregation: MetricAggregation{
+			MetricName: "http.server.request.count", Type: MetricSum, Temporality: TemporalityCumulative,
+			TimeAggregation: TimeAggregateIncrease, SpaceAggregation: SpaceAggregateSum,
+		}}},
+	})
+	for _, fragment := range []string{"points.unix_milli AS timestamp", "PARTITION BY fingerprint ORDER BY timestamp", "sum(per_series_value) AS value"} {
+		if !strings.Contains(statement.SQL, fragment) {
+			t.Fatalf("scalar counter SQL does not contain %q:\n%s", fragment, statement.SQL)
+		}
+	}
+}
+
 func compileOne(t *testing.T, request Request) Statement {
 	t.Helper()
 	plan, err := (DefaultPlanner{}).Plan(request)
