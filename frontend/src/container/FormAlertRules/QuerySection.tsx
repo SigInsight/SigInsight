@@ -1,12 +1,4 @@
-import {
-	// The feature flag is an optional application capability. This editor keeps
-	// working in isolated tests where AppContext is intentionally absent.
-	// eslint-disable-next-line no-restricted-imports
-	useContext,
-	useEffect,
-	useMemo,
-	useState,
-} from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button, Tabs, Tooltip, Typography } from 'antd';
 import logEvent from 'api/common/logEvent';
@@ -16,16 +8,13 @@ import { ENTITY_VERSION_V5 } from 'constants/app';
 import { PANEL_TYPES } from 'constants/queryBuilder';
 import { QBShortcuts } from 'constants/shortcuts/QBShortcuts';
 import RunQueryBtn from 'container/QueryBuilder/components/RunQueryBtn/RunQueryBtn';
-import { isLightweightQueryEditorEnabled } from 'features/lite-query/rollout';
 import { useKeyboardHotkeys } from 'hooks/hotkeys/useKeyboardHotkeys';
 import { isEmpty } from 'lodash-es';
-import { Atom, Terminal } from 'lucide-react';
-import { AppContext } from 'providers/App/App';
+import { Atom } from 'lucide-react';
 import { AlertTypes } from 'types/api/alerts/alertTypes';
 import { AlertDef } from 'types/api/alerts/def';
 import { EQueryType } from 'types/common/dashboard';
 
-import ChQuerySection from './ChQuerySection';
 import { FormContainer, StepHeading } from './styles';
 
 import './QuerySection.styles.scss';
@@ -44,10 +33,6 @@ function QuerySection({
 	const { t } = useTranslation('alerts');
 	const [currentTab, setCurrentTab] = useState(queryCategory);
 	const [signalSource, setSignalSource] = useState<string>('metrics');
-	const appContext = useContext(AppContext);
-	const lightweightEditorEnabled = isLightweightQueryEditorEnabled(
-		appContext?.featureFlags,
-	);
 
 	const handleQueryCategoryChange = (queryType: string): void => {
 		setQueryCategory(queryType as EQueryType);
@@ -55,13 +40,11 @@ function QuerySection({
 	};
 
 	useEffect(() => {
-		if (lightweightEditorEnabled && currentTab === EQueryType.CLICKHOUSE) {
+		if (currentTab === EQueryType.CLICKHOUSE) {
 			setQueryCategory(EQueryType.QUERY_BUILDER);
 			setCurrentTab(EQueryType.QUERY_BUILDER);
 		}
-	}, [currentTab, lightweightEditorEnabled, setQueryCategory]);
-
-	const renderChQueryUI = (): JSX.Element => <ChQuerySection />;
+	}, [currentTab, setQueryCategory]);
 
 	const handleSignalSourceChange = (value: string): void => {
 		setSignalSource(value);
@@ -83,65 +66,18 @@ function QuerySection({
 	);
 
 	const tabs = [
-		...(!lightweightEditorEnabled
-			? [
-					{
-						label: (
-							<Tooltip title="Query Builder">
-								<Button className="nav-btns">
-									<Atom size={14} />
-									<Typography.Text>Query Builder</Typography.Text>
-								</Button>
-							</Tooltip>
-						),
-						key: EQueryType.QUERY_BUILDER,
-					},
-					{
-						label: (
-							<Tooltip title="ClickHouse">
-								<Button className="nav-btns">
-									<Terminal size={14} />
-									<Typography.Text>ClickHouse Query</Typography.Text>
-								</Button>
-							</Tooltip>
-						),
-						key: EQueryType.CLICKHOUSE,
-					},
-			  ]
-			: []),
+		{
+			label: (
+				<Tooltip title="Query Builder">
+					<Button className="nav-btns" data-testid="query-builder-tab">
+						<Atom size={14} />
+						<Typography.Text>Query Builder</Typography.Text>
+					</Button>
+				</Tooltip>
+			),
+			key: EQueryType.QUERY_BUILDER,
+		},
 	];
-
-	const items = useMemo(
-		() => [
-			...(!lightweightEditorEnabled
-				? [
-						{
-							label: (
-								<Tooltip title="Query Builder">
-									<Button className="nav-btns" data-testid="query-builder-tab">
-										<Atom size={14} />
-										<Typography.Text>Query Builder</Typography.Text>
-									</Button>
-								</Tooltip>
-							),
-							key: EQueryType.QUERY_BUILDER,
-						},
-						{
-							label: (
-								<Tooltip title="ClickHouse">
-									<Button className="nav-btns">
-										<Terminal size={14} />
-										<Typography.Text>ClickHouse Query</Typography.Text>
-									</Button>
-								</Tooltip>
-							),
-							key: EQueryType.CLICKHOUSE,
-						},
-				  ]
-				: []),
-		],
-		[lightweightEditorEnabled],
-	);
 
 	const { registerShortcut, deregisterShortcut } = useKeyboardHotkeys();
 
@@ -201,7 +137,7 @@ function QuerySection({
 									<RunQueryBtn onStageRunQuery={runQuery} />
 								</span>
 							}
-							items={items}
+							items={tabs}
 						/>
 					</div>
 				);
@@ -210,7 +146,6 @@ function QuerySection({
 	const renderQuerySection = (c: EQueryType): JSX.Element | null => {
 		switch (c) {
 			case EQueryType.CLICKHOUSE:
-				return renderChQueryUI();
 			case EQueryType.QUERY_BUILDER:
 				return renderMetricUI();
 			default:

@@ -2,6 +2,9 @@
 
 Status: Complete
 
+> 历史说明：本里程碑记录 rollout 期的协商和双跑。M8 已移除 feature flag、legacy
+> executor 和 editor；协作脚本现在是 Lite-only Collector 回归验证，最终边界见 ADR-013。
+
 ## Objective
 
 Prove the lightweight engine against data written by the current Collector to

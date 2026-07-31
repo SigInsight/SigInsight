@@ -2,6 +2,9 @@
 
 Status: Complete
 
+> 历史说明：M8 已删除 legacy editor 和 rollout flag。当前 QueryBuilder 仅保留 Lite
+> 编辑器；不支持的保存状态提供显式替换查询入口，最终边界见 ADR-013。
+
 ## Objective
 
 Provide a deliberately constrained editor for the V5 query contract. The editor

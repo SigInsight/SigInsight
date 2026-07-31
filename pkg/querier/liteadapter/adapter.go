@@ -14,9 +14,8 @@ import (
 )
 
 // UnsupportedError says that a valid V5 request lies outside the deliberately
-// small lightweight capability set. Callers may safely route it to the legacy
-// engine during the migration period; it must never be treated as a partial
-// conversion.
+// small lightweight capability set. It is returned as a stable capability
+// error at the HTTP boundary and must never be treated as a partial conversion.
 type UnsupportedError struct{ Feature string }
 
 func (e *UnsupportedError) Error() string {

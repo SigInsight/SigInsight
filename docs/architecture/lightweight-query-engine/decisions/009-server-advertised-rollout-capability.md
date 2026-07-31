@@ -1,6 +1,6 @@
 # ADR-009: Server-Advertised Lightweight Rollout Capability
 
-Status: Accepted
+Status: Superseded by ADR-013
 日期：2026-07-31
 关联里程碑：M7
 
@@ -11,6 +11,9 @@ M6 使用 `VITE_LIGHTWEIGHT_QUERY_EDITOR_ENABLED` 控制实验性 UI。它是构
 前端资源与后端可以独立部署，因而这不是可靠的运行时协商方式。
 
 ## 决策
+
+本 ADR 记录 M7 的运行时协商机制，已由 ADR-013 取代。M8 删除 rollout feature flag 和
+legacy UI 后，Lite-only QueryBuilder 始终使用同一 V5 契约；不支持的保存状态显示迁移入口。
 
 在已认证的 `/api/v5/features/ui` 返回 `lightweight_query_engine`。只有运行中
 的 `querier.lightweight_engine_enabled` 为真时该 feature 才 active。前端从

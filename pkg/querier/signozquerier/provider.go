@@ -3,12 +3,8 @@ package signozquerier
 import (
 	"context"
 
-	"github.com/SigNoz/signoz/pkg/cache"
 	"github.com/SigNoz/signoz/pkg/factory"
-	"github.com/SigNoz/signoz/pkg/flagger"
 	"github.com/SigNoz/signoz/pkg/querier"
-	"github.com/SigNoz/signoz/pkg/querybuilder"
-	"github.com/SigNoz/signoz/pkg/querybuilder/resourcefilter"
 	"github.com/SigNoz/signoz/pkg/telemetrylogs"
 	"github.com/SigNoz/signoz/pkg/telemetrymetadata"
 	"github.com/SigNoz/signoz/pkg/telemetrymeter"
@@ -18,11 +14,7 @@ import (
 )
 
 // NewFactory creates a new factory for the signoz querier provider
-func NewFactory(
-	telemetryStore telemetrystore.TelemetryStore,
-	cache cache.Cache,
-	flagger flagger.Flagger,
-) factory.ProviderFactory[querier.Querier, querier.Config] {
+func NewFactory(telemetryStore telemetrystore.TelemetryStore) factory.ProviderFactory[querier.Querier, querier.Config] {
 	return factory.NewProviderFactory(
 		factory.MustNewName("signoz"),
 		func(
@@ -30,7 +22,7 @@ func NewFactory(
 			settings factory.ProviderSettings,
 			cfg querier.Config,
 		) (querier.Querier, error) {
-			return newProvider(ctx, settings, cfg, telemetryStore, cache, flagger)
+			return newProvider(ctx, settings, cfg, telemetryStore)
 		},
 	)
 }
@@ -38,10 +30,8 @@ func NewFactory(
 func newProvider(
 	_ context.Context,
 	settings factory.ProviderSettings,
-	cfg querier.Config,
+	_ querier.Config,
 	telemetryStore telemetrystore.TelemetryStore,
-	cache cache.Cache,
-	flagger flagger.Flagger,
 ) (querier.Querier, error) {
 
 	// Create telemetry metadata store
@@ -65,97 +55,5 @@ func newProvider(
 		telemetrymetadata.AttributesMetadataLocalTableName,
 	)
 
-	// Create trace statement builder
-	traceFieldMapper := telemetrytraces.NewFieldMapper()
-	traceConditionBuilder := telemetrytraces.NewConditionBuilder(traceFieldMapper)
-
-	resourceFilterFieldMapper := resourcefilter.NewFieldMapper()
-	resourceFilterConditionBuilder := resourcefilter.NewConditionBuilder(resourceFilterFieldMapper)
-	resourceFilterStmtBuilder := resourcefilter.NewTraceResourceFilterStatementBuilder(
-		settings,
-		resourceFilterFieldMapper,
-		resourceFilterConditionBuilder,
-		telemetryMetadataStore,
-	)
-
-	traceAggExprRewriter := querybuilder.NewAggExprRewriter(settings, nil, traceFieldMapper, traceConditionBuilder, nil)
-	traceStmtBuilder := telemetrytraces.NewTraceQueryStatementBuilder(
-		settings,
-		telemetryMetadataStore,
-		traceFieldMapper,
-		traceConditionBuilder,
-		resourceFilterStmtBuilder,
-		traceAggExprRewriter,
-		telemetryStore,
-	)
-
-	// Create log statement builder
-	logFieldMapper := telemetrylogs.NewFieldMapper()
-	logConditionBuilder := telemetrylogs.NewConditionBuilder(logFieldMapper)
-	logResourceFilterStmtBuilder := resourcefilter.NewLogResourceFilterStatementBuilder(
-		settings,
-		resourceFilterFieldMapper,
-		resourceFilterConditionBuilder,
-		telemetryMetadataStore,
-		telemetrylogs.DefaultFullTextColumn,
-		telemetrylogs.GetBodyJSONKey,
-	)
-	logAggExprRewriter := querybuilder.NewAggExprRewriter(
-		settings,
-		telemetrylogs.DefaultFullTextColumn,
-		logFieldMapper,
-		logConditionBuilder,
-		telemetrylogs.GetBodyJSONKey,
-	)
-	logStmtBuilder := telemetrylogs.NewLogQueryStatementBuilder(
-		settings,
-		telemetryMetadataStore,
-		logFieldMapper,
-		logConditionBuilder,
-		logResourceFilterStmtBuilder,
-		logAggExprRewriter,
-		telemetrylogs.DefaultFullTextColumn,
-		telemetrylogs.GetBodyJSONKey,
-	)
-
-	// Create metric statement builder
-	metricFieldMapper := telemetrymetrics.NewFieldMapper()
-	metricConditionBuilder := telemetrymetrics.NewConditionBuilder(metricFieldMapper)
-	metricStmtBuilder := telemetrymetrics.NewMetricQueryStatementBuilder(
-		settings,
-		telemetryMetadataStore,
-		metricFieldMapper,
-		metricConditionBuilder,
-		flagger,
-	)
-
-	// Create meter statement builder
-	meterStmtBuilder := telemetrymeter.NewMeterQueryStatementBuilder(
-		settings,
-		telemetryMetadataStore,
-		metricFieldMapper,
-		metricConditionBuilder,
-		metricStmtBuilder,
-	)
-
-	// Create bucket cache
-	bucketCache := querier.NewBucketCache(
-		settings,
-		cache,
-		cfg.CacheTTL,
-		cfg.FluxInterval,
-	)
-
-	// Create and return the querier
-	return querier.New(
-		settings,
-		telemetryStore,
-		telemetryMetadataStore,
-		traceStmtBuilder,
-		logStmtBuilder,
-		metricStmtBuilder,
-		meterStmtBuilder,
-		bucketCache,
-		cfg.EnableLightweightEngine,
-	), nil
+	return querier.New(settings, telemetryStore, telemetryMetadataStore), nil
 }

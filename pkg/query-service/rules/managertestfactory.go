@@ -1,7 +1,6 @@
 package rules
 
 import (
-	"context"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
@@ -9,30 +8,21 @@ import (
 	alertmanagermock "github.com/SigNoz/signoz/pkg/alertmanager/alertmanagertest"
 	"github.com/SigNoz/signoz/pkg/cache"
 	"github.com/SigNoz/signoz/pkg/cache/cachetest"
-	"github.com/SigNoz/signoz/pkg/flagger"
 	"github.com/SigNoz/signoz/pkg/instrumentation/instrumentationtest"
-	"github.com/SigNoz/signoz/pkg/querier"
-	"github.com/SigNoz/signoz/pkg/querier/signozquerier"
 	"github.com/SigNoz/signoz/pkg/query-service/app/rulestatehistorystore"
 	"github.com/SigNoz/signoz/pkg/sqlstore"
 	"github.com/SigNoz/signoz/pkg/sqlstore/sqlstoretest"
+	"github.com/SigNoz/signoz/pkg/telemetrylogs"
+	"github.com/SigNoz/signoz/pkg/telemetrymetadata"
+	"github.com/SigNoz/signoz/pkg/telemetrymeter"
+	"github.com/SigNoz/signoz/pkg/telemetrymetrics"
 	"github.com/SigNoz/signoz/pkg/telemetrystore"
 	"github.com/SigNoz/signoz/pkg/telemetrystore/telemetrystoretest"
-	qbtypes "github.com/SigNoz/signoz/pkg/types/querybuildertypes/querybuildertypesv5"
-	"github.com/SigNoz/signoz/pkg/valuer"
+	"github.com/SigNoz/signoz/pkg/telemetrytraces"
 	"github.com/stretchr/testify/require"
 )
 
-type queryMatcherAny struct {
-}
-
-// legacyQueryRunner is test-only compatibility scaffolding for existing rule
-// fixtures. Production managers are constructed with NewLiteQueryRunner.
-type legacyQueryRunner struct{ querier.Querier }
-
-func (r legacyQueryRunner) Execute(ctx context.Context, orgID valuer.UUID, request *qbtypes.QueryRangeRequest) (*qbtypes.QueryRangeResponse, error) {
-	return r.QueryRange(ctx, orgID, request)
-}
+type queryMatcherAny struct{}
 
 func (m *queryMatcherAny) Match(x string, y string) error {
 	return nil
@@ -40,6 +30,10 @@ func (m *queryMatcherAny) Match(x string, y string) error {
 
 // TestManagerOptions provides options for customizing the test manager creation.
 type TestManagerOptions struct {
+	// QueryRunner replaces storage execution in manager behavior tests. Lite's
+	// compiler has direct tests; manager tests use this seam for rule semantics.
+	QueryRunner QueryRunner
+
 	// AlertmanagerHook is a function that will be called with the Alertmanager mock
 	// after it's created but before it's used. This allows customizing the mock behavior.
 	AlertmanagerHook func(alertmanager.Alertmanager)
@@ -90,16 +84,6 @@ func NewTestManager(t *testing.T, testOpts *TestManagerOptions) *Manager {
 		testOpts.TelemetryStoreHook(telemetryStore)
 	}
 
-	// Create reader with mocked telemetry store
-	readerCache, err := cachetest.New(cache.Config{
-		Provider: "memory",
-		Memory: cache.Memory{
-			NumCounters: 10 * 1000,
-			MaxCost:     1 << 26,
-		},
-	})
-	require.NoError(t, err)
-
 	providerSettings := instrumentationtest.New().ToProviderSettings()
 	reader := rulestatehistorystore.New(
 		instrumentationtest.New().Logger(),
@@ -107,21 +91,39 @@ func NewTestManager(t *testing.T, testOpts *TestManagerOptions) *Manager {
 		rulestatehistorystore.DefaultConfig(),
 	)
 
-	flagger, err := flagger.New(context.Background(), instrumentationtest.New().ToProviderSettings(), flagger.Config{}, flagger.MustNewRegistry())
-	if err != nil {
-		t.Fatalf("failed to create flagger: %v", err)
-	}
+	metadataStore := telemetrymetadata.NewTelemetryMetaStore(
+		providerSettings,
+		telemetryStore,
+		telemetrytraces.DBName,
+		telemetrytraces.TagAttributesV2TableName,
+		telemetrytraces.SpanAttributesKeysTblName,
+		telemetrytraces.SpanIndexV3TableName,
+		telemetrymetrics.DBName,
+		telemetrymetrics.AttributesMetadataTableName,
+		telemetrymeter.DBName,
+		telemetrymeter.SamplesAgg1dTableName,
+		telemetrylogs.DBName,
+		telemetrylogs.LogsV2TableName,
+		telemetrylogs.TagAttributesV2TableName,
+		telemetrylogs.LogAttributeKeysTblName,
+		telemetrylogs.LogResourceKeysTblName,
+		telemetrymetadata.DBName,
+		telemetrymetadata.AttributesMetadataLocalTableName,
+	)
 
-	// Create mock querierV5 with test values
-	providerFactory := signozquerier.NewFactory(telemetryStore, readerCache, flagger)
-	mockQuerier, err := providerFactory.New(context.Background(), providerSettings, querier.Config{})
-	require.NoError(t, err)
+	var queryRunner QueryRunner
+	if testOpts != nil {
+		queryRunner = testOpts.QueryRunner
+	}
+	if queryRunner == nil {
+		queryRunner = NewLiteQueryRunner(telemetryStore, metadataStore)
+	}
 
 	mgrOpts := &ManagerOptions{
 		Logger:       instrumentationtest.New().Logger(),
 		Cache:        cacheObj,
 		Alertmanager: fAlert,
-		QueryRunner:  legacyQueryRunner{mockQuerier},
+		QueryRunner:  queryRunner,
 		Reader:       reader,
 		SqlStore:     sqlStore, // SQLStore needed for SendAlerts to query organizations
 	}

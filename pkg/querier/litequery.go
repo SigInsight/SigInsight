@@ -13,10 +13,8 @@ import (
 	qbtypes "github.com/SigNoz/signoz/pkg/types/querybuildertypes/querybuildertypesv5"
 )
 
-// queryRangeLite executes the constrained V5 contract. When enabled, requests
-// outside that contract are rejected at the boundary instead of silently
-// reaching the legacy SQL engine. Operators can explicitly disable the engine
-// while migrating old saved queries.
+// queryRangeLite executes the constrained V5 contract. Requests outside that
+// contract are rejected at the boundary; there is no legacy V5 executor.
 func (q *querier) queryRangeLite(ctx context.Context, request *qbtypes.QueryRangeRequest) (*qbtypes.QueryRangeResponse, error) {
 	metadata, err := q.liteMetricMetadata(ctx, request)
 	if err != nil {

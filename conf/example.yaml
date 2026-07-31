@@ -102,12 +102,8 @@ apiserver:
 
 ##################### Querier #####################
 querier:
-  # The TTL for cached query results.
-  cache_ttl: 168h
-  # The interval for recent data that should not be cached.
+  # The interval used by the specialized Trace Detail reader for recent data.
   flux_interval: 5m
-  # The maximum number of concurrent queries for missing ranges.
-  max_concurrent_queries: 4
 
 ##################### TelemetryStore #####################
 telemetrystore:

@@ -81,8 +81,6 @@ type APIHandler struct {
 	AlertmanagerAPI *alertmanager.API
 
 	Signoz *signoz.SigNoz
-
-	lightweightQueryEngineEnabled bool
 }
 
 type APIHandlerOpts struct {
@@ -110,20 +108,19 @@ func NewAPIHandler(opts APIHandlerOpts, config signoz.Config) (*APIHandler, erro
 	//quickFilterModule := quickfilter.NewAPI(opts.QuickFilterModule)
 
 	aH := &APIHandler{
-		logger:                        slog.Default(),
-		services:                      opts.Services,
-		retention:                     opts.Retention,
-		exceptions:                    opts.Exceptions,
-		traceDetail:                   opts.TraceDetail,
-		ruleStateHistory:              opts.RuleStateHistory,
-		clickHouseHealth:              opts.ClickHouseHealth,
-		metricMetadata:                opts.MetricMetadata,
-		traceFunnelQuery:              opts.TraceFunnelQuery,
-		ruleManager:                   opts.RuleManager,
-		SummaryService:                summaryService,
-		AlertmanagerAPI:               opts.AlertmanagerAPI,
-		Signoz:                        opts.Signoz,
-		lightweightQueryEngineEnabled: config.Querier.EnableLightweightEngine,
+		logger:           slog.Default(),
+		services:         opts.Services,
+		retention:        opts.Retention,
+		exceptions:       opts.Exceptions,
+		traceDetail:      opts.TraceDetail,
+		ruleStateHistory: opts.RuleStateHistory,
+		clickHouseHealth: opts.ClickHouseHealth,
+		metricMetadata:   opts.MetricMetadata,
+		traceFunnelQuery: opts.TraceFunnelQuery,
+		ruleManager:      opts.RuleManager,
+		SummaryService:   summaryService,
+		AlertmanagerAPI:  opts.AlertmanagerAPI,
+		Signoz:           opts.Signoz,
 	}
 
 	// TODO(nitya): remote this in later for multitenancy.
@@ -1094,11 +1091,10 @@ func (aH *APIHandler) getFeatureFlags(w http.ResponseWriter, r *http.Request) {
 	aH.Respond(w, uiFeatureFlags(
 		constants.IsDotMetricsEnabled,
 		useSpanMetrics,
-		aH.lightweightQueryEngineEnabled,
 	))
 }
 
-func uiFeatureFlags(dotMetricsEnabled, useSpanMetrics, lightweightQueryEngineEnabled bool) []*licensetypes.Feature {
+func uiFeatureFlags(dotMetricsEnabled, useSpanMetrics bool) []*licensetypes.Feature {
 	return []*licensetypes.Feature{
 		{
 			Name:       licensetypes.DotMetricsEnabled,
@@ -1110,13 +1106,6 @@ func uiFeatureFlags(dotMetricsEnabled, useSpanMetrics, lightweightQueryEngineEna
 		{
 			Name:       valuer.NewString(flagger.FeatureUseSpanMetrics.String()),
 			Active:     useSpanMetrics,
-			Usage:      0,
-			UsageLimit: -1,
-			Route:      "",
-		},
-		{
-			Name:       licensetypes.LightweightQueryEngineEnabled,
-			Active:     lightweightQueryEngineEnabled,
 			Usage:      0,
 			UsageLimit: -1,
 			Route:      "",

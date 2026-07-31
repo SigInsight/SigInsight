@@ -4,6 +4,9 @@
 关联 ADR：002、004、006、007
 前置条件：M1、M2、M3、M4 已完成
 
+> 历史说明：本里程碑记录迁移期 bridge。M8 已删除 `lightweight_engine_enabled`、legacy
+> executor 和 fallback；最终运行时边界见 ADR-013。
+
 ## 范围
 
 - 将 V5 builder/formula DTO 转换成 `pkg/litequery.Request`，并将执行结果恢复为 V5 response。

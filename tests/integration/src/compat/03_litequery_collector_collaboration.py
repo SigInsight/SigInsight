@@ -280,30 +280,6 @@ def _latest_query_log(clickhouse: types.TestContainerClickhouse, table: str) -> 
     }
 
 
-def _normalized_result(result: dict) -> list[tuple]:
-    """Compare the V5 data contract while ignoring engine-specific metadata."""
-
-    normalized = []
-    for aggregation in result.get("aggregations", []):
-        series = []
-        for item in aggregation.get("series", []):
-            labels = tuple(
-                sorted(
-                    (str(label.get("key", "")), str(label.get("value", "")))
-                    for label in item.get("labels", [])
-                )
-            )
-            values = tuple(
-                sorted(
-                    (int(value["timestamp"]), float(value["value"]))
-                    for value in item.get("values", [])
-                )
-            )
-            series.append((labels, values))
-        normalized.append(tuple(sorted(series)))
-    return normalized
-
-
 def _assert_no_lite_query_errors(clickhouse: types.TestContainerClickhouse) -> None:
     """Ensure the real V5 statements did not hide a schema/SQL error."""
 
@@ -334,13 +310,12 @@ def _wait_for_collector_rows(clickhouse: types.TestContainerClickhouse) -> dict[
     return counts
 
 
-def test_lite_bridge_matches_legacy_for_data_written_by_current_collector(
+def test_lite_query_reads_data_written_by_current_collector(
     signoz_current_collector: types.SigNoz,
-    signoz_current_collector_legacy: types.SigNoz,
     current_collector: str,
     clickhouse: types.TestContainerClickhouse,
 ) -> None:
-    """Compare Lite and legacy V5 results over current Collector data."""
+    """Verify the Lite V5 boundary reads data written by the current Collector."""
 
     now = datetime.now(tz=timezone.utc).replace(microsecond=0)
     start_ms = int((now - timedelta(minutes=5)).timestamp() * 1000)
@@ -428,23 +403,8 @@ def test_lite_bridge_matches_legacy_for_data_written_by_current_collector(
         )
         lite_query_log = _latest_query_log(clickhouse, physical_tables[spec["name"]])
 
-        legacy_result = _query(
-            signoz_current_collector_legacy, token, query_start_ms, query_end_ms, spec
-        )
-        assert _has_values(legacy_result), (
-            f"Collector data was not visible for legacy {spec['name']}: result={legacy_result}, "
-            f"rows={row_counts}, ranges={_collector_time_ranges(clickhouse)}, "
-            f"siginsight_logs={_signoz_logs(signoz_current_collector_legacy)}"
-        )
-        legacy_query_log = _latest_query_log(clickhouse, physical_tables[spec["name"]])
-
-        assert _normalized_result(lite_result) == _normalized_result(legacy_result), (
-            f"Lite/legacy V5 mismatch for {spec['name']}: "
-            f"lite={_normalized_result(lite_result)}, legacy={_normalized_result(legacy_result)}"
-        )
         print(
             f"{spec['name']} query-log: "
-            f"lite rows={lite_query_log['read_rows']} bytes={lite_query_log['read_bytes']}; "
-            f"legacy rows={legacy_query_log['read_rows']} bytes={legacy_query_log['read_bytes']}"
+            f"lite rows={lite_query_log['read_rows']} bytes={lite_query_log['read_bytes']}"
         )
     _assert_no_lite_query_errors(clickhouse)

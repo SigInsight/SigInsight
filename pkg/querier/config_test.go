@@ -2,12 +2,12 @@ package querier
 
 import "testing"
 
-func TestDefaultConfigEnablesLightweightEngine(t *testing.T) {
+func TestDefaultConfigKeepsTraceDetailFluxInterval(t *testing.T) {
 	config, ok := newConfig().(Config)
 	if !ok {
 		t.Fatalf("newConfig() type = %T, want Config", newConfig())
 	}
-	if !config.EnableLightweightEngine {
-		t.Fatal("default config must route supported V5 queries through Lite")
+	if config.FluxInterval <= 0 {
+		t.Fatal("default config must keep a positive trace-detail flux interval")
 	}
 }

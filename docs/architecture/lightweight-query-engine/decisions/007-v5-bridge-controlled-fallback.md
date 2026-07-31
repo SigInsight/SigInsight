@@ -1,6 +1,6 @@
 # ADR-007：V5 兼容桥的受控回退
 
-状态：Accepted
+状态：Superseded by ADR-013
 日期：2026-07-31
 关联里程碑：M5、M6、M7
 
@@ -11,6 +11,10 @@
 静默忽略；直接拒绝全部旧高级请求会阻断尚未迁移的页面。
 
 ## 决策
+
+本 ADR 记录 M5--M7 的迁移期回退策略，已由 ADR-013 取代。M8 删除 legacy executor 后，
+`UnsupportedError` 在 V5 边界转换为稳定 capability error，不再回落旧 Querier，也没有
+`lightweight_engine_enabled` 配置。
 
 在迁移期采用两级结果：
 

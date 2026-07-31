@@ -190,7 +190,7 @@ func New(
 		ctx,
 		providerSettings,
 		config.Querier,
-		NewQuerierProviderFactories(telemetrystore, cache, flagger),
+		NewQuerierProviderFactories(telemetrystore),
 		config.Querier.Provider(),
 	)
 	if err != nil {
