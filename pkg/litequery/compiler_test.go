@@ -154,6 +154,19 @@ func TestCompilerRejectsCursorUntilScannerExists(t *testing.T) {
 	}
 }
 
+func TestCompilerCompilesTypedLiveLogCursor(t *testing.T) {
+	statement := compileOne(t, Request{
+		Range: TimeRange{StartMS: 1, EndMS: 2}, ResultType: ResultRaw,
+		Queries: []Query{LogQuery{Common: CommonQuery{
+			Name:  "logs",
+			After: &RawLogCursor{TimestampNS: 1_500_000, ID: "last"},
+		}, Aggregation: LogAggregateCount}},
+	})
+	wantSQL := "SELECT timestamp AS field_0, id AS field_1, severity_text AS field_2, body AS field_3, trace_id AS field_4, span_id AS field_5 FROM signoz_logs.logs_v2 WHERE (signoz_logs.logs_v2.timestamp >= toUInt64(?) AND signoz_logs.logs_v2.timestamp < toUInt64(?)) AND ((timestamp > toUInt64(?)) OR (timestamp = toUInt64(?) AND id > ?)) ORDER BY timestamp ASC, id ASC LIMIT ?"
+	wantArgs := []any{int64(1_000_000), int64(2_000_000), uint64(1_500_000), uint64(1_500_000), "last", uint32(100)}
+	assertStatement(t, statement, wantSQL, wantArgs)
+}
+
 func TestCompilerCompilesMetricRateWithTwoAggregationStages(t *testing.T) {
 	service := FieldRef{Name: "service.name", Context: FieldContextLabel, Type: ValueTypeString}
 	statement := compileOne(t, Request{

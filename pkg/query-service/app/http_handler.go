@@ -8,6 +8,7 @@ import (
 
 	"github.com/SigNoz/signoz/pkg/errors"
 	"github.com/SigNoz/signoz/pkg/flagger"
+	"github.com/SigNoz/signoz/pkg/livelogs"
 	"github.com/SigNoz/signoz/pkg/modules/thirdpartyapi"
 
 	"io"
@@ -244,7 +245,7 @@ func writeHttpResponse(w http.ResponseWriter, data interface{}) {
 
 func (aH *APIHandler) RegisterQueryRangeV5Routes(router *mux.Router, am *middleware.AuthZ) {
 	subRouter := router.PathPrefix("/api/v5").Subrouter()
-	subRouter.HandleFunc("/logs/livetail", am.ViewAccess(aH.Signoz.Handlers.QuerierHandler.QueryRawStream)).Methods(http.MethodGet)
+	subRouter.HandleFunc("/logs/livetail", am.ViewAccess(livelogs.New(aH.Signoz.TelemetryStore).Stream)).Methods(http.MethodGet)
 	subRouter.HandleFunc("/metric/metric_metadata", am.ViewAccess(aH.getMetricMetadata)).Methods(http.MethodGet)
 }
 

@@ -4,10 +4,8 @@ import (
 	"context"
 	stderrors "errors"
 	"fmt"
-	"reflect"
 	"strings"
 
-	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
 	"github.com/SigNoz/signoz/pkg/errors"
 	"github.com/SigNoz/signoz/pkg/litequery"
 	"github.com/SigNoz/signoz/pkg/querier/liteadapter"
@@ -44,7 +42,7 @@ func (q *querier) queryRangeLite(ctx context.Context, request *qbtypes.QueryRang
 			if err != nil {
 				return nil, err
 			}
-			return &liteDriverRows{Rows: rows}, nil
+			return litequery.WrapClickHouseRows(rows), nil
 		},
 		Config: litequery.ExecutorConfig{MaxConcurrent: 4},
 	}
@@ -118,48 +116,4 @@ func liteQueryEvent(request *qbtypes.QueryRangeRequest) *qbtypes.QBEvent {
 		}
 	}
 	return event
-}
-
-// liteDriverRows is the concrete ClickHouse boundary for litequery.Rows. The
-// ClickHouse driver needs typed destinations, whereas the lightweight core
-// intentionally scans dynamic cells into *any.
-type liteDriverRows struct{ driver.Rows }
-
-func (rows *liteDriverRows) Scan(destinations ...any) error {
-	types := rows.ColumnTypes()
-	if len(destinations) != len(types) {
-		return fmt.Errorf("lightweight scan destination count %d does not match column count %d", len(destinations), len(types))
-	}
-	values := make([]any, len(types))
-	for index, columnType := range types {
-		values[index] = reflect.New(columnType.ScanType()).Interface()
-	}
-	if err := rows.Rows.Scan(values...); err != nil {
-		return err
-	}
-	for index, value := range values {
-		target, ok := destinations[index].(*any)
-		if !ok {
-			return fmt.Errorf("lightweight scan destination %d has type %T, want *any", index, destinations[index])
-		}
-		*target = dereferenceLiteValue(value)
-	}
-	return nil
-}
-
-func dereferenceLiteValue(value any) any {
-	if value == nil {
-		return nil
-	}
-	reflected := reflect.ValueOf(value)
-	for reflected.IsValid() && reflected.Kind() == reflect.Pointer {
-		if reflected.IsNil() {
-			return nil
-		}
-		reflected = reflected.Elem()
-	}
-	if !reflected.IsValid() {
-		return nil
-	}
-	return reflected.Interface()
 }

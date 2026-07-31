@@ -88,6 +88,9 @@ func (c Compiler) compileRaw(table string, signal Signal, plan Plan, common Comm
 	if common.Cursor != "" {
 		return Statement{}, newError(ErrorUnsupported, "query.cursor", "cursor compilation is not available until result scanning is implemented")
 	}
+	if common.After != nil && signal != SignalLogs {
+		return Statement{}, newError(ErrorUnsupported, "query.after", "typed raw cursors are only supported for logs")
+	}
 	fields := common.Select
 	if len(fields) == 0 {
 		fields = defaultFields(signal)
@@ -111,7 +114,15 @@ func (c Compiler) compileRaw(table string, signal Signal, plan Plan, common Comm
 		return Statement{}, err
 	}
 	args = append(args, whereArgs...)
-	order, orderArgs, err := c.compileOrder(signal, common.Order, false, defaultRawOrder(signal))
+	if common.After != nil {
+		where = "(" + where + ") AND ((timestamp > toUInt64(?)) OR (timestamp = toUInt64(?) AND id > ?))"
+		args = append(args, common.After.TimestampNS, common.After.TimestampNS, common.After.ID)
+	}
+	defaultOrder := defaultRawOrder(signal)
+	if common.After != nil {
+		defaultOrder = "timestamp ASC, id ASC"
+	}
+	order, orderArgs, err := c.compileOrder(signal, common.Order, false, defaultOrder)
 	if err != nil {
 		return Statement{}, err
 	}

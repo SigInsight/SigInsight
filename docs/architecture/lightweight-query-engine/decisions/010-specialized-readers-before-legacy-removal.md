@@ -35,6 +35,7 @@ parser，但不得返回 V5 `QueryRangeResponse` 或重新建立通用 Query Bui
 - legacy V5 删除顺序由外部依赖清零决定，而不是由前端是否已显示 Lite editor 决定；
 - Services/Percentile 的必要多聚合留在小型领域 SQL 中，不污染 Lite 的单聚合模型；
 - Raw Export 的下载入口、API、V5 offset/Trace Operator 导出链已删除；Live Logs
-  仍是显式保留或单独下线的产品决定；
+  已迁为独立 SSE reader。它使用 Lite 的受限 filter AST、固定原始日志列和
+  `(timestamp, id)` 严格游标，不再构造 V5 builder request 或调用 legacy querier；
 - 当所有专用调用迁出后，legacy 的 builder/compiler/cache/postprocess 才能按可验证的
   依赖图删除。

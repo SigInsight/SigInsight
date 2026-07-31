@@ -156,14 +156,25 @@ func (o ComparisonOperator) valid() bool {
 }
 
 type CommonQuery struct {
-	Name      string
-	Filter    FilterNode
-	Select    []FieldRef
-	GroupBy   []FieldRef
-	Order     []Order
-	Limit     uint32
-	Cursor    string
+	Name    string
+	Filter  FilterNode
+	Select  []FieldRef
+	GroupBy []FieldRef
+	Order   []Order
+	Limit   uint32
+	Cursor  string
+	// After is a typed raw-log cursor. It is deliberately separate from the
+	// V5-compatible opaque Cursor string: raw log readers need a stable,
+	// lexicographic storage position rather than offset pagination.
+	After     *RawLogCursor
 	Predicate *AggregationPredicate
+}
+
+// RawLogCursor identifies the last emitted log in ClickHouse's
+// (timestamp, id) ordering. TimestampNS is the physical UInt64 timestamp.
+type RawLogCursor struct {
+	TimestampNS uint64
+	ID          string
 }
 
 // Query is intentionally closed to the signal-specific specs in this package.

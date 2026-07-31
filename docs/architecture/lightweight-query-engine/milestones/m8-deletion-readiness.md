@@ -50,8 +50,8 @@ Span Percentile 同样已迁移为单行的 parameterized reader：固定 p50/p9
 1. Services 与 Span Percentile 已迁移为专用 readers，并删除其 `Querier` 依赖及 V5
    request/response 转换代码。
 2. Raw Export 已作为非核心高级能力下线：删除下载入口和 `/api/v5/export_raw_data`，
-   不再保留 offset/Trace Operator 导出链。Live Logs 仍保留流式读取边界，不能继续
-   依赖 generic builder。
+   不再保留 offset/Trace Operator 导出链。Live Logs 已迁为独立 SSE reader：固定六个
+   原始日志列和 500 行批次，复用 Lite filter AST，并以 `(timestamp, id)` 严格游标轮询。
 3. 对 threshold rules 强制 Lite capability validation，迁移基本查询，拒绝高级保存
    规则并补保存、预览、评估和恢复测试。
 4. 收集 Dashboard、Explorer 和 Alert 的生产请求样本；用同一 ClickHouse fixture
@@ -66,8 +66,8 @@ Span Percentile 同样已迁移为单行的 parameterized reader：固定 p50/p9
 
 - 尚未构造 Lite-vs-legacy 的可比较 consumer fixture，因此不能默认开启 Lite 或删除
   fallback。
-- Live Logs 仍有 `Querier` 依赖；其流式语义需要独立 reader 或显式下线决定。
-- 现有 Lite raw compiler 尚未实现 cursor；Raw Export 依赖 offset，二者不能直接互换。
+- Lite 只实现了 Live Logs 所需的 typed `(timestamp, id)` cursor；V5 opaque cursor 和
+  Raw Export 所需的 offset pagination 仍不在 Lite 范围内。
 - legacy Trace Operator 仍由保存查询、前端 parser 和导出路径引用。
 
 ## 验收证据

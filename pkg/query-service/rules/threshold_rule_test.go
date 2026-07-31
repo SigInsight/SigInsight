@@ -35,14 +35,6 @@ func (q staticV5Querier) QueryRange(context.Context, valuer.UUID, *qbtypes.Query
 	return q.response, q.err
 }
 
-func (staticV5Querier) QueryRawStream(
-	context.Context,
-	valuer.UUID,
-	*qbtypes.QueryRangeRequest,
-	*qbtypes.RawStream,
-) {
-}
-
 func v5MetricCompositeQuery(metricName string) *ruletypes.CompositeQuery {
 	return &ruletypes.CompositeQuery{
 		QueryType: querytypes.QueryTypeBuilder,

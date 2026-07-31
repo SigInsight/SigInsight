@@ -11,9 +11,11 @@ import (
 	"github.com/antlr4-go/antlr/v4"
 )
 
-// parseFilter uses the existing V5 grammar but emits the restricted filter
+// ParseFilter uses the existing V5 grammar but emits the restricted filter
 // AST. This keeps the public syntax stable without inheriting its SQL visitor.
-func parseFilter(expression string, signal litequery.Signal) (litequery.FilterNode, error) {
+// Callers outside the V5 adapter use it for small, signal-specific readers
+// whose public filter syntax predates the lightweight engine.
+func ParseFilter(expression string, signal litequery.Signal) (litequery.FilterNode, error) {
 	input := antlr.NewInputStream(expression)
 	lexer := grammar.NewFilterQueryLexer(input)
 	listener := &syntaxErrors{}
@@ -28,6 +30,10 @@ func parseFilter(expression string, signal litequery.Signal) (litequery.FilterNo
 		return nil, unsupported("invalid filter syntax")
 	}
 	return parseOr(tree.Expression().OrExpression(), signal)
+}
+
+func parseFilter(expression string, signal litequery.Signal) (litequery.FilterNode, error) {
+	return ParseFilter(expression, signal)
 }
 
 type syntaxErrors struct {
