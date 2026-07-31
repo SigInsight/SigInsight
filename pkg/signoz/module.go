@@ -100,7 +100,7 @@ func NewModules(
 		TraceFunnel:     impltracefunnel.NewModule(impltracefunnel.NewStore(sqlstore)),
 		RawDataExport:   implrawdataexport.NewModule(querier),
 		Session:         implsession.NewModule(providerSettings, authNs, userSetter, userGetter, tokenizer, orgGetter),
-		SpanPercentile:  implspanpercentile.NewModule(querier, providerSettings),
+		SpanPercentile:  implspanpercentile.NewModule(telemetryStore),
 		Services:        implservices.NewModule(telemetryStore),
 		MetricsExplorer: implmetricsexplorer.NewModule(telemetryStore, telemetryMetadataStore, cache, ruleStore, providerSettings, config.MetricsExplorer),
 	}

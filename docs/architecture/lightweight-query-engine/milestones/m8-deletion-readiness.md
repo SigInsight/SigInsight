@@ -40,14 +40,15 @@ resource/span attribute 的 `in`/`notin`、服务概览、Top Operations、Entry
 Operations 所需的固定多聚合。ClickHouse 25.5.6 不支持绑定 `LIMIT` 参数，因此仅将
 经过 `1..5000` 校验的整数内联；所有 tag 键和值继续使用命名参数绑定。
 
-Span Percentile 使用 p50/p90/p99 加
-百分位位置计算；Raw Export 使用 offset 和可选 Trace Operator。它们都不是 Lite 的
+Span Percentile 同样已迁移为单行的 parameterized reader：固定 p50/p90/p99、阈值
+位置和 resource attribute 等值筛选直接执行在 `signoz_index_v3`，并在零 span 时保留
+`NotFound` 响应。Raw Export 使用 offset 和可选 Trace Operator。它们都不是 Lite 的
 遗漏能力，而是 ADR-010 所定义的专用读取边界。
 
 ## 删除顺序
 
-1. 为 Span Percentile 建立专用 reader，并删除其 `Querier` 依赖及 V5
-   request/response 转换代码。Services 已在此项前完成。
+1. Services 与 Span Percentile 已迁移为专用 readers，并删除其 `Querier` 依赖及 V5
+   request/response 转换代码。
 2. 明确 Raw Export 与 Live Logs 的保留范围，建立专用分页/流式 reader，或在产品边界
    中下线它们；二者不能继续依赖 generic builder。
 3. 对 threshold rules 强制 Lite capability validation，迁移基本查询，拒绝高级保存
@@ -64,7 +65,7 @@ Span Percentile 使用 p50/p90/p99 加
 
 - 尚未构造 Lite-vs-legacy 的可比较 consumer fixture，因此不能默认开启 Lite 或删除
   fallback。
-- Span Percentile、Raw Export、Live Logs 仍有 `Querier` 依赖。
+- Raw Export、Live Logs 仍有 `Querier` 依赖。
 - 现有 Lite raw compiler 尚未实现 cursor；Raw Export 依赖 offset，二者不能直接互换。
 - legacy Trace Operator 仍由保存查询、前端 parser 和导出路径引用。
 
