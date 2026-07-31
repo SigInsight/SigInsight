@@ -45,6 +45,25 @@
 	<body class="dark darkMode" data-theme="dark">
 		<noscript>You need to enable JavaScript to run this app.</noscript>
 		<div id="root"></div>
+		<script>
+			(function () {
+				var language = window.navigator.language;
+				if (!language || !/[@_]/.test(language)) {
+					return;
+				}
+
+				var normalizedLanguage = language.split('@', 1)[0].replace(/_/g, '-');
+				try {
+					new Intl.NumberFormat(normalizedLanguage);
+					Object.defineProperty(window.navigator, 'language', {
+						configurable: true,
+						value: normalizedLanguage,
+					});
+				} catch (_) {
+					// Leave the browser locale unchanged when it cannot be normalized.
+				}
+			})();
+		</script>
 
 		<script type="text/javascript">
 			window.AppcuesSettings = { enableURLDetection: true };
