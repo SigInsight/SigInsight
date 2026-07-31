@@ -31,6 +31,52 @@ type ResolvedField struct {
 
 type DefaultCatalog struct{}
 
+// materializedFieldKey identifies a semantic field with a Collector-owned
+// physical fast path. The manifest is intentionally static: a schema migration
+// must update it and its cross-repository verification before a new column can
+// affect generated SQL.
+type materializedFieldKey struct {
+	Signal  Signal
+	Context FieldContext
+	Name    string
+	Type    ValueType
+}
+
+type materializedField struct {
+	Column       string
+	ExistsColumn string
+}
+
+var defaultMaterializedFields = map[materializedFieldKey]materializedField{
+	{Signal: SignalTraces, Context: FieldContextResource, Name: "service.name", Type: ValueTypeString}: {
+		Column: "resource_string_service$$name", ExistsColumn: "resource_string_service$$name_exists",
+	},
+	{Signal: SignalTraces, Context: FieldContextAttribute, Name: "http.route", Type: ValueTypeString}: {
+		Column: "attribute_string_http$$route", ExistsColumn: "attribute_string_http$$route_exists",
+	},
+	{Signal: SignalTraces, Context: FieldContextAttribute, Name: "messaging.system", Type: ValueTypeString}: {
+		Column: "attribute_string_messaging$$system", ExistsColumn: "attribute_string_messaging$$system_exists",
+	},
+	{Signal: SignalTraces, Context: FieldContextAttribute, Name: "messaging.operation", Type: ValueTypeString}: {
+		Column: "attribute_string_messaging$$operation", ExistsColumn: "attribute_string_messaging$$operation_exists",
+	},
+	{Signal: SignalTraces, Context: FieldContextAttribute, Name: "db.system", Type: ValueTypeString}: {
+		Column: "attribute_string_db$$system", ExistsColumn: "attribute_string_db$$system_exists",
+	},
+	{Signal: SignalTraces, Context: FieldContextAttribute, Name: "rpc.system", Type: ValueTypeString}: {
+		Column: "attribute_string_rpc$$system", ExistsColumn: "attribute_string_rpc$$system_exists",
+	},
+	{Signal: SignalTraces, Context: FieldContextAttribute, Name: "rpc.service", Type: ValueTypeString}: {
+		Column: "attribute_string_rpc$$service", ExistsColumn: "attribute_string_rpc$$service_exists",
+	},
+	{Signal: SignalTraces, Context: FieldContextAttribute, Name: "rpc.method", Type: ValueTypeString}: {
+		Column: "attribute_string_rpc$$method", ExistsColumn: "attribute_string_rpc$$method_exists",
+	},
+	{Signal: SignalTraces, Context: FieldContextAttribute, Name: "peer.service", Type: ValueTypeString}: {
+		Column: "attribute_string_peer$$service", ExistsColumn: "attribute_string_peer$$service_exists",
+	},
+}
+
 func (DefaultCatalog) Table(signal Signal) (string, error) {
 	switch signal {
 	case SignalLogs:
@@ -123,6 +169,15 @@ func resolveLogField(field FieldRef) (ResolvedField, error) {
 }
 
 func resolveTraceField(field FieldRef) (ResolvedField, error) {
+	if materialized, ok := defaultMaterializedFields[materializedFieldKey{
+		Signal: SignalTraces, Context: field.Context, Name: field.Name, Type: field.Type,
+	}]; ok {
+		return ResolvedField{
+			SQL:               quoteIdentifier(materialized.Column),
+			ExistsSQL:         quoteIdentifier(materialized.ExistsColumn),
+			RequiresExistence: true,
+		}, nil
+	}
 	if field.Context == FieldContextResource {
 		return resolveMapField("resources_string", field)
 	}
@@ -139,6 +194,10 @@ func resolveTraceField(field FieldRef) (ResolvedField, error) {
 		return staticField(field.Name, field.Type), nil
 	}
 	return ResolvedField{}, newError(ErrorUnsupported, "field.name", "trace field %q is not in the schema catalog", field.Name)
+}
+
+func quoteIdentifier(identifier string) string {
+	return "`" + strings.ReplaceAll(identifier, "`", "``") + "`"
 }
 
 func resolveTypedMapField(prefix string, field FieldRef) (ResolvedField, error) {

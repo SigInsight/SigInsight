@@ -9,6 +9,7 @@
 - [总体设计与功能边界](design.md)
 - [任务节点与里程碑](roadmap.md)
 - [ClickHouse schema 基线](schema-baseline.md)
+- [物化列术语与机制](materialized-columns.md)
 - [阶段工程文档规范](milestones/README.md)
 - [M0：能力与兼容基线](milestones/m0-capability-baseline.md)
 - [M1：Lite Query Core](milestones/m1-lite-query-core.md)
@@ -19,6 +20,7 @@
 - [M6：轻量前端查询体验](milestones/m6-frontend-query-experience.md)
 - [M7：协作验证与受控切换](milestones/m7-collaboration-rollout.md)
 - [M8：Legacy 删除准备与量化收敛](milestones/m8-deletion-readiness.md)
+- [M9：物化列加速查询](milestones/m9-materialized-column-acceleration.md)
 - [架构决策记录规范](decisions/README.md)
 - [ADR 模板](decisions/000-template.md)
 - [ADR-001：采用受约束的类型化查询语言](decisions/001-constrained-query-language.md)
@@ -31,6 +33,7 @@
 - [ADR-008：Lite 前端状态桥](decisions/008-lite-frontend-state-bridge.md)
 - [ADR-009：服务端发布的 rollout capability](decisions/009-server-advertised-rollout-capability.md)
 - [ADR-010：专用读取 API 先于 Legacy V5 删除](decisions/010-specialized-readers-before-legacy-removal.md)
+- [ADR-011：物化列显式目录契约](decisions/011-materialized-column-catalog-contract.md)
 
 ## 文档状态
 
@@ -46,7 +49,8 @@
 | M5 V5 兼容桥 | Complete | 认证 API 已验证 Metrics、Meter 与 formula；Logs/Traces 的当前 Collector 数据回读留作 M7 切换门槛 |
 | M6 Lite Frontend | Complete | 受控 Lite 编辑器复用 V5 状态/协议，具有能力与组件测试；真实协作切换留作 M7 门槛 |
 | M7 协作验证与切换 | Complete | 当前 Collector 在 ClickHouse 25.5.6 的 Logs、Traces、Metrics、Meter 写入和认证 V5 读回均已验证；受控能力协商已完成 |
-| M8 Legacy 删除准备与量化收敛 | In Progress | Lite 已默认启用；已删除专用 legacy 调用者与非核心 API，尚不具备删除 generic fallback 的条件 |
+| M8 Legacy 删除准备与量化收敛 | Complete | legacy executor、editor、rollout flag 与过渡 compiler 已删除；V5 边界为 Lite-only capability error |
+| M9 物化列加速查询 | In Progress | Trace v1 baseline 的静态 manifest、Map 回退、认证 API 与 query-log 路径已验证；待代表性 workload 性能采样 |
 | 机器可读能力矩阵 | Accepted | `capability-matrix.json` 是后续协议和 UI 的约束来源 |
 
 ## 变更规则
@@ -62,4 +66,4 @@
 
 - SigInsight 工作分支：`feature/lightweight-query-engine`
 - OtelCollector 在首次发生 schema、迁移或写入修改时创建同名分支。
-- 宏观提交锚点采用 `M0` 至 `M7`，阶段内可以有可独立验证的子提交。
+- 宏观提交锚点采用 `M0` 至 `M9`，阶段内可以有可独立验证的子提交。

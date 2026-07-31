@@ -25,6 +25,16 @@ func TestDefaultCatalogResolvesSemanticFields(t *testing.T) {
 			want:  ResolvedField{SQL: "attributes_number[?]", Args: []any{"http.request.size"}, ExistsSQL: "mapContains(attributes_number, ?)", ExistsArgs: []any{"http.request.size"}, RequiresExistence: true},
 		},
 		{
+			name: "trace materialized resource string", signal: SignalTraces,
+			field: FieldRef{Name: "service.name", Context: FieldContextResource, Type: ValueTypeString},
+			want:  ResolvedField{SQL: "`resource_string_service$$name`", ExistsSQL: "`resource_string_service$$name_exists`", RequiresExistence: true},
+		},
+		{
+			name: "trace materialized attribute string", signal: SignalTraces,
+			field: FieldRef{Name: "http.route", Context: FieldContextAttribute, Type: ValueTypeString},
+			want:  ResolvedField{SQL: "`attribute_string_http$$route`", ExistsSQL: "`attribute_string_http$$route_exists`", RequiresExistence: true},
+		},
+		{
 			name: "log json body path", signal: SignalLogs,
 			field: FieldRef{Name: "request.id", Context: FieldContextBody, Type: ValueTypeString},
 			want:  ResolvedField{SQL: "JSON_VALUE(body, ?)", Args: []any{"$.request.id"}, ExistsSQL: "JSON_VALUE(body, ?) IS NOT NULL", ExistsArgs: []any{"$.request.id"}, RequiresExistence: true},
@@ -72,9 +82,44 @@ func TestCompilerCompilesTraceTimeSeriesWithCorrectArgumentOrder(t *testing.T) {
 			Aggregation: TraceAggregateDurationP95,
 		}},
 	})
-	wantSQL := "SELECT intDiv(toUnixTimestamp64Milli(signoz_index_v3.timestamp), ?) * ? AS timestamp, resources_string[?] AS group_0, quantile(0.95)(duration_nano) AS value FROM signoz_traces.signoz_index_v3 WHERE signoz_traces.signoz_index_v3.timestamp >= fromUnixTimestamp64Milli(?) AND signoz_traces.signoz_index_v3.timestamp < fromUnixTimestamp64Milli(?) GROUP BY intDiv(toUnixTimestamp64Milli(signoz_index_v3.timestamp), ?) * ?, resources_string[?] ORDER BY timestamp ASC"
-	wantArgs := []any{int64(1_000), int64(1_000), "service.name", int64(1_000), int64(61_000), int64(1_000), int64(1_000), "service.name"}
+	wantSQL := "SELECT intDiv(toUnixTimestamp64Milli(signoz_index_v3.timestamp), ?) * ? AS timestamp, `resource_string_service$$name` AS group_0, quantile(0.95)(duration_nano) AS value FROM signoz_traces.signoz_index_v3 WHERE signoz_traces.signoz_index_v3.timestamp >= fromUnixTimestamp64Milli(?) AND signoz_traces.signoz_index_v3.timestamp < fromUnixTimestamp64Milli(?) GROUP BY intDiv(toUnixTimestamp64Milli(signoz_index_v3.timestamp), ?) * ?, `resource_string_service$$name` ORDER BY timestamp ASC"
+	wantArgs := []any{int64(1_000), int64(1_000), int64(1_000), int64(61_000), int64(1_000), int64(1_000)}
 	assertStatement(t, statement, wantSQL, wantArgs)
+}
+
+func TestCompilerCompilesTraceMaterializedFilterAndGroupBy(t *testing.T) {
+	statement := compileOne(t, Request{
+		Range: TimeRange{StartMS: 1_000, EndMS: 61_000}, ResultType: ResultTimeSeries, StepMS: 1_000,
+		Queries: []Query{TraceQuery{
+			Common: CommonQuery{
+				Name:    "traces",
+				GroupBy: []FieldRef{{Name: "http.route", Context: FieldContextAttribute, Type: ValueTypeString}},
+				Filter: Predicate{
+					Field: FieldRef{Name: "service.name", Context: FieldContextResource, Type: ValueTypeString},
+					Op:    FilterEqual,
+					Value: Value{Kind: ValueString, String: "api"},
+				},
+			},
+			Aggregation: TraceAggregateCount,
+		}},
+	})
+	wantSQL := "SELECT intDiv(toUnixTimestamp64Milli(signoz_index_v3.timestamp), ?) * ? AS timestamp, `attribute_string_http$$route` AS group_0, count() AS value FROM signoz_traces.signoz_index_v3 WHERE (signoz_traces.signoz_index_v3.timestamp >= fromUnixTimestamp64Milli(?) AND signoz_traces.signoz_index_v3.timestamp < fromUnixTimestamp64Milli(?)) AND ((`resource_string_service$$name_exists`) AND (`resource_string_service$$name` = ?)) GROUP BY intDiv(toUnixTimestamp64Milli(signoz_index_v3.timestamp), ?) * ?, `attribute_string_http$$route` ORDER BY timestamp ASC"
+	wantArgs := []any{int64(1_000), int64(1_000), int64(1_000), int64(61_000), "api", int64(1_000), int64(1_000)}
+	assertStatement(t, statement, wantSQL, wantArgs)
+}
+
+func TestDefaultCatalogMaterializedManifestHasTrustedTraceColumns(t *testing.T) {
+	if len(defaultMaterializedFields) != 9 {
+		t.Fatalf("materialized field count = %d, want 9", len(defaultMaterializedFields))
+	}
+	for key, field := range defaultMaterializedFields {
+		if key.Signal != SignalTraces || key.Type != ValueTypeString {
+			t.Fatalf("manifest key = %#v, want string trace field", key)
+		}
+		if !strings.HasPrefix(field.Column, string(key.Context)+"_string_") || !strings.HasSuffix(field.ExistsColumn, "_exists") {
+			t.Fatalf("manifest field = %#v has invalid trusted column names", field)
+		}
+	}
 }
 
 func TestCompilerQualifiesLogTimeBucketForClickHouseAliasResolution(t *testing.T) {

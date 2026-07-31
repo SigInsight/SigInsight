@@ -6,7 +6,7 @@
 ## 总体依赖
 
 ```text
-M0 -> M1 -> M2 -> M3 -> M4 -> M5 -> M6 -> M7 -> M8
+M0 -> M1 -> M2 -> M3 -> M4 -> M5 -> M6 -> M7 -> M8 -> M9
 ```
 
 M2 的 Logs 和 Traces compiler 可以分子提交实现。M3 必须在 M2 建立的 Schema Catalog 和 Compiler contract 上完成，禁止形成另一套 Metrics 专用基础设施。
@@ -199,6 +199,26 @@ M2 的 Logs 和 Traces compiler 可以分子提交实现。M3 必须在 M2 建�
 - 最终报告能够说明功能损失、复杂度收益和性能变化。
 
 提交锚点：`refactor(query): remove legacy query engine and report results`
+
+## M9：物化列加速查询
+
+目标：在保持 Catalog 静态确定性契约（ADR-003）的前提下，将已存在的物化列显式纳入
+查询路径并量化收益，输出低频物化列删除候选清单。
+
+任务：
+
+- 基线探测物化列，生成与 schema fingerprint 绑定的显式物化目录（ADR-011）。
+- `Catalog.Resolve` 支持"物化列优先、Map 回退"的确定性解析。
+- 覆盖有/无物化列两种 schema 状态的 golden SQL 与真实 ClickHouse 执行测试。
+- 同 fixture 双路径性能对比（延迟、read rows、read bytes），输出删除候选。
+
+退出条件：
+
+- 有/无物化列两种 schema 状态下核心查询矩阵全部通过。
+- fingerprint 变化不会导致目录静默过期或部分加载。
+- 对比报告记录 p50/p95 延迟、read rows、read bytes 并给出删除候选清单。
+
+提交锚点：`perf(query): resolve materialized columns through explicit catalog`
 
 ## 阶段提交准则
 
