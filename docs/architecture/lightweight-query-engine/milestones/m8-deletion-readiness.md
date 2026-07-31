@@ -1,0 +1,72 @@
+# M8: Legacy 删除准备与量化收敛
+
+Status: In Progress
+
+## 目标
+
+在不扩大 Lite 功能边界的前提下，清除 legacy V5 query engine 的生产依赖，并量化
+删除带来的规模收益。M8 不把专用读取工作流伪装成 Lite 查询。
+
+## 2026-07-31 基线
+
+| 区域 | 生产 Go/TS 行数 | 当前状态 |
+| --- | ---: | --- |
+| `pkg/querier`（含 `liteadapter`） | 5,840 | Lite bridge 与 legacy builder/cache/postprocess 共存 |
+| `pkg/litequery` | 2,686 | 独立 IR、compiler、executor |
+| `pkg/querier/liteadapter` | 864 | V5 边界适配层 |
+| `frontend/src/components/QueryBuilder` | 9,213 | legacy editor、Trace Operator 与 Lite 选择入口共存 |
+| `frontend/src/container/QueryBuilder` | 8,420 | legacy 状态、字段与高级控件仍活跃 |
+| `frontend/src/features/lite-query` | 1,428 | 受约束的新编辑器与 capability model |
+
+行数是 `wc -l` 静态基线，用于比较趋势，不能单独作为可删除证据。
+
+## 已确认依赖图
+
+```text
+HTTP /api/v5/query_range
+  -> Lite adapter (supported request)
+  -> legacy QueryRange fallback (unsupported request)
+       -> builder / raw SQL / Trace Operator / cache / postprocess
+
+Services -----------\
+Span Percentile -----+-> legacy QueryRange
+Raw Data Export -----/
+Live Logs -----------> legacy QueryRawStream
+Threshold rules -----> QueryRange (only Lite subset is a target)
+```
+
+Services 的三类统计请求使用多聚合和 `countIf`；Span Percentile 使用 p50/p90/p99 加
+百分位位置计算；Raw Export 使用 offset 和可选 Trace Operator。它们都不是 Lite 的
+遗漏能力，而是 ADR-010 所定义的专用读取边界。
+
+## 删除顺序
+
+1. 为 Services 和 Span Percentile 建立专用 reader，并删除其 `Querier` 依赖及 V5
+   request/response 转换代码。
+2. 明确 Raw Export 与 Live Logs 的保留范围，建立专用分页/流式 reader，或在产品边界
+   中下线它们；二者不能继续依赖 generic builder。
+3. 对 threshold rules 强制 Lite capability validation，迁移基本查询，拒绝高级保存
+   规则并补保存、预览、评估和恢复测试。
+4. 收集 Dashboard、Explorer 和 Alert 的生产请求样本；用同一 ClickHouse fixture
+   对 Lite 与 legacy 的值、标签、时间桶、分页以及 query-log read rows/read bytes 双跑。
+5. 在 supported UI/default configuration 中移除 legacy fallback；此时不支持的 V5
+   请求必须返回稳定的 capability error。
+6. 通过 production import、路由、动态 import 和生成代码引用检查后，按依赖顺序删除
+   `builder_query`、`clickhouse_query`、`trace_operator_query`、`bucket_cache`、
+   `postprocess` 及关联前端高级控件、parser、mocks、测试和样式。
+
+## 当前阻塞项
+
+- 尚未构造 Lite-vs-legacy 的可比较 consumer fixture，因此不能默认开启 Lite 或删除
+  fallback。
+- Services、Span Percentile、Raw Export、Live Logs 仍有 `Querier` 依赖。
+- 现有 Lite raw compiler 尚未实现 cursor；Raw Export 依赖 offset，二者不能直接互换。
+- legacy Trace Operator 仍由保存查询、前端 parser 和导出路径引用。
+
+## 验收证据
+
+- 每迁出一个调用者，直接测试其领域 reader 且 `rg` 证明调用者不再 import `querier`。
+- 每删除一组 legacy 文件，production import 与生成路由引用为零。
+- 全量 Go、前端 build/test、关键浏览器回归与当前 Collector 协作脚本通过。
+- 最终报告比较 M8 基线与完成后的行数、主要模块数、最大文件、测试覆盖以及同 fixture
+  的 query-log 延迟、read rows、read bytes。
