@@ -59,7 +59,7 @@ func TestCompilerCompilesLogRawWithJSONAndMapParameters(t *testing.T) {
 			Aggregation: LogAggregateCount,
 		}},
 	})
-	wantSQL := "SELECT timestamp AS field_0, JSON_VALUE(body, ?) AS field_1 FROM signoz_logs.logs_v2 WHERE (timestamp >= ? AND timestamp < ?) AND ((mapContains(resources_string, ?)) AND (resources_string[?] = ?)) ORDER BY timestamp DESC, id DESC LIMIT ?"
+	wantSQL := "SELECT timestamp AS field_0, JSON_VALUE(body, ?) AS field_1 FROM signoz_logs.logs_v2 WHERE (timestamp >= toUInt64(?) AND timestamp < toUInt64(?)) AND ((mapContains(resources_string, ?)) AND (resources_string[?] = ?)) ORDER BY timestamp DESC, id DESC LIMIT ?"
 	wantArgs := []any{"$.request.id", int64(1_000_000_000), int64(2_000_000_000), "service.name", "service.name", "api", uint32(25)}
 	assertStatement(t, statement, wantSQL, wantArgs)
 }
@@ -77,6 +77,16 @@ func TestCompilerCompilesTraceTimeSeriesWithCorrectArgumentOrder(t *testing.T) {
 	assertStatement(t, statement, wantSQL, wantArgs)
 }
 
+func TestCompilerQualifiesLogTimeBucketForClickHouseAliasResolution(t *testing.T) {
+	statement := compileOne(t, Request{
+		Range: TimeRange{StartMS: 1_000, EndMS: 61_000}, ResultType: ResultTimeSeries, StepMS: 1_000,
+		Queries: []Query{LogQuery{Common: CommonQuery{Name: "logs"}, Aggregation: LogAggregateCount}},
+	})
+	wantSQL := "SELECT intDiv(signoz_logs.logs_v2.timestamp, toUInt64(?)) * toUInt64(?) AS timestamp, count() AS value FROM signoz_logs.logs_v2 WHERE timestamp >= toUInt64(?) AND timestamp < toUInt64(?) GROUP BY intDiv(signoz_logs.logs_v2.timestamp, toUInt64(?)) * toUInt64(?) ORDER BY timestamp ASC"
+	wantArgs := []any{int64(1_000_000_000), int64(1_000), int64(1_000_000_000), int64(61_000_000_000), int64(1_000_000_000), int64(1_000)}
+	assertStatement(t, statement, wantSQL, wantArgs)
+}
+
 func TestCompilerCompilesLogAggregationPredicate(t *testing.T) {
 	statement := compileOne(t, Request{
 		Range: TimeRange{StartMS: 1, EndMS: 2}, ResultType: ResultScalar,
@@ -89,7 +99,7 @@ func TestCompilerCompilesLogAggregationPredicate(t *testing.T) {
 			Field:       FieldRef{Name: "http.response.size", Context: FieldContextAttribute, Type: ValueTypeNumber},
 		}},
 	})
-	wantSQL := "SELECT sum(attributes_number[?]) AS value FROM signoz_logs.logs_v2 WHERE timestamp >= ? AND timestamp < ? HAVING sum(attributes_number[?]) > ? ORDER BY value DESC"
+	wantSQL := "SELECT sum(attributes_number[?]) AS value FROM signoz_logs.logs_v2 WHERE timestamp >= toUInt64(?) AND timestamp < toUInt64(?) HAVING sum(attributes_number[?]) > ? ORDER BY value DESC"
 	wantArgs := []any{"http.response.size", int64(1_000_000), int64(2_000_000), "http.response.size", float64(10)}
 	assertStatement(t, statement, wantSQL, wantArgs)
 }
@@ -168,7 +178,7 @@ func TestCompilerCompilesMetricRateWithTwoAggregationStages(t *testing.T) {
 		t.Fatalf("SQL contains dynamic metric input: %s", statement.SQL)
 	}
 	wantArgs := []any{
-		"service.name", "http.server.request.count", "Sum", "Cumulative", true,
+		"service.name", "http.server.request.count", "Sum", "Cumulative", false,
 		"service.name", "service.name", "api", "service.name", int64(1_000), int64(1_000),
 		"http.server.request.count", "Cumulative", int64(1_000), int64(61_000), int64(1_000), int64(1_000),
 	}

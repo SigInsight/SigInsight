@@ -178,11 +178,11 @@ func assertPositiveMetricRows(t *testing.T, name string, rows interface {
 func seedMetricCompilerData(t *testing.T, conn clickhouse.Conn, now int64) {
 	t.Helper()
 	ctx := context.Background()
-	series := "INSERT INTO signoz_metrics.time_series_v4 (temporality, metric_name, type, fingerprint, unix_milli, labels) VALUES (?, ?, ?, ?, ?, ?)"
+	series := "INSERT INTO signoz_metrics.time_series_v4 (temporality, metric_name, type, fingerprint, unix_milli, labels, __normalized) VALUES (?, ?, ?, ?, ?, ?, ?)"
 	for _, row := range [][]any{
-		{"Cumulative", "http.server.request.count", "Sum", uint64(101), now - 2_000, `{"service.name":"api"}`},
-		{"Cumulative", "http.server.duration.bucket", "Histogram", uint64(201), now - 2_000, `{"le":"10"}`},
-		{"Cumulative", "http.server.duration.bucket", "Histogram", uint64(202), now - 2_000, `{"le":"+Inf"}`},
+		{"Cumulative", "http.server.request.count", "Sum", uint64(101), now - 2_000, `{"service.name":"api"}`, false},
+		{"Cumulative", "http.server.duration.bucket", "Histogram", uint64(201), now - 2_000, `{"le":"10"}`, false},
+		{"Cumulative", "http.server.duration.bucket", "Histogram", uint64(202), now - 2_000, `{"le":"+Inf"}`, false},
 	} {
 		if err := conn.Exec(ctx, series, row...); err != nil {
 			t.Fatalf("insert metric series error = %v", err)

@@ -312,7 +312,10 @@ func (c Compiler) compileMetricSeries(source MetricSource, aggregation MetricAgg
 	if err != nil {
 		return "", nil, nil, err
 	}
-	args := append(selectArgs, aggregation.MetricName, metricTypeName(aggregation.Type), physicalTemporality(aggregation), true)
+	// The primary v4 series table contains Collector's original (not
+	// normalized) time series. This is also the predicate used by the V5
+	// metadata/query path; normalized rows live in derived storage.
+	args := append(selectArgs, aggregation.MetricName, metricTypeName(aggregation.Type), physicalTemporality(aggregation), false)
 	args = append(args, whereArgs...)
 	args = append(args, groupArgs...)
 	query := "SELECT " + strings.Join(selects, ", ") + " FROM " + source.SeriesTable + " WHERE metric_name = ? AND type = ? AND lower(temporality) = lower(?) AND __normalized = ?"

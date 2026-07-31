@@ -51,8 +51,9 @@ tests/integration/scripts/run-litequery-compiler-integration.sh
 
 ## 残余风险与后续任务
 
-- V5 decoder/response adapter 尚未接入 `/api/v5/query_range`，因此生产请求仍走旧 Querier。
-- ClickHouse driver 的具体 `ScanType` adapter 目前在 integration fixture 中，M5/M6 接入
-  时需放入 query-service infrastructure package。
+- V5 decoder/response adapter 已在 M5 接入 `/api/v5/query_range` 的 opt-in 路径；默认仍走旧
+  Querier，真实 API 对照验证属于 M5。
+- ClickHouse driver 的具体 `ScanType` adapter 已在 `pkg/querier` 基础设施边界实现，core 继续
+  不依赖具体 driver。
 - Executor 尚未输出 ClickHouse progress rows/bytes，M4 只保证结果和生命周期；统计接入
   属于 M6 query-log/协作验证。

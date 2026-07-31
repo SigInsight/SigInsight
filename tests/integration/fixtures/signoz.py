@@ -82,6 +82,12 @@ def create_signoz(
         if with_web:
             env["SIGNOZ_WEB_ENABLED"] = True
 
+        # The lightweight bridge is off by default so the broad integration
+        # suite continues to describe the legacy contract. Dedicated bridge
+        # runs opt in through their shell script.
+        if environ.get("SIGNOZ_INTEGRATION_LIGHTWEIGHT_ENGINE") == "true":
+            env["SIGNOZ_QUERIER_LIGHTWEIGHT__ENGINE__ENABLED"] = True
+
         if env_overrides:
             env = env | env_overrides
 

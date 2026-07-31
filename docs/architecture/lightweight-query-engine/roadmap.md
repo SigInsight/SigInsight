@@ -6,7 +6,7 @@
 ## 总体依赖
 
 ```text
-M0 -> M1 -> M2 -> M3 -> M4 -> M5 -> M6 -> M7
+M0 -> M1 -> M2 -> M3 -> M4 -> M5 -> M6 -> M7 -> M8
 ```
 
 M2 的 Logs 和 Traces compiler 可以分子提交实现。M3 必须在 M2 建立的 Schema Catalog 和 Compiler contract 上完成，禁止形成另一套 Metrics 专用基础设施。
@@ -115,7 +115,29 @@ M2 的 Logs 和 Traces compiler 可以分子提交实现。M3 必须在 M2 建�
 
 提交锚点：`feat(query): execute lightweight queries and threshold alerts`
 
-## M5：轻量前端查询 UI
+## M5：V5 兼容桥与受控 API 接入
+
+目标：将受支持的 V5 请求明确转换到 Lite IR，并以可回退方式接入现有 API。
+
+任务：
+
+- 实现 V5 request -> Lite IR 和 Lite result -> V5 response adapter。
+- 将 ClickHouse driver row adapter 放在 `pkg/querier` 基础设施边界。
+- 使用受控配置开关逐步使 `/api/v5/query_range` 走新引擎。
+- 显式识别并拒绝适配器不支持的 V5 字段；迁移期由调用方回落旧引擎。
+- 继续使用现有 metric metadata store 解析 type/temporality，但不将其依赖带入 core。
+- 用 V5 DTO、golden SQL 和 ClickHouse 25.5.6 验证转换、执行和响应整形。
+
+退出条件：
+
+- 开关关闭时原 API 行为不变；开关开启时每个受支持请求只走 Lite engine。
+- 适配器不会忽略不支持的字段、函数或格式选项。
+- Logs、Traces、Metrics、Meter 和 formula 的最小 V5 fixture 可在真实环境返回前端可消费的响应。
+- 兼容层和基础设施层具有直接单测，core 保持无 V5/ClickHouse driver 依赖。
+
+提交锚点：`feat(query): bridge V5 requests to lightweight engine`
+
+## M6：轻量前端查询 UI
 
 目标：使用能力模型驱动新的查询编辑体验，不再让 UI 构造无效组合。
 
@@ -136,7 +158,7 @@ M2 的 Logs 和 Traces compiler 可以分子提交实现。M3 必须在 M2 建�
 
 提交锚点：`feat(frontend): add lightweight telemetry query experience`
 
-## M6：协作验证与切换
+## M7：协作验证与切换
 
 目标：逐个消费者替换旧引擎，并用真实环境证明兼容性。
 
@@ -157,7 +179,7 @@ M2 的 Logs 和 Traces compiler 可以分子提交实现。M3 必须在 M2 建�
 
 提交锚点：`refactor(query): switch core consumers to lightweight engine`
 
-## M7：删除与量化收敛
+## M8：删除与量化收敛
 
 目标：删除被替代的实现，并形成可用于工程评估和论文的数据。
 

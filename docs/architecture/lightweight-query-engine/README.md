@@ -15,6 +15,7 @@
 - [M2：Logs/Traces Schema Catalog 与 Compiler](milestones/m2-log-trace-compiler.md)
 - [M3：Metrics/Meter Compiler](milestones/m3-metrics-meter-compiler.md)
 - [M4：Executor、Result 与基本 Formula](milestones/m4-executor-result.md)
+- [M5：V5 兼容桥与受控 API 接入](milestones/m5-v5-compatibility-bridge.md)
 - [架构决策记录规范](decisions/README.md)
 - [ADR 模板](decisions/000-template.md)
 - [ADR-001：采用受约束的类型化查询语言](decisions/001-constrained-query-language.md)
@@ -23,6 +24,7 @@
 - [ADR-004：Compiler 输出参数化 Statement](decisions/004-parameterized-statement-contract.md)
 - [ADR-005：Metrics/Meter 数据源与双阶段聚合契约](decisions/005-metrics-source-and-aggregation-contract.md)
 - [ADR-006：Executor 与结果扫描边界](decisions/006-execution-and-result-boundary.md)
+- [ADR-007：V5 兼容桥的受控回退](decisions/007-v5-bridge-controlled-fallback.md)
 
 ## 文档状态
 
@@ -35,6 +37,7 @@
 | M2 Logs/Traces Compiler | Complete | 参数化 Catalog/Compiler，已在 ClickHouse 25.5.6 真实 schema 验证 |
 | M3 Metrics/Meter Compiler | Complete | 双阶段聚合、counter rate/increase、explicit Histogram 和 Meter 已真实验证 |
 | M4 Executor/Result | Complete | 可取消并发执行、动态 row 扫描和 arithmetic formula 已真实验证 |
+| M5 V5 兼容桥 | Complete | 认证 API 已验证 Metrics、Meter 与 formula；Logs/Traces 的当前 Collector 数据回读留作 M7 切换门槛 |
 | 机器可读能力矩阵 | Accepted | `capability-matrix.json` 是后续协议和 UI 的约束来源 |
 
 ## 变更规则

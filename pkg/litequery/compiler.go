@@ -381,7 +381,7 @@ func (c Compiler) compileOrder(signal Signal, orders []Order, aggregationAllowed
 func timeRangeCondition(signal Signal, timeRange TimeRange) (string, []any, error) {
 	switch signal {
 	case SignalLogs:
-		return "timestamp >= ? AND timestamp < ?", []any{timeRange.StartMS * 1_000_000, timeRange.EndMS * 1_000_000}, nil
+		return "timestamp >= toUInt64(?) AND timestamp < toUInt64(?)", []any{timeRange.StartMS * 1_000_000, timeRange.EndMS * 1_000_000}, nil
 	case SignalTraces:
 		return "timestamp >= fromUnixTimestamp64Milli(?) AND timestamp < fromUnixTimestamp64Milli(?)", []any{timeRange.StartMS, timeRange.EndMS}, nil
 	default:
@@ -395,10 +395,12 @@ func timeBucket(signal Signal, stepMS int64) (string, []any, error) {
 	}
 	switch signal {
 	case SignalLogs:
-		return "intDiv(timestamp, ?) * ?", []any{stepMS * 1_000_000, stepMS}, nil
+		// Qualifying physical timestamp columns prevents ClickHouse 25.5 from
+		// resolving `timestamp` in GROUP BY to the SELECT output alias.
+		// The physical column is UInt64 nanoseconds; cast placeholders so the
+		// native driver cannot infer signed operands for time arithmetic.
+		return "intDiv(signoz_logs.logs_v2.timestamp, toUInt64(?)) * toUInt64(?)", []any{stepMS * 1_000_000, stepMS}, nil
 	case SignalTraces:
-		// Qualifying the physical column prevents ClickHouse from resolving
-		// `timestamp` to the SELECT alias in the GROUP BY expression.
 		return "intDiv(toUnixTimestamp64Milli(signoz_index_v3.timestamp), ?) * ?", []any{stepMS, stepMS}, nil
 	default:
 		return "", nil, newError(ErrorUnsupported, "signal", "no time bucket mapping for %q", signal)

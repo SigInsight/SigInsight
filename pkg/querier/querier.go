@@ -42,6 +42,7 @@ type querier struct {
 	traceOperatorStmtBuilder qbtypes.TraceOperatorStatementBuilder
 	bucketCache              BucketCache
 	liveDataRefreshSeconds   time.Duration
+	liteQueryEnabled         bool
 }
 
 var _ Querier = (*querier)(nil)
@@ -56,6 +57,7 @@ func New(
 	meterStmtBuilder qbtypes.StatementBuilder[qbtypes.MetricAggregation],
 	traceOperatorStmtBuilder qbtypes.TraceOperatorStatementBuilder,
 	bucketCache BucketCache,
+	liteQueryEnabled bool,
 ) *querier {
 	querierSettings := factory.NewScopedProviderSettings(settings, "github.com/SigNoz/signoz/pkg/querier")
 	return &querier{
@@ -69,6 +71,7 @@ func New(
 		traceOperatorStmtBuilder: traceOperatorStmtBuilder,
 		bucketCache:              bucketCache,
 		liveDataRefreshSeconds:   5,
+		liteQueryEnabled:         liteQueryEnabled,
 	}
 }
 
@@ -120,6 +123,12 @@ func adjustTimeRangeForShift[T any](spec qbtypes.QueryBuilderQuery[T], tr qbtype
 }
 
 func (q *querier) QueryRange(ctx context.Context, orgID valuer.UUID, req *qbtypes.QueryRangeRequest) (*qbtypes.QueryRangeResponse, error) {
+	if q.liteQueryEnabled {
+		response, handled, err := q.queryRangeLite(ctx, req)
+		if handled {
+			return response, err
+		}
+	}
 
 	tmplVars := req.Variables
 	if tmplVars == nil {

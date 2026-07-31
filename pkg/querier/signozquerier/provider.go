@@ -168,5 +168,6 @@ func newProvider(
 		meterStmtBuilder,
 		traceOperatorStmtBuilder,
 		bucketCache,
+		cfg.EnableLightweightEngine,
 	), nil
 }
