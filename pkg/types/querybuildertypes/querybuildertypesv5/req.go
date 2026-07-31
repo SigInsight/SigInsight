@@ -286,7 +286,7 @@ type QueryRangeRequest struct {
 
 // PrepareJSONSchema adds description to the QueryRangeRequest schema.
 func (q *QueryRangeRequest) PrepareJSONSchema(schema *jsonschema.Schema) error {
-	schema.WithDescription("Request body for the v5 query range endpoint. Supports builder queries (traces, logs, metrics), formulas, joins, trace operators, and ClickHouse SQL queries.")
+	schema.WithDescription("Request body for the v5 query range endpoint. Supports builder queries (traces, logs, metrics), formulas, joins, and ClickHouse SQL queries. Retired trace operator requests are decoded for compatibility and rejected before execution.")
 	return nil
 }
 

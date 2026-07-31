@@ -48,7 +48,6 @@ jest.mock('hooks/queryBuilder/useQueryBuilder', () => ({
 	useQueryBuilder: (): Record<string, unknown> => ({
 		handleSetQueryData: (index: number, query: IBuilderQuery): void =>
 			handleSetQueryDataRef.current(index, query),
-		handleSetTraceOperatorData: jest.fn(),
 		handleSetFormulaData: jest.fn(),
 		removeQueryBuilderEntityByIndex: jest.fn(),
 		panelType: 'TIME_SERIES',

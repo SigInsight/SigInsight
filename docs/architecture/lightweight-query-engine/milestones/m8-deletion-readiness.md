@@ -2,6 +2,8 @@
 
 Status: In Progress
 
+关联决策：[ADR-012：在 V5 边界退役 Trace Operator](../decisions/012-retire-trace-operator-at-v5-boundary.md)
+
 ## 目标
 
 在不扩大 Lite 功能边界的前提下，清除 legacy V5 query engine 的生产依赖，并量化
@@ -26,7 +28,7 @@ Status: In Progress
 HTTP /api/v5/query_range
   -> Lite adapter (supported request)
   -> legacy QueryRange fallback (unsupported request)
-       -> builder / raw SQL / Trace Operator / cache / postprocess
+       -> builder / raw SQL / cache / postprocess
 
 Span Percentile -----+-> legacy QueryRange
 Raw Data Export -----/
@@ -42,8 +44,7 @@ Operations 所需的固定多聚合。ClickHouse 25.5.6 不支持绑定 `LIMIT` 
 
 Span Percentile 同样已迁移为单行的 parameterized reader：固定 p50/p90/p99、阈值
 位置和 resource attribute 等值筛选直接执行在 `signoz_index_v3`，并在零 span 时保留
-`NotFound` 响应。Raw Export 使用 offset 和可选 Trace Operator。它们都不是 Lite 的
-遗漏能力，而是 ADR-010 所定义的专用读取边界。
+`NotFound` 响应。它们都不是 Lite 的遗漏能力，而是 ADR-010 所定义的专用读取边界。
 
 ## 删除顺序
 
@@ -62,21 +63,25 @@ Span Percentile 同样已迁移为单行的 parameterized reader：固定 p50/p9
    因而应用中不再有 `/api/v5/query_range` 之外的生产 `Querier.QueryRange` 调用者。
 5. `querier.lightweight_engine_enabled` 已默认开启：core capability 的 Logs、Traces、Metrics
    与 Meter V5 请求默认走 Lite；高级保存查询暂保留受控 fallback，开关仍可用于回归处置。
-6. 收集 Dashboard、Explorer 和 Alert 的生产请求样本；用同一 ClickHouse fixture
+6. Trace Operator 已完成退役：Alert 和 Trace Explorer 不再提供入口，共享 QueryBuilder
+   控件、ANTLR parser、V5 执行器和 trace CTE builder 已删除。为兼容已保存 JSON，V5 DTO
+   仍能解码 `builder_trace_operator`，但 validation 和 Querier 入口都会在任何 SQL 或
+   ClickHouse 调用之前返回稳定的“不再支持”错误。
+7. 收集 Dashboard、Explorer 和 Alert 的生产请求样本；用同一 ClickHouse fixture
    对 Lite 与 legacy 的值、标签、时间桶、分页以及 query-log read rows/read bytes 双跑。
-7. 在 supported UI/default configuration 中移除 legacy fallback；此时不支持的 V5
+8. 在 supported UI/default configuration 中移除 legacy fallback；此时不支持的 V5
    请求必须返回稳定的 capability error。
-8. 通过 production import、路由、动态 import 和生成代码引用检查后，按依赖顺序删除
-   `builder_query`、`clickhouse_query`、`trace_operator_query`、`bucket_cache`、
+9. 通过 production import、路由、动态 import 和生成代码引用检查后，按依赖顺序删除
+   `builder_query`、`clickhouse_query`、`bucket_cache`、
    `postprocess` 及关联前端高级控件、parser、mocks、测试和样式。
 
 ## 当前阻塞项
 
-- 尚未构造 Lite-vs-legacy 的可比较 consumer fixture，因此不能默认开启 Lite 或删除
-  fallback。
+- 尚未构造 Lite-vs-legacy 的可比较 consumer fixture，因此不能删除 fallback。
 - Lite 只实现了 Live Logs 所需的 typed `(timestamp, id)` cursor；V5 opaque cursor 和
   Raw Export 所需的 offset pagination 仍不在 Lite 范围内。
-- legacy Trace Operator 仍由保存查询、前端 parser 和导出路径引用。
+- V5 的 retired Trace Operator DTO 仍保留只读解码和明确拒绝；这是保护保存查询不被
+  静默降级的兼容边界，不是执行依赖。
 
 ## 验收证据
 

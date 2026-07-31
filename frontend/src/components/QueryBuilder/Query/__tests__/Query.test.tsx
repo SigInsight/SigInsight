@@ -110,7 +110,6 @@ describe('QueryBuilder + Query - base render', () => {
 			panelType: PANEL_TYPES.TABLE,
 			isEnabledQuery: true,
 			handleSetQueryData: jest.fn(),
-			handleSetTraceOperatorData: jest.fn(),
 			handleSetFormulaData: jest.fn(),
 			handleSetQueryItemData: jest.fn(),
 			handleSetConfig: jest.fn(),
@@ -119,8 +118,6 @@ describe('QueryBuilder + Query - base render', () => {
 			removeQueryTypeItemByIndex: jest.fn(),
 			addNewBuilderQuery: jest.fn(),
 			addNewFormula: jest.fn(),
-			removeTraceOperator: jest.fn(),
-			addTraceOperator: jest.fn(),
 			cloneQuery: mockCloneQuery,
 			addNewQueryItem: jest.fn(),
 			redirectWithQueryBuilderData: jest.fn(),
@@ -215,7 +212,7 @@ describe('QueryBuilder + Query - base render', () => {
 		const currentQueryBase = baseQBContext.currentQuery as Query;
 		const supersetQueryBase = baseQBContext.supersetQuery as Query;
 
-		mockedUseQueryBuilder.mockReturnValueOnce({
+		mockedUseQueryBuilder.mockReturnValue({
 			...baseQBContext,
 			currentQuery: {
 				...currentQueryBase,

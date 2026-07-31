@@ -34,7 +34,7 @@ parser，但不得返回 V5 `QueryRangeResponse` 或重新建立通用 Query Bui
 
 - legacy V5 删除顺序由外部依赖清零决定，而不是由前端是否已显示 Lite editor 决定；
 - Services/Percentile 的必要多聚合留在小型领域 SQL 中，不污染 Lite 的单聚合模型；
-- Raw Export 的下载入口、API、V5 offset/Trace Operator 导出链已删除；Live Logs
+- Raw Export 的下载入口、API、V5 offset 导出链已删除；Live Logs
   已迁为独立 SSE reader。它使用 Lite 的受限 filter AST、固定原始日志列和
   `(timestamp, id)` 严格游标，不再构造 V5 builder request 或调用 legacy querier；
 - threshold rules 使用独立 `RuleQueryRunner` 执行 Lite query，并在规则超出 capability

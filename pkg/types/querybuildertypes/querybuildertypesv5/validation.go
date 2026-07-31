@@ -587,20 +587,10 @@ func validateQueryEnvelope(envelope QueryEnvelope, opts ...ValidationOption) err
 		}
 		return nil
 	case QueryTypeTraceOperator:
-		spec, ok := envelope.Spec.(QueryBuilderTraceOperator)
-		if !ok {
-			return errors.NewInvalidInputf(
-				errors.CodeInvalidInput,
-				"invalid trace operator spec",
-			)
-		}
-		if spec.Expression == "" {
-			return errors.NewInvalidInputf(
-				errors.CodeInvalidInput,
-				"trace operator expression is required",
-			)
-		}
-		return nil
+		return errors.NewInvalidInputf(
+			errors.CodeInvalidInput,
+			"trace operator queries are no longer supported",
+		)
 	case QueryTypeClickHouseSQL:
 		spec, ok := envelope.Spec.(ClickHouseQuery)
 		if !ok {

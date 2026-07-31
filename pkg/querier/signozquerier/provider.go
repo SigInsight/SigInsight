@@ -89,17 +89,6 @@ func newProvider(
 		telemetryStore,
 	)
 
-	// ADD: Create trace operator statement builder
-	traceOperatorStmtBuilder := telemetrytraces.NewTraceOperatorStatementBuilder(
-		settings,
-		telemetryMetadataStore,
-		traceFieldMapper,
-		traceConditionBuilder,
-		traceStmtBuilder,          // Pass the regular trace statement builder
-		resourceFilterStmtBuilder, // Pass the resource filter statement builder
-		traceAggExprRewriter,
-	)
-
 	// Create log statement builder
 	logFieldMapper := telemetrylogs.NewFieldMapper()
 	logConditionBuilder := telemetrylogs.NewConditionBuilder(logFieldMapper)
@@ -166,7 +155,6 @@ func newProvider(
 		logStmtBuilder,
 		metricStmtBuilder,
 		meterStmtBuilder,
-		traceOperatorStmtBuilder,
 		bucketCache,
 		cfg.EnableLightweightEngine,
 	), nil

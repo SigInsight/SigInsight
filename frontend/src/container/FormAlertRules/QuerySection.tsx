@@ -54,7 +54,6 @@ function QuerySection({
 				initialDataSource: ALERTS_DATA_SOURCE_MAP[alertType],
 				signalSource: signalSource === 'meter' ? 'meter' : '',
 			}}
-			showTraceOperator={alertType === AlertTypes.TRACES_BASED_ALERT}
 			showFunctions={alertType === AlertTypes.LOGS_BASED_ALERT}
 			version={ENTITY_VERSION_V5}
 			onSignalSourceChange={handleSignalSourceChange}

@@ -1565,7 +1565,7 @@ export type Querybuildertypesv5QueryRangeRequestDTOVariables = {
 };
 
 /**
- * Request body for the v5 query range endpoint. Supports builder queries (traces, logs, metrics), formulas, joins, trace operators, and ClickHouse SQL queries.
+ * Request body for the v5 query range endpoint. Supports builder queries (traces, logs, metrics), formulas, joins, and ClickHouse SQL queries. Retired trace operator requests are decoded for compatibility and rejected before execution.
  */
 export interface Querybuildertypesv5QueryRangeRequestDTO {
 	compositeQuery?: Querybuildertypesv5CompositeQueryDTO;

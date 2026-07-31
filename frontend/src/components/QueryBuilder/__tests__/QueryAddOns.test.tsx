@@ -98,7 +98,6 @@ describe('QueryAddOns', () => {
 				showReduceTo
 				panelType={PANEL_TYPES.VALUE}
 				index={0}
-				isForTraceOperator={false}
 			/>,
 		);
 
@@ -121,7 +120,6 @@ describe('QueryAddOns', () => {
 				showReduceTo={false}
 				panelType={PANEL_TYPES.TIME_SERIES}
 				index={0}
-				isForTraceOperator={false}
 			/>,
 		);
 
@@ -136,7 +134,6 @@ describe('QueryAddOns', () => {
 				showReduceTo={false}
 				panelType={PANEL_TYPES.LIST}
 				index={0}
-				isForTraceOperator={false}
 			/>,
 		);
 
@@ -151,7 +148,6 @@ describe('QueryAddOns', () => {
 				showReduceTo={false}
 				panelType={PANEL_TYPES.TIME_SERIES}
 				index={0}
-				isForTraceOperator={false}
 			/>,
 		);
 
@@ -175,7 +171,6 @@ describe('QueryAddOns', () => {
 				showReduceTo={false}
 				panelType={PANEL_TYPES.TIME_SERIES}
 				index={0}
-				isForTraceOperator={false}
 			/>,
 		);
 
@@ -193,7 +188,6 @@ describe('QueryAddOns', () => {
 				showReduceTo
 				panelType={PANEL_TYPES.TIME_SERIES}
 				index={0}
-				isForTraceOperator={false}
 			/>,
 		);
 
@@ -208,7 +202,6 @@ describe('QueryAddOns', () => {
 				showReduceTo
 				panelType={PANEL_TYPES.TIME_SERIES}
 				index={0}
-				isForTraceOperator={false}
 			/>,
 		);
 
@@ -230,7 +223,6 @@ describe('QueryAddOns', () => {
 				showReduceTo
 				panelType={PANEL_TYPES.TIME_SERIES}
 				index={0}
-				isForTraceOperator={false}
 			/>,
 		);
 
@@ -281,7 +273,6 @@ describe('QueryAddOns', () => {
 				showReduceTo={false}
 				panelType={PANEL_TYPES.TIME_SERIES}
 				index={0}
-				isForTraceOperator={false}
 			/>,
 		);
 
@@ -308,7 +299,6 @@ describe('QueryAddOns', () => {
 				showReduceTo={false}
 				panelType={PANEL_TYPES.TIME_SERIES}
 				index={0}
-				isForTraceOperator={false}
 			/>,
 		);
 

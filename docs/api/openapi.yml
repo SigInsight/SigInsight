@@ -1320,8 +1320,9 @@ components:
       type: object
     Querybuildertypesv5QueryRangeRequest:
       description: Request body for the v5 query range endpoint. Supports builder
-        queries (traces, logs, metrics), formulas, joins, trace operators, and ClickHouse
-        SQL queries.
+        queries (traces, logs, metrics), formulas, joins, and ClickHouse SQL queries.
+        Retired trace operator requests are decoded for compatibility and rejected
+        before execution.
       properties:
         compositeQuery:
           $ref: '#/components/schemas/Querybuildertypesv5CompositeQuery'

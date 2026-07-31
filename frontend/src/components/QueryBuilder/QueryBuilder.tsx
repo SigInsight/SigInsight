@@ -18,13 +18,11 @@ import { LiteQueryBuilder } from 'features/lite-query/LiteQueryBuilder';
 import { isLightweightQueryEditorEnabled } from 'features/lite-query/rollout';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
 import { AppContext } from 'providers/App/App';
-import { IBuilderTraceOperator } from 'types/api/queryBuilder/queryBuilderData';
 import { DataSource } from 'types/common/queryBuilder';
 
 import { clearPreviousQuery } from './Query/previousQuery.utils';
 import { Query } from './Query/Query';
 import QueryFooter from './Query/QueryFooter/QueryFooter';
-import TraceOperator from './Query/TraceOperator/TraceOperator';
 import { QueryBuilderProvider } from './QueryBuilderContext';
 
 import './QueryBuilder.styles.scss';
@@ -36,7 +34,6 @@ function LegacyQueryBuilder({
 	queryComponents,
 	isListViewPanel = false,
 	showOnlyWhereClause = false,
-	showTraceOperator = false,
 	version,
 	onSignalSourceChange,
 	signalSourceChangeEnabled = false,
@@ -47,7 +44,6 @@ function LegacyQueryBuilder({
 		addNewBuilderQuery,
 		addNewFormula,
 		handleSetConfig,
-		addTraceOperator,
 		panelType,
 		initialDataSource,
 		handleRunQuery,
@@ -86,10 +82,7 @@ function LegacyQueryBuilder({
 		};
 	}, []);
 
-	const isMultiQueryAllowed = useMemo(
-		() => !isListViewPanel || showTraceOperator,
-		[showTraceOperator, isListViewPanel],
-	);
+	const isMultiQueryAllowed = !isListViewPanel;
 
 	const listViewLogFilterConfigs: QueryBuilderProps['filterConfigs'] = useMemo(() => {
 		const config: QueryBuilderProps['filterConfigs'] = {
@@ -134,41 +127,9 @@ function LegacyQueryBuilder({
 		listViewTracesFilterConfigs,
 	]);
 
-	const traceOperator = useMemo((): IBuilderTraceOperator | undefined => {
-		if (
-			currentQuery.builder.queryTraceOperator &&
-			currentQuery.builder.queryTraceOperator.length > 0
-		) {
-			return currentQuery.builder.queryTraceOperator[0];
-		}
+	const shouldShowFooter = !showOnlyWhereClause && !isListViewPanel;
 
-		return undefined;
-	}, [currentQuery.builder.queryTraceOperator]);
-
-	const hasAtLeastOneTraceQuery = useMemo(
-		() =>
-			currentQuery.builder.queryData.some(
-				(query) => query.dataSource === DataSource.TRACES,
-			),
-		[currentQuery.builder.queryData],
-	);
-
-	const hasTraceOperator = useMemo(
-		() => showTraceOperator && hasAtLeastOneTraceQuery && Boolean(traceOperator),
-		[showTraceOperator, traceOperator, hasAtLeastOneTraceQuery],
-	);
-
-	const shouldShowFooter = useMemo(
-		() =>
-			(!showOnlyWhereClause && !isListViewPanel) ||
-			(currentDataSource === DataSource.TRACES && showTraceOperator),
-		[isListViewPanel, showTraceOperator, showOnlyWhereClause, currentDataSource],
-	);
-
-	const showQueryList = useMemo(
-		() => (!showOnlyWhereClause && !isListViewPanel) || showTraceOperator,
-		[isListViewPanel, showOnlyWhereClause, showTraceOperator],
-	);
+	const showQueryList = !showOnlyWhereClause && !isListViewPanel;
 
 	const showFormula = useMemo(() => {
 		if (currentDataSource === DataSource.TRACES) {
@@ -177,11 +138,6 @@ function LegacyQueryBuilder({
 
 		return true;
 	}, [isListViewPanel, currentDataSource]);
-
-	const showAddTraceOperator = useMemo(
-		() => showTraceOperator && !traceOperator && hasAtLeastOneTraceQuery,
-		[showTraceOperator, traceOperator, hasAtLeastOneTraceQuery],
-	);
 
 	const handleKeyDown = useCallback(
 		(e: React.KeyboardEvent<HTMLDivElement>): void => {
@@ -215,8 +171,6 @@ function LegacyQueryBuilder({
 							filterConfigs={queryFilterConfigs}
 							queryComponents={queryComponents}
 							isMultiQueryAllowed={isMultiQueryAllowed}
-							showTraceOperator={showTraceOperator}
-							hasTraceOperator={hasTraceOperator}
 							version={version}
 							isAvailableToDisable={false}
 							queryVariant={config?.queryVariant || 'dropdown'}
@@ -240,8 +194,6 @@ function LegacyQueryBuilder({
 								version={version}
 								isMultiQueryAllowed={isMultiQueryAllowed}
 								isAvailableToDisable={false}
-								showTraceOperator={showTraceOperator}
-								hasTraceOperator={hasTraceOperator}
 								queryVariant={config?.queryVariant || 'dropdown'}
 								showOnlyWhereClause={showOnlyWhereClause}
 								isListViewPanel={isListViewPanel}
@@ -282,15 +234,6 @@ function LegacyQueryBuilder({
 							showAddFormula={showFormula}
 							addNewBuilderQuery={addNewBuilderQuery}
 							addNewFormula={addNewFormula}
-							addTraceOperator={addTraceOperator}
-							showAddTraceOperator={showAddTraceOperator}
-						/>
-					)}
-
-					{hasTraceOperator && (
-						<TraceOperator
-							isListViewPanel={isListViewPanel}
-							traceOperator={traceOperator as IBuilderTraceOperator}
 						/>
 					)}
 				</div>

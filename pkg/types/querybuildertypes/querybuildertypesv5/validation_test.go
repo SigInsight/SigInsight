@@ -284,7 +284,7 @@ func TestQueryRangeRequest_ValidateAllQueriesNotDisabled(t *testing.T) {
 			errMsg:  "all queries are disabled - at least one query must be enabled",
 		},
 		{
-			name: "all trace operator queries disabled should return error",
+			name: "trace operator query is rejected even when disabled",
 			request: QueryRangeRequest{
 				Start:       1640995200000,
 				End:         1640998800000,
@@ -303,7 +303,7 @@ func TestQueryRangeRequest_ValidateAllQueriesNotDisabled(t *testing.T) {
 				},
 			},
 			wantErr: true,
-			errMsg:  "all queries are disabled - at least one query must be enabled",
+			errMsg:  "trace operator queries are no longer supported",
 		},
 	}
 
@@ -504,7 +504,7 @@ func TestQueryRangeRequest_ValidateCompositeQuery(t *testing.T) {
 			errMsg:  "ClickHouse SQL query is required",
 		},
 		{
-			name: "trace operator with empty expression should return error",
+			name: "trace operator with empty expression is retired before syntax validation",
 			request: QueryRangeRequest{
 				Start:       1640995200000,
 				End:         1640998800000,
@@ -522,7 +522,7 @@ func TestQueryRangeRequest_ValidateCompositeQuery(t *testing.T) {
 				},
 			},
 			wantErr: true,
-			errMsg:  "expression is required",
+			errMsg:  "trace operator queries are no longer supported",
 		},
 		{
 			name: "valid clickhouse query should pass",
@@ -661,7 +661,7 @@ func TestValidateQueryEnvelope(t *testing.T) {
 			wantErr:     false,
 		},
 		{
-			name: "valid trace operator",
+			name: "trace operator is retired",
 			envelope: QueryEnvelope{
 				Type: QueryTypeTraceOperator,
 				Spec: QueryBuilderTraceOperator{
@@ -670,10 +670,11 @@ func TestValidateQueryEnvelope(t *testing.T) {
 				},
 			},
 			requestType: RequestTypeTimeSeries,
-			wantErr:     false,
+			wantErr:     true,
+			errMsg:      "trace operator queries are no longer supported",
 		},
 		{
-			name: "trace operator with empty expression should fail",
+			name: "retired trace operator rejects before expression validation",
 			envelope: QueryEnvelope{
 				Type: QueryTypeTraceOperator,
 				Spec: QueryBuilderTraceOperator{
@@ -683,7 +684,7 @@ func TestValidateQueryEnvelope(t *testing.T) {
 			},
 			requestType: RequestTypeTimeSeries,
 			wantErr:     true,
-			errMsg:      "expression is required",
+			errMsg:      "trace operator queries are no longer supported",
 		},
 		{
 			name: "clickhouse with empty query should fail",

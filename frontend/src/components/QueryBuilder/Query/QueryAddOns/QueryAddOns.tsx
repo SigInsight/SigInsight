@@ -123,14 +123,12 @@ function QueryAddOns({
 	showReduceTo,
 	panelType,
 	index,
-	isForTraceOperator = false,
 }: {
 	query: IBuilderQuery;
 	isListViewPanel: boolean;
 	showReduceTo: boolean;
 	panelType: PANEL_TYPES | null;
 	index: number;
-	isForTraceOperator?: boolean;
 }): JSX.Element {
 	const [addOns, setAddOns] = useState<AddOn[]>(ADD_ONS);
 
@@ -143,7 +141,6 @@ function QueryAddOns({
 		index,
 		query,
 		entityVersion: '',
-		isForTraceOperator,
 	});
 
 	const { handleSetQueryData } = useQueryBuilder();

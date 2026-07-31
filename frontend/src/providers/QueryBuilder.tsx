@@ -18,14 +18,12 @@ import {
 	initialClickHouseData,
 	initialFormulaBuilderFormValues,
 	initialQueriesMap,
-	initialQueryBuilderFormTraceOperatorValues,
 	initialQueryBuilderFormValuesMap,
 	initialQueryState,
 	initialSingleQueryMap,
 	MAX_FORMULAS,
 	MAX_QUERIES,
 	PANEL_TYPES,
-	TRACE_OPERATOR_QUERY_NAME,
 } from 'constants/queryBuilder';
 import ROUTES from 'constants/routes';
 import {
@@ -47,7 +45,6 @@ import { BaseAutocompleteData } from 'types/api/queryBuilder/queryAutocompleteRe
 import {
 	IBuilderFormula,
 	IBuilderQuery,
-	IBuilderTraceOperator,
 	IClickHouseQuery,
 	Query,
 	QueryState,
@@ -75,7 +72,6 @@ export const QueryBuilderContext = createContext<QueryBuilderContextType>({
 	panelType: PANEL_TYPES.TIME_SERIES,
 	isEnabledQuery: false,
 	handleSetQueryData: () => {},
-	handleSetTraceOperatorData: () => {},
 	handleSetFormulaData: () => {},
 	handleSetQueryItemData: () => {},
 	handleSetConfig: () => {},
@@ -85,8 +81,6 @@ export const QueryBuilderContext = createContext<QueryBuilderContextType>({
 	addNewBuilderQuery: () => {},
 	cloneQuery: () => {},
 	addNewFormula: () => {},
-	addTraceOperator: () => {},
-	removeTraceOperator: () => {},
 	addNewQueryItem: () => {},
 	redirectWithQueryBuilderData: () => {},
 	handleRunQuery: () => {},
@@ -188,10 +182,9 @@ export function QueryBuilderProvider({
 					...initialFormulaBuilderFormValues,
 					...item,
 				})),
-				queryTraceOperator: query.builder.queryTraceOperator?.map((item) => ({
-					...initialQueryBuilderFormTraceOperatorValues,
-					...item,
-				})),
+				// Retain persisted values until the V5 boundary rejects the retired
+				// feature; the editor deliberately exposes no way to create or alter them.
+				queryTraceOperator: query.builder.queryTraceOperator || [],
 			};
 
 			const setupedQueryData = builder.queryData.map((item) => {
@@ -400,11 +393,8 @@ export function QueryBuilderProvider({
 	const removeQueryBuilderEntityByIndex = useCallback(
 		(type: keyof QueryBuilderData, index: number) => {
 			setCurrentQuery((prevState) => {
-				const currentArray: (
-					| IBuilderQuery
-					| IBuilderFormula
-					| IBuilderTraceOperator
-				)[] = prevState.builder[type];
+				const currentArray: (IBuilderQuery | IBuilderFormula)[] =
+					prevState.builder[type];
 
 				const filteredArray = currentArray.filter((_, i) => index !== i);
 
@@ -418,11 +408,8 @@ export function QueryBuilderProvider({
 			});
 			// eslint-disable-next-line sonarjs/no-identical-functions
 			setSupersetQuery((prevState) => {
-				const currentArray: (
-					| IBuilderQuery
-					| IBuilderFormula
-					| IBuilderTraceOperator
-				)[] = prevState.builder[type];
+				const currentArray: (IBuilderQuery | IBuilderFormula)[] =
+					prevState.builder[type];
 
 				const filteredArray = currentArray.filter((_, i) => index !== i);
 
@@ -688,68 +675,6 @@ export function QueryBuilderProvider({
 		});
 	}, [createNewBuilderFormula]);
 
-	const addTraceOperator = useCallback((expression = '') => {
-		const trimmed = (expression || '').trim();
-
-		setCurrentQuery((prevState) => {
-			const existing = prevState.builder.queryTraceOperator?.[0] || null;
-			const updated: IBuilderTraceOperator = existing
-				? { ...existing, expression: trimmed }
-				: {
-						...initialQueryBuilderFormTraceOperatorValues,
-						queryName: TRACE_OPERATOR_QUERY_NAME,
-						expression: trimmed,
-				  };
-
-			return {
-				...prevState,
-				builder: {
-					...prevState.builder,
-					// enforce single trace operator and replace only expression
-					queryTraceOperator: [updated],
-				},
-			};
-		});
-		// eslint-disable-next-line sonarjs/no-identical-functions
-		setSupersetQuery((prevState) => {
-			const existing = prevState.builder.queryTraceOperator?.[0] || null;
-			const updated: IBuilderTraceOperator = existing
-				? { ...existing, expression: trimmed }
-				: {
-						...initialQueryBuilderFormTraceOperatorValues,
-						queryName: TRACE_OPERATOR_QUERY_NAME,
-						expression: trimmed,
-				  };
-
-			return {
-				...prevState,
-				builder: {
-					...prevState.builder,
-					// enforce single trace operator and replace only expression
-					queryTraceOperator: [updated],
-				},
-			};
-		});
-	}, []);
-
-	const removeTraceOperator = useCallback(() => {
-		setCurrentQuery((prevState) => ({
-			...prevState,
-			builder: {
-				...prevState.builder,
-				queryTraceOperator: [],
-			},
-		}));
-		// eslint-disable-next-line sonarjs/no-identical-functions
-		setSupersetQuery((prevState) => ({
-			...prevState,
-			builder: {
-				...prevState.builder,
-				queryTraceOperator: [],
-			},
-		}));
-	}, []);
-
 	const updateQueryBuilderData: <T>(
 		arr: T[],
 		index: number,
@@ -854,43 +779,6 @@ export function QueryBuilderProvider({
 			});
 		},
 		[updateQueryBuilderData, updateSuperSetQueryBuilderData],
-	);
-
-	const handleSetTraceOperatorData = useCallback(
-		(index: number, traceOperatorData: IBuilderTraceOperator): void => {
-			setCurrentQuery((prevState) => {
-				const updatedTraceOperatorBuilderData = updateQueryBuilderData(
-					prevState.builder.queryTraceOperator,
-					index,
-					traceOperatorData,
-				);
-
-				return {
-					...prevState,
-					builder: {
-						...prevState.builder,
-						queryTraceOperator: updatedTraceOperatorBuilderData,
-					},
-				};
-			});
-			// eslint-disable-next-line sonarjs/no-identical-functions
-			setSupersetQuery((prevState) => {
-				const updatedTraceOperatorBuilderData = updateQueryBuilderData(
-					prevState.builder.queryTraceOperator,
-					index,
-					traceOperatorData,
-				);
-
-				return {
-					...prevState,
-					builder: {
-						...prevState.builder,
-						queryTraceOperator: updatedTraceOperatorBuilderData,
-					},
-				};
-			});
-		},
-		[updateQueryBuilderData],
 	);
 
 	const handleSetFormulaData = useCallback(
@@ -1173,7 +1061,6 @@ export function QueryBuilderProvider({
 			panelType,
 			isEnabledQuery,
 			handleSetQueryData,
-			handleSetTraceOperatorData,
 			handleSetFormulaData,
 			handleSetQueryItemData,
 			handleSetConfig,
@@ -1183,8 +1070,6 @@ export function QueryBuilderProvider({
 			cloneQuery,
 			addNewBuilderQuery,
 			addNewFormula,
-			addTraceOperator,
-			removeTraceOperator,
 			addNewQueryItem,
 			redirectWithQueryBuilderData,
 			handleRunQuery,
@@ -1205,7 +1090,6 @@ export function QueryBuilderProvider({
 			panelType,
 			isEnabledQuery,
 			handleSetQueryData,
-			handleSetTraceOperatorData,
 			handleSetFormulaData,
 			handleSetQueryItemData,
 			handleSetConfig,
@@ -1215,8 +1099,6 @@ export function QueryBuilderProvider({
 			cloneQuery,
 			addNewBuilderQuery,
 			addNewFormula,
-			addTraceOperator,
-			removeTraceOperator,
 			addNewQueryItem,
 			redirectWithQueryBuilderData,
 			handleRunQuery,

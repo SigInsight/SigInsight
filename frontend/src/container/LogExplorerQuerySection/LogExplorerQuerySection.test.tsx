@@ -228,7 +228,6 @@ describe('LogExplorerQuerySection', () => {
 			handleSetConfig: jest.fn() as jest.MockedFunction<
 				(panelType: PANEL_TYPES, dataSource: DataSource | null) => void
 			>,
-			addTraceOperator: jest.fn() as jest.MockedFunction<() => void>,
 		};
 
 		// Mock useGetPanelTypesQueryParam
