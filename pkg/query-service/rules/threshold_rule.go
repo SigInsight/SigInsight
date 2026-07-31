@@ -11,7 +11,6 @@ import (
 
 	"github.com/SigNoz/signoz/pkg/contextlinks"
 	"github.com/SigNoz/signoz/pkg/errors"
-	v5querier "github.com/SigNoz/signoz/pkg/querier"
 	"github.com/SigNoz/signoz/pkg/query-service/interfaces"
 	"github.com/SigNoz/signoz/pkg/query-service/model"
 	"github.com/SigNoz/signoz/pkg/query-service/utils/labels"
@@ -28,7 +27,7 @@ import (
 
 type ThresholdRule struct {
 	*BaseRule
-	querier v5querier.Querier
+	runner QueryRunner
 }
 
 var _ Rule = (*ThresholdRule)(nil)
@@ -38,7 +37,7 @@ func NewThresholdRule(
 	orgID valuer.UUID,
 	p *ruletypes.PostableRule,
 	reader interfaces.RuleStateHistoryReader,
-	querier v5querier.Querier,
+	runner QueryRunner,
 	logger *slog.Logger,
 	opts ...RuleOption,
 ) (*ThresholdRule, error) {
@@ -53,7 +52,7 @@ func NewThresholdRule(
 
 	return &ThresholdRule{
 		BaseRule: baseRule,
-		querier:  querier,
+		runner:   runner,
 	}, nil
 }
 
@@ -225,7 +224,7 @@ func (r *ThresholdRule) buildAndRunQuery(ctx context.Context, orgID valuer.UUID,
 		instrumentationtypes.CodeFunctionName: "buildAndRunQuery",
 	})
 
-	v5Result, err := r.querier.QueryRange(ctx, orgID, params)
+	v5Result, err := r.runner.Execute(ctx, orgID, params)
 	if err != nil {
 		r.logger.ErrorContext(ctx, "failed to get alert query result", "rule_name", r.Name(), errors.Attr(err))
 		return nil, fmt.Errorf("internal error while querying")

@@ -37,5 +37,7 @@ parser，但不得返回 V5 `QueryRangeResponse` 或重新建立通用 Query Bui
 - Raw Export 的下载入口、API、V5 offset/Trace Operator 导出链已删除；Live Logs
   已迁为独立 SSE reader。它使用 Lite 的受限 filter AST、固定原始日志列和
   `(timestamp, id)` 严格游标，不再构造 V5 builder request 或调用 legacy querier；
+- threshold rules 使用独立 `RuleQueryRunner` 执行 Lite query，并在规则超出 capability
+  时显式拒绝。规则持久化格式和告警结果格式保持 V5 兼容，不构成 legacy 执行依赖；
 - 当所有专用调用迁出后，legacy 的 builder/compiler/cache/postprocess 才能按可验证的
   依赖图删除。

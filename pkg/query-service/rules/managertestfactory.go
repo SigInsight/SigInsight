@@ -18,10 +18,20 @@ import (
 	"github.com/SigNoz/signoz/pkg/sqlstore/sqlstoretest"
 	"github.com/SigNoz/signoz/pkg/telemetrystore"
 	"github.com/SigNoz/signoz/pkg/telemetrystore/telemetrystoretest"
+	qbtypes "github.com/SigNoz/signoz/pkg/types/querybuildertypes/querybuildertypesv5"
+	"github.com/SigNoz/signoz/pkg/valuer"
 	"github.com/stretchr/testify/require"
 )
 
 type queryMatcherAny struct {
+}
+
+// legacyQueryRunner is test-only compatibility scaffolding for existing rule
+// fixtures. Production managers are constructed with NewLiteQueryRunner.
+type legacyQueryRunner struct{ querier.Querier }
+
+func (r legacyQueryRunner) Execute(ctx context.Context, orgID valuer.UUID, request *qbtypes.QueryRangeRequest) (*qbtypes.QueryRangeResponse, error) {
+	return r.QueryRange(ctx, orgID, request)
 }
 
 func (m *queryMatcherAny) Match(x string, y string) error {
@@ -111,7 +121,7 @@ func NewTestManager(t *testing.T, testOpts *TestManagerOptions) *Manager {
 		Logger:       instrumentationtest.New().Logger(),
 		Cache:        cacheObj,
 		Alertmanager: fAlert,
-		Querier:      mockQuerier,
+		QueryRunner:  legacyQueryRunner{mockQuerier},
 		Reader:       reader,
 		SqlStore:     sqlStore, // SQLStore needed for SendAlerts to query organizations
 	}

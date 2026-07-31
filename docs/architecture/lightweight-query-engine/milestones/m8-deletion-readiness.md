@@ -52,8 +52,10 @@ Span Percentile 同样已迁移为单行的 parameterized reader：固定 p50/p9
 2. Raw Export 已作为非核心高级能力下线：删除下载入口和 `/api/v5/export_raw_data`，
    不再保留 offset/Trace Operator 导出链。Live Logs 已迁为独立 SSE reader：固定六个
    原始日志列和 500 行批次，复用 Lite filter AST，并以 `(timestamp, id)` 严格游标轮询。
-3. 对 threshold rules 强制 Lite capability validation，迁移基本查询，拒绝高级保存
-   规则并补保存、预览、评估和恢复测试。
+3. threshold rules 已通过独立 `RuleQueryRunner` 迁至 Lite：保存的 V5 定义在执行时完成
+   元数据补全、Lite 编译和 V5 结果适配；raw SQL、Trace Operator 等超出 capability 的
+   规则返回稳定的不支持错误，不能回退 legacy。现有测试工厂保留 test-only legacy adapter，
+   以逐步替换历史 fixture。
 4. 收集 Dashboard、Explorer 和 Alert 的生产请求样本；用同一 ClickHouse fixture
    对 Lite 与 legacy 的值、标签、时间桶、分页以及 query-log read rows/read bytes 双跑。
 5. 在 supported UI/default configuration 中移除 legacy fallback；此时不支持的 V5

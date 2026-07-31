@@ -31,7 +31,7 @@ type staticV5Querier struct {
 	err      error
 }
 
-func (q staticV5Querier) QueryRange(context.Context, valuer.UUID, *qbtypes.QueryRangeRequest) (*qbtypes.QueryRangeResponse, error) {
+func (q staticV5Querier) Execute(context.Context, valuer.UUID, *qbtypes.QueryRangeRequest) (*qbtypes.QueryRangeResponse, error) {
 	return q.response, q.err
 }
 
