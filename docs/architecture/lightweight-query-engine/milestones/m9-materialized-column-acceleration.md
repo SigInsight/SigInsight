@@ -80,9 +80,10 @@ Catalog.Resolve
 
 ## 实现结果
 
-进行中：Trace 9 项 manifest、value/exists SQL 路径和 Map fallback 的单元测试已实现；
+Trace 9 项 manifest、value/exists SQL 路径和 Map fallback 的单元测试已实现；
 `tests/integration/scripts/run-materialized-catalog-integration.sh` 已通过 Collector
-migration、认证 API 和 query-log 物理列断言。待完成可重复的有代表性数据集性能对比。
+migration、认证 API 和 query-log 物理列断言。可选的 10k/100k 合成数据基准已经验证
+Map 与物化列的物理读取路径；待真实 workload 的同口径报告再评估低频列删除候选。
 
 ## 删除内容
 
@@ -90,8 +91,9 @@ migration、认证 API 和 query-log 物理列断言。待完成可重复的有�
 
 ## 度量变化
 
-- 提供可重复的 Map vs 物化列 p50/p95 延迟、read rows、read bytes 采样脚本；当前
-  单行正确性 fixture 不能外推性能结论。
+- `M9_MATERIALIZED_BENCHMARK_ROWS=100000` 可选执行 Map vs 物化列 p50/p95 延迟、
+  `read_rows`、`read_bytes` 采样；合成数据仅用于物理路径诊断，生产删除决策仍需
+  真实 workload 的相同报告。
 - 记录 Catalog 新增行数与测试文件数。
 
 ## 残余风险与后续任务

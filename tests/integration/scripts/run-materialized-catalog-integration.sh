@@ -15,3 +15,8 @@ make -C "${collector_root}" test-migration-integration
 cd "${siginsight_root}/tests/integration"
 uv run pytest --clickhouse-version=25.5.6 -vv -s \
 	src/compat/04_materialized_catalog.py
+
+if [[ -n "${M9_MATERIALIZED_BENCHMARK_ROWS:-}" ]]; then
+	uv run pytest --clickhouse-version=25.5.6 -vv -s \
+		src/compat/05_materialized_catalog_benchmark.py
+fi
