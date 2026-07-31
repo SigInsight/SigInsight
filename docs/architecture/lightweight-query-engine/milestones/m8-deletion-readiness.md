@@ -30,7 +30,8 @@ HTTP /api/v5/query_range
 
 Span Percentile -----+-> legacy QueryRange
 Raw Data Export -----/
-Threshold rules -----> QueryRange (only Lite subset is a target)
+Threshold rules -----+-> Lite RuleQueryRunner
+API Monitoring ------/ (removed as non-core)
 ```
 
 Services 已迁移为专用的 parameterized reader，直接读取 `signoz_index_v3` 和
@@ -56,11 +57,14 @@ Span Percentile 同样已迁移为单行的 parameterized reader：固定 p50/p9
    元数据补全、Lite 编译和 V5 结果适配；raw SQL、Trace Operator 等超出 capability 的
    规则返回稳定的不支持错误，不能回退 legacy。现有测试工厂保留 test-only legacy adapter，
    以逐步替换历史 fixture。
-4. 收集 Dashboard、Explorer 和 Alert 的生产请求样本；用同一 ClickHouse fixture
+4. `/api/v5/api-monitoring/overview/*` 是无前端调用的第三方 domain overview API，依赖
+   多聚合 legacy translator。它不在核心 UI 范围内，路由、translator、DTO 和测试已删除；
+   因而应用中不再有 `/api/v5/query_range` 之外的生产 `Querier.QueryRange` 调用者。
+5. 收集 Dashboard、Explorer 和 Alert 的生产请求样本；用同一 ClickHouse fixture
    对 Lite 与 legacy 的值、标签、时间桶、分页以及 query-log read rows/read bytes 双跑。
-5. 在 supported UI/default configuration 中移除 legacy fallback；此时不支持的 V5
+6. 在 supported UI/default configuration 中移除 legacy fallback；此时不支持的 V5
    请求必须返回稳定的 capability error。
-6. 通过 production import、路由、动态 import 和生成代码引用检查后，按依赖顺序删除
+7. 通过 production import、路由、动态 import 和生成代码引用检查后，按依赖顺序删除
    `builder_query`、`clickhouse_query`、`trace_operator_query`、`bucket_cache`、
    `postprocess` 及关联前端高级控件、parser、mocks、测试和样式。
 

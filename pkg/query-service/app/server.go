@@ -248,7 +248,6 @@ func (s *Server) createPublicServer(api *APIHandler, web web.Web) (*http.Server,
 
 	api.RegisterRoutes(r, am)
 	api.RegisterQueryRangeV5Routes(r, am)
-	api.RegisterAPIMonitoringRoutes(r, am)
 	api.MetricExplorerRoutes(r, am)
 	api.RegisterTraceFunnelsRoutes(r, am)
 
