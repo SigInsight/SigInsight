@@ -45,7 +45,7 @@ func (c Compiler) compileNumericMetric(plan Plan, source MetricSource, aggregati
 
 	pointWhere := "points.metric_name = ? AND lower(points.temporality) = lower(?) AND points.unix_milli >= ? AND points.unix_milli < ?"
 	pointArgs := []any{metricName, temporality, plan.Range.StartMS, plan.Range.EndMS}
-	perSeries, requiresWindow, err := numericTemporalExpression(aggregation, plan)
+	perSeries, requiresWindow, err := numericTemporalExpression(aggregation)
 	if err != nil {
 		return Statement{}, err
 	}
@@ -69,7 +69,6 @@ func (c Compiler) compileNumericMetric(plan Plan, source MetricSource, aggregati
 		if base == "" {
 			return Statement{}, newError(ErrorInvalidAggregation, "query.timeAggregation", "unsupported counter aggregation %q", aggregation.TimeAggregation)
 		}
-		seriesValue = "bucket_value"
 		perSeries = "bucket_value"
 		if aggregation.Temporality == TemporalityCumulative {
 			previousValue := "lagInFrame(bucket_value, 1) OVER counter_window"
@@ -443,7 +442,7 @@ func metricBucket(plan Plan) (string, []any, error) {
 	return "intDiv(points.unix_milli, ?) * ?", []any{plan.StepMS, plan.StepMS}, nil
 }
 
-func numericTemporalExpression(aggregation MetricAggregation, plan Plan) (string, bool, error) {
+func numericTemporalExpression(aggregation MetricAggregation) (string, bool, error) {
 	switch aggregation.TimeAggregation {
 	case TimeAggregateLatest:
 		return "argMax(points.value, points.unix_milli)", false, nil

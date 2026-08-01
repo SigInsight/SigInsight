@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/SigNoz/signoz/pkg/errors"
 	"github.com/SigNoz/signoz/pkg/litequery"
 	"github.com/SigNoz/signoz/pkg/types/metrictypes"
 	qbtypes "github.com/SigNoz/signoz/pkg/types/querybuildertypes/querybuildertypesv5"
@@ -36,14 +37,14 @@ type MetricMetadata struct {
 // Unsupported features return UnsupportedError rather than being ignored.
 func ToLite(request *qbtypes.QueryRangeRequest, metadata MetricMetadata) (litequery.Request, error) {
 	if request == nil {
-		return litequery.Request{}, fmt.Errorf("V5 request is required")
+		return litequery.Request{}, errors.NewInvalidInputf(errors.CodeInvalidInput, "V5 request is required")
 	}
 	resultType, err := resultTypeFromV5(request.RequestType)
 	if err != nil {
 		return litequery.Request{}, err
 	}
 	if request.Start > uint64(^uint64(0)>>1) || request.End > uint64(^uint64(0)>>1) {
-		return litequery.Request{}, fmt.Errorf("query range exceeds supported millisecond range")
+		return litequery.Request{}, errors.NewInvalidInputf(errors.CodeInvalidInput, "query range exceeds supported millisecond range")
 	}
 	result := litequery.Request{
 		Range:      litequery.TimeRange{StartMS: int64(request.Start), EndMS: int64(request.End)},
@@ -170,7 +171,7 @@ func builderToLite(spec any, resultType litequery.ResultType, metadata MetricMet
 
 func commonToLite(name string, filter *qbtypes.Filter, selectFields []telemetrytypes.TelemetryFieldKey, groupBy []qbtypes.GroupByKey, order []qbtypes.OrderBy, limit, offset int, cursor string, limitBy *qbtypes.LimitBy, having *qbtypes.Having, secondary []qbtypes.SecondaryAggregation, functions []qbtypes.Function, signal litequery.Signal) (litequery.CommonQuery, error) {
 	if limit < 0 || offset < 0 {
-		return litequery.CommonQuery{}, fmt.Errorf("query limit and offset must not be negative")
+		return litequery.CommonQuery{}, errors.NewInvalidInputf(errors.CodeInvalidInput, "query limit and offset must not be negative")
 	}
 	if limitBy != nil || len(secondary) != 0 || (having != nil && strings.TrimSpace(having.Expression) != "") {
 		return litequery.CommonQuery{}, unsupported("limitBy, secondary aggregation, or arbitrary having")

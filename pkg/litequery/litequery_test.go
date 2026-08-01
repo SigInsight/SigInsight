@@ -1,9 +1,10 @@
 package litequery
 
 import (
-	"errors"
 	"math"
 	"testing"
+
+	"github.com/SigNoz/signoz/pkg/errors"
 )
 
 func TestValidateSupportedRequests(t *testing.T) {

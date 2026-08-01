@@ -1,7 +1,6 @@
 package liteadapter
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 
@@ -291,8 +290,4 @@ func fieldType(dataType telemetrytypes.FieldDataType, fallback litequery.ValueTy
 	default:
 		return "", unsupported("field type " + dataType.StringValue())
 	}
-}
-
-func formatUnsupported(format string, args ...any) error {
-	return unsupported(fmt.Sprintf(format, args...))
 }

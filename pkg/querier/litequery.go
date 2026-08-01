@@ -2,8 +2,8 @@ package querier
 
 import (
 	"context"
-	stderrors "errors"
 	"fmt"
+	"log/slog"
 	"strings"
 
 	"github.com/SigNoz/signoz/pkg/errors"
@@ -23,7 +23,7 @@ func (q *querier) queryRangeLite(ctx context.Context, request *qbtypes.QueryRang
 	requestLite, err := liteadapter.ToLite(request, metadata)
 	if err != nil {
 		var unsupported *liteadapter.UnsupportedError
-		if stderrors.As(err, &unsupported) {
+		if errors.As(err, &unsupported) {
 			return nil, errors.NewInvalidInputf(
 				errors.CodeInvalidInput,
 				"unsupported lightweight query capability: %s",
@@ -36,7 +36,7 @@ func (q *querier) queryRangeLite(ctx context.Context, request *qbtypes.QueryRang
 	if err != nil {
 		return nil, liteQueryError(err)
 	}
-	q.logger.DebugContext(ctx, "executing V5 query with lightweight engine", "queries", len(plan.Queries))
+	q.logger.DebugContext(ctx, "executing V5 query with lightweight engine", slog.Int("queries", len(plan.Queries)))
 	executor := litequery.Executor{
 		Compiler: litequery.NewCompiler(nil),
 		Query: func(ctx context.Context, query string, args ...any) (litequery.Rows, error) {
@@ -56,7 +56,7 @@ func (q *querier) queryRangeLite(ctx context.Context, request *qbtypes.QueryRang
 	for _, query := range result.Queries {
 		rowCounts = append(rowCounts, fmt.Sprintf("%s=%d", query.Name, len(query.Rows)))
 	}
-	q.logger.DebugContext(ctx, "lightweight V5 query completed", "queries", len(result.Queries), "result_rows", strings.Join(rowCounts, ","))
+	q.logger.DebugContext(ctx, "lightweight V5 query completed", slog.Int("queries", len(result.Queries)), slog.String("result_rows", strings.Join(rowCounts, ",")))
 	response, err := liteadapter.FromLite(request, result)
 	if err != nil {
 		return nil, liteQueryError(err)
@@ -91,7 +91,7 @@ func (q *querier) liteMetricMetadata(ctx context.Context, request *qbtypes.Query
 
 func liteQueryError(err error) error {
 	var queryError *litequery.Error
-	if stderrors.As(err, &queryError) {
+	if errors.As(err, &queryError) {
 		return errors.NewInvalidInputf(errors.CodeInvalidInput, "invalid lightweight query: %s", queryError.Message)
 	}
 	return err

@@ -2,10 +2,11 @@ package litequery
 
 import (
 	"context"
-	"errors"
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/SigNoz/signoz/pkg/errors"
 )
 
 func TestExecutorScansResultsAndEvaluatesFormula(t *testing.T) {
@@ -70,7 +71,7 @@ func TestExecutorResolvesForwardFormulaDependencies(t *testing.T) {
 
 func TestExecutorClosesRowsWhenScanFails(t *testing.T) {
 	plan := testLogPlan(t)
-	rows := &fakeRows{columns: []string{"value"}, data: [][]any{{1}}, scanErr: errors.New("scan failed")}
+	rows := &fakeRows{columns: []string{"value"}, data: [][]any{{1}}, scanErr: errors.New(errors.TypeInternal, errors.CodeInternal, "scan failed")}
 	_, err := (Executor{Query: func(context.Context, string, ...any) (Rows, error) { return rows, nil }}).Execute(context.Background(), plan)
 	if err == nil || !rows.closed {
 		t.Fatalf("Execute() error = %v, rows closed = %v", err, rows.closed)

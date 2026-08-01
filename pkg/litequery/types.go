@@ -11,15 +11,6 @@ const (
 	SignalMeter   Signal = "meter"
 )
 
-func (s Signal) valid() bool {
-	switch s {
-	case SignalLogs, SignalTraces, SignalMetrics, SignalMeter:
-		return true
-	default:
-		return false
-	}
-}
-
 type ResultType string
 
 const (

@@ -115,13 +115,14 @@ func parseStart(raw string, now time.Time) (int64, error) {
 	}
 	start, err := strconv.ParseInt(raw, 10, 64)
 	if err != nil || start < 0 {
-		return 0, fmt.Errorf("must be a non-negative millisecond timestamp")
+		return 0, errors.NewInvalidInputf(errors.CodeInvalidInput, "must be a non-negative millisecond timestamp")
 	}
 	return start, nil
 }
 
 func parseFilter(expression string) (litequery.FilterNode, error) {
 	if strings.TrimSpace(expression) == "" {
+		//nolint:nilnil // A nil FilterNode explicitly represents an unfiltered tail.
 		return nil, nil
 	}
 	return liteadapter.ParseFilter(expression, litequery.SignalLogs)
@@ -177,7 +178,7 @@ func (h *Handler) read(ctx context.Context, startMS int64, filter litequery.Filt
 		return nil, nil, err
 	}
 	if len(result.Queries) != 1 {
-		return nil, nil, fmt.Errorf("live log query returned %d result sets", len(result.Queries))
+		return nil, nil, errors.NewInternalf(errors.CodeInternal, "live log query returned %d result sets", len(result.Queries))
 	}
 	rows := make([]rawRow, 0, len(result.Queries[0].Rows))
 	var cursor *litequery.RawLogCursor
@@ -194,15 +195,15 @@ func (h *Handler) read(ctx context.Context, startMS int64, filter litequery.Filt
 
 func rawRowFromValues(values []any) (rawRow, *litequery.RawLogCursor, error) {
 	if len(values) != 6 {
-		return rawRow{}, nil, fmt.Errorf("live log row has %d columns, want 6", len(values))
+		return rawRow{}, nil, errors.NewInternalf(errors.CodeInternal, "live log row has %d columns, want 6", len(values))
 	}
 	timestamp, err := uint64Value(values[0])
 	if err != nil {
-		return rawRow{}, nil, fmt.Errorf("invalid live log timestamp: %w", err)
+		return rawRow{}, nil, errors.WrapInternalf(err, errors.CodeInternal, "invalid live log timestamp")
 	}
 	id := stringValue(values[1])
 	if id == "" || id == "<nil>" {
-		return rawRow{}, nil, fmt.Errorf("live log row has no id")
+		return rawRow{}, nil, errors.NewInternalf(errors.CodeInternal, "live log row has no id")
 	}
 	return rawRow{
 		Timestamp: time.Unix(0, int64(timestamp)),
@@ -242,5 +243,5 @@ func uint64Value(value any) (uint64, error) {
 			return uint64(value), nil
 		}
 	}
-	return 0, fmt.Errorf("%T is not an unsigned timestamp", value)
+	return 0, errors.NewInternalf(errors.CodeInternal, "%T is not an unsigned timestamp", value)
 }

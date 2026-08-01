@@ -2,11 +2,11 @@ package implspanpercentile
 
 import (
 	"context"
-	"errors"
 	"testing"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
+	"github.com/SigNoz/signoz/pkg/errors"
 	cmock "github.com/srikanthccv/ClickHouse-go-mock"
 	"github.com/stretchr/testify/require"
 
@@ -77,7 +77,7 @@ func TestGetSpanPercentileReturnsNotFoundForZeroCount(t *testing.T) {
 }
 
 func TestGetSpanPercentilePreservesQueryFailure(t *testing.T) {
-	expected := errors.New("clickhouse unavailable")
+	expected := errors.New(errors.TypeInternal, errors.CodeInternal, "clickhouse unavailable")
 	m := &module{telemetryStore: percentileTelemetryStore{db: percentileQueryConn{query: func(context.Context, string, ...any) (driver.Rows, error) {
 		return nil, expected
 	}}}}

@@ -2,13 +2,14 @@ package litequery
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"math"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/SigNoz/signoz/pkg/errors"
 )
 
 // Rows is the small driver boundary used by Executor. ClickHouse adapters can
@@ -154,12 +155,12 @@ func (e Executor) executeStatement(ctx context.Context, statement Statement) (Qu
 			targets[index] = &values[index]
 		}
 		if err := rows.Scan(targets...); err != nil {
-			return QueryResult{}, fmt.Errorf("scan query %q: %w", statement.Name, err)
+			return QueryResult{}, errors.WrapInternalf(err, errors.CodeInternal, "failed to scan query %q", statement.Name)
 		}
 		result.Rows = append(result.Rows, values)
 	}
 	if err := rows.Err(); err != nil {
-		return QueryResult{}, fmt.Errorf("read query %q: %w", statement.Name, err)
+		return QueryResult{}, errors.WrapInternalf(err, errors.CodeInternal, "failed to read query %q", statement.Name)
 	}
 	return result, nil
 }

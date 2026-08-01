@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/SigNoz/signoz/pkg/errors"
 	"github.com/SigNoz/signoz/pkg/litequery"
 	qbtypes "github.com/SigNoz/signoz/pkg/types/querybuildertypes/querybuildertypesv5"
 	"github.com/SigNoz/signoz/pkg/types/telemetrytypes"
@@ -16,7 +17,7 @@ import (
 // concerns, not properties of the lightweight execution core.
 func FromLite(request *qbtypes.QueryRangeRequest, result litequery.ExecutionResult) (*qbtypes.QueryRangeResponse, error) {
 	if request == nil {
-		return nil, fmt.Errorf("V5 request is required")
+		return nil, errors.NewInvalidInputf(errors.CodeInvalidInput, "V5 request is required")
 	}
 	response := &qbtypes.QueryRangeResponse{
 		Type: request.RequestType,
@@ -35,7 +36,7 @@ func FromLite(request *qbtypes.QueryRangeRequest, result litequery.ExecutionResu
 		case qbtypes.RequestTypeTimeSeries:
 			data, err = timeSeries(query)
 		case qbtypes.RequestTypeScalar:
-			data, err = scalar(query)
+			data = scalar(query)
 		case qbtypes.RequestTypeRaw, qbtypes.RequestTypeTrace:
 			data, err = raw(query)
 		default:
@@ -69,20 +70,20 @@ func timeSeries(query litequery.QueryResult) (*qbtypes.TimeSeriesData, error) {
 		}
 	}
 	if timestampIndex < 0 || valueIndex < 0 {
-		return nil, fmt.Errorf("time series query %q has no timestamp/value columns", query.Name)
+		return nil, errors.NewInternalf(errors.CodeInternal, "time series query %q has no timestamp/value columns", query.Name)
 	}
 	seriesByKey := make(map[string]*qbtypes.TimeSeries)
 	for _, row := range query.Rows {
 		if len(row) != len(query.Columns) {
-			return nil, fmt.Errorf("time series query %q returned an invalid row", query.Name)
+			return nil, errors.NewInternalf(errors.CodeInternal, "time series query %q returned an invalid row", query.Name)
 		}
 		timestamp, ok := milliseconds(row[timestampIndex])
 		if !ok {
-			return nil, fmt.Errorf("time series query %q returned invalid timestamp %T", query.Name, row[timestampIndex])
+			return nil, errors.NewInternalf(errors.CodeInternal, "time series query %q returned invalid timestamp %T", query.Name, row[timestampIndex])
 		}
 		value, ok := number(row[valueIndex])
 		if !ok {
-			return nil, fmt.Errorf("time series query %q returned invalid value %T", query.Name, row[valueIndex])
+			return nil, errors.NewInternalf(errors.CodeInternal, "time series query %q returned invalid value %T", query.Name, row[valueIndex])
 		}
 		if math.IsNaN(value) || math.IsInf(value, 0) {
 			continue
@@ -111,7 +112,7 @@ func timeSeries(query litequery.QueryResult) (*qbtypes.TimeSeriesData, error) {
 	return &qbtypes.TimeSeriesData{QueryName: query.Name, Aggregations: []*qbtypes.AggregationBucket{bucket}}, nil
 }
 
-func scalar(query litequery.QueryResult) (*qbtypes.ScalarData, error) {
+func scalar(query litequery.QueryResult) *qbtypes.ScalarData {
 	columns := make([]*qbtypes.ColumnDescriptor, len(query.Columns))
 	for index, column := range query.Columns {
 		kind := qbtypes.ColumnTypeGroup
@@ -124,14 +125,14 @@ func scalar(query litequery.QueryResult) (*qbtypes.ScalarData, error) {
 		}
 		columns[index] = &qbtypes.ColumnDescriptor{TelemetryFieldKey: key, QueryName: query.Name, Type: kind}
 	}
-	return &qbtypes.ScalarData{QueryName: query.Name, Columns: columns, Data: query.Rows}, nil
+	return &qbtypes.ScalarData{QueryName: query.Name, Columns: columns, Data: query.Rows}
 }
 
 func raw(query litequery.QueryResult) (*qbtypes.RawData, error) {
 	rows := make([]*qbtypes.RawRow, 0, len(query.Rows))
 	for _, row := range query.Rows {
 		if len(row) != len(query.Columns) {
-			return nil, fmt.Errorf("raw query %q returned an invalid row", query.Name)
+			return nil, errors.NewInternalf(errors.CodeInternal, "raw query %q returned an invalid row", query.Name)
 		}
 		result := &qbtypes.RawRow{Data: make(map[string]any, len(row))}
 		for index, column := range query.Columns {

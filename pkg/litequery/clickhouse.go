@@ -1,10 +1,10 @@
 package litequery
 
 import (
-	"fmt"
 	"reflect"
 
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
+	"github.com/SigNoz/signoz/pkg/errors"
 )
 
 // WrapClickHouseRows adapts the ClickHouse driver's typed Scan contract to
@@ -18,7 +18,7 @@ type clickHouseRows struct{ driver.Rows }
 func (rows *clickHouseRows) Scan(destinations ...any) error {
 	types := rows.ColumnTypes()
 	if len(destinations) != len(types) {
-		return fmt.Errorf("lightweight scan destination count %d does not match column count %d", len(destinations), len(types))
+		return errors.NewInternalf(errors.CodeInternal, "lightweight scan destination count %d does not match column count %d", len(destinations), len(types))
 	}
 	values := make([]any, len(types))
 	for index, columnType := range types {
@@ -30,7 +30,7 @@ func (rows *clickHouseRows) Scan(destinations ...any) error {
 	for index, value := range values {
 		target, ok := destinations[index].(*any)
 		if !ok {
-			return fmt.Errorf("lightweight scan destination %d has type %T, want *any", index, destinations[index])
+			return errors.NewInternalf(errors.CodeInternal, "lightweight scan destination %d has type %T, want *any", index, destinations[index])
 		}
 		*target = dereferenceClickHouseValue(value)
 	}

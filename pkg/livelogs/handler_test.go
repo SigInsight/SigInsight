@@ -2,10 +2,10 @@ package livelogs
 
 import (
 	"context"
-	"errors"
 	"testing"
 	"time"
 
+	"github.com/SigNoz/signoz/pkg/errors"
 	"github.com/SigNoz/signoz/pkg/litequery"
 	"github.com/stretchr/testify/require"
 )
@@ -81,12 +81,12 @@ func (rows *testRows) Scan(destinations ...any) error {
 		return rows.err
 	}
 	if len(destinations) != len(rows.data[rows.index]) {
-		return errors.New("invalid scan destination count")
+		return errors.New(errors.TypeInternal, errors.CodeInternal, "invalid scan destination count")
 	}
 	for index, value := range rows.data[rows.index] {
 		target, ok := destinations[index].(*any)
 		if !ok {
-			return errors.New("invalid scan destination")
+			return errors.New(errors.TypeInternal, errors.CodeInternal, "invalid scan destination")
 		}
 		*target = value
 	}

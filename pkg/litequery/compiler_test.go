@@ -1,10 +1,11 @@
 package litequery
 
 import (
-	"errors"
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/SigNoz/signoz/pkg/errors"
 )
 
 func TestDefaultCatalogResolvesSemanticFields(t *testing.T) {

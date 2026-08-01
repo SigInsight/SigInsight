@@ -2,13 +2,13 @@ package implservices
 
 import (
 	"context"
-	"errors"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
+	"github.com/SigNoz/signoz/pkg/errors"
 	cmock "github.com/srikanthccv/ClickHouse-go-mock"
 	"github.com/stretchr/testify/require"
 
@@ -66,7 +66,7 @@ func TestGetUsesDedicatedAggregateQuery(t *testing.T) {
 }
 
 func TestGetOperationsPreservesQueryFailure(t *testing.T) {
-	expected := errors.New("clickhouse unavailable")
+	expected := errors.New(errors.TypeInternal, errors.CodeInternal, "clickhouse unavailable")
 	m := &module{TelemetryStore: serviceTelemetryStore{db: serviceQueryConn{query: func(context.Context, string, ...any) (driver.Rows, error) {
 		return nil, expected
 	}}}}
