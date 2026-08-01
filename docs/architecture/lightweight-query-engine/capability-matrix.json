@@ -38,15 +38,20 @@
       "filters": ["body_string", "body_json_path", "severity", "resource", "attribute"],
       "aggregations": ["count", "sum", "avg", "min", "max"],
       "baselineTests": [
-        "tests/integration/src/querier/01_logs.py",
-        "tests/integration/src/querier/02_logs_json_body.py"
+        "tests/integration/src/compat/02_litequery_v5_bridge.py",
+        "tests/integration/src/compat/03_litequery_collector_collaboration.py",
+        "pkg/litequery/compiler_test.go"
       ]
     },
     "traces": {
       "results": ["raw", "trace", "time_series", "scalar"],
       "filters": ["service", "operation", "status", "duration", "resource", "span_attribute"],
       "aggregations": ["count", "duration_avg", "duration_p50", "duration_p90", "duration_p95", "duration_p99"],
-      "baselineTests": ["tests/integration/src/querier/04_traces.py"]
+      "baselineTests": [
+        "tests/integration/src/compat/02_litequery_v5_bridge.py",
+        "tests/integration/src/compat/03_litequery_collector_collaboration.py",
+        "pkg/litequery/compiler_test.go"
+      ]
     },
     "metrics": {
       "results": ["time_series", "scalar"],
@@ -56,24 +61,28 @@
         "histogram": ["count", "sum", "avg", "p50", "p90", "p95", "p99"]
       },
       "baselineTests": [
-        "tests/integration/src/querier/03_metrics.py",
-        "tests/integration/src/querier/05_metrics_rate_cumulative_counter.py",
-        "tests/integration/src/querier/08_metrics_histogram.py",
-        "tests/integration/src/querier/09_metrics_gauge.py",
-        "tests/integration/src/querier/10_metrics_rate_delta_counter.py"
+        "tests/integration/src/compat/02_litequery_v5_bridge.py",
+        "tests/integration/src/compat/03_litequery_collector_collaboration.py",
+        "pkg/litequery/compiler_test.go",
+        "pkg/litequery/compiler_clickhouse_integration_test.go"
       ]
     },
     "meter": {
       "results": ["time_series", "scalar"],
       "aggregations": ["count", "sum", "avg", "rate", "increase"],
-      "baselineTests": ["tests/integration/src/querier/11_cost_meter.py"]
+      "baselineTests": [
+        "tests/integration/src/compat/02_litequery_v5_bridge.py",
+        "tests/integration/src/compat/03_litequery_collector_collaboration.py",
+        "pkg/litequery/compiler_clickhouse_integration_test.go"
+      ]
     }
   },
   "alerts": {
     "formulaOperators": ["+", "-", "*", "/"],
     "reduceOperators": ["last", "avg", "min", "max", "sum"],
     "baselineTests": [
-      "tests/integration/src/alerts/02_basic_alert_conditions.py",
+      "tests/integration/src/alerts/02_lightweight_threshold.py",
+      "pkg/alertmanager/alertmanagerstore/sqlalertmanagerstore/config_test.go",
       "pkg/query-service/rules/threshold_rule_test.go"
     ]
   }

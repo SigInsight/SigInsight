@@ -36,12 +36,11 @@ jobs:
           - bootstrap
           - passwordauthn
           - preference
-          - querier
+          - compat
           - role
           - ttl
           - alerts
           - rootuser
-          - rawexportdata
         sqlstore-provider:
           - sqlite
         clickhouse-version:

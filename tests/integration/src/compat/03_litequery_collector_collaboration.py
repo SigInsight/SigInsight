@@ -1,14 +1,13 @@
 import time
 from datetime import datetime, timedelta, timezone
 from http import HTTPStatus
+from typing import Callable
 
 import docker
 import requests
 
 from fixtures import types
-
-USER_ADMIN_EMAIL = "lite-collector@integration.test"
-USER_ADMIN_PASSWORD = "password123Z$"
+from fixtures.auth import USER_ADMIN_EMAIL, USER_ADMIN_PASSWORD
 
 
 def _any_value(value: str) -> dict:
@@ -136,38 +135,13 @@ def _query(
     return body["data"]["data"]["results"][0]
 
 
-def _create_admin_and_token(signoz: types.SigNoz) -> str:
-    base = signoz.self.host_configs["8080"]
-    registration = requests.post(
-        base.get("/api/v5/register"),
-        json={
-            "name": "lite collector",
-            "orgName": "lite-collector.integration.test",
-            "email": USER_ADMIN_EMAIL,
-            "password": USER_ADMIN_PASSWORD,
-        },
-        timeout=10,
-    )
-    assert registration.status_code == HTTPStatus.OK, registration.text
-    context = requests.get(
-        base.get("/api/v5/sessions/context"),
-        params={"email": USER_ADMIN_EMAIL, "ref": base.base()},
-        timeout=10,
-    )
-    assert context.status_code == HTTPStatus.OK, context.text
-    org_id = context.json()["data"]["orgs"][0]["id"]
-    session = requests.post(
-        base.get("/api/v5/sessions/email_password"),
-        json={"email": USER_ADMIN_EMAIL, "password": USER_ADMIN_PASSWORD, "orgId": org_id},
-        timeout=10,
-    )
-    assert session.status_code == HTTPStatus.OK, session.text
-    return session.json()["data"]["accessToken"]
-
-
 def _has_values(result: dict) -> bool:
     aggregations = result.get("aggregations", [])
-    return bool(aggregations and aggregations[0].get("series") and aggregations[0]["series"][0].get("values"))
+    return bool(
+        aggregations
+        and aggregations[0].get("series")
+        and aggregations[0]["series"][0].get("values")
+    )
 
 
 def _collector_row_counts(clickhouse: types.TestContainerClickhouse) -> dict[str, int]:
@@ -179,12 +153,16 @@ def _collector_row_counts(clickhouse: types.TestContainerClickhouse) -> dict[str
         "meter": "siginsight_meter.samples",
     }
     return {
-        signal: int(clickhouse.conn.query(f"SELECT count() FROM {table}").result_rows[0][0])
+        signal: int(
+            clickhouse.conn.query(f"SELECT count() FROM {table}").result_rows[0][0]
+        )
         for signal, table in tables.items()
     }
 
 
-def _collector_time_ranges(clickhouse: types.TestContainerClickhouse) -> dict[str, list]:
+def _collector_time_ranges(
+    clickhouse: types.TestContainerClickhouse,
+) -> dict[str, list]:
     return {
         "logs": clickhouse.conn.query(
             "SELECT min(timestamp), max(timestamp) FROM siginsight_logs.logs_v2"
@@ -207,13 +185,17 @@ def _collector_meter_name(clickhouse: types.TestContainerClickhouse) -> str:
     return str(rows[0][0])
 
 
-def _collector_meter_range(clickhouse: types.TestContainerClickhouse) -> tuple[int, int]:
+def _collector_meter_range(
+    clickhouse: types.TestContainerClickhouse,
+) -> tuple[int, int]:
     """Return a request range containing Collector's hour-rounded meter rows."""
 
     start, end = clickhouse.conn.query(
         "SELECT min(unix_milli), max(unix_milli) FROM siginsight_meter.samples"
     ).result_rows[0]
-    assert start is not None and end is not None, "Collector did not timestamp meter samples"
+    assert (
+        start is not None and end is not None
+    ), "Collector did not timestamp meter samples"
     return int(start), int(end) + 60_000
 
 
@@ -270,9 +252,9 @@ def _latest_query_log(clickhouse: types.TestContainerClickhouse, table: str) -> 
     ).result_rows
     assert rows, f"no ClickHouse query-log row found for {table}"
     query, exception_code, exception, read_rows, read_bytes = rows[0]
-    assert exception_code == 0, (
-        f"query against {table} failed: code={exception_code}, error={exception}, sql={query}"
-    )
+    assert (
+        exception_code == 0
+    ), f"query against {table} failed: code={exception_code}, error={exception}, sql={query}"
     return {
         "read_bytes": int(read_bytes),
         "read_rows": int(read_rows),
@@ -300,11 +282,16 @@ def _siginsight_logs(signoz: types.SigNoz) -> str:
     return docker.from_env().containers.get(signoz.self.id).logs().decode()[-8_000:]
 
 
-def _wait_for_collector_rows(clickhouse: types.TestContainerClickhouse) -> dict[str, int]:
+def _wait_for_collector_rows(
+    clickhouse: types.TestContainerClickhouse,
+) -> dict[str, int]:
     counts = _collector_row_counts(clickhouse)
     for _ in range(50):
         counts = _collector_row_counts(clickhouse)
-        if all(counts[signal] > 0 for signal in ("logs", "traces", "metrics", "metric_series", "meter")):
+        if all(
+            counts[signal] > 0
+            for signal in ("logs", "traces", "metrics", "metric_series", "meter")
+        ):
             return counts
         time.sleep(0.2)
     return counts
@@ -314,6 +301,8 @@ def test_lite_query_reads_data_written_by_current_collector(
     signoz_current_collector: types.SigNoz,
     current_collector: str,
     clickhouse: types.TestContainerClickhouse,
+    create_user_admin: None,  # pylint: disable=unused-argument
+    get_token: Callable[[str, str], str],
 ) -> None:
     """Verify the Lite V5 boundary reads data written by the current Collector."""
 
@@ -333,7 +322,11 @@ def test_lite_query_reads_data_written_by_current_collector(
     )
     meter_name = _collector_meter_name(clickhouse)
     meter_start_ms, meter_end_ms = _collector_meter_range(clickhouse)
-    token = _create_admin_and_token(signoz_current_collector)
+    # Authentication is shared through the SQLite test store. The current
+    # Collector service keeps self-registration disabled after bootstrapping,
+    # so reuse the standard authenticated test user instead of registering a
+    # second account through that service instance.
+    token = get_token(USER_ADMIN_EMAIL, USER_ADMIN_PASSWORD)
     common = {"stepInterval": "60s", "limit": 100, "disabled": False}
     specs = [
         {

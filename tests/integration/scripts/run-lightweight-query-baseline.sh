@@ -18,15 +18,8 @@ fi
 make -C "${collector_root}" test-migration-integration
 
 cd "${siginsight_root}/tests/integration"
-uv run pytest --clickhouse-version=25.5.6 -vv \
-	src/compat/01_reduced_schema_api.py \
-	src/querier/01_logs.py \
-	src/querier/02_logs_json_body.py \
-	src/querier/03_metrics.py \
-	src/querier/04_traces.py \
-	src/querier/05_metrics_rate_cumulative_counter.py \
-	src/querier/08_metrics_histogram.py \
-	src/querier/09_metrics_gauge.py \
-	src/querier/10_metrics_rate_delta_counter.py \
-	src/querier/11_cost_meter.py \
-	src/alerts/02_basic_alert_conditions.py
+# compat starts a second SigInsight instance for the current-Collector path.
+# Run it in a separate pytest process so its Alertmanager sync does not share
+# SQLite state with the alert webhook suite, matching the CI matrix isolation.
+uv run pytest --clickhouse-version=25.5.6 -vv src/compat
+uv run pytest --clickhouse-version=25.5.6 -vv src/alerts

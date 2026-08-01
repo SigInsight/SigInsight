@@ -471,7 +471,11 @@ def test_set_custom_retention_ttl_basic_with_cold_storage(
     verify_table_partition_expressions(
         signoz,
         {
-            "siginsight_logs.logs_v2": (test_retention_days, test_retention_days_cold, 1),
+            "siginsight_logs.logs_v2": (
+                test_retention_days,
+                test_retention_days_cold,
+                1,
+            ),
             "siginsight_logs.logs_v2_resource": (
                 test_retention_days,
                 test_retention_days_cold,
@@ -626,7 +630,11 @@ def test_set_custom_retention_ttl_with_conditions(
     verify_table_partition_expressions(
         signoz,
         {
-            "siginsight_logs.logs_v2": (test_retention_days, test_retention_days_cold, 1),
+            "siginsight_logs.logs_v2": (
+                test_retention_days,
+                test_retention_days_cold,
+                1,
+            ),
             "siginsight_logs.logs_v2_resource": (
                 test_retention_days,
                 test_retention_days_cold,

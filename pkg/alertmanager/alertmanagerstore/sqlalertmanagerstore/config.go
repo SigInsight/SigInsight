@@ -3,13 +3,13 @@ package sqlalertmanagerstore
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 
 	"github.com/SigNoz/signoz/pkg/errors"
 	"github.com/SigNoz/signoz/pkg/sqlstore"
 	"github.com/SigNoz/signoz/pkg/types/alertmanagertypes"
+	"github.com/SigNoz/signoz/pkg/types/ruletypes"
 	"github.com/SigNoz/signoz/pkg/valuer"
-	"github.com/tidwall/gjson"
-	"github.com/uptrace/bun"
 )
 
 type config struct {
@@ -156,34 +156,68 @@ func (store *config) ListChannels(ctx context.Context, orgID string) ([]*alertma
 }
 
 func (store *config) GetMatchers(ctx context.Context, orgID string) (map[string][]string, error) {
-	type matcher struct {
-		bun.BaseModel `bun:"table:rule"`
-		ID            valuer.UUID `bun:"id,pk"`
-		Data          string      `bun:"data"`
-	}
-
-	matchers := []matcher{}
+	rules := []ruletypes.Rule{}
 
 	err := store.
 		sqlstore.
 		BunDB().
 		NewSelect().
-		Column("id", "data").
-		Model(&matchers).
+		Model(&rules).
+		Where("org_id = ?", orgID).
+		Where("deleted = ?", 0).
 		Scan(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	matchersMap := make(map[string][]string)
-	for _, matcher := range matchers {
-		receivers := gjson.Get(matcher.Data, "preferredChannels").Array()
-		for _, receiver := range receivers {
-			matchersMap[matcher.ID.StringValue()] = append(matchersMap[matcher.ID.StringValue()], receiver.String())
+	for _, rule := range rules {
+		for _, receiver := range ruleChannels(rule.Data) {
+			matchersMap[rule.ID.StringValue()] = append(matchersMap[rule.ID.StringValue()], receiver)
 		}
 	}
 
 	return matchersMap, nil
+}
+
+// ruleChannels keeps alertmanager's persisted route in sync with the current
+// threshold schema while retaining the old preferredChannels representation.
+func ruleChannels(data string) []string {
+	var stored struct {
+		PreferredChannels []string `json:"preferredChannels"`
+		Condition         struct {
+			Thresholds struct {
+				Spec []struct {
+					Channels []string `json:"channels"`
+				} `json:"spec"`
+			} `json:"thresholds"`
+		} `json:"condition"`
+	}
+	if err := json.Unmarshal([]byte(data), &stored); err != nil {
+		return nil
+	}
+
+	channels := make([]string, 0, len(stored.PreferredChannels))
+	seen := make(map[string]struct{}, len(stored.PreferredChannels))
+	appendChannel := func(channel string) {
+		if _, exists := seen[channel]; exists {
+			return
+		}
+		seen[channel] = struct{}{}
+		channels = append(channels, channel)
+	}
+	for _, threshold := range stored.Condition.Thresholds.Spec {
+		for _, channel := range threshold.Channels {
+			appendChannel(channel)
+		}
+	}
+	if len(channels) == 0 {
+		for _, channel := range stored.PreferredChannels {
+			appendChannel(channel)
+		}
+	}
+
+	return channels
 }
 
 func (store *config) wrap(ctx context.Context, fn func(ctx context.Context) error, opts ...alertmanagertypes.StoreOption) error {

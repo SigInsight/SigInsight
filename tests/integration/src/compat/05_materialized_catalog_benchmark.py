@@ -7,7 +7,6 @@ import pytest
 
 from fixtures import types
 
-
 BENCHMARK_ROWS_ENV = "M9_MATERIALIZED_BENCHMARK_ROWS"
 
 
@@ -19,7 +18,9 @@ def _percentile(values: list[float], percentile: float) -> float:
     return ordered[lower] + (ordered[upper] - ordered[lower]) * (index - lower)
 
 
-def _measure(clickhouse: types.TestContainerClickhouse, sql: str, samples: int) -> list[float]:
+def _measure(
+    clickhouse: types.TestContainerClickhouse, sql: str, samples: int
+) -> list[float]:
     for _ in range(3):
         clickhouse.conn.query(sql)
 
@@ -28,7 +29,9 @@ def _measure(clickhouse: types.TestContainerClickhouse, sql: str, samples: int) 
         started = time.perf_counter()
         result = clickhouse.conn.query(sql).result_rows
         timings.append((time.perf_counter() - started) * 1_000)
-        assert len(result) == 1 and int(result[0][0]) == 1, f"unexpected benchmark result: {result}"
+        assert (
+            len(result) == 1 and int(result[0][0]) == 1
+        ), f"unexpected benchmark result: {result}"
     return timings
 
 
@@ -47,7 +50,9 @@ def test_materialized_trace_catalog_benchmark(
     """
 
     rows = int(os.environ[BENCHMARK_ROWS_ENV])
-    assert 10_000 <= rows <= 1_000_000, "benchmark rows must be between 10000 and 1000000"
+    assert (
+        10_000 <= rows <= 1_000_000
+    ), "benchmark rows must be between 10000 and 1000000"
 
     run_id = uuid.uuid4().hex
     table = "siginsight_traces.span_index_v3"

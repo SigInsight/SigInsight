@@ -12,7 +12,9 @@ from fixtures import types
 
 
 def _collector_root() -> Path:
-    configured = os.environ.get("SIGINSIGHT_OTEL_COLLECTOR_ROOT", "/home/cbw/code/OtelCollector")
+    configured = os.environ.get(
+        "SIGINSIGHT_OTEL_COLLECTOR_ROOT", "/home/cbw/code/OtelCollector"
+    )
     root = Path(configured).resolve()
     if not (root / "cmd/siginsightotelcollector/main.go").is_file():
         raise RuntimeError(
@@ -28,7 +30,9 @@ def _free_tcp_port() -> int:
         return listener.getsockname()[1]
 
 
-def _host_clickhouse_dsn(clickhouse: types.TestContainerClickhouse, database: str) -> str:
+def _host_clickhouse_dsn(
+    clickhouse: types.TestContainerClickhouse, database: str
+) -> str:
     host = clickhouse.container.host_configs["9000"]
     username = clickhouse.env["SIGINSIGHT_TELEMETRYSTORE_CLICKHOUSE_USERNAME"]
     password = clickhouse.env["SIGINSIGHT_TELEMETRYSTORE_CLICKHOUSE_PASSWORD"]
@@ -76,7 +80,9 @@ def current_collector(
         timeout=15 * 60,
     )
     if build.returncode != 0:
-        raise RuntimeError(f"failed to build current Collector:\n{build.stdout}\n{build.stderr}")
+        raise RuntimeError(
+            f"failed to build current Collector:\n{build.stdout}\n{build.stderr}"
+        )
 
     root_dsn = _host_clickhouse_dsn(clickhouse, "")
     for command in (["bootstrap"], ["sync", "up"], ["async", "up"], ["sync", "check"]):
@@ -85,11 +91,19 @@ def current_collector(
     port = _free_tcp_port()
     environment = os.environ | {
         "SIGINSIGHT_TEST_OTLP_HTTP_ENDPOINT": f"127.0.0.1:{port}",
-        "SIGINSIGHT_TEST_TRACES_DSN": _host_clickhouse_dsn(clickhouse, "siginsight_traces"),
+        "SIGINSIGHT_TEST_TRACES_DSN": _host_clickhouse_dsn(
+            clickhouse, "siginsight_traces"
+        ),
         "SIGINSIGHT_TEST_LOGS_DSN": _host_clickhouse_dsn(clickhouse, "siginsight_logs"),
-        "SIGINSIGHT_TEST_METRICS_DSN": _host_clickhouse_dsn(clickhouse, "siginsight_metrics"),
-        "SIGINSIGHT_TEST_METER_DSN": _host_clickhouse_dsn(clickhouse, "siginsight_meter"),
-        "SIGINSIGHT_TEST_METADATA_DSN": _host_clickhouse_dsn(clickhouse, "siginsight_metadata"),
+        "SIGINSIGHT_TEST_METRICS_DSN": _host_clickhouse_dsn(
+            clickhouse, "siginsight_metrics"
+        ),
+        "SIGINSIGHT_TEST_METER_DSN": _host_clickhouse_dsn(
+            clickhouse, "siginsight_meter"
+        ),
+        "SIGINSIGHT_TEST_METADATA_DSN": _host_clickhouse_dsn(
+            clickhouse, "siginsight_metadata"
+        ),
     }
     config = root / "tests/integration-fixtures/lightweight-query-engine.yaml"
     process = subprocess.Popen(  # pylint: disable=consider-using-with
@@ -105,9 +119,13 @@ def current_collector(
         for _ in range(50):
             if process.poll() is not None:
                 output = process.stdout.read() if process.stdout else ""
-                raise RuntimeError(f"current Collector stopped before readiness:\n{output}")
+                raise RuntimeError(
+                    f"current Collector stopped before readiness:\n{output}"
+                )
             try:
-                response = requests.post(f"{endpoint}/v1/logs", json={"resourceLogs": []}, timeout=1)
+                response = requests.post(
+                    f"{endpoint}/v1/logs", json={"resourceLogs": []}, timeout=1
+                )
                 if response.status_code == 200:
                     break
             except requests.RequestException:

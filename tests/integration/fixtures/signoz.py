@@ -58,8 +58,12 @@ def create_signoz(
             buildargs={
                 "TARGETARCH": arch,
                 "APT_MIRROR": environ.get("SIGINSIGHT_APT_MIRROR", ""),
-                "APT_SECURITY_MIRROR": environ.get("SIGINSIGHT_APT_SECURITY_MIRROR", ""),
-                "GOPROXY": environ.get("SIGINSIGHT_GOPROXY", environ.get("GOPROXY", "")),
+                "APT_SECURITY_MIRROR": environ.get(
+                    "SIGINSIGHT_APT_SECURITY_MIRROR", ""
+                ),
+                "GOPROXY": environ.get(
+                    "SIGINSIGHT_GOPROXY", environ.get("GOPROXY", "")
+                ),
                 "NPM_REGISTRY": environ.get("SIGINSIGHT_NPM_REGISTRY", ""),
             },
         )

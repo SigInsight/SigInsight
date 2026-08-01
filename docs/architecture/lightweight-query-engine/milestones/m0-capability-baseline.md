@@ -76,28 +76,31 @@
 
 | 场景 | 请求 fixture | 响应 fixture | 真实 CH | 前端展示 |
 | --- | --- | --- | --- | --- |
-| Logs raw/list | `src/querier/01_logs.py` | 结构/值断言 | Passed | 现有 normalizer 测试 |
-| Logs time series | `src/querier/01_logs.py` | bucket/fill 断言 | Passed | 现有 normalizer 测试 |
-| Logs JSON body | `src/querier/02_logs_json_body.py` | nested/array/list 断言 | Passed | 现有 normalizer 测试 |
-| Traces list/trace | `src/querier/04_traces.py` | list/order/field 断言 | Passed | 现有 Trace list |
-| Traces time series | `src/querier/04_traces.py` | series/bucket 断言 | Passed | 现有 V2 图表 |
-| Gauge | `src/querier/09_metrics_gauge.py` | value/aggregation 断言 | Passed | 现有 V2 图表 |
-| Sum rate/increase | `src/querier/05_*`、`10_*` | reset/group 断言 | Passed | 现有 V2 图表 |
-| Histogram quantile | `src/querier/08_metrics_histogram.py` | count/percentile 断言 | Passed | 现有 V2 图表 |
-| Meter | `src/querier/11_cost_meter.py` | series/metric discovery 断言 | Passed | Cost Meter |
+| Logs raw/list | `src/compat/02_litequery_v5_bridge.py` | authenticated V5 response | Passed | 现有 normalizer 测试 |
+| Logs JSON body | `pkg/litequery/compiler_test.go` | SQL/argument contract | Passed | 现有 normalizer 测试 |
+| Traces list/trace | `src/compat/03_litequery_collector_collaboration.py` | Collector-written data read back | Passed | 现有 Trace list |
+| Traces time series | `src/compat/02_litequery_v5_bridge.py` | authenticated V5 response | Passed | 现有 V2 图表 |
+| Gauge / Sum rate | `pkg/litequery/compiler_test.go` | typed aggregation SQL contract | Passed | 现有 V2 图表 |
+| Histogram quantile | `pkg/litequery/compiler_clickhouse_integration_test.go` | ClickHouse execution | Passed | 现有 V2 图表 |
+| Meter | `src/compat/03_litequery_collector_collaboration.py` | Collector-written data read back | Passed | Cost Meter |
 | Services | `src/compat/01_reduced_schema_api.py` | authenticated API status | Passed | Services 页面现有调用 |
-| Threshold alert | `src/alerts/02_basic_alert_conditions.py` | condition/status 断言 | Passed | Alert preview/evaluator |
+| Threshold alert | `src/alerts/02_lightweight_threshold.py` | persisted route + webhook firing | Passed | Alert preview/evaluator |
+
+2026-08-01，`src/querier` 的 11 个 full-builder 集成文件和原有 23 个告警
+场景已删除。它们包含 Lite 边界已经拒绝的 function chain、legacy formula、复杂排序或
+旧阈值格式；其仍受支持的读取路径收敛到上述两项真实 API/Collector 协作测试，聚合和
+JSON-path 语义由独立 compiler/ClickHouse 测试精确覆盖。
 
 ## 验证结果
 
-2026-07-31 已执行：
+2026-08-01 已执行：
 
 ```bash
 tests/integration/scripts/run-lightweight-query-baseline.sh
 yarn --cwd frontend refactor:baseline
 ```
 
-前者先通过 `make -C ../OtelCollector test-migration-integration`，再在 ClickHouse 25.5.6、SQLite、认证 API 环境下收集并执行 168 个集成场景。运行后 pytest 的 `lastfailed` 不包含本基线的目标路径，测试容器已经清理。
+前者先通过 `make -C ../OtelCollector test-migration-integration`，再在 ClickHouse 25.5.6、SQLite、认证 API 环境下执行 `src/compat` 和 `src/alerts`。运行后 pytest 的 `lastfailed` 不包含本基线的目标路径，测试容器已经清理。
 
 后者得到开始重构时的规模：
 
