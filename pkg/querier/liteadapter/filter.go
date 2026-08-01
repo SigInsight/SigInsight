@@ -230,6 +230,12 @@ func textFieldToLite(text string, signal litequery.Signal, fallback litequery.Va
 
 func fieldToLite(key telemetrytypes.TelemetryFieldKey, signal litequery.Signal, fallback litequery.ValueType) (litequery.FieldRef, error) {
 	key.Normalize()
+	// The query text syntax permits an omitted context. service.name is defined
+	// by OpenTelemetry as a resource attribute, while the generic trace default
+	// would otherwise classify it as a span field and reject it at compilation.
+	if key.FieldContext == telemetrytypes.FieldContextUnspecified && key.Name == "service.name" && (signal == litequery.SignalLogs || signal == litequery.SignalTraces) {
+		key.FieldContext = telemetrytypes.FieldContextResource
+	}
 	context, err := fieldContext(key.FieldContext, signal)
 	if err != nil {
 		return litequery.FieldRef{}, err

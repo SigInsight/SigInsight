@@ -46,6 +46,43 @@ func TestToLiteConvertsStructuredLogFilter(t *testing.T) {
 	}
 }
 
+func TestToLiteInfersUnqualifiedServiceNameAsTraceResourceField(t *testing.T) {
+	request := &qbtypes.QueryRangeRequest{
+		Start: 1_000, End: 61_000, RequestType: qbtypes.RequestTypeTimeSeries,
+		CompositeQuery: qbtypes.CompositeQuery{Queries: []qbtypes.QueryEnvelope{{
+			Type: qbtypes.QueryTypeBuilder,
+			Spec: qbtypes.QueryBuilderQuery[qbtypes.TraceAggregation]{
+				Name: "A", Signal: telemetrytypes.SignalTraces, StepInterval: qbtypes.Step{Duration: time.Minute},
+				Aggregations: []qbtypes.TraceAggregation{{Expression: "count()"}},
+				Filter:       &qbtypes.Filter{Expression: "service.name = 'api'"},
+			},
+		}}},
+	}
+
+	converted, err := ToLite(request, MetricMetadata{})
+	if err != nil {
+		t.Fatalf("ToLite() error = %v", err)
+	}
+	query, ok := converted.Queries[0].(litequery.TraceQuery)
+	if !ok {
+		t.Fatalf("query type = %T, want TraceQuery", converted.Queries[0])
+	}
+	predicate, ok := query.Common.Filter.(litequery.Predicate)
+	if !ok {
+		t.Fatalf("filter = %#v, want Predicate", query.Common.Filter)
+	}
+	if predicate.Field != (litequery.FieldRef{Name: "service.name", Context: litequery.FieldContextResource, Type: litequery.ValueTypeString}) {
+		t.Fatalf("filter field = %#v, want resource service.name", predicate.Field)
+	}
+	plan, err := (litequery.DefaultPlanner{}).Plan(converted)
+	if err != nil {
+		t.Fatalf("Plan() error = %v", err)
+	}
+	if _, err := litequery.NewCompiler(nil).Compile(plan); err != nil {
+		t.Fatalf("Compile() error = %v", err)
+	}
+}
+
 func TestToLitePreservesRawLogOffset(t *testing.T) {
 	request := &qbtypes.QueryRangeRequest{
 		Start: 1_000, End: 61_000, RequestType: qbtypes.RequestTypeRaw,
