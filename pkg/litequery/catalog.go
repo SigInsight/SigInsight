@@ -22,11 +22,12 @@ type MetricSource struct {
 }
 
 type ResolvedField struct {
-	SQL               string
-	Args              []any
-	ExistsSQL         string
-	ExistsArgs        []any
-	RequiresExistence bool
+	SQL                string
+	Args               []any
+	ExistsSQL          string
+	ExistsArgs         []any
+	ComparisonValueSQL string
+	RequiresExistence  bool
 }
 
 type DefaultCatalog struct{}
@@ -205,7 +206,15 @@ func resolveTypedMapField(prefix string, field FieldRef) (ResolvedField, error) 
 	case ValueTypeString:
 		return resolveMapField(prefix+"_string", field)
 	case ValueTypeNumber:
-		return resolveMapField(prefix+"_number", field)
+		resolved, err := resolveMapField(prefix+"_number", field)
+		if err != nil {
+			return ResolvedField{}, err
+		}
+		// clickhouse-go may encode an integral float64 argument as UInt64. The
+		// explicit cast keeps comparisons against Map(String, Float64) stable
+		// on ClickHouse 25.5 without changing UInt64 intrinsic fields.
+		resolved.ComparisonValueSQL = "toFloat64(?)"
+		return resolved, nil
 	case ValueTypeBool:
 		return resolveMapField(prefix+"_bool", field)
 	default:

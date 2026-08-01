@@ -331,7 +331,11 @@ func (c Compiler) compileFilter(signal Signal, node FilterNode) (string, []any, 
 func compilePredicate(field ResolvedField, predicate Predicate) (string, []any, error) {
 	switch predicate.Op {
 	case FilterEqual, FilterNotEqual, FilterGreaterThan, FilterGreaterEq, FilterLessThan, FilterLessEq:
-		condition := field.SQL + " " + filterSQL(predicate.Op) + " ?"
+		valueSQL := field.ComparisonValueSQL
+		if valueSQL == "" {
+			valueSQL = "?"
+		}
+		condition := field.SQL + " " + filterSQL(predicate.Op) + " " + valueSQL
 		args := append(append([]any{}, field.Args...), scalarValue(predicate.Value))
 		if field.RequiresExistence && predicate.Op != FilterNotEqual {
 			return "(" + field.ExistsSQL + ") AND (" + condition + ")", append(append([]any{}, field.ExistsArgs...), args...), nil

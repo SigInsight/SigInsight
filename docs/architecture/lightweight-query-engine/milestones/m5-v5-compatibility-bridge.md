@@ -1,7 +1,7 @@
 # M5：V5 兼容桥与受控 API 接入
 
 状态：Complete
-关联 ADR：002、004、006、007
+关联 ADR：002、004、006、007、014
 前置条件：M1、M2、M3、M4 已完成
 
 > 历史说明：本里程碑记录迁移期 bridge。M8 已删除 `lightweight_engine_enabled`、legacy
@@ -38,6 +38,22 @@
   engine。转换/校验/执行失败则作为该次 Lite 请求的错误返回，不再回退以避免掩盖缺陷。
 - type/temporality 未携带在 V5 JSON metric aggregation 中，因此 adapter 输入包含由 metadata store
   解析出的只读 map，避免复制旧 metrics statement builder 的表选择逻辑。
+
+## 字段元数据消歧（ADR-014）
+
+2026-08-01 补充。早期 adapter 对 filter 文本中的裸字段名（如 `host.name`）依赖硬编码
+白名单，导致 `log field "host.name" is not in the schema catalog` 一类错误持续漏项。
+修复恢复旧引擎的字段元数据消歧能力，但限定在应用边界：
+
+- 新增 `liteadapter.FieldKeySelectors`：转换前批量收集 context/data type 不完整的字段
+  （filter 文本 token、select/group/order、日志聚合字段），去重后经
+  `querier.liteMetadata` 调用 metadata store `GetKeysMulti` 查询。
+- 查询结果以纯数据 `MetricMetadata.FieldKeys` 注入 `ToLite(request, metadata)`，核心
+  `pkg/litequery` 不依赖 metadata store，SQL 编译器保持确定性。
+- `resolveFieldMetadata` 按"显式上下文/类型优先 -> 裸名 resource 优先 -> fallback 类型
+  匹配 -> 唯一候选才消歧 -> intrinsic 字段兜底"的顺序解析；多候选歧义不猜测，返回明确错误。
+- 告警执行器（`RuleQueryRunner`）与 UI 查询共用同一套字段解析规则。
+- 前端生成筛选表达式时保留 `resource`/`tag` 上下文，结构化字段不再丢失上下文。
 
 ## 验证结果
 

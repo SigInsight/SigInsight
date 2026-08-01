@@ -34,7 +34,7 @@ func NewLiteQueryRunner(store telemetrystore.TelemetryStore, metadata telemetryt
 }
 
 func (r *liteQueryRunner) Execute(ctx context.Context, _ valuer.UUID, request *qbtypes.QueryRangeRequest) (*qbtypes.QueryRangeResponse, error) {
-	metadata, err := r.metricMetadata(ctx, request)
+	metadata, err := r.queryMetadata(ctx, request)
 	if err != nil {
 		return nil, err
 	}
@@ -72,10 +72,11 @@ func (r *liteQueryRunner) Execute(ctx context.Context, _ valuer.UUID, request *q
 	return response, nil
 }
 
-func (r *liteQueryRunner) metricMetadata(ctx context.Context, request *qbtypes.QueryRangeRequest) (liteadapter.MetricMetadata, error) {
+func (r *liteQueryRunner) queryMetadata(ctx context.Context, request *qbtypes.QueryRangeRequest) (liteadapter.MetricMetadata, error) {
 	if request == nil {
 		return liteadapter.MetricMetadata{}, errors.NewInvalidInputf(errors.CodeInvalidInput, "threshold query is required")
 	}
+	metadata := liteadapter.MetricMetadata{}
 	names := make([]string, 0)
 	for _, envelope := range request.CompositeQuery.Queries {
 		query, ok := envelope.Spec.(qbtypes.QueryBuilderQuery[qbtypes.MetricAggregation])
@@ -88,15 +89,27 @@ func (r *liteQueryRunner) metricMetadata(ctx context.Context, request *qbtypes.Q
 			}
 		}
 	}
-	if len(names) == 0 {
-		return liteadapter.MetricMetadata{}, nil
+	fieldSelectors := liteadapter.FieldKeySelectors(request)
+	if len(names) == 0 && len(fieldSelectors) == 0 {
+		return metadata, nil
 	}
 	if r.metadata == nil {
-		return liteadapter.MetricMetadata{}, errors.NewInternalf(errors.CodeInternal, "metric metadata store is unavailable")
+		return liteadapter.MetricMetadata{}, errors.NewInternalf(errors.CodeInternal, "telemetry metadata store is unavailable")
 	}
-	temporalities, types, err := r.metadata.FetchTemporalityAndTypeMulti(ctx, request.Start, request.End, names...)
-	if err != nil {
-		return liteadapter.MetricMetadata{}, errors.NewInternalf(errors.CodeInternal, "failed to fetch metric temporality and type")
+	if len(names) != 0 {
+		temporalities, types, err := r.metadata.FetchTemporalityAndTypeMulti(ctx, request.Start, request.End, names...)
+		if err != nil {
+			return liteadapter.MetricMetadata{}, errors.NewInternalf(errors.CodeInternal, "failed to fetch metric temporality and type")
+		}
+		metadata.Temporality = temporalities
+		metadata.Types = types
 	}
-	return liteadapter.MetricMetadata{Temporality: temporalities, Types: types}, nil
+	if len(fieldSelectors) != 0 {
+		fieldKeys, _, err := r.metadata.GetKeysMulti(ctx, fieldSelectors)
+		if err != nil {
+			return liteadapter.MetricMetadata{}, errors.NewInternalf(errors.CodeInternal, "failed to resolve telemetry fields")
+		}
+		metadata.FieldKeys = fieldKeys
+	}
+	return metadata, nil
 }

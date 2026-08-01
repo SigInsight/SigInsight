@@ -204,6 +204,44 @@ type CommonQuery struct {
 
 `LogQuery`、`TraceQuery` 和 `MetricQuery` 组合 `CommonQuery`，但分别拥有类型化 aggregation 和 select 定义。禁止重新建立包含所有信号可选字段的巨型通用 DTO。
 
+#### 4.2.1 字段解析与元数据消歧
+
+V5 请求中的字段有两种携带方式：
+
+- **结构化字段**（`selectFields`、`groupBy`、`order`）：携带完整的
+  `TelemetryFieldKey`，包含 field context 与 data type；
+- **筛选表达式字段**（filter expression 文本）：可能**只携带名称**（如
+  `host.name`），不携带 context 与 data type。
+
+轻量引擎的字段解析遵循"**应用边界消歧、核心保持确定性**"（ADR-014）：
+
+```text
+V5 请求
+  -> FieldKeySelectors：批量收集 context/data type 不完整的字段
+       （filter 文本 token、select/group/order、日志聚合字段）
+  -> metadata store 批量查询（GetKeysMulti）
+  -> MetricMetadata.FieldKeys：以纯数据注入适配器
+  -> resolveFieldMetadata 按规则消歧
+  -> FieldRef { Name, Context, Type } 进入 Lite IR
+```
+
+消歧规则按序执行：
+
+1. **显式上下文/类型优先**：请求已指定 context 或 data type 时，metadata 只在该
+   约束内匹配，不覆盖显式值；
+2. **裸名 resource 优先**：未指定 context 且存在 resource 与 attribute 同名候选时，
+   选择 resource（保持既有 V5 行为）；
+3. **类型与 fallback 匹配**：未指定 data type 时，优先选择与操作符推断类型一致的候选；
+4. **存储类型约束**：resource map 只存字符串；metadata 未登记的裸 number/bool 字段
+   可确定性解析为 attribute；
+5. **唯一候选才消歧**：多候选歧义时不猜测，交由后续校验给出明确错误；
+6. **intrinsic 字段兜底**：仍无法确定类型时检查信号固有字段表。
+
+`pkg/litequery` 核心不依赖 metadata store；字段查询发生在 `querier` / rule runner /
+live logs 边界，metadata 以纯数据传入，SQL 编译器保持确定性。完成 metadata 查询后
+仍无法消歧的裸字段必须要求显式 `resource.` 或 `attribute.` 上下文，不能退回到
+log/span intrinsic 猜测。
+
 ### 4.3 Logical Plan
 
 Logical Plan 是经过字段解析和能力校验的内部计划，负责：
@@ -234,6 +272,11 @@ type SemanticField struct {
 ```
 
 Catalog 同时声明表、时间列、组织列和版本要求。Compiler 不得在 Catalog 之外散落字段到列的映射。
+
+Metrics 的用户语义类型与物理类型允许不同。当前 metadata 将非单调 OTLP Sum 暴露为
+Gauge；Catalog/Compiler 必须将该语义 Gauge 映射回原生 Gauge 或
+`Sum + is_monotonic=false` series，并通过 fingerprint 选择 points。不得直接用语义 Gauge
+生成 `type='Gauge' AND temporality='Unspecified'` 的物理过滤条件（ADR-015）。
 
 任何 Collector schema 变化必须通过真实 ClickHouse 的 schema fingerprint 和 API 协作测试验证，不依赖两个仓库中的人工同步注释。
 

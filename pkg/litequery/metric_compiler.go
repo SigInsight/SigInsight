@@ -43,8 +43,14 @@ func (c Compiler) compileNumericMetric(plan Plan, source MetricSource, aggregati
 	groupNames := resultGroupNames(len(groupColumns))
 	groupSelect := prefixedColumns("series", groupNames)
 
-	pointWhere := "points.metric_name = ? AND lower(points.temporality) = lower(?) AND points.unix_milli >= ? AND points.unix_milli < ?"
-	pointArgs := []any{metricName, temporality, plan.Range.StartMS, plan.Range.EndMS}
+	pointWhere := "points.metric_name = ?"
+	pointArgs := []any{metricName}
+	if aggregation.Type != MetricGauge {
+		pointWhere += " AND lower(points.temporality) = lower(?)"
+		pointArgs = append(pointArgs, temporality)
+	}
+	pointWhere += " AND points.unix_milli >= ? AND points.unix_milli < ?"
+	pointArgs = append(pointArgs, plan.Range.StartMS, plan.Range.EndMS)
 	perSeries, requiresWindow, err := numericTemporalExpression(aggregation)
 	if err != nil {
 		return Statement{}, err
@@ -314,10 +320,20 @@ func (c Compiler) compileMetricSeries(source MetricSource, aggregation MetricAgg
 	// The primary v4 series table contains Collector's original (not
 	// normalized) time series. This is also the predicate used by the V5
 	// metadata/query path; normalized rows live in derived storage.
-	args := append(selectArgs, aggregation.MetricName, metricTypeName(aggregation.Type), physicalTemporality(aggregation), false)
+	args := append(selectArgs, aggregation.MetricName)
+	query := "SELECT " + strings.Join(selects, ", ") + " FROM " + source.SeriesTable + " WHERE metric_name = ?"
+	if aggregation.Type == MetricGauge {
+		// V5 presents non-monotonic OTLP sums as gauges. Match both their
+		// original physical representation and native Gauge series; the
+		// fingerprint join then selects the corresponding point rows.
+		query += " AND (type = ? OR (type = ? AND is_monotonic = ?)) AND __normalized = ?"
+		args = append(args, metricTypeName(MetricGauge), metricTypeName(MetricSum), false, false)
+	} else {
+		query += " AND type = ? AND lower(temporality) = lower(?) AND __normalized = ?"
+		args = append(args, metricTypeName(aggregation.Type), physicalTemporality(aggregation), false)
+	}
 	args = append(args, whereArgs...)
 	args = append(args, groupArgs...)
-	query := "SELECT " + strings.Join(selects, ", ") + " FROM " + source.SeriesTable + " WHERE metric_name = ? AND type = ? AND lower(temporality) = lower(?) AND __normalized = ?"
 	if where != "" {
 		query += " AND (" + where + ")"
 	}

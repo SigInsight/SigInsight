@@ -79,14 +79,19 @@ function getSignalType(dataSource: string): 'traces' | 'logs' | 'metrics' {
 
 function getFilter(queryData: IBuilderQuery): Filter {
 	const { filter } = queryData;
+	if (queryData.filters && queryData.filters?.items?.length > 0) {
+		const generated = convertFiltersToExpression(queryData.filters);
+		if (!filter?.expression || filter.expression === generated.expression) {
+			return convertFiltersToExpression(queryData.filters, {
+				qualifyFieldContext: queryData.dataSource !== DataSource.METRICS,
+			});
+		}
+	}
+
 	if (filter?.expression) {
 		return {
 			expression: filter.expression,
 		};
-	}
-
-	if (queryData.filters && queryData.filters?.items?.length > 0) {
-		return convertFiltersToExpression(queryData.filters);
 	}
 
 	return {

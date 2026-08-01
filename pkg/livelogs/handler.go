@@ -19,6 +19,7 @@ import (
 	"github.com/SigNoz/signoz/pkg/querier/liteadapter"
 	"github.com/SigNoz/signoz/pkg/telemetrystore"
 	"github.com/SigNoz/signoz/pkg/types/authtypes"
+	"github.com/SigNoz/signoz/pkg/types/telemetrytypes"
 	"github.com/SigNoz/signoz/pkg/valuer"
 )
 
@@ -29,19 +30,22 @@ const (
 
 // Handler serves the existing /api/v5/logs/livetail SSE contract.
 type Handler struct {
-	query litequery.QueryFunc
-	now   func() time.Time
-	poll  time.Duration
+	query    litequery.QueryFunc
+	metadata telemetrytypes.MetadataStore
+	now      func() time.Time
+	poll     time.Duration
 }
 
-func New(store telemetrystore.TelemetryStore) *Handler {
-	return newHandler(func(ctx context.Context, statement string, args ...any) (litequery.Rows, error) {
+func New(store telemetrystore.TelemetryStore, metadata telemetrytypes.MetadataStore) *Handler {
+	handler := newHandler(func(ctx context.Context, statement string, args ...any) (litequery.Rows, error) {
 		rows, err := store.ClickhouseDB().Query(ctx, statement, args...)
 		if err != nil {
 			return nil, err
 		}
 		return litequery.WrapClickHouseRows(rows), nil
 	})
+	handler.metadata = metadata
+	return handler
 }
 
 func newHandler(query litequery.QueryFunc) *Handler {
@@ -67,8 +71,12 @@ func (h *Handler) Stream(rw http.ResponseWriter, req *http.Request) {
 		render.Error(rw, errors.NewInvalidInputf(errors.CodeInvalidInput, "invalid live-tail start: %v", err))
 		return
 	}
-	filter, err := parseFilter(req.URL.Query().Get("filter"))
+	filter, err := h.parseFilter(ctx, req.URL.Query().Get("filter"), startMS, h.now().UnixMilli()+1)
 	if err != nil {
+		if errors.Ast(err, errors.TypeInternal) {
+			render.Error(rw, err)
+			return
+		}
 		render.Error(rw, errors.NewInvalidInputf(errors.CodeInvalidInput, "invalid live-tail filter: %v", err))
 		return
 	}
@@ -126,6 +134,25 @@ func parseFilter(expression string) (litequery.FilterNode, error) {
 		return nil, nil
 	}
 	return liteadapter.ParseFilter(expression, litequery.SignalLogs)
+}
+
+func (h *Handler) parseFilter(ctx context.Context, expression string, startMS, endMS int64) (litequery.FilterNode, error) {
+	if strings.TrimSpace(expression) == "" {
+		//nolint:nilnil // A nil FilterNode explicitly represents an unfiltered tail.
+		return nil, nil
+	}
+	selectors := liteadapter.FilterFieldKeySelectors(expression, telemetrytypes.SignalLogs, uint64(startMS), uint64(endMS))
+	if len(selectors) == 0 {
+		return liteadapter.ParseFilter(expression, litequery.SignalLogs)
+	}
+	if h.metadata == nil {
+		return nil, errors.NewInternalf(errors.CodeInternal, "telemetry metadata store is unavailable")
+	}
+	fieldKeys, _, err := h.metadata.GetKeysMulti(ctx, selectors)
+	if err != nil {
+		return nil, errors.WrapInternalf(err, errors.CodeInternal, "failed to resolve live-log fields")
+	}
+	return liteadapter.ParseFilterWithMetadata(expression, litequery.SignalLogs, fieldKeys)
 }
 
 func (h *Handler) writeBatch(ctx context.Context, rw http.ResponseWriter, flusher http.Flusher, state *streamState) error {

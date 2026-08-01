@@ -46,6 +46,127 @@ func TestToLiteConvertsStructuredLogFilter(t *testing.T) {
 	}
 }
 
+func TestToLiteDropsSumTemporalityWhenMetadataNormalizesMetricToGauge(t *testing.T) {
+	request := &qbtypes.QueryRangeRequest{
+		Start: 1_000, End: 61_000, RequestType: qbtypes.RequestTypeTimeSeries,
+		CompositeQuery: qbtypes.CompositeQuery{Queries: []qbtypes.QueryEnvelope{{
+			Type: qbtypes.QueryTypeBuilder,
+			Spec: qbtypes.QueryBuilderQuery[qbtypes.MetricAggregation]{
+				Name: "A", Signal: telemetrytypes.SignalMetrics, StepInterval: qbtypes.Step{Duration: time.Minute},
+				Aggregations: []qbtypes.MetricAggregation{{
+					MetricName: "http.server.request.count", Temporality: metrictypes.Cumulative,
+					TimeAggregation: metrictypes.TimeAggregationLatest, SpaceAggregation: metrictypes.SpaceAggregationAvg,
+				}},
+			},
+		}}},
+	}
+	metadata := MetricMetadata{Types: map[string]metrictypes.Type{"http.server.request.count": metrictypes.GaugeType}}
+
+	converted, err := ToLite(request, metadata)
+	if err != nil {
+		t.Fatalf("ToLite() error = %v", err)
+	}
+	aggregation := converted.Queries[0].(litequery.MetricQuery).Aggregation
+	if aggregation.Type != litequery.MetricGauge || aggregation.Temporality != litequery.TemporalityUnspecified {
+		t.Fatalf("aggregation = %#v, want gauge without temporality", aggregation)
+	}
+}
+
+func TestToLiteResolvesUnqualifiedLogResourceFieldFromMetadata(t *testing.T) {
+	request := &qbtypes.QueryRangeRequest{
+		Start: 1_000, End: 61_000, RequestType: qbtypes.RequestTypeTimeSeries,
+		CompositeQuery: qbtypes.CompositeQuery{Queries: []qbtypes.QueryEnvelope{{
+			Type: qbtypes.QueryTypeBuilder,
+			Spec: qbtypes.QueryBuilderQuery[qbtypes.LogAggregation]{
+				Name: "A", Signal: telemetrytypes.SignalLogs, StepInterval: qbtypes.Step{Duration: time.Minute},
+				Aggregations: []qbtypes.LogAggregation{{Expression: "count()"}},
+				Filter:       &qbtypes.Filter{Expression: "host.name = 'worker-1'"},
+			},
+		}}},
+	}
+	metadata := MetricMetadata{FieldKeys: map[string][]*telemetrytypes.TelemetryFieldKey{
+		"host.name": {{Name: "host.name", Signal: telemetrytypes.SignalLogs, FieldContext: telemetrytypes.FieldContextResource, FieldDataType: telemetrytypes.FieldDataTypeString}},
+	}}
+
+	converted, err := ToLite(request, metadata)
+	if err != nil {
+		t.Fatalf("ToLite() error = %v", err)
+	}
+	query := converted.Queries[0].(litequery.LogQuery)
+	predicate := query.Common.Filter.(litequery.Predicate)
+	if predicate.Field != (litequery.FieldRef{Name: "host.name", Context: litequery.FieldContextResource, Type: litequery.ValueTypeString}) {
+		t.Fatalf("filter field = %#v, want resource host.name", predicate.Field)
+	}
+	plan, err := (litequery.DefaultPlanner{}).Plan(converted)
+	if err != nil {
+		t.Fatalf("Plan() error = %v", err)
+	}
+	if _, err := litequery.NewCompiler(nil).Compile(plan); err != nil {
+		t.Fatalf("Compile() error = %v", err)
+	}
+}
+
+func TestFieldToLiteMatchesV5MetadataResolutionRules(t *testing.T) {
+	metadata := MetricMetadata{FieldKeys: map[string][]*telemetrytypes.TelemetryFieldKey{
+		"deployment.environment": {
+			{Name: "deployment.environment", Signal: telemetrytypes.SignalTraces, FieldContext: telemetrytypes.FieldContextAttribute, FieldDataType: telemetrytypes.FieldDataTypeString},
+			{Name: "deployment.environment", Signal: telemetrytypes.SignalTraces, FieldContext: telemetrytypes.FieldContextResource, FieldDataType: telemetrytypes.FieldDataTypeString},
+		},
+		"http.status_code": {
+			{Name: "http.status_code", Signal: telemetrytypes.SignalTraces, FieldContext: telemetrytypes.FieldContextAttribute, FieldDataType: telemetrytypes.FieldDataTypeNumber},
+		},
+	}}
+	tests := []struct {
+		name     string
+		key      telemetrytypes.TelemetryFieldKey
+		fallback litequery.ValueType
+		want     litequery.FieldRef
+	}{
+		{
+			name: "unqualified ambiguous name prefers resource",
+			key:  telemetrytypes.TelemetryFieldKey{Name: "deployment.environment"}, fallback: litequery.ValueTypeString,
+			want: litequery.FieldRef{Name: "deployment.environment", Context: litequery.FieldContextResource, Type: litequery.ValueTypeString},
+		},
+		{
+			name: "explicit attribute context overrides resource priority",
+			key:  telemetrytypes.TelemetryFieldKey{Name: "deployment.environment", FieldContext: telemetrytypes.FieldContextAttribute}, fallback: litequery.ValueTypeString,
+			want: litequery.FieldRef{Name: "deployment.environment", Context: litequery.FieldContextAttribute, Type: litequery.ValueTypeString},
+		},
+		{
+			name: "numeric value resolves attribute type",
+			key:  telemetrytypes.TelemetryFieldKey{Name: "http.status_code"}, fallback: litequery.ValueTypeNumber,
+			want: litequery.FieldRef{Name: "http.status_code", Context: litequery.FieldContextAttribute, Type: litequery.ValueTypeNumber},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			got, err := fieldToLite(test.key, litequery.SignalTraces, test.fallback, metadata)
+			if err != nil {
+				t.Fatalf("fieldToLite() error = %v", err)
+			}
+			if got != test.want {
+				t.Fatalf("fieldToLite() = %#v, want %#v", got, test.want)
+			}
+		})
+	}
+}
+
+func TestFieldToLiteInfersUnqualifiedNumericFieldAsAttributeWithoutMetadataKey(t *testing.T) {
+	field, err := fieldToLite(
+		telemetrytypes.TelemetryFieldKey{Name: "thread.id"},
+		litequery.SignalLogs,
+		litequery.ValueTypeNumber,
+		MetricMetadata{FieldKeys: map[string][]*telemetrytypes.TelemetryFieldKey{}},
+	)
+	if err != nil {
+		t.Fatalf("fieldToLite() error = %v", err)
+	}
+	want := litequery.FieldRef{Name: "thread.id", Context: litequery.FieldContextAttribute, Type: litequery.ValueTypeNumber}
+	if field != want {
+		t.Fatalf("fieldToLite() = %#v, want %#v", field, want)
+	}
+}
+
 func TestToLiteInfersUnqualifiedServiceNameAsTraceResourceField(t *testing.T) {
 	request := &qbtypes.QueryRangeRequest{
 		Start: 1_000, End: 61_000, RequestType: qbtypes.RequestTypeTimeSeries,
@@ -59,7 +180,9 @@ func TestToLiteInfersUnqualifiedServiceNameAsTraceResourceField(t *testing.T) {
 		}}},
 	}
 
-	converted, err := ToLite(request, MetricMetadata{})
+	converted, err := ToLite(request, MetricMetadata{FieldKeys: map[string][]*telemetrytypes.TelemetryFieldKey{
+		"service.name": {{Name: "service.name", Signal: telemetrytypes.SignalTraces, FieldContext: telemetrytypes.FieldContextResource, FieldDataType: telemetrytypes.FieldDataTypeString}},
+	}})
 	if err != nil {
 		t.Fatalf("ToLite() error = %v", err)
 	}

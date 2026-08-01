@@ -98,6 +98,33 @@ describe('convertFiltersToExpression', () => {
 		});
 	});
 
+	it('should preserve field context when requested by the V5 boundary', () => {
+		const filters: TagFilter = {
+			items: [
+				{
+					id: '1',
+					key: { key: 'host.name', type: 'resource' },
+					op: '=',
+					value: 'worker-1',
+				},
+				{
+					id: '2',
+					key: { key: 'http.status_code', type: 'tag' },
+					op: '>=',
+					value: 500,
+				},
+			],
+			op: 'AND',
+		};
+
+		expect(
+			convertFiltersToExpression(filters, { qualifyFieldContext: true }),
+		).toEqual({
+			expression:
+				"resource.host.name = 'worker-1' AND attribute.http.status_code >= 500",
+		});
+	});
+
 	it('should handle string value formatting and escaping', () => {
 		const filters: TagFilter = {
 			items: [

@@ -36,6 +36,10 @@
 - [ADR-009：服务端发布的 rollout capability](decisions/009-server-advertised-rollout-capability.md)
 - [ADR-010：专用读取 API 先于 Legacy V5 删除](decisions/010-specialized-readers-before-legacy-removal.md)
 - [ADR-011：物化列显式目录契约](decisions/011-materialized-column-catalog-contract.md)
+- [ADR-012：在 V5 边界退役 Trace Operator](decisions/012-retire-trace-operator-at-v5-boundary.md)
+- [ADR-013：拒绝不支持的 V5 能力](decisions/013-reject-unsupported-v5-capabilities.md)
+- [ADR-014：字段元数据消歧契约](decisions/014-field-metadata-disambiguation.md)
+- [ADR-015：语义 Gauge 与物理 Metric Series 对齐](decisions/015-semantic-gauge-physical-series.md)
 
 ## 文档状态
 

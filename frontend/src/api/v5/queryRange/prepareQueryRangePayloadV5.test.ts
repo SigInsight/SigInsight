@@ -736,6 +736,51 @@ describe('prepareQueryRangePayloadV5', () => {
 		expect(logSpec.filter).toEqual({ expression: "service.name = 'checkout'" });
 	});
 
+	it('qualifies generated log resource filters for the V5 backend', () => {
+		const props: GetQueryResultsProps = {
+			query: {
+				queryType: EQueryType.QUERY_BUILDER,
+				id: 'qualified-filter',
+				unit: undefined,
+				clickhouse_sql: [],
+				builder: {
+					queryData: [
+						baseBuilderQuery({
+							dataSource: DataSource.LOGS,
+							filter: { expression: "host.name = 'worker-1'" },
+							filters: {
+								items: [
+									{
+										id: '1',
+										key: { key: 'host.name', type: 'resource' },
+										op: '=',
+										value: 'worker-1',
+									},
+								],
+								op: 'AND',
+							},
+						}),
+					],
+					queryFormulas: [],
+					queryTraceOperator: [],
+				},
+			},
+			graphType: PANEL_TYPES.LIST,
+			selectedTime: 'GLOBAL_TIME',
+			start,
+			end,
+		};
+
+		const result = prepareQueryRangePayloadV5(props);
+		const builderQuery = result.queryPayload.compositeQuery.queries.find(
+			(query) => query.type === 'builder_query',
+		) as QueryEnvelope;
+		const logSpec = builderQuery.spec as LogBuilderQuery;
+		expect(logSpec.filter).toEqual({
+			expression: "resource.host.name = 'worker-1'",
+		});
+	});
+
 	it('prefers filter.expression over filters when both are present', () => {
 		const props: GetQueryResultsProps = {
 			query: {

@@ -45,6 +45,17 @@ func TestCompilerExecutesOnCurrentClickHouseSchema(t *testing.T) {
 		},
 		{
 			Range: TimeRange{StartMS: 1_000, EndMS: 61_000}, ResultType: ResultTimeSeries, StepMS: 1_000,
+			Queries: []Query{LogQuery{Common: CommonQuery{
+				Name: "numeric_log_attribute",
+				Filter: Predicate{
+					Field: FieldRef{Name: "thread.id", Context: FieldContextAttribute, Type: ValueTypeNumber},
+					Op:    FilterEqual,
+					Value: Value{Kind: ValueNumber, Number: 65},
+				},
+			}, Aggregation: LogAggregateCount}},
+		},
+		{
+			Range: TimeRange{StartMS: 1_000, EndMS: 61_000}, ResultType: ResultTimeSeries, StepMS: 1_000,
 			Queries: []Query{TraceQuery{Common: CommonQuery{
 				Name:    "traces",
 				GroupBy: []FieldRef{{Name: "service.name", Context: FieldContextResource, Type: ValueTypeString}},
@@ -57,6 +68,15 @@ func TestCompilerExecutesOnCurrentClickHouseSchema(t *testing.T) {
 			}, Aggregation: MetricAggregation{
 				MetricName: "http.server.request.count", Type: MetricSum, Temporality: TemporalityCumulative,
 				TimeAggregation: TimeAggregateRate, SpaceAggregation: SpaceAggregateSum,
+			}}},
+		},
+		{
+			Range: TimeRange{StartMS: now - 3_000, EndMS: now + 1_000}, ResultType: ResultTimeSeries, StepMS: 1_000,
+			Queries: []Query{MetricQuery{Common: CommonQuery{
+				Name: "semantic_gauge", GroupBy: []FieldRef{{Name: "service.name", Context: FieldContextLabel, Type: ValueTypeString}},
+			}, Aggregation: MetricAggregation{
+				MetricName: "http.server.request.count", Type: MetricGauge, Temporality: TemporalityUnspecified,
+				TimeAggregation: TimeAggregateLatest, SpaceAggregation: SpaceAggregateAvg,
 			}}},
 		},
 		{
@@ -89,7 +109,7 @@ func TestCompilerExecutesOnCurrentClickHouseSchema(t *testing.T) {
 			if err != nil {
 				t.Fatalf("Query(%s) error = %v\nSQL: %s\nArgs: %#v", statement.Name, err, statement.SQL, statement.Args)
 			}
-			if statement.Name == "requests" || statement.Name == "latency" || statement.Name == "meter" {
+			if statement.Name == "requests" || statement.Name == "semantic_gauge" || statement.Name == "latency" || statement.Name == "meter" {
 				assertPositiveMetricRows(t, statement.Name, rows)
 			}
 			if err := rows.Err(); err != nil {
@@ -117,7 +137,7 @@ func TestCompilerExecutesOnCurrentClickHouseSchema(t *testing.T) {
 		if err != nil {
 			return nil, err
 		}
-		return &clickHouseRows{Rows: rows}, nil
+		return &integrationClickHouseRows{Rows: rows}, nil
 	}}).Execute(ctx, plan)
 	if err != nil {
 		t.Fatalf("Executor.Execute() error = %v", err)
@@ -130,9 +150,9 @@ func TestCompilerExecutesOnCurrentClickHouseSchema(t *testing.T) {
 // clickHouseRows is a test-side driver adapter. The lightweight executor stays
 // independent of ClickHouse's concrete Scan requirements, while production
 // adapters can make the same conversion at the infrastructure boundary.
-type clickHouseRows struct{ driver.Rows }
+type integrationClickHouseRows struct{ driver.Rows }
 
-func (r *clickHouseRows) Scan(destinations ...any) error {
+func (r *integrationClickHouseRows) Scan(destinations ...any) error {
 	types := r.ColumnTypes()
 	values := make([]any, len(types))
 	for index, columnType := range types {
@@ -217,7 +237,7 @@ func seedMetricCompilerData(t *testing.T, conn clickhouse.Conn, now int64) {
 	if err := conn.QueryRow(ctx, "SELECT count() FROM siginsight_metrics.samples_v4 WHERE metric_name = ?", "http.server.request.count").Scan(&pointsCount); err != nil {
 		t.Fatalf("count metric points error = %v", err)
 	}
-	if seriesCount != 1 || pointsCount != 2 {
+	if seriesCount < 1 || pointsCount < 2 {
 		t.Fatalf("seeded metric data counts = series:%d points:%d", seriesCount, pointsCount)
 	}
 }

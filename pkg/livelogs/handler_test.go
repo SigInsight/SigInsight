@@ -7,6 +7,8 @@ import (
 
 	"github.com/SigNoz/signoz/pkg/errors"
 	"github.com/SigNoz/signoz/pkg/litequery"
+	"github.com/SigNoz/signoz/pkg/types/telemetrytypes"
+	"github.com/SigNoz/signoz/pkg/types/telemetrytypes/telemetrytypestest"
 	"github.com/stretchr/testify/require"
 )
 
@@ -64,6 +66,31 @@ func TestParseStartAndRawRowValidation(t *testing.T) {
 	invalid, err := parseFilter("service.name like 'api%'")
 	require.Nil(t, invalid)
 	require.Error(t, err)
+}
+
+func TestParseFilterResolvesLogFieldsFromMetadata(t *testing.T) {
+	metadata := telemetrytypestest.NewMockMetadataStore()
+	metadata.SetKeys([]*telemetrytypes.TelemetryFieldKey{
+		{Name: "host.name", Signal: telemetrytypes.SignalLogs, FieldContext: telemetrytypes.FieldContextResource, FieldDataType: telemetrytypes.FieldDataTypeString},
+	})
+	handler := newHandler(func(context.Context, string, ...any) (litequery.Rows, error) { return &testRows{}, nil })
+	handler.metadata = metadata
+
+	filter, err := handler.parseFilter(context.Background(), "host.name = 'worker-1' AND response.size >= 512", 1, 100)
+	require.NoError(t, err)
+	logical := filter.(litequery.LogicalFilter)
+	require.Equal(t, litequery.FieldRef{Name: "host.name", Context: litequery.FieldContextResource, Type: litequery.ValueTypeString}, logical.Items[0].(litequery.Predicate).Field)
+	require.Equal(t, litequery.FieldRef{Name: "response.size", Context: litequery.FieldContextAttribute, Type: litequery.ValueTypeNumber}, logical.Items[1].(litequery.Predicate).Field)
+}
+
+func TestParseFilterRequiresContextForUnknownUnqualifiedField(t *testing.T) {
+	metadata := telemetrytypestest.NewMockMetadataStore()
+	handler := newHandler(func(context.Context, string, ...any) (litequery.Rows, error) { return &testRows{}, nil })
+	handler.metadata = metadata
+
+	filter, err := handler.parseFilter(context.Background(), "unknown.field = 'value'", 1, 100)
+	require.Nil(t, filter)
+	require.ErrorContains(t, err, "qualify it as resource or attribute")
 }
 
 type testRows struct {

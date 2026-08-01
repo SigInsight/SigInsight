@@ -23,7 +23,7 @@ func TestDefaultCatalogResolvesSemanticFields(t *testing.T) {
 		{
 			name: "trace number attribute", signal: SignalTraces,
 			field: FieldRef{Name: "http.request.size", Context: FieldContextAttribute, Type: ValueTypeNumber},
-			want:  ResolvedField{SQL: "attributes_number[?]", Args: []any{"http.request.size"}, ExistsSQL: "mapContains(attributes_number, ?)", ExistsArgs: []any{"http.request.size"}, RequiresExistence: true},
+			want:  ResolvedField{SQL: "attributes_number[?]", Args: []any{"http.request.size"}, ExistsSQL: "mapContains(attributes_number, ?)", ExistsArgs: []any{"http.request.size"}, ComparisonValueSQL: "toFloat64(?)", RequiresExistence: true},
 		},
 		{
 			name: "trace materialized resource string", signal: SignalTraces,
@@ -51,6 +51,24 @@ func TestDefaultCatalogResolvesSemanticFields(t *testing.T) {
 				t.Fatalf("Resolve() = %#v, want %#v", got, test.want)
 			}
 		})
+	}
+}
+
+func TestCompilerCastsNumericMapComparisonParameter(t *testing.T) {
+	statement := compileOne(t, Request{
+		Range: TimeRange{StartMS: 1_000, EndMS: 61_000}, ResultType: ResultTimeSeries, StepMS: 1_000,
+		Queries: []Query{LogQuery{Common: CommonQuery{
+			Name: "logs",
+			Filter: Predicate{
+				Field: FieldRef{Name: "thread.id", Context: FieldContextAttribute, Type: ValueTypeNumber},
+				Op:    FilterEqual,
+				Value: Value{Kind: ValueNumber, Number: 65},
+			},
+		}, Aggregation: LogAggregateCount}},
+	})
+	requireSQL := "(attributes_number[?] = toFloat64(?))"
+	if !strings.Contains(statement.SQL, requireSQL) {
+		t.Fatalf("Compile() SQL = %s, want %s", statement.SQL, requireSQL)
 	}
 }
 
@@ -309,6 +327,32 @@ func TestCompilerCompilesMetricRateWithTwoAggregationStages(t *testing.T) {
 	}
 	if !reflect.DeepEqual(statement.Args, wantArgs) {
 		t.Fatalf("Args = %#v, want %#v\nSQL: %s", statement.Args, wantArgs, statement.SQL)
+	}
+}
+
+func TestCompilerMatchesSemanticGaugeToNativeGaugeAndNonMonotonicSum(t *testing.T) {
+	service := FieldRef{Name: "service.name", Context: FieldContextLabel, Type: ValueTypeString}
+	statement := compileOne(t, Request{
+		Range: TimeRange{StartMS: 1_000, EndMS: 61_000}, ResultType: ResultTimeSeries, StepMS: 1_000,
+		Queries: []Query{MetricQuery{Common: CommonQuery{
+			Name: "requests", GroupBy: []FieldRef{service},
+			Filter: Predicate{Field: service, Op: FilterEqual, Value: Value{Kind: ValueString, String: "api"}},
+		}, Aggregation: MetricAggregation{
+			MetricName: "http.server.request.count", Type: MetricGauge, Temporality: TemporalityUnspecified,
+			TimeAggregation: TimeAggregateLatest, SpaceAggregation: SpaceAggregateAvg,
+		}}},
+	})
+	for _, fragment := range []string{
+		"(type = ? OR (type = ? AND is_monotonic = ?))",
+		"points.metric_name = ? AND points.unix_milli >= ?",
+	} {
+		if !strings.Contains(statement.SQL, fragment) {
+			t.Fatalf("SQL does not contain %q:\n%s", fragment, statement.SQL)
+		}
+	}
+	wantPrefix := []any{"service.name", "http.server.request.count", "Gauge", "Sum", false, false}
+	if !reflect.DeepEqual(statement.Args[:len(wantPrefix)], wantPrefix) {
+		t.Fatalf("Args prefix = %#v, want %#v", statement.Args[:len(wantPrefix)], wantPrefix)
 	}
 }
 
