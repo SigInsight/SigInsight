@@ -87,7 +87,13 @@ describe('prepareQueryRangePayloadV5', () => {
 				unit: undefined,
 				clickhouse_sql: [],
 				builder: {
-					queryData: [baseBuilderQuery()],
+					queryData: [
+						baseBuilderQuery({
+							selectColumns: [
+								{ key: 'service.name', type: 'resource', dataType: DataTypes.String },
+							],
+						}),
+					],
 					queryFormulas: [baseFormula()],
 					queryTraceOperator: [],
 				},
@@ -153,6 +159,9 @@ describe('prepareQueryRangePayloadV5', () => {
 
 		// Legend map combines builder and formulas
 		expect(result.legendMap).toEqual({ A: 'Legend A', F1: 'Formula Legend' });
+		const aggregateSpec = result.queryPayload.compositeQuery.queries[0]
+			.spec as MetricBuilderQuery;
+		expect(aggregateSpec.selectFields).toBeUndefined();
 
 		const payload: QueryRangePayloadV5 = result.queryPayload;
 
@@ -367,7 +376,7 @@ describe('prepareQueryRangePayloadV5', () => {
 		expect(builderSpec.aggregations?.[0].reduceTo).toBe('avg');
 	});
 
-	it('omits temporality from Histogram metric queries', () => {
+	it('preserves temporality for Histogram metric queries', () => {
 		const histogramQuery = baseBuilderQuery({
 			aggregateAttribute: {
 				id: 'histogram',
@@ -403,7 +412,7 @@ describe('prepareQueryRangePayloadV5', () => {
 
 		const builderSpec = result.queryPayload.compositeQuery.queries[0]
 			.spec as MetricBuilderQuery;
-		expect(builderSpec.aggregations?.[0]).not.toHaveProperty('temporality');
+		expect(builderSpec.aggregations?.[0].temporality).toBe('cumulative');
 	});
 
 	it('omits aggregations for raw request type (LIST panel)', () => {
@@ -411,6 +420,18 @@ describe('prepareQueryRangePayloadV5', () => {
 		const logsQuery = baseBuilderQuery({
 			dataSource: DataSource.LOGS,
 			aggregations: logAgg,
+			// Explorer view switches preserve aggregate state. Raw payloads must not
+			// leak that stale state into the strict lightweight wire contract.
+			groupBy: [
+				{
+					key: 'host.name',
+					type: 'resource',
+					dataType: DataTypes.String,
+				},
+			],
+			selectColumns: [
+				{ key: 'timestamp', type: 'log', dataType: DataTypes.Int64 },
+			],
 		} as Partial<IBuilderQuery>);
 
 		const props: GetQueryResultsProps = {
@@ -471,6 +492,10 @@ describe('prepareQueryRangePayloadV5', () => {
 		// For RAW request type, aggregations should be omitted
 		const logSpec = builderQuery.spec as LogBuilderQuery;
 		expect(logSpec.aggregations).toBeUndefined();
+		expect(logSpec.groupBy).toBeUndefined();
+		expect(logSpec.selectFields).toEqual([
+			expect.objectContaining({ name: 'timestamp' }),
+		]);
 	});
 
 	it('maps groupBy, order, having, aggregations and filter for logs builder query', () => {
@@ -571,7 +596,7 @@ describe('prepareQueryRangePayloadV5', () => {
 											fieldContext: '',
 										},
 									],
-									limit: 600,
+									limit: undefined,
 									order: [
 										{
 											key: { name: 'service.name' },
@@ -734,6 +759,51 @@ describe('prepareQueryRangePayloadV5', () => {
 		) as QueryEnvelope;
 		const logSpec = builderQuery.spec as LogBuilderQuery;
 		expect(logSpec.filter).toEqual({ expression: "service.name = 'checkout'" });
+	});
+
+	it('qualifies generated log resource filters for the V5 backend', () => {
+		const props: GetQueryResultsProps = {
+			query: {
+				queryType: EQueryType.QUERY_BUILDER,
+				id: 'qualified-filter',
+				unit: undefined,
+				clickhouse_sql: [],
+				builder: {
+					queryData: [
+						baseBuilderQuery({
+							dataSource: DataSource.LOGS,
+							filter: { expression: "host.name = 'worker-1'" },
+							filters: {
+								items: [
+									{
+										id: '1',
+										key: { key: 'host.name', type: 'resource' },
+										op: '=',
+										value: 'worker-1',
+									},
+								],
+								op: 'AND',
+							},
+						}),
+					],
+					queryFormulas: [],
+					queryTraceOperator: [],
+				},
+			},
+			graphType: PANEL_TYPES.LIST,
+			selectedTime: 'GLOBAL_TIME',
+			start,
+			end,
+		};
+
+		const result = prepareQueryRangePayloadV5(props);
+		const builderQuery = result.queryPayload.compositeQuery.queries.find(
+			(query) => query.type === 'builder_query',
+		) as QueryEnvelope;
+		const logSpec = builderQuery.spec as LogBuilderQuery;
+		expect(logSpec.filter).toEqual({
+			expression: "resource.host.name = 'worker-1'",
+		});
 	});
 
 	it('prefers filter.expression over filters when both are present', () => {

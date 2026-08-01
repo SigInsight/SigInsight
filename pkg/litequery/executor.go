@@ -27,6 +27,7 @@ type QueryFunc func(context.Context, string, ...any) (Rows, error)
 type ExecutorConfig struct {
 	Timeout       time.Duration
 	MaxConcurrent int
+	MaxRows       int
 }
 
 type Executor struct {
@@ -60,6 +61,9 @@ func (e Executor) Execute(ctx context.Context, plan Plan) (ExecutionResult, erro
 	}
 	if e.Config.MaxConcurrent <= 0 {
 		e.Config.MaxConcurrent = 4
+	}
+	if e.Config.MaxRows <= 0 {
+		e.Config.MaxRows = 250_000
 	}
 	statements, err := e.Compiler.Compile(plan)
 	if err != nil {
@@ -149,6 +153,9 @@ func (e Executor) executeStatement(ctx context.Context, statement Statement) (Qu
 	}
 	result := QueryResult{Name: statement.Name, Columns: columns, Warnings: append([]string{}, statement.Warnings...)}
 	for rows.Next() {
+		if len(result.Rows) >= e.Config.MaxRows {
+			return QueryResult{}, newError(ErrorBudgetExceeded, "executor.rows", "query %q returned more than %d rows", statement.Name, e.Config.MaxRows)
+		}
 		values := make([]any, len(columns))
 		targets := make([]any, len(columns))
 		for index := range values {
@@ -166,14 +173,11 @@ func (e Executor) executeStatement(ctx context.Context, statement Statement) (Qu
 }
 
 func normalizeExecutionError(ctx context.Context, err error) error {
-	if errors.Is(err, context.DeadlineExceeded) {
-		return newError(ErrorUnsupported, "executor.timeout", "query execution exceeded its deadline")
+	if errors.Is(err, context.DeadlineExceeded) || errors.Is(ctx.Err(), context.DeadlineExceeded) {
+		return newError(ErrorTimeout, "executor.timeout", "query execution exceeded its deadline")
 	}
 	if errors.Is(err, context.Canceled) {
 		return context.Canceled
-	}
-	if err == nil && errors.Is(ctx.Err(), context.DeadlineExceeded) {
-		return newError(ErrorUnsupported, "executor.timeout", "query execution exceeded its deadline")
 	}
 	if err == nil && errors.Is(ctx.Err(), context.Canceled) {
 		return context.Canceled
@@ -186,7 +190,7 @@ func evaluateFormulas(plan Plan, queryResults []QueryResult) ([]QueryResult, []s
 	for _, result := range queryResults {
 		resultByName[result.Name] = result
 	}
-	formulas := make([]QueryResult, 0, len(plan.Formulas))
+	formulaByName := make(map[string]QueryResult, len(plan.Formulas))
 	warnings := make([]string, 0)
 	pending := append([]Formula{}, plan.Formulas...)
 	for len(pending) != 0 {
@@ -201,7 +205,10 @@ func evaluateFormulas(plan Plan, queryResults []QueryResult) ([]QueryResult, []s
 				remaining = append(remaining, formula)
 				continue
 			}
-			keys, values, columns, missing := formulaInputs(tokens, resultByName)
+			keys, values, columns, missing, err := formulaInputs(tokens, resultByName)
+			if err != nil {
+				return nil, nil, err
+			}
 			if missing {
 				warnings = append(warnings, "formula "+formula.Name+" substituted zero for a missing aligned value")
 			}
@@ -216,13 +223,17 @@ func evaluateFormulas(plan Plan, queryResults []QueryResult) ([]QueryResult, []s
 				formulaResult.Rows = append(formulaResult.Rows, row)
 			}
 			resultByName[formula.Name] = formulaResult
-			formulas = append(formulas, formulaResult)
+			formulaByName[formula.Name] = formulaResult
 			progress = true
 		}
 		if !progress {
 			return nil, nil, newError(ErrorInvalidFormula, "formula.expression", "formula dependencies could not be resolved")
 		}
 		pending = remaining
+	}
+	formulas := make([]QueryResult, 0, len(plan.Formulas))
+	for _, formula := range plan.Formulas {
+		formulas = append(formulas, formulaByName[formula.Name])
 	}
 	return formulas, warnings, nil
 }
@@ -243,12 +254,15 @@ type formulaKey struct {
 	values []any
 }
 
-func formulaInputs(tokens []formulaToken, results map[string]QueryResult) ([]formulaKey, map[string]map[string]float64, []ResultColumn, bool) {
+func formulaInputs(tokens []formulaToken, results map[string]QueryResult) ([]formulaKey, map[string]map[string]float64, []ResultColumn, bool, error) {
 	keys := make([]formulaKey, 0)
 	seen := make(map[string]struct{})
 	values := make(map[string]map[string]float64)
 	columns := []ResultColumn{{Name: "value"}}
+	schemaSet := false
 	missing := false
+	dependencies := make([]string, 0)
+	dependencySeen := make(map[string]struct{})
 	for _, token := range tokens {
 		if token.kind != formulaIdentifier {
 			continue
@@ -257,16 +271,29 @@ func formulaInputs(tokens []formulaToken, results map[string]QueryResult) ([]for
 		if !ok {
 			continue
 		}
-		if len(result.Columns) > 1 {
-			columns = append([]ResultColumn{}, result.Columns[:len(result.Columns)-1]...)
+		if _, ok := dependencySeen[token.value]; ok {
+			continue
+		}
+		dependencySeen[token.value] = struct{}{}
+		dependencies = append(dependencies, token.value)
+		if len(result.Columns) == 0 || result.Columns[len(result.Columns)-1].Name != "value" {
+			return nil, nil, nil, false, newError(ErrorInvalidFormula, "formula.expression", "formula input %q has no value column", token.value)
+		}
+		candidate := result.Columns[:len(result.Columns)-1]
+		if !schemaSet {
+			columns = append([]ResultColumn{}, candidate...)
 			columns = append(columns, ResultColumn{Name: "value"})
+			schemaSet = true
+		} else if !sameResultColumns(columns[:len(columns)-1], candidate) {
+			return nil, nil, nil, false, newError(ErrorInvalidFormula, "formula.expression", "formula inputs must use identical timestamp and group columns")
 		}
 		for _, row := range result.Rows {
 			if len(row) != len(result.Columns) || len(row) == 0 {
+				missing = true
 				continue
 			}
 			keyValues := append([]any{}, row[:len(row)-1]...)
-			key := formulaKey{text: fmt.Sprint(keyValues), values: keyValues}
+			key := formulaKey{text: alignmentKey(keyValues), values: keyValues}
 			if _, exists := seen[key.text]; !exists {
 				seen[key.text] = struct{}{}
 				keys = append(keys, key)
@@ -282,7 +309,43 @@ func formulaInputs(tokens []formulaToken, results map[string]QueryResult) ([]for
 			values[key.text][token.value] = value
 		}
 	}
-	return keys, values, columns, missing
+	for _, key := range keys {
+		for _, dependency := range dependencies {
+			if _, ok := values[key.text][dependency]; !ok {
+				missing = true
+			}
+		}
+	}
+	return keys, values, columns, missing, nil
+}
+
+func sameResultColumns(left, right []ResultColumn) bool {
+	if len(left) != len(right) {
+		return false
+	}
+	for index := range left {
+		if left[index].Name != right[index].Name {
+			return false
+		}
+		if (left[index].Field == nil) != (right[index].Field == nil) {
+			return false
+		}
+		if left[index].Field != nil && *left[index].Field != *right[index].Field {
+			return false
+		}
+	}
+	return true
+}
+
+func alignmentKey(values []any) string {
+	var key strings.Builder
+	for _, value := range values {
+		encoded := fmt.Sprintf("%T:%v", value, value)
+		key.WriteString(strconv.Itoa(len(encoded)))
+		key.WriteByte(':')
+		key.WriteString(encoded)
+	}
+	return key.String()
 }
 
 func evaluateFormulaTokens(tokens []formulaToken, values map[string]float64) (float64, error) {
@@ -375,9 +438,23 @@ func numericValue(value any) (float64, bool) {
 		return float64(current), true
 	case int64:
 		return float64(current), true
+	case int32:
+		return float64(current), true
+	case int16:
+		return float64(current), true
+	case int8:
+		return float64(current), true
 	case int:
 		return float64(current), true
 	case uint64:
+		return float64(current), true
+	case uint32:
+		return float64(current), true
+	case uint16:
+		return float64(current), true
+	case uint8:
+		return float64(current), true
+	case uint:
 		return float64(current), true
 	default:
 		return 0, false

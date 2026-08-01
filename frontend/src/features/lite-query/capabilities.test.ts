@@ -45,6 +45,18 @@ const baseState: Query = {
 	clickhouse_sql: [],
 };
 
+function setFilterFieldMetadata(
+	filter: TagFilter['items'][number],
+	type: string,
+	dataType: DataTypes,
+): void {
+	if (!filter.key) {
+		throw new Error('test filter key is required');
+	}
+	filter.key.type = type;
+	filter.key.dataType = dataType;
+}
+
 describe('lightweight query capabilities', () => {
 	it('serializes only the filter syntax accepted by the Lite adapter', () => {
 		const filters = {
@@ -57,7 +69,36 @@ describe('lightweight query capabilities', () => {
 		} as TagFilter;
 
 		expect(toLiteFilterExpression(filters)).toBe(
-			"resource.service.name = 'checkout' OR status.code in ['500', '503'] OR body exists",
+			"resource.service.name = 'checkout' OR status.code in [500, 503] OR body exists",
+		);
+	});
+
+	it('preserves telemetry context and string value types in filters', () => {
+		const resourceNumericString = createLiteFilter('host.id', '=', '123');
+		setFilterFieldMetadata(resourceNumericString, 'resource', DataTypes.String);
+		const numericAttribute = createLiteFilter('http.status_code', '>=', '500');
+		setFilterFieldMetadata(numericAttribute, 'tag', DataTypes.Int64);
+
+		expect(
+			toLiteFilterExpression({
+				op: 'AND',
+				items: [resourceNumericString, numericAttribute],
+			}),
+		).toBe("resource.host.id = '123' AND attribute.http.status_code >= 500");
+	});
+
+	it('serializes IN values according to the selected field type', () => {
+		const numeric = createLiteFilter('http.status_code', 'in', ['200', '500']);
+		setFilterFieldMetadata(numeric, 'tag', DataTypes.Int64);
+		const bool = createLiteFilter('error', 'not in', ['true', 'false']);
+		setFilterFieldMetadata(bool, 'tag', DataTypes.bool);
+		const string = createLiteFilter('host.id', 'in', ['123', '456']);
+		setFilterFieldMetadata(string, 'resource', DataTypes.String);
+
+		expect(
+			toLiteFilterExpression({ items: [numeric, bool, string], op: 'AND' }),
+		).toBe(
+			"attribute.http.status_code in [200, 500] AND attribute.error not in [true, false] AND resource.host.id in ['123', '456']",
 		);
 	});
 
@@ -108,6 +149,18 @@ describe('lightweight query capabilities', () => {
 				PANEL_TYPES.TIME_SERIES,
 			),
 		).toBe(false);
+		expect(
+			isLiteQueryState(
+				{
+					...baseState,
+					builder: {
+						...baseState.builder,
+						queryData: [{ ...baseQuery, aggregations: [{ expression: 'sum(' }] }],
+					},
+				},
+				PANEL_TYPES.TIME_SERIES,
+			),
+		).toBe(false);
 	});
 
 	it('accepts historical builder queries that omit optional editor fields', () => {
@@ -141,6 +194,12 @@ describe('lightweight query capabilities', () => {
 			'rate',
 			'increase',
 		]);
+		expect(getLiteMetricAggregationOptions('histogram', false)).toEqual([
+			'p50',
+			'p90',
+			'p95',
+			'p99',
+		]);
 		expect(getLiteMetricAggregationOptions('', true)).toEqual([
 			'count',
 			'sum',
@@ -156,10 +215,65 @@ describe('lightweight query capabilities', () => {
 			legend: '',
 		};
 		expect(isLiteFormula(simpleFormula)).toBe(true);
+		expect(isLiteFormula({ ...simpleFormula, expression: '(A + 1) / 2.5' })).toBe(
+			true,
+		);
 		expect(isLiteFormula({ ...simpleFormula, expression: 'ewma3(A)' })).toBe(
 			false,
 		);
+		expect(isLiteFormula({ ...simpleFormula, expression: '-A' })).toBe(false);
+		expect(isLiteFormula({ ...simpleFormula, expression: 'A / 0' })).toBe(false);
+		expect(isLiteFormula({ ...simpleFormula, expression: 'A +' })).toBe(false);
 		expect(isLiteFormula({ ...simpleFormula, limit: 10 })).toBe(false);
+	});
+
+	it('preserves stale group-by state on raw panels but rejects formulas', () => {
+		const grouped = {
+			...baseState,
+			builder: {
+				...baseState.builder,
+				queryData: [
+					{
+						...baseQuery,
+						groupBy: [
+							{
+								id: 'host',
+								key: 'host.name',
+								dataType: DataTypes.String,
+								type: 'resource',
+							},
+						],
+					},
+				],
+			},
+		};
+		expect(isLiteQueryState(grouped, PANEL_TYPES.LIST)).toBe(true);
+
+		const withFormula = {
+			...baseState,
+			builder: {
+				...baseState.builder,
+				queryFormulas: [
+					{ queryName: 'F', expression: 'A + B', disabled: false, legend: '' },
+				],
+			},
+		};
+		expect(isLiteQueryState(withFormula, PANEL_TYPES.TRACE)).toBe(false);
+	});
+
+	it('rejects time-series row limits until top-series semantics exist', () => {
+		expect(
+			isLiteQueryState(
+				{
+					...baseState,
+					builder: {
+						...baseState.builder,
+						queryData: [{ ...baseQuery, limit: 10 }],
+					},
+				},
+				PANEL_TYPES.TIME_SERIES,
+			),
+		).toBe(false);
 	});
 
 	it('keeps the Lite state on the shared V5 wire contract', () => {

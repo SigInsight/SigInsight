@@ -5,6 +5,7 @@ package liteadapter
 
 import (
 	"fmt"
+	"math"
 	"strings"
 
 	"github.com/SigNoz/signoz/pkg/errors"
@@ -25,38 +26,50 @@ func (e *UnsupportedError) Error() string {
 
 func unsupported(feature string) error { return &UnsupportedError{Feature: feature} }
 
-// MetricMetadata contains the type information that V5 resolves from metadata
-// before compiling a metric request. It is intentionally data, not a store
-// dependency, so this package remains deterministic in tests.
+// ValidateRequestRange protects metadata lookups that must happen before the
+// V5 request can be converted into the typed lightweight IR.
+func ValidateRequestRange(request *qbtypes.QueryRangeRequest) error {
+	if request == nil {
+		return errors.NewInvalidInputf(errors.CodeInvalidInput, "V5 request is required")
+	}
+	if request.Start > math.MaxInt64 || request.End > math.MaxInt64 {
+		return errors.NewInvalidInputf(errors.CodeInvalidInput, "query range exceeds supported millisecond range")
+	}
+	if request.End <= request.Start {
+		return errors.NewInvalidInputf(errors.CodeInvalidInput, "query range end must be after start")
+	}
+	const maxLogTimestampMS = uint64(math.MaxInt64 / 1_000_000)
+	for _, envelope := range request.CompositeQuery.Queries {
+		if query, ok := envelope.Spec.(qbtypes.QueryBuilderQuery[qbtypes.LogAggregation]); ok && !query.Disabled && request.End > maxLogTimestampMS {
+			return errors.NewInvalidInputf(errors.CodeInvalidInput, "log query range exceeds nanosecond timestamp capacity")
+		}
+	}
+	return nil
+}
+
+// MetricMetadata contains the schema information that V5 resolves before
+// adapting a request. It is intentionally data, not a store dependency, so
+// this package remains deterministic in tests.
 type MetricMetadata struct {
 	Temporality map[string]metrictypes.Temporality
 	Types       map[string]metrictypes.Type
+	FieldKeys   map[string][]*telemetrytypes.TelemetryFieldKey
 }
 
 // ToLite converts the supported V5 subset to a storage-independent request.
 // Unsupported features return UnsupportedError rather than being ignored.
 func ToLite(request *qbtypes.QueryRangeRequest, metadata MetricMetadata) (litequery.Request, error) {
-	if request == nil {
-		return litequery.Request{}, errors.NewInvalidInputf(errors.CodeInvalidInput, "V5 request is required")
+	if err := ValidateRequestRange(request); err != nil {
+		return litequery.Request{}, err
 	}
 	resultType, err := resultTypeFromV5(request.RequestType)
 	if err != nil {
 		return litequery.Request{}, err
 	}
-	if request.Start > uint64(^uint64(0)>>1) || request.End > uint64(^uint64(0)>>1) {
-		return litequery.Request{}, errors.NewInvalidInputf(errors.CodeInvalidInput, "query range exceeds supported millisecond range")
-	}
 	result := litequery.Request{
 		Range:      litequery.TimeRange{StartMS: int64(request.Start), EndMS: int64(request.End)},
 		ResultType: resultType,
 	}
-	if request.FormatOptions != nil {
-		if request.FormatOptions.FillGaps {
-			return litequery.Request{}, unsupported("formatOptions.fillGaps")
-		}
-		result.Format.FillGaps = request.FormatOptions.FillGaps
-	}
-
 	var stepMS int64
 	for _, envelope := range request.CompositeQuery.Queries {
 		switch envelope.Type {
@@ -116,7 +129,10 @@ func resultTypeFromV5(kind qbtypes.RequestType) (litequery.ResultType, error) {
 func builderToLite(spec any, resultType litequery.ResultType, metadata MetricMetadata) (litequery.Query, int64, bool, error) {
 	switch query := spec.(type) {
 	case qbtypes.QueryBuilderQuery[qbtypes.LogAggregation]:
-		common, err := commonToLite(query.Name, query.Filter, query.SelectFields, query.GroupBy, query.Order, query.Limit, query.Offset, query.Cursor, query.LimitBy, query.Having, query.SecondaryAggregations, query.Functions, litequery.SignalLogs)
+		if query.Disabled {
+			return nil, 0, true, nil
+		}
+		common, err := commonToLite(query.Name, query.Filter, query.SelectFields, query.GroupBy, query.Order, query.Limit, query.Offset, query.Cursor, query.LimitBy, query.Having, query.SecondaryAggregations, query.Functions, litequery.SignalLogs, resultType, metadata)
 		if err != nil {
 			return nil, 0, false, err
 		}
@@ -126,14 +142,17 @@ func builderToLite(spec any, resultType litequery.ResultType, metadata MetricMet
 		aggregation := litequery.LogAggregateCount
 		var field litequery.FieldRef
 		if len(query.Aggregations) == 1 {
-			aggregation, field, err = logAggregation(query.Aggregations[0])
+			aggregation, field, err = logAggregation(query.Aggregations[0], metadata)
 			if err != nil {
 				return nil, 0, false, err
 			}
 		}
-		return litequery.LogQuery{Common: common, Aggregation: aggregation, Field: field}, query.StepInterval.Milliseconds(), query.Disabled, nil
+		return litequery.LogQuery{Common: common, Aggregation: aggregation, Field: field}, query.StepInterval.Milliseconds(), false, nil
 	case qbtypes.QueryBuilderQuery[qbtypes.TraceAggregation]:
-		common, err := commonToLite(query.Name, query.Filter, query.SelectFields, query.GroupBy, query.Order, query.Limit, query.Offset, query.Cursor, query.LimitBy, query.Having, query.SecondaryAggregations, query.Functions, litequery.SignalTraces)
+		if query.Disabled {
+			return nil, 0, true, nil
+		}
+		common, err := commonToLite(query.Name, query.Filter, query.SelectFields, query.GroupBy, query.Order, query.Limit, query.Offset, query.Cursor, query.LimitBy, query.Having, query.SecondaryAggregations, query.Functions, litequery.SignalTraces, resultType, metadata)
 		if err != nil {
 			return nil, 0, false, err
 		}
@@ -147,9 +166,12 @@ func builderToLite(spec any, resultType litequery.ResultType, metadata MetricMet
 				return nil, 0, false, err
 			}
 		}
-		return litequery.TraceQuery{Common: common, Aggregation: aggregation}, query.StepInterval.Milliseconds(), query.Disabled, nil
+		return litequery.TraceQuery{Common: common, Aggregation: aggregation}, query.StepInterval.Milliseconds(), false, nil
 	case qbtypes.QueryBuilderQuery[qbtypes.MetricAggregation]:
-		common, err := commonToLite(query.Name, query.Filter, query.SelectFields, query.GroupBy, query.Order, query.Limit, query.Offset, query.Cursor, query.LimitBy, query.Having, query.SecondaryAggregations, query.Functions, litequery.SignalMetrics)
+		if query.Disabled {
+			return nil, 0, true, nil
+		}
+		common, err := commonToLite(query.Name, query.Filter, query.SelectFields, query.GroupBy, query.Order, query.Limit, query.Offset, query.Cursor, query.LimitBy, query.Having, query.SecondaryAggregations, query.Functions, litequery.SignalMetrics, resultType, metadata)
 		if err != nil {
 			return nil, 0, false, err
 		}
@@ -161,15 +183,15 @@ func builderToLite(spec any, resultType litequery.ResultType, metadata MetricMet
 			return nil, 0, false, err
 		}
 		if query.Source == telemetrytypes.SourceMeter {
-			return litequery.MeterQuery{Common: common, Aggregation: aggregation}, query.StepInterval.Milliseconds(), query.Disabled, nil
+			return litequery.MeterQuery{Common: common, Aggregation: aggregation}, query.StepInterval.Milliseconds(), false, nil
 		}
-		return litequery.MetricQuery{Common: common, Aggregation: aggregation}, query.StepInterval.Milliseconds(), query.Disabled, nil
+		return litequery.MetricQuery{Common: common, Aggregation: aggregation}, query.StepInterval.Milliseconds(), false, nil
 	default:
 		return nil, 0, false, unsupported(fmt.Sprintf("builder spec %T", spec))
 	}
 }
 
-func commonToLite(name string, filter *qbtypes.Filter, selectFields []telemetrytypes.TelemetryFieldKey, groupBy []qbtypes.GroupByKey, order []qbtypes.OrderBy, limit, offset int, cursor string, limitBy *qbtypes.LimitBy, having *qbtypes.Having, secondary []qbtypes.SecondaryAggregation, functions []qbtypes.Function, signal litequery.Signal) (litequery.CommonQuery, error) {
+func commonToLite(name string, filter *qbtypes.Filter, selectFields []telemetrytypes.TelemetryFieldKey, groupBy []qbtypes.GroupByKey, order []qbtypes.OrderBy, limit, offset int, cursor string, limitBy *qbtypes.LimitBy, having *qbtypes.Having, secondary []qbtypes.SecondaryAggregation, functions []qbtypes.Function, signal litequery.Signal, resultType litequery.ResultType, metadata MetricMetadata) (litequery.CommonQuery, error) {
 	if limit < 0 || offset < 0 {
 		return litequery.CommonQuery{}, errors.NewInvalidInputf(errors.CodeInvalidInput, "query limit and offset must not be negative")
 	}
@@ -184,26 +206,36 @@ func commonToLite(name string, filter *qbtypes.Filter, selectFields []telemetryt
 	}
 	common := litequery.CommonQuery{Name: name, Limit: uint32(limit), Offset: uint32(offset), Cursor: cursor}
 	for _, field := range selectFields {
-		converted, err := fieldToLite(field, signal, litequery.ValueTypeString)
+		converted, err := fieldToLite(field, signal, litequery.ValueTypeString, metadata)
 		if err != nil {
 			return litequery.CommonQuery{}, err
 		}
 		common.Select = append(common.Select, converted)
 	}
 	for _, field := range groupBy {
-		converted, err := fieldToLite(field.TelemetryFieldKey, signal, litequery.ValueTypeString)
+		converted, err := fieldToLite(field.TelemetryFieldKey, signal, litequery.ValueTypeString, metadata)
 		if err != nil {
 			return litequery.CommonQuery{}, err
 		}
 		common.GroupBy = append(common.GroupBy, converted)
 	}
 	for _, item := range order {
-		converted, err := fieldToLite(item.Key.TelemetryFieldKey, signal, litequery.ValueTypeString)
-		if err != nil {
-			return litequery.CommonQuery{}, err
-		}
 		target := litequery.OrderByField
-		if item.Key.Name == "" || item.Key.Name == "value" || strings.HasPrefix(item.Key.Name, "__result_") {
+		if resultType == litequery.ResultTimeSeries || resultType == litequery.ResultScalar {
+			target = aggregateOrderTarget(item.Key.TelemetryFieldKey, groupBy)
+		}
+		var converted litequery.FieldRef
+		if target == litequery.OrderByField {
+			if field, ok := traceSummaryOrderField(item.Key.Name, signal, resultType); ok {
+				converted = field
+			} else {
+				var err error
+				converted, err = fieldToLite(item.Key.TelemetryFieldKey, signal, litequery.ValueTypeString, metadata)
+				if err != nil {
+					return litequery.CommonQuery{}, err
+				}
+			}
+		} else {
 			target = litequery.OrderByAggregation
 		}
 		direction := litequery.SortAscending
@@ -213,7 +245,7 @@ func commonToLite(name string, filter *qbtypes.Filter, selectFields []telemetryt
 		common.Order = append(common.Order, litequery.Order{Target: target, Field: converted, Direction: direction})
 	}
 	if filter != nil && strings.TrimSpace(filter.Expression) != "" {
-		parsed, err := parseFilter(filter.Expression, signal)
+		parsed, err := parseFilter(filter.Expression, signal, metadata)
 		if err != nil {
 			return litequery.CommonQuery{}, err
 		}
@@ -222,7 +254,32 @@ func commonToLite(name string, filter *qbtypes.Filter, selectFields []telemetryt
 	return common, nil
 }
 
-func logAggregation(aggregation qbtypes.LogAggregation) (litequery.LogAggregation, litequery.FieldRef, error) {
+func traceSummaryOrderField(name string, signal litequery.Signal, resultType litequery.ResultType) (litequery.FieldRef, bool) {
+	if signal != litequery.SignalTraces || resultType != litequery.ResultTrace {
+		return litequery.FieldRef{}, false
+	}
+	switch name {
+	case "span_count", "trace_duration":
+		return litequery.FieldRef{Name: name, Context: litequery.FieldContextSpan, Type: litequery.ValueTypeNumber}, true
+	default:
+		return litequery.FieldRef{}, false
+	}
+}
+
+func aggregateOrderTarget(key telemetrytypes.TelemetryFieldKey, groupBy []qbtypes.GroupByKey) litequery.OrderTarget {
+	key.Normalize()
+	for _, group := range groupBy {
+		candidate := group.TelemetryFieldKey
+		candidate.Normalize()
+		if candidate.Name == key.Name &&
+			(key.FieldContext == telemetrytypes.FieldContextUnspecified || candidate.FieldContext == key.FieldContext) {
+			return litequery.OrderByField
+		}
+	}
+	return litequery.OrderByAggregation
+}
+
+func logAggregation(aggregation qbtypes.LogAggregation, metadata MetricMetadata) (litequery.LogAggregation, litequery.FieldRef, error) {
 	expression := strings.ToLower(strings.TrimSpace(aggregation.Expression))
 	if expression == "count()" {
 		return litequery.LogAggregateCount, litequery.FieldRef{}, nil
@@ -235,7 +292,7 @@ func logAggregation(aggregation qbtypes.LogAggregation) (litequery.LogAggregatio
 	} {
 		if strings.HasPrefix(expression, candidate.prefix) && strings.HasSuffix(expression, ")") {
 			name := strings.TrimSpace(aggregation.Expression[len(candidate.prefix) : len(aggregation.Expression)-1])
-			field, err := textFieldToLite(name, litequery.SignalLogs, litequery.ValueTypeNumber)
+			field, err := textFieldToLite(name, litequery.SignalLogs, litequery.ValueTypeNumber, metadata)
 			return candidate.kind, field, err
 		}
 	}
@@ -278,10 +335,10 @@ func metricAggregation(aggregation qbtypes.MetricAggregation, metadata MetricMet
 	if temporalityValue == "" {
 		temporalityValue = litequery.TemporalityUnspecified
 	}
-	// Histogram points carry their aggregation semantics in the bucket value.
-	// V5 metadata can still report the instrument temporality, but the
-	// lightweight query contract deliberately does not accept it for histograms.
-	if typeValue == litequery.MetricHistogram {
+	// Metadata intentionally exposes non-monotonic OTLP sums as gauges. Once
+	// normalized to a gauge, the original sum temporality is no longer part of
+	// the query contract.
+	if typeValue == litequery.MetricGauge {
 		temporalityValue = litequery.TemporalityUnspecified
 	}
 	timeAggregation := litequery.TimeAggregation(aggregation.TimeAggregation.StringValue())
@@ -309,8 +366,11 @@ func formulaToLite(spec any) (litequery.Formula, bool, error) {
 	if !ok {
 		return litequery.Formula{}, false, unsupported(fmt.Sprintf("formula spec %T", spec))
 	}
+	if formula.Disabled {
+		return litequery.Formula{}, true, nil
+	}
 	if len(formula.Order) != 0 || formula.Limit != 0 || (formula.Having != nil && strings.TrimSpace(formula.Having.Expression) != "") || len(formula.Functions) != 0 {
 		return litequery.Formula{}, false, unsupported("formula ordering, limit, having, or functions")
 	}
-	return litequery.Formula{Name: formula.Name, Expression: formula.Expression}, formula.Disabled, nil
+	return litequery.Formula{Name: formula.Name, Expression: formula.Expression}, false, nil
 }

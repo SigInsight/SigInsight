@@ -15,6 +15,18 @@ import (
 // Callers outside the V5 adapter use it for small, signal-specific readers
 // whose public filter syntax predates the lightweight engine.
 func ParseFilter(expression string, signal litequery.Signal) (litequery.FilterNode, error) {
+	return parseFilter(expression, signal, MetricMetadata{})
+}
+
+// ParseFilterWithMetadata resolves unqualified telemetry fields before
+// emitting the lightweight filter AST. Callers should provide metadata for
+// user-entered log and trace filters, where a name can refer to either a
+// resource or record attribute.
+func ParseFilterWithMetadata(expression string, signal litequery.Signal, fieldKeys map[string][]*telemetrytypes.TelemetryFieldKey) (litequery.FilterNode, error) {
+	return parseFilter(expression, signal, MetricMetadata{FieldKeys: fieldKeys})
+}
+
+func parseFilter(expression string, signal litequery.Signal, metadata MetricMetadata) (litequery.FilterNode, error) {
 	input := antlr.NewInputStream(expression)
 	lexer := grammar.NewFilterQueryLexer(input)
 	listener := &syntaxErrors{}
@@ -28,11 +40,7 @@ func ParseFilter(expression string, signal litequery.Signal) (litequery.FilterNo
 	if len(listener.errors) != 0 {
 		return nil, unsupported("invalid filter syntax")
 	}
-	return parseOr(tree.Expression().OrExpression(), signal)
-}
-
-func parseFilter(expression string, signal litequery.Signal) (litequery.FilterNode, error) {
-	return ParseFilter(expression, signal)
+	return parseOr(tree.Expression().OrExpression(), signal, metadata)
 }
 
 type syntaxErrors struct {
@@ -44,11 +52,11 @@ func (s *syntaxErrors) SyntaxError(_ antlr.Recognizer, _ interface{}, _ int, _ i
 	s.errors = append(s.errors, message)
 }
 
-func parseOr(context grammar.IOrExpressionContext, signal litequery.Signal) (litequery.FilterNode, error) {
+func parseOr(context grammar.IOrExpressionContext, signal litequery.Signal, metadata MetricMetadata) (litequery.FilterNode, error) {
 	items := context.AllAndExpression()
 	parsed := make([]litequery.FilterNode, 0, len(items))
 	for _, item := range items {
-		node, err := parseAnd(item, signal)
+		node, err := parseAnd(item, signal, metadata)
 		if err != nil {
 			return nil, err
 		}
@@ -57,11 +65,11 @@ func parseOr(context grammar.IOrExpressionContext, signal litequery.Signal) (lit
 	return combine(litequery.BooleanOr, parsed), nil
 }
 
-func parseAnd(context grammar.IAndExpressionContext, signal litequery.Signal) (litequery.FilterNode, error) {
+func parseAnd(context grammar.IAndExpressionContext, signal litequery.Signal, metadata MetricMetadata) (litequery.FilterNode, error) {
 	items := context.AllUnaryExpression()
 	parsed := make([]litequery.FilterNode, 0, len(items))
 	for _, item := range items {
-		node, err := parseUnary(item, signal)
+		node, err := parseUnary(item, signal, metadata)
 		if err != nil {
 			return nil, err
 		}
@@ -77,24 +85,24 @@ func combine(operator litequery.BooleanOperator, items []litequery.FilterNode) l
 	return litequery.LogicalFilter{Operator: operator, Items: items}
 }
 
-func parseUnary(context grammar.IUnaryExpressionContext, signal litequery.Signal) (litequery.FilterNode, error) {
+func parseUnary(context grammar.IUnaryExpressionContext, signal litequery.Signal, metadata MetricMetadata) (litequery.FilterNode, error) {
 	if context.NOT() != nil {
 		return nil, unsupported("unary NOT filter")
 	}
-	return parsePrimary(context.Primary(), signal)
+	return parsePrimary(context.Primary(), signal, metadata)
 }
 
-func parsePrimary(context grammar.IPrimaryContext, signal litequery.Signal) (litequery.FilterNode, error) {
+func parsePrimary(context grammar.IPrimaryContext, signal litequery.Signal, metadata MetricMetadata) (litequery.FilterNode, error) {
 	if context.OrExpression() != nil {
-		return parseOr(context.OrExpression(), signal)
+		return parseOr(context.OrExpression(), signal, metadata)
 	}
 	if context.Comparison() != nil {
-		return parseComparison(context.Comparison(), signal)
+		return parseComparison(context.Comparison(), signal, metadata)
 	}
 	return nil, unsupported("full-text or function filter")
 }
 
-func parseComparison(context grammar.IComparisonContext, signal litequery.Signal) (litequery.FilterNode, error) {
+func parseComparison(context grammar.IComparisonContext, signal litequery.Signal, metadata MetricMetadata) (litequery.FilterNode, error) {
 	if context.BETWEEN() != nil || context.LIKE() != nil || context.ILIKE() != nil || context.REGEXP() != nil {
 		return nil, unsupported("BETWEEN, LIKE, ILIKE, or REGEXP filter")
 	}
@@ -109,7 +117,7 @@ func parseComparison(context grammar.IComparisonContext, signal litequery.Signal
 	if err != nil {
 		return nil, err
 	}
-	field, err := textFieldToLite(context.Key().GetText(), signal, fallbackType)
+	field, err := textFieldToLite(context.Key().GetText(), signal, fallbackType, metadata)
 	if err != nil {
 		return nil, err
 	}
@@ -134,11 +142,11 @@ func comparisonOperatorAndValue(context grammar.IComparisonContext) (litequery.F
 			clause = context.NotInClause()
 			op = litequery.FilterNotIn
 		}
-		values, err := parseStringList(clause)
+		value, fallbackType, err := parseList(clause)
 		if err != nil {
 			return "", litequery.Value{}, "", err
 		}
-		return op, litequery.Value{Kind: litequery.ValueStringList, Strings: values}, litequery.ValueTypeString, nil
+		return op, value, fallbackType, nil
 	}
 	values := context.AllValue()
 	if len(values) != 1 {
@@ -168,10 +176,10 @@ func comparisonOperatorAndValue(context grammar.IComparisonContext) (litequery.F
 	}
 }
 
-func parseStringList(context interface {
+func parseList(context interface {
 	ValueList() grammar.IValueListContext
 	Value() grammar.IValueContext
-}) ([]string, error) {
+}) (litequery.Value, litequery.ValueType, error) {
 	var values []grammar.IValueContext
 	if list := context.ValueList(); list != nil {
 		values = list.AllValue()
@@ -179,20 +187,33 @@ func parseStringList(context interface {
 		values = []grammar.IValueContext{value}
 	}
 	if len(values) == 0 {
-		return nil, unsupported("empty IN filter")
+		return litequery.Value{}, "", unsupported("empty IN filter")
 	}
-	result := make([]string, 0, len(values))
+	result := litequery.Value{}
+	var resultType litequery.ValueType
 	for _, value := range values {
-		parsed, kind, err := parseValue(value)
+		parsed, currentType, err := parseValue(value)
 		if err != nil {
-			return nil, err
+			return litequery.Value{}, "", err
 		}
-		if kind != litequery.ValueTypeString {
-			return nil, unsupported("non-string IN filter")
+		if resultType == "" {
+			resultType = currentType
+		} else if currentType != resultType {
+			return litequery.Value{}, "", unsupported("mixed-type IN filter")
 		}
-		result = append(result, parsed.String)
+		switch currentType {
+		case litequery.ValueTypeString:
+			result.Kind = litequery.ValueStringList
+			result.Strings = append(result.Strings, parsed.String)
+		case litequery.ValueTypeNumber:
+			result.Kind = litequery.ValueNumberList
+			result.Numbers = append(result.Numbers, parsed.Number)
+		case litequery.ValueTypeBool:
+			result.Kind = litequery.ValueBoolList
+			result.Bools = append(result.Bools, parsed.Bool)
+		}
 	}
-	return result, nil
+	return result, resultType, nil
 }
 
 func parseValue(context grammar.IValueContext) (litequery.Value, litequery.ValueType, error) {
@@ -223,13 +244,27 @@ func parseValue(context grammar.IValueContext) (litequery.Value, litequery.Value
 	return litequery.Value{}, "", unsupported("variable filter value")
 }
 
-func textFieldToLite(text string, signal litequery.Signal, fallback litequery.ValueType) (litequery.FieldRef, error) {
+func textFieldToLite(text string, signal litequery.Signal, fallback litequery.ValueType, metadata MetricMetadata) (litequery.FieldRef, error) {
 	key := telemetrytypes.GetFieldKeyFromKeyText(text)
-	return fieldToLite(key, signal, fallback)
+	return fieldToLite(key, signal, fallback, metadata)
 }
 
-func fieldToLite(key telemetrytypes.TelemetryFieldKey, signal litequery.Signal, fallback litequery.ValueType) (litequery.FieldRef, error) {
+func fieldToLite(key telemetrytypes.TelemetryFieldKey, signal litequery.Signal, fallback litequery.ValueType, metadata MetricMetadata) (litequery.FieldRef, error) {
 	key.Normalize()
+	originalContext := key.FieldContext
+	resolvedFromMetadata := false
+	inferredFromSchema := false
+	if resolved, ok := resolveFieldMetadata(key, signal, fallback, metadata.FieldKeys[key.Name]); ok {
+		key = resolved
+		resolvedFromMetadata = true
+	}
+	// Collector stores resource values in a string-only map, while number and
+	// bool values are stored only in record attributes. This makes an omitted
+	// context deterministic even when a key registry has not observed the field.
+	if key.FieldContext == telemetrytypes.FieldContextUnspecified && (fallback == litequery.ValueTypeNumber || fallback == litequery.ValueTypeBool) {
+		key.FieldContext = telemetrytypes.FieldContextAttribute
+		inferredFromSchema = true
+	}
 	context, err := fieldContext(key.FieldContext, signal)
 	if err != nil {
 		return litequery.FieldRef{}, err
@@ -239,11 +274,78 @@ func fieldToLite(key telemetrytypes.TelemetryFieldKey, signal litequery.Signal, 
 			return litequery.FieldRef{Name: key.Name, Context: context, Type: intrinsicType}, nil
 		}
 	}
+	if originalContext == telemetrytypes.FieldContextUnspecified && metadata.FieldKeys != nil && !resolvedFromMetadata && !inferredFromSchema {
+		return litequery.FieldRef{}, unsupported("unqualified " + string(signal) + " field " + strconv.Quote(key.Name) + " was not found in telemetry metadata; qualify it as resource or attribute")
+	}
 	fieldType, err := fieldType(key.FieldDataType, fallback)
 	if err != nil {
 		return litequery.FieldRef{}, err
 	}
 	return litequery.FieldRef{Name: key.Name, Context: context, Type: fieldType}, nil
+}
+
+func resolveFieldMetadata(key telemetrytypes.TelemetryFieldKey, signal litequery.Signal, fallback litequery.ValueType, candidates []*telemetrytypes.TelemetryFieldKey) (telemetrytypes.TelemetryFieldKey, bool) {
+	matches := make([]telemetrytypes.TelemetryFieldKey, 0, len(candidates))
+	seen := map[string]struct{}{}
+	for _, candidate := range candidates {
+		if candidate == nil || (candidate.Signal != telemetrytypes.SignalUnspecified && candidate.Signal.StringValue() != string(signal)) {
+			continue
+		}
+		current := *candidate
+		current.Normalize()
+		if key.FieldContext != telemetrytypes.FieldContextUnspecified && current.FieldContext != key.FieldContext {
+			continue
+		}
+		if key.FieldDataType != telemetrytypes.FieldDataTypeUnspecified {
+			requestedType, requestedErr := fieldType(key.FieldDataType, fallback)
+			candidateType, candidateErr := fieldType(current.FieldDataType, fallback)
+			if requestedErr != nil || candidateErr != nil || requestedType != candidateType {
+				continue
+			}
+		}
+		identity := current.FieldContext.StringValue() + ";" + current.FieldDataType.StringValue()
+		if _, ok := seen[identity]; ok {
+			continue
+		}
+		seen[identity] = struct{}{}
+		matches = append(matches, current)
+	}
+	if len(matches) == 0 {
+		return telemetrytypes.TelemetryFieldKey{}, false
+	}
+
+	if key.FieldDataType == telemetrytypes.FieldDataTypeUnspecified {
+		typeMatches := matches[:0]
+		for _, candidate := range matches {
+			candidateType, err := fieldType(candidate.FieldDataType, fallback)
+			if err == nil && candidateType == fallback {
+				typeMatches = append(typeMatches, candidate)
+			}
+		}
+		if len(typeMatches) != 0 {
+			matches = typeMatches
+		}
+	}
+	// Preserve the established V5 resource preference only after applying the
+	// operator's value type. A numeric comparison cannot target the Collector's
+	// string-only resource map when a numeric attribute with the same name is
+	// available.
+	if key.FieldContext == telemetrytypes.FieldContextUnspecified {
+		resourceMatches := matches[:0]
+		for _, candidate := range matches {
+			if candidate.FieldContext == telemetrytypes.FieldContextResource {
+				resourceMatches = append(resourceMatches, candidate)
+			}
+		}
+		if len(resourceMatches) != 0 {
+			matches = resourceMatches
+		}
+	}
+	if len(matches) != 1 {
+		return telemetrytypes.TelemetryFieldKey{}, false
+	}
+	key.OverrideMetadataFrom(&matches[0])
+	return key, true
 }
 
 func fieldContext(context telemetrytypes.FieldContext, signal litequery.Signal) (litequery.FieldContext, error) {

@@ -327,7 +327,10 @@ def test_lite_query_reads_data_written_by_current_collector(
     # so reuse the standard authenticated test user instead of registering a
     # second account through that service instance.
     token = get_token(USER_ADMIN_EMAIL, USER_ADMIN_PASSWORD)
-    common = {"stepInterval": "60s", "limit": 100, "disabled": False}
+    # Time-series requests deliberately omit `limit`: the lightweight contract
+    # does not implement top-series limiting, and the frontend removes its
+    # stale raw/trace limit before sending this request type.
+    common = {"stepInterval": "60s", "disabled": False}
     specs = [
         {
             **common,

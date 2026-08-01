@@ -114,6 +114,7 @@ export const formatValueForExpression = (
 
 export const convertFiltersToExpression = (
 	filters: TagFilter,
+	options?: { qualifyFieldContext?: boolean },
 ): { expression: string } => {
 	if (!filters?.items || filters.items.length === 0) {
 		return { expression: '' };
@@ -129,9 +130,12 @@ export const convertFiltersToExpression = (
 			}
 
 			const operator = toQueryOperator(op);
+			const keyText = options?.qualifyFieldContext
+				? fieldKeyWithContext(key)
+				: key.key;
 
 			if (isNonValueOperator(operator)) {
-				return `${key.key} ${operator}`;
+				return `${keyText} ${operator}`;
 			}
 
 			if (isFunctionOperator(operator)) {
@@ -143,17 +147,57 @@ export const convertFiltersToExpression = (
 					) || operator;
 
 				const formattedValue = formatValueForExpression(value, operator);
-				return `${properFunctionName}(${key.key}, ${formattedValue})`;
+				return `${properFunctionName}(${keyText}, ${formattedValue})`;
 			}
 
 			const formattedValue = formatValueForExpression(value, operator);
-			return `${key.key} ${operator} ${formattedValue}`;
+			return `${keyText} ${operator} ${formattedValue}`;
 		})
 		.filter((expression) => expression !== ''); // Remove empty expressions
 
 	return {
 		expression: expressions.join(' AND '),
 	};
+};
+
+const fieldKeyWithContext = (key: BaseAutocompleteData): string => {
+	const contextAliases: Record<string, string> = {
+		attribute: 'attribute',
+		body: 'body',
+		event: 'event',
+		log: 'log',
+		logfield: 'log',
+		metric: 'metric',
+		tag: 'attribute',
+		point: 'attribute',
+		resource: 'resource',
+		scope: 'scope',
+		span: 'span',
+		spanfield: 'span',
+		trace: 'trace',
+		tracefield: 'trace',
+	};
+	const rawContext = key.type?.toLowerCase() || '';
+	const context = contextAliases[rawContext];
+	if (!context) {
+		return key.key;
+	}
+	const knownPrefixes = [
+		'attribute',
+		'body',
+		'event',
+		'log',
+		'metric',
+		'resource',
+		'scope',
+		'span',
+		'tag',
+		'trace',
+	];
+	if (knownPrefixes.some((prefix) => key.key.startsWith(`${prefix}.`))) {
+		return key.key;
+	}
+	return `${context}.${key.key}`;
 };
 
 /**

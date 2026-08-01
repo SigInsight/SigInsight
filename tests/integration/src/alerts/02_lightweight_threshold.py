@@ -44,7 +44,6 @@ def _basic_metric_rule(metric_name: str) -> dict:
                             "signal": "metrics",
                             "disabled": False,
                             "stepInterval": "1m",
-                            "limit": 100,
                             "aggregations": [
                                 {
                                     "metricName": metric_name,

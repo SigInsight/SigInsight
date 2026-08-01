@@ -239,7 +239,7 @@ func writeHttpResponse(w http.ResponseWriter, data interface{}) {
 
 func (aH *APIHandler) RegisterQueryRangeV5Routes(router *mux.Router, am *middleware.AuthZ) {
 	subRouter := router.PathPrefix("/api/v5").Subrouter()
-	subRouter.HandleFunc("/logs/livetail", am.ViewAccess(livelogs.New(aH.Signoz.TelemetryStore).Stream)).Methods(http.MethodGet)
+	subRouter.HandleFunc("/logs/livetail", am.ViewAccess(livelogs.New(aH.Signoz.TelemetryStore, aH.Signoz.TelemetryMetadataStore).Stream)).Methods(http.MethodGet)
 	subRouter.HandleFunc("/metric/metric_metadata", am.ViewAccess(aH.getMetricMetadata)).Methods(http.MethodGet)
 }
 

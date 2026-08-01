@@ -15,5 +15,6 @@ fi
 # The Python fixture owns and cleans up its ClickHouse 25.5.6 and SQLite data.
 cd "${siginsight_root}/tests/integration"
 SIGINSIGHT_OTEL_COLLECTOR_ROOT="${collector_root}" \
+	SIGINSIGHT_DOCKER_BUILD_NETWORK="${SIGINSIGHT_DOCKER_BUILD_NETWORK:-host}" \
 	uv run pytest --clickhouse-version=25.5.6 -vv -s \
 		src/compat/03_litequery_collector_collaboration.py

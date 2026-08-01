@@ -30,7 +30,7 @@ func (c Compiler) compileMetric(plan Plan, aggregation MetricAggregation, common
 }
 
 func (c Compiler) compileNumericMetric(plan Plan, source MetricSource, aggregation MetricAggregation, common CommonQuery, signal Signal) (Statement, error) {
-	series, seriesArgs, groupColumns, err := c.compileMetricSeries(source, aggregation, common, signal, false)
+	series, seriesArgs, groupColumns, err := c.compileMetricSeries(source, aggregation, common, signal, plan.Range, false)
 	if err != nil {
 		return Statement{}, err
 	}
@@ -43,8 +43,14 @@ func (c Compiler) compileNumericMetric(plan Plan, source MetricSource, aggregati
 	groupNames := resultGroupNames(len(groupColumns))
 	groupSelect := prefixedColumns("series", groupNames)
 
-	pointWhere := "points.metric_name = ? AND lower(points.temporality) = lower(?) AND points.unix_milli >= ? AND points.unix_milli < ?"
-	pointArgs := []any{metricName, temporality, plan.Range.StartMS, plan.Range.EndMS}
+	pointWhere := "points.metric_name = ?"
+	pointArgs := []any{metricName}
+	if aggregation.Type != MetricGauge {
+		pointWhere += " AND lower(points.temporality) = lower(?)"
+		pointArgs = append(pointArgs, temporality)
+	}
+	pointWhere += " AND points.unix_milli >= ? AND points.unix_milli < ?"
+	pointArgs = append(pointArgs, plan.Range.StartMS, plan.Range.EndMS)
 	perSeries, requiresWindow, err := numericTemporalExpression(aggregation)
 	if err != nil {
 		return Statement{}, err
@@ -190,7 +196,7 @@ func (c Compiler) compileHistogram(plan Plan, source MetricSource, aggregation M
 	if err != nil {
 		return Statement{}, err
 	}
-	series, seriesArgs, groupColumns, err := c.compileMetricSeries(source, aggregation, common, SignalMetrics, true)
+	series, seriesArgs, groupColumns, err := c.compileMetricSeries(source, aggregation, common, SignalMetrics, plan.Range, true)
 	if err != nil {
 		return Statement{}, err
 	}
@@ -213,18 +219,22 @@ func (c Compiler) compileHistogram(plan Plan, source MetricSource, aggregation M
 		groupBy = append(groupBy, bucket)
 		args = append(args, bucketArgs...)
 	}
-	// Histograms are stored as cumulative buckets. The compact engine uses the
-	// requested bucket value directly for a scalar range, and a bucket delta for
-	// time series. The executor later owns gap filling and final formatting.
-	perSeries := "argMax(points.value, points.unix_milli)"
+	// Histogram bucket values are cumulative across `le`. Across time, Delta
+	// points add within a query bucket while Cumulative points use the latest
+	// snapshot and are differenced between adjacent query buckets.
+	pointAggregation := "sum(points.value)"
+	perSeries := "bucket_value"
 	if physicalTemporality(aggregation) == "Cumulative" && plan.ResultType == ResultTimeSeries {
+		pointAggregation = "argMax(points.value, points.unix_milli)"
 		perSeries = "if(row_number() OVER histogram_window = 1, NULL, if(bucket_value < lagInFrame(bucket_value, 1) OVER histogram_window, bucket_value, bucket_value - lagInFrame(bucket_value, 1) OVER histogram_window))"
+	} else if physicalTemporality(aggregation) == "Cumulative" {
+		pointAggregation = "argMax(points.value, points.unix_milli)"
 	}
 	base := "SELECT points.fingerprint, " + bucketSelect
 	if len(groupSelect) != 0 {
 		base += strings.Join(groupSelect, ", ") + ", "
 	}
-	base += "argMax(points.value, points.unix_milli) AS bucket_value FROM " + source.PointsTable + " AS points INNER JOIN __lite_series AS series ON points.fingerprint = series.fingerprint WHERE " + pointWhere + " GROUP BY " + strings.Join(groupBy, ", ")
+	base += pointAggregation + " AS bucket_value FROM " + source.PointsTable + " AS points INNER JOIN __lite_series AS series ON points.fingerprint = series.fingerprint WHERE " + pointWhere + " GROUP BY " + strings.Join(groupBy, ", ")
 	ctes := []string{"__lite_series AS (" + series + ")", "__lite_bucketed AS (" + base + ")"}
 	if plan.ResultType == ResultTimeSeries {
 		window := "SELECT fingerprint, timestamp"
@@ -278,9 +288,9 @@ func (c Compiler) compileHistogram(plan Plan, source MetricSource, aggregation M
 	return Statement{Name: common.Name, SQL: query, Args: args, Columns: columns}, nil
 }
 
-func (c Compiler) compileMetricSeries(source MetricSource, aggregation MetricAggregation, common CommonQuery, signal Signal, histogram bool) (string, []any, []ResultColumn, error) {
+func (c Compiler) compileMetricSeries(source MetricSource, aggregation MetricAggregation, common CommonQuery, signal Signal, timeRange TimeRange, histogram bool) (string, []any, []ResultColumn, error) {
 	if source.SeriesTable == "" {
-		return c.compileMeterSeries(source, aggregation, common)
+		return c.compileMeterSeries(source, aggregation, common, timeRange)
 	}
 	fields := append([]FieldRef{}, common.GroupBy...)
 	if histogram {
@@ -314,10 +324,20 @@ func (c Compiler) compileMetricSeries(source MetricSource, aggregation MetricAgg
 	// The primary v4 series table contains Collector's original (not
 	// normalized) time series. This is also the predicate used by the V5
 	// metadata/query path; normalized rows live in derived storage.
-	args := append(selectArgs, aggregation.MetricName, metricTypeName(aggregation.Type), physicalTemporality(aggregation), false)
+	args := append(selectArgs, aggregation.MetricName)
+	query := "SELECT " + strings.Join(selects, ", ") + " FROM " + source.SeriesTable + " WHERE metric_name = ?"
+	if aggregation.Type == MetricGauge {
+		// V5 presents non-monotonic OTLP sums as gauges. Match both their
+		// original physical representation and native Gauge series; the
+		// fingerprint join then selects the corresponding point rows.
+		query += " AND (type = ? OR (type = ? AND is_monotonic = ?)) AND __normalized = ?"
+		args = append(args, metricTypeName(MetricGauge), metricTypeName(MetricSum), false, false)
+	} else {
+		query += " AND type = ? AND lower(temporality) = lower(?) AND __normalized = ?"
+		args = append(args, metricTypeName(aggregation.Type), physicalTemporality(aggregation), false)
+	}
 	args = append(args, whereArgs...)
 	args = append(args, groupArgs...)
-	query := "SELECT " + strings.Join(selects, ", ") + " FROM " + source.SeriesTable + " WHERE metric_name = ? AND type = ? AND lower(temporality) = lower(?) AND __normalized = ?"
 	if where != "" {
 		query += " AND (" + where + ")"
 	}
@@ -325,7 +345,7 @@ func (c Compiler) compileMetricSeries(source MetricSource, aggregation MetricAgg
 	return query, args, columns, nil
 }
 
-func (c Compiler) compileMeterSeries(source MetricSource, aggregation MetricAggregation, common CommonQuery) (string, []any, []ResultColumn, error) {
+func (c Compiler) compileMeterSeries(source MetricSource, aggregation MetricAggregation, common CommonQuery, timeRange TimeRange) (string, []any, []ResultColumn, error) {
 	fields := common.GroupBy
 	selects := []string{"fingerprint"}
 	groups := []string{"fingerprint"}
@@ -349,10 +369,10 @@ func (c Compiler) compileMeterSeries(source MetricSource, aggregation MetricAggr
 	if err != nil {
 		return "", nil, nil, err
 	}
-	args := append(selectArgs, aggregation.MetricName, physicalTemporality(aggregation))
+	args := append(selectArgs, aggregation.MetricName, physicalTemporality(aggregation), timeRange.StartMS, timeRange.EndMS)
 	args = append(args, whereArgs...)
 	args = append(args, groupArgs...)
-	query := "SELECT " + strings.Join(selects, ", ") + " FROM " + source.PointsTable + " WHERE metric_name = ? AND lower(temporality) = lower(?)"
+	query := "SELECT " + strings.Join(selects, ", ") + " FROM " + source.PointsTable + " WHERE metric_name = ? AND lower(temporality) = lower(?) AND unix_milli >= ? AND unix_milli < ?"
 	if where != "" {
 		query += " AND (" + where + ")"
 	}
@@ -516,9 +536,6 @@ func metricTypeName(metricType MetricType) string {
 }
 
 func physicalTemporality(aggregation MetricAggregation) string {
-	if aggregation.Type == MetricHistogram && aggregation.Temporality == TemporalityUnspecified {
-		return "Cumulative"
-	}
 	switch aggregation.Temporality {
 	case TemporalityDelta:
 		return "Delta"

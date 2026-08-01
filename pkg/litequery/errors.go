@@ -13,6 +13,7 @@ const (
 	ErrorInvalidAggregation ErrorCode = "invalid_aggregation"
 	ErrorInvalidFormula     ErrorCode = "invalid_formula"
 	ErrorBudgetExceeded     ErrorCode = "budget_exceeded"
+	ErrorTimeout            ErrorCode = "timeout"
 )
 
 // Error describes a query-domain failure. HTTP status codes are deliberately

@@ -51,6 +51,11 @@ def create_signoz(
         if with_web:
             dockerfile_path = "cmd/community/Dockerfile.with-web.integration"
 
+        build_options = {}
+        build_network = environ.get("SIGINSIGHT_DOCKER_BUILD_NETWORK")
+        if build_network:
+            build_options["network_mode"] = build_network
+
         self = DockerImage(
             path="../../",
             dockerfile_path=dockerfile_path,
@@ -66,6 +71,7 @@ def create_signoz(
                 ),
                 "NPM_REGISTRY": environ.get("SIGINSIGHT_NPM_REGISTRY", ""),
             },
+            **build_options,
         )
 
         self.build()

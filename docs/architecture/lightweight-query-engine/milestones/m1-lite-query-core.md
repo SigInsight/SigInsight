@@ -119,6 +119,10 @@ type Predicate struct {
 | 最大 raw/trace limit | 1,000 |
 | 最大 time-series point 数 | 11,000 |
 
+执行器另外对每条 statement 默认限制 250,000 个扫描结果行。该值属于执行基础设施
+保护，不是 `Limits` 中的查询语义；调用方可通过 `ExecutorConfig.MaxRows` 收紧。
+Time Series 的非零 limit 在 top-series 两阶段计划实现前拒绝，不能直接截断 bucket 行。
+
 时间范围和最小 step 属于 signal 相关规则，M1 只定义 contract，M2/M3 在 planner 中给出具体 policy。
 
 ## 错误模型

@@ -77,6 +77,11 @@ def clickhouse(
             username="signoz",
             password="password",
         )
+        # The tests use ClickHouse's existing `default` database. Leaving the
+        # testcontainers default (`test`) enabled makes the 25.5 entrypoint run
+        # a temporary initialization server whose shutdown can segfault when
+        # docker_related_config.xml contributes wildcard listen hosts.
+        container.dbname = ""
 
         cluster_config = """
         <clickhouse>

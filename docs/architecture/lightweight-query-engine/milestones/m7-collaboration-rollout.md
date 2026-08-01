@@ -69,7 +69,7 @@ consumers and must not be made contingent on this rollout flag.
 
 ## Current Result
 
-The capability negotiation implementation and the repeatable current-Collector
+Verified on 2026-08-01. The capability negotiation implementation and the repeatable current-Collector
 fixture are complete. The fixture passed on ClickHouse 25.5.6 and proved all
 of the following:
 
@@ -87,6 +87,13 @@ a time-series `SELECT ... AS timestamp` made an unqualified `WHERE timestamp`
 refer to the millisecond output alias rather than the Log table's nanosecond
 column. The compiler now qualifies physical Log and Trace timestamp columns;
 exact SQL tests and the real collaboration fixture cover the regression.
+
+The 2026-08-01 rerun also verifies the post-M8 Lite-only path after the
+correctness audit: Time Series requests omit unsupported top-series `limit`,
+and query-log statistics report successful reads from the Log, Trace, Metric
+and Meter tables. The fixture disables testcontainers' unused `test` database
+initialization for ClickHouse 25.5 and uses a configurable Docker build network,
+so the local script is repeatable with the current Collector checkout.
 
 The legacy engine and advanced UI remain installed deliberately. M7 verifies
 the data path and controlled capability negotiation, not a default-on consumer

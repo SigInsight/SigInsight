@@ -9,14 +9,17 @@ import (
 	"github.com/SigNoz/signoz/pkg/errors"
 	"github.com/SigNoz/signoz/pkg/litequery"
 	"github.com/SigNoz/signoz/pkg/querier/liteadapter"
-	"github.com/SigNoz/signoz/pkg/types/metrictypes"
+	"github.com/SigNoz/signoz/pkg/querier/litemetadata"
 	qbtypes "github.com/SigNoz/signoz/pkg/types/querybuildertypes/querybuildertypesv5"
 )
 
 // queryRangeLite executes the constrained V5 contract. Requests outside that
 // contract are rejected at the boundary; there is no legacy V5 executor.
 func (q *querier) queryRangeLite(ctx context.Context, request *qbtypes.QueryRangeRequest) (*qbtypes.QueryRangeResponse, error) {
-	metadata, err := q.liteMetricMetadata(ctx, request)
+	if err := liteadapter.ValidateRequestRange(request); err != nil {
+		return nil, err
+	}
+	metadata, err := q.liteMetadata(ctx, request)
 	if err != nil {
 		return nil, err
 	}
@@ -62,36 +65,29 @@ func (q *querier) queryRangeLite(ctx context.Context, request *qbtypes.QueryRang
 		return nil, liteQueryError(err)
 	}
 	response.QBEvent = liteQueryEvent(request)
+	response.QBEvent.HasData = liteResultHasData(result)
 	return response, nil
 }
 
-func (q *querier) liteMetricMetadata(ctx context.Context, request *qbtypes.QueryRangeRequest) (liteadapter.MetricMetadata, error) {
-	names := make([]string, 0)
-	for _, envelope := range request.CompositeQuery.Queries {
-		if query, ok := envelope.Spec.(qbtypes.QueryBuilderQuery[qbtypes.MetricAggregation]); ok {
-			for _, aggregation := range query.Aggregations {
-				if aggregation.MetricName != "" && (aggregation.Type == metrictypes.UnspecifiedType || aggregation.Temporality == metrictypes.Unknown) {
-					names = append(names, aggregation.MetricName)
-				}
-			}
+func liteResultHasData(result litequery.ExecutionResult) bool {
+	for _, query := range result.Queries {
+		if len(query.Rows) != 0 {
+			return true
 		}
 	}
-	if len(names) == 0 {
-		return liteadapter.MetricMetadata{}, nil
-	}
-	if q.metadataStore == nil {
-		return liteadapter.MetricMetadata{}, errors.NewInternalf(errors.CodeInternal, "metric metadata store is unavailable")
-	}
-	temporalities, types, err := q.metadataStore.FetchTemporalityAndTypeMulti(ctx, request.Start, request.End, names...)
-	if err != nil {
-		return liteadapter.MetricMetadata{}, errors.NewInternalf(errors.CodeInternal, "failed to fetch metric temporality and type")
-	}
-	return liteadapter.MetricMetadata{Temporality: temporalities, Types: types}, nil
+	return false
+}
+
+func (q *querier) liteMetadata(ctx context.Context, request *qbtypes.QueryRangeRequest) (liteadapter.MetricMetadata, error) {
+	return litemetadata.Resolve(ctx, q.metadataStore, request)
 }
 
 func liteQueryError(err error) error {
 	var queryError *litequery.Error
 	if errors.As(err, &queryError) {
+		if queryError.Code == litequery.ErrorTimeout {
+			return errors.NewTimeoutf(errors.CodeTimeout, "lightweight query execution timed out")
+		}
 		return errors.NewInvalidInputf(errors.CodeInvalidInput, "invalid lightweight query: %s", queryError.Message)
 	}
 	return err

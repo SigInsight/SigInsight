@@ -79,14 +79,19 @@ function getSignalType(dataSource: string): 'traces' | 'logs' | 'metrics' {
 
 function getFilter(queryData: IBuilderQuery): Filter {
 	const { filter } = queryData;
+	if (queryData.filters && queryData.filters?.items?.length > 0) {
+		const generated = convertFiltersToExpression(queryData.filters);
+		if (!filter?.expression || filter.expression === generated.expression) {
+			return convertFiltersToExpression(queryData.filters, {
+				qualifyFieldContext: queryData.dataSource !== DataSource.METRICS,
+			});
+		}
+	}
+
 	if (filter?.expression) {
 		return {
 			expression: filter.expression,
 		};
-	}
-
-	if (queryData.filters && queryData.filters?.items?.length > 0) {
-		return convertFiltersToExpression(queryData.filters);
 	}
 
 	return {
@@ -109,6 +114,8 @@ function createBaseSpec(
 		disabled: queryData.disabled,
 		filter: getFilter(queryData),
 		groupBy:
+			requestType !== 'raw' &&
+			requestType !== 'trace' &&
 			queryData.groupBy?.length > 0
 				? queryData.groupBy.map(
 						(item: any): GroupByKey => ({
@@ -123,7 +130,9 @@ function createBaseSpec(
 				  )
 				: undefined,
 		limit:
-			panelType === PANEL_TYPES.TABLE || panelType === PANEL_TYPES.LIST
+			requestType === 'time_series'
+				? undefined
+				: panelType === PANEL_TYPES.TABLE || panelType === PANEL_TYPES.LIST
 				? queryData.limit || queryData.pageSize || undefined
 				: queryData.limit || undefined,
 		offset:
@@ -162,27 +171,28 @@ function createBaseSpec(
 						};
 					},
 			  ),
-		selectFields: isEmpty(nonEmptySelectColumns)
-			? undefined
-			: nonEmptySelectColumns?.map(
-					(column: any): TelemetryFieldKey => {
-						const fieldName = column.name ?? column.key;
+		selectFields:
+			requestType !== 'raw' || isEmpty(nonEmptySelectColumns)
+				? undefined
+				: nonEmptySelectColumns?.map(
+						(column: any): TelemetryFieldKey => {
+							const fieldName = column.name ?? column.key;
 
-						const fieldObj: TelemetryFieldKey = {
-							name: fieldName,
-							fieldDataType:
-								column?.fieldDataType ?? (column?.dataType as FieldDataType),
-							signal: column?.signal ?? undefined,
-						};
+							const fieldObj: TelemetryFieldKey = {
+								name: fieldName,
+								fieldDataType:
+									column?.fieldDataType ?? (column?.dataType as FieldDataType),
+								signal: column?.signal ?? undefined,
+							};
 
-						if (fieldName !== 'name') {
-							fieldObj.fieldContext =
-								column?.fieldContext ?? (column?.type as FieldContext);
-						}
+							if (fieldName !== 'name') {
+								fieldObj.fieldContext =
+									column?.fieldContext ?? (column?.type as FieldContext);
+							}
 
-						return fieldObj;
-					},
-			  ),
+							return fieldObj;
+						},
+				  ),
 	};
 }
 
@@ -243,11 +253,6 @@ export function createAggregation(
 				? queryData?.aggregations?.[0]?.reduceTo || queryData?.reduceTo
 				: undefined,
 		};
-		if (
-			String(queryData?.aggregateAttribute?.type).toLowerCase() === 'histogram'
-		) {
-			delete (aggregation as Partial<MetricAggregation>).temporality;
-		}
 		return [aggregation];
 	}
 

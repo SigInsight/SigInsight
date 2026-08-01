@@ -70,7 +70,7 @@ services:
       # - ../common/clickhouse/storage.xml:/etc/clickhouse-server/config.d/storage.xml
   siginsight:
     !!merge <<: *db-depend
-    image: ${SIGINSIGHT_IMAGE:-ghcr.io/siginsight/siginsight:${VERSION:-v1.7.1}}
+    image: ${SIGINSIGHT_IMAGE:-ghcr.io/siginsight/siginsight:${VERSION:-v2.0.1}}
     container_name: siginsight
     ports:
       - "8081:8080"

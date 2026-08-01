@@ -28,7 +28,7 @@ func TestQueryRangeRejectsRetiredTraceOperatorBeforeExecution(t *testing.T) {
 func TestQueryRangeRejectsUnsupportedCapabilityWhenLightweightEnabled(t *testing.T) {
 	query := &querier{}
 	_, err := query.QueryRange(context.Background(), valuer.UUID{}, &qbtypes.QueryRangeRequest{
-		RequestType: qbtypes.RequestTypeTimeSeries,
+		Start: 1, End: 2, RequestType: qbtypes.RequestTypeTimeSeries,
 		CompositeQuery: qbtypes.CompositeQuery{Queries: []qbtypes.QueryEnvelope{{
 			Type: qbtypes.QueryTypeClickHouseSQL,
 			Spec: qbtypes.ClickHouseQuery{Name: "A", Query: "SELECT 1"},

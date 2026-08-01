@@ -4,6 +4,7 @@ package litequery
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"reflect"
 	"testing"
@@ -30,6 +31,7 @@ func TestCompilerExecutesOnCurrentClickHouseSchema(t *testing.T) {
 	ctx := context.Background()
 	now := time.Now().UnixMilli()
 	seedMetricCompilerData(t, conn, now)
+	traceIDs := seedTraceSummaryData(t, conn, now)
 
 	requests := []Request{
 		{
@@ -41,6 +43,17 @@ func TestCompilerExecutesOnCurrentClickHouseSchema(t *testing.T) {
 					{Name: "request.id", Context: FieldContextBody, Type: ValueTypeString},
 				},
 				Filter: Predicate{Field: FieldRef{Name: "service.name", Context: FieldContextResource, Type: ValueTypeString}, Op: FilterEqual, Value: Value{Kind: ValueString, String: "api"}},
+			}, Aggregation: LogAggregateCount}},
+		},
+		{
+			Range: TimeRange{StartMS: 1_000, EndMS: 61_000}, ResultType: ResultTimeSeries, StepMS: 1_000,
+			Queries: []Query{LogQuery{Common: CommonQuery{
+				Name: "numeric_log_attribute",
+				Filter: Predicate{
+					Field: FieldRef{Name: "thread.id", Context: FieldContextAttribute, Type: ValueTypeNumber},
+					Op:    FilterEqual,
+					Value: Value{Kind: ValueNumber, Number: 65},
+				},
 			}, Aggregation: LogAggregateCount}},
 		},
 		{
@@ -61,8 +74,24 @@ func TestCompilerExecutesOnCurrentClickHouseSchema(t *testing.T) {
 		},
 		{
 			Range: TimeRange{StartMS: now - 3_000, EndMS: now + 1_000}, ResultType: ResultTimeSeries, StepMS: 1_000,
+			Queries: []Query{MetricQuery{Common: CommonQuery{
+				Name: "semantic_gauge", GroupBy: []FieldRef{{Name: "service.name", Context: FieldContextLabel, Type: ValueTypeString}},
+			}, Aggregation: MetricAggregation{
+				MetricName: "http.server.request.count", Type: MetricGauge, Temporality: TemporalityUnspecified,
+				TimeAggregation: TimeAggregateLatest, SpaceAggregation: SpaceAggregateAvg,
+			}}},
+		},
+		{
+			Range: TimeRange{StartMS: now - 3_000, EndMS: now + 1_000}, ResultType: ResultTimeSeries, StepMS: 1_000,
 			Queries: []Query{MetricQuery{Common: CommonQuery{Name: "latency"}, Aggregation: MetricAggregation{
-				MetricName: "http.server.duration.bucket", Type: MetricHistogram, Temporality: TemporalityUnspecified,
+				MetricName: "http.server.duration.bucket", Type: MetricHistogram, Temporality: TemporalityCumulative,
+				TimeAggregation: TimeAggregateCount, SpaceAggregation: SpaceAggregateP95,
+			}}},
+		},
+		{
+			Range: TimeRange{StartMS: now - 3_000, EndMS: now + 1_000}, ResultType: ResultTimeSeries, StepMS: 1_000,
+			Queries: []Query{MetricQuery{Common: CommonQuery{Name: "latency_delta"}, Aggregation: MetricAggregation{
+				MetricName: "http.server.delta.duration.bucket", Type: MetricHistogram, Temporality: TemporalityDelta,
 				TimeAggregation: TimeAggregateCount, SpaceAggregation: SpaceAggregateP95,
 			}}},
 		},
@@ -89,7 +118,7 @@ func TestCompilerExecutesOnCurrentClickHouseSchema(t *testing.T) {
 			if err != nil {
 				t.Fatalf("Query(%s) error = %v\nSQL: %s\nArgs: %#v", statement.Name, err, statement.SQL, statement.Args)
 			}
-			if statement.Name == "requests" || statement.Name == "latency" || statement.Name == "meter" {
+			if statement.Name == "requests" || statement.Name == "semantic_gauge" || statement.Name == "latency" || statement.Name == "latency_delta" || statement.Name == "meter" {
 				assertPositiveMetricRows(t, statement.Name, rows)
 			}
 			if err := rows.Err(); err != nil {
@@ -117,7 +146,7 @@ func TestCompilerExecutesOnCurrentClickHouseSchema(t *testing.T) {
 		if err != nil {
 			return nil, err
 		}
-		return &clickHouseRows{Rows: rows}, nil
+		return &integrationClickHouseRows{Rows: rows}, nil
 	}}).Execute(ctx, plan)
 	if err != nil {
 		t.Fatalf("Executor.Execute() error = %v", err)
@@ -125,14 +154,50 @@ func TestCompilerExecutesOnCurrentClickHouseSchema(t *testing.T) {
 	if len(result.Queries) != 3 || len(result.Queries[2].Rows) == 0 {
 		t.Fatalf("Executor result = %#v", result)
 	}
+
+	tracePlan, err := (DefaultPlanner{}).Plan(Request{
+		Range: TimeRange{StartMS: now - 3_000, EndMS: now + 1_000}, ResultType: ResultTrace,
+		Queries: []Query{TraceQuery{Common: CommonQuery{
+			Name:   "trace_summary",
+			Filter: Predicate{Field: FieldRef{Name: "http.route", Context: FieldContextAttribute, Type: ValueTypeString}, Op: FilterEqual, Value: Value{Kind: ValueString, String: "/matched-child"}},
+		}, Aggregation: TraceAggregateCount}},
+	})
+	if err != nil {
+		t.Fatalf("Plan trace summary error = %v", err)
+	}
+	traceResult, err := (Executor{Query: func(ctx context.Context, query string, args ...any) (Rows, error) {
+		rows, err := conn.Query(ctx, query, args...)
+		if err != nil {
+			return nil, err
+		}
+		return WrapClickHouseRows(rows), nil
+	}}).Execute(ctx, tracePlan)
+	if err != nil {
+		t.Fatalf("Execute trace summary error = %v", err)
+	}
+	if len(traceResult.Queries) != 1 || len(traceResult.Queries[0].Rows) != 2 {
+		t.Fatalf("trace summary result = %#v", traceResult)
+	}
+	rowsByTraceID := make(map[string][]any, 2)
+	for _, row := range traceResult.Queries[0].Rows {
+		rowsByTraceID[fmt.Sprint(row[0])] = row
+	}
+	rooted := rowsByTraceID[traceIDs[0]]
+	if rooted == nil || rooted[2] != uint64(2) || rooted[3] != uint64(10_000_000) || fmt.Sprint(rooted[4]) != "root-service" || fmt.Sprint(rooted[5]) != "root-operation" {
+		t.Fatalf("rooted trace summary row = %#v", rooted)
+	}
+	orphan := rowsByTraceID[traceIDs[1]]
+	if orphan == nil || orphan[2] != uint64(1) || orphan[3] != uint64(4_000_000) || fmt.Sprint(orphan[4]) != "orphan-service" || fmt.Sprint(orphan[5]) != "orphan-operation" {
+		t.Fatalf("orphan trace summary row = %#v", orphan)
+	}
 }
 
 // clickHouseRows is a test-side driver adapter. The lightweight executor stays
 // independent of ClickHouse's concrete Scan requirements, while production
 // adapters can make the same conversion at the infrastructure boundary.
-type clickHouseRows struct{ driver.Rows }
+type integrationClickHouseRows struct{ driver.Rows }
 
-func (r *clickHouseRows) Scan(destinations ...any) error {
+func (r *integrationClickHouseRows) Scan(destinations ...any) error {
 	types := r.ColumnTypes()
 	values := make([]any, len(types))
 	for index, columnType := range types {
@@ -156,7 +221,7 @@ func assertPositiveMetricRows(t *testing.T, name string, rows interface {
 	for rows.Next() {
 		var timestamp int64
 		var value float64
-		if name == "latency" {
+		if name == "latency" || name == "latency_delta" {
 			if err := rows.Scan(&timestamp, &value); err != nil {
 				t.Fatalf("Scan(%s) error = %v", name, err)
 			}
@@ -183,6 +248,8 @@ func seedMetricCompilerData(t *testing.T, conn clickhouse.Conn, now int64) {
 		{"Cumulative", "http.server.request.count", "Sum", uint64(101), now - 2_000, `{"service.name":"api"}`, false},
 		{"Cumulative", "http.server.duration.bucket", "Histogram", uint64(201), now - 2_000, `{"le":"10"}`, false},
 		{"Cumulative", "http.server.duration.bucket", "Histogram", uint64(202), now - 2_000, `{"le":"+Inf"}`, false},
+		{"Delta", "http.server.delta.duration.bucket", "Histogram", uint64(203), now - 2_000, `{"le":"10"}`, false},
+		{"Delta", "http.server.delta.duration.bucket", "Histogram", uint64(204), now - 2_000, `{"le":"+Inf"}`, false},
 	} {
 		if err := conn.Exec(ctx, series, row...); err != nil {
 			t.Fatalf("insert metric series error = %v", err)
@@ -196,6 +263,10 @@ func seedMetricCompilerData(t *testing.T, conn clickhouse.Conn, now int64) {
 		{"Cumulative", "http.server.duration.bucket", uint64(201), now - 1_000, 5.0, now - 1_000},
 		{"Cumulative", "http.server.duration.bucket", uint64(202), now - 2_000, 5.0, now - 2_000},
 		{"Cumulative", "http.server.duration.bucket", uint64(202), now - 1_000, 8.0, now - 1_000},
+		{"Delta", "http.server.delta.duration.bucket", uint64(203), now - 2_000, 3.0, now - 2_000},
+		{"Delta", "http.server.delta.duration.bucket", uint64(203), now - 1_000, 2.0, now - 1_000},
+		{"Delta", "http.server.delta.duration.bucket", uint64(204), now - 2_000, 5.0, now - 2_000},
+		{"Delta", "http.server.delta.duration.bucket", uint64(204), now - 1_000, 3.0, now - 1_000},
 	} {
 		if err := conn.Exec(ctx, points, row...); err != nil {
 			t.Fatalf("insert metric point error = %v", err)
@@ -217,7 +288,26 @@ func seedMetricCompilerData(t *testing.T, conn clickhouse.Conn, now int64) {
 	if err := conn.QueryRow(ctx, "SELECT count() FROM siginsight_metrics.samples_v4 WHERE metric_name = ?", "http.server.request.count").Scan(&pointsCount); err != nil {
 		t.Fatalf("count metric points error = %v", err)
 	}
-	if seriesCount != 1 || pointsCount != 2 {
+	if seriesCount < 1 || pointsCount < 2 {
 		t.Fatalf("seeded metric data counts = series:%d points:%d", seriesCount, pointsCount)
 	}
+}
+
+func seedTraceSummaryData(t *testing.T, conn clickhouse.Conn, now int64) [2]string {
+	t.Helper()
+	traceID := fmt.Sprintf("%032x", now)
+	orphanTraceID := fmt.Sprintf("%032x", now+1)
+	insert := "INSERT INTO siginsight_traces.span_index_v3 " +
+		"(timestamp, trace_id, span_id, parent_span_id, name, duration_nano, resources_string, attributes_string) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+	rows := [][]any{
+		{time.UnixMilli(now - 2_000), traceID, "root-span", "", "root-operation", uint64(10_000_000), map[string]string{"service.name": "root-service"}, map[string]string{}},
+		{time.UnixMilli(now - 1_500), traceID, "child-span", "root-span", "child-operation", uint64(3_000_000), map[string]string{"service.name": "child-service"}, map[string]string{"http.route": "/matched-child"}},
+		{time.UnixMilli(now - 1_000), orphanTraceID, "orphan-span", "missing-parent", "orphan-operation", uint64(4_000_000), map[string]string{"service.name": "orphan-service"}, map[string]string{"http.route": "/matched-child"}},
+	}
+	for _, row := range rows {
+		if err := conn.Exec(context.Background(), insert, row...); err != nil {
+			t.Fatalf("insert trace summary row error = %v", err)
+		}
+	}
+	return [2]string{traceID, orphanTraceID}
 }

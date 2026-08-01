@@ -59,9 +59,10 @@
 | builder sub-query | 删除候选 | 不暴露为公共 IR |
 | ClickHouse SQL | 拒绝 | 不进入新 UI 或 Lite IR |
 | secondary aggregation | 拒绝 | Metrics 使用专用两阶段计划 |
-| limitBy | 拒绝 | 保留全局 limit 和 cursor |
-| arbitrary having | 拒绝 | 替换为类型化 aggregation predicate |
-| function chain | 拒绝 | 只保留结果规则 fillZero |
+| limitBy | 拒绝 | raw/trace/scalar 保留结果行 limit；time series limit 等待 top-series plan |
+| arbitrary having | 拒绝 | 内部 IR 保留类型化 aggregation predicate，V5 暂不暴露 |
+| function chain | 拒绝 | 只在 V5 result adapter 保留 `fillGaps` |
+| opaque cursor | 拒绝 | Live Logs 独立使用 typed `(timestamp,id)` cursor |
 
 ## 测试计划
 

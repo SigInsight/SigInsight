@@ -45,7 +45,7 @@ func TestValidateSupportedRequests(t *testing.T) {
 			name: "histogram percentile",
 			req: Request{
 				Range: TimeRange{StartMS: 1, EndMS: 60_001}, ResultType: ResultTimeSeries, StepMS: 1_000,
-				Queries: []Query{MetricQuery{Common: CommonQuery{Name: "latency"}, Aggregation: MetricAggregation{MetricName: "http.server.duration", Type: MetricHistogram, Temporality: TemporalityUnspecified, TimeAggregation: TimeAggregateCount, SpaceAggregation: SpaceAggregateP95}}},
+				Queries: []Query{MetricQuery{Common: CommonQuery{Name: "latency"}, Aggregation: MetricAggregation{MetricName: "http.server.duration", Type: MetricHistogram, Temporality: TemporalityCumulative, TimeAggregation: TimeAggregateCount, SpaceAggregation: SpaceAggregateP95}}},
 			},
 		},
 		{
@@ -83,6 +83,10 @@ func TestValidateRejectsUnsupportedOrInvalidRequests(t *testing.T) {
 			req: Request{Range: TimeRange{StartMS: 1, EndMS: 2}, ResultType: ResultScalar, Queries: []Query{MetricQuery{Common: CommonQuery{Name: "H"}, Aggregation: MetricAggregation{MetricName: "h", Type: MetricHistogram, TimeAggregation: TimeAggregateRate, SpaceAggregation: SpaceAggregateP95}}}},
 		},
 		{
+			name: "histogram without temporality", code: ErrorInvalidAggregation,
+			req: Request{Range: TimeRange{StartMS: 1, EndMS: 2}, ResultType: ResultScalar, Queries: []Query{MetricQuery{Common: CommonQuery{Name: "H"}, Aggregation: MetricAggregation{MetricName: "h.bucket", Type: MetricHistogram, TimeAggregation: TimeAggregateCount, SpaceAggregation: SpaceAggregateP95}}}},
+		},
+		{
 			name: "meter gauge", code: ErrorInvalidAggregation,
 			req: Request{Range: TimeRange{StartMS: 1, EndMS: 2}, ResultType: ResultScalar, Queries: []Query{MeterQuery{Common: CommonQuery{Name: "Meter"}, Aggregation: MetricAggregation{MetricName: "m", Type: MetricGauge, TimeAggregation: TimeAggregateLatest, SpaceAggregation: SpaceAggregateAvg}}}},
 		},
@@ -115,8 +119,59 @@ func TestValidateRejectsUnsupportedOrInvalidRequests(t *testing.T) {
 			req: Request{Range: TimeRange{StartMS: 1, EndMS: 2}, ResultType: ResultTimeSeries, StepMS: 1, Queries: []Query{LogQuery{Common: CommonQuery{Name: "A", Offset: 1}, Aggregation: LogAggregateCount}}},
 		},
 		{
+			name: "time series rejects row limit masquerading as series limit", code: ErrorUnsupported,
+			req: Request{Range: TimeRange{StartMS: 1, EndMS: 2}, ResultType: ResultTimeSeries, StepMS: 1, Queries: []Query{LogQuery{Common: CommonQuery{Name: "A", Limit: 10}, Aggregation: LogAggregateCount}}},
+		},
+		{
 			name: "literal division by zero", code: ErrorInvalidFormula,
 			req: Request{Range: TimeRange{StartMS: 1, EndMS: 2}, ResultType: ResultScalar, Queries: []Query{validLog}, Formulas: []Formula{{Name: "F", Expression: "A / 0"}}},
+		},
+		{
+			name: "formula on raw rows", code: ErrorInvalidFormula,
+			req: Request{Range: TimeRange{StartMS: 1, EndMS: 2}, ResultType: ResultRaw, Queries: []Query{validLog}, Formulas: []Formula{{Name: "F", Expression: "A + 1"}}},
+		},
+		{
+			name: "raw group by would be ignored", code: ErrorInvalidRequest,
+			req: Request{Range: TimeRange{StartMS: 1, EndMS: 2}, ResultType: ResultRaw, Queries: []Query{LogQuery{Common: CommonQuery{Name: "A", GroupBy: []FieldRef{stringField}}, Aggregation: LogAggregateCount}}},
+		},
+		{
+			name: "aggregate select would be ignored", code: ErrorInvalidRequest,
+			req: Request{Range: TimeRange{StartMS: 1, EndMS: 2}, ResultType: ResultScalar, Queries: []Query{LogQuery{Common: CommonQuery{Name: "A", Select: []FieldRef{stringField}}, Aggregation: LogAggregateCount}}},
+		},
+		{
+			name: "trace summary select would be ignored", code: ErrorInvalidRequest,
+			req: Request{Range: TimeRange{StartMS: 1, EndMS: 2}, ResultType: ResultTrace, Queries: []Query{TraceQuery{Common: CommonQuery{Name: "A", Select: []FieldRef{stringField}}, Aggregation: TraceAggregateCount}}},
+		},
+		{
+			name: "raw duplicate output name", code: ErrorInvalidRequest,
+			req: Request{Range: TimeRange{StartMS: 1, EndMS: 2}, ResultType: ResultRaw, Queries: []Query{LogQuery{Common: CommonQuery{Name: "A", Select: []FieldRef{
+				{Name: "service.name", Context: FieldContextResource, Type: ValueTypeString},
+				{Name: "service.name", Context: FieldContextAttribute, Type: ValueTypeString},
+			}}, Aggregation: LogAggregateCount}}},
+		},
+		{
+			name: "aggregate order field is not grouped", code: ErrorInvalidRequest,
+			req: Request{Range: TimeRange{StartMS: 1, EndMS: 2}, ResultType: ResultScalar, Queries: []Query{LogQuery{Common: CommonQuery{Name: "A", Order: []Order{{Target: OrderByField, Field: stringField, Direction: SortAscending}}}, Aggregation: LogAggregateCount}}},
+		},
+		{
+			name: "string log aggregation", code: ErrorInvalidAggregation,
+			req: Request{Range: TimeRange{StartMS: 1, EndMS: 2}, ResultType: ResultScalar, Queries: []Query{LogQuery{Common: CommonQuery{Name: "A"}, Aggregation: LogAggregateSum, Field: stringField}}},
+		},
+		{
+			name: "sum without temporality", code: ErrorInvalidAggregation,
+			req: Request{Range: TimeRange{StartMS: 1, EndMS: 2}, ResultType: ResultScalar, Queries: []Query{MetricQuery{Common: CommonQuery{Name: "A"}, Aggregation: MetricAggregation{MetricName: "requests", Type: MetricSum, TimeAggregation: TimeAggregateSum, SpaceAggregation: SpaceAggregateSum}}}},
+		},
+		{
+			name: "histogram basic space aggregation", code: ErrorInvalidAggregation,
+			req: Request{Range: TimeRange{StartMS: 1, EndMS: 2}, ResultType: ResultScalar, Queries: []Query{MetricQuery{Common: CommonQuery{Name: "A"}, Aggregation: MetricAggregation{MetricName: "latency.bucket", Type: MetricHistogram, TimeAggregation: TimeAggregateCount, SpaceAggregation: SpaceAggregateSum}}}},
+		},
+		{
+			name: "typed cursor with offset", code: ErrorInvalidRequest,
+			req: Request{Range: TimeRange{StartMS: 1, EndMS: 2}, ResultType: ResultRaw, Queries: []Query{LogQuery{Common: CommonQuery{Name: "A", Offset: 1, After: &RawLogCursor{TimestampNS: 1, ID: "id"}}, Aggregation: LogAggregateCount}}},
+		},
+		{
+			name: "log range overflows physical nanoseconds", code: ErrorInvalidRequest,
+			req: Request{Range: TimeRange{StartMS: 1, EndMS: maxLogTimestampMS + 1}, ResultType: ResultRaw, Queries: []Query{validLog}},
 		},
 	}
 
@@ -142,6 +197,30 @@ func TestValidateFormulaAllowsForwardReference(t *testing.T) {
 	}
 	if err := Validate(req, DefaultLimits()); err != nil {
 		t.Fatalf("Validate() error = %v", err)
+	}
+}
+
+func TestValidateCountsEpochAlignedTimeSeriesBuckets(t *testing.T) {
+	query := LogQuery{Common: CommonQuery{Name: "A"}, Aggregation: LogAggregateCount}
+	limits := DefaultLimits()
+	limits.MaxSeriesPoints = 2
+
+	exact := Request{
+		Range: TimeRange{StartMS: 1_000, EndMS: 3_000}, ResultType: ResultTimeSeries, StepMS: 1_000,
+		Queries: []Query{query},
+	}
+	if err := Validate(exact, limits); err != nil {
+		t.Fatalf("Validate(exact) error = %v", err)
+	}
+
+	nonAligned := Request{
+		Range: TimeRange{StartMS: 1, EndMS: 2_001}, ResultType: ResultTimeSeries, StepMS: 1_000,
+		Queries: []Query{query},
+	}
+	err := Validate(nonAligned, limits)
+	var queryErr *Error
+	if !errors.As(err, &queryErr) || queryErr.Code != ErrorBudgetExceeded {
+		t.Fatalf("Validate(nonAligned) error = %v, want %q", err, ErrorBudgetExceeded)
 	}
 }
 

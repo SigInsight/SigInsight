@@ -1,7 +1,7 @@
 # 轻量查询引擎总体设计
 
 状态：Accepted
-最后更新：2026-07-31
+最后更新：2026-08-01
 
 ## 1. 目标
 
@@ -34,7 +34,7 @@
 
 第一版支持：
 
-- 原始日志列表和 cursor 分页。
+- 原始日志列表和 offset 分页；Live Logs 独立使用 typed `(timestamp, id)` cursor。
 - 时间范围、正文、severity、service 和属性过滤。
 - 普通字符串正文与 JSON path 查询。
 - 字段选择、全局排序和全局限制。
@@ -47,7 +47,7 @@ Live Logs 暂时保留现有独立链路。是否纳入轻量引擎由后续 ADR
 
 第一版支持：
 
-- Trace 和 Span 列表、cursor 分页。
+- Trace 和 Span 列表及 offset 分页；V5 opaque cursor 明确拒绝。
 - service、operation、status、duration、resource/span attribute 过滤。
 - 按 trace 聚合与返回匹配 trace 的基础查询。
 - count、duration avg、p50、p90、p95、p99。
@@ -63,7 +63,7 @@ Trace Detail、瀑布图和 span tree 继续使用专用详情 API。删除 Trac
 | --- | --- |
 | Gauge | latest、avg、min、max |
 | Sum | sum、rate、increase |
-| Histogram | count、sum、avg、p50、p90、p95、p99 |
+| Histogram | p50、p90、p95、p99（显式 `.bucket`） |
 
 支持 metric 发现、标签过滤、标签分组、time aggregation、space aggregation、time series 和 scalar 结果。
 
@@ -87,7 +87,7 @@ Meter 是 Metrics 查询的一种明确 source，不建立第四套通用查询�
 - `AND`、`OR` 和括号分组。
 - `=`、`!=`、`>`、`>=`、`<`、`<=`。
 - `IN`、`NOT IN`、`EXISTS`、`NOT EXISTS`、`CONTAINS`。
-- 字符串、布尔、整数、浮点和字符串数组值。
+- 字符串、布尔、整数、浮点，以及同类型的字符串/数值/布尔数组值。
 
 禁止将 SQL 片段作为 filter、aggregation 或 order expression 传入。
 
@@ -123,7 +123,10 @@ type AggregationPredicate struct {
 - `time_series`
 - `scalar`
 
-`fillZero` 作为结果格式规则保留，而不是通用函数。`timeShift` 不进入第一版，是否加入由使用数据和 ADR 决定。
+V5 `formatOptions.fillGaps` 作为结果层补零规则保留，而不是通用函数。它按 epoch
+bucket 对齐，并严格生成半开时间范围 `[start, end)` 内可能出现的 bucket；在返回 series
+为空时也生成零值 series。`timeShift` 不进入第一版，是否
+加入由使用数据和 ADR 决定。
 
 前端只提供：
 
@@ -204,6 +207,49 @@ type CommonQuery struct {
 
 `LogQuery`、`TraceQuery` 和 `MetricQuery` 组合 `CommonQuery`，但分别拥有类型化 aggregation 和 select 定义。禁止重新建立包含所有信号可选字段的巨型通用 DTO。
 
+#### 4.2.1 字段解析与元数据消歧
+
+V5 请求中的字段有两种携带方式：
+
+- **结构化字段**（`selectFields`、`groupBy`、`order`）：携带完整的
+  `TelemetryFieldKey`，包含 field context 与 data type；
+- **筛选表达式字段**（filter expression 文本）：可能**只携带名称**（如
+  `host.name`），不携带 context 与 data type。
+
+轻量引擎的字段解析遵循"**应用边界消歧、核心保持确定性**"（ADR-014）：
+
+```text
+V5 请求
+  -> FieldKeySelectors：批量收集 context/data type 不完整的字段
+       （filter 文本 token、select/group/order、日志聚合字段）
+  -> metadata store 批量查询（GetKeysMulti）
+  -> MetricMetadata.FieldKeys：以纯数据注入适配器
+  -> resolveFieldMetadata 按规则消歧
+  -> FieldRef { Name, Context, Type } 进入 Lite IR
+```
+
+消歧规则按序执行：
+
+1. **显式上下文/类型优先**：请求已指定 context 或 data type 时，metadata 只在该
+   约束内匹配，不覆盖显式值；
+2. **类型与 fallback 匹配**：未指定 data type 时，先选择与操作符推断类型一致的候选；
+3. **裸名 resource 优先**：类型匹配后仍有 resource 与 attribute 同名候选时，选择
+   resource（保持既有 V5 行为）；
+4. **存储类型约束**：resource map 只存字符串；metadata 未登记的裸 number/bool 字段
+   可确定性解析为 attribute；
+5. **唯一候选才消歧**：多候选歧义时不猜测，交由后续校验给出明确错误；
+6. **intrinsic 字段静态解析**：信号固有字段不查询 metadata store，直接由 schema
+   catalog 确定 context/type。
+
+metadata 前置解析只处理启用的 builder query，并在访问 store 前验证时间范围；禁用的旧
+查询不能因为缺字段或指标 metadata 阻断当前请求。Catalog 在最终物理映射处再次强制
+resource/scope string map 的类型约束，显式错误类型也不能绕过 schema 约定。
+
+`pkg/litequery` 核心不依赖 metadata store；字段查询发生在 `querier` / rule runner /
+live logs 边界，metadata 以纯数据传入，SQL 编译器保持确定性。完成 metadata 查询后
+仍无法消歧的裸字段必须要求显式 `resource.` 或 `attribute.` 上下文，不能退回到
+log/span intrinsic 猜测。
+
 ### 4.3 Logical Plan
 
 Logical Plan 是经过字段解析和能力校验的内部计划，负责：
@@ -235,6 +281,11 @@ type SemanticField struct {
 
 Catalog 同时声明表、时间列、组织列和版本要求。Compiler 不得在 Catalog 之外散落字段到列的映射。
 
+Metrics 的用户语义类型与物理类型允许不同。当前 metadata 将非单调 OTLP Sum 暴露为
+Gauge；Catalog/Compiler 必须将该语义 Gauge 映射回原生 Gauge 或
+`Sum + is_monotonic=false` series，并通过 fingerprint 选择 points。不得直接用语义 Gauge
+生成 `type='Gauge' AND temporality='Unspecified'` 的物理过滤条件（ADR-015）。
+
 任何 Collector schema 变化必须通过真实 ClickHouse 的 schema fingerprint 和 API 协作测试验证，不依赖两个仓库中的人工同步注释。
 
 ### 4.5 Compiler 与执行器
@@ -253,17 +304,23 @@ Compiler 负责 SQL 生成，不负责执行和结果格式化。Executor 负责
 
 ### 4.6 查询预算
 
-第一版至少限制：
+当前实现限制：
 
-- 最大时间范围。
-- 最小 step。
-- 最大 series 数。
+- 每条 time series 的最大时间点数（11,000）。
+- 每条 statement 的最大扫描结果行数（默认 250,000）。
 - 最大 raw/trace limit。
 - 最大 group by 数量。
 - 最大 filter AST 深度和节点数。
 - 单请求最大独立查询数。
 
 预算拒绝必须返回稳定的领域错误和用户可操作的信息。
+
+Time Series 的非零 `limit` 当前明确拒绝。ClickHouse 最终结果行是
+`timestamp x group`，直接应用 `LIMIT` 会截断时间点而不是选择 top-N series。真正的
+series limit 需要“先选择 series、再读取完整时间桶”的两阶段计划；在该计划实现前，
+前端不展示 Time Series limit。`limit=0` 仍可能产生高基数 ClickHouse 中间结果，当前
+serializer 也会清除视图切换遗留的非零 limit。statement 行预算只保护应用进程，不替代
+ClickHouse 侧的扫描/内存预算。
 
 ## 5. ClickHouse schema 策略
 

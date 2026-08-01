@@ -33,6 +33,8 @@ const (
 	ValueNumber     ValueKind = "number"
 	ValueBool       ValueKind = "bool"
 	ValueStringList ValueKind = "string_list"
+	ValueNumberList ValueKind = "number_list"
+	ValueBoolList   ValueKind = "bool_list"
 )
 
 type Value struct {
@@ -41,6 +43,8 @@ type Value struct {
 	Number  float64
 	Bool    bool
 	Strings []string
+	Numbers []float64
+	Bools   []bool
 }
 
 type FilterNode interface {
@@ -103,7 +107,7 @@ func validatePredicate(p Predicate) error {
 	}
 	switch p.Op {
 	case FilterEqual, FilterNotEqual, FilterGreaterThan, FilterGreaterEq, FilterLessThan, FilterLessEq:
-		if p.Value.Kind == ValueNone || p.Value.Kind == ValueStringList {
+		if p.Value.Kind == ValueNone || isListValue(p.Value.Kind) {
 			return newError(ErrorInvalidFilter, "filter.value", "%s requires a scalar value", p.Op)
 		}
 		if !valueMatchesField(p.Value.Kind, p.Field.Type) {
@@ -113,11 +117,13 @@ func validatePredicate(p Predicate) error {
 			return newError(ErrorInvalidFilter, "filter.value", "numeric filter value must be finite")
 		}
 	case FilterIn, FilterNotIn:
-		if p.Value.Kind != ValueStringList || len(p.Value.Strings) == 0 {
-			return newError(ErrorInvalidFilter, "filter.value", "%s requires a non-empty string list", p.Op)
+		if !listMatchesField(p.Value, p.Field.Type) {
+			return newError(ErrorInvalidFilter, "filter.value", "%s requires a non-empty homogeneous list matching the field type", p.Op)
 		}
-		if p.Field.Type != ValueTypeString {
-			return newError(ErrorInvalidFilter, "filter.field", "%s only supports string fields", p.Op)
+		for _, value := range p.Value.Numbers {
+			if !finite(value) {
+				return newError(ErrorInvalidFilter, "filter.value", "numeric filter list values must be finite")
+			}
 		}
 	case FilterExists, FilterNotExists:
 		if p.Value.Kind != ValueNone {
@@ -131,6 +137,16 @@ func validatePredicate(p Predicate) error {
 		return newError(ErrorInvalidFilter, "filter.operator", "unsupported filter operator %q", p.Op)
 	}
 	return nil
+}
+
+func isListValue(kind ValueKind) bool {
+	return kind == ValueStringList || kind == ValueNumberList || kind == ValueBoolList
+}
+
+func listMatchesField(value Value, fieldType ValueType) bool {
+	return (value.Kind == ValueStringList && fieldType == ValueTypeString && len(value.Strings) != 0) ||
+		(value.Kind == ValueNumberList && fieldType == ValueTypeNumber && len(value.Numbers) != 0) ||
+		(value.Kind == ValueBoolList && fieldType == ValueTypeBool && len(value.Bools) != 0)
 }
 
 func valueMatchesField(kind ValueKind, fieldType ValueType) bool {

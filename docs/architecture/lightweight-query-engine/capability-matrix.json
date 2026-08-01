@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "endpoint": "/api/v5/query_range",
   "resultTypes": ["raw", "trace", "time_series", "scalar"],
   "queryTypes": {
@@ -27,10 +27,21 @@
     "booleanOperators": ["and", "or"],
     "groupBy": true,
     "order": "global_only",
-    "limit": "global_only",
-    "cursor": true,
-    "having": "single_typed_aggregation_predicate",
-    "functions": ["fill_zero"]
+    "limit": {
+      "raw": "result_rows",
+      "trace": "result_rows",
+      "scalar": "result_rows",
+      "time_series": "rejected_until_top_series_plan"
+    },
+    "pagination": {
+      "offset": ["raw", "trace"],
+      "opaqueCursor": false,
+      "typedCursor": "live_logs_only"
+    },
+    "having": false,
+    "internalAggregationPredicate": "single_typed_numeric_predicate",
+    "functions": [],
+    "formatOptions": ["fillGaps"]
   },
   "signals": {
     "logs": {
@@ -58,7 +69,7 @@
       "types": {
         "gauge": ["latest", "avg", "min", "max"],
         "sum": ["sum", "rate", "increase"],
-        "histogram": ["count", "sum", "avg", "p50", "p90", "p95", "p99"]
+        "histogram": ["p50", "p90", "p95", "p99"]
       },
       "baselineTests": [
         "tests/integration/src/compat/02_litequery_v5_bridge.py",

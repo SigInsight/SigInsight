@@ -57,7 +57,10 @@ type Statement struct {
 
 Logs 时间戳为纳秒整数；Traces 使用 `DateTime64(9)`。Compiler 统一输出 epoch-millisecond bucket，消除前端对两种物理时间表达的差异。
 
-`ResultTrace` 采用受约束的 trace summary plan：按 `trace_id` 归并，选择最新 span timestamp、span count、总 duration，并使用稳定的 trace id tie-breaker。它不表达父子或祖先关系。
+`ResultTrace` 采用受约束的 trace summary plan：先用任意匹配 span 选择 trace ID，再在
+时间范围内统计完整 span count，并返回 root span 的 timestamp、duration、service 与
+operation。存在多个 root 时选择最长 root；root 缺失时回退到最长 span，避免部分 trace
+被静默丢弃。默认使用 timestamp 与 trace ID 稳定排序。它不表达父子或祖先关系查询。
 
 ## 测试计划
 
@@ -89,7 +92,8 @@ tests/integration/scripts/run-litequery-compiler-integration.sh
   time-series/scalar，以及受约束的聚合、过滤、分组、排序、limit 和聚合 predicate。
 - 新增 `Statement` 和 `ResultColumn`。SQL 中仅使用生成的 `field_N` / `group_N`
   alias，调用方通过列元数据恢复语义字段，动态输入不再能够进入 SQL 标识符。
-- cursor 在尚无行扫描器时显式返回 `unsupported`，不会被静默忽略。
+- V5 opaque cursor 显式返回 `unsupported`；只有独立 Live Logs reader 使用 typed
+  `(timestamp, id)` cursor。raw/trace 的 offset 保留为有限兼容能力。
 
 ## 验证结果
 

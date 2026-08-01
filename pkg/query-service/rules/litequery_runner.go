@@ -8,8 +8,8 @@ import (
 	"github.com/SigNoz/signoz/pkg/errors"
 	"github.com/SigNoz/signoz/pkg/litequery"
 	"github.com/SigNoz/signoz/pkg/querier/liteadapter"
+	"github.com/SigNoz/signoz/pkg/querier/litemetadata"
 	"github.com/SigNoz/signoz/pkg/telemetrystore"
-	"github.com/SigNoz/signoz/pkg/types/metrictypes"
 	qbtypes "github.com/SigNoz/signoz/pkg/types/querybuildertypes/querybuildertypesv5"
 	"github.com/SigNoz/signoz/pkg/types/telemetrytypes"
 	"github.com/SigNoz/signoz/pkg/valuer"
@@ -34,7 +34,10 @@ func NewLiteQueryRunner(store telemetrystore.TelemetryStore, metadata telemetryt
 }
 
 func (r *liteQueryRunner) Execute(ctx context.Context, _ valuer.UUID, request *qbtypes.QueryRangeRequest) (*qbtypes.QueryRangeResponse, error) {
-	metadata, err := r.metricMetadata(ctx, request)
+	if err := liteadapter.ValidateRequestRange(request); err != nil {
+		return nil, err
+	}
+	metadata, err := r.queryMetadata(ctx, request)
 	if err != nil {
 		return nil, err
 	}
@@ -72,31 +75,6 @@ func (r *liteQueryRunner) Execute(ctx context.Context, _ valuer.UUID, request *q
 	return response, nil
 }
 
-func (r *liteQueryRunner) metricMetadata(ctx context.Context, request *qbtypes.QueryRangeRequest) (liteadapter.MetricMetadata, error) {
-	if request == nil {
-		return liteadapter.MetricMetadata{}, errors.NewInvalidInputf(errors.CodeInvalidInput, "threshold query is required")
-	}
-	names := make([]string, 0)
-	for _, envelope := range request.CompositeQuery.Queries {
-		query, ok := envelope.Spec.(qbtypes.QueryBuilderQuery[qbtypes.MetricAggregation])
-		if !ok {
-			continue
-		}
-		for _, aggregation := range query.Aggregations {
-			if aggregation.MetricName != "" && (aggregation.Type == metrictypes.UnspecifiedType || aggregation.Temporality == metrictypes.Unknown) {
-				names = append(names, aggregation.MetricName)
-			}
-		}
-	}
-	if len(names) == 0 {
-		return liteadapter.MetricMetadata{}, nil
-	}
-	if r.metadata == nil {
-		return liteadapter.MetricMetadata{}, errors.NewInternalf(errors.CodeInternal, "metric metadata store is unavailable")
-	}
-	temporalities, types, err := r.metadata.FetchTemporalityAndTypeMulti(ctx, request.Start, request.End, names...)
-	if err != nil {
-		return liteadapter.MetricMetadata{}, errors.NewInternalf(errors.CodeInternal, "failed to fetch metric temporality and type")
-	}
-	return liteadapter.MetricMetadata{Temporality: temporalities, Types: types}, nil
+func (r *liteQueryRunner) queryMetadata(ctx context.Context, request *qbtypes.QueryRangeRequest) (liteadapter.MetricMetadata, error) {
+	return litemetadata.Resolve(ctx, r.metadata, request)
 }

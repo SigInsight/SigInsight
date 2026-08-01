@@ -109,7 +109,7 @@ func (c Compiler) compileRaw(table string, signal Signal, plan Plan, common Comm
 		columns = append(columns, ResultColumn{Name: alias, Field: &fieldCopy})
 		args = append(args, resolved.Args...)
 	}
-	where, whereArgs, err := c.compileWhere(signal, common.Filter, plan.Range)
+	where, whereArgs, err := c.compileWhere(table, signal, common.Filter, plan.Range)
 	if err != nil {
 		return Statement{}, err
 	}
@@ -146,23 +146,34 @@ func (c Compiler) compileRaw(table string, signal Signal, plan Plan, common Comm
 }
 
 func (c Compiler) compileTraceSummary(table string, plan Plan, common CommonQuery) (Statement, error) {
-	where, args, err := c.compileWhere(SignalTraces, common.Filter, plan.Range)
+	where, matchingArgs, err := c.compileWhere(table, SignalTraces, common.Filter, plan.Range)
+	if err != nil {
+		return Statement{}, err
+	}
+	serviceField := FieldRef{Name: "service.name", Context: FieldContextResource, Type: ValueTypeString}
+	service, err := c.Catalog.Resolve(SignalTraces, serviceField)
+	if err != nil {
+		return Statement{}, err
+	}
+	rootRange, rootRangeArgs, err := timeRangeCondition(table, SignalTraces, plan.Range)
 	if err != nil {
 		return Statement{}, err
 	}
 	order := "timestamp DESC, trace_id DESC"
 	if len(common.Order) != 0 {
-		compiledOrder, orderArgs, err := c.compileOrder(SignalTraces, common.Order, false, order)
+		compiledOrder, err := compileTraceSummaryOrder(common.Order)
 		if err != nil {
 			return Statement{}, err
 		}
 		order = compiledOrder
-		args = append(args, orderArgs...)
 	}
 	limit := common.Limit
 	if limit == 0 {
 		limit = 100
 	}
+	args := append([]any{}, matchingArgs...)
+	args = append(args, service.Args...)
+	args = append(args, rootRangeArgs...)
 	args = append(args, limit)
 	suffix := " LIMIT ?"
 	if common.Offset != 0 {
@@ -171,17 +182,56 @@ func (c Compiler) compileTraceSummary(table string, plan Plan, common CommonQuer
 	}
 	return Statement{
 		Name: common.Name,
-		SQL: "SELECT trace_id, max(timestamp) AS timestamp, count() AS span_count, sum(duration_nano) AS duration_nano " +
-			"FROM " + table + " WHERE " + where + " GROUP BY trace_id ORDER BY " + order + suffix,
+		SQL: "WITH __lite_matching_traces AS (SELECT DISTINCT trace_id FROM " + table + " WHERE " + where + "), " +
+			"__lite_trace_spans AS (SELECT trace_id, timestamp, span_id, parent_span_id, duration_nano, " + service.SQL + " AS service_name, name FROM " + table +
+			" WHERE " + rootRange + " AND trace_id IN (SELECT trace_id FROM __lite_matching_traces)), " +
+			"__lite_trace_stats AS (SELECT trace_id, count() AS span_count FROM __lite_trace_spans GROUP BY trace_id), " +
+			"__lite_roots AS (SELECT trace_id, " +
+			"argMax(timestamp, tuple(parent_span_id = '', duration_nano, timestamp, span_id)) AS root_timestamp, " +
+			"argMax(duration_nano, tuple(parent_span_id = '', duration_nano, timestamp, span_id)) AS root_duration_nano, " +
+			"argMax(service_name, tuple(parent_span_id = '', duration_nano, timestamp, span_id)) AS root_service_name, " +
+			"argMax(name, tuple(parent_span_id = '', duration_nano, timestamp, span_id)) AS root_name FROM __lite_trace_spans GROUP BY trace_id) " +
+			"SELECT roots.trace_id AS trace_id, roots.root_timestamp AS timestamp, stats.span_count AS span_count, " +
+			"roots.root_duration_nano AS duration_nano, roots.root_service_name AS service_name, roots.root_name AS name " +
+			"FROM __lite_trace_stats AS stats INNER JOIN __lite_roots AS roots USING (trace_id) ORDER BY " + order + suffix,
 		Args: args,
 		Columns: []ResultColumn{
-			{Name: "trace_id"},
-			{Name: "timestamp"},
-			{Name: "span_count"},
-			{Name: "duration_nano"},
+			{Name: "trace_id", Field: fieldPointer(FieldRef{Name: "trace_id", Context: FieldContextSpan, Type: ValueTypeString})},
+			{Name: "timestamp", Field: fieldPointer(FieldRef{Name: "timestamp", Context: FieldContextSpan, Type: ValueTypeNumber})},
+			{Name: "span_count", Field: fieldPointer(FieldRef{Name: "span_count", Context: FieldContextSpan, Type: ValueTypeNumber})},
+			{Name: "duration_nano", Field: fieldPointer(FieldRef{Name: "duration_nano", Context: FieldContextSpan, Type: ValueTypeNumber})},
+			{Name: "service_name", Field: fieldPointer(serviceField)},
+			{Name: "name", Field: fieldPointer(FieldRef{Name: "name", Context: FieldContextSpan, Type: ValueTypeString})},
 		},
 	}, nil
 }
+
+func compileTraceSummaryOrder(orders []Order) (string, error) {
+	aliases := map[string]string{
+		"trace_id":       "trace_id",
+		"timestamp":      "timestamp",
+		"span_count":     "span_count",
+		"duration_nano":  "duration_nano",
+		"trace_duration": "duration_nano",
+		"service.name":   "service_name",
+		"name":           "name",
+	}
+	parts := make([]string, 0, len(orders))
+	for _, order := range orders {
+		alias, ok := aliases[order.Field.Name]
+		if order.Target != OrderByField || !ok {
+			return "", newError(ErrorInvalidRequest, "query.order", "trace summary ordering does not support field %q", order.Field.Name)
+		}
+		direction := "ASC"
+		if order.Direction == SortDescending {
+			direction = "DESC"
+		}
+		parts = append(parts, alias+" "+direction)
+	}
+	return strings.Join(parts, ", "), nil
+}
+
+func fieldPointer(field FieldRef) *FieldRef { return &field }
 
 func (c Compiler) compileAggregate(table string, signal Signal, plan Plan, common CommonQuery, aggregation compiledExpression) (Statement, error) {
 	selects := make([]string, 0, len(common.GroupBy)+2)
@@ -190,7 +240,7 @@ func (c Compiler) compileAggregate(table string, signal Signal, plan Plan, commo
 	groupArgs := make([]any, 0, len(aggregation.Args)+8)
 	groupBy := make([]string, 0, len(common.GroupBy)+1)
 	if plan.ResultType == ResultTimeSeries {
-		bucket, bucketArgs, err := timeBucket(signal, plan.StepMS)
+		bucket, bucketArgs, err := timeBucket(table, signal, plan.StepMS)
 		if err != nil {
 			return Statement{}, err
 		}
@@ -217,7 +267,7 @@ func (c Compiler) compileAggregate(table string, signal Signal, plan Plan, commo
 	columns = append(columns, ResultColumn{Name: "value"})
 	selectArgs = append(selectArgs, aggregation.Args...)
 
-	where, whereArgs, err := c.compileWhere(signal, common.Filter, plan.Range)
+	where, whereArgs, err := c.compileWhere(table, signal, common.Filter, plan.Range)
 	if err != nil {
 		return Statement{}, err
 	}
@@ -284,8 +334,8 @@ func (c Compiler) traceAggregation(query TraceQuery) (compiledExpression, error)
 	}
 }
 
-func (c Compiler) compileWhere(signal Signal, filter FilterNode, timeRange TimeRange) (string, []any, error) {
-	timeCondition, args, err := timeRangeCondition(signal, timeRange)
+func (c Compiler) compileWhere(table string, signal Signal, filter FilterNode, timeRange TimeRange) (string, []any, error) {
+	timeCondition, args, err := timeRangeCondition(table, signal, timeRange)
 	if err != nil {
 		return "", nil, err
 	}
@@ -331,18 +381,21 @@ func (c Compiler) compileFilter(signal Signal, node FilterNode) (string, []any, 
 func compilePredicate(field ResolvedField, predicate Predicate) (string, []any, error) {
 	switch predicate.Op {
 	case FilterEqual, FilterNotEqual, FilterGreaterThan, FilterGreaterEq, FilterLessThan, FilterLessEq:
-		condition := field.SQL + " " + filterSQL(predicate.Op) + " ?"
+		valueSQL := field.ComparisonValueSQL
+		if valueSQL == "" {
+			valueSQL = "?"
+		}
+		condition := field.SQL + " " + filterSQL(predicate.Op) + " " + valueSQL
 		args := append(append([]any{}, field.Args...), scalarValue(predicate.Value))
 		if field.RequiresExistence && predicate.Op != FilterNotEqual {
 			return "(" + field.ExistsSQL + ") AND (" + condition + ")", append(append([]any{}, field.ExistsArgs...), args...), nil
 		}
 		return condition, args, nil
 	case FilterIn, FilterNotIn:
-		placeholders := strings.TrimRight(strings.Repeat("?,", len(predicate.Value.Strings)), ",")
+		values := listValues(predicate.Value)
+		placeholders := strings.TrimRight(strings.Repeat("?,", len(values)), ",")
 		args := append([]any{}, field.Args...)
-		for _, value := range predicate.Value.Strings {
-			args = append(args, value)
-		}
+		args = append(args, values...)
 		operator := "IN"
 		if predicate.Op == FilterNotIn {
 			operator = "NOT IN"
@@ -366,6 +419,20 @@ func compilePredicate(field ResolvedField, predicate Predicate) (string, []any, 
 	default:
 		return "", nil, newError(ErrorInvalidFilter, "filter.operator", "unsupported filter operator %q", predicate.Op)
 	}
+}
+
+func listValues(value Value) []any {
+	result := make([]any, 0, len(value.Strings)+len(value.Numbers)+len(value.Bools))
+	for _, item := range value.Strings {
+		result = append(result, item)
+	}
+	for _, item := range value.Numbers {
+		result = append(result, item)
+	}
+	for _, item := range value.Bools {
+		result = append(result, item)
+	}
+	return result
 }
 
 func (c Compiler) compileOrder(signal Signal, orders []Order, aggregationAllowed bool, fallback string) (string, []any, error) {
@@ -399,34 +466,40 @@ func (c Compiler) compileOrder(signal Signal, orders []Order, aggregationAllowed
 	return strings.Join(parts, ", "), args, nil
 }
 
-func timeRangeCondition(signal Signal, timeRange TimeRange) (string, []any, error) {
+func timeRangeCondition(table string, signal Signal, timeRange TimeRange) (string, []any, error) {
 	switch signal {
 	case SignalLogs:
+		if timeRange.StartMS > maxLogTimestampMS || timeRange.EndMS > maxLogTimestampMS {
+			return "", nil, newError(ErrorInvalidRequest, "range", "log query range exceeds nanosecond timestamp capacity")
+		}
 		// Always qualify physical timestamps. ClickHouse resolves SELECT aliases
 		// in WHERE by default; a time-series result also aliases its millisecond
 		// bucket as timestamp, which would otherwise compare milliseconds to the
 		// log table's nanosecond timestamp and filter out every row.
-		return "siginsight_logs.logs_v2.timestamp >= toUInt64(?) AND siginsight_logs.logs_v2.timestamp < toUInt64(?)", []any{timeRange.StartMS * 1_000_000, timeRange.EndMS * 1_000_000}, nil
+		return table + ".timestamp >= toUInt64(?) AND " + table + ".timestamp < toUInt64(?)", []any{timeRange.StartMS * 1_000_000, timeRange.EndMS * 1_000_000}, nil
 	case SignalTraces:
-		return "siginsight_traces.span_index_v3.timestamp >= fromUnixTimestamp64Milli(?) AND siginsight_traces.span_index_v3.timestamp < fromUnixTimestamp64Milli(?)", []any{timeRange.StartMS, timeRange.EndMS}, nil
+		return table + ".timestamp >= fromUnixTimestamp64Milli(?) AND " + table + ".timestamp < fromUnixTimestamp64Milli(?)", []any{timeRange.StartMS, timeRange.EndMS}, nil
 	default:
 		return "", nil, newError(ErrorUnsupported, "signal", "no time range mapping for %q", signal)
 	}
 }
 
-func timeBucket(signal Signal, stepMS int64) (string, []any, error) {
+func timeBucket(table string, signal Signal, stepMS int64) (string, []any, error) {
 	if stepMS <= 0 {
 		return "", nil, newError(ErrorInvalidRequest, "stepMs", "time series requests require a positive step")
 	}
 	switch signal {
 	case SignalLogs:
+		if stepMS > maxLogTimestampMS {
+			return "", nil, newError(ErrorInvalidRequest, "stepMs", "log query step exceeds nanosecond timestamp capacity")
+		}
 		// Qualifying physical timestamp columns prevents ClickHouse 25.5 from
 		// resolving `timestamp` in GROUP BY to the SELECT output alias.
 		// The physical column is UInt64 nanoseconds; cast placeholders so the
 		// native driver cannot infer signed operands for time arithmetic.
-		return "intDiv(siginsight_logs.logs_v2.timestamp, toUInt64(?)) * toUInt64(?)", []any{stepMS * 1_000_000, stepMS}, nil
+		return "intDiv(" + table + ".timestamp, toUInt64(?)) * toUInt64(?)", []any{stepMS * 1_000_000, stepMS}, nil
 	case SignalTraces:
-		return "intDiv(toUnixTimestamp64Milli(span_index_v3.timestamp), ?) * ?", []any{stepMS, stepMS}, nil
+		return "intDiv(toUnixTimestamp64Milli(" + table + ".timestamp), ?) * ?", []any{stepMS, stepMS}, nil
 	default:
 		return "", nil, newError(ErrorUnsupported, "signal", "no time bucket mapping for %q", signal)
 	}

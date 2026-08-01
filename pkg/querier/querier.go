@@ -36,6 +36,9 @@ func New(
 }
 
 func (q *querier) QueryRange(ctx context.Context, _ valuer.UUID, req *qbtypes.QueryRangeRequest) (*qbtypes.QueryRangeResponse, error) {
+	if req == nil {
+		return nil, errors.NewInvalidInputf(errors.CodeInvalidInput, "V5 request is required")
+	}
 	for _, query := range req.CompositeQuery.Queries {
 		if query.Type == qbtypes.QueryTypeTraceOperator {
 			return nil, errors.NewInvalidInputf(errors.CodeInvalidInput, "trace operator queries are no longer supported")
