@@ -55,6 +55,13 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v4
+      - name: checkout Collector
+        if: matrix.src == 'compat'
+        uses: actions/checkout@v4
+        with:
+          repository: SigInsight/OtelCollector
+          ref: v1.2.0
+          path: OtelCollector
       - name: python
         uses: actions/setup-python@v5
         with:
@@ -65,6 +72,8 @@ jobs:
         run: |
           cd tests/integration && uv sync --frozen
       - name: run
+        env:
+          SIGINSIGHT_OTEL_COLLECTOR_ROOT: ${{ github.workspace }}/OtelCollector
         run: |
           cd tests/integration && \
             uv run pytest \
