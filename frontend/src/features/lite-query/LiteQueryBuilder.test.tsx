@@ -44,11 +44,14 @@ const baseQuery: Query = {
 	clickhouse_sql: [],
 };
 
-function renderBuilder(query: Query): QueryBuilderContextType {
+function renderBuilder(
+	query: Query,
+	panelType: PANEL_TYPES = PANEL_TYPES.TIME_SERIES,
+): QueryBuilderContextType {
 	const value = ({
 		currentQuery: query,
 		initialDataSource: DataSource.LOGS,
-		panelType: PANEL_TYPES.TIME_SERIES,
+		panelType,
 		handleSetConfig: jest.fn(),
 		handleSetQueryData: jest.fn(),
 		handleSetFormulaData: jest.fn(),
@@ -64,7 +67,7 @@ function renderBuilder(query: Query): QueryBuilderContextType {
 			<MemoryRouter>
 				<QueryBuilderContext.Provider value={value}>
 					<QueryBuilder
-						panelType={PANEL_TYPES.TIME_SERIES}
+						panelType={panelType}
 						config={{ initialDataSource: DataSource.LOGS, queryVariant: 'static' }}
 						version="v5"
 					/>
@@ -96,6 +99,19 @@ describe('LiteQueryBuilder routing', () => {
 				}),
 			}),
 		);
+	});
+
+	it('hides unsupported top-series limit on time-series panels', () => {
+		renderBuilder(baseQuery);
+		expect(screen.getByText('Group by')).toBeInTheDocument();
+		expect(screen.queryByText('Limit')).not.toBeInTheDocument();
+	});
+
+	it('hides aggregation-only controls on raw list panels', () => {
+		renderBuilder(baseQuery, PANEL_TYPES.LIST);
+		expect(screen.getByText('Limit')).toBeInTheDocument();
+		expect(screen.queryByText('Group by')).not.toBeInTheDocument();
+		expect(screen.queryByText('Aggregate')).not.toBeInTheDocument();
 	});
 
 	it('shows the migration boundary for an unsupported saved query', () => {

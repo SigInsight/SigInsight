@@ -107,7 +107,7 @@ def test_lite_bridge_executes_supported_v5_requests(
     )
 
     token = get_token(USER_ADMIN_EMAIL, USER_ADMIN_PASSWORD)
-    common = {"stepInterval": "60s", "limit": 100, "disabled": False}
+    common = {"stepInterval": "60s", "disabled": False}
     logs = _query(
         signoz,
         token,

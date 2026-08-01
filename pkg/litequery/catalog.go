@@ -123,12 +123,18 @@ func (DefaultCatalog) Resolve(signal Signal, field FieldRef) (ResolvedField, err
 
 func resolveLogField(field FieldRef) (ResolvedField, error) {
 	if field.Context == FieldContextResource {
+		if err := requireStringMapField(field, "log resource"); err != nil {
+			return ResolvedField{}, err
+		}
 		return resolveMapField("resources_string", field)
 	}
 	if field.Context == FieldContextAttribute {
 		return resolveTypedMapField("attributes", field)
 	}
 	if field.Context == FieldContextScope {
+		if err := requireStringMapField(field, "log scope"); err != nil {
+			return ResolvedField{}, err
+		}
 		switch field.Name {
 		case "name", "scope.name", "scope_name":
 			return staticField("scope_name", field.Type), nil
@@ -180,6 +186,9 @@ func resolveTraceField(field FieldRef) (ResolvedField, error) {
 		}, nil
 	}
 	if field.Context == FieldContextResource {
+		if err := requireStringMapField(field, "trace resource"); err != nil {
+			return ResolvedField{}, err
+		}
 		return resolveMapField("resources_string", field)
 	}
 	if field.Context == FieldContextAttribute {
@@ -195,6 +204,13 @@ func resolveTraceField(field FieldRef) (ResolvedField, error) {
 		return staticField(field.Name, field.Type), nil
 	}
 	return ResolvedField{}, newError(ErrorUnsupported, "field.name", "trace field %q is not in the schema catalog", field.Name)
+}
+
+func requireStringMapField(field FieldRef, context string) error {
+	if field.Type != ValueTypeString {
+		return newError(ErrorInvalidRequest, "field.type", "%s fields are strings", context)
+	}
+	return nil
 }
 
 func quoteIdentifier(identifier string) string {

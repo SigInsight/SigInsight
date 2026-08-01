@@ -9,7 +9,6 @@ type Plan struct {
 	StepMS     int64
 	Queries    []QueryPlan
 	Formulas   []Formula
-	Format     FormatOptions
 }
 
 type QueryPlan struct {
@@ -46,6 +45,5 @@ func (p DefaultPlanner) Plan(request Request) (Plan, error) {
 		StepMS:     request.StepMS,
 		Queries:    queries,
 		Formulas:   request.Formulas,
-		Format:     request.Format,
 	}, nil
 }

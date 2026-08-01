@@ -40,10 +40,13 @@ pipeline 的前提下，提供 Gauge、Sum、explicit Histogram 与 Meter 所需
 - Metrics series CTE 将 label、attrs、scope attrs、resource attrs 绑定到 fingerprint，
   再以 `samples_v4` 做 per-series time aggregation 和 space aggregation。Meter 通过
   同表 JSON labels 走同一套 statement contract。
-- Gauge/Sum 支持 latest/sum/avg/min/max/count；Sum/Meter 支持 delta/cumulative 的
-  rate/increase；explicit Histogram 通过 `<name>.bucket` 和 `le` 计算 p50/p90/p95/p99。
+- Gauge 支持 latest/avg/min/max，Sum 支持 sum/rate/increase，Meter 支持
+  count/sum/avg/rate/increase；explicit Histogram 只通过 `<name>.bucket` 和 `le`
+  计算 p50/p90/p95/p99。
 - Histogram 使用 `quantileExactWeighted` 和非累计 bucket 权重，兼容 ClickHouse 25.5.6；
   不复用服务端不存在的 `histogramQuantile`。
+- Histogram 从 metadata 恢复 Delta/Cumulative temporality；Delta 点在查询 bucket 内求和，
+  Cumulative 点取最后快照后再跨 bucket 求差，避免把 Delta 数据误按 Cumulative 查询。
 - scalar counter 也按原始点时间排序后计算差值，避免把整个范围错误折叠为一个 latest 值。
 
 ## 验证结果
@@ -60,6 +63,10 @@ tests/integration/scripts/run-litequery-compiler-integration.sh
 `bootstrap/sync up/async up`，插入当前时间窗口内的 Gauge/Sum/Histogram/Meter 最小数据，
 执行并扫描生成 statement，断言各查询至少返回一个正值。旧 Logs/Traces statement 也
 在同一轮执行，所有测试通过，临时容器由脚本清理。
+
+2026-08-01 补充执行真实 Collector 协作脚本。除 Gauge、Cumulative Sum 和 Meter 外，
+ClickHouse 25.5.6 集成用例同时覆盖 Delta/Cumulative explicit Histogram 的实际 SQL，协作
+脚本确认当前 Collector 写入的 Metrics/Meter 可经认证 V5 API 读回。
 
 ## 残余风险与后续任务
 

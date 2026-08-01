@@ -40,6 +40,7 @@
 - [ADR-013：拒绝不支持的 V5 能力](decisions/013-reject-unsupported-v5-capabilities.md)
 - [ADR-014：字段元数据消歧契约](decisions/014-field-metadata-disambiguation.md)
 - [ADR-015：语义 Gauge 与物理 Metric Series 对齐](decisions/015-semantic-gauge-physical-series.md)
+- [ADR-016：查询正确性不变量与结果预算](decisions/016-query-correctness-invariants.md)
 
 ## 文档状态
 
@@ -52,8 +53,8 @@
 | M2 Logs/Traces Compiler | Complete | 参数化 Catalog/Compiler，已在 ClickHouse 25.5.6 真实 schema 验证 |
 | M3 Metrics/Meter Compiler | Complete | 双阶段聚合、counter rate/increase、explicit Histogram 和 Meter 已真实验证 |
 | M4 Executor/Result | Complete | 可取消并发执行、动态 row 扫描和 arithmetic formula 已真实验证 |
-| M5 V5 兼容桥 | Complete | 认证 API 已验证 Metrics、Meter 与 formula；Logs/Traces 的当前 Collector 数据回读留作 M7 切换门槛 |
-| M6 Lite Frontend | Complete | 受控 Lite 编辑器复用 V5 状态/协议，具有能力与组件测试；真实协作切换留作 M7 门槛 |
+| M5 V5 兼容桥 | Complete | 四类信号的 V5 转换、字段元数据解析、认证 API 与错误映射均已验证；真实回读由 M7 闭环 |
+| M6 Lite Frontend | Complete | Lite 编辑器复用 V5 状态/协议，payload 清理与能力校验具有组件和契约测试；真实协作由 M7 闭环 |
 | M7 协作验证与切换 | Complete | 当前 Collector 在 ClickHouse 25.5.6 的 Logs、Traces、Metrics、Meter 写入和认证 V5 读回均已验证；受控能力协商已完成 |
 | M8 Legacy 删除准备与量化收敛 | Complete | legacy executor、editor、rollout flag 与过渡 compiler 已删除；V5 边界为 Lite-only capability error |
 | M9 物化列加速查询 | Complete | Trace v1 静态 manifest、非 manifest Map、9 字段认证 API/query-log workload 与 Map-vs-column 基准已验证；当前无删列候选 |

@@ -539,25 +539,29 @@ function LiteBuilderRow({
 						/>
 					</div>
 				)}
-				<div className="lite-query-control">
-					<span>Group by</span>
-					<Input
-						value={query.groupBy.map((field) => field.key).join(', ')}
-						placeholder="field, another.field"
-						onChange={(event): void =>
-							update({ groupBy: parseFields(event.target.value) })
-						}
-					/>
-				</div>
-				<div className="lite-query-control">
-					<span>Limit</span>
-					<InputNumber
-						min={1}
-						value={query.limit ?? undefined}
-						placeholder="No limit"
-						onChange={(value): void => update({ limit: value || null })}
-					/>
-				</div>
+				{!isRaw && (
+					<div className="lite-query-control">
+						<span>Group by</span>
+						<Input
+							value={query.groupBy.map((field) => field.key).join(', ')}
+							placeholder="field, another.field"
+							onChange={(event): void =>
+								update({ groupBy: parseFields(event.target.value) })
+							}
+						/>
+					</div>
+				)}
+				{!isTimeSeries && (
+					<div className="lite-query-control">
+						<span>Limit</span>
+						<InputNumber
+							min={1}
+							value={query.limit ?? undefined}
+							placeholder="No limit"
+							onChange={(value): void => update({ limit: value || null })}
+						/>
+					</div>
+				)}
 				<div className="lite-query-control">
 					<span>Order field</span>
 					<Input

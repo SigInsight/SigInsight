@@ -3,7 +3,9 @@ package liteadapter
 import (
 	"fmt"
 	"math"
+	"sort"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/SigNoz/signoz/pkg/errors"
@@ -16,8 +18,8 @@ import (
 // adapter owns labels and column descriptors because they are transport
 // concerns, not properties of the lightweight execution core.
 func FromLite(request *qbtypes.QueryRangeRequest, result litequery.ExecutionResult) (*qbtypes.QueryRangeResponse, error) {
-	if request == nil {
-		return nil, errors.NewInvalidInputf(errors.CodeInvalidInput, "V5 request is required")
+	if err := ValidateRequestRange(request); err != nil {
+		return nil, err
 	}
 	response := &qbtypes.QueryRangeResponse{
 		Type: request.RequestType,
@@ -35,8 +37,11 @@ func FromLite(request *qbtypes.QueryRangeRequest, result litequery.ExecutionResu
 		switch request.RequestType {
 		case qbtypes.RequestTypeTimeSeries:
 			data, err = timeSeries(query)
+			if err == nil && request.FormatOptions != nil && request.FormatOptions.FillGaps {
+				err = fillTimeSeriesGaps(data.(*qbtypes.TimeSeriesData), int64(request.Start), int64(request.End), stepForQuery(request, query.Name))
+			}
 		case qbtypes.RequestTypeScalar:
-			data = scalar(query)
+			data, err = scalar(query)
 		case qbtypes.RequestTypeRaw, qbtypes.RequestTypeTrace:
 			data, err = raw(query)
 		default:
@@ -56,6 +61,44 @@ func FromLite(request *qbtypes.QueryRangeRequest, result litequery.ExecutionResu
 	return response, nil
 }
 
+func fillTimeSeriesGaps(data *qbtypes.TimeSeriesData, startMS, endMS, stepMS int64) error {
+	if stepMS <= 0 {
+		return errors.NewInternalf(errors.CodeInternal, "time series query %q has no positive step for gap filling", data.QueryName)
+	}
+	if endMS < startMS {
+		return errors.NewInternalf(errors.CodeInternal, "time series query %q has an invalid fill range", data.QueryName)
+	}
+	alignedStart := startMS - startMS%stepMS
+	pointCount := (endMS-alignedStart-1)/stepMS + 1
+	if pointCount > 11_000 {
+		return errors.NewInvalidInputf(errors.CodeInvalidInput, "time series query %q exceeds gap-fill point budget", data.QueryName)
+	}
+	for _, aggregation := range data.Aggregations {
+		if len(aggregation.Series) == 0 {
+			aggregation.Series = append(aggregation.Series, &qbtypes.TimeSeries{})
+		}
+		for _, series := range aggregation.Series {
+			existing := make(map[int64]*qbtypes.TimeSeriesValue, len(series.Values))
+			for _, value := range series.Values {
+				existing[value.Timestamp] = value
+			}
+			filled := make([]*qbtypes.TimeSeriesValue, 0, pointCount)
+			for timestamp := alignedStart; timestamp < endMS; timestamp += stepMS {
+				if value := existing[timestamp]; value != nil {
+					filled = append(filled, value)
+				} else {
+					filled = append(filled, &qbtypes.TimeSeriesValue{Timestamp: timestamp, Value: 0})
+				}
+				if timestamp > math.MaxInt64-stepMS {
+					break
+				}
+			}
+			series.Values = filled
+		}
+	}
+	return nil
+}
+
 func timeSeries(query litequery.QueryResult) (*qbtypes.TimeSeriesData, error) {
 	timestampIndex, valueIndex := -1, -1
 	labelIndexes := make([]int, 0)
@@ -73,6 +116,7 @@ func timeSeries(query litequery.QueryResult) (*qbtypes.TimeSeriesData, error) {
 		return nil, errors.NewInternalf(errors.CodeInternal, "time series query %q has no timestamp/value columns", query.Name)
 	}
 	seriesByKey := make(map[string]*qbtypes.TimeSeries)
+	seriesInOrder := make([]*qbtypes.TimeSeries, 0)
 	for _, row := range query.Rows {
 		if len(row) != len(query.Columns) {
 			return nil, errors.NewInternalf(errors.CodeInternal, "time series query %q returned an invalid row", query.Name)
@@ -89,30 +133,35 @@ func timeSeries(query litequery.QueryResult) (*qbtypes.TimeSeriesData, error) {
 			continue
 		}
 		labels := make([]*qbtypes.Label, 0, len(labelIndexes))
-		key := ""
+		keyValues := make([]any, 0, len(labelIndexes))
 		for _, index := range labelIndexes {
 			field := query.Columns[index].Field
 			if field == nil {
 				continue
 			}
 			labels = append(labels, &qbtypes.Label{Key: fieldKey(*field), Value: row[index]})
-			key += query.Columns[index].Name + "=" + fmt.Sprint(row[index]) + ","
+			keyValues = append(keyValues, row[index])
 		}
+		key := responseAlignmentKey(keyValues)
 		series := seriesByKey[key]
 		if series == nil {
 			series = &qbtypes.TimeSeries{Labels: labels}
 			seriesByKey[key] = series
+			seriesInOrder = append(seriesInOrder, series)
 		}
 		series.Values = append(series.Values, &qbtypes.TimeSeriesValue{Timestamp: timestamp, Value: value})
 	}
 	bucket := &qbtypes.AggregationBucket{Index: 0, Alias: "value"}
-	for _, series := range seriesByKey {
+	for _, series := range seriesInOrder {
+		sort.SliceStable(series.Values, func(left, right int) bool {
+			return series.Values[left].Timestamp < series.Values[right].Timestamp
+		})
 		bucket.Series = append(bucket.Series, series)
 	}
 	return &qbtypes.TimeSeriesData{QueryName: query.Name, Aggregations: []*qbtypes.AggregationBucket{bucket}}, nil
 }
 
-func scalar(query litequery.QueryResult) *qbtypes.ScalarData {
+func scalar(query litequery.QueryResult) (*qbtypes.ScalarData, error) {
 	columns := make([]*qbtypes.ColumnDescriptor, len(query.Columns))
 	for index, column := range query.Columns {
 		kind := qbtypes.ColumnTypeGroup
@@ -125,7 +174,22 @@ func scalar(query litequery.QueryResult) *qbtypes.ScalarData {
 		}
 		columns[index] = &qbtypes.ColumnDescriptor{TelemetryFieldKey: key, QueryName: query.Name, Type: kind}
 	}
-	return &qbtypes.ScalarData{QueryName: query.Name, Columns: columns, Data: query.Rows}
+	data := make([][]any, len(query.Rows))
+	for rowIndex, row := range query.Rows {
+		if len(row) != len(query.Columns) {
+			return nil, errors.NewInternalf(errors.CodeInternal, "scalar query %q returned an invalid row", query.Name)
+		}
+		data[rowIndex] = append([]any{}, row...)
+		for columnIndex, value := range data[rowIndex] {
+			if query.Columns[columnIndex].Name != "value" {
+				continue
+			}
+			if number, ok := number(value); ok && (math.IsNaN(number) || math.IsInf(number, 0)) {
+				data[rowIndex][columnIndex] = nil
+			}
+		}
+	}
+	return &qbtypes.ScalarData{QueryName: query.Name, Columns: columns, Data: data}, nil
 }
 
 func raw(query litequery.QueryResult) (*qbtypes.RawData, error) {
@@ -169,6 +233,8 @@ func fieldKey(field litequery.FieldRef) telemetrytypes.TelemetryFieldKey {
 		key.FieldContext = telemetrytypes.FieldContextScope
 	case litequery.FieldContextMetric:
 		key.FieldContext = telemetrytypes.FieldContextMetric
+	case litequery.FieldContextLabel:
+		key.FieldContext = telemetrytypes.FieldContextMetric
 	}
 	switch field.Type {
 	case litequery.ValueTypeString:
@@ -182,23 +248,33 @@ func fieldKey(field litequery.FieldRef) telemetrytypes.TelemetryFieldKey {
 }
 
 func stepForQuery(request *qbtypes.QueryRangeRequest, name string) int64 {
+	var enabledStep int64
 	for _, envelope := range request.CompositeQuery.Queries {
 		switch spec := envelope.Spec.(type) {
 		case qbtypes.QueryBuilderQuery[qbtypes.LogAggregation]:
-			if spec.Name == name {
+			if !spec.Disabled && spec.Name == name {
 				return spec.StepInterval.Milliseconds()
+			}
+			if !spec.Disabled && enabledStep == 0 {
+				enabledStep = spec.StepInterval.Milliseconds()
 			}
 		case qbtypes.QueryBuilderQuery[qbtypes.TraceAggregation]:
-			if spec.Name == name {
+			if !spec.Disabled && spec.Name == name {
 				return spec.StepInterval.Milliseconds()
 			}
+			if !spec.Disabled && enabledStep == 0 {
+				enabledStep = spec.StepInterval.Milliseconds()
+			}
 		case qbtypes.QueryBuilderQuery[qbtypes.MetricAggregation]:
-			if spec.Name == name {
+			if !spec.Disabled && spec.Name == name {
 				return spec.StepInterval.Milliseconds()
+			}
+			if !spec.Disabled && enabledStep == 0 {
+				enabledStep = spec.StepInterval.Milliseconds()
 			}
 		}
 	}
-	return request.StepIntervalForQuery(name)
+	return enabledStep
 }
 
 func milliseconds(value any) (int64, bool) {
@@ -237,10 +313,34 @@ func rawTime(value any) (time.Time, bool) {
 	if timestamp, ok := value.(time.Time); ok {
 		return timestamp, true
 	}
-	if numeric, ok := number(value); ok {
+	switch numeric := value.(type) {
+	case uint64:
+		if numeric <= math.MaxInt64 {
+			return time.Unix(0, int64(numeric)), true
+		}
+	case uint32:
 		return time.Unix(0, int64(numeric)), true
+	case int64:
+		return time.Unix(0, numeric), true
+	case int:
+		return time.Unix(0, int64(numeric)), true
+	case float64:
+		if numeric >= 0 && numeric <= math.MaxInt64 {
+			return time.Unix(0, int64(numeric)), true
+		}
 	}
 	return time.Time{}, false
+}
+
+func responseAlignmentKey(values []any) string {
+	var key strings.Builder
+	for _, value := range values {
+		encoded := fmt.Sprintf("%T:%v", value, value)
+		key.WriteString(strconv.Itoa(len(encoded)))
+		key.WriteByte(':')
+		key.WriteString(encoded)
+	}
+	return key.String()
 }
 
 func number(value any) (float64, bool) {

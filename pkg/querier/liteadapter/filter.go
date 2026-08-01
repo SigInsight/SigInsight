@@ -142,11 +142,11 @@ func comparisonOperatorAndValue(context grammar.IComparisonContext) (litequery.F
 			clause = context.NotInClause()
 			op = litequery.FilterNotIn
 		}
-		values, err := parseStringList(clause)
+		value, fallbackType, err := parseList(clause)
 		if err != nil {
 			return "", litequery.Value{}, "", err
 		}
-		return op, litequery.Value{Kind: litequery.ValueStringList, Strings: values}, litequery.ValueTypeString, nil
+		return op, value, fallbackType, nil
 	}
 	values := context.AllValue()
 	if len(values) != 1 {
@@ -176,10 +176,10 @@ func comparisonOperatorAndValue(context grammar.IComparisonContext) (litequery.F
 	}
 }
 
-func parseStringList(context interface {
+func parseList(context interface {
 	ValueList() grammar.IValueListContext
 	Value() grammar.IValueContext
-}) ([]string, error) {
+}) (litequery.Value, litequery.ValueType, error) {
 	var values []grammar.IValueContext
 	if list := context.ValueList(); list != nil {
 		values = list.AllValue()
@@ -187,20 +187,33 @@ func parseStringList(context interface {
 		values = []grammar.IValueContext{value}
 	}
 	if len(values) == 0 {
-		return nil, unsupported("empty IN filter")
+		return litequery.Value{}, "", unsupported("empty IN filter")
 	}
-	result := make([]string, 0, len(values))
+	result := litequery.Value{}
+	var resultType litequery.ValueType
 	for _, value := range values {
-		parsed, kind, err := parseValue(value)
+		parsed, currentType, err := parseValue(value)
 		if err != nil {
-			return nil, err
+			return litequery.Value{}, "", err
 		}
-		if kind != litequery.ValueTypeString {
-			return nil, unsupported("non-string IN filter")
+		if resultType == "" {
+			resultType = currentType
+		} else if currentType != resultType {
+			return litequery.Value{}, "", unsupported("mixed-type IN filter")
 		}
-		result = append(result, parsed.String)
+		switch currentType {
+		case litequery.ValueTypeString:
+			result.Kind = litequery.ValueStringList
+			result.Strings = append(result.Strings, parsed.String)
+		case litequery.ValueTypeNumber:
+			result.Kind = litequery.ValueNumberList
+			result.Numbers = append(result.Numbers, parsed.Number)
+		case litequery.ValueTypeBool:
+			result.Kind = litequery.ValueBoolList
+			result.Bools = append(result.Bools, parsed.Bool)
+		}
 	}
-	return result, nil
+	return result, resultType, nil
 }
 
 func parseValue(context grammar.IValueContext) (litequery.Value, litequery.ValueType, error) {
@@ -301,19 +314,6 @@ func resolveFieldMetadata(key telemetrytypes.TelemetryFieldKey, signal litequery
 		return telemetrytypes.TelemetryFieldKey{}, false
 	}
 
-	// Preserve the established V5 behavior for an unqualified name that exists
-	// as both a resource and record attribute.
-	if key.FieldContext == telemetrytypes.FieldContextUnspecified {
-		resourceMatches := matches[:0]
-		for _, candidate := range matches {
-			if candidate.FieldContext == telemetrytypes.FieldContextResource {
-				resourceMatches = append(resourceMatches, candidate)
-			}
-		}
-		if len(resourceMatches) != 0 {
-			matches = resourceMatches
-		}
-	}
 	if key.FieldDataType == telemetrytypes.FieldDataTypeUnspecified {
 		typeMatches := matches[:0]
 		for _, candidate := range matches {
@@ -324,6 +324,21 @@ func resolveFieldMetadata(key telemetrytypes.TelemetryFieldKey, signal litequery
 		}
 		if len(typeMatches) != 0 {
 			matches = typeMatches
+		}
+	}
+	// Preserve the established V5 resource preference only after applying the
+	// operator's value type. A numeric comparison cannot target the Collector's
+	// string-only resource map when a numeric attribute with the same name is
+	// available.
+	if key.FieldContext == telemetrytypes.FieldContextUnspecified {
+		resourceMatches := matches[:0]
+		for _, candidate := range matches {
+			if candidate.FieldContext == telemetrytypes.FieldContextResource {
+				resourceMatches = append(resourceMatches, candidate)
+			}
+		}
+		if len(resourceMatches) != 0 {
+			matches = resourceMatches
 		}
 	}
 	if len(matches) != 1 {

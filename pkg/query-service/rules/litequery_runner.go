@@ -8,8 +8,8 @@ import (
 	"github.com/SigNoz/signoz/pkg/errors"
 	"github.com/SigNoz/signoz/pkg/litequery"
 	"github.com/SigNoz/signoz/pkg/querier/liteadapter"
+	"github.com/SigNoz/signoz/pkg/querier/litemetadata"
 	"github.com/SigNoz/signoz/pkg/telemetrystore"
-	"github.com/SigNoz/signoz/pkg/types/metrictypes"
 	qbtypes "github.com/SigNoz/signoz/pkg/types/querybuildertypes/querybuildertypesv5"
 	"github.com/SigNoz/signoz/pkg/types/telemetrytypes"
 	"github.com/SigNoz/signoz/pkg/valuer"
@@ -34,6 +34,9 @@ func NewLiteQueryRunner(store telemetrystore.TelemetryStore, metadata telemetryt
 }
 
 func (r *liteQueryRunner) Execute(ctx context.Context, _ valuer.UUID, request *qbtypes.QueryRangeRequest) (*qbtypes.QueryRangeResponse, error) {
+	if err := liteadapter.ValidateRequestRange(request); err != nil {
+		return nil, err
+	}
 	metadata, err := r.queryMetadata(ctx, request)
 	if err != nil {
 		return nil, err
@@ -73,43 +76,5 @@ func (r *liteQueryRunner) Execute(ctx context.Context, _ valuer.UUID, request *q
 }
 
 func (r *liteQueryRunner) queryMetadata(ctx context.Context, request *qbtypes.QueryRangeRequest) (liteadapter.MetricMetadata, error) {
-	if request == nil {
-		return liteadapter.MetricMetadata{}, errors.NewInvalidInputf(errors.CodeInvalidInput, "threshold query is required")
-	}
-	metadata := liteadapter.MetricMetadata{}
-	names := make([]string, 0)
-	for _, envelope := range request.CompositeQuery.Queries {
-		query, ok := envelope.Spec.(qbtypes.QueryBuilderQuery[qbtypes.MetricAggregation])
-		if !ok {
-			continue
-		}
-		for _, aggregation := range query.Aggregations {
-			if aggregation.MetricName != "" && (aggregation.Type == metrictypes.UnspecifiedType || aggregation.Temporality == metrictypes.Unknown) {
-				names = append(names, aggregation.MetricName)
-			}
-		}
-	}
-	fieldSelectors := liteadapter.FieldKeySelectors(request)
-	if len(names) == 0 && len(fieldSelectors) == 0 {
-		return metadata, nil
-	}
-	if r.metadata == nil {
-		return liteadapter.MetricMetadata{}, errors.NewInternalf(errors.CodeInternal, "telemetry metadata store is unavailable")
-	}
-	if len(names) != 0 {
-		temporalities, types, err := r.metadata.FetchTemporalityAndTypeMulti(ctx, request.Start, request.End, names...)
-		if err != nil {
-			return liteadapter.MetricMetadata{}, errors.NewInternalf(errors.CodeInternal, "failed to fetch metric temporality and type")
-		}
-		metadata.Temporality = temporalities
-		metadata.Types = types
-	}
-	if len(fieldSelectors) != 0 {
-		fieldKeys, _, err := r.metadata.GetKeysMulti(ctx, fieldSelectors)
-		if err != nil {
-			return liteadapter.MetricMetadata{}, errors.NewInternalf(errors.CodeInternal, "failed to resolve telemetry fields")
-		}
-		metadata.FieldKeys = fieldKeys
-	}
-	return metadata, nil
+	return litemetadata.Resolve(ctx, r.metadata, request)
 }

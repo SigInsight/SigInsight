@@ -56,8 +56,8 @@ invalid lightweight query: log field "host.name" is not in the schema catalog
 | 优先级 | 规则 |
 | --- | --- |
 | 1 | **显式上下文/类型优先**：请求已指定 context 或 data type 时，metadata 只在该约束内匹配，不覆盖显式值 |
-| 2 | **裸名 resource 优先**：字段未指定 context 且同时存在 resource 与 record/attribute 同名候选时，选择 resource（保持既有 V5 行为） |
-| 3 | **类型与 fallback 匹配**：未指定 data type 时，优先选择与操作符推断类型（fallback）一致的候选 |
+| 2 | **类型与 fallback 匹配**：未指定 data type 时，优先选择与操作符推断类型（fallback）一致的候选，避免数值操作误选只能存字符串的 resource map |
+| 3 | **同类型裸名 resource 优先**：类型匹配后仍同时存在 resource 与 record/attribute 同名候选时，选择 resource（保持既有 V5 行为） |
 | 4 | **存储类型约束**：resource map 只存字符串；metadata 未登记的裸 number/bool 字段可确定性解析为 attribute |
 | 5 | **唯一候选才消歧**：过滤后仍存在多个候选时**不猜测**，保持原字段解析，由后续编译/校验给出明确错误 |
 | 6 | **intrinsic 字段兜底**：若仍无法确定类型，检查信号固有字段表（`IntrinsicFieldType`），命中则按固有类型解析 |

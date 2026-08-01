@@ -40,15 +40,7 @@ const traceAggregations = new Set([
 ]);
 const gaugeAggregations = new Set(['latest', 'avg', 'min', 'max']);
 const sumAggregations = new Set(['sum', 'rate', 'increase']);
-const histogramAggregations = new Set([
-	'count',
-	'sum',
-	'avg',
-	'p50',
-	'p90',
-	'p95',
-	'p99',
-]);
+const histogramAggregations = new Set(['p50', 'p90', 'p95', 'p99']);
 const meterAggregations = new Set(['count', 'sum', 'avg', 'rate', 'increase']);
 
 export type LiteMetricType = 'gauge' | 'sum' | 'histogram' | '';
@@ -76,8 +68,11 @@ export function isNoValueLiteFilter(operator: string): boolean {
 	return noValueOperators.has(operator);
 }
 
-function quoteFilterValue(value: string): string {
+function quoteFilterValue(value: string, dataType: DataTypes): string {
 	const trimmed = value.trim();
+	if (dataType === DataTypes.String) {
+		return `'${trimmed.replace(/'/g, "\\'")}'`;
+	}
 	if (
 		trimmed === 'true' ||
 		trimmed === 'false' ||
@@ -88,8 +83,18 @@ function quoteFilterValue(value: string): string {
 	return `'${trimmed.replace(/'/g, "\\'")}'`;
 }
 
-function quoteStringListValue(value: string): string {
-	return `'${value.trim().replace(/'/g, "\\'")}'`;
+function filterField(filter: TagFilterItem): string {
+	const key = filter.key?.key as string;
+	if (/^(resource|attribute)\./.test(key)) {
+		return key;
+	}
+	if (filter.key?.type === 'resource') {
+		return `resource.${key}`;
+	}
+	if (filter.key?.type === 'tag' || filter.key?.type === 'attribute') {
+		return `attribute.${key}`;
+	}
+	return key;
 }
 
 export function toLiteFilterExpression(filters: TagFilter): string {
@@ -97,7 +102,7 @@ export function toLiteFilterExpression(filters: TagFilter): string {
 	return filters.items
 		.filter((filter) => filter.key?.key && allowedFilterOperators.has(filter.op))
 		.map((filter) => {
-			const key = filter.key?.key as string;
+			const key = filterField(filter);
 			if (isNoValueLiteFilter(filter.op)) {
 				return `${key} ${filter.op}`;
 			}
@@ -109,10 +114,15 @@ export function toLiteFilterExpression(filters: TagFilter): string {
 							.map((value) => value.trim())
 							.filter(Boolean);
 				return `${key} ${filter.op} [${values
-					.map((value) => quoteStringListValue(String(value)))
+					.map((value) =>
+						quoteFilterValue(String(value), filter.key?.dataType ?? DataTypes.EMPTY),
+					)
 					.join(', ')}]`;
 			}
-			return `${key} ${filter.op} ${quoteFilterValue(String(filter.value ?? ''))}`;
+			return `${key} ${filter.op} ${quoteFilterValue(
+				String(filter.value ?? ''),
+				filter.key?.dataType ?? DataTypes.EMPTY,
+			)}`;
 		})
 		.join(joiner);
 }
@@ -159,7 +169,10 @@ function supportedLogOrTraceAggregation(query: IBuilderQuery): boolean {
 			query.aggregations?.[0] && 'expression' in query.aggregations[0]
 				? query.aggregations[0].expression.replace(/\s/g, '').toLowerCase()
 				: 'count()';
-		const match = expression.match(/^(count|sum|avg|min|max)\(/);
+		if (expression === 'count()') {
+			return true;
+		}
+		const match = expression.match(/^(sum|avg|min|max)\(([^()]+)\)$/);
 		return Boolean(match && logAggregations.has(match[1]));
 	}
 	const expression =
@@ -215,15 +228,98 @@ export function isLiteBuilderQuery(query: IBuilderQuery): boolean {
 	return supportedLogOrTraceAggregation(query);
 }
 
+type FormulaToken = {
+	type: 'identifier' | 'number' | 'operator' | 'leftParen' | 'rightParen';
+	value: string;
+};
+
+function tokenizeLiteFormula(expression: string): FormulaToken[] | undefined {
+	const tokens: FormulaToken[] = [];
+	let index = 0;
+	while (index < expression.length) {
+		const rest = expression.slice(index);
+		const whitespace = rest.match(/^\s+/)?.[0];
+		if (whitespace) {
+			index += whitespace.length;
+			continue;
+		}
+		const identifier = rest.match(/^[A-Za-z][A-Za-z0-9_]*/)?.[0];
+		if (identifier) {
+			tokens.push({ type: 'identifier', value: identifier });
+			index += identifier.length;
+			continue;
+		}
+		const number = rest.match(/^(?:\d+(?:\.\d*)?|\.\d+)/)?.[0];
+		if (number) {
+			tokens.push({ type: 'number', value: number });
+			index += number.length;
+			continue;
+		}
+		const value = expression[index];
+		if ('+-*/'.includes(value)) {
+			tokens.push({ type: 'operator', value });
+		} else if (value === '(') {
+			tokens.push({ type: 'leftParen', value });
+		} else if (value === ')') {
+			tokens.push({ type: 'rightParen', value });
+		} else {
+			return undefined;
+		}
+		index += 1;
+	}
+	return tokens;
+}
+
+type FormulaSyntaxState = { expectsOperand: boolean; parentheses: number };
+
+function advanceFormulaSyntax(
+	state: FormulaSyntaxState,
+	token: FormulaToken,
+	next?: FormulaToken,
+): FormulaSyntaxState | undefined {
+	if (token.type === 'identifier' || token.type === 'number') {
+		return state.expectsOperand ? { ...state, expectsOperand: false } : undefined;
+	}
+	if (token.type === 'leftParen') {
+		return state.expectsOperand
+			? { expectsOperand: true, parentheses: state.parentheses + 1 }
+			: undefined;
+	}
+	if (token.type === 'rightParen') {
+		return !state.expectsOperand && state.parentheses > 0
+			? { expectsOperand: false, parentheses: state.parentheses - 1 }
+			: undefined;
+	}
+	const dividesByLiteralZero =
+		token.value === '/' && next?.type === 'number' && Number(next.value) === 0;
+	return !state.expectsOperand && !dividesByLiteralZero
+		? { ...state, expectsOperand: true }
+		: undefined;
+}
+
+function isLiteFormulaExpression(expression: string): boolean {
+	const tokens = tokenizeLiteFormula(expression);
+	if (!tokens?.length) {
+		return false;
+	}
+	let state: FormulaSyntaxState = { expectsOperand: true, parentheses: 0 };
+	for (const [index, token] of tokens.entries()) {
+		const next = advanceFormulaSyntax(state, token, tokens[index + 1]);
+		if (!next) {
+			return false;
+		}
+		state = next;
+	}
+	return !state.expectsOperand && state.parentheses === 0;
+}
+
 export function isLiteFormula(formula: IBuilderFormula): boolean {
+	const expression = formula.expression.trim();
 	return (
 		formula.limit == null &&
 		!formula.orderBy?.length &&
 		!formula.having?.length &&
-		(!formula.expression.trim() ||
-			/^[A-Za-z][A-Za-z0-9_]*(\s*[+\-*/]\s*[A-Za-z][A-Za-z0-9_]*)*$/.test(
-				formula.expression.trim(),
-			))
+		(!expression || isLiteFormulaExpression(expression))
 	);
 }
 
@@ -244,13 +340,21 @@ export function isLiteQueryState(
 	const traceOperators = query.builder.queryTraceOperator ?? [];
 	const queryData = query.builder.queryData ?? [];
 	const queryFormulas = query.builder.queryFormulas ?? [];
+	const isRawPanel =
+		panelType === PANEL_TYPES.LIST || panelType === PANEL_TYPES.TRACE;
+	const isTimeSeriesPanel = panelType === PANEL_TYPES.TIME_SERIES;
 	return (
 		isLitePanelType(panelType) &&
 		traceOperators.length === 0 &&
 		// LiteQueryBuilder edits one builder query. Rendering a multi-query state
 		// here would silently hide every query after the first one.
 		queryData.length === 1 &&
-		queryData.every(isLiteBuilderQuery) &&
+		queryData.every(
+			(builderQuery) =>
+				isLiteBuilderQuery(builderQuery) &&
+				(!isTimeSeriesPanel || builderQuery.limit == null),
+		) &&
+		(!isRawPanel || queryFormulas.length === 0) &&
 		queryFormulas.every(isLiteFormula)
 	);
 }

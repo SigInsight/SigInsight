@@ -36,21 +36,21 @@ The UI derives its option sets from a frontend representation of
 - Metrics expose Gauge, Sum, Histogram and Meter operations only;
 - filters are conjunctions of typed predicates using `=`, `!=`, comparison,
   `IN`, `NOT IN`, `EXISTS`, `NOT EXISTS`, and `CONTAINS`;
-- group-by, global order and global limit remain available;
+- group-by and global order remain available; result-row limit is shown only for raw, trace and
+  scalar panels, while Time Series limit is rejected until a top-series plan exists;
 - formulas permit only references joined by `+`, `-`, `*`, and `/`;
 - advanced having, post-processing functions, raw SQL, joins, subqueries and
   Trace Operator are absent from the Lite editor.
 
 The backend remains authoritative. Unsupported saved queries never undergo
-lossy client-side rewriting: they continue to use the legacy editor and its
-controlled backend fallback until M7 migration marks them compatible.
+lossy client-side rewriting. After M8 removed the legacy editor and fallback,
+they render the explicit replacement boundary described by ADR-013.
 
 ## Rollout
 
 M6 initially used `VITE_LIGHTWEIGHT_QUERY_EDITOR_ENABLED=true` as a build-time
-opt-in. M7 replaces this paired deployment configuration with the authenticated
-server-advertised capability in ADR-009. Real Collector readback remains the
-gate for a default-on route.
+opt-in. M7 replaced it with authenticated capability negotiation, and M8 then
+removed the flag after real Collector readback passed.
 
 ## Validation
 
@@ -61,9 +61,9 @@ gate for a default-on route.
 - an existing V5 payload test remains the contract test between the new editor
   state and the HTTP request.
 
-The paired authenticated browser/API run, current Collector Log/Trace readback,
-and default-on rollout are intentionally M7 gates. M6 only exposes the editor
-when both deployment flags are explicitly enabled.
+The authenticated API run and current Collector readback were completed by M7;
+the post-M8 serializer additionally removes stale raw/trace group-by/select
+state and unsupported Time Series limit before sending the V5 request.
 
 ## Delivered Integration
 
@@ -73,7 +73,7 @@ Explorer, dashboard panels and the alert Query Builder. The Cost Meter has no
 interactive query editor; its existing fixed V5 Meter requests are covered by
 the M5 authenticated bridge fixture. A saved query containing a Trace Operator,
 post-processing function, arbitrary having, unsupported filter, unsupported
-panel type or advanced formula remains on the legacy editor.
+panel type or advanced formula now enters the explicit replacement boundary.
 
 ## Deletion Value
 

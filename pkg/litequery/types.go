@@ -38,11 +38,6 @@ func (r TimeRange) Duration() time.Duration {
 	return time.Duration(r.EndMS-r.StartMS) * time.Millisecond
 }
 
-type FormatOptions struct {
-	FillGaps bool
-	FillZero bool
-}
-
 // Request is the storage-independent input to a lightweight query plan.
 // Queries use one typed aggregation each; callers compose results through
 // named queries and simple formulas instead of multi-aggregation DTOs.
@@ -52,7 +47,6 @@ type Request struct {
 	StepMS     int64
 	Queries    []Query
 	Formulas   []Formula
-	Format     FormatOptions
 }
 
 type FieldContext string

@@ -30,8 +30,11 @@
   statement 顺序保留结果，并在扫描失败时关闭 rows。
 - `QueryResult` 保留 Statement 的列契约和动态行数据，未把 ClickHouse driver 或 V5
   response 类型引入核心包。
-- 公式在基础查询完成后按 timestamp/group key 对齐，支持 forward formula dependency、
-  `+ - * /` 和括号；除数为零产生 `NaN`，依赖缺少时生成 warning。
+- Executor 对每条 statement 默认限制 250,000 个扫描结果行；超限返回 budget error 并
+  关闭 rows，避免高基数查询无限占用应用内存。
+- 公式在基础查询完成后按 collision-safe timestamp/group key 对齐，要求依赖使用相同
+  列 schema，支持 forward formula dependency、`+ - * /` 和括号；除数为零产生
+  `NaN`，依赖缺少时以零参与计算并生成 warning。公式输出保持请求声明顺序。
 - ClickHouse integration test 增加了 driver rows adapter，验证真实动态列扫描和双 query
   公式结果；driver-specific ScanType 转换留在基础设施 adapter，不污染 executor contract。
 

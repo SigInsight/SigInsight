@@ -5,6 +5,8 @@ import (
 	"strings"
 )
 
+const maxLogTimestampMS = math.MaxInt64 / 1_000_000
+
 type Limits struct {
 	MaxQueries       int
 	MaxFormulas      int
@@ -46,11 +48,14 @@ func Validate(req Request, limits Limits) error {
 	if len(req.Formulas) > limits.MaxFormulas {
 		return newError(ErrorBudgetExceeded, "formulas", "request contains more than %d formulas", limits.MaxFormulas)
 	}
+	if len(req.Formulas) != 0 && !req.ResultType.isAggregate() {
+		return newError(ErrorInvalidFormula, "formulas", "formulas require a time series or scalar result")
+	}
 	if req.ResultType == ResultTimeSeries {
 		if req.StepMS <= 0 {
 			return newError(ErrorInvalidRequest, "stepMs", "time series requests require a positive step")
 		}
-		points := (req.Range.EndMS - req.Range.StartMS) / req.StepMS
+		points := timeSeriesBucketCount(req.Range, req.StepMS)
 		if points > limits.MaxSeriesPoints {
 			return newError(ErrorBudgetExceeded, "stepMs", "time series contains more than %d points", limits.MaxSeriesPoints)
 		}
@@ -64,6 +69,14 @@ func Validate(req Request, limits Limits) error {
 			return newError(ErrorInvalidRequest, "queries", "query must not be nil")
 		}
 		common := query.GetCommon()
+		if query.QuerySignal() == SignalLogs {
+			if req.Range.EndMS > maxLogTimestampMS {
+				return newError(ErrorInvalidRequest, "range", "log query range exceeds nanosecond timestamp capacity")
+			}
+			if req.ResultType == ResultTimeSeries && req.StepMS > maxLogTimestampMS {
+				return newError(ErrorInvalidRequest, "stepMs", "log query step exceeds nanosecond timestamp capacity")
+			}
+		}
 		if err := validateCommon(common, req.ResultType, limits); err != nil {
 			return err
 		}
@@ -76,11 +89,20 @@ func Validate(req Request, limits Limits) error {
 		if err := validateResultType(query, req.ResultType); err != nil {
 			return err
 		}
+		if err := validateQueryShape(query, req.ResultType); err != nil {
+			return err
+		}
 	}
 	if err := validateFormulas(req.Formulas, names); err != nil {
 		return err
 	}
 	return nil
+}
+
+func timeSeriesBucketCount(timeRange TimeRange, stepMS int64) int64 {
+	alignedStart := timeRange.StartMS - timeRange.StartMS%stepMS
+	delta := timeRange.EndMS - alignedStart
+	return (delta-1)/stepMS + 1
 }
 
 func validateLimits(limits Limits) error {
@@ -127,6 +149,9 @@ func validateCommon(common CommonQuery, resultType ResultType, limits Limits) er
 	}
 	if common.Limit > limits.MaxRawLimit {
 		return newError(ErrorBudgetExceeded, "query.limit", "limit exceeds %d", limits.MaxRawLimit)
+	}
+	if common.Limit != 0 && resultType == ResultTimeSeries {
+		return newError(ErrorUnsupported, "query.limit", "time series limit requires a top-series plan and is not supported")
 	}
 	if common.Offset != 0 && resultType != ResultRaw && resultType != ResultTrace {
 		return newError(ErrorInvalidRequest, "query.offset", "offset is only valid for raw and trace results")
@@ -182,7 +207,13 @@ func validateLogQuery(query LogQuery) error {
 	case LogAggregateCount:
 		return nil
 	case LogAggregateSum, LogAggregateAvg, LogAggregateMin, LogAggregateMax:
-		return validateField(query.Field, "query.field")
+		if err := validateField(query.Field, "query.field"); err != nil {
+			return err
+		}
+		if query.Field.Type != ValueTypeNumber {
+			return newError(ErrorInvalidAggregation, "query.field", "%s requires a numeric field", query.Aggregation)
+		}
+		return nil
 	default:
 		return newError(ErrorInvalidAggregation, "query.aggregation", "unsupported log aggregation %q", query.Aggregation)
 	}
@@ -220,6 +251,9 @@ func validateMetricQuery(aggregation MetricAggregation, meter bool) error {
 			return newError(ErrorInvalidAggregation, "query.spaceAggregation", "unsupported gauge space aggregation %q", aggregation.SpaceAggregation)
 		}
 	case MetricSum:
+		if aggregation.Temporality == TemporalityUnspecified {
+			return newError(ErrorInvalidAggregation, "query.temporality", "sum metrics require delta or cumulative temporality")
+		}
 		if aggregation.TimeAggregation != TimeAggregateSum && aggregation.TimeAggregation != TimeAggregateRate && aggregation.TimeAggregation != TimeAggregateIncrease && aggregation.TimeAggregation != TimeAggregateCount && aggregation.TimeAggregation != TimeAggregateAvg {
 			return newError(ErrorInvalidAggregation, "query.timeAggregation", "unsupported sum time aggregation %q", aggregation.TimeAggregation)
 		}
@@ -227,14 +261,14 @@ func validateMetricQuery(aggregation MetricAggregation, meter bool) error {
 			return newError(ErrorInvalidAggregation, "query.spaceAggregation", "unsupported sum space aggregation %q", aggregation.SpaceAggregation)
 		}
 	case MetricHistogram:
-		if aggregation.Temporality != TemporalityUnspecified {
-			return newError(ErrorInvalidAggregation, "query.temporality", "histogram metrics do not use temporality")
+		if aggregation.Temporality != TemporalityDelta && aggregation.Temporality != TemporalityCumulative {
+			return newError(ErrorInvalidAggregation, "query.temporality", "histogram metrics require delta or cumulative temporality")
 		}
-		if aggregation.TimeAggregation != TimeAggregateCount && aggregation.TimeAggregation != TimeAggregateSum && aggregation.TimeAggregation != TimeAggregateAvg {
-			return newError(ErrorInvalidAggregation, "query.timeAggregation", "unsupported histogram time aggregation %q", aggregation.TimeAggregation)
+		if aggregation.TimeAggregation != TimeAggregateCount {
+			return newError(ErrorInvalidAggregation, "query.timeAggregation", "histogram percentiles require count time aggregation")
 		}
-		if !isHistogramSpaceAggregation(aggregation.SpaceAggregation) {
-			return newError(ErrorInvalidAggregation, "query.spaceAggregation", "unsupported histogram space aggregation %q", aggregation.SpaceAggregation)
+		if !isHistogramQuantile(aggregation.SpaceAggregation) {
+			return newError(ErrorInvalidAggregation, "query.spaceAggregation", "histograms support p50, p90, p95, or p99")
 		}
 	default:
 		return newError(ErrorUnsupported, "query.type", "unsupported metric type %q", aggregation.Type)
@@ -246,8 +280,57 @@ func isBasicSpaceAggregation(aggregation SpaceAggregation) bool {
 	return aggregation == SpaceAggregateSum || aggregation == SpaceAggregateAvg || aggregation == SpaceAggregateMin || aggregation == SpaceAggregateMax || aggregation == SpaceAggregateCount
 }
 
-func isHistogramSpaceAggregation(aggregation SpaceAggregation) bool {
-	return isBasicSpaceAggregation(aggregation) || aggregation == SpaceAggregateP50 || aggregation == SpaceAggregateP90 || aggregation == SpaceAggregateP95 || aggregation == SpaceAggregateP99
+func isHistogramQuantile(aggregation SpaceAggregation) bool {
+	return aggregation == SpaceAggregateP50 || aggregation == SpaceAggregateP90 || aggregation == SpaceAggregateP95 || aggregation == SpaceAggregateP99
+}
+
+func validateQueryShape(query Query, resultType ResultType) error {
+	common := query.GetCommon()
+	if resultType != ResultRaw && len(common.Select) != 0 {
+		return newError(ErrorInvalidRequest, "query.select", "select fields are only valid for raw results")
+	}
+	if resultType == ResultRaw {
+		selectedNames := make(map[string]struct{}, len(common.Select))
+		for _, field := range common.Select {
+			if _, exists := selectedNames[field.Name]; exists {
+				return newError(ErrorInvalidRequest, "query.select", "raw select fields must have unique output names; duplicate %q", field.Name)
+			}
+			selectedNames[field.Name] = struct{}{}
+		}
+	}
+	if resultType == ResultRaw || resultType == ResultTrace {
+		if len(common.GroupBy) != 0 {
+			return newError(ErrorInvalidRequest, "query.groupBy", "groupBy is only valid for time series and scalar results")
+		}
+		if common.Predicate != nil {
+			return newError(ErrorInvalidRequest, "query.predicate", "aggregation predicates are only valid for time series and scalar results")
+		}
+	} else {
+		for _, order := range common.Order {
+			if order.Target != OrderByField {
+				continue
+			}
+			found := false
+			for _, group := range common.GroupBy {
+				if group == order.Field {
+					found = true
+					break
+				}
+			}
+			if !found {
+				return newError(ErrorInvalidRequest, "query.order", "aggregate field ordering requires a groupBy field")
+			}
+		}
+	}
+	if common.After != nil {
+		if resultType != ResultRaw || query.QuerySignal() != SignalLogs {
+			return newError(ErrorInvalidRequest, "query.after", "typed cursors are only valid for raw logs")
+		}
+		if common.Offset != 0 || common.Cursor != "" {
+			return newError(ErrorInvalidRequest, "query.after", "typed cursors cannot be combined with offset or opaque cursor pagination")
+		}
+	}
+	return nil
 }
 
 func validateResultType(query Query, resultType ResultType) error {

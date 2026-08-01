@@ -32,7 +32,9 @@ Metrics 查询始终分两阶段：
 `rate` 和 `increase` 仅适用于 Sum/Meter：Delta series 以 bucket sum 为增量；
 Cumulative series 用相邻 bucket 的差值并将 counter reset 解释为当前值。首个 bucket
 没有前值时为 NULL，不以零伪造数据。Histogram percentile 使用已展开的 `.bucket`
-series，内部保留 `le`、由累计值计算每个 bucket 的非累计权重，并以 ClickHouse 25.5.6
+series，并保留其物理 temporality：Delta 点在查询 bucket 内求和，Cumulative 点取最后
+快照后按相邻查询 bucket 求差。随后内部保留 `le`、由累计 bucket 值计算非累计权重，
+并以 ClickHouse 25.5.6
 提供的 `quantileExactWeighted` 在最终阶段计算。该算法返回离散 bucket 上界，不提供旧
 `histogramQuantile` 的插值语义。
 

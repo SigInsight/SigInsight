@@ -3,6 +3,7 @@ package liteadapter
 import (
 	"strings"
 
+	"github.com/SigNoz/signoz/pkg/litequery"
 	grammar "github.com/SigNoz/signoz/pkg/parser/grammar"
 	qbtypes "github.com/SigNoz/signoz/pkg/types/querybuildertypes/querybuildertypesv5"
 	"github.com/SigNoz/signoz/pkg/types/telemetrytypes"
@@ -22,14 +23,20 @@ func FieldKeySelectors(request *qbtypes.QueryRangeRequest) []*telemetrytypes.Fie
 		}
 		switch query := envelope.Spec.(type) {
 		case qbtypes.QueryBuilderQuery[qbtypes.LogAggregation]:
-			selectors = appendBuilderSelectors(selectors, query, telemetrytypes.SignalLogs, request.Start, request.End)
+			if query.Disabled {
+				continue
+			}
+			selectors = appendBuilderSelectors(selectors, query, telemetrytypes.SignalLogs, request.RequestType, request.Start, request.End)
 			for _, aggregation := range query.Aggregations {
 				if name, ok := logAggregationField(aggregation.Expression); ok {
 					selectors = appendSelector(selectors, telemetrytypes.TelemetryFieldKey{Name: name}, telemetrytypes.SignalLogs, request.Start, request.End)
 				}
 			}
 		case qbtypes.QueryBuilderQuery[qbtypes.TraceAggregation]:
-			selectors = appendBuilderSelectors(selectors, query, telemetrytypes.SignalTraces, request.Start, request.End)
+			if query.Disabled {
+				continue
+			}
+			selectors = appendBuilderSelectors(selectors, query, telemetrytypes.SignalTraces, request.RequestType, request.Start, request.End)
 		}
 	}
 	return deduplicateSelectors(selectors)
@@ -41,7 +48,7 @@ func FilterFieldKeySelectors(expression string, signal telemetrytypes.Signal, st
 	return deduplicateSelectors(filterFieldSelectors(expression, signal, start, end))
 }
 
-func appendBuilderSelectors[T any](selectors []*telemetrytypes.FieldKeySelector, query qbtypes.QueryBuilderQuery[T], signal telemetrytypes.Signal, start, end uint64) []*telemetrytypes.FieldKeySelector {
+func appendBuilderSelectors[T any](selectors []*telemetrytypes.FieldKeySelector, query qbtypes.QueryBuilderQuery[T], signal telemetrytypes.Signal, resultType qbtypes.RequestType, start, end uint64) []*telemetrytypes.FieldKeySelector {
 	if query.Filter != nil {
 		selectors = append(selectors, filterFieldSelectors(query.Filter.Expression, signal, start, end)...)
 	}
@@ -52,6 +59,14 @@ func appendBuilderSelectors[T any](selectors []*telemetrytypes.FieldKeySelector,
 		selectors = appendSelector(selectors, group.TelemetryFieldKey, signal, start, end)
 	}
 	for _, order := range query.Order {
+		if resultType == qbtypes.RequestTypeTrace && signal == telemetrytypes.SignalTraces &&
+			(order.Key.Name == "span_count" || order.Key.Name == "trace_duration") {
+			continue
+		}
+		if (resultType == qbtypes.RequestTypeTimeSeries || resultType == qbtypes.RequestTypeScalar) &&
+			aggregateOrderTarget(order.Key.TelemetryFieldKey, query.GroupBy) == litequery.OrderByAggregation {
+			continue
+		}
 		selectors = appendSelector(selectors, order.Key.TelemetryFieldKey, signal, start, end)
 	}
 	return selectors
@@ -71,7 +86,8 @@ func filterFieldSelectors(expression string, signal telemetrytypes.Signal, start
 
 func appendSelector(selectors []*telemetrytypes.FieldKeySelector, key telemetrytypes.TelemetryFieldKey, signal telemetrytypes.Signal, start, end uint64) []*telemetrytypes.FieldKeySelector {
 	key.Normalize()
-	if key.Name == "" || (key.FieldContext != telemetrytypes.FieldContextUnspecified && key.FieldDataType != telemetrytypes.FieldDataTypeUnspecified) {
+	if key.Name == "" || isIntrinsicField(key, signal) ||
+		(key.FieldContext != telemetrytypes.FieldContextUnspecified && key.FieldDataType != telemetrytypes.FieldDataTypeUnspecified) {
 		return selectors
 	}
 	return append(selectors, &telemetrytypes.FieldKeySelector{
@@ -84,6 +100,24 @@ func appendSelector(selectors []*telemetrytypes.FieldKeySelector, key telemetryt
 		SelectorMatchType: telemetrytypes.FieldSelectorMatchTypeExact,
 		Limit:             20,
 	})
+}
+
+func isIntrinsicField(key telemetrytypes.TelemetryFieldKey, signal telemetrytypes.Signal) bool {
+	var liteSignal litequery.Signal
+	switch signal {
+	case telemetrytypes.SignalLogs:
+		liteSignal = litequery.SignalLogs
+	case telemetrytypes.SignalTraces:
+		liteSignal = litequery.SignalTraces
+	default:
+		return false
+	}
+	context, err := fieldContext(key.FieldContext, liteSignal)
+	if err != nil {
+		return false
+	}
+	_, ok := litequery.IntrinsicFieldType(liteSignal, context, key.Name)
+	return ok
 }
 
 func deduplicateSelectors(selectors []*telemetrytypes.FieldKeySelector) []*telemetrytypes.FieldKeySelector {

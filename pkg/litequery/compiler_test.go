@@ -54,6 +54,26 @@ func TestDefaultCatalogResolvesSemanticFields(t *testing.T) {
 	}
 }
 
+func TestDefaultCatalogRejectsNonStringResourceAndScopeFields(t *testing.T) {
+	for _, test := range []struct {
+		name   string
+		signal Signal
+		field  FieldRef
+	}{
+		{"log resource number", SignalLogs, FieldRef{Name: "host.id", Context: FieldContextResource, Type: ValueTypeNumber}},
+		{"log scope bool", SignalLogs, FieldRef{Name: "scope.flag", Context: FieldContextScope, Type: ValueTypeBool}},
+		{"trace resource number", SignalTraces, FieldRef{Name: "service.instance.id", Context: FieldContextResource, Type: ValueTypeNumber}},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			_, err := (DefaultCatalog{}).Resolve(test.signal, test.field)
+			var queryErr *Error
+			if !errors.As(err, &queryErr) || queryErr.Code != ErrorInvalidRequest {
+				t.Fatalf("Resolve() error = %v, want invalid request", err)
+			}
+		})
+	}
+}
+
 func TestCompilerCastsNumericMapComparisonParameter(t *testing.T) {
 	statement := compileOne(t, Request{
 		Range: TimeRange{StartMS: 1_000, EndMS: 61_000}, ResultType: ResultTimeSeries, StepMS: 1_000,
@@ -101,7 +121,7 @@ func TestCompilerCompilesTraceTimeSeriesWithCorrectArgumentOrder(t *testing.T) {
 			Aggregation: TraceAggregateDurationP95,
 		}},
 	})
-	wantSQL := "SELECT intDiv(toUnixTimestamp64Milli(span_index_v3.timestamp), ?) * ? AS timestamp, `resource_string_service$$name` AS group_0, quantile(0.95)(duration_nano) AS value FROM siginsight_traces.span_index_v3 WHERE siginsight_traces.span_index_v3.timestamp >= fromUnixTimestamp64Milli(?) AND siginsight_traces.span_index_v3.timestamp < fromUnixTimestamp64Milli(?) GROUP BY intDiv(toUnixTimestamp64Milli(span_index_v3.timestamp), ?) * ?, `resource_string_service$$name` ORDER BY timestamp ASC"
+	wantSQL := "SELECT intDiv(toUnixTimestamp64Milli(siginsight_traces.span_index_v3.timestamp), ?) * ? AS timestamp, `resource_string_service$$name` AS group_0, quantile(0.95)(duration_nano) AS value FROM siginsight_traces.span_index_v3 WHERE siginsight_traces.span_index_v3.timestamp >= fromUnixTimestamp64Milli(?) AND siginsight_traces.span_index_v3.timestamp < fromUnixTimestamp64Milli(?) GROUP BY intDiv(toUnixTimestamp64Milli(siginsight_traces.span_index_v3.timestamp), ?) * ?, `resource_string_service$$name` ORDER BY timestamp ASC"
 	wantArgs := []any{int64(1_000), int64(1_000), int64(1_000), int64(61_000), int64(1_000), int64(1_000)}
 	assertStatement(t, statement, wantSQL, wantArgs)
 }
@@ -122,7 +142,7 @@ func TestCompilerCompilesTraceMaterializedFilterAndGroupBy(t *testing.T) {
 			Aggregation: TraceAggregateCount,
 		}},
 	})
-	wantSQL := "SELECT intDiv(toUnixTimestamp64Milli(span_index_v3.timestamp), ?) * ? AS timestamp, `attribute_string_http$$route` AS group_0, count() AS value FROM siginsight_traces.span_index_v3 WHERE (siginsight_traces.span_index_v3.timestamp >= fromUnixTimestamp64Milli(?) AND siginsight_traces.span_index_v3.timestamp < fromUnixTimestamp64Milli(?)) AND ((`resource_string_service$$name_exists`) AND (`resource_string_service$$name` = ?)) GROUP BY intDiv(toUnixTimestamp64Milli(span_index_v3.timestamp), ?) * ?, `attribute_string_http$$route` ORDER BY timestamp ASC"
+	wantSQL := "SELECT intDiv(toUnixTimestamp64Milli(siginsight_traces.span_index_v3.timestamp), ?) * ? AS timestamp, `attribute_string_http$$route` AS group_0, count() AS value FROM siginsight_traces.span_index_v3 WHERE (siginsight_traces.span_index_v3.timestamp >= fromUnixTimestamp64Milli(?) AND siginsight_traces.span_index_v3.timestamp < fromUnixTimestamp64Milli(?)) AND ((`resource_string_service$$name_exists`) AND (`resource_string_service$$name` = ?)) GROUP BY intDiv(toUnixTimestamp64Milli(siginsight_traces.span_index_v3.timestamp), ?) * ?, `attribute_string_http$$route` ORDER BY timestamp ASC"
 	wantArgs := []any{int64(1_000), int64(1_000), int64(1_000), int64(61_000), "api", int64(1_000), int64(1_000)}
 	assertStatement(t, statement, wantSQL, wantArgs)
 }
@@ -211,9 +231,28 @@ func TestCompilerCompilesTraceSummary(t *testing.T) {
 			Aggregation: TraceAggregateCount,
 		}},
 	})
-	wantSQL := "SELECT trace_id, max(timestamp) AS timestamp, count() AS span_count, sum(duration_nano) AS duration_nano FROM siginsight_traces.span_index_v3 WHERE siginsight_traces.span_index_v3.timestamp >= fromUnixTimestamp64Milli(?) AND siginsight_traces.span_index_v3.timestamp < fromUnixTimestamp64Milli(?) GROUP BY trace_id ORDER BY timestamp DESC, trace_id DESC LIMIT ?"
-	wantArgs := []any{int64(1), int64(2), uint32(20)}
-	assertStatement(t, statement, wantSQL, wantArgs)
+	for _, fragment := range []string{
+		"__lite_matching_traces AS (SELECT DISTINCT trace_id", "__lite_trace_spans AS",
+		"__lite_trace_stats AS", "__lite_roots AS", "tuple(parent_span_id = '', duration_nano",
+		"argMax(duration_nano", "root_service_name", "stats.span_count AS span_count",
+	} {
+		if !strings.Contains(statement.SQL, fragment) {
+			t.Fatalf("trace summary SQL does not contain %q:\n%s", fragment, statement.SQL)
+		}
+	}
+	if strings.Contains(statement.SQL, "WHERE parent_span_id = ''") {
+		t.Fatalf("trace summary would discard traces whose root span is unavailable: %s", statement.SQL)
+	}
+	wantArgs := []any{int64(1), int64(2), int64(1), int64(2), uint32(20)}
+	if !reflect.DeepEqual(statement.Args, wantArgs) {
+		t.Fatalf("Args = %#v, want %#v", statement.Args, wantArgs)
+	}
+	wantFields := []string{"trace_id", "timestamp", "span_count", "duration_nano", "service.name", "name"}
+	for index, field := range wantFields {
+		if statement.Columns[index].Field == nil || statement.Columns[index].Field.Name != field {
+			t.Fatalf("column %d = %#v, want field %q", index, statement.Columns[index], field)
+		}
+	}
 }
 
 func TestCompilerCompilesRawAndTraceOffsets(t *testing.T) {
@@ -236,13 +275,20 @@ func TestCompilerCompilesRawAndTraceOffsets(t *testing.T) {
 			request: Request{Range: TimeRange{StartMS: 1, EndMS: 2}, ResultType: ResultTrace, Queries: []Query{TraceQuery{
 				Common: CommonQuery{Name: "traces", Limit: 20, Offset: 100}, Aggregation: TraceAggregateCount,
 			}}},
-			wantSQL:  "SELECT trace_id, max(timestamp) AS timestamp, count() AS span_count, sum(duration_nano) AS duration_nano FROM siginsight_traces.span_index_v3 WHERE siginsight_traces.span_index_v3.timestamp >= fromUnixTimestamp64Milli(?) AND siginsight_traces.span_index_v3.timestamp < fromUnixTimestamp64Milli(?) GROUP BY trace_id ORDER BY timestamp DESC, trace_id DESC LIMIT ? OFFSET ?",
-			wantArgs: []any{int64(1), int64(2), uint32(20), uint32(100)},
+			wantSQL:  "",
+			wantArgs: []any{int64(1), int64(2), int64(1), int64(2), uint32(20), uint32(100)},
 		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			assertStatement(t, compileOne(t, test.request), test.wantSQL, test.wantArgs)
+			statement := compileOne(t, test.request)
+			if test.wantSQL != "" {
+				assertStatement(t, statement, test.wantSQL, test.wantArgs)
+				return
+			}
+			if !strings.HasSuffix(statement.SQL, "LIMIT ? OFFSET ?") || !reflect.DeepEqual(statement.Args, test.wantArgs) {
+				t.Fatalf("trace offset statement = %#v", statement)
+			}
 		})
 	}
 }
@@ -265,6 +311,35 @@ func TestCompilerDoesNotEmbedDynamicMapKeysOrJSONPaths(t *testing.T) {
 	}
 	if !reflect.DeepEqual(statement.Args, []any{"$." + malicious, int64(1_000_000), int64(2_000_000), malicious, uint32(100)}) {
 		t.Fatalf("Args = %#v", statement.Args)
+	}
+}
+
+func TestCompilerParameterizesTypedInLists(t *testing.T) {
+	for _, test := range []struct {
+		name  string
+		field FieldRef
+		value Value
+		args  []any
+	}{
+		{"number", FieldRef{Name: "http.status_code", Context: FieldContextAttribute, Type: ValueTypeNumber}, Value{Kind: ValueNumberList, Numbers: []float64{200, 500}}, []any{"http.status_code", "http.status_code", float64(200), float64(500)}},
+		{"bool", FieldRef{Name: "error", Context: FieldContextAttribute, Type: ValueTypeBool}, Value{Kind: ValueBoolList, Bools: []bool{true, false}}, []any{"error", "error", true, false}},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			statement := compileOne(t, Request{
+				Range: TimeRange{StartMS: 1, EndMS: 2}, ResultType: ResultRaw,
+				Queries: []Query{LogQuery{Common: CommonQuery{
+					Name: "logs", Filter: Predicate{Field: test.field, Op: FilterIn, Value: test.value},
+				}, Aggregation: LogAggregateCount}},
+			})
+			if !strings.Contains(statement.SQL, "IN (?,?)") {
+				t.Fatalf("SQL = %s", statement.SQL)
+			}
+			wantArgs := append([]any{int64(1_000_000), int64(2_000_000)}, test.args...)
+			wantArgs = append(wantArgs, uint32(100))
+			if !reflect.DeepEqual(statement.Args, wantArgs) {
+				t.Fatalf("Args = %#v, want %#v", statement.Args, wantArgs)
+			}
+		})
 	}
 }
 
@@ -360,7 +435,7 @@ func TestCompilerCompilesExplicitHistogramAndRejectsAmbiguousName(t *testing.T) 
 	request := Request{
 		Range: TimeRange{StartMS: 1_000, EndMS: 61_000}, ResultType: ResultTimeSeries, StepMS: 1_000,
 		Queries: []Query{MetricQuery{Common: CommonQuery{Name: "latency"}, Aggregation: MetricAggregation{
-			MetricName: "http.server.duration.bucket", Type: MetricHistogram, Temporality: TemporalityUnspecified,
+			MetricName: "http.server.duration.bucket", Type: MetricHistogram, Temporality: TemporalityCumulative,
 			TimeAggregation: TimeAggregateCount, SpaceAggregation: SpaceAggregateP95,
 		}}},
 	}
@@ -381,6 +456,22 @@ func TestCompilerCompilesExplicitHistogramAndRejectsAmbiguousName(t *testing.T) 
 	var queryErr *Error
 	if !errors.As(err, &queryErr) || queryErr.Code != ErrorInvalidAggregation {
 		t.Fatalf("Compile() error = %v, want invalid aggregation", err)
+	}
+}
+
+func TestCompilerAggregatesDeltaHistogramPointsWithinBucket(t *testing.T) {
+	statement := compileOne(t, Request{
+		Range: TimeRange{StartMS: 1_000, EndMS: 61_000}, ResultType: ResultTimeSeries, StepMS: 60_000,
+		Queries: []Query{MetricQuery{Common: CommonQuery{Name: "latency"}, Aggregation: MetricAggregation{
+			MetricName: "http.server.duration.bucket", Type: MetricHistogram, Temporality: TemporalityDelta,
+			TimeAggregation: TimeAggregateCount, SpaceAggregation: SpaceAggregateP95,
+		}}},
+	})
+	if !strings.Contains(statement.SQL, "sum(points.value) AS bucket_value") {
+		t.Fatalf("delta histogram SQL does not sum points within a bucket:\n%s", statement.SQL)
+	}
+	if strings.Contains(statement.SQL, "row_number() OVER histogram_window") {
+		t.Fatalf("delta histogram SQL unexpectedly differences buckets:\n%s", statement.SQL)
 	}
 }
 
@@ -410,6 +501,57 @@ func TestCompilerCompilesScalarCumulativeIncreaseOverPointOrder(t *testing.T) {
 			t.Fatalf("scalar counter SQL does not contain %q:\n%s", fragment, statement.SQL)
 		}
 	}
+}
+
+func TestCompilerUsesCatalogTableForTimeExpressions(t *testing.T) {
+	request := Request{
+		Range: TimeRange{StartMS: 1_000, EndMS: 2_000}, ResultType: ResultTimeSeries, StepMS: 1_000,
+		Queries: []Query{LogQuery{Common: CommonQuery{Name: "logs"}, Aggregation: LogAggregateCount}},
+	}
+	plan, err := (DefaultPlanner{}).Plan(request)
+	if err != nil {
+		t.Fatalf("Plan() error = %v", err)
+	}
+	statements, err := NewCompiler(renamedTableCatalog{DefaultCatalog{}}).Compile(plan)
+	if err != nil {
+		t.Fatalf("Compile() error = %v", err)
+	}
+	if !strings.Contains(statements[0].SQL, "telemetry.logs.timestamp") || strings.Contains(statements[0].SQL, "siginsight_logs.logs_v2.timestamp") {
+		t.Fatalf("compiler bypassed catalog table in time expression: %s", statements[0].SQL)
+	}
+}
+
+func TestCompilerRestrictsTraceSummaryOrderToOutputFields(t *testing.T) {
+	valid := compileOne(t, Request{
+		Range: TimeRange{StartMS: 1, EndMS: 2}, ResultType: ResultTrace,
+		Queries: []Query{TraceQuery{Common: CommonQuery{Name: "traces", Order: []Order{{Target: OrderByField, Field: FieldRef{Name: "service.name", Context: FieldContextResource, Type: ValueTypeString}, Direction: SortAscending}}}, Aggregation: TraceAggregateCount}},
+	})
+	if !strings.Contains(valid.SQL, "ORDER BY service_name ASC") {
+		t.Fatalf("trace summary order SQL = %s", valid.SQL)
+	}
+
+	request := Request{
+		Range: TimeRange{StartMS: 1, EndMS: 2}, ResultType: ResultTrace,
+		Queries: []Query{TraceQuery{Common: CommonQuery{Name: "traces", Order: []Order{{Target: OrderByField, Field: FieldRef{Name: "http.route", Context: FieldContextAttribute, Type: ValueTypeString}, Direction: SortAscending}}}, Aggregation: TraceAggregateCount}},
+	}
+	plan, err := (DefaultPlanner{}).Plan(request)
+	if err != nil {
+		t.Fatalf("Plan() error = %v", err)
+	}
+	_, err = NewCompiler(nil).Compile(plan)
+	var queryErr *Error
+	if !errors.As(err, &queryErr) || queryErr.Code != ErrorInvalidRequest {
+		t.Fatalf("Compile() error = %v, want invalid request", err)
+	}
+}
+
+type renamedTableCatalog struct{ DefaultCatalog }
+
+func (renamedTableCatalog) Table(signal Signal) (string, error) {
+	if signal == SignalLogs {
+		return "telemetry.logs", nil
+	}
+	return (DefaultCatalog{}).Table(signal)
 }
 
 func compileOne(t *testing.T, request Request) Statement {
