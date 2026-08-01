@@ -1,301 +1,72 @@
-import { memo, useCallback, useEffect, useMemo, useRef } from 'react';
-import { OPERATORS, PANEL_TYPES } from 'constants/queryBuilder';
-import { Formula } from 'container/QueryBuilder/components/Formula';
+import { memo, useCallback } from 'react';
+import { Alert, Button } from 'antd';
+import { initialQueriesMap } from 'constants/queryBuilder';
 import { QueryBuilderProps } from 'container/QueryBuilder/QueryBuilder.interfaces';
+import { isLiteQueryState } from 'features/lite-query/capabilities';
+import { LiteQueryBuilder } from 'features/lite-query/LiteQueryBuilder';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
-import { IBuilderTraceOperator } from 'types/api/queryBuilder/queryBuilderData';
 import { DataSource } from 'types/common/queryBuilder';
 
-import { clearPreviousQuery } from './Query/previousQuery.utils';
-import { Query } from './Query/Query';
-import QueryFooter from './Query/QueryFooter/QueryFooter';
-import TraceOperator from './Query/TraceOperator/TraceOperator';
-import { QueryBuilderProvider } from './QueryBuilderContext';
-
-import './QueryBuilder.styles.scss';
-
-export const QueryBuilder = memo(function QueryBuilder({
+function UnsupportedLiteQuery({
 	config,
-	panelType: newPanelType,
-	filterConfigs = {},
-	queryComponents,
-	isListViewPanel = false,
-	showOnlyWhereClause = false,
-	showTraceOperator = false,
-	version,
-	onSignalSourceChange,
-	signalSourceChangeEnabled = false,
-	savePreviousQuery = false,
-}: QueryBuilderProps): JSX.Element {
-	const {
-		currentQuery,
-		addNewBuilderQuery,
-		addNewFormula,
-		handleSetConfig,
-		addTraceOperator,
-		panelType,
-		initialDataSource,
-		handleRunQuery,
-	} = useQueryBuilder();
+}: Pick<QueryBuilderProps, 'config'>): JSX.Element {
+	const { currentQuery, redirectWithQueryBuilderData } = useQueryBuilder();
+	const source =
+		(config?.queryVariant === 'static' && config.initialDataSource) ||
+		currentQuery.builder.queryData[0]?.dataSource ||
+		DataSource.METRICS;
 
-	const containerRef = useRef(null);
-
-	const currentDataSource = useMemo(
-		() =>
-			(config && config.queryVariant === 'static' && config.initialDataSource) ||
-			null,
-		[config],
-	);
-
-	useEffect(() => {
-		if (currentDataSource !== initialDataSource || newPanelType !== panelType) {
-			if (newPanelType === PANEL_TYPES.BAR) {
-				handleSetConfig(PANEL_TYPES.BAR, DataSource.METRICS);
-				return;
-			}
-			handleSetConfig(newPanelType, currentDataSource);
-		}
-	}, [
-		handleSetConfig,
-		panelType,
-		initialDataSource,
-		currentDataSource,
-		newPanelType,
-	]);
-
-	useEffect(() => {
-		// always clear on mount and unmount to avoid stale data
-		clearPreviousQuery();
-		return (): void => {
-			clearPreviousQuery();
-		};
-	}, []);
-
-	const isMultiQueryAllowed = useMemo(
-		() => !isListViewPanel || showTraceOperator,
-		[showTraceOperator, isListViewPanel],
-	);
-
-	const listViewLogFilterConfigs: QueryBuilderProps['filterConfigs'] = useMemo(() => {
-		const config: QueryBuilderProps['filterConfigs'] = {
-			stepInterval: { isHidden: true, isDisabled: true },
-			having: { isHidden: true, isDisabled: true },
-			filters: {
-				customKey: 'body',
-				customOp: OPERATORS.CONTAINS,
+	const replaceWithSupportedQuery = useCallback((): void => {
+		const initial = initialQueriesMap[source];
+		redirectWithQueryBuilderData({
+			...initial,
+			id: currentQuery.id,
+			clickhouse_sql: [],
+			builder: {
+				queryData: initial.builder.queryData.map((query) => ({
+					...query,
+					functions: [],
+					filters: { items: [], op: 'AND' },
+					filter: { expression: '' },
+					groupBy: [],
+					having: [],
+					orderBy: [],
+				})),
+				queryFormulas: [],
+				queryTraceOperator: [],
 			},
-		};
-
-		return config;
-	}, []);
-
-	const listViewTracesFilterConfigs: QueryBuilderProps['filterConfigs'] = useMemo(() => {
-		const config: QueryBuilderProps['filterConfigs'] = {
-			stepInterval: { isHidden: true, isDisabled: true },
-			having: { isHidden: true, isDisabled: true },
-			limit: { isHidden: true, isDisabled: true },
-			filters: {
-				customKey: 'body',
-				customOp: OPERATORS.CONTAINS,
-			},
-		};
-
-		return config;
-	}, []);
-
-	const queryFilterConfigs = useMemo(() => {
-		if (isListViewPanel) {
-			return currentQuery.builder.queryData[0].dataSource === DataSource.TRACES
-				? listViewTracesFilterConfigs
-				: listViewLogFilterConfigs;
-		}
-
-		return filterConfigs;
-	}, [
-		isListViewPanel,
-		filterConfigs,
-		currentQuery.builder.queryData,
-		listViewLogFilterConfigs,
-		listViewTracesFilterConfigs,
-	]);
-
-	const traceOperator = useMemo((): IBuilderTraceOperator | undefined => {
-		if (
-			currentQuery.builder.queryTraceOperator &&
-			currentQuery.builder.queryTraceOperator.length > 0
-		) {
-			return currentQuery.builder.queryTraceOperator[0];
-		}
-
-		return undefined;
-	}, [currentQuery.builder.queryTraceOperator]);
-
-	const hasAtLeastOneTraceQuery = useMemo(
-		() =>
-			currentQuery.builder.queryData.some(
-				(query) => query.dataSource === DataSource.TRACES,
-			),
-		[currentQuery.builder.queryData],
-	);
-
-	const hasTraceOperator = useMemo(
-		() => showTraceOperator && hasAtLeastOneTraceQuery && Boolean(traceOperator),
-		[showTraceOperator, traceOperator, hasAtLeastOneTraceQuery],
-	);
-
-	const shouldShowFooter = useMemo(
-		() =>
-			(!showOnlyWhereClause && !isListViewPanel) ||
-			(currentDataSource === DataSource.TRACES && showTraceOperator),
-		[isListViewPanel, showTraceOperator, showOnlyWhereClause, currentDataSource],
-	);
-
-	const showQueryList = useMemo(
-		() => (!showOnlyWhereClause && !isListViewPanel) || showTraceOperator,
-		[isListViewPanel, showOnlyWhereClause, showTraceOperator],
-	);
-
-	const showFormula = useMemo(() => {
-		if (currentDataSource === DataSource.TRACES) {
-			return !isListViewPanel;
-		}
-
-		return true;
-	}, [isListViewPanel, currentDataSource]);
-
-	const showAddTraceOperator = useMemo(
-		() => showTraceOperator && !traceOperator && hasAtLeastOneTraceQuery,
-		[showTraceOperator, traceOperator, hasAtLeastOneTraceQuery],
-	);
-
-	const handleKeyDown = useCallback(
-		(e: React.KeyboardEvent<HTMLDivElement>): void => {
-			const target = e.target as HTMLElement | null;
-			const tagName = target?.tagName || '';
-
-			const isInputElement =
-				['INPUT', 'TEXTAREA', 'SELECT'].includes(tagName) ||
-				(target?.getAttribute('contenteditable') || '').toLowerCase() === 'true';
-
-			// Allow input elements in qb to run the query when Cmd/Ctrl + Enter is pressed
-			if (isInputElement && (e.metaKey || e.ctrlKey) && e.key === 'Enter') {
-				e.preventDefault();
-				e.stopPropagation();
-				handleRunQuery();
-			}
-		},
-		[handleRunQuery],
-	);
+		});
+	}, [currentQuery.id, redirectWithQueryBuilderData, source]);
 
 	return (
-		<QueryBuilderProvider>
-			<div className="query-builder">
-				<div className="qb-content-container" onKeyDownCapture={handleKeyDown}>
-					{!isMultiQueryAllowed ? (
-						<Query
-							ref={containerRef}
-							key={currentQuery.builder.queryData[0].queryName}
-							index={0}
-							query={currentQuery.builder.queryData[0]}
-							filterConfigs={queryFilterConfigs}
-							queryComponents={queryComponents}
-							isMultiQueryAllowed={isMultiQueryAllowed}
-							showTraceOperator={showTraceOperator}
-							hasTraceOperator={hasTraceOperator}
-							version={version}
-							isAvailableToDisable={false}
-							queryVariant={config?.queryVariant || 'dropdown'}
-							showOnlyWhereClause={showOnlyWhereClause}
-							isListViewPanel={isListViewPanel}
-							signalSource={currentQuery.builder.queryData[0].source as 'meter' | ''}
-							onSignalSourceChange={onSignalSourceChange || ((): void => {})}
-							signalSourceChangeEnabled={signalSourceChangeEnabled}
-							queriesCount={1}
-							savePreviousQuery={savePreviousQuery}
-						/>
-					) : (
-						currentQuery.builder.queryData.map((query, index) => (
-							<Query
-								ref={containerRef}
-								key={query.queryName}
-								index={index}
-								query={query}
-								filterConfigs={queryFilterConfigs}
-								queryComponents={queryComponents}
-								version={version}
-								isMultiQueryAllowed={isMultiQueryAllowed}
-								isAvailableToDisable={false}
-								showTraceOperator={showTraceOperator}
-								hasTraceOperator={hasTraceOperator}
-								queryVariant={config?.queryVariant || 'dropdown'}
-								showOnlyWhereClause={showOnlyWhereClause}
-								isListViewPanel={isListViewPanel}
-								signalSource={query.source as 'meter' | ''}
-								onSignalSourceChange={onSignalSourceChange || ((): void => {})}
-								signalSourceChangeEnabled={signalSourceChangeEnabled}
-								queriesCount={currentQuery.builder.queryData.length}
-								savePreviousQuery={savePreviousQuery}
-							/>
-						))
-					)}
+		<div className="lite-query-builder">
+			<Alert
+				type="warning"
+				showIcon
+				message="This saved query uses capabilities that are not supported by the lightweight query engine."
+				action={
+					<Button type="primary" onClick={replaceWithSupportedQuery}>
+						Replace query
+					</Button>
+				}
+			/>
+		</div>
+	);
+}
 
-					{!showOnlyWhereClause && currentQuery.builder.queryFormulas.length > 0 && (
-						<div className="qb-formulas-container">
-							{currentQuery.builder.queryFormulas.map((formula, index) => {
-								const query =
-									currentQuery.builder.queryData[index] ||
-									currentQuery.builder.queryData[0];
-
-								return (
-									<div key={formula.queryName} className="qb-formula">
-										<Formula
-											filterConfigs={filterConfigs}
-											query={query}
-											formula={formula}
-											index={index}
-											isAdditionalFilterEnable={false}
-											isQBV2
-										/>
-									</div>
-								);
-							})}
-						</div>
-					)}
-
-					{shouldShowFooter && (
-						<QueryFooter
-							showAddFormula={showFormula}
-							addNewBuilderQuery={addNewBuilderQuery}
-							addNewFormula={addNewFormula}
-							addTraceOperator={addTraceOperator}
-							showAddTraceOperator={showAddTraceOperator}
-						/>
-					)}
-
-					{hasTraceOperator && (
-						<TraceOperator
-							isListViewPanel={isListViewPanel}
-							traceOperator={traceOperator as IBuilderTraceOperator}
-						/>
-					)}
-				</div>
-
-				{showQueryList && (
-					<div className="query-names-section">
-						{currentQuery.builder.queryData.map((query) => (
-							<div key={query.queryName} className="query-name">
-								{query.queryName}
-							</div>
-						))}
-
-						{currentQuery.builder.queryFormulas.map((formula) => (
-							<div key={formula.queryName} className="formula-name">
-								{formula.queryName}
-							</div>
-						))}
-					</div>
-				)}
-			</div>
-		</QueryBuilderProvider>
+export const QueryBuilder = memo(function QueryBuilder(
+	props: QueryBuilderProps,
+): JSX.Element {
+	const { currentQuery } = useQueryBuilder();
+	if (!isLiteQueryState(currentQuery, props.panelType)) {
+		return <UnsupportedLiteQuery config={props.config} />;
+	}
+	return (
+		<LiteQueryBuilder
+			panelType={props.panelType}
+			config={props.config}
+			onSignalSourceChange={props.onSignalSourceChange}
+			signalSourceChangeEnabled={props.signalSourceChangeEnabled}
+		/>
 	);
 });

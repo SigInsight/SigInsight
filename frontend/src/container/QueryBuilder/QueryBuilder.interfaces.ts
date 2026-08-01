@@ -32,7 +32,6 @@ export type QueryBuilderProps = {
 	showOnlyWhereClause?: boolean;
 	showOnlyTraceOperator?: boolean;
 	showTraceViewSelector?: boolean;
-	showTraceOperator?: boolean;
 	version: string;
 	onChangeTraceView?: (view: TraceView) => void;
 	onSignalSourceChange?: (value: string) => void;

@@ -97,32 +97,32 @@ var GroupByColMap = map[string]struct{}{
 }
 
 const (
-	SIGNOZ_METRIC_DBNAME                       = "signoz_metrics"
-	SIGNOZ_SAMPLES_V4_LOCAL_TABLENAME          = "samples_v4"
-	SIGNOZ_SAMPLES_V4_TABLENAME                = "samples_v4"
-	SIGNOZ_SAMPLES_V4_AGG_5M_TABLENAME         = "samples_v4_agg_5m"
-	SIGNOZ_SAMPLES_V4_AGG_30M_TABLENAME        = "samples_v4_agg_30m"
-	SIGNOZ_EXP_HISTOGRAM_TABLENAME             = "exp_hist"
-	SIGNOZ_EXP_HISTOGRAM_LOCAL_TABLENAME       = "exp_hist"
-	SIGNOZ_TRACE_DBNAME                        = "signoz_traces"
-	SIGNOZ_SPAN_INDEX_TABLENAME                = "signoz_index_v2"
-	SIGNOZ_SPAN_INDEX_V3                       = "signoz_index_v3"
-	SIGNOZ_SPAN_INDEX_LOCAL_TABLENAME          = "signoz_index_v2"
-	SIGNOZ_SPAN_INDEX_V3_LOCAL_TABLENAME       = "signoz_index_v3"
-	SIGNOZ_TIMESERIES_v4_LOCAL_TABLENAME       = "time_series_v4"
-	SIGNOZ_TIMESERIES_V4_TABLENAME             = "time_series_v4"
-	SIGNOZ_TIMESERIES_v4_6HRS_LOCAL_TABLENAME  = "time_series_v4_6hrs"
-	SIGNOZ_TIMESERIES_v4_1DAY_LOCAL_TABLENAME  = "time_series_v4_1day"
-	SIGNOZ_TIMESERIES_v4_1WEEK_LOCAL_TABLENAME = "time_series_v4_1week"
-	SIGNOZ_TIMESERIES_v4_1DAY_TABLENAME        = "time_series_v4_1day"
-	SIGNOZ_TOP_LEVEL_OPERATIONS_TABLENAME      = "top_level_operations"
-	SIGNOZ_TIMESERIES_v4_TABLENAME             = "time_series_v4"
-	SIGNOZ_TIMESERIES_v4_1WEEK_TABLENAME       = "time_series_v4_1week"
-	SIGNOZ_TIMESERIES_v4_6HRS_TABLENAME        = "time_series_v4_6hrs"
-	SIGNOZ_ATTRIBUTES_METADATA_TABLENAME       = "attributes_metadata"
-	SIGNOZ_ATTRIBUTES_METADATA_LOCAL_TABLENAME = "attributes_metadata"
-	SIGNOZ_METADATA_TABLENAME                  = "metadata"
-	SIGNOZ_METADATA_LOCAL_TABLENAME            = "metadata"
+	SIGINSIGHT_METRIC_DBNAME                       = "siginsight_metrics"
+	SIGINSIGHT_SAMPLES_V4_LOCAL_TABLENAME          = "samples_v4"
+	SIGINSIGHT_SAMPLES_V4_TABLENAME                = "samples_v4"
+	SIGINSIGHT_SAMPLES_V4_AGG_5M_TABLENAME         = "samples_v4_agg_5m"
+	SIGINSIGHT_SAMPLES_V4_AGG_30M_TABLENAME        = "samples_v4_agg_30m"
+	SIGINSIGHT_EXP_HISTOGRAM_TABLENAME             = "exp_hist"
+	SIGINSIGHT_EXP_HISTOGRAM_LOCAL_TABLENAME       = "exp_hist"
+	SIGINSIGHT_TRACE_DBNAME                        = "siginsight_traces"
+	SIGINSIGHT_SPAN_INDEX_TABLENAME                = "span_index_v2"
+	SIGINSIGHT_SPAN_INDEX_V3                       = "span_index_v3"
+	SIGINSIGHT_SPAN_INDEX_LOCAL_TABLENAME          = "span_index_v2"
+	SIGINSIGHT_SPAN_INDEX_V3_LOCAL_TABLENAME       = "span_index_v3"
+	SIGINSIGHT_TIMESERIES_v4_LOCAL_TABLENAME       = "time_series_v4"
+	SIGINSIGHT_TIMESERIES_V4_TABLENAME             = "time_series_v4"
+	SIGINSIGHT_TIMESERIES_v4_6HRS_LOCAL_TABLENAME  = "time_series_v4_6hrs"
+	SIGINSIGHT_TIMESERIES_v4_1DAY_LOCAL_TABLENAME  = "time_series_v4_1day"
+	SIGINSIGHT_TIMESERIES_v4_1WEEK_LOCAL_TABLENAME = "time_series_v4_1week"
+	SIGINSIGHT_TIMESERIES_v4_1DAY_TABLENAME        = "time_series_v4_1day"
+	SIGINSIGHT_TOP_LEVEL_OPERATIONS_TABLENAME      = "top_level_operations"
+	SIGINSIGHT_TIMESERIES_v4_TABLENAME             = "time_series_v4"
+	SIGINSIGHT_TIMESERIES_v4_1WEEK_TABLENAME       = "time_series_v4_1week"
+	SIGINSIGHT_TIMESERIES_v4_6HRS_TABLENAME        = "time_series_v4_6hrs"
+	SIGINSIGHT_ATTRIBUTES_METADATA_TABLENAME       = "attributes_metadata"
+	SIGINSIGHT_ATTRIBUTES_METADATA_LOCAL_TABLENAME = "attributes_metadata"
+	SIGINSIGHT_METADATA_TABLENAME                  = "metadata"
+	SIGINSIGHT_METADATA_LOCAL_TABLENAME            = "metadata"
 )
 
 // alert related constants
@@ -297,6 +297,8 @@ var StaticFieldsLogsV3 = map[string]querytypes.AttributeKey{
 	},
 }
 
+// SigNozOrderByValue is a retained query-language token, not a product
+// configuration or storage identifier.
 const SigNozOrderByValue = "#SIGNOZ_VALUE"
 
 const TIMESTAMP = "timestamp"

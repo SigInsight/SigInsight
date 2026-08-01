@@ -461,7 +461,7 @@ func (q *QueryBuilderQuery[T]) validateOrderByForAggregation() error {
 // Validate validates the entire query range request.
 func (r *QueryRangeRequest) Validate(opts ...ValidationOption) error {
 	// Validate time range
-	if r.RequestType != RequestTypeRawStream && r.Start >= r.End {
+	if r.Start >= r.End {
 		return errors.NewInvalidInputf(
 			errors.CodeInvalidInput,
 			"start time must be before end time",
@@ -470,7 +470,7 @@ func (r *QueryRangeRequest) Validate(opts ...ValidationOption) error {
 
 	// Validate request type
 	switch r.RequestType {
-	case RequestTypeRaw, RequestTypeRawStream, RequestTypeTrace, RequestTypeTimeSeries, RequestTypeScalar:
+	case RequestTypeRaw, RequestTypeTrace, RequestTypeTimeSeries, RequestTypeScalar:
 		opts = append(opts, GetValidationOptions(r.RequestType)...)
 	default:
 		return errors.NewInvalidInputf(
@@ -587,20 +587,10 @@ func validateQueryEnvelope(envelope QueryEnvelope, opts ...ValidationOption) err
 		}
 		return nil
 	case QueryTypeTraceOperator:
-		spec, ok := envelope.Spec.(QueryBuilderTraceOperator)
-		if !ok {
-			return errors.NewInvalidInputf(
-				errors.CodeInvalidInput,
-				"invalid trace operator spec",
-			)
-		}
-		if spec.Expression == "" {
-			return errors.NewInvalidInputf(
-				errors.CodeInvalidInput,
-				"trace operator expression is required",
-			)
-		}
-		return nil
+		return errors.NewInvalidInputf(
+			errors.CodeInvalidInput,
+			"trace operator queries are no longer supported",
+		)
 	case QueryTypeClickHouseSQL:
 		spec, ok := envelope.Spec.(ClickHouseQuery)
 		if !ok {
@@ -631,7 +621,7 @@ func GetValidationOptions(requestType RequestType) []ValidationOption {
 	switch requestType {
 	case RequestTypeTimeSeries, RequestTypeScalar:
 		return []ValidationOption{WithSkipSelectFieldValidation()}
-	case RequestTypeRaw, RequestTypeRawStream, RequestTypeTrace:
+	case RequestTypeRaw, RequestTypeTrace:
 		return []ValidationOption{WithSkipAggregationValidation(), WithSkipHavingValidation(), WithSkipAggregationOrderBy(), WithSkipGroupByValidation()}
 	default:
 		return []ValidationOption{}

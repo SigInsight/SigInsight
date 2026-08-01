@@ -1,9 +1,12 @@
 import { defineConfig, devices } from '@playwright/test';
 import dotenv from 'dotenv';
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+const dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Read from ".env" file.
-dotenv.config({ path: path.resolve(__dirname, '.env') });
+dotenv.config({ path: path.resolve(dirname, '.env') });
 
 /**
  * Read environment variables from file.
@@ -32,7 +35,7 @@ export default defineConfig({
 	use: {
 		/* Base URL to use in actions like `await page.goto('/')`. */
 		baseURL:
-			process.env.SIGNOZ_E2E_BASE_URL || 'https://app.us.staging.signoz.cloud',
+			process.env.SIGINSIGHT_E2E_BASE_URL || 'https://app.us.staging.signoz.cloud',
 
 		/* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
 		trace: 'on-first-retry',
@@ -50,7 +53,9 @@ export default defineConfig({
 				viewport: null,
 				colorScheme: 'dark',
 				locale: 'en-US',
-				baseURL: 'https://app.us.staging.signoz.cloud',
+				baseURL:
+					process.env.SIGINSIGHT_E2E_BASE_URL ||
+					'https://app.us.staging.signoz.cloud',
 				trace: 'on-first-retry',
 			},
 		},

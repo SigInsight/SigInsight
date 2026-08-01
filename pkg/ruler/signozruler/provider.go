@@ -17,7 +17,7 @@ type provider struct {
 }
 
 func NewFactory(sqlstore sqlstore.SQLStore, queryParser queryparser.QueryParser) factory.ProviderFactory[ruler.Ruler, ruler.Config] {
-	return factory.NewProviderFactory(factory.MustNewName("signoz"), func(ctx context.Context, settings factory.ProviderSettings, config ruler.Config) (ruler.Ruler, error) {
+	return factory.NewProviderFactory(factory.MustNewName("siginsight"), func(ctx context.Context, settings factory.ProviderSettings, config ruler.Config) (ruler.Ruler, error) {
 		return New(ctx, settings, config, sqlstore, queryParser)
 	})
 }

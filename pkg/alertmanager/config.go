@@ -14,11 +14,11 @@ type Config struct {
 	// Provider is the provider for the alertmanager service.
 	Provider string `mapstructure:"provider"`
 
-	// Internal is the internal alertmanager configuration.
-	Signoz Signoz `mapstructure:"signoz" yaml:"signoz"`
+	// SigInsight is the internal alertmanager configuration.
+	SigInsight SigInsight `mapstructure:"siginsight" yaml:"siginsight"`
 }
 
-type Signoz struct {
+type SigInsight struct {
 	// PollInterval is the interval at which the alertmanager is synced.
 	PollInterval time.Duration `mapstructure:"poll_interval"`
 
@@ -37,8 +37,8 @@ func NewConfigFactory() factory.ConfigFactory {
 
 func newConfig() factory.Config {
 	return Config{
-		Provider: "signoz",
-		Signoz: Signoz{
+		Provider: "siginsight",
+		SigInsight: SigInsight{
 			PollInterval: 1 * time.Minute,
 			Config:       alertmanagerserver.NewConfig(),
 		},
@@ -46,8 +46,8 @@ func newConfig() factory.Config {
 }
 
 func (c Config) Validate() error {
-	if c.Provider != "signoz" {
-		return errors.Newf(errors.TypeInvalidInput, errors.CodeInvalidInput, "provider must be one of [%s], got %s", strings.Join([]string{"signoz"}, ", "), c.Provider)
+	if c.Provider != "siginsight" {
+		return errors.Newf(errors.TypeInvalidInput, errors.CodeInvalidInput, "provider must be one of [%s], got %s", strings.Join([]string{"siginsight"}, ", "), c.Provider)
 	}
 
 	return nil

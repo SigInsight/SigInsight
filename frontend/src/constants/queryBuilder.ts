@@ -14,7 +14,6 @@ import {
 	HavingForm,
 	IBuilderFormula,
 	IBuilderQuery,
-	IBuilderTraceOperator,
 	IClickHouseQuery,
 	Query,
 	QueryState,
@@ -52,6 +51,8 @@ import {
 export const MAX_FORMULAS = 20;
 export const MAX_QUERIES = 26;
 
+// Compatibility marker for decoding saved V5 queries. The editor no longer
+// creates Trace Operator entries and the backend rejects them at execution.
 export const TRACE_OPERATOR_QUERY_NAME = 'Trace Operator';
 
 export const idDivider = '--';
@@ -264,11 +265,6 @@ export const initialFormulaBuilderFormValues: IBuilderFormula = {
 	expression: '',
 	disabled: false,
 	legend: '',
-};
-
-export const initialQueryBuilderFormTraceOperatorValues: IBuilderTraceOperator = {
-	...initialQueryBuilderFormTracesValues,
-	queryName: TRACE_OPERATOR_QUERY_NAME,
 };
 
 export const initialClickHouseData: IClickHouseQuery = {

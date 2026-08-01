@@ -34,6 +34,9 @@ export const convertBuilderQueryToIBuilderQuery = (
 		queryName: builderQuery.name,
 		dataSource,
 		legend: builderQuery.legend,
+		// V5 deliberately omits an empty functions list. The editor model requires
+		// an array, so normalize it at the protocol boundary.
+		functions: builderQuery.functions ?? [],
 		groupBy:
 			builderQuery.groupBy?.map((group) => ({
 				key: group?.name,

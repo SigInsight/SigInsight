@@ -12,8 +12,8 @@ import (
 )
 
 func TestNewWithEnvProvider(t *testing.T) {
-	t.Setenv("SIGNOZ_WEB_PREFIX", "/web")
-	t.Setenv("SIGNOZ_WEB_ENABLED", "false")
+	t.Setenv("SIGINSIGHT_WEB_PREFIX", "/web")
+	t.Setenv("SIGINSIGHT_WEB_ENABLED", "false")
 
 	conf, err := config.New(
 		context.Background(),

@@ -8,7 +8,7 @@ import (
 
 	"github.com/SigNoz/signoz/pkg/errors"
 	"github.com/SigNoz/signoz/pkg/flagger"
-	"github.com/SigNoz/signoz/pkg/modules/thirdpartyapi"
+	"github.com/SigNoz/signoz/pkg/livelogs"
 
 	"io"
 	"log/slog"
@@ -34,9 +34,7 @@ import (
 	"github.com/SigNoz/signoz/pkg/query-service/constants"
 	"github.com/SigNoz/signoz/pkg/types"
 	"github.com/SigNoz/signoz/pkg/types/authtypes"
-	"github.com/SigNoz/signoz/pkg/types/ctxtypes"
 	"github.com/SigNoz/signoz/pkg/types/featuretypes"
-	"github.com/SigNoz/signoz/pkg/types/instrumentationtypes"
 	"github.com/SigNoz/signoz/pkg/types/licensetypes"
 	qbtypes "github.com/SigNoz/signoz/pkg/types/querybuildertypes/querybuildertypesv5"
 	"github.com/SigNoz/signoz/pkg/types/ruletypes"
@@ -241,7 +239,7 @@ func writeHttpResponse(w http.ResponseWriter, data interface{}) {
 
 func (aH *APIHandler) RegisterQueryRangeV5Routes(router *mux.Router, am *middleware.AuthZ) {
 	subRouter := router.PathPrefix("/api/v5").Subrouter()
-	subRouter.HandleFunc("/logs/livetail", am.ViewAccess(aH.Signoz.Handlers.QuerierHandler.QueryRawStream)).Methods(http.MethodGet)
+	subRouter.HandleFunc("/logs/livetail", am.ViewAccess(livelogs.New(aH.Signoz.TelemetryStore).Stream)).Methods(http.MethodGet)
 	subRouter.HandleFunc("/metric/metric_metadata", am.ViewAccess(aH.getMetricMetadata)).Methods(http.MethodGet)
 }
 
@@ -1090,10 +1088,17 @@ func (aH *APIHandler) getFeatureFlags(w http.ResponseWriter, r *http.Request) {
 	evalCtx := featuretypes.NewFlaggerEvaluationContext(orgID)
 	useSpanMetrics := aH.Signoz.Flagger.BooleanOrEmpty(r.Context(), flagger.FeatureUseSpanMetrics, evalCtx)
 
-	featureSet := []*licensetypes.Feature{
+	aH.Respond(w, uiFeatureFlags(
+		constants.IsDotMetricsEnabled,
+		useSpanMetrics,
+	))
+}
+
+func uiFeatureFlags(dotMetricsEnabled, useSpanMetrics bool) []*licensetypes.Feature {
+	return []*licensetypes.Feature{
 		{
 			Name:       licensetypes.DotMetricsEnabled,
-			Active:     constants.IsDotMetricsEnabled,
+			Active:     dotMetricsEnabled,
 			Usage:      0,
 			UsageLimit: -1,
 			Route:      "",
@@ -1106,8 +1111,6 @@ func (aH *APIHandler) getFeatureFlags(w http.ResponseWriter, r *http.Request) {
 			Route:      "",
 		},
 	}
-
-	aH.Respond(w, featureSet)
 }
 
 // getHealth is used to check the health of the service.
@@ -1184,17 +1187,6 @@ func (aH *APIHandler) WriteJSON(w http.ResponseWriter, r *http.Request, response
 	w.Write(resp)
 }
 
-// RegisterAPIMonitoringRoutes registers the API Monitoring endpoints.
-func (aH *APIHandler) RegisterAPIMonitoringRoutes(router *mux.Router, am *middleware.AuthZ) {
-	thirdPartyApiRouter := router.PathPrefix("/api/v5/api-monitoring").Subrouter()
-
-	// Domain Overview route
-	overviewRouter := thirdPartyApiRouter.PathPrefix("/overview").Subrouter()
-
-	overviewRouter.HandleFunc("/list", am.ViewAccess(aH.getDomainList)).Methods(http.MethodPost)
-	overviewRouter.HandleFunc("/domain", am.ViewAccess(aH.getDomainInfo)).Methods(http.MethodPost)
-}
-
 func (aH *APIHandler) getMetricMetadata(w http.ResponseWriter, r *http.Request) {
 	claims, err := authtypes.ClaimsFromContext(r.Context())
 	if err != nil {
@@ -1216,125 +1208,6 @@ func (aH *APIHandler) getMetricMetadata(w http.ResponseWriter, r *http.Request) 
 	}
 
 	aH.WriteJSON(w, r, metricMetadata)
-}
-
-func (aH *APIHandler) getDomainList(w http.ResponseWriter, r *http.Request) {
-	// Extract claims from context for organization ID
-	claims, err := authtypes.ClaimsFromContext(r.Context())
-	if err != nil {
-		render.Error(w, err)
-		return
-	}
-
-	orgID, err := valuer.NewUUID(claims.OrgID)
-	if err != nil {
-		render.Error(w, err)
-		return
-	}
-
-	// Parse the request body to get third-party query parameters
-	thirdPartyQueryRequest, apiErr := ParseRequestBody(r)
-	if apiErr != nil {
-		aH.logger.ErrorContext(r.Context(), "failed to parse request body", errors.Attr(apiErr))
-		render.Error(w, errorsV2.New(errorsV2.TypeInvalidInput, errorsV2.CodeInvalidInput, apiErr.Error()))
-		return
-	}
-
-	// Build the v5 query range request for domain listing
-	queryRangeRequest, err := thirdpartyapi.BuildDomainList(thirdPartyQueryRequest)
-	if err != nil {
-		aH.logger.ErrorContext(r.Context(), "failed to build domain list query", errors.Attr(err))
-		apiErrObj := errorsV2.New(errorsV2.TypeInvalidInput, errorsV2.CodeInvalidInput, err.Error())
-		render.Error(w, apiErrObj)
-		return
-	}
-
-	ctx := ctxtypes.NewContextWithCommentVals(r.Context(), map[string]string{
-		instrumentationtypes.CodeNamespace:    "app",
-		instrumentationtypes.CodeFunctionName: "getDomainList",
-	})
-	// Execute the query using the v5 querier
-	result, err := aH.Signoz.Querier.QueryRange(ctx, orgID, queryRangeRequest)
-	if err != nil {
-		aH.logger.ErrorContext(r.Context(), "query execution failed", errors.Attr(err))
-		apiErrObj := errorsV2.New(errorsV2.TypeInvalidInput, errorsV2.CodeInvalidInput, err.Error())
-		render.Error(w, apiErrObj)
-		return
-	}
-
-	result = thirdpartyapi.FilterIntermediateColumns(result)
-
-	// Filter IP addresses if ShowIp is false
-	var finalResult = result
-	if !thirdPartyQueryRequest.ShowIp {
-		filteredResults := thirdpartyapi.FilterResponse([]*qbtypes.QueryRangeResponse{result})
-		if len(filteredResults) > 0 {
-			finalResult = filteredResults[0]
-		}
-	}
-
-	// Send the response
-	aH.Respond(w, finalResult)
-}
-
-// getDomainInfo handles requests for domain information using v5 query builder
-func (aH *APIHandler) getDomainInfo(w http.ResponseWriter, r *http.Request) {
-	// Extract claims from context for organization ID
-	claims, err := authtypes.ClaimsFromContext(r.Context())
-	if err != nil {
-		render.Error(w, err)
-		return
-	}
-
-	orgID, err := valuer.NewUUID(claims.OrgID)
-	if err != nil {
-		render.Error(w, err)
-		return
-	}
-
-	// Parse the request body to get third-party query parameters
-	thirdPartyQueryRequest, apiErr := ParseRequestBody(r)
-	if apiErr != nil {
-		aH.logger.ErrorContext(r.Context(), "failed to parse request body", errors.Attr(apiErr))
-		render.Error(w, errorsV2.New(errorsV2.TypeInvalidInput, errorsV2.CodeInvalidInput, apiErr.Error()))
-		return
-	}
-
-	// Build the v5 query range request for domain info
-	queryRangeRequest, err := thirdpartyapi.BuildDomainInfo(thirdPartyQueryRequest)
-	if err != nil {
-		aH.logger.ErrorContext(r.Context(), "failed to build domain info query", errors.Attr(err))
-		apiErrObj := errorsV2.New(errorsV2.TypeInvalidInput, errorsV2.CodeInvalidInput, err.Error())
-		render.Error(w, apiErrObj)
-		return
-	}
-
-	ctx := ctxtypes.NewContextWithCommentVals(r.Context(), map[string]string{
-		instrumentationtypes.CodeNamespace:    "app",
-		instrumentationtypes.CodeFunctionName: "getDomainInfo",
-	})
-	// Execute the query using the v5 querier
-	result, err := aH.Signoz.Querier.QueryRange(ctx, orgID, queryRangeRequest)
-	if err != nil {
-		aH.logger.ErrorContext(r.Context(), "query execution failed", errors.Attr(err))
-		apiErrObj := errorsV2.New(errorsV2.TypeInvalidInput, errorsV2.CodeInvalidInput, err.Error())
-		render.Error(w, apiErrObj)
-		return
-	}
-
-	result = thirdpartyapi.FilterIntermediateColumns(result)
-
-	// Filter IP addresses if ShowIp is false
-	var finalResult *qbtypes.QueryRangeResponse = result
-	if !thirdPartyQueryRequest.ShowIp {
-		filteredResults := thirdpartyapi.FilterResponse([]*qbtypes.QueryRangeResponse{result})
-		if len(filteredResults) > 0 {
-			finalResult = filteredResults[0]
-		}
-	}
-
-	// Send the response
-	aH.Respond(w, finalResult)
 }
 
 func (aH *APIHandler) respondTraceFunnelQuery(w http.ResponseWriter, r *http.Request, query string) {

@@ -23,7 +23,6 @@ import (
 	"github.com/SigNoz/signoz/pkg/cache"
 	"github.com/SigNoz/signoz/pkg/http/middleware"
 	"github.com/SigNoz/signoz/pkg/modules/organization"
-	"github.com/SigNoz/signoz/pkg/querier"
 	"github.com/SigNoz/signoz/pkg/query-service/agentconfig"
 	"github.com/SigNoz/signoz/pkg/query-service/app/clickhousehealth"
 	"github.com/SigNoz/signoz/pkg/query-service/app/metricmetadatastore"
@@ -156,7 +155,7 @@ func NewServer(config signoz.Config, signoz *signoz.SigNoz) (*Server, error) {
 		signoz.SQLStore,
 		signoz.TelemetryMetadataStore,
 		signoz.Modules.OrgGetter,
-		signoz.Querier,
+		rules.NewLiteQueryRunner(signoz.TelemetryStore, signoz.TelemetryMetadataStore),
 		signoz.Instrumentation.ToProviderSettings(),
 		signoz.QueryParser,
 	)
@@ -249,7 +248,6 @@ func (s *Server) createPublicServer(api *APIHandler, web web.Web) (*http.Server,
 
 	api.RegisterRoutes(r, am)
 	api.RegisterQueryRangeV5Routes(r, am)
-	api.RegisterAPIMonitoringRoutes(r, am)
 	api.MetricExplorerRoutes(r, am)
 	api.RegisterTraceFunnelsRoutes(r, am)
 
@@ -358,7 +356,7 @@ func makeRulesManager(
 	sqlstore sqlstore.SQLStore,
 	metadataStore telemetrytypes.MetadataStore,
 	orgGetter organization.Getter,
-	querier querier.Querier,
+	runner rules.QueryRunner,
 	providerSettings factory.ProviderSettings,
 	queryParser queryparser.QueryParser,
 ) (*rules.Manager, error) {
@@ -368,7 +366,7 @@ func makeRulesManager(
 		MetadataStore: metadataStore,
 		Context:       context.Background(),
 		Reader:        ch,
-		Querier:       querier,
+		QueryRunner:   runner,
 		Logger:        providerSettings.Logger,
 		Cache:         cache,
 		EvalDelay:     constants.GetEvalDelay(),

@@ -61,12 +61,10 @@ export const useQueryOperations: UseQueryOperations = ({
 	filterConfigs,
 	formula,
 	isListViewPanel = false,
-	isForTraceOperator = false,
 	savePreviousQuery = false,
 }) => {
 	const {
 		handleSetQueryData,
-		handleSetTraceOperatorData,
 		handleSetFormulaData,
 		removeQueryBuilderEntityByIndex,
 		panelType,
@@ -498,19 +496,9 @@ export const useQueryOperations: UseQueryOperations = ({
 						: value,
 			};
 
-			if (isForTraceOperator) {
-				handleSetTraceOperatorData(index, newQuery);
-			} else {
-				handleSetQueryData(index, newQuery);
-			}
+			handleSetQueryData(index, newQuery);
 		},
-		[
-			query,
-			index,
-			handleSetQueryData,
-			handleSetTraceOperatorData,
-			isForTraceOperator,
-		],
+		[query, index, handleSetQueryData],
 	);
 
 	const handleChangeFormulaData: HandleChangeFormulaData = useCallback(

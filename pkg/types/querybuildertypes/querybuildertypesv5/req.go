@@ -286,7 +286,7 @@ type QueryRangeRequest struct {
 
 // PrepareJSONSchema adds description to the QueryRangeRequest schema.
 func (q *QueryRangeRequest) PrepareJSONSchema(schema *jsonschema.Schema) error {
-	schema.WithDescription("Request body for the v5 query range endpoint. Supports builder queries (traces, logs, metrics), formulas, joins, trace operators, and ClickHouse SQL queries.")
+	schema.WithDescription("Request body for the v5 query range endpoint. Supports builder queries (traces, logs, metrics), formulas, joins, and ClickHouse SQL queries. Retired trace operator requests are decoded for compatibility and rejected before execution.")
 	return nil
 }
 
@@ -377,12 +377,12 @@ func (r *QueryRangeRequest) HasOrderSpecified() bool {
 }
 
 // UseDefaultOrderBy applies UseDefaultOrderByForListQuery to every query in the
-// composite query when the request type is a list query (raw, raw_stream, trace).
+// composite query when the request type is a list query (raw, trace).
 func (r *QueryRangeRequest) UseDefaultOrderBy() {
 
 	// Based on the request type, handle default order-bys
 	switch r.RequestType {
-	case RequestTypeRaw, RequestTypeRawStream, RequestTypeTrace:
+	case RequestTypeRaw, RequestTypeTrace:
 		for idx := range r.CompositeQuery.Queries {
 			r.CompositeQuery.Queries[idx].UseDefaultOrderByForListQuery()
 		}

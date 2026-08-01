@@ -164,15 +164,12 @@ describe('LogsExplorerViews -', () => {
 		lodsQueryServerRequest();
 		const { queryByTestId } = renderer();
 
-		const periscopeDownloadButtonTestId = 'periscope-btn-download-logs';
 		const periscopeFormatButtonTestId = 'periscope-btn-format-options';
 
-		// Test that the periscope button is present
-		expect(queryByTestId(periscopeDownloadButtonTestId)).toBeInTheDocument();
+		expect(queryByTestId('periscope-btn-download-logs')).not.toBeInTheDocument();
 		expect(queryByTestId(periscopeFormatButtonTestId)).toBeInTheDocument();
 
-		// Test that the menu opens when clicked
-		fireEvent.click(queryByTestId(periscopeDownloadButtonTestId) as HTMLElement);
+		// Test that the remaining format menu still opens when clicked.
 		fireEvent.click(queryByTestId(periscopeFormatButtonTestId) as HTMLElement);
 		expect(document.querySelector('.menu-container')).toBeInTheDocument();
 
@@ -182,7 +179,7 @@ describe('LogsExplorerViews -', () => {
 		expect(menuItems.length).toBe(expectedMenuItemsCount);
 
 		// Test that the component renders without crashing
-		expect(queryByTestId(periscopeDownloadButtonTestId)).toBeInTheDocument();
+		expect(queryByTestId('periscope-btn-download-logs')).not.toBeInTheDocument();
 		expect(queryByTestId(periscopeFormatButtonTestId)).toBeInTheDocument();
 	});
 

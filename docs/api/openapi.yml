@@ -1320,8 +1320,9 @@ components:
       type: object
     Querybuildertypesv5QueryRangeRequest:
       description: Request body for the v5 query range endpoint. Supports builder
-        queries (traces, logs, metrics), formulas, joins, trace operators, and ClickHouse
-        SQL queries.
+        queries (traces, logs, metrics), formulas, joins, and ClickHouse SQL queries.
+        Retired trace operator requests are decoded for compatibility and rejected
+        before execution.
       properties:
         compositeQuery:
           $ref: '#/components/schemas/Querybuildertypesv5CompositeQuery'
@@ -1418,7 +1419,6 @@ components:
       - scalar
       - time_series
       - raw
-      - raw_stream
       - trace
       type: string
     Querybuildertypesv5ScalarData:
@@ -2043,66 +2043,6 @@ paths:
       summary: Change password
       tags:
       - users
-  /api/v5/export_raw_data:
-    post:
-      deprecated: false
-      description: This endpoints allows complex query exporting raw data for traces
-        and logs
-      operationId: HandleExportRawDataPOST
-      parameters:
-      - description: The output format for the export.
-        in: query
-        name: format
-        schema:
-          default: csv
-          description: The output format for the export.
-          enum:
-          - csv
-          - jsonl
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Querybuildertypesv5QueryRangeRequest'
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                type: string
-          description: OK
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Bad Request
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - tokenizer:
-        - VIEWER
-      summary: Export raw data
-      tags:
-      - logs
-      - traces
   /api/v5/factor_password/forgot:
     post:
       deprecated: false
@@ -3366,9 +3306,9 @@ paths:
                     - spec:
                         name: recent_errors
                         query: WITH __resource_filter AS ( SELECT fingerprint FROM
-                          signoz_logs.logs_v2_resource WHERE seen_at_ts_bucket_start
+                          siginsight_logs.logs_v2_resource WHERE seen_at_ts_bucket_start
                           >= $start_timestamp - 1800 AND seen_at_ts_bucket_start <=
-                          $end_timestamp ) SELECT timestamp, body FROM signoz_logs.logs_v2
+                          $end_timestamp ) SELECT timestamp, body FROM siginsight_logs.logs_v2
                           WHERE resource_fingerprint GLOBAL IN (SELECT fingerprint
                           FROM __resource_filter) AND timestamp >= $start_timestamp_nano
                           AND timestamp <= $end_timestamp_nano AND ts_bucket_start
@@ -3388,9 +3328,9 @@ paths:
                     - spec:
                         name: total_spans
                         query: WITH __resource_filter AS ( SELECT fingerprint FROM
-                          signoz_traces.traces_v3_resource WHERE seen_at_ts_bucket_start
+                          siginsight_traces.traces_v3_resource WHERE seen_at_ts_bucket_start
                           >= $start_timestamp - 1800 AND seen_at_ts_bucket_start <=
-                          $end_timestamp ) SELECT count() AS value FROM signoz_traces.signoz_index_v3
+                          $end_timestamp ) SELECT count() AS value FROM siginsight_traces.span_index_v3
                           WHERE resource_fingerprint GLOBAL IN (SELECT fingerprint
                           FROM __resource_filter) AND timestamp >= $start_datetime
                           AND timestamp <= $end_datetime AND ts_bucket_start >= $start_timestamp
@@ -3408,10 +3348,10 @@ paths:
                     - spec:
                         name: span_rate
                         query: WITH __resource_filter AS ( SELECT fingerprint FROM
-                          signoz_traces.traces_v3_resource WHERE seen_at_ts_bucket_start
+                          siginsight_traces.traces_v3_resource WHERE seen_at_ts_bucket_start
                           >= $start_timestamp - 1800 AND seen_at_ts_bucket_start <=
                           $end_timestamp ) SELECT toStartOfInterval(timestamp, INTERVAL
-                          60 SECOND) AS ts, count() AS value FROM signoz_traces.signoz_index_v3
+                          60 SECOND) AS ts, count() AS value FROM siginsight_traces.span_index_v3
                           WHERE resource_fingerprint GLOBAL IN (SELECT fingerprint
                           FROM __resource_filter) AND timestamp >= $start_datetime
                           AND timestamp <= $end_datetime AND ts_bucket_start >= $start_timestamp

@@ -40,7 +40,7 @@ export function hexToRgba(hex: string, alpha: number = 1): string {
 	return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
-export const SIGNOZ_UI_COLOR_HEX = 'signoz_ui_color_hex';
+export const SIGINSIGHT_UI_COLOR_HEX = 'siginsight_ui_color_hex';
 
 export const spanServiceNameToColorMapping = (
 	spans: Span[],
@@ -48,15 +48,15 @@ export const spanServiceNameToColorMapping = (
 	const allServiceMap = new Map<string, string | undefined>();
 
 	spans.forEach((spanItem) => {
-		const signozUiColorKeyIndex = spanItem[7].findIndex(
-			(span) => span === SIGNOZ_UI_COLOR_HEX,
+		const siginsightUiColorKeyIndex = spanItem[7].findIndex(
+			(span) => span === SIGINSIGHT_UI_COLOR_HEX,
 		);
 
 		allServiceMap.set(
 			spanItem[3],
-			signozUiColorKeyIndex === -1
+			siginsightUiColorKeyIndex === -1
 				? undefined
-				: spanItem[8][signozUiColorKeyIndex],
+				: spanItem[8][siginsightUiColorKeyIndex],
 		);
 	});
 

@@ -40,7 +40,7 @@ frontend/src/constants/env.ts
 **/__debug_bin
 
 .env
-pkg/query-service/signoz.db
+pkg/query-service/siginsight.db
 
 pkg/query-service/tests/test-deploy/data/
 

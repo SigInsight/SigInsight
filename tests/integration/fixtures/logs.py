@@ -404,7 +404,7 @@ def insert_logs(
 
         if len(resources) > 0:
             clickhouse.conn.insert(
-                database="signoz_logs",
+                database="siginsight_logs",
                 table="logs_v2_resource",
                 data=[resource.np_arr() for resource in resources],
                 column_names=[
@@ -420,7 +420,7 @@ def insert_logs(
 
         if len(tag_attributes) > 0:
             clickhouse.conn.insert(
-                database="signoz_logs",
+                database="siginsight_logs",
                 table="tag_attributes_v2",
                 data=[tag_attribute.np_arr() for tag_attribute in tag_attributes],
             )
@@ -431,7 +431,7 @@ def insert_logs(
 
         if len(attribute_keys) > 0:
             clickhouse.conn.insert(
-                database="signoz_logs",
+                database="siginsight_logs",
                 table="logs_attribute_keys",
                 data=[attribute_key.np_arr() for attribute_key in attribute_keys],
                 column_names=["name", "datatype"],
@@ -443,14 +443,14 @@ def insert_logs(
 
         if len(resource_keys) > 0:
             clickhouse.conn.insert(
-                database="signoz_logs",
+                database="siginsight_logs",
                 table="logs_resource_keys",
                 data=[resource_key.np_arr() for resource_key in resource_keys],
                 column_names=["name", "datatype"],
             )
 
         clickhouse.conn.insert(
-            database="signoz_logs",
+            database="siginsight_logs",
             table="logs_v2",
             data=[log.np_arr() for log in logs],
             column_names=[
@@ -478,11 +478,11 @@ def insert_logs(
 
     yield _insert_logs
 
-    clickhouse.conn.query("TRUNCATE TABLE signoz_logs.logs_v2")
-    clickhouse.conn.query("TRUNCATE TABLE signoz_logs.logs_v2_resource")
-    clickhouse.conn.query("TRUNCATE TABLE signoz_logs.tag_attributes_v2")
-    clickhouse.conn.query("TRUNCATE TABLE signoz_logs.logs_attribute_keys")
-    clickhouse.conn.query("TRUNCATE TABLE signoz_logs.logs_resource_keys")
+    clickhouse.conn.query("TRUNCATE TABLE siginsight_logs.logs_v2")
+    clickhouse.conn.query("TRUNCATE TABLE siginsight_logs.logs_v2_resource")
+    clickhouse.conn.query("TRUNCATE TABLE siginsight_logs.tag_attributes_v2")
+    clickhouse.conn.query("TRUNCATE TABLE siginsight_logs.logs_attribute_keys")
+    clickhouse.conn.query("TRUNCATE TABLE siginsight_logs.logs_resource_keys")
 
 
 @pytest.fixture(name="remove_logs_ttl_settings", scope="function")
@@ -511,19 +511,19 @@ def remove_logs_ttl_settings(signoz: types.SigNoz):
                 "logs_v2_resource",
             ]:
                 reset_retention_query = f"""
-                ALTER TABLE signoz_logs.{table}
+                ALTER TABLE siginsight_logs.{table}
                 MODIFY COLUMN _retention_days UInt16 DEFAULT 0
                 """
                 signoz.telemetrystore.conn.query(reset_retention_query)
 
                 reset_retention_cold_query = f"""
-                ALTER TABLE signoz_logs.{table}
+                ALTER TABLE siginsight_logs.{table}
                 MODIFY COLUMN _retention_days_cold UInt16 DEFAULT 0
                 """
                 signoz.telemetrystore.conn.query(reset_retention_cold_query)
             else:
                 alter_query = f"""
-                ALTER TABLE signoz_logs.{table}
+                ALTER TABLE siginsight_logs.{table}
                 REMOVE TTL
                 """
                 signoz.telemetrystore.conn.query(alter_query)

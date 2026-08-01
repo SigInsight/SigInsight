@@ -9,9 +9,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/SigNoz/signoz/pkg/types/thirdpartyapitypes"
-
-	errorsV2 "github.com/SigNoz/signoz/pkg/errors"
 	baseconstants "github.com/SigNoz/signoz/pkg/query-service/constants"
 	"github.com/SigNoz/signoz/pkg/query-service/model"
 )
@@ -259,18 +256,4 @@ func parseGetTTL(r *http.Request) (*model.GetTTLParams, error) {
 	}
 
 	return &model.GetTTLParams{Type: typeTTL}, nil
-}
-
-// ParseRequestBody for third party APIs
-func ParseRequestBody(r *http.Request) (*thirdpartyapitypes.ThirdPartyApiRequest, error) {
-	req := new(thirdpartyapitypes.ThirdPartyApiRequest)
-	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
-		return nil, errorsV2.Newf(errorsV2.TypeInvalidInput, errorsV2.CodeInvalidInput, "cannot parse the request body: %v", err)
-	}
-
-	if err := req.Validate(); err != nil {
-		return nil, err
-	}
-
-	return req, nil
 }

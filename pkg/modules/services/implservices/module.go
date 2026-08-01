@@ -3,533 +3,302 @@ package implservices
 import (
 	"context"
 	"fmt"
-	"time"
-
+	"math"
 	"strconv"
+	"strings"
+	"time"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/SigNoz/signoz/pkg/errors"
 	"github.com/SigNoz/signoz/pkg/modules/services"
-	"github.com/SigNoz/signoz/pkg/querier"
 	"github.com/SigNoz/signoz/pkg/telemetrystore"
 	"github.com/SigNoz/signoz/pkg/telemetrytraces"
 	"github.com/SigNoz/signoz/pkg/types/ctxtypes"
 	"github.com/SigNoz/signoz/pkg/types/instrumentationtypes"
-	qbtypes "github.com/SigNoz/signoz/pkg/types/querybuildertypes/querybuildertypesv5"
 	"github.com/SigNoz/signoz/pkg/types/servicetypes/servicetypesv1"
 	"github.com/SigNoz/signoz/pkg/types/telemetrytypes"
 	"github.com/SigNoz/signoz/pkg/valuer"
 )
 
+const traceIndexTable = "span_index_v3"
+
 type module struct {
-	Querier        querier.Querier
 	TelemetryStore telemetrystore.TelemetryStore
 }
 
-// NewModule constructs the services module with the provided querier dependency.
-func NewModule(q querier.Querier, ts telemetrystore.TelemetryStore) services.Module {
-	return &module{
-		Querier:        q,
-		TelemetryStore: ts,
-	}
+// NewModule constructs the services module. Services has fixed aggregate
+// requirements, so it reads its trace tables directly instead of depending on
+// the general-purpose V5 query engine.
+func NewModule(ts telemetrystore.TelemetryStore) services.Module {
+	return &module{TelemetryStore: ts}
 }
 
-// FetchTopLevelOperations returns top-level operations per service using db query
-func (m *module) FetchTopLevelOperations(ctx context.Context, start time.Time, services []string) (map[string][]string, error) {
+// FetchTopLevelOperations returns top-level operations per service using db query.
+func (m *module) FetchTopLevelOperations(ctx context.Context, start time.Time, serviceNames []string) (map[string][]string, error) {
 	ctx = m.withServicesContext(ctx, "FetchTopLevelOperations")
 
-	db := m.TelemetryStore.ClickhouseDB()
-	query := fmt.Sprintf("SELECT name, serviceName, max(time) as ts FROM %s.%s WHERE time >= @start", telemetrytraces.DBName, telemetrytraces.TopLevelOperationsTableName)
-	args := []any{clickhouse.Named("start", start)}
-	if len(services) > 0 {
+	query := fmt.Sprintf("SELECT name, serviceName, max(time) AS ts FROM %s.%s WHERE time >= @start", telemetrytraces.DBName, telemetrytraces.TopLevelOperationsTableName)
+	args := []any{clickhouse.Named("start", start.UTC())}
+	if len(serviceNames) > 0 {
 		query += " AND serviceName IN @services"
-		args = append(args, clickhouse.Named("services", services))
+		args = append(args, clickhouse.Named("services", serviceNames))
 	}
 	query += " GROUP BY name, serviceName ORDER BY ts DESC LIMIT 5000"
 
-	rows, err := db.Query(ctx, query, args...)
+	rows, err := m.TelemetryStore.ClickhouseDB().Query(ctx, query, args...)
 	if err != nil {
 		return nil, errors.WrapInternalf(err, errors.CodeInternal, "failed to fetch top level operations")
 	}
 	defer rows.Close()
 
-	ops := make(map[string][]string)
+	operations := make(map[string][]string)
+	for rows.Next() {
+		var name, serviceName string
+		var timestamp time.Time
+		if err := rows.Scan(&name, &serviceName, &timestamp); err != nil {
+			return nil, errors.WrapInternalf(err, errors.CodeInternal, "failed to scan top level operation")
+		}
+		if _, ok := operations[serviceName]; !ok {
+			operations[serviceName] = []string{"overflow_operation"}
+		}
+		operations[serviceName] = append(operations[serviceName], name)
+	}
 	if err := rows.Err(); err != nil {
 		return nil, errors.WrapInternalf(err, errors.CodeInternal, "failed to fetch top level operations")
 	}
-	for rows.Next() {
-		var name, serviceName string
-		var ts time.Time
-		if err := rows.Scan(&name, &serviceName, &ts); err != nil {
-			return nil, errors.WrapInternalf(err, errors.CodeInternal, "failed to scan top level operation")
-		}
-		if _, ok := ops[serviceName]; !ok {
-			ops[serviceName] = []string{"overflow_operation"}
-		}
-		ops[serviceName] = append(ops[serviceName], name)
-	}
-	return ops, nil
+	return operations, nil
 }
 
-// Get implements services.Module
-// Builds a QBv5 traces aggregation grouped by service.name and maps results to ResponseItem.
-func (m *module) Get(ctx context.Context, orgUUID valuer.UUID, req *servicetypesv1.Request) ([]*servicetypesv1.ResponseItem, error) {
+// Get returns the service overview aggregates for root and entry-point spans.
+func (m *module) Get(ctx context.Context, _ valuer.UUID, req *servicetypesv1.Request) ([]*servicetypesv1.ResponseItem, error) {
 	ctx = m.withServicesContext(ctx, "Get")
 	if req == nil {
 		return nil, errors.NewInvalidInputf(errors.CodeInvalidInput, "request is nil")
 	}
 
-	// Prepare phase
-	queryRangeReq, startMs, endMs, err := m.buildQueryRangeRequest(req)
+	timeRange, err := parseServiceTimeRange(req.Start, req.End)
+	if err != nil {
+		return nil, err
+	}
+	filters, filterArgs, err := buildTagConditions(req.Tags)
 	if err != nil {
 		return nil, err
 	}
 
-	// Fetch phase
-	resp, err := m.executeQuery(ctx, orgUUID, queryRangeReq)
-	if err != nil {
-		return nil, err
-	}
+	args := append(timeRange.args(), clickhouse.Named("scope_start", timeRange.start.UTC()))
+	args = append(args, filterArgs...)
+	query := fmt.Sprintf(`
+		SELECT
+			resource_string_service$$name AS service_name,
+			quantile(0.99)(duration_nano) AS p99,
+			avg(duration_nano) AS avg_duration,
+			count() AS num_calls,
+			countIf(status_code = 2) AS num_errors,
+			countIf(toUInt16OrZero(response_status_code) >= 400 AND toUInt16OrZero(response_status_code) < 500) AS num_4xx
+		FROM %s.%s
+		WHERE timestamp >= @start AND timestamp < @end
+			AND ts_bucket_start >= @start_bucket AND ts_bucket_start <= @end_bucket
+			AND (parent_span_id = '' OR ((name, resource_string_service$$name) GLOBAL IN (
+				SELECT DISTINCT name, serviceName FROM %s.%s WHERE time >= @scope_start
+			) AND parent_span_id != ''))%s
+		GROUP BY service_name
+		ORDER BY service_name`, telemetrytraces.DBName, traceIndexTable, telemetrytraces.DBName, telemetrytraces.TopLevelOperationsTableName, filters)
 
-	// Process phase
-	items, serviceNames := m.mapQueryRangeRespToServices(resp, startMs, endMs)
+	rows, err := m.TelemetryStore.ClickhouseDB().Query(ctx, query, args...)
+	if err != nil {
+		return nil, errors.WrapInternalf(err, errors.CodeInternal, "failed to fetch services")
+	}
+	defer rows.Close()
+
+	periodSeconds := timeRange.end.Sub(timeRange.start).Seconds()
+	items := make([]*servicetypesv1.ResponseItem, 0)
+	serviceNames := make([]string, 0)
+	for rows.Next() {
+		item := &servicetypesv1.ResponseItem{DataWarning: servicetypesv1.DataWarning{TopLevelOps: []string{}}}
+		if err := rows.Scan(&item.ServiceName, &item.Percentile99, &item.AvgDuration, &item.NumCalls, &item.NumErrors, &item.Num4XX); err != nil {
+			return nil, errors.WrapInternalf(err, errors.CodeInternal, "failed to scan service aggregate")
+		}
+		if item.NumCalls > 0 {
+			item.CallRate = float64(item.NumCalls) / periodSeconds
+			item.ErrorRate = float64(item.NumErrors) * 100 / float64(item.NumCalls)
+			item.FourXXRate = float64(item.Num4XX) * 100 / float64(item.NumCalls)
+		}
+		items = append(items, item)
+		serviceNames = append(serviceNames, item.ServiceName)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, errors.WrapInternalf(err, errors.CodeInternal, "failed to fetch services")
+	}
 	if len(items) == 0 {
-		return []*servicetypesv1.ResponseItem{}, nil
+		return items, nil
 	}
 
-	// attach top level ops to service items
-	if len(serviceNames) > 0 {
-		if err := m.attachTopLevelOps(ctx, serviceNames, startMs, items); err != nil {
-			return nil, err
-		}
+	operations, err := m.FetchTopLevelOperations(ctx, timeRange.start, serviceNames)
+	if err != nil {
+		return nil, err
 	}
-
+	applyOpsToItems(items, operations)
 	return items, nil
 }
 
-// GetTopOperations implements services.Module for QBV5 based top ops
-func (m *module) GetTopOperations(ctx context.Context, orgUUID valuer.UUID, req *servicetypesv1.OperationsRequest) ([]servicetypesv1.OperationItem, error) {
-	ctx = m.withServicesContext(ctx, "GetTopOperations")
+// GetTopOperations returns the highest p99 operations for a service.
+func (m *module) GetTopOperations(ctx context.Context, _ valuer.UUID, req *servicetypesv1.OperationsRequest) ([]servicetypesv1.OperationItem, error) {
+	return m.getOperations(ctx, "GetTopOperations", req, false)
+}
+
+// GetEntryPointOperations returns top-level child operations for a service.
+func (m *module) GetEntryPointOperations(ctx context.Context, _ valuer.UUID, req *servicetypesv1.OperationsRequest) ([]servicetypesv1.OperationItem, error) {
+	return m.getOperations(ctx, "GetEntryPointOperations", req, true)
+}
+
+func (m *module) getOperations(ctx context.Context, functionName string, req *servicetypesv1.OperationsRequest, entryPoint bool) ([]servicetypesv1.OperationItem, error) {
+	ctx = m.withServicesContext(ctx, functionName)
 	if req == nil {
 		return nil, errors.NewInvalidInputf(errors.CodeInvalidInput, "request is nil")
 	}
-
-	qr, err := m.buildTopOpsQueryRangeRequest(req)
-	if err != nil {
-		return nil, err
-	}
-
-	resp, err := m.executeQuery(ctx, orgUUID, qr)
-	if err != nil {
-		return nil, err
-	}
-
-	items := m.mapTopOpsQueryRangeResp(resp)
-	return items, nil
-}
-
-// GetEntryPointOperations implements services.Module for QBV5 based entry point ops
-func (m *module) GetEntryPointOperations(ctx context.Context, orgUUID valuer.UUID, req *servicetypesv1.OperationsRequest) ([]servicetypesv1.OperationItem, error) {
-	ctx = m.withServicesContext(ctx, "GetEntryPointOperations")
-	if req == nil {
-		return nil, errors.NewInvalidInputf(errors.CodeInvalidInput, "request is nil")
-	}
-
-	qr, err := m.buildEntryPointOpsQueryRangeRequest(req)
-	if err != nil {
-		return nil, err
-	}
-
-	resp, err := m.executeQuery(ctx, orgUUID, qr)
-	if err != nil {
-		return nil, err
-	}
-
-	items := m.mapEntryPointOpsQueryRangeResp(resp)
-	return items, nil
-}
-
-// buildQueryRangeRequest constructs the QBv5 QueryRangeRequest and computes the time window.
-func (m *module) buildQueryRangeRequest(req *servicetypesv1.Request) (*qbtypes.QueryRangeRequest, uint64, uint64, error) {
-	// Parse start/end (nanoseconds) from strings and convert to milliseconds for QBv5
-	startNs, err := strconv.ParseUint(req.Start, 10, 64)
-	if err != nil {
-		return nil, 0, 0, errors.NewInvalidInputf(errors.CodeInvalidInput, "invalid start time: %v", err)
-	}
-	endNs, err := strconv.ParseUint(req.End, 10, 64)
-	if err != nil {
-		return nil, 0, 0, errors.NewInvalidInputf(errors.CodeInvalidInput, "invalid end time: %v", err)
-	}
-	if startNs >= endNs {
-		return nil, 0, 0, errors.NewInvalidInputf(errors.CodeInvalidInput, "start must be before end")
-	}
-	if err := validateTagFilterItems(req.Tags); err != nil {
-		return nil, 0, 0, err
-	}
-
-	startMs := startNs / 1_000_000
-	endMs := endNs / 1_000_000
-
-	// tags filter
-	filterExpr, variables := buildFilterExpression(req.Tags)
-	// ensure we only consider root or entry-point spans
-	scopeExpr := "isRoot = true OR isEntryPoint = true"
-	if filterExpr != "" {
-		filterExpr = "(" + filterExpr + ") AND (" + scopeExpr + ")"
-	} else {
-		filterExpr = scopeExpr
-	}
-
-	reqV5 := qbtypes.QueryRangeRequest{
-		Start:       startMs,
-		End:         endMs,
-		RequestType: qbtypes.RequestTypeScalar,
-		Variables:   variables,
-		CompositeQuery: qbtypes.CompositeQuery{
-			Queries: []qbtypes.QueryEnvelope{
-				{Type: qbtypes.QueryTypeBuilder,
-					Spec: qbtypes.QueryBuilderQuery[qbtypes.TraceAggregation]{
-						Name:   "A",
-						Signal: telemetrytypes.SignalTraces,
-						Filter: &qbtypes.Filter{
-							Expression: filterExpr,
-						},
-						GroupBy: []qbtypes.GroupByKey{
-							{TelemetryFieldKey: telemetrytypes.TelemetryFieldKey{
-								Name:          "service.name",
-								FieldContext:  telemetrytypes.FieldContextResource,
-								FieldDataType: telemetrytypes.FieldDataTypeString,
-								Materialized:  true,
-							}},
-						},
-						Aggregations: []qbtypes.TraceAggregation{
-							{Expression: "p99(duration_nano)", Alias: "p99"},
-							{Expression: "avg(duration_nano)", Alias: "avgDuration"},
-							{Expression: "count()", Alias: "numCalls"},
-							{Expression: "countIf(status_code = 2)", Alias: "numErrors"},
-							{Expression: "countIf(response_status_code >= 400 AND response_status_code < 500)", Alias: "num4XX"},
-						},
-					},
-				},
-			},
-		},
-	}
-
-	return &reqV5, startMs, endMs, nil
-}
-
-// executeQuery calls the underlying Querier with the provided request.
-func (m *module) executeQuery(ctx context.Context, orgUUID valuer.UUID, qr *qbtypes.QueryRangeRequest) (*qbtypes.QueryRangeResponse, error) {
-	return m.Querier.QueryRange(ctx, orgUUID, qr)
-}
-
-// mapQueryRangeRespToServices converts the raw query response into service items and collected service names.
-func (m *module) mapQueryRangeRespToServices(resp *qbtypes.QueryRangeResponse, startMs, endMs uint64) ([]*servicetypesv1.ResponseItem, []string) {
-	if resp == nil || len(resp.Data.Results) == 0 { // no rows
-		return []*servicetypesv1.ResponseItem{}, []string{}
-	}
-
-	sd, ok := resp.Data.Results[0].(*qbtypes.ScalarData) // empty rows
-	if !ok || sd == nil {
-		return []*servicetypesv1.ResponseItem{}, []string{}
-	}
-
-	// this stores the index at which service name is found in the response
-	serviceNameRespIndex := -1
-	aggIndexMappings := map[int]int{}
-	for i, c := range sd.Columns {
-		switch c.Type {
-		case qbtypes.ColumnTypeGroup:
-			if c.TelemetryFieldKey.Name == "service.name" {
-				serviceNameRespIndex = i
-			}
-		case qbtypes.ColumnTypeAggregation:
-			aggIndexMappings[int(c.AggregationIndex)] = i
-		}
-	}
-
-	periodSeconds := float64((endMs - startMs) / 1000)
-
-	out := make([]*servicetypesv1.ResponseItem, 0, len(sd.Data))
-	serviceNames := make([]string, 0, len(sd.Data))
-	for _, row := range sd.Data {
-		svcName := fmt.Sprintf("%v", row[serviceNameRespIndex])
-		serviceNames = append(serviceNames, svcName)
-
-		p99 := toFloat(row, aggIndexMappings[0])
-		avgDuration := toFloat(row, aggIndexMappings[1])
-		numCalls := toUint64(row, aggIndexMappings[2])
-		numErrors := toUint64(row, aggIndexMappings[3])
-		num4xx := toUint64(row, aggIndexMappings[4])
-
-		callRate := 0.0
-		if numCalls > 0 {
-			callRate = float64(numCalls) / periodSeconds
-		}
-		errorRate := 0.0
-		if numCalls > 0 {
-			errorRate = float64(numErrors) * 100 / float64(numCalls) // percentage
-		}
-		fourXXRate := 0.0
-		if numCalls > 0 {
-			fourXXRate = float64(num4xx) * 100 / float64(numCalls) // percentage
-		}
-
-		out = append(out, &servicetypesv1.ResponseItem{
-			ServiceName:  svcName,
-			Percentile99: p99,
-			AvgDuration:  avgDuration,
-			NumCalls:     numCalls,
-			CallRate:     callRate,
-			NumErrors:    numErrors,
-			ErrorRate:    errorRate,
-			Num4XX:       num4xx,
-			FourXXRate:   fourXXRate,
-			DataWarning:  servicetypesv1.DataWarning{TopLevelOps: []string{}},
-		})
-	}
-
-	return out, serviceNames
-}
-
-// attachTopLevelOps fetches top-level ops from TelemetryStore and attaches them to items.
-func (m *module) attachTopLevelOps(ctx context.Context, serviceNames []string, startMs uint64, items []*servicetypesv1.ResponseItem) error {
-	startTime := time.UnixMilli(int64(startMs)).UTC()
-	opsMap, err := m.FetchTopLevelOperations(ctx, startTime, serviceNames)
-	if err != nil {
-		return err
-	}
-	applyOpsToItems(items, opsMap)
-	return nil
-}
-
-func (m *module) buildTopOpsQueryRangeRequest(req *servicetypesv1.OperationsRequest) (*qbtypes.QueryRangeRequest, error) {
 	if req.Service == "" {
 		return nil, errors.NewInvalidInputf(errors.CodeInvalidInput, "service is required")
-	}
-	startNs, err := strconv.ParseUint(req.Start, 10, 64)
-	if err != nil {
-		return nil, errors.NewInvalidInputf(errors.CodeInvalidInput, "invalid start time: %v", err)
-	}
-	endNs, err := strconv.ParseUint(req.End, 10, 64)
-	if err != nil {
-		return nil, errors.NewInvalidInputf(errors.CodeInvalidInput, "invalid end time: %v", err)
-	}
-	if startNs >= endNs {
-		return nil, errors.NewInvalidInputf(errors.CodeInvalidInput, "start must be before end")
 	}
 	if req.Limit < 1 || req.Limit > 5000 {
 		return nil, errors.NewInvalidInputf(errors.CodeInvalidInput, "limit must be between 1 and 5000")
 	}
-	if err := validateTagFilterItems(req.Tags); err != nil {
+
+	timeRange, err := parseServiceTimeRange(req.Start, req.End)
+	if err != nil {
+		return nil, err
+	}
+	filters, filterArgs, err := buildTagConditions(req.Tags)
+	if err != nil {
 		return nil, err
 	}
 
-	startMs := startNs / 1_000_000
-	endMs := endNs / 1_000_000
+	args := append(timeRange.args(), clickhouse.Named("service_name", req.Service))
+	if entryPoint {
+		args = append(args, clickhouse.Named("scope_start", timeRange.start.UTC()))
+	}
+	args = append(args, filterArgs...)
 
-	serviceTag := servicetypesv1.TagFilterItem{
-		Key:          "service.name",
-		Operator:     "in",
-		StringValues: []string{req.Service},
+	scope := ""
+	if entryPoint {
+		scope = fmt.Sprintf(` AND ((name, resource_string_service$$name) GLOBAL IN (
+			SELECT DISTINCT name, serviceName FROM %s.%s WHERE time >= @scope_start
+		) AND parent_span_id != '')`, telemetrytraces.DBName, telemetrytraces.TopLevelOperationsTableName)
 	}
-	tags := append([]servicetypesv1.TagFilterItem{serviceTag}, req.Tags...)
-	filterExpr, variables := buildFilterExpression(tags)
+	query := fmt.Sprintf(`
+		SELECT
+			name,
+			quantile(0.50)(duration_nano) AS p50,
+			quantile(0.95)(duration_nano) AS p95,
+			quantile(0.99)(duration_nano) AS p99,
+			count() AS num_calls,
+			countIf(status_code = 2) AS error_count
+		FROM %s.%s
+		WHERE timestamp >= @start AND timestamp < @end
+			AND ts_bucket_start >= @start_bucket AND ts_bucket_start <= @end_bucket
+			AND resource_string_service$$name = @service_name%s%s
+		GROUP BY name
+		ORDER BY p99 DESC
+		LIMIT %d`, telemetrytraces.DBName, traceIndexTable, scope, filters, req.Limit)
 
-	reqV5 := qbtypes.QueryRangeRequest{
-		Start:       startMs,
-		End:         endMs,
-		RequestType: qbtypes.RequestTypeScalar,
-		Variables:   variables,
-		CompositeQuery: qbtypes.CompositeQuery{
-			Queries: []qbtypes.QueryEnvelope{
-				{Type: qbtypes.QueryTypeBuilder,
-					Spec: qbtypes.QueryBuilderQuery[qbtypes.TraceAggregation]{
-						Name:   "A",
-						Signal: telemetrytypes.SignalTraces,
-						Filter: &qbtypes.Filter{Expression: filterExpr},
-						GroupBy: []qbtypes.GroupByKey{
-							{TelemetryFieldKey: telemetrytypes.TelemetryFieldKey{
-								Name:          "name",
-								FieldContext:  telemetrytypes.FieldContextSpan,
-								FieldDataType: telemetrytypes.FieldDataTypeString,
-							}},
-						},
-						Aggregations: []qbtypes.TraceAggregation{
-							{Expression: "p50(duration_nano)", Alias: "p50"},
-							{Expression: "p95(duration_nano)", Alias: "p95"},
-							{Expression: "p99(duration_nano)", Alias: "p99"},
-							{Expression: "count()", Alias: "numCalls"},
-							{Expression: "countIf(status_code = 2)", Alias: "errorCount"},
-						},
-						Order: []qbtypes.OrderBy{
-							{Key: qbtypes.OrderByKey{TelemetryFieldKey: telemetrytypes.TelemetryFieldKey{Name: "p99"}}, Direction: qbtypes.OrderDirectionDesc},
-						},
-						Limit: req.Limit,
-					},
-				},
-			},
-		},
-	}
-	return &reqV5, nil
-}
-
-func (m *module) mapTopOpsQueryRangeResp(resp *qbtypes.QueryRangeResponse) []servicetypesv1.OperationItem {
-	if resp == nil || len(resp.Data.Results) == 0 {
-		return []servicetypesv1.OperationItem{}
-	}
-	sd, ok := resp.Data.Results[0].(*qbtypes.ScalarData)
-	if !ok || sd == nil {
-		return []servicetypesv1.OperationItem{}
-	}
-
-	nameIdx := -1
-	aggIdx := map[int]int{}
-	for i, c := range sd.Columns {
-		switch c.Type {
-		case qbtypes.ColumnTypeGroup:
-			if c.TelemetryFieldKey.Name == "name" {
-				nameIdx = i
-			}
-		case qbtypes.ColumnTypeAggregation:
-			aggIdx[int(c.AggregationIndex)] = i
-		}
-	}
-
-	out := make([]servicetypesv1.OperationItem, 0, len(sd.Data))
-	for _, row := range sd.Data {
-		item := servicetypesv1.OperationItem{
-			Name:       fmt.Sprintf("%v", row[nameIdx]),
-			P50:        toFloat(row, aggIdx[0]),
-			P95:        toFloat(row, aggIdx[1]),
-			P99:        toFloat(row, aggIdx[2]),
-			NumCalls:   toUint64(row, aggIdx[3]),
-			ErrorCount: toUint64(row, aggIdx[4]),
-		}
-		out = append(out, item)
-	}
-	return out
-}
-
-func (m *module) buildEntryPointOpsQueryRangeRequest(req *servicetypesv1.OperationsRequest) (*qbtypes.QueryRangeRequest, error) {
-	if req.Service == "" {
-		return nil, errors.NewInvalidInputf(errors.CodeInvalidInput, "service is required")
-	}
-	startNs, err := strconv.ParseUint(req.Start, 10, 64)
+	rows, err := m.TelemetryStore.ClickhouseDB().Query(ctx, query, args...)
 	if err != nil {
-		return nil, errors.NewInvalidInputf(errors.CodeInvalidInput, "invalid start time: %v", err)
+		return nil, errors.WrapInternalf(err, errors.CodeInternal, "failed to fetch service operations")
 	}
-	endNs, err := strconv.ParseUint(req.End, 10, 64)
-	if err != nil {
-		return nil, errors.NewInvalidInputf(errors.CodeInvalidInput, "invalid end time: %v", err)
-	}
-	if startNs >= endNs {
-		return nil, errors.NewInvalidInputf(errors.CodeInvalidInput, "start must be before end")
-	}
-	if req.Limit < 1 || req.Limit > 5000 {
-		return nil, errors.NewInvalidInputf(errors.CodeInvalidInput, "limit must be between 1 and 5000")
-	}
-	if err := validateTagFilterItems(req.Tags); err != nil {
-		return nil, err
-	}
+	defer rows.Close()
 
-	startMs := startNs / 1_000_000
-	endMs := endNs / 1_000_000
-
-	serviceTag := servicetypesv1.TagFilterItem{
-		Key:          "service.name",
-		Operator:     "in",
-		StringValues: []string{req.Service},
+	items := make([]servicetypesv1.OperationItem, 0)
+	for rows.Next() {
+		var item servicetypesv1.OperationItem
+		if err := rows.Scan(&item.Name, &item.P50, &item.P95, &item.P99, &item.NumCalls, &item.ErrorCount); err != nil {
+			return nil, errors.WrapInternalf(err, errors.CodeInternal, "failed to scan service operation")
+		}
+		items = append(items, item)
 	}
-	tags := append([]servicetypesv1.TagFilterItem{serviceTag}, req.Tags...)
-	filterExpr, variables := buildFilterExpression(tags)
-	scopeExpr := "isRoot = true OR isEntryPoint = true"
-	if filterExpr != "" {
-		filterExpr = "(" + filterExpr + ") AND (" + scopeExpr + ")"
-	} else {
-		filterExpr = scopeExpr
+	if err := rows.Err(); err != nil {
+		return nil, errors.WrapInternalf(err, errors.CodeInternal, "failed to fetch service operations")
 	}
-
-	reqV5 := qbtypes.QueryRangeRequest{
-		Start:       startMs,
-		End:         endMs,
-		RequestType: qbtypes.RequestTypeScalar,
-		Variables:   variables,
-		CompositeQuery: qbtypes.CompositeQuery{
-			Queries: []qbtypes.QueryEnvelope{
-				{Type: qbtypes.QueryTypeBuilder,
-					Spec: qbtypes.QueryBuilderQuery[qbtypes.TraceAggregation]{
-						Name:   "A",
-						Signal: telemetrytypes.SignalTraces,
-						Filter: &qbtypes.Filter{Expression: filterExpr},
-						GroupBy: []qbtypes.GroupByKey{
-							{TelemetryFieldKey: telemetrytypes.TelemetryFieldKey{
-								Name:          "name",
-								FieldContext:  telemetrytypes.FieldContextSpan,
-								FieldDataType: telemetrytypes.FieldDataTypeString,
-							}},
-						},
-						Aggregations: []qbtypes.TraceAggregation{
-							{Expression: "p50(duration_nano)", Alias: "p50"},
-							{Expression: "p95(duration_nano)", Alias: "p95"},
-							{Expression: "p99(duration_nano)", Alias: "p99"},
-							{Expression: "count()", Alias: "numCalls"},
-							{Expression: "countIf(status_code = 2)", Alias: "errorCount"},
-						},
-						Order: []qbtypes.OrderBy{
-							{Key: qbtypes.OrderByKey{TelemetryFieldKey: telemetrytypes.TelemetryFieldKey{Name: "p99"}}, Direction: qbtypes.OrderDirectionDesc},
-						},
-						Limit: req.Limit,
-					},
-				},
-			},
-		},
-	}
-	return &reqV5, nil
+	return items, nil
 }
 
-func (m *module) mapEntryPointOpsQueryRangeResp(resp *qbtypes.QueryRangeResponse) []servicetypesv1.OperationItem {
-	if resp == nil || len(resp.Data.Results) == 0 {
-		return []servicetypesv1.OperationItem{}
-	}
-	sd, ok := resp.Data.Results[0].(*qbtypes.ScalarData)
-	if !ok || sd == nil {
-		return []servicetypesv1.OperationItem{}
-	}
+type serviceTimeRange struct {
+	start time.Time
+	end   time.Time
+}
 
-	nameIdx := -1
-	aggIdx := map[int]int{}
-	for i, c := range sd.Columns {
-		switch c.Type {
-		case qbtypes.ColumnTypeGroup:
-			if c.TelemetryFieldKey.Name == "name" {
-				nameIdx = i
-			}
-		case qbtypes.ColumnTypeAggregation:
-			aggIdx[int(c.AggregationIndex)] = i
-		}
+func (r serviceTimeRange) args() []any {
+	return []any{
+		clickhouse.Named("start", r.start.UTC()),
+		clickhouse.Named("end", r.end.UTC()),
+		clickhouse.Named("start_bucket", uint64(r.start.Unix())),
+		clickhouse.Named("end_bucket", uint64(r.end.Unix())),
 	}
+}
 
-	out := make([]servicetypesv1.OperationItem, 0, len(sd.Data))
-	for _, row := range sd.Data {
-		item := servicetypesv1.OperationItem{
-			Name:       fmt.Sprintf("%v", row[nameIdx]),
-			P50:        toFloat(row, aggIdx[0]),
-			P95:        toFloat(row, aggIdx[1]),
-			P99:        toFloat(row, aggIdx[2]),
-			NumCalls:   toUint64(row, aggIdx[3]),
-			ErrorCount: toUint64(row, aggIdx[4]),
-		}
-		out = append(out, item)
+func parseServiceTimeRange(start, end string) (serviceTimeRange, error) {
+	startNS, err := strconv.ParseUint(start, 10, 64)
+	if err != nil || startNS > math.MaxInt64 {
+		return serviceTimeRange{}, errors.NewInvalidInputf(errors.CodeInvalidInput, "invalid start time")
 	}
-	return out
+	endNS, err := strconv.ParseUint(end, 10, 64)
+	if err != nil || endNS > math.MaxInt64 {
+		return serviceTimeRange{}, errors.NewInvalidInputf(errors.CodeInvalidInput, "invalid end time")
+	}
+	if startNS >= endNS {
+		return serviceTimeRange{}, errors.NewInvalidInputf(errors.CodeInvalidInput, "start must be before end")
+	}
+	return serviceTimeRange{start: time.Unix(0, int64(startNS)).UTC(), end: time.Unix(0, int64(endNS)).UTC()}, nil
+}
+
+func buildTagConditions(tags []servicetypesv1.TagFilterItem) (string, []any, error) {
+	if err := validateTagFilterItems(tags); err != nil {
+		return "", nil, err
+	}
+	conditions := make([]string, 0, len(tags))
+	args := make([]any, 0, len(tags)*2)
+	for index, tag := range tags {
+		column, values := tagColumnAndValues(tag)
+		if column == "" {
+			return "", nil, errors.NewInvalidInputf(errors.CodeInvalidInput, "unsupported tag type: %s", tag.TagType)
+		}
+		keyParam := fmt.Sprintf("filter_%d_key", index)
+		valuesParam := fmt.Sprintf("filter_%d_values", index)
+		operator := "IN"
+		if strings.EqualFold(tag.Operator, "notin") {
+			operator = "NOT IN"
+		}
+		conditions = append(conditions, fmt.Sprintf("mapContains(%s, @%s) AND %s[@%s] %s @%s", column, keyParam, column, keyParam, operator, valuesParam))
+		args = append(args, clickhouse.Named(keyParam, tag.Key), clickhouse.Named(valuesParam, values))
+	}
+	if len(conditions) == 0 {
+		return "", args, nil
+	}
+	return " AND " + strings.Join(conditions, " AND "), args, nil
+}
+
+func tagColumnAndValues(tag servicetypesv1.TagFilterItem) (string, any) {
+	tagType := strings.ToLower(strings.ReplaceAll(tag.TagType, "_", ""))
+	resource := tagType == "" || tagType == "resource" || tagType == "resourceattribute"
+	span := tagType == "span" || tagType == "spanattribute" || tagType == "attribute"
+	if !resource && !span {
+		return "", nil
+	}
+	prefix := "resources"
+	if span {
+		prefix = "attributes"
+	}
+	if len(tag.StringValues) > 0 {
+		return prefix + "_string", tag.StringValues
+	}
+	if len(tag.NumberValues) > 0 {
+		return prefix + "_number", tag.NumberValues
+	}
+	return prefix + "_bool", tag.BoolValues
 }
 
 func (m *module) withServicesContext(ctx context.Context, functionName string) context.Context {
-	comments := map[string]string{
+	return ctxtypes.NewContextWithCommentVals(ctx, map[string]string{
 		instrumentationtypes.TelemetrySignal:  telemetrytypes.SignalTraces.StringValue(),
 		instrumentationtypes.CodeNamespace:    "services",
 		instrumentationtypes.CodeFunctionName: functionName,
-	}
-	return ctxtypes.NewContextWithCommentVals(ctx, comments)
+	})
 }

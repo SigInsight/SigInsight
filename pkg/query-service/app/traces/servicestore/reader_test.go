@@ -42,7 +42,7 @@ func TestGetTopLevelOperationsMapsOperationsByService(t *testing.T) {
 			require.Len(t, args, 2)
 			return cmock.NewRows([]cmock.ColumnType{{Name: "name", Type: "String"}, {Name: "serviceName", Type: "String"}, {Name: "ts", Type: "DateTime"}}, [][]any{{"GET /orders", "api", time.Unix(1, 0)}}), nil
 		},
-	}, Config{TraceDB: "signoz_traces", TopLevelOperationsTable: "top_level_operations"})
+	}, Config{TraceDB: "siginsight_traces", TopLevelOperationsTable: "top_level_operations"})
 
 	operations, apiErr := reader.GetTopLevelOperations(context.Background(), time.Unix(0, 0), time.Now(), []string{"api"})
 	require.Nil(t, apiErr)
@@ -52,13 +52,13 @@ func TestGetTopLevelOperationsMapsOperationsByService(t *testing.T) {
 func TestGetDependencyGraphMapsSelectedRows(t *testing.T) {
 	reader := New(slog.New(slog.NewTextHandler(io.Discard, nil)), selectConn{
 		selectFn: func(_ context.Context, dest any, query string, args ...any) error {
-			require.Contains(t, query, "FROM signoz_traces.dependency_graph_minutes_v2")
+			require.Contains(t, query, "FROM siginsight_traces.dependency_graph_minutes_v2")
 			require.Equal(t, 3, len(args))
 			response := dest.(*[]model.ServiceMapDependencyResponseItem)
 			*response = []model.ServiceMapDependencyResponseItem{{Parent: "frontend", Child: "api", CallCount: 4}}
 			return nil
 		},
-	}, Config{TraceDB: "signoz_traces", DependencyGraphTable: "dependency_graph_minutes_v2"})
+	}, Config{TraceDB: "siginsight_traces", DependencyGraphTable: "dependency_graph_minutes_v2"})
 
 	start := time.Unix(100, 0)
 	end := time.Unix(160, 0)

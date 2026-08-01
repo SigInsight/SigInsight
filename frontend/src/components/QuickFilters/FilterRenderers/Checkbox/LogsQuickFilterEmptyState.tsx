@@ -1,10 +1,6 @@
 import EmptyQuickFilterIcon from 'assets/CustomIcons/EmptyQuickFilterIcon';
 
-function LogsQuickFilterEmptyState({
-	attributeKey,
-}: {
-	attributeKey: string;
-}): JSX.Element {
+function LogsQuickFilterEmptyState(): JSX.Element {
 	return (
 		<section className="go-to-docs">
 			<div className="go-to-docs__container">

@@ -70,7 +70,7 @@ services:
       retries: 10
       start_period: 10s
   telemetrystore-migrator:
-    image: ghcr.io/siginsight/siginsight-otel-collector:${OTELCOL_TAG:-v1.1.3}
+    image: ghcr.io/siginsight/siginsight-otel-collector:${OTELCOL_TAG:-v1.2.0}
     container_name: telemetrystore-migrator
     environment:
       - SIGINSIGHT_OTEL_COLLECTOR_CLICKHOUSE_DSN=tcp://clickhouse:9000

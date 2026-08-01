@@ -20,8 +20,6 @@ import (
 	"github.com/SigNoz/signoz/pkg/modules/preference/implpreference"
 	"github.com/SigNoz/signoz/pkg/modules/quickfilter"
 	"github.com/SigNoz/signoz/pkg/modules/quickfilter/implquickfilter"
-	"github.com/SigNoz/signoz/pkg/modules/rawdataexport"
-	"github.com/SigNoz/signoz/pkg/modules/rawdataexport/implrawdataexport"
 	"github.com/SigNoz/signoz/pkg/modules/savedview"
 	"github.com/SigNoz/signoz/pkg/modules/savedview/implsavedview"
 	"github.com/SigNoz/signoz/pkg/modules/services"
@@ -56,7 +54,6 @@ type Modules struct {
 	Apdex           apdex.Module
 	QuickFilter     quickfilter.Module
 	TraceFunnel     tracefunnel.Module
-	RawDataExport   rawdataexport.Module
 	Session         session.Module
 	Services        services.Module
 	SpanPercentile  spanpercentile.Module
@@ -98,10 +95,9 @@ func NewModules(
 		UserGetter:      userGetter,
 		QuickFilter:     quickfilter,
 		TraceFunnel:     impltracefunnel.NewModule(impltracefunnel.NewStore(sqlstore)),
-		RawDataExport:   implrawdataexport.NewModule(querier),
 		Session:         implsession.NewModule(providerSettings, authNs, userSetter, userGetter, tokenizer, orgGetter),
-		SpanPercentile:  implspanpercentile.NewModule(querier, providerSettings),
-		Services:        implservices.NewModule(querier, telemetryStore),
+		SpanPercentile:  implspanpercentile.NewModule(telemetryStore),
+		Services:        implservices.NewModule(telemetryStore),
 		MetricsExplorer: implmetricsexplorer.NewModule(telemetryStore, telemetryMetadataStore, cache, ruleStore, providerSettings, config.MetricsExplorer),
 	}
 }

@@ -1565,7 +1565,7 @@ export type Querybuildertypesv5QueryRangeRequestDTOVariables = {
 };
 
 /**
- * Request body for the v5 query range endpoint. Supports builder queries (traces, logs, metrics), formulas, joins, trace operators, and ClickHouse SQL queries.
+ * Request body for the v5 query range endpoint. Supports builder queries (traces, logs, metrics), formulas, joins, and ClickHouse SQL queries. Retired trace operator requests are decoded for compatibility and rejected before execution.
  */
 export interface Querybuildertypesv5QueryRangeRequestDTO {
 	compositeQuery?: Querybuildertypesv5CompositeQueryDTO;
@@ -1682,7 +1682,6 @@ export enum Querybuildertypesv5RequestTypeDTO {
 	scalar = 'scalar',
 	time_series = 'time_series',
 	raw = 'raw',
-	raw_stream = 'raw_stream',
 	trace = 'trace',
 }
 export interface Querybuildertypesv5ScalarDataDTO {
@@ -2145,19 +2144,6 @@ export type AuthzResources200 = {
 export type ChangePasswordPathParameters = {
 	id: string;
 };
-export type HandleExportRawDataPOSTParams = {
-	/**
-	 * @enum csv,jsonl
-	 * @type string
-	 * @description The output format for the export.
-	 */
-	format?: HandleExportRawDataPOSTFormat;
-};
-
-export enum HandleExportRawDataPOSTFormat {
-	csv = 'csv',
-	jsonl = 'jsonl',
-}
 export type GetFeatures200 = {
 	/**
 	 * @type array

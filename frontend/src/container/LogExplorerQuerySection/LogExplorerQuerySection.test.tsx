@@ -16,8 +16,6 @@ import { explorerViewToPanelType } from 'utils/explorerUtils';
 import LogExplorerQuerySection from './index';
 
 const CM_EDITOR_SELECTOR = '.cm-editor .cm-content';
-const QUERY_AGGREGATION_TEST_ID = 'query-aggregation-container';
-const QUERY_ADDON_TEST_ID = 'query-add-ons';
 
 // Mock DOM APIs that CodeMirror needs
 beforeAll(() => {
@@ -228,7 +226,6 @@ describe('LogExplorerQuerySection', () => {
 			handleSetConfig: jest.fn() as jest.MockedFunction<
 				(panelType: PANEL_TYPES, dataSource: DataSource | null) => void
 			>,
-			addTraceOperator: jest.fn() as jest.MockedFunction<() => void>,
 		};
 
 		// Mock useGetPanelTypesQueryParam
@@ -284,24 +281,7 @@ describe('LogExplorerQuerySection', () => {
 		});
 	});
 
-	it('should render QueryAggregation and QueryAddOns when switching from LIST to TIMESERIES or TABLE view', async () => {
-		// Helper function to verify components are rendered
-		const verifyComponentsRendered = async (): Promise<void> => {
-			await waitFor(
-				() => {
-					expect(screen.getByTestId(QUERY_AGGREGATION_TEST_ID)).toBeInTheDocument();
-				},
-				{ timeout: 3000 },
-			);
-			await waitFor(
-				() => {
-					expect(screen.getByTestId(QUERY_ADDON_TEST_ID)).toBeInTheDocument();
-				},
-				{ timeout: 3000 },
-			);
-		};
-
-		// Start with LIST view - QueryAggregation and QueryAddOns should NOT be rendered
+	it('keeps the Lite Query Builder view-specific controls when switching views', async () => {
 		mockUseGetPanelTypesQueryParam.mockReturnValue(PANEL_TYPES.LIST);
 		const contextWithList: Partial<QueryBuilderContextType> = {
 			...mockQueryBuilderContext,
@@ -316,13 +296,9 @@ describe('LogExplorerQuerySection', () => {
 			},
 		);
 
-		// Verify QueryAggregation is NOT rendered in LIST view
-		expect(
-			screen.queryByTestId(QUERY_AGGREGATION_TEST_ID),
-		).not.toBeInTheDocument();
-
-		// Verify QueryAddOns is NOT rendered in LIST view (check for one of the add-on tabs)
-		expect(screen.queryByTestId(QUERY_ADDON_TEST_ID)).not.toBeInTheDocument();
+		expect(screen.getByTestId('lite-query-builder')).toBeInTheDocument();
+		expect(screen.getByText('Filters')).toBeInTheDocument();
+		expect(screen.queryByText('Aggregate')).not.toBeInTheDocument();
 
 		cleanup();
 
@@ -342,8 +318,11 @@ describe('LogExplorerQuerySection', () => {
 			},
 		);
 
-		// Verify QueryAggregation and QueryAddOns are rendered
-		await verifyComponentsRendered();
+		await waitFor(() => {
+			expect(screen.getByTestId('lite-query-builder')).toBeInTheDocument();
+			expect(screen.getByText('Aggregate')).toBeInTheDocument();
+			expect(screen.getByText('Aggregate every (s)')).toBeInTheDocument();
+		});
 
 		cleanup();
 
@@ -363,7 +342,10 @@ describe('LogExplorerQuerySection', () => {
 			},
 		);
 
-		// Verify QueryAggregation and QueryAddOns are still rendered in TABLE view
-		await verifyComponentsRendered();
+		await waitFor(() => {
+			expect(screen.getByTestId('lite-query-builder')).toBeInTheDocument();
+			expect(screen.getByText('Aggregate')).toBeInTheDocument();
+			expect(screen.queryByText('Aggregate every (s)')).not.toBeInTheDocument();
+		});
 	});
 });

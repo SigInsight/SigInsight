@@ -20,7 +20,6 @@ import (
 	"github.com/SigNoz/signoz/pkg/cache"
 	"github.com/SigNoz/signoz/pkg/errors"
 	"github.com/SigNoz/signoz/pkg/modules/organization"
-	querierV5 "github.com/SigNoz/signoz/pkg/querier"
 	"github.com/SigNoz/signoz/pkg/query-service/interfaces"
 	"github.com/SigNoz/signoz/pkg/query-service/model"
 	"github.com/SigNoz/signoz/pkg/sqlstore"
@@ -38,7 +37,7 @@ type PrepareTaskOptions struct {
 	TaskName    string
 	RuleStore   ruletypes.RuleStore
 	Reader      interfaces.RuleStateHistoryReader
-	Querier     querierV5.Querier
+	QueryRunner QueryRunner
 	Logger      *slog.Logger
 	Cache       cache.Cache
 	ManagerOpts *ManagerOptions
@@ -51,7 +50,7 @@ type PrepareTestRuleOptions struct {
 	Rule        *ruletypes.PostableRule
 	RuleStore   ruletypes.RuleStore
 	Reader      interfaces.RuleStateHistoryReader
-	Querier     querierV5.Querier
+	QueryRunner QueryRunner
 	Logger      *slog.Logger
 	Cache       cache.Cache
 	ManagerOpts *ManagerOptions
@@ -83,7 +82,7 @@ type ManagerOptions struct {
 	Context       context.Context
 	ResendDelay   time.Duration
 	Reader        interfaces.RuleStateHistoryReader
-	Querier       querierV5.Querier
+	QueryRunner   QueryRunner
 	Logger        *slog.Logger
 	Cache         cache.Cache
 
@@ -156,7 +155,7 @@ func defaultPrepareTaskFunc(opts PrepareTaskOptions) (Task, error) {
 			opts.OrgID,
 			opts.Rule,
 			opts.Reader,
-			opts.Querier,
+			opts.QueryRunner,
 			opts.Logger,
 			WithEvalDelay(opts.ManagerOpts.EvalDelay),
 			WithSQLStore(opts.SQLStore),
@@ -364,7 +363,7 @@ func (m *Manager) editTask(_ context.Context, orgID valuer.UUID, rule *ruletypes
 		TaskName:    taskName,
 		RuleStore:   m.ruleStore,
 		Reader:      m.reader,
-		Querier:     m.opts.Querier,
+		QueryRunner: m.opts.QueryRunner,
 		Logger:      m.opts.Logger,
 		Cache:       m.cache,
 		ManagerOpts: m.opts,
@@ -560,7 +559,7 @@ func (m *Manager) addTask(_ context.Context, orgID valuer.UUID, rule *ruletypes.
 		TaskName:    taskName,
 		RuleStore:   m.ruleStore,
 		Reader:      m.reader,
-		Querier:     m.opts.Querier,
+		QueryRunner: m.opts.QueryRunner,
 		Logger:      m.opts.Logger,
 		Cache:       m.cache,
 		ManagerOpts: m.opts,
@@ -946,7 +945,7 @@ func (m *Manager) TestNotification(ctx context.Context, orgID valuer.UUID, ruleS
 		Rule:        &parsedRule,
 		RuleStore:   m.ruleStore,
 		Reader:      m.reader,
-		Querier:     m.opts.Querier,
+		QueryRunner: m.opts.QueryRunner,
 		Logger:      m.opts.Logger,
 		Cache:       m.cache,
 		ManagerOpts: m.opts,

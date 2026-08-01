@@ -9,6 +9,10 @@ count_lines() {
 	local path="$1"
 	shift
 	local files
+	if [ ! -d "$path" ]; then
+		printf '0'
+		return
+	fi
 	files="$(find "$path" -type f \( -name '*.ts' -o -name '*.tsx' \) "$@" -print 2>/dev/null)"
 
 	if [ -z "$files" ]; then
@@ -21,17 +25,29 @@ count_lines() {
 
 count_test_files() {
 	local path="$1"
+	if [ ! -d "$path" ]; then
+		printf '0'
+		return
+	fi
 	find "$path" -type f \( -name '*.test.ts' -o -name '*.test.tsx' \) -print 2>/dev/null | wc -l | tr -d ' '
 }
 
 count_go_lines() {
 	local path="$1"
+	if [ ! -d "$path" ]; then
+		printf '0'
+		return
+	fi
 	find "$path" -type f -name '*.go' ! -name '*_test.go' -print0 2>/dev/null |
 		xargs -0 -r wc -l | tail -1 | awk '{ print $1 }'
 }
 
 count_go_test_files() {
 	local path="$1"
+	if [ ! -d "$path" ]; then
+		printf '0'
+		return
+	fi
 	find "$path" -type f -name '*_test.go' -print 2>/dev/null | wc -l | tr -d ' '
 }
 
@@ -48,6 +64,15 @@ trace_lines="$(count_lines "$frontend_root/src/pages/TraceDetail")"
 trace_lines=$((trace_lines + $(count_lines "$frontend_root/src/container/TraceWaterfall" ! -path '*/__tests__/*')))
 trace_lines=$((trace_lines + $(count_lines "$frontend_root/src/container/PaginatedTraceFlamegraph" ! -path '*/__tests__/*')))
 trace_lines=$((trace_lines + $(count_lines "$frontend_root/src/container/SpanDetailsDrawer" ! -path '*/__tests__/*')))
+legacy_query_backend_lines="$(count_go_lines "$repo_root/pkg/querier")"
+legacy_query_backend_lines=$((legacy_query_backend_lines + $(count_go_lines "$repo_root/pkg/telemetrylogs")))
+legacy_query_backend_lines=$((legacy_query_backend_lines + $(count_go_lines "$repo_root/pkg/telemetrytraces")))
+legacy_query_backend_lines=$((legacy_query_backend_lines + $(count_go_lines "$repo_root/pkg/telemetrymetrics")))
+legacy_query_contract_lines="$(count_go_lines "$repo_root/pkg/types/querybuildertypes/querybuildertypesv5")"
+legacy_query_frontend_lines="$(count_lines "$frontend_root/src/components/QueryBuilder" ! -path '*/__tests__/*' ! -path '*/tests/*')"
+legacy_query_frontend_lines=$((legacy_query_frontend_lines + $(count_lines "$frontend_root/src/api/v5/queryRange" ! -path '*/__tests__/*' ! -path '*/tests/*')))
+lite_query_lines="$(count_go_lines "$repo_root/pkg/litequery")"
+lite_query_test_files="$(count_go_test_files "$repo_root/pkg/litequery")"
 
 printf '%s\n' '# Refactoring Baseline'
 printf '%s\n' ''
@@ -64,6 +89,10 @@ print_metric 'Legacy uPlot (`components/Uplot`, `lib/uPlotLib`)' "$legacy_uplot_
 print_metric 'uPlot V2 (`lib/uPlotV2`)' "$uplot_v2_lines" "$(count_test_files "$frontend_root/src/lib/uPlotV2")"
 print_metric 'Trace detail presentation' "$trace_lines" "$(count_test_files "$frontend_root/src/pages/TraceDetail")"
 print_metric 'Query stores (`retention`, `metrics explorer`, `rule state history`)' "$(count_go_lines "$repo_root/pkg/query-service/app/retentionstore") / $(count_go_lines "$repo_root/pkg/query-service/app/metricsexplorerstore") / $(count_go_lines "$repo_root/pkg/query-service/app/rulestatehistorystore")" "$(count_go_test_files "$repo_root/pkg/query-service/app/retentionstore") / $(count_go_test_files "$repo_root/pkg/query-service/app/metricsexplorerstore") / $(count_go_test_files "$repo_root/pkg/query-service/app/rulestatehistorystore")"
+print_metric 'Legacy query backend (`querier`, `telemetry{logs,traces,metrics}`)' "$legacy_query_backend_lines" "$(count_go_test_files "$repo_root/pkg/querier") / $(count_go_test_files "$repo_root/pkg/telemetrylogs") / $(count_go_test_files "$repo_root/pkg/telemetrytraces") / $(count_go_test_files "$repo_root/pkg/telemetrymetrics")"
+print_metric 'Legacy V5 query contract (`querybuildertypesv5`)' "$legacy_query_contract_lines" "$(count_go_test_files "$repo_root/pkg/types/querybuildertypes/querybuildertypesv5")"
+print_metric 'Legacy query frontend (`QueryBuilder`, `api/v5/queryRange`)' "$legacy_query_frontend_lines" "$(( $(count_test_files "$frontend_root/src/components/QueryBuilder") + $(count_test_files "$frontend_root/src/api/v5/queryRange") ))"
+print_metric 'Lightweight query engine (`pkg/litequery`)' "$lite_query_lines" "$lite_query_test_files"
 
 cat <<'EOF'
 

@@ -61,11 +61,11 @@ def clickhouse(
     def create() -> types.TestContainerClickhouse:
         version = request.config.getoption("--clickhouse-version")
         histogram_quantile_image = os.getenv(
-            "SIGNOZ_HISTOGRAM_QUANTILE_IMAGE_TEMPLATE",
+            "SIGINSIGHT_HISTOGRAM_QUANTILE_IMAGE_TEMPLATE",
             DEFAULT_HISTOGRAM_QUANTILE_IMAGE,
         ).format(clickhouse_version=version)
         clickhouse_image = os.getenv(
-            "SIGNOZ_CLICKHOUSE_IMAGE_TEMPLATE",
+            "SIGINSIGHT_CLICKHOUSE_IMAGE_TEMPLATE",
             "clickhouse/clickhouse-server:{clickhouse_version}",
         ).format(clickhouse_version=version)
 
@@ -242,9 +242,9 @@ def clickhouse(
             ),
             conn=connection,
             env={
-                "SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN": f"tcp://{container.username}:{container.password}@{container.get_wrapped_container().name}:{9000}",
-                "SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_USERNAME": container.username,
-                "SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_PASSWORD": container.password,
+                "SIGINSIGHT_TELEMETRYSTORE_CLICKHOUSE_DSN": f"tcp://{container.username}:{container.password}@{container.get_wrapped_container().name}:{9000}",
+                "SIGINSIGHT_TELEMETRYSTORE_CLICKHOUSE_USERNAME": container.username,
+                "SIGINSIGHT_TELEMETRYSTORE_CLICKHOUSE_PASSWORD": container.password,
             },
         )
 
@@ -265,8 +265,8 @@ def clickhouse(
         env = cache["env"]
 
         conn = clickhouse_connect.get_client(
-            user=env["SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_USERNAME"],
-            password=env["SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_PASSWORD"],
+            user=env["SIGINSIGHT_TELEMETRYSTORE_CLICKHOUSE_USERNAME"],
+            password=env["SIGINSIGHT_TELEMETRYSTORE_CLICKHOUSE_PASSWORD"],
             host=host_config.address,
             port=host_config.port,
         )

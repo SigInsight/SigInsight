@@ -153,9 +153,9 @@ func NewStatsReporterProviderFactories(telemetryStore telemetrystore.TelemetrySt
 	)
 }
 
-func NewQuerierProviderFactories(telemetryStore telemetrystore.TelemetryStore, cache cache.Cache, flagger flagger.Flagger) factory.NamedMap[factory.ProviderFactory[querier.Querier, querier.Config]] {
+func NewQuerierProviderFactories(telemetryStore telemetrystore.TelemetryStore) factory.NamedMap[factory.ProviderFactory[querier.Querier, querier.Config]] {
 	return factory.MustNewNamedMap(
-		signozquerier.NewFactory(telemetryStore, cache, flagger),
+		signozquerier.NewFactory(telemetryStore),
 	)
 }
 
@@ -172,7 +172,6 @@ func NewAPIServerProviderFactories(orgGetter organization.Getter, authz authz.Au
 			handlers.MetricsExplorer,
 			handlers.Fields,
 			handlers.AuthzHandler,
-			handlers.RawDataExport,
 			handlers.QuerierHandler,
 			handlers.RegistryHandler,
 			handlers.Assistant,

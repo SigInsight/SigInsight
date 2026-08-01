@@ -5,6 +5,7 @@ import ROUTES from 'constants/routes';
 import useComponentPermission from 'hooks/useComponentPermission';
 import history from 'lib/history';
 import { useAppContext } from 'providers/App/App';
+
 import './AlertsEmptyState.styles.scss';
 
 export function AlertsEmptyState(): JSX.Element {

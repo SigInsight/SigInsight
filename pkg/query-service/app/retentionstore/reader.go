@@ -28,18 +28,18 @@ import (
 )
 
 const (
-	signozMetricDBName = "signoz_metrics"
+	siginsightMetricDBName = "siginsight_metrics"
 
-	signozSampleLocalTableName = "samples_v4"
-	signozSampleTableName      = "samples_v4"
+	siginsightSampleLocalTableName = "samples_v4"
+	siginsightSampleTableName      = "samples_v4"
 
-	signozSamplesAgg5mLocalTableName  = "samples_v4_agg_5m"
-	signozSamplesAgg30mLocalTableName = "samples_v4_agg_30m"
-	signozExpHistLocalTableName       = "exp_hist"
-	signozTSLocalTableNameV4          = "time_series_v4"
-	signozTSLocalTableNameV46Hrs      = "time_series_v4_6hrs"
-	signozTSLocalTableNameV41Day      = "time_series_v4_1day"
-	signozTSLocalTableNameV41Week     = "time_series_v4_1week"
+	siginsightSamplesAgg5mLocalTableName  = "samples_v4_agg_5m"
+	siginsightSamplesAgg30mLocalTableName = "samples_v4_agg_30m"
+	siginsightExpHistLocalTableName       = "exp_hist"
+	siginsightTSLocalTableNameV4          = "time_series_v4"
+	siginsightTSLocalTableNameV46Hrs      = "time_series_v4_6hrs"
+	siginsightTSLocalTableNameV41Day      = "time_series_v4_1day"
+	siginsightTSLocalTableNameV41Week     = "time_series_v4_1week"
 )
 
 type Config struct {
@@ -109,14 +109,25 @@ func New(logger *slog.Logger, sqlDB sqlstore.SQLStore, db clickhouse.Conn, confi
 	}
 }
 
-// getLocalTableName normalizes legacy distributed table names for single-node ClickHouse.
+// getLocalTableName normalizes historical retention rows to the current single-node schema.
 func getLocalTableName(tableName string) string {
 	tableNameSplit := strings.SplitN(tableName, ".", 2)
 	if len(tableNameSplit) != 2 {
 		return tableName
 	}
 
-	return tableNameSplit[0] + "." + strings.TrimPrefix(tableNameSplit[1], "distributed_")
+	localName := strings.TrimPrefix(tableNameSplit[1], "distributed_")
+	legacyTraceTables := map[string]string{
+		"signoz_index_v3":       "span_index_v3",
+		"signoz_index_v2":       "span_index_v2",
+		"signoz_error_index_v2": "error_index_v2",
+		"signoz_spans":          "legacy_spans",
+	}
+	if currentName, ok := legacyTraceTables[localName]; ok {
+		localName = currentName
+	}
+
+	return tableNameSplit[0] + "." + localName
 }
 
 func (r *Reader) setTTLTraces(ctx context.Context, orgID string, params *model.TTLParams) (*model.SetTTLResponseItem, error) {
@@ -684,14 +695,14 @@ func (r *Reader) setTTLMetrics(ctx context.Context, orgID string, params *model.
 		coldStorageDuration = int(params.ToColdStorageDuration)
 	}
 	tableNames := []string{
-		signozMetricDBName + "." + signozSampleLocalTableName,
-		signozMetricDBName + "." + signozSamplesAgg5mLocalTableName,
-		signozMetricDBName + "." + signozSamplesAgg30mLocalTableName,
-		signozMetricDBName + "." + signozExpHistLocalTableName,
-		signozMetricDBName + "." + signozTSLocalTableNameV4,
-		signozMetricDBName + "." + signozTSLocalTableNameV46Hrs,
-		signozMetricDBName + "." + signozTSLocalTableNameV41Day,
-		signozMetricDBName + "." + signozTSLocalTableNameV41Week,
+		siginsightMetricDBName + "." + siginsightSampleLocalTableName,
+		siginsightMetricDBName + "." + siginsightSamplesAgg5mLocalTableName,
+		siginsightMetricDBName + "." + siginsightSamplesAgg30mLocalTableName,
+		siginsightMetricDBName + "." + siginsightExpHistLocalTableName,
+		siginsightMetricDBName + "." + siginsightTSLocalTableNameV4,
+		siginsightMetricDBName + "." + siginsightTSLocalTableNameV46Hrs,
+		siginsightMetricDBName + "." + siginsightTSLocalTableNameV41Day,
+		siginsightMetricDBName + "." + siginsightTSLocalTableNameV41Week,
 	}
 	for _, tableName := range tableNames {
 		statusItem, err := r.checkTTLStatusItem(ctx, orgID, tableName)
@@ -858,7 +869,7 @@ func (r *Reader) GetTTL(ctx context.Context, orgID string, ttlParams *model.GetT
 	getMetricsTTL := func() (*model.DBResponseTTL, error) {
 		var dbResp []model.DBResponseTTL
 
-		query := fmt.Sprintf("SELECT engine_full FROM system.tables WHERE name='%v'", signozSampleLocalTableName)
+		query := fmt.Sprintf("SELECT engine_full FROM system.tables WHERE name='%v'", siginsightSampleLocalTableName)
 
 		err := r.db.Select(ctx, &dbResp, query)
 
@@ -923,7 +934,7 @@ func (r *Reader) GetTTL(ctx context.Context, orgID string, ttlParams *model.GetT
 		return &model.GetTTLResponseItem{TracesTime: delTTL, TracesMoveTime: moveTTL, ExpectedTracesTime: expectedTTL, ExpectedTracesMoveTime: expectedColdStorageTTL, Status: status}, nil
 
 	case constants.MetricsTTL:
-		tableNameArray := []string{signozMetricDBName + "." + signozSampleTableName}
+		tableNameArray := []string{siginsightMetricDBName + "." + siginsightSampleTableName}
 		tableNameArray = getLocalTableNameArray(tableNameArray)
 		status, err := r.getTTLQueryStatus(ctx, orgID, tableNameArray)
 		if err != nil {
@@ -934,7 +945,7 @@ func (r *Reader) GetTTL(ctx context.Context, orgID string, ttlParams *model.GetT
 			return nil, err
 		}
 		if dbResp == nil {
-			return nil, fmt.Errorf("metrics table %s is missing from ClickHouse", signozSampleLocalTableName)
+			return nil, fmt.Errorf("metrics table %s is missing from ClickHouse", siginsightSampleLocalTableName)
 		}
 		ttlQuery, err := r.checkTTLStatusItem(ctx, orgID, tableNameArray[0])
 		if err != nil {

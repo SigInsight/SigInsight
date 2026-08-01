@@ -11,17 +11,37 @@ import (
 	alertmanagermock "github.com/SigNoz/signoz/pkg/alertmanager/alertmanagertest"
 	"github.com/SigNoz/signoz/pkg/sqlstore"
 	"github.com/SigNoz/signoz/pkg/sqlstore/sqlstoretest"
-	"github.com/SigNoz/signoz/pkg/telemetrystore"
-	"github.com/SigNoz/signoz/pkg/telemetrystore/telemetrystoretest"
 	"github.com/SigNoz/signoz/pkg/types/alertmanagertypes"
-	"github.com/SigNoz/signoz/pkg/types/metrictypes"
+	qbtypes "github.com/SigNoz/signoz/pkg/types/querybuildertypes/querybuildertypesv5"
 	"github.com/SigNoz/signoz/pkg/valuer"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-
-	cmock "github.com/srikanthccv/ClickHouse-go-mock"
 )
+
+type queryRunnerFunc func(context.Context, valuer.UUID, *qbtypes.QueryRangeRequest) (*qbtypes.QueryRangeResponse, error)
+
+func (f queryRunnerFunc) Execute(ctx context.Context, orgID valuer.UUID, request *qbtypes.QueryRangeRequest) (*qbtypes.QueryRangeResponse, error) {
+	return f(ctx, orgID, request)
+}
+
+func responseFromTestValues(values [][]interface{}) *qbtypes.QueryRangeResponse {
+	points := make([]*qbtypes.TimeSeriesValue, 0, len(values))
+	for _, row := range values {
+		value, _ := row[0].(float64)
+		timestamp, _ := row[2].(time.Time)
+		points = append(points, &qbtypes.TimeSeriesValue{Timestamp: timestamp.UnixMilli(), Value: value})
+	}
+	return &qbtypes.QueryRangeResponse{
+		Type: qbtypes.RequestTypeTimeSeries,
+		Data: qbtypes.QueryData{Results: []any{&qbtypes.TimeSeriesData{
+			QueryName: "A",
+			Aggregations: []*qbtypes.AggregationBucket{{
+				Series: []*qbtypes.TimeSeries{{Values: points}},
+			}},
+		}}},
+	}
+}
 
 func TestManager_TestNotification_SendUnmatched_ThresholdRule(t *testing.T) {
 	target := 10.0
@@ -42,6 +62,9 @@ func TestManager_TestNotification_SendUnmatched_ThresholdRule(t *testing.T) {
 
 			// Create manager using test factory with hooks
 			mgr := NewTestManager(t, &TestManagerOptions{
+				QueryRunner: queryRunnerFunc(func(_ context.Context, _ valuer.UUID, _ *qbtypes.QueryRangeRequest) (*qbtypes.QueryRangeResponse, error) {
+					return responseFromTestValues(tc.Values), nil
+				}),
 				AlertmanagerHook: func(am alertmanager.Alertmanager) {
 					mockAM := am.(*alertmanagermock.MockAlertmanager)
 					// mock set notification config
@@ -60,49 +83,6 @@ func TestManager_TestNotification_SendUnmatched_ThresholdRule(t *testing.T) {
 					orgRows := mockStore.Mock().NewRows([]string{"id"}).AddRow(orgID.StringValue())
 					// Match bun's generated query pattern - bun may quote identifiers
 					mockStore.Mock().ExpectQuery("SELECT (.+) FROM (.+)organizations(.+) LIMIT (.+)").WillReturnRows(orgRows)
-				},
-				TelemetryStoreHook: func(store telemetrystore.TelemetryStore) {
-					mockStore := store.(*telemetrystoretest.Provider)
-					// Set up mock data for telemetry store
-					cols := make([]cmock.ColumnType, 0)
-					cols = append(cols, cmock.ColumnType{Name: "value", Type: "Float64"})
-					cols = append(cols, cmock.ColumnType{Name: "attr", Type: "String"})
-					cols = append(cols, cmock.ColumnType{Name: "ts", Type: "DateTime"})
-
-					alertDataRows := cmock.NewRows(cols, tc.Values)
-
-					mock := mockStore.Mock()
-					// Mock metadata queries for FetchTemporalityAndTypeMulti
-					// First query: fetchMetricsTemporalityAndType (from signoz_metrics time series table)
-					metadataCols := []cmock.ColumnType{
-						{Name: "metric_name", Type: "String"},
-						{Name: "temporality", Type: "String"},
-						{Name: "type", Type: "String"},
-						{Name: "is_monotonic", Type: "Bool"},
-					}
-					metadataRows := cmock.NewRows(metadataCols, [][]any{
-						{"probe_success", metrictypes.Unspecified, metrictypes.GaugeType, false},
-					})
-					mock.ExpectQuery("*time_series_v4*").WithArgs(nil, nil, nil).WillReturnRows(metadataRows)
-					// Second query: fetchMeterSourceMetricsTemporalityAndType (from signoz_meter table)
-					emptyMetadataRows := cmock.NewRows(metadataCols, [][]any{})
-					mock.ExpectQuery("*meter*").WithArgs(nil).WillReturnRows(emptyMetadataRows)
-
-					// Generate query arguments for the metric query
-					evalTime := time.Now().UTC()
-					evalWindow := 5 * time.Minute
-					evalDelay := time.Duration(0)
-					queryArgs := GenerateMetricQueryCHArgs(
-						evalTime,
-						evalWindow,
-						evalDelay,
-						"probe_success",
-						metrictypes.Unspecified,
-					)
-
-					mock.ExpectQuery("*WITH __temporal_aggregation_cte*").
-						WithArgs(queryArgs...).
-						WillReturnRows(alertDataRows)
 				},
 			})
 

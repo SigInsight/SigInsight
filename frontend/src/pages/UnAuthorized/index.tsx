@@ -1,20 +1,10 @@
 import { Space, Typography } from 'antd';
 import UnAuthorized from 'assets/UnAuthorized';
 import { Container } from 'components/NotFound/styles';
-import { useQueryState } from 'nuqs';
-
-import { useAppContext } from '../../providers/App/App';
-import { USER_ROLES } from '../../types/roles';
 
 import './index.styles.scss';
 
 function UnAuthorizePage(): JSX.Element {
-	const [debugCurrentRole] = useQueryState('currentRole');
-	const { user } = useAppContext();
-
-	const userIsAnonymous =
-		debugCurrentRole === USER_ROLES.ANONYMOUS ||
-		user.role === USER_ROLES.ANONYMOUS;
 	const mistakeMessage = 'Please contact your administrator.';
 
 	return (

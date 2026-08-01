@@ -7,6 +7,8 @@ import (
 var (
 	// Feature key for the dot-metrics (delta-to-cumulative) toggle.
 	DotMetricsEnabled = valuer.NewString("dot_metrics_enabled")
+	// Feature key advertised when the running server can execute the
+	// lightweight V5 query subset.
 )
 
 // Feature represents a single feature flag entry returned by the

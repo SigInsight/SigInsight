@@ -14,7 +14,6 @@ import (
 	"github.com/SigNoz/signoz/pkg/modules/metricsexplorer"
 	"github.com/SigNoz/signoz/pkg/modules/organization"
 	"github.com/SigNoz/signoz/pkg/modules/preference"
-	"github.com/SigNoz/signoz/pkg/modules/rawdataexport"
 	"github.com/SigNoz/signoz/pkg/modules/session"
 	"github.com/SigNoz/signoz/pkg/modules/user"
 	"github.com/SigNoz/signoz/pkg/querier"
@@ -36,7 +35,6 @@ type provider struct {
 	metricsExplorerHandler metricsexplorer.Handler
 	fieldsHandler          fields.Handler
 	authzHandler           authz.Handler
-	rawDataExportHandler   rawdataexport.Handler
 	querierHandler         querier.Handler
 	factoryHandler         factory.Handler
 	assistantHandler       assistant.Handler
@@ -53,12 +51,11 @@ func NewFactory(
 	metricsExplorerHandler metricsexplorer.Handler,
 	fieldsHandler fields.Handler,
 	authzHandler authz.Handler,
-	rawDataExportHandler rawdataexport.Handler,
 	querierHandler querier.Handler,
 	factoryHandler factory.Handler,
 	assistantHandler assistant.Handler,
 ) factory.ProviderFactory[apiserver.APIServer, apiserver.Config] {
-	return factory.NewProviderFactory(factory.MustNewName("signoz"), func(ctx context.Context, providerSettings factory.ProviderSettings, config apiserver.Config) (apiserver.APIServer, error) {
+	return factory.NewProviderFactory(factory.MustNewName("siginsight"), func(ctx context.Context, providerSettings factory.ProviderSettings, config apiserver.Config) (apiserver.APIServer, error) {
 		return newProvider(
 			ctx,
 			providerSettings,
@@ -73,7 +70,6 @@ func NewFactory(
 			metricsExplorerHandler,
 			fieldsHandler,
 			authzHandler,
-			rawDataExportHandler,
 			querierHandler,
 			factoryHandler,
 			assistantHandler,
@@ -95,7 +91,6 @@ func newProvider(
 	metricsExplorerHandler metricsexplorer.Handler,
 	fieldsHandler fields.Handler,
 	authzHandler authz.Handler,
-	rawDataExportHandler rawdataexport.Handler,
 	querierHandler querier.Handler,
 	factoryHandler factory.Handler,
 	assistantHandler assistant.Handler,
@@ -115,7 +110,6 @@ func newProvider(
 		metricsExplorerHandler: metricsExplorerHandler,
 		fieldsHandler:          fieldsHandler,
 		authzHandler:           authzHandler,
-		rawDataExportHandler:   rawDataExportHandler,
 		querierHandler:         querierHandler,
 		factoryHandler:         factoryHandler,
 		assistantHandler:       assistantHandler,
@@ -168,10 +162,6 @@ func (provider *provider) AddToRouter(router *mux.Router) error {
 	}
 
 	if err := provider.addFieldsRoutes(router); err != nil {
-		return err
-	}
-
-	if err := provider.addRawDataExportRoutes(router); err != nil {
 		return err
 	}
 

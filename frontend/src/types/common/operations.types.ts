@@ -1,10 +1,8 @@
-import { QueryProps } from 'container/QueryBuilder/components/Query/Query.interfaces';
 import { QueryBuilderProps } from 'container/QueryBuilder/QueryBuilder.interfaces';
 import { BaseAutocompleteData } from 'types/api/queryBuilder/queryAutocompleteResponse';
 import {
 	IBuilderFormula,
 	IBuilderQuery,
-	IBuilderTraceOperator,
 } from 'types/api/queryBuilder/queryBuilderData';
 import {
 	BaseBuilderQuery,
@@ -17,24 +15,16 @@ import { DataSource } from 'types/common/queryBuilder';
 
 import { SelectOption } from './select';
 
-type UseQueryOperationsParams = Pick<QueryProps, 'index' | 'query'> &
-	Pick<QueryBuilderProps, 'filterConfigs'> & {
-		isForTraceOperator?: boolean;
-		formula?: IBuilderFormula;
-		isListViewPanel?: boolean;
-		entityVersion: string;
-		savePreviousQuery?: boolean;
-	};
+type UseQueryOperationsParams = Pick<QueryBuilderProps, 'filterConfigs'> & {
+	index: number;
+	query: IBuilderQuery;
+	formula?: IBuilderFormula;
+	isListViewPanel?: boolean;
+	entityVersion: string;
+	savePreviousQuery?: boolean;
+};
 
 export type HandleChangeQueryData<T = IBuilderQuery> = <
-	Key extends keyof T,
-	Value extends T[Key]
->(
-	key: Key,
-	value: Value,
-) => void;
-
-export type HandleChangeTraceOperatorData<T = IBuilderTraceOperator> = <
 	Key extends keyof T,
 	Value extends T[Key]
 >(

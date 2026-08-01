@@ -73,13 +73,28 @@ func (service *Service) SyncServers(ctx context.Context) error {
 
 	service.serversMtx.Lock()
 	for _, org := range orgs {
-		config, _, err := service.getConfig(ctx, org.ID.StringValue())
+		config, storedHash, err := service.getConfig(ctx, org.ID.StringValue())
 		if err != nil {
 			service.settings.Logger().ErrorContext(ctx, "failed to get alertmanager config for org", slog.String("org_id", org.ID.StringValue()), errors.Attr(err))
 			continue
 		}
 
-		// If the server is not present, create it and sync the config
+		config, err = service.compareAndSelectConfig(ctx, config)
+		if err != nil {
+			service.settings.Logger().ErrorContext(ctx, "failed to reconcile alertmanager config for org", slog.String("org_id", org.ID.StringValue()), errors.Attr(err))
+			continue
+		}
+
+		// The route is derived from persisted channels and rule matchers. Persist
+		// it when either source changes so an existing server receives the update.
+		if storedHash != config.StoreableConfig().Hash {
+			if err := service.configStore.Set(ctx, config); err != nil {
+				service.settings.Logger().ErrorContext(ctx, "failed to persist alertmanager config for org", slog.String("org_id", org.ID.StringValue()), errors.Attr(err))
+				continue
+			}
+		}
+
+		// If the server is not present, create it and sync the reconciled config.
 		if _, ok := service.servers[org.ID.StringValue()]; !ok {
 			server, err := service.newServer(ctx, org.ID.StringValue())
 			if err != nil {
@@ -175,35 +190,10 @@ func (service *Service) Stop(ctx context.Context) error {
 }
 
 func (service *Service) newServer(ctx context.Context, orgID string) (*alertmanagerserver.Server, error) {
-	config, storedHash, err := service.getConfig(ctx, orgID)
-	if err != nil {
-		return nil, err
-	}
-
 	server, err := alertmanagerserver.New(ctx, service.settings.Logger(), service.settings.PrometheusRegisterer(), service.config, orgID, service.stateStore, service.notificationManager)
 	if err != nil {
 		return nil, err
 	}
-
-	config, err = service.compareAndSelectConfig(ctx, config)
-	if err != nil {
-		return nil, err
-	}
-
-	// compare against the hash of the config stored in the DB (before overlays
-	// were applied by getConfig). This ensures that overlay changes (e.g. new
-	// defaults from an upstream upgrade or something similar) trigger a DB update
-	// so that other code paths reading directly from the store see the up-to-date config.
-	if storedHash == config.StoreableConfig().Hash {
-		service.settings.Logger().DebugContext(ctx, "skipping config store update for org", slog.String("org_id", orgID), slog.String("hash", config.StoreableConfig().Hash))
-		return server, nil
-	}
-
-	err = service.configStore.Set(ctx, config)
-	if err != nil {
-		return nil, err
-	}
-
 	return server, nil
 }
 

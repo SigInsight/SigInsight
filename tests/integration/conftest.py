@@ -3,6 +3,7 @@ import pytest
 pytest_plugins = [
     "fixtures.auth",
     "fixtures.clickhouse",
+    "fixtures.collector",
     "fixtures.fs",
     "fixtures.http",
     "fixtures.migrator",
@@ -53,6 +54,6 @@ def pytest_addoption(parser: pytest.Parser):
     parser.addoption(
         "--schema-migrator-version",
         action="store",
-        default="v1.1.3",
+        default="v1.2.0",
         help="schema migrator version",
     )

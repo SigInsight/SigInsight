@@ -26,12 +26,12 @@ import (
 )
 
 const (
-	signozMetricDBName   = "signoz_metrics"
-	signozMetadataDbName = "signoz_metadata"
+	siginsightMetricDBName   = "siginsight_metrics"
+	siginsightMetadataDBName = "siginsight_metadata"
 
-	signozTSTableNameV4      = "time_series_v4"
-	signozTSTableNameV41Day  = "time_series_v4_1day"
-	signozTSTableNameV41Week = "time_series_v4_1week"
+	siginsightTSTableNameV4      = "time_series_v4"
+	siginsightTSTableNameV41Day  = "time_series_v4_1day"
+	siginsightTSTableNameV41Week = "time_series_v4_1week"
 )
 
 type metadataReader interface {
@@ -154,7 +154,7 @@ func (r *Reader) GetMetricAggregateAttributes(ctx context.Context, orgID valuer.
 		`SELECT DISTINCT metric_name
 		 FROM %s.%s
 		 WHERE metric_name ILIKE $1 AND __normalized = $2`,
-		signozMetricDBName, signozTSTableNameV41Day)
+		siginsightMetricDBName, siginsightTSTableNameV41Day)
 
 	if req.Limit != 0 {
 		query = query + fmt.Sprintf(" LIMIT %d;", req.Limit)
@@ -235,7 +235,7 @@ func (r *Reader) GetAllMetricFilterAttributeKeys(ctx context.Context, req *metri
 	if constants.IsDotMetricsEnabled {
 		normalized = false
 	}
-	query := fmt.Sprintf("SELECT arrayJoin(tagKeys) AS distinctTagKey FROM (SELECT JSONExtractKeys(labels) AS tagKeys FROM %s.%s WHERE unix_milli >= $1 and __normalized = $2 GROUP BY tagKeys) WHERE distinctTagKey ILIKE $3 AND distinctTagKey NOT LIKE '\\_\\_%%' GROUP BY distinctTagKey", signozMetricDBName, signozTSTableNameV41Day)
+	query := fmt.Sprintf("SELECT arrayJoin(tagKeys) AS distinctTagKey FROM (SELECT JSONExtractKeys(labels) AS tagKeys FROM %s.%s WHERE unix_milli >= $1 and __normalized = $2 GROUP BY tagKeys) WHERE distinctTagKey ILIKE $3 AND distinctTagKey NOT LIKE '\\_\\_%%' GROUP BY distinctTagKey", siginsightMetricDBName, siginsightTSTableNameV41Day)
 	if req.Limit != 0 {
 		query = query + fmt.Sprintf(" LIMIT %d;", req.Limit)
 	}
@@ -280,7 +280,7 @@ func (r *Reader) GetAllMetricFilterAttributeValues(ctx context.Context, req *met
 		normalized = false
 	}
 
-	query = fmt.Sprintf("SELECT JSONExtractString(labels, $1) AS tagValue FROM %s.%s WHERE JSONExtractString(labels, $2) ILIKE $3 AND unix_milli >= $4 AND __normalized = $5 GROUP BY tagValue", signozMetricDBName, signozTSTableNameV41Day)
+	query = fmt.Sprintf("SELECT JSONExtractString(labels, $1) AS tagValue FROM %s.%s WHERE JSONExtractString(labels, $2) ILIKE $3 AND unix_milli >= $4 AND __normalized = $5 GROUP BY tagValue", siginsightMetricDBName, siginsightTSTableNameV41Day)
 	if req.Limit != 0 {
 		query = query + fmt.Sprintf(" LIMIT %d;", req.Limit)
 	}
@@ -340,7 +340,7 @@ WHERE metric_name = ? AND __normalized=? %s`
 
 	var args []interface{}
 	args = append(args, metricName)
-	tableName := signozTSTableNameV41Week
+	tableName := siginsightTSTableNameV41Week
 
 	args = append(args, normalized)
 	args = append(args, filterArgs...)
@@ -350,10 +350,10 @@ WHERE metric_name = ? AND __normalized=? %s`
 		*start, *end, tableName = st, en, tsTable
 		args = append(args, *start, *end)
 	} else if start == nil && end == nil {
-		tableName = signozTSTableNameV41Week
+		tableName = siginsightTSTableNameV41Week
 	}
 
-	query := fmt.Sprintf(baseQueryTemplate, signozMetricDBName, tableName, whereClause)
+	query := fmt.Sprintf(baseQueryTemplate, siginsightMetricDBName, tableName, whereClause)
 
 	if start != nil && end != nil {
 		query += " AND unix_milli BETWEEN ? AND ?"
@@ -412,7 +412,7 @@ func (r *Reader) GetNameSimilarity(ctx context.Context, req *metrics_explorer.Re
 		GROUP BY metric_name
 		ORDER BY name_similarity DESC
 		LIMIT 30;`,
-		signozMetricDBName, tsTable)
+		siginsightMetricDBName, tsTable)
 
 	valueCtx := context.WithValue(ctx, "clickhouse_max_threads", constants.MetricsExplorerClickhouseThreads)
 	rows, err := r.db.Query(valueCtx, query, req.CurrentMetricName, req.CurrentMetricName, req.CurrentMetricName, start, end, normalized)
@@ -472,7 +472,7 @@ func (r *Reader) GetAttributeSimilarity(ctx context.Context, req *metrics_explor
 		AND NOT startsWith(metric_name, 'signoz_')
 		AND __normalized = ?
 		GROUP BY label_key
-		LIMIT 50`, signozMetricDBName, tsTable)
+		LIMIT 50`, siginsightMetricDBName, tsTable)
 
 	valueCtx := context.WithValue(ctx, "clickhouse_max_threads", constants.MetricsExplorerClickhouseThreads)
 	rows, err := r.db.Query(valueCtx, extractedLabelsQuery, req.CurrentMetricName, start, end, normalized)
@@ -549,7 +549,7 @@ func (r *Reader) GetAttributeSimilarity(ctx context.Context, req *metrics_explor
 		ORDER BY weighted_match_count DESC, raw_match_count DESC
 		LIMIT 30
 		`,
-		signozMetricDBName, tsTable)
+		siginsightMetricDBName, tsTable)
 
 	rows, err = r.db.Query(valueCtx, candidateLabelsQuery, targetKeys, targetValues, priorityPairs, 2, start, end, normalized)
 	if err != nil {
@@ -623,7 +623,7 @@ FROM (
     WHERE unix_milli between ? and ?
 )
 GROUP BY key
-ORDER BY distinct_value_count DESC;`, signozMetadataDbName, attTable)
+ORDER BY distinct_value_count DESC;`, siginsightMetadataDBName, attTable)
 	valueCtx := context.WithValue(ctx, "clickhouse_max_threads", constants.MetricsExplorerClickhouseThreads)
 	rows, err := r.db.Query(valueCtx, query, start, end)
 	if err != nil {
@@ -659,7 +659,7 @@ func (r *Reader) GetInspectMetrics(ctx context.Context, req *metrics_explorer.In
                 unix_milli,
                 value as per_series_value
         FROM
-                signoz_metrics.samples_v4
+                siginsight_metrics.samples_v4
         INNER JOIN (
                 SELECT DISTINCT
                         fingerprint,
@@ -675,7 +675,7 @@ func (r *Reader) GetInspectMetrics(ctx context.Context, req *metrics_explorer.In
                 metric_name  = ?
                 AND unix_milli >= ?
                 AND unix_milli < ?
-                ORDER BY fingerprint DESC, unix_milli DESC`, signozMetricDBName, localTsTable, fingerprintsString)
+                ORDER BY fingerprint DESC, unix_milli DESC`, siginsightMetricDBName, localTsTable, fingerprintsString)
 	valueCtx := context.WithValue(ctx, "clickhouse_max_threads", constants.MetricsExplorerClickhouseThreads)
 	rows, err := r.db.Query(valueCtx, query, start, end, req.MetricName, start, end)
 	if err != nil {
@@ -789,7 +789,7 @@ GROUP BY %s
 ORDER BY length(fingerprints) DESC, rand()
 LIMIT 40`, // added rand to get diff value every time we run this query
 		strings.Join(jsonExtracts, ", "),
-		signozMetricDBName, tsTable,
+		siginsightMetricDBName, tsTable,
 		whereClause,
 		strings.Join(groupBys, ", "))
 	valueCtx := context.WithValue(ctx, "clickhouse_max_threads", constants.MetricsExplorerClickhouseThreads)

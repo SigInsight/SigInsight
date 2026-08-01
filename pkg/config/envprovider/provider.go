@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	prefix string = "SIGNOZ_"
+	prefix string = "SIGINSIGHT_"
 	scheme string = "env"
 )
 

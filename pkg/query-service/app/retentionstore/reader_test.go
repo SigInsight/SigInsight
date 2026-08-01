@@ -66,12 +66,15 @@ func insertTTLStatus(t *testing.T, db *bun.DB, orgID, tableName, status string, 
 func TestGetLocalTableName(t *testing.T) {
 	assert := assert.New(t)
 
-	assert.Equal("signoz_traces.signoz_index_v3", getLocalTableName("signoz_traces.distributed_signoz_index_v3"))
-	assert.Equal("signoz_traces.signoz_index_v3", getLocalTableName("signoz_traces.signoz_index_v3"))
-	assert.Equal("signoz_index_v3", getLocalTableName("signoz_index_v3"))
+	assert.Equal("siginsight_traces.span_index_v3", getLocalTableName("siginsight_traces.distributed_signoz_index_v3"))
+	assert.Equal("siginsight_traces.span_index_v2", getLocalTableName("siginsight_traces.distributed_signoz_index_v2"))
+	assert.Equal("siginsight_traces.error_index_v2", getLocalTableName("siginsight_traces.distributed_signoz_error_index_v2"))
+	assert.Equal("siginsight_traces.legacy_spans", getLocalTableName("siginsight_traces.distributed_signoz_spans"))
+	assert.Equal("siginsight_traces.span_index_v3", getLocalTableName("siginsight_traces.span_index_v3"))
+	assert.Equal("span_index_v3", getLocalTableName("span_index_v3"))
 	assert.Equal(
-		[]string{"signoz_logs.logs_v2", "signoz_traces.signoz_index_v3"},
-		getLocalTableNameArray([]string{"signoz_logs.logs_v2", "signoz_traces.distributed_signoz_index_v3"}),
+		[]string{"siginsight_logs.logs_v2", "siginsight_traces.span_index_v3"},
+		getLocalTableNameArray([]string{"siginsight_logs.logs_v2", "siginsight_traces.distributed_signoz_index_v3"}),
 	)
 }
 
@@ -105,31 +108,31 @@ func TestGetTTLQueryStatus(t *testing.T) {
 
 	t.Run("returns empty when no persisted TTL request exists", func(t *testing.T) {
 		reader, _ := newRetentionTestReader(t)
-		status, apiErr := reader.getTTLQueryStatus(ctx, orgID, []string{"signoz_traces.signoz_index_v3"})
+		status, apiErr := reader.getTTLQueryStatus(ctx, orgID, []string{"siginsight_traces.span_index_v3"})
 		require.Nil(t, apiErr)
 		require.Empty(t, status)
 	})
 
 	t.Run("reports only a recent pending request as pending", func(t *testing.T) {
 		reader, db := newRetentionTestReader(t)
-		insertTTLStatus(t, db, orgID, "signoz_traces.signoz_index_v3", constants.StatusPending, time.Now().Add(-30*time.Minute))
-		status, apiErr := reader.getTTLQueryStatus(ctx, orgID, []string{"signoz_traces.signoz_index_v3"})
+		insertTTLStatus(t, db, orgID, "siginsight_traces.span_index_v3", constants.StatusPending, time.Now().Add(-30*time.Minute))
+		status, apiErr := reader.getTTLQueryStatus(ctx, orgID, []string{"siginsight_traces.span_index_v3"})
 		require.Nil(t, apiErr)
 		require.Equal(t, constants.StatusPending, status)
 	})
 
 	t.Run("does not let a stale pending request block future work", func(t *testing.T) {
 		reader, db := newRetentionTestReader(t)
-		insertTTLStatus(t, db, orgID, "signoz_traces.signoz_index_v3", constants.StatusPending, time.Now().Add(-time.Hour))
-		status, apiErr := reader.getTTLQueryStatus(ctx, orgID, []string{"signoz_traces.signoz_index_v3"})
+		insertTTLStatus(t, db, orgID, "siginsight_traces.span_index_v3", constants.StatusPending, time.Now().Add(-time.Hour))
+		status, apiErr := reader.getTTLQueryStatus(ctx, orgID, []string{"siginsight_traces.span_index_v3"})
 		require.Nil(t, apiErr)
 		require.Equal(t, constants.StatusSuccess, status)
 	})
 
 	t.Run("retains failed state", func(t *testing.T) {
 		reader, db := newRetentionTestReader(t)
-		insertTTLStatus(t, db, orgID, "signoz_traces.signoz_index_v3", constants.StatusFailed, time.Now())
-		status, apiErr := reader.getTTLQueryStatus(ctx, orgID, []string{"signoz_traces.signoz_index_v3"})
+		insertTTLStatus(t, db, orgID, "siginsight_traces.span_index_v3", constants.StatusFailed, time.Now())
+		status, apiErr := reader.getTTLQueryStatus(ctx, orgID, []string{"siginsight_traces.span_index_v3"})
 		require.Nil(t, apiErr)
 		require.Equal(t, constants.StatusFailed, status)
 	})

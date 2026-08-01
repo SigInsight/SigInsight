@@ -1,6 +1,5 @@
 import { Button, Flex, SelectProps, Typography } from 'antd';
 import type { BaseOptionType } from 'antd/es/select';
-import { getInvolvedQueriesInTraceOperator } from 'components/QueryBuilder/Query/TraceOperator/utils/utils';
 import ROUTES from 'constants/routes';
 import {
 	AlertThresholdMatchType,
@@ -13,17 +12,10 @@ import { EQueryType } from 'types/common/dashboard';
 import { USER_ROLES } from 'types/roles';
 
 export function getQueryNames(currentQuery: Query): BaseOptionType[] {
-	const involvedQueriesInTraceOperator = getInvolvedQueriesInTraceOperator(
-		currentQuery.builder.queryTraceOperator,
-	);
 	const queryConfig: Record<EQueryType, () => SelectProps['options']> = {
 		[EQueryType.QUERY_BUILDER]: () => [
-			...(getSelectedQueryOptions(currentQuery.builder.queryData)?.filter(
-				(option) =>
-					!involvedQueriesInTraceOperator.includes(option.value as string),
-			) || []),
+			...(getSelectedQueryOptions(currentQuery.builder.queryData) || []),
 			...(getSelectedQueryOptions(currentQuery.builder.queryFormulas) || []),
-			...(getSelectedQueryOptions(currentQuery.builder.queryTraceOperator) || []),
 		],
 		[EQueryType.CLICKHOUSE]: () =>
 			getSelectedQueryOptions(currentQuery.clickhouse_sql),

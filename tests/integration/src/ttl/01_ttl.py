@@ -142,9 +142,9 @@ def test_set_ttl_traces_success(
     verify_table_retention_expression(
         signoz,
         {
-            "signoz_index_v3": f"toIntervalSecond({test_duration_hours*3600})",  # 3601 hours in seconds
+            "span_index_v3": f"toIntervalSecond({test_duration_hours*3600})",  # 3601 hours in seconds
             "traces_v3_resource": f"toIntervalSecond({test_duration_hours*3600})",  # 3601 hours in seconds
-            "signoz_error_index_v2": f"toIntervalSecond({test_duration_hours*3600})",  # 3601 hours in seconds
+            "error_index_v2": f"toIntervalSecond({test_duration_hours*3600})",  # 3601 hours in seconds
             "usage_explorer": f"toIntervalSecond({test_duration_hours*3600})",  # 3601 hours in seconds
             "dependency_graph_minutes_v2": f"toIntervalSecond({test_duration_hours*3600})",  # 3601 hours in seconds
             "trace_summary": f"toIntervalSecond({test_duration_hours*3600})",  # 3601 hours in seconds
@@ -191,9 +191,9 @@ def test_set_ttl_traces_with_cold_storage(
     verify_table_retention_expression(
         signoz,
         {
-            "signoz_index_v3": f"toIntervalSecond({test_duration_hours*3600})",  # 91 days in seconds
+            "span_index_v3": f"toIntervalSecond({test_duration_hours*3600})",  # 91 days in seconds
             "traces_v3_resource": f"toIntervalSecond({test_duration_hours*3600})",  # 91 days in seconds
-            "signoz_error_index_v2": f"toIntervalSecond({test_duration_hours*3600})",  # 91 days in seconds
+            "error_index_v2": f"toIntervalSecond({test_duration_hours*3600})",  # 91 days in seconds
             "usage_explorer": f"toIntervalSecond({test_duration_hours*3600})",  # 91 days in seconds
             "dependency_graph_minutes_v2": f"toIntervalSecond({test_duration_hours*3600})",  # 91 days in seconds
             "trace_summary": f"toIntervalSecond({test_duration_hours*3600})",  # 91 days in seconds
@@ -204,9 +204,9 @@ def test_set_ttl_traces_with_cold_storage(
     verify_table_retention_expression(
         signoz,
         {
-            "signoz_index_v3": f"toIntervalSecond({test_cold_duration_hours*3600}) TO VOLUME 'cold'",
+            "span_index_v3": f"toIntervalSecond({test_cold_duration_hours*3600}) TO VOLUME 'cold'",
             "traces_v3_resource": f"toIntervalSecond({test_cold_duration_hours*3600}) TO VOLUME 'cold'",
-            "signoz_error_index_v2": f"toIntervalSecond({test_cold_duration_hours*3600}) TO VOLUME 'cold'",
+            "error_index_v2": f"toIntervalSecond({test_cold_duration_hours*3600}) TO VOLUME 'cold'",
             "usage_explorer": f"toIntervalSecond({test_cold_duration_hours*3600}) TO VOLUME 'cold'",
             "dependency_graph_minutes_v2": f"toIntervalSecond({test_cold_duration_hours*3600}) TO VOLUME 'cold'",
             "trace_summary": f"toIntervalSecond({test_cold_duration_hours*3600}) TO VOLUME 'cold'",
@@ -409,8 +409,8 @@ def test_set_custom_retention_ttl_basic(
     verify_table_partition_expressions(
         signoz,
         {
-            "signoz_logs.logs_v2": (test_retention_days, 0, 1),
-            "signoz_logs.logs_v2_resource": (test_retention_days, 0, 1),
+            "siginsight_logs.logs_v2": (test_retention_days, 0, 1),
+            "siginsight_logs.logs_v2_resource": (test_retention_days, 0, 1),
         },
     )
 
@@ -471,8 +471,12 @@ def test_set_custom_retention_ttl_basic_with_cold_storage(
     verify_table_partition_expressions(
         signoz,
         {
-            "signoz_logs.logs_v2": (test_retention_days, test_retention_days_cold, 1),
-            "signoz_logs.logs_v2_resource": (
+            "siginsight_logs.logs_v2": (
+                test_retention_days,
+                test_retention_days_cold,
+                1,
+            ),
+            "siginsight_logs.logs_v2_resource": (
                 test_retention_days,
                 test_retention_days_cold,
                 1,
@@ -603,12 +607,12 @@ def test_set_custom_retention_ttl_with_conditions(
     verify_table_partition_expressions(
         signoz,
         {
-            "signoz_logs.logs_v2": (
+            "siginsight_logs.logs_v2": (
                 test_retention_days_condition,
                 test_retention_days_cold,
                 1,
             ),
-            "signoz_logs.logs_v2_resource": (
+            "siginsight_logs.logs_v2_resource": (
                 test_retention_days_condition,
                 test_retention_days_cold,
                 1,
@@ -626,8 +630,12 @@ def test_set_custom_retention_ttl_with_conditions(
     verify_table_partition_expressions(
         signoz,
         {
-            "signoz_logs.logs_v2": (test_retention_days, test_retention_days_cold, 1),
-            "signoz_logs.logs_v2_resource": (
+            "siginsight_logs.logs_v2": (
+                test_retention_days,
+                test_retention_days_cold,
+                1,
+            ),
+            "siginsight_logs.logs_v2_resource": (
                 test_retention_days,
                 test_retention_days_cold,
                 1,
