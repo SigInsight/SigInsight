@@ -41,6 +41,26 @@ describe('GetMetricQueryRange', () => {
 			expect.any(Object),
 			controller.signal,
 			headers,
+			undefined,
+		);
+	});
+
+	it('forwards query warning notification options', async () => {
+		const request = {
+			query: { queryType: EQueryType.CLICKHOUSE },
+			graphType: PANEL_TYPES.LIST,
+			selectedTime: 'GLOBAL_TIME',
+			formatForWeb: true,
+		} as GetQueryResultsProps;
+		const options = { notifyOnWarning: false };
+
+		await GetMetricQueryRange(request, undefined, undefined, undefined, options);
+
+		expect(getQueryRangeV5).toHaveBeenCalledWith(
+			expect.any(Object),
+			undefined,
+			undefined,
+			options,
 		);
 	});
 });

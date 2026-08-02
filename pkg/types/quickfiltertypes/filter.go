@@ -140,17 +140,17 @@ func NewSignalFilterFromStorableQuickFilter(storableQuickFilter *StorableQuickFi
 // NewDefaultQuickFilter generates default filters for all supported signals
 func NewDefaultQuickFilter(orgID valuer.UUID) ([]*StorableQuickFilter, error) {
 	tracesFilters := []map[string]interface{}{
-		{"key": "duration_nano", "dataType": "float64", "type": "tag"},
-		{"key": "has_error", "dataType": "bool", "type": "tag"},
+		{"key": "duration_nano", "dataType": "float64", "type": "span"},
+		{"key": "has_error", "dataType": "bool", "type": "span"},
 		{"key": "service.name", "dataType": "string", "type": "resource"},
-		{"key": "name", "dataType": "string", "type": "tag"},
+		{"key": "name", "dataType": "string", "type": "span"},
 		{"key": "rpc.method", "dataType": "string", "type": "tag"},
-		{"key": "response_status_code", "dataType": "string", "type": "tag"},
-		{"key": "http_host", "dataType": "string", "type": "tag"},
-		{"key": "http_method", "dataType": "string", "type": "tag"},
+		{"key": "response_status_code", "dataType": "string", "type": "span"},
+		{"key": "http_host", "dataType": "string", "type": "span"},
+		{"key": "http_method", "dataType": "string", "type": "span"},
 		{"key": "http.route", "dataType": "string", "type": "tag"},
-		{"key": "http_url", "dataType": "string", "type": "tag"},
-		{"key": "trace_id", "dataType": "string", "type": "tag"},
+		{"key": "http_url", "dataType": "string", "type": "span"},
+		{"key": "trace_id", "dataType": "string", "type": "span"},
 	}
 
 	logsFilters := []map[string]interface{}{

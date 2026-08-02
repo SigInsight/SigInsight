@@ -11,6 +11,10 @@
     "clickhouse_sql": "rejected"
   },
   "common": {
+    "composition": {
+      "rawAndTrace": "single_builder_query_without_formula",
+      "timeSeriesAndScalar": "multiple_builder_queries_with_arithmetic_formulas"
+    },
     "filterOperators": [
       "eq",
       "neq",
@@ -25,6 +29,7 @@
       "contains"
     ],
     "booleanOperators": ["and", "or"],
+    "filterExpressionShape": "one_flat_and_or_chain",
     "groupBy": true,
     "order": "global_only",
     "limit": {

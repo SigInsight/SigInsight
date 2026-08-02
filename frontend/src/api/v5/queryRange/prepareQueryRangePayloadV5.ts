@@ -1,6 +1,9 @@
 /* eslint-disable sonarjs/cognitive-complexity */
 /* eslint-disable sonarjs/no-identical-functions */
-import { convertFiltersToExpression } from 'components/QueryBuilder/utils';
+import {
+	convertFiltersToExpression,
+	deduplicateEquivalentFilterItems,
+} from 'components/QueryBuilder/utils';
 import { PANEL_TYPES } from 'constants/queryBuilder';
 import { GetQueryResultsProps } from 'lib/dashboard/getQueryResults';
 import getStartEndRangeTime from 'lib/getStartEndRangeTime';
@@ -80,9 +83,18 @@ function getSignalType(dataSource: string): 'traces' | 'logs' | 'metrics' {
 function getFilter(queryData: IBuilderQuery): Filter {
 	const { filter } = queryData;
 	if (queryData.filters && queryData.filters?.items?.length > 0) {
-		const generated = convertFiltersToExpression(queryData.filters);
+		const normalizedFilters = {
+			...queryData.filters,
+			items: deduplicateEquivalentFilterItems(queryData.filters.items),
+		};
+		const generated = convertFiltersToExpression(normalizedFilters);
+		if (normalizedFilters.items.length !== queryData.filters.items.length) {
+			return convertFiltersToExpression(normalizedFilters, {
+				qualifyFieldContext: queryData.dataSource !== DataSource.METRICS,
+			});
+		}
 		if (!filter?.expression || filter.expression === generated.expression) {
-			return convertFiltersToExpression(queryData.filters, {
+			return convertFiltersToExpression(normalizedFilters, {
 				qualifyFieldContext: queryData.dataSource !== DataSource.METRICS,
 			});
 		}

@@ -45,7 +45,7 @@ export const MOCK_AGGREGATE_DATA = {
 };
 
 export const MOCK_QUERY_WITH_FILTER =
-	"service.name in $service.name AND trace_id EXISTS AND deployment.environment = '$env' service.name = 'adservice' AND trace_id = 'df2cfb0e57bb8736207689851478cd50'";
+	"service.name in $service.name AND trace_id EXISTS AND deployment.environment = '$env' AND service.name = 'adservice' AND trace_id = 'df2cfb0e57bb8736207689851478cd50'";
 
 export const MOCK_FILTER_DATA = {
 	record: {

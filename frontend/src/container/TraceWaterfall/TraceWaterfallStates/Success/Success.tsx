@@ -541,6 +541,7 @@ function Success(props: ISuccessProps): JSX.Element {
 				startTime={traceMetadata.startTime / 1e3}
 				endTime={traceMetadata.endTime / 1e3}
 				traceID={traceMetadata.traceId}
+				spans={spans}
 				onFilteredSpansChange={handleFilteredSpansChange}
 			/>
 			<TableV3

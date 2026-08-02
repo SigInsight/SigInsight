@@ -37,10 +37,11 @@ type Executor struct {
 }
 
 type QueryResult struct {
-	Name     string
-	Columns  []ResultColumn
-	Rows     [][]any
-	Warnings []string
+	Name      string
+	Columns   []ResultColumn
+	Rows      [][]any
+	Warnings  []string
+	Truncated bool
 }
 
 type ExecutionResult struct {
@@ -168,6 +169,16 @@ func (e Executor) executeStatement(ctx context.Context, statement Statement) (Qu
 	}
 	if err := rows.Err(); err != nil {
 		return QueryResult{}, errors.WrapInternalf(err, errors.CodeInternal, "failed to read query %q", statement.Name)
+	}
+	if statement.ResultLimit != 0 && len(result.Rows) > int(statement.ResultLimit) {
+		result.Rows = result.Rows[:statement.ResultLimit]
+		result.Truncated = true
+		result.Warnings = append(result.Warnings, fmt.Sprintf(
+			"query %q returned more than %d rows; only the first %d rows are included",
+			statement.Name,
+			statement.ResultLimit,
+			statement.ResultLimit,
+		))
 	}
 	return result, nil
 }

@@ -1,0 +1,15 @@
+.lite-filter-expression-editor {
+	display: grid;
+	gap: 6px;
+	min-width: 0;
+}
+
+.lite-filter-expression-label {
+	color: var(--si-text-secondary, var(--text-vanilla-400, #c0c1c3));
+	font-size: 12px;
+}
+
+.lite-filter-expression-error {
+	color: var(--color-error, #cf1322);
+	font-size: 12px;
+}

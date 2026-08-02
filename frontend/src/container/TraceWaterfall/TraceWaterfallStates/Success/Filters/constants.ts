@@ -23,7 +23,7 @@ export const BASE_FILTER_QUERY: IBuilderQuery = {
 	disabled: false,
 	stepInterval: 60,
 	having: [],
-	limit: 200,
+	limit: 1000,
 	orderBy: [
 		{
 			columnName: 'timestamp',
@@ -36,3 +36,6 @@ export const BASE_FILTER_QUERY: IBuilderQuery = {
 	offset: 0,
 	selectColumns: [],
 };
+
+export const TRACE_FILTER_PAGE_SIZE = 1000;
+export const TRACE_FILTER_TOTAL_LIMIT = 10_000;

@@ -158,6 +158,9 @@ export const getQueryByPanelType = (
 			{
 				...(getListQuery(query) || initialQueryBuilderFormValues),
 				...paginateData,
+				// Result pagination owns the page size. A legacy builder limit must
+				// not silently truncate an infinite-scroll result set.
+				limit: null,
 				...(updatedFilters ? { filters: updatedFilters } : {}),
 				filter: { expression: updatedFilterExpression || '' },
 				groupBy: [],

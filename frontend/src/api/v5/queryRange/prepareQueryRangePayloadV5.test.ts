@@ -13,6 +13,7 @@ import {
 	QueryBuilderFormula as V5QueryBuilderFormula,
 	QueryEnvelope,
 	QueryRangePayloadV5,
+	TraceBuilderQuery,
 } from 'types/api/v5/queryRange';
 import { EQueryType } from 'types/common/dashboard';
 import { DataSource, ReduceOperators } from 'types/common/queryBuilder';
@@ -803,6 +804,189 @@ describe('prepareQueryRangePayloadV5', () => {
 		const logSpec = builderQuery.spec as LogBuilderQuery;
 		expect(logSpec.filter).toEqual({
 			expression: "resource.host.name = 'worker-1'",
+		});
+	});
+
+	it('qualifies trace intrinsic, resource, and attribute quick filters and omits empty exclusions', () => {
+		const props: GetQueryResultsProps = {
+			query: {
+				queryType: EQueryType.QUERY_BUILDER,
+				id: 'trace-quick-filter',
+				unit: undefined,
+				clickhouse_sql: [],
+				builder: {
+					queryData: [
+						baseBuilderQuery({
+							dataSource: DataSource.TRACES,
+							filter: {
+								expression:
+									"name not in ['GET /health'] AND service.name in ['api'] AND http.route not in ['/health']",
+							},
+							filters: {
+								items: [
+									{
+										id: '1',
+										key: { key: 'name', type: 'span' },
+										op: 'not in',
+										value: ['GET /health'],
+									},
+									{
+										id: '2',
+										key: { key: 'service.name', type: 'resource' },
+										op: 'in',
+										value: ['api'],
+									},
+									{
+										id: '3',
+										key: { key: 'http.route', type: 'tag' },
+										op: 'not in',
+										value: ['/health'],
+									},
+									{
+										id: '4',
+										key: { key: 'has_error', type: 'span' },
+										op: 'not in',
+										value: [],
+									},
+								],
+								op: 'AND',
+							},
+						}),
+					],
+					queryFormulas: [],
+					queryTraceOperator: [],
+				},
+			},
+			graphType: PANEL_TYPES.LIST,
+			selectedTime: 'GLOBAL_TIME',
+			start,
+			end,
+		};
+
+		const result = prepareQueryRangePayloadV5(props);
+		const builderQuery = result.queryPayload.compositeQuery.queries.find(
+			(query) => query.type === 'builder_query',
+		) as QueryEnvelope;
+		const traceSpec = builderQuery.spec as TraceBuilderQuery;
+		expect(traceSpec.filter).toEqual({
+			expression:
+				"span.name not in ['GET /health'] AND resource.service.name in ['api'] AND attribute.http.route not in ['/health']",
+		});
+	});
+
+	it.each([
+		{ key: 'isRoot', value: true, expression: 'isRoot = true' },
+		{ key: 'isEntryPoint', value: true, expression: 'isEntryPoint = true' },
+		{ key: 'isRoot', value: 'true', expression: "isRoot = 'true'" },
+		{
+			key: 'isEntryPoint',
+			value: 'false',
+			expression: "isEntryPoint = 'false'",
+		},
+	])(
+		'serializes $key scope values without changing their literal type',
+		({ key, value, expression }) => {
+			const props: GetQueryResultsProps = {
+				query: {
+					queryType: EQueryType.QUERY_BUILDER,
+					id: 'trace-root-scope',
+					unit: undefined,
+					clickhouse_sql: [],
+					builder: {
+						queryData: [
+							baseBuilderQuery({
+								dataSource: DataSource.TRACES,
+								filter: { expression: '' },
+								filters: {
+									items: [
+										{
+											id: `legacy-${key}`,
+											key: {
+												key,
+												type: 'spanSearchScope',
+												dataType: DataTypes.bool,
+											},
+											op: '=',
+											value,
+										},
+									],
+									op: 'AND',
+								},
+							}),
+						],
+						queryFormulas: [],
+						queryTraceOperator: [],
+					},
+				},
+				graphType: PANEL_TYPES.LIST,
+				selectedTime: 'GLOBAL_TIME',
+				start,
+				end,
+			};
+
+			const result = prepareQueryRangePayloadV5(props);
+			const builderQuery = result.queryPayload.compositeQuery.queries.find(
+				(query) => query.type === 'builder_query',
+			) as QueryEnvelope;
+			expect((builderQuery.spec as TraceBuilderQuery).filter).toEqual({
+				expression,
+			});
+		},
+	);
+
+	it('repairs duplicate qualified and unqualified quick filters before serialization', () => {
+		const props: GetQueryResultsProps = {
+			query: {
+				queryType: EQueryType.QUERY_BUILDER,
+				id: 'duplicate-service-filter',
+				unit: undefined,
+				clickhouse_sql: [],
+				builder: {
+					queryData: [
+						baseBuilderQuery({
+							dataSource: DataSource.LOGS,
+							filter: {
+								expression:
+									"service.name not in 'matreeg_biz' resource.service.name not in 'matreeg_biz'",
+							},
+							filters: {
+								op: 'AND',
+								items: [
+									{
+										id: '1',
+										key: { key: 'service.name', type: 'resource' },
+										op: 'not in',
+										value: 'matreeg_biz',
+									},
+									{
+										id: '2',
+										key: {
+											key: 'resource.service.name',
+											type: 'resource',
+										},
+										op: 'not in',
+										value: ['matreeg_biz'],
+									},
+								],
+							},
+						}),
+					],
+					queryFormulas: [],
+					queryTraceOperator: [],
+				},
+			},
+			graphType: PANEL_TYPES.LIST,
+			selectedTime: 'GLOBAL_TIME',
+			start,
+			end,
+		};
+
+		const result = prepareQueryRangePayloadV5(props);
+		const builderQuery = result.queryPayload.compositeQuery.queries.find(
+			(query) => query.type === 'builder_query',
+		) as QueryEnvelope;
+		expect((builderQuery.spec as LogBuilderQuery).filter).toEqual({
+			expression: "resource.service.name not in ['matreeg_biz']",
 		});
 	});
 

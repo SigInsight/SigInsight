@@ -91,9 +91,12 @@ func (c Compiler) compileRaw(table string, signal Signal, plan Plan, common Comm
 	if common.After != nil && signal != SignalLogs {
 		return Statement{}, newError(ErrorUnsupported, "query.after", "typed raw cursors are only supported for logs")
 	}
-	fields := common.Select
+	fields := append([]FieldRef(nil), common.Select...)
 	if len(fields) == 0 {
 		fields = defaultFields(signal)
+	}
+	if signal == SignalTraces {
+		fields = withTraceRawIdentityFields(fields)
 	}
 	selects := make([]string, 0, len(fields))
 	columns := make([]ResultColumn, 0, len(fields))
@@ -126,23 +129,48 @@ func (c Compiler) compileRaw(table string, signal Signal, plan Plan, common Comm
 	if err != nil {
 		return Statement{}, err
 	}
+	order = appendRawOrderTieBreaker(order, signal, common.Order)
 	args = append(args, orderArgs...)
 	limit := common.Limit
 	if limit == 0 {
 		limit = 100
 	}
-	args = append(args, limit)
+	args = append(args, limit+1)
 	suffix := " LIMIT ?"
 	if common.Offset != 0 {
 		suffix += " OFFSET ?"
 		args = append(args, common.Offset)
 	}
 	return Statement{
-		Name:    common.Name,
-		SQL:     "SELECT " + strings.Join(selects, ", ") + " FROM " + table + " WHERE " + where + " ORDER BY " + order + suffix,
-		Args:    args,
-		Columns: columns,
+		Name:        common.Name,
+		SQL:         "SELECT " + strings.Join(selects, ", ") + " FROM " + table + " WHERE " + where + " ORDER BY " + order + suffix,
+		Args:        args,
+		Columns:     columns,
+		ResultLimit: limit,
 	}, nil
+}
+
+// Trace list rows must retain the identifiers needed to open the trace detail.
+// They are transport fields, not user-selected display columns.
+func withTraceRawIdentityFields(fields []FieldRef) []FieldRef {
+	identityFields := []FieldRef{
+		{Name: "timestamp", Context: FieldContextSpan, Type: ValueTypeNumber},
+		{Name: "trace_id", Context: FieldContextSpan, Type: ValueTypeString},
+		{Name: "span_id", Context: FieldContextSpan, Type: ValueTypeString},
+	}
+	for _, identity := range identityFields {
+		found := false
+		for _, field := range fields {
+			if field.Name == identity.Name {
+				found = true
+				break
+			}
+		}
+		if !found {
+			fields = append(fields, identity)
+		}
+	}
+	return fields
 }
 
 func (c Compiler) compileTraceSummary(table string, plan Plan, common CommonQuery) (Statement, error) {
@@ -174,7 +202,7 @@ func (c Compiler) compileTraceSummary(table string, plan Plan, common CommonQuer
 	args := append([]any{}, matchingArgs...)
 	args = append(args, service.Args...)
 	args = append(args, rootRangeArgs...)
-	args = append(args, limit)
+	args = append(args, limit+1)
 	suffix := " LIMIT ?"
 	if common.Offset != 0 {
 		suffix += " OFFSET ?"
@@ -194,7 +222,8 @@ func (c Compiler) compileTraceSummary(table string, plan Plan, common CommonQuer
 			"SELECT roots.trace_id AS trace_id, roots.root_timestamp AS timestamp, stats.span_count AS span_count, " +
 			"roots.root_duration_nano AS duration_nano, roots.root_service_name AS service_name, roots.root_name AS name " +
 			"FROM __lite_trace_stats AS stats INNER JOIN __lite_roots AS roots USING (trace_id) ORDER BY " + order + suffix,
-		Args: args,
+		Args:        args,
+		ResultLimit: limit,
 		Columns: []ResultColumn{
 			{Name: "trace_id", Field: fieldPointer(FieldRef{Name: "trace_id", Context: FieldContextSpan, Type: ValueTypeString})},
 			{Name: "timestamp", Field: fieldPointer(FieldRef{Name: "timestamp", Context: FieldContextSpan, Type: ValueTypeNumber})},
@@ -293,11 +322,13 @@ func (c Compiler) compileAggregate(table string, signal Signal, plan Plan, commo
 	}
 	query += " ORDER BY " + order
 	args = append(args, orderArgs...)
+	resultLimit := uint32(0)
 	if common.Limit != 0 {
 		query += " LIMIT ?"
-		args = append(args, common.Limit)
+		args = append(args, common.Limit+1)
+		resultLimit = common.Limit
 	}
-	return Statement{Name: common.Name, SQL: query, Args: args, Columns: columns}, nil
+	return Statement{Name: common.Name, SQL: query, Args: args, Columns: columns, ResultLimit: resultLimit}, nil
 }
 
 func (c Compiler) logAggregation(query LogQuery) (compiledExpression, error) {
@@ -368,6 +399,9 @@ func (c Compiler) compileFilter(signal Signal, node FilterNode) (string, []any, 
 		}
 		return strings.Join(parts, separator), args, nil
 	case Predicate:
+		if scope, ok := TraceScopeForName(signal, current.Field.Context, current.Field.Name); ok {
+			return c.compileTraceScopePredicate(scope, current)
+		}
 		field, err := c.Catalog.Resolve(signal, current.Field)
 		if err != nil {
 			return "", nil, err
@@ -375,6 +409,25 @@ func (c Compiler) compileFilter(signal Signal, node FilterNode) (string, []any, 
 		return compilePredicate(field, current)
 	default:
 		return "", nil, newError(ErrorInvalidFilter, "filter", "unsupported filter node %T", node)
+	}
+}
+
+func (c Compiler) compileTraceScopePredicate(scope TraceScope, predicate Predicate) (string, []any, error) {
+	if predicate.Field.Type != ValueTypeBool {
+		return "", nil, newError(ErrorInvalidRequest, "filter.field", "trace scope %q has boolean type", predicate.Field.Name)
+	}
+	if predicate.Op != FilterEqual || predicate.Value.Kind != ValueBool || !predicate.Value.Bool {
+		return "", nil, newError(ErrorInvalidFilter, "filter", "trace scope %q only supports = true", predicate.Field.Name)
+	}
+	switch scope {
+	case TraceScopeRoot:
+		return "parent_span_id = ''", nil, nil
+	case TraceScopeEntrypoint:
+		// OTel receiving boundaries have a remote parent and a receiving span
+		// kind. Root spans remain a separate scope, so require a parent ID here.
+		return "(parent_span_id != '') AND (kind IN (2, 5)) AND (is_remote = 'yes')", nil, nil
+	default:
+		return "", nil, newError(ErrorInvalidFilter, "filter.field", "unknown trace scope %q", predicate.Field.Name)
 	}
 }
 
@@ -531,6 +584,28 @@ func defaultRawOrder(signal Signal) string {
 		return "timestamp DESC, id DESC"
 	}
 	return "timestamp DESC, span_id DESC"
+}
+
+func appendRawOrderTieBreaker(order string, signal Signal, orders []Order) string {
+	if len(orders) == 0 {
+		return order
+	}
+	name := "id"
+	context := FieldContextLog
+	if signal == SignalTraces {
+		name = "span_id"
+		context = FieldContextSpan
+	}
+	for _, candidate := range orders {
+		if candidate.Target == OrderByField && candidate.Field.Context == context && candidate.Field.Name == name {
+			return order
+		}
+	}
+	direction := "ASC"
+	if orders[len(orders)-1].Direction == SortDescending {
+		direction = "DESC"
+	}
+	return order + ", " + name + " " + direction
 }
 
 func filterSQL(operator FilterOperator) string {

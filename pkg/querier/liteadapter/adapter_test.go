@@ -2,6 +2,7 @@ package liteadapter
 
 import (
 	"math"
+	"strings"
 	"testing"
 	"time"
 
@@ -466,6 +467,82 @@ func TestToLiteInfersUnspecifiedIntrinsicFieldTypes(t *testing.T) {
 	}
 }
 
+func TestParseFilterResolvesTypedIntrinsicBeforeTelemetryMetadata(t *testing.T) {
+	tests := []struct {
+		name       string
+		expression string
+		signal     litequery.Signal
+		wantField  litequery.FieldRef
+		wantKind   litequery.ValueKind
+	}{
+		{
+			name:       "typed trace name not in",
+			expression: "name:string NOT IN ['GET /health']",
+			signal:     litequery.SignalTraces,
+			wantField:  litequery.FieldRef{Name: "name", Context: litequery.FieldContextSpan, Type: litequery.ValueTypeString},
+			wantKind:   litequery.ValueStringList,
+		},
+		{
+			name:       "typed trace error flag not in",
+			expression: "has_error:bool NOT IN [true]",
+			signal:     litequery.SignalTraces,
+			wantField:  litequery.FieldRef{Name: "has_error", Context: litequery.FieldContextSpan, Type: litequery.ValueTypeBool},
+			wantKind:   litequery.ValueBoolList,
+		},
+		{
+			name:       "physical root span predicate",
+			expression: "span.parent_span_id = ''",
+			signal:     litequery.SignalTraces,
+			wantField:  litequery.FieldRef{Name: "parent_span_id", Context: litequery.FieldContextSpan, Type: litequery.ValueTypeString},
+			wantKind:   litequery.ValueString,
+		},
+		{
+			name:       "root span scope without metadata",
+			expression: "isRoot = true",
+			signal:     litequery.SignalTraces,
+			wantField:  litequery.FieldRef{Name: "isRoot", Context: litequery.FieldContextSpan, Type: litequery.ValueTypeBool},
+			wantKind:   litequery.ValueBool,
+		},
+		{
+			name:       "entrypoint span scope without metadata",
+			expression: "isEntryPoint = true",
+			signal:     litequery.SignalTraces,
+			wantField:  litequery.FieldRef{Name: "isEntryPoint", Context: litequery.FieldContextSpan, Type: litequery.ValueTypeBool},
+			wantKind:   litequery.ValueBool,
+		},
+		{
+			name:       "typed log severity",
+			expression: "severity_text:string = 'ERROR'",
+			signal:     litequery.SignalLogs,
+			wantField:  litequery.FieldRef{Name: "severity_text", Context: litequery.FieldContextLog, Type: litequery.ValueTypeString},
+			wantKind:   litequery.ValueString,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			filter, err := ParseFilterWithMetadata(test.expression, test.signal, map[string][]*telemetrytypes.TelemetryFieldKey{})
+			if err != nil {
+				t.Fatalf("ParseFilterWithMetadata() error = %v", err)
+			}
+			predicate, ok := filter.(litequery.Predicate)
+			if !ok {
+				t.Fatalf("filter = %#v, want Predicate", filter)
+			}
+			if predicate.Field != test.wantField || predicate.Value.Kind != test.wantKind {
+				t.Fatalf("predicate = %#v, want field %#v and value kind %q", predicate, test.wantField, test.wantKind)
+			}
+		})
+	}
+}
+
+func TestParseFilterRejectsIncorrectTypedIntrinsic(t *testing.T) {
+	_, err := ParseFilterWithMetadata("name:number = 1", litequery.SignalTraces, map[string][]*telemetrytypes.TelemetryFieldKey{})
+	if err == nil || !strings.Contains(err.Error(), "intrinsic field \"name\" has type string, not number") {
+		t.Fatalf("ParseFilterWithMetadata() error = %v, want intrinsic type mismatch", err)
+	}
+}
+
 func TestToLiteRejectsUnsupportedV5Features(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -562,17 +639,33 @@ func TestFromLiteProducesV5TimeSeriesAndRawData(t *testing.T) {
 	}
 
 	rawRequest := &qbtypes.QueryRangeRequest{Start: 1, End: 2, RequestType: qbtypes.RequestTypeRaw}
+	traceID := litequery.FieldRef{Name: "trace_id", Context: litequery.FieldContextLog, Type: litequery.ValueTypeString}
+	spanID := litequery.FieldRef{Name: "span_id", Context: litequery.FieldContextLog, Type: litequery.ValueTypeString}
 	rawResult, err := FromLite(rawRequest, litequery.ExecutionResult{Queries: []litequery.QueryResult{{
 		Name:    "L",
-		Columns: []litequery.ResultColumn{{Name: "field_0", Field: &litequery.FieldRef{Name: "timestamp", Context: litequery.FieldContextLog, Type: litequery.ValueTypeNumber}}, {Name: "field_1", Field: &litequery.FieldRef{Name: "body", Context: litequery.FieldContextBody, Type: litequery.ValueTypeString}}},
-		Rows:    [][]any{{int64(1_000_000_000), "hello"}},
+		Columns: []litequery.ResultColumn{{Name: "field_0", Field: &litequery.FieldRef{Name: "timestamp", Context: litequery.FieldContextLog, Type: litequery.ValueTypeNumber}}, {Name: "field_1", Field: &litequery.FieldRef{Name: "body", Context: litequery.FieldContextBody, Type: litequery.ValueTypeString}}, {Name: "field_2", Field: &traceID}, {Name: "field_3", Field: &spanID}},
+		Rows:    [][]any{{int64(1_000_000_000), "hello", "trace-1", "span-1"}},
 	}}})
 	if err != nil {
 		t.Fatalf("FromLite() raw error = %v", err)
 	}
 	raw := rawResult.Data.Results[0].(*qbtypes.RawData)
-	if raw.Rows[0].Data["body"] != "hello" || raw.Rows[0].Timestamp.UnixNano() != 1_000_000_000 {
+	if raw.Rows[0].Data["body"] != "hello" || raw.Rows[0].Data["trace_id"] != "trace-1" || raw.Rows[0].Data["span_id"] != "span-1" || raw.Rows[0].Timestamp.UnixNano() != 1_000_000_000 {
 		t.Fatalf("raw response = %#v", raw)
+	}
+}
+
+func TestFromLiteMarksTruncatedResults(t *testing.T) {
+	request := &qbtypes.QueryRangeRequest{Start: 1, End: 2, RequestType: qbtypes.RequestTypeRaw}
+	result, err := FromLite(request, litequery.ExecutionResult{
+		Queries:  []litequery.QueryResult{{Name: "A", Truncated: true}},
+		Warnings: []string{"query \"A\" returned more than 1000 rows"},
+	})
+	if err != nil {
+		t.Fatalf("FromLite() error = %v", err)
+	}
+	if result.Warning == nil || result.Warning.Code != qbtypes.QueryWarningCodeResultLimit || len(result.Warning.Warnings) != 1 {
+		t.Fatalf("warning = %#v, want result-limit warning", result.Warning)
 	}
 }
 

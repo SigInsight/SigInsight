@@ -184,14 +184,14 @@ export const traceFilterKeys = defineTraceFilterKeys({
 	duration_nano: {
 		key: 'duration_nano',
 		dataType: DataTypes.Float64,
-		type: 'tag',
-		id: 'duration_nano--float64--tag--true',
+		type: 'span',
+		id: 'duration_nano--float64--span--true',
 	},
 	has_error: {
 		key: 'has_error',
 		dataType: DataTypes.bool,
-		type: 'tag',
-		id: 'has_error--bool--tag--true',
+		type: 'span',
+		id: 'has_error--bool--span--true',
 	},
 	'service.name': {
 		key: 'service.name',
@@ -203,8 +203,8 @@ export const traceFilterKeys = defineTraceFilterKeys({
 	name: {
 		key: 'name',
 		dataType: DataTypes.String,
-		type: 'tag',
-		id: 'name--string--tag--true',
+		type: 'span',
+		id: 'name--string--span--true',
 	},
 	'rpc.method': {
 		key: 'rpc.method',
@@ -215,20 +215,20 @@ export const traceFilterKeys = defineTraceFilterKeys({
 	response_status_code: {
 		key: 'response_status_code',
 		dataType: DataTypes.String,
-		type: 'tag',
-		id: 'response_status_code--string--tag--true',
+		type: 'span',
+		id: 'response_status_code--string--span--true',
 	},
 	http_host: {
 		key: 'http_host',
 		dataType: DataTypes.String,
-		type: 'tag',
-		id: 'http_host--string--tag--true',
+		type: 'span',
+		id: 'http_host--string--span--true',
 	},
 	http_method: {
 		key: 'http_method',
 		dataType: DataTypes.String,
-		type: 'tag',
-		id: 'http_method--string--tag--true',
+		type: 'span',
+		id: 'http_method--string--span--true',
 	},
 	'http.route': {
 		key: 'http.route',
@@ -239,26 +239,26 @@ export const traceFilterKeys = defineTraceFilterKeys({
 	http_url: {
 		key: 'http_url',
 		dataType: DataTypes.String,
-		type: 'tag',
-		id: 'http_url--string--tag--true',
+		type: 'span',
+		id: 'http_url--string--span--true',
 	},
 	trace_id: {
 		key: 'trace_id',
 		dataType: DataTypes.String,
-		type: 'tag',
-		id: 'trace_id--string--tag--true',
+		type: 'span',
+		id: 'trace_id--string--span--true',
 	},
 	durationNanoMin: {
 		key: 'duration_nano',
 		dataType: DataTypes.Float64,
-		type: 'tag',
-		id: 'duration_nano--float64--tag--true',
+		type: 'span',
+		id: 'duration_nano--float64--span--true',
 	},
 	durationNanoMax: {
 		key: 'duration_nano',
 		dataType: DataTypes.Float64,
-		type: 'tag',
-		id: 'duration_nano--float64--tag--true',
+		type: 'span',
+		id: 'duration_nano--float64--span--true',
 	},
 });
 

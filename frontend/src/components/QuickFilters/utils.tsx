@@ -12,6 +12,28 @@ const FILTER_TYPE_MAP: Record<string, FiltersType> = {
 	duration_nano: FiltersType.DURATION,
 };
 
+const TRACE_INTRINSIC_FILTERS = new Set([
+	'duration_nano',
+	'has_error',
+	'name',
+	'response_status_code',
+	'http_host',
+	'http_method',
+	'http_url',
+	'trace_id',
+]);
+
+const normalizedFilterContext = (
+	signal: SignalType,
+	key: string,
+	context: string,
+): string => {
+	if (signal === SignalType.TRACES && TRACE_INTRINSIC_FILTERS.has(key)) {
+		return 'span';
+	}
+	return context;
+};
+
 const getFilterName = (str: string): string => {
 	if (FILTER_TITLE_MAP[str]) {
 		return FILTER_TITLE_MAP[str];
@@ -52,7 +74,7 @@ export const getFilterConfig = (
 				id: key,
 				key,
 				dataType: att.dataType,
-				type: att.type,
+				type: normalizedFilterContext(signal, key, att.type),
 			},
 			defaultOpen: index < 2,
 		} as IQuickFiltersConfig;

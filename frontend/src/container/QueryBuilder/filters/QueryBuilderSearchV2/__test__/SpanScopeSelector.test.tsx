@@ -8,6 +8,7 @@ import {
 } from '@testing-library/react';
 import { initialQueriesMap } from 'constants/queryBuilder';
 import { QueryBuilderContext } from 'providers/QueryBuilder';
+import { DataTypes } from 'types/api/queryBuilder/queryAutocompleteResponse';
 import {
 	IBuilderQuery,
 	Query,
@@ -30,6 +31,35 @@ const createSpanScopeFilter = (key: string): TagFilterItem => ({
 	op: '=',
 	value: 'true',
 });
+
+const createRootSpanFilter = (): TagFilterItem => ({
+	id: 'root-span-filter',
+	key: {
+		key: 'parent_span_id',
+		dataType: DataTypes.String,
+		type: 'span',
+	},
+	op: '=',
+	value: '',
+});
+
+type ScopeFilterExpectation = {
+	key: string;
+	type: string;
+	value: boolean;
+};
+
+const ROOT_SCOPE: ScopeFilterExpectation = {
+	key: 'isRoot',
+	type: 'spanSearchScope',
+	value: true,
+};
+
+const ENTRYPOINT_SCOPE: ScopeFilterExpectation = {
+	key: 'isEntryPoint',
+	type: 'spanSearchScope',
+	value: true,
+};
 
 const createNonScopeFilter = (key: string, value: string): TagFilterItem => ({
 	id: `non-scope-${key}`,
@@ -136,17 +166,17 @@ describe('SpanScopeSelector', () => {
 	describe('when selecting different options', () => {
 		const assertFilterAdded = (
 			updatedQuery: Query,
-			expectedKey: string,
+			expected: ScopeFilterExpectation,
 		): void => {
 			const filters = updatedQuery.builder.queryData[0].filters?.items || [];
 			expect(filters).toContainEqual(
 				expect.objectContaining({
 					key: expect.objectContaining({
-						key: expectedKey,
-						type: 'spanSearchScope',
+						key: expected.key,
+						type: expected.type,
 					}),
 					op: '=',
-					value: 'true',
+					value: expected.value,
 				}),
 			);
 		};
@@ -176,7 +206,7 @@ describe('SpanScopeSelector', () => {
 			expect(mockRedirectWithQueryBuilderData).toHaveBeenCalled();
 			assertFilterAdded(
 				mockRedirectWithQueryBuilderData.mock.calls[0][0],
-				'isRoot',
+				ROOT_SCOPE,
 			);
 		});
 
@@ -187,7 +217,7 @@ describe('SpanScopeSelector', () => {
 			expect(mockRedirectWithQueryBuilderData).toHaveBeenCalled();
 			assertFilterAdded(
 				mockRedirectWithQueryBuilderData.mock.calls[0][0],
-				'isEntryPoint',
+				ENTRYPOINT_SCOPE,
 			);
 		});
 	});
@@ -206,6 +236,12 @@ describe('SpanScopeSelector', () => {
 				expect(await screen.findByText(expectedText)).toBeInTheDocument();
 			},
 		);
+
+		it('should initialize with ROOT_SPANS when the physical root predicate exists', async () => {
+			const queryWithFilter = createQueryWithFilters([createRootSpanFilter()]);
+			renderWithContext(queryWithFilter, undefined, defaultQueryBuilderQuery);
+			expect(await screen.findByText('Root Spans')).toBeInTheDocument();
+		});
 	});
 
 	describe('when onChange and query props are provided', () => {
@@ -221,7 +257,7 @@ describe('SpanScopeSelector', () => {
 
 		const assertOnChangePayload = (
 			callNumber: number, // To handle multiple calls if needed, usually 0 for single interaction
-			expectedScopeKey: string | null,
+			expectedScope: ScopeFilterExpectation | null,
 			expectedNonScopeItems: TagFilterItem[] = [],
 		): void => {
 			expect(mockOnChange).toHaveBeenCalled();
@@ -233,21 +269,29 @@ describe('SpanScopeSelector', () => {
 				expect(items).toContainEqual(nonScopeItem);
 			});
 
-			const scopeFiltersInPayload = items.filter(
-				(filter) => filter.key?.type === 'spanSearchScope',
-			);
+			const scopeFiltersInPayload = items.filter((filter) => {
+				if (filter.key?.type === 'spanSearchScope') {
+					return filter.key.key === 'isRoot' || filter.key.key === 'isEntryPoint';
+				}
+				return (
+					filter.key?.key === 'parent_span_id' &&
+					filter.op === '=' &&
+					filter.value === ''
+				);
+			});
 
-			if (expectedScopeKey) {
+			if (expectedScope) {
 				expect(scopeFiltersInPayload.length).toBe(1);
-				expect(scopeFiltersInPayload[0].key?.key).toBe(expectedScopeKey);
-				expect(scopeFiltersInPayload[0].value).toBe('true');
+				expect(scopeFiltersInPayload[0].key?.key).toBe(expectedScope.key);
+				expect(scopeFiltersInPayload[0].key?.type).toBe(expectedScope.type);
+				expect(scopeFiltersInPayload[0].value).toBe(expectedScope.value);
 				expect(scopeFiltersInPayload[0].op).toBe('=');
 			} else {
 				expect(scopeFiltersInPayload.length).toBe(0);
 			}
 
 			const expectedTotalFilters =
-				expectedNonScopeItems.length + (expectedScopeKey ? 1 : 0);
+				expectedNonScopeItems.length + (expectedScope ? 1 : 0);
 			expect(items.length).toBe(expectedTotalFilters);
 		};
 
@@ -287,7 +331,7 @@ describe('SpanScopeSelector', () => {
 			await selectOption('Root Spans');
 
 			expect(mockRedirectWithQueryBuilderData).not.toHaveBeenCalled();
-			assertOnChangePayload(0, 'isRoot', []);
+			assertOnChangePayload(0, ROOT_SCOPE, []);
 			expect(
 				container.querySelector('span[title="Root Spans"]'),
 			).toBeInTheDocument();
@@ -328,7 +372,7 @@ describe('SpanScopeSelector', () => {
 			await selectOption('Entrypoint Spans');
 
 			expect(mockRedirectWithQueryBuilderData).not.toHaveBeenCalled();
-			assertOnChangePayload(0, 'isEntryPoint', []);
+			assertOnChangePayload(0, ENTRYPOINT_SCOPE, []);
 			expect(
 				container.querySelector('span[title="Entrypoint Spans"]'),
 			).toBeInTheDocument();
@@ -350,7 +394,7 @@ describe('SpanScopeSelector', () => {
 			await selectOption('Entrypoint Spans');
 
 			expect(mockRedirectWithQueryBuilderData).not.toHaveBeenCalled();
-			assertOnChangePayload(0, 'isEntryPoint', [nonScopeItem]);
+			assertOnChangePayload(0, ENTRYPOINT_SCOPE, [nonScopeItem]);
 			expect(
 				container.querySelector('span[title="Entrypoint Spans"]'),
 			).toBeInTheDocument();

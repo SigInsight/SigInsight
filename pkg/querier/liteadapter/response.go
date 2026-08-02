@@ -53,7 +53,16 @@ func FromLite(request *qbtypes.QueryRangeRequest, result litequery.ExecutionResu
 		response.Data.Results = append(response.Data.Results, data)
 	}
 	if len(result.Warnings) != 0 {
-		response.Warning = &qbtypes.QueryWarnData{Message: "Encountered warnings"}
+		code := qbtypes.QueryWarningCodeGeneric
+		message := "Query completed with warnings"
+		for _, query := range result.Queries {
+			if query.Truncated {
+				code = qbtypes.QueryWarningCodeResultLimit
+				message = "Query results were truncated"
+				break
+			}
+		}
+		response.Warning = &qbtypes.QueryWarnData{Code: code, Message: message}
 		for _, warning := range result.Warnings {
 			response.Warning.Warnings = append(response.Warning.Warnings, qbtypes.QueryWarnDataAdditional{Message: warning})
 		}

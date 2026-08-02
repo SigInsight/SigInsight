@@ -12,7 +12,7 @@ export const columns: ColumnsType<ListItem['data']> = [
 	{
 		title: 'Root Service Name',
 		dataIndex: 'service.name',
-		key: 'serviceName',
+		key: 'service_name',
 	},
 	{
 		title: 'Root Operation Name',
@@ -22,7 +22,7 @@ export const columns: ColumnsType<ListItem['data']> = [
 	{
 		title: 'Root Duration (in ms)',
 		dataIndex: 'duration_nano',
-		key: 'durationNano',
+		key: 'duration_nano',
 		render: (duration: number): JSX.Element => (
 			<Typography>{getMs(String(duration))}ms</Typography>
 		),
@@ -35,7 +35,7 @@ export const columns: ColumnsType<ListItem['data']> = [
 	{
 		title: 'TraceID',
 		dataIndex: 'trace_id',
-		key: 'traceID',
+		key: 'trace_id',
 		render: (traceID: string): JSX.Element => (
 			<Link
 				to={generatePath(ROUTES.TRACE_DETAIL, {

@@ -30,10 +30,16 @@ type QBEvent struct {
 }
 
 type QueryWarnData struct {
+	Code     string                    `json:"code,omitempty"`
 	Message  string                    `json:"message"`
 	Url      string                    `json:"url,omitempty"`
 	Warnings []QueryWarnDataAdditional `json:"warnings,omitempty"`
 }
+
+const (
+	QueryWarningCodeGeneric     = "query_warning"
+	QueryWarningCodeResultLimit = "result_limit_reached"
+)
 
 type QueryWarnDataAdditional struct {
 	Message string `json:"message"`

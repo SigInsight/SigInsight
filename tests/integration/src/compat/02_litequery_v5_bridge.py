@@ -129,6 +129,9 @@ def test_lite_bridge_executes_supported_v5_requests(
             **common,
             "name": "traces",
             "signal": "traces",
+            "filter": {
+                "expression": "name:string NOT IN ['excluded span'] AND has_error:bool NOT IN [true] AND attribute.http.route:string NOT IN ['/excluded']"
+            },
             "aggregations": [{"expression": "count()"}],
         },
     )

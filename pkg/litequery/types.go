@@ -1,6 +1,9 @@
 package litequery
 
-import "time"
+import (
+	"strings"
+	"time"
+)
 
 type Signal string
 
@@ -90,6 +93,31 @@ type FieldRef struct {
 	Name    string
 	Context FieldContext
 	Type    ValueType
+}
+
+// TraceScope is a query-only trace field. It deliberately has no physical
+// ClickHouse column: the compiler expands it to the Collector schema contract.
+type TraceScope string
+
+const (
+	TraceScopeRoot       TraceScope = "root"
+	TraceScopeEntrypoint TraceScope = "entrypoint"
+)
+
+// TraceScopeForName identifies the two long-lived V5 trace scope fields. They
+// are part of the public query contract, not telemetry metadata.
+func TraceScopeForName(signal Signal, context FieldContext, name string) (TraceScope, bool) {
+	if signal != SignalTraces || context != FieldContextSpan {
+		return "", false
+	}
+	switch strings.ToLower(name) {
+	case "isroot":
+		return TraceScopeRoot, true
+	case "isentrypoint":
+		return TraceScopeEntrypoint, true
+	default:
+		return "", false
+	}
 }
 
 type SortDirection string

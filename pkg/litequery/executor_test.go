@@ -131,6 +131,22 @@ func TestExecutorEnforcesStatementRowBudgetAndClosesRows(t *testing.T) {
 	}
 }
 
+func TestExecutorTrimsOverflowProbeAndAddsWarning(t *testing.T) {
+	rows := &fakeRows{columns: []string{"value"}, data: [][]any{{1}, {2}, {3}}}
+	result, err := (Executor{
+		Config: ExecutorConfig{MaxRows: 10},
+		Query:  func(context.Context, string, ...any) (Rows, error) { return rows, nil },
+	}).executeStatement(context.Background(), Statement{
+		Name: "A", SQL: "SELECT value", Columns: []ResultColumn{{Name: "value"}}, ResultLimit: 2,
+	})
+	if err != nil {
+		t.Fatalf("executeStatement() error = %v", err)
+	}
+	if len(result.Rows) != 2 || !result.Truncated || len(result.Warnings) != 1 {
+		t.Fatalf("executeStatement() result = %#v, want two rows and a truncation warning", result)
+	}
+}
+
 func TestExecutorPropagatesTimeoutToQueryer(t *testing.T) {
 	plan := testLogPlan(t)
 	_, err := (Executor{

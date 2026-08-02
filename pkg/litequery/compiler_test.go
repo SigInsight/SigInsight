@@ -109,8 +109,11 @@ func TestCompilerCompilesLogRawWithJSONAndMapParameters(t *testing.T) {
 		}},
 	})
 	wantSQL := "SELECT timestamp AS field_0, JSON_VALUE(body, ?) AS field_1 FROM siginsight_logs.logs_v2 WHERE (siginsight_logs.logs_v2.timestamp >= toUInt64(?) AND siginsight_logs.logs_v2.timestamp < toUInt64(?)) AND ((mapContains(resources_string, ?)) AND (resources_string[?] = ?)) ORDER BY timestamp DESC, id DESC LIMIT ?"
-	wantArgs := []any{"$.request.id", int64(1_000_000_000), int64(2_000_000_000), "service.name", "service.name", "api", uint32(25)}
+	wantArgs := []any{"$.request.id", int64(1_000_000_000), int64(2_000_000_000), "service.name", "service.name", "api", uint32(26)}
 	assertStatement(t, statement, wantSQL, wantArgs)
+	if statement.ResultLimit != 25 {
+		t.Fatalf("ResultLimit = %d, want 25", statement.ResultLimit)
+	}
 }
 
 func TestCompilerCompilesTraceTimeSeriesWithCorrectArgumentOrder(t *testing.T) {
@@ -145,6 +148,100 @@ func TestCompilerCompilesTraceMaterializedFilterAndGroupBy(t *testing.T) {
 	wantSQL := "SELECT intDiv(toUnixTimestamp64Milli(siginsight_traces.span_index_v3.timestamp), ?) * ? AS timestamp, `attribute_string_http$$route` AS group_0, count() AS value FROM siginsight_traces.span_index_v3 WHERE (siginsight_traces.span_index_v3.timestamp >= fromUnixTimestamp64Milli(?) AND siginsight_traces.span_index_v3.timestamp < fromUnixTimestamp64Milli(?)) AND ((`resource_string_service$$name_exists`) AND (`resource_string_service$$name` = ?)) GROUP BY intDiv(toUnixTimestamp64Milli(siginsight_traces.span_index_v3.timestamp), ?) * ?, `attribute_string_http$$route` ORDER BY timestamp ASC"
 	wantArgs := []any{int64(1_000), int64(1_000), int64(1_000), int64(61_000), "api", int64(1_000), int64(1_000)}
 	assertStatement(t, statement, wantSQL, wantArgs)
+}
+
+func TestCompilerCompilesPhysicalRootSpanFilter(t *testing.T) {
+	statement := compileOne(t, Request{
+		Range: TimeRange{StartMS: 1_000, EndMS: 61_000}, ResultType: ResultRaw,
+		Queries: []Query{TraceQuery{
+			Common: CommonQuery{
+				Name: "root_spans",
+				Filter: Predicate{
+					Field: FieldRef{Name: "parent_span_id", Context: FieldContextSpan, Type: ValueTypeString},
+					Op:    FilterEqual,
+					Value: Value{Kind: ValueString, String: ""},
+				},
+			},
+			Aggregation: TraceAggregateCount,
+		}},
+	})
+	if !strings.Contains(statement.SQL, "parent_span_id = ?") {
+		t.Fatalf("Compile() SQL = %s, want physical root span predicate", statement.SQL)
+	}
+	if strings.Contains(statement.SQL, "isRoot") {
+		t.Fatalf("Compile() SQL contains legacy synthetic field: %s", statement.SQL)
+	}
+	if !reflect.DeepEqual(statement.Args, []any{int64(1_000), int64(61_000), "", uint32(101)}) {
+		t.Fatalf("Args = %#v, want parameterized root span predicate", statement.Args)
+	}
+}
+
+func TestCompilerCompilesTraceScopePredicates(t *testing.T) {
+	tests := []struct {
+		name          string
+		field         string
+		wantSQL       string
+		wantFilterArg []any
+	}{
+		{
+			name:          "root",
+			field:         "isRoot",
+			wantSQL:       "parent_span_id = ''",
+			wantFilterArg: nil,
+		},
+		{
+			name:          "entrypoint",
+			field:         "isEntryPoint",
+			wantSQL:       "(parent_span_id != '') AND (kind IN (2, 5)) AND (is_remote = 'yes')",
+			wantFilterArg: nil,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			statement := compileOne(t, Request{
+				Range: TimeRange{StartMS: 1_000, EndMS: 61_000}, ResultType: ResultRaw,
+				Queries: []Query{TraceQuery{Common: CommonQuery{
+					Name: "trace_scope",
+					Filter: Predicate{
+						Field: FieldRef{Name: test.field, Context: FieldContextSpan, Type: ValueTypeBool},
+						Op:    FilterEqual,
+						Value: Value{Kind: ValueBool, Bool: true},
+					},
+				}, Aggregation: TraceAggregateCount}},
+			})
+			if !strings.Contains(statement.SQL, test.wantSQL) {
+				t.Fatalf("Compile() SQL = %s, want %s", statement.SQL, test.wantSQL)
+			}
+			wantArgs := append([]any{int64(1_000), int64(61_000)}, test.wantFilterArg...)
+			wantArgs = append(wantArgs, uint32(101))
+			if !reflect.DeepEqual(statement.Args, wantArgs) {
+				t.Fatalf("Args = %#v, want %#v", statement.Args, wantArgs)
+			}
+		})
+	}
+}
+
+func TestCompilerRejectsInvalidTraceScopePredicate(t *testing.T) {
+	request := Request{
+		Range: TimeRange{StartMS: 1_000, EndMS: 2_000}, ResultType: ResultRaw,
+		Queries: []Query{TraceQuery{Common: CommonQuery{
+			Name: "invalid_scope",
+			Filter: Predicate{
+				Field: FieldRef{Name: "isEntryPoint", Context: FieldContextSpan, Type: ValueTypeBool},
+				Op:    FilterEqual,
+				Value: Value{Kind: ValueBool, Bool: false},
+			},
+		}, Aggregation: TraceAggregateCount}},
+	}
+	plan, err := (DefaultPlanner{}).Plan(request)
+	if err != nil {
+		t.Fatalf("Plan() error = %v", err)
+	}
+	_, err = NewCompiler(nil).Compile(plan)
+	var queryErr *Error
+	if !errors.As(err, &queryErr) || queryErr.Code != ErrorInvalidFilter {
+		t.Fatalf("Compile() error = %v, want invalid trace scope filter", err)
+	}
 }
 
 func TestDefaultCatalogMaterializedManifestHasTrustedTraceColumns(t *testing.T) {
@@ -243,7 +340,7 @@ func TestCompilerCompilesTraceSummary(t *testing.T) {
 	if strings.Contains(statement.SQL, "WHERE parent_span_id = ''") {
 		t.Fatalf("trace summary would discard traces whose root span is unavailable: %s", statement.SQL)
 	}
-	wantArgs := []any{int64(1), int64(2), int64(1), int64(2), uint32(20)}
+	wantArgs := []any{int64(1), int64(2), int64(1), int64(2), uint32(21)}
 	if !reflect.DeepEqual(statement.Args, wantArgs) {
 		t.Fatalf("Args = %#v, want %#v", statement.Args, wantArgs)
 	}
@@ -268,7 +365,7 @@ func TestCompilerCompilesRawAndTraceOffsets(t *testing.T) {
 				Common: CommonQuery{Name: "logs", Limit: 20, Offset: 100}, Aggregation: LogAggregateCount,
 			}}},
 			wantSQL:  "SELECT timestamp AS field_0, id AS field_1, severity_text AS field_2, body AS field_3, trace_id AS field_4, span_id AS field_5 FROM siginsight_logs.logs_v2 WHERE siginsight_logs.logs_v2.timestamp >= toUInt64(?) AND siginsight_logs.logs_v2.timestamp < toUInt64(?) ORDER BY timestamp DESC, id DESC LIMIT ? OFFSET ?",
-			wantArgs: []any{int64(1_000_000), int64(2_000_000), uint32(20), uint32(100)},
+			wantArgs: []any{int64(1_000_000), int64(2_000_000), uint32(21), uint32(100)},
 		},
 		{
 			name: "trace summary",
@@ -276,7 +373,7 @@ func TestCompilerCompilesRawAndTraceOffsets(t *testing.T) {
 				Common: CommonQuery{Name: "traces", Limit: 20, Offset: 100}, Aggregation: TraceAggregateCount,
 			}}},
 			wantSQL:  "",
-			wantArgs: []any{int64(1), int64(2), int64(1), int64(2), uint32(20), uint32(100)},
+			wantArgs: []any{int64(1), int64(2), int64(1), int64(2), uint32(21), uint32(100)},
 		},
 	}
 	for _, test := range tests {
@@ -290,6 +387,50 @@ func TestCompilerCompilesRawAndTraceOffsets(t *testing.T) {
 				t.Fatalf("trace offset statement = %#v", statement)
 			}
 		})
+	}
+}
+
+func TestCompilerAddsStableIdentityToCustomRawOrder(t *testing.T) {
+	statement := compileOne(t, Request{
+		Range: TimeRange{StartMS: 1, EndMS: 2}, ResultType: ResultRaw,
+		Queries: []Query{TraceQuery{Common: CommonQuery{
+			Name: "traces",
+			Order: []Order{{
+				Target:    OrderByField,
+				Field:     FieldRef{Name: "timestamp", Context: FieldContextSpan, Type: ValueTypeNumber},
+				Direction: SortAscending,
+			}},
+		}, Aggregation: TraceAggregateCount}},
+	})
+	if !strings.Contains(statement.SQL, "ORDER BY timestamp ASC, span_id ASC LIMIT ?") {
+		t.Fatalf("SQL = %s, want stable span identity tie-breaker", statement.SQL)
+	}
+}
+
+func TestCompilerProjectsTraceIdentityForRawResults(t *testing.T) {
+	statement := compileOne(t, Request{
+		Range:      TimeRange{StartMS: 1, EndMS: 2},
+		ResultType: ResultRaw,
+		Queries: []Query{TraceQuery{
+			Common: CommonQuery{
+				Name: "traces",
+				Select: []FieldRef{
+					{Name: "name", Context: FieldContextSpan, Type: ValueTypeString},
+					{Name: "service.name", Context: FieldContextResource, Type: ValueTypeString},
+				},
+			},
+			Aggregation: TraceAggregateCount,
+		}},
+	})
+
+	wantFields := []string{"name", "service.name", "timestamp", "trace_id", "span_id"}
+	if len(statement.Columns) != len(wantFields) {
+		t.Fatalf("columns = %#v, want %d columns", statement.Columns, len(wantFields))
+	}
+	for index, want := range wantFields {
+		if statement.Columns[index].Field == nil || statement.Columns[index].Field.Name != want {
+			t.Fatalf("column %d = %#v, want field %q", index, statement.Columns[index], want)
+		}
 	}
 }
 
@@ -309,7 +450,7 @@ func TestCompilerDoesNotEmbedDynamicMapKeysOrJSONPaths(t *testing.T) {
 	if strings.Contains(statement.SQL, malicious) {
 		t.Fatalf("SQL contains dynamic input: %s", statement.SQL)
 	}
-	if !reflect.DeepEqual(statement.Args, []any{"$." + malicious, int64(1_000_000), int64(2_000_000), malicious, uint32(100)}) {
+	if !reflect.DeepEqual(statement.Args, []any{"$." + malicious, int64(1_000_000), int64(2_000_000), malicious, uint32(101)}) {
 		t.Fatalf("Args = %#v", statement.Args)
 	}
 }
@@ -335,7 +476,7 @@ func TestCompilerParameterizesTypedInLists(t *testing.T) {
 				t.Fatalf("SQL = %s", statement.SQL)
 			}
 			wantArgs := append([]any{int64(1_000_000), int64(2_000_000)}, test.args...)
-			wantArgs = append(wantArgs, uint32(100))
+			wantArgs = append(wantArgs, uint32(101))
 			if !reflect.DeepEqual(statement.Args, wantArgs) {
 				t.Fatalf("Args = %#v, want %#v", statement.Args, wantArgs)
 			}
@@ -368,7 +509,7 @@ func TestCompilerCompilesTypedLiveLogCursor(t *testing.T) {
 		}, Aggregation: LogAggregateCount}},
 	})
 	wantSQL := "SELECT timestamp AS field_0, id AS field_1, severity_text AS field_2, body AS field_3, trace_id AS field_4, span_id AS field_5 FROM siginsight_logs.logs_v2 WHERE (siginsight_logs.logs_v2.timestamp >= toUInt64(?) AND siginsight_logs.logs_v2.timestamp < toUInt64(?)) AND ((timestamp > toUInt64(?)) OR (timestamp = toUInt64(?) AND id > ?)) ORDER BY timestamp ASC, id ASC LIMIT ?"
-	wantArgs := []any{int64(1_000_000), int64(2_000_000), uint64(1_500_000), uint64(1_500_000), "last", uint32(100)}
+	wantArgs := []any{int64(1_000_000), int64(2_000_000), uint64(1_500_000), uint64(1_500_000), "last", uint32(101)}
 	assertStatement(t, statement, wantSQL, wantArgs)
 }
 

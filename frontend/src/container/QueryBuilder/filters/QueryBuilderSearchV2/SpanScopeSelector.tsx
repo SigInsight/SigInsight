@@ -3,6 +3,7 @@ import { Select } from 'antd';
 import { removeKeysFromExpression } from 'components/QueryBuilder/utils';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
 import { cloneDeep } from 'lodash-es';
+import { DataTypes } from 'types/api/queryBuilder/queryAutocompleteResponse';
 import {
 	IBuilderQuery,
 	TagFilter,
@@ -19,6 +20,8 @@ enum SpanScope {
 interface SpanFilterConfig {
 	key: string;
 	type: string;
+	dataType: DataTypes;
+	value: boolean;
 }
 
 interface SpanScopeSelectorProps {
@@ -32,10 +35,14 @@ const SPAN_FILTER_CONFIG: Record<SpanScope, SpanFilterConfig | null> = {
 	[SpanScope.ROOT_SPANS]: {
 		key: 'isRoot',
 		type: 'spanSearchScope',
+		dataType: DataTypes.bool,
+		value: true,
 	},
 	[SpanScope.ENTRYPOINT_SPANS]: {
 		key: 'isEntryPoint',
 		type: 'spanSearchScope',
+		dataType: DataTypes.bool,
+		value: true,
 	},
 };
 
@@ -43,17 +50,75 @@ const createFilterItem = (config: SpanFilterConfig): TagFilterItem => ({
 	id: uuid().slice(0, 8),
 	key: {
 		key: config.key,
-		dataType: undefined,
+		dataType: config.dataType,
 		type: config?.type,
 	},
 	op: '=',
-	value: 'true',
+	value: config.value,
 });
 
 const SELECT_OPTIONS = [
 	{ value: SpanScope.ALL_SPANS, label: 'All Spans' },
 	{ value: SpanScope.ROOT_SPANS, label: 'Root Spans' },
 	{ value: SpanScope.ENTRYPOINT_SPANS, label: 'Entrypoint Spans' },
+];
+
+const isLegacySpanScopeFilter = (filter: TagFilterItem, key: string): boolean =>
+	filter.key?.type === 'spanSearchScope' &&
+	filter.key.key === key &&
+	(filter.value === true || filter.value === 'true');
+
+const isRootSpanFilter = (filter: TagFilterItem): boolean =>
+	filter.key?.key === 'parent_span_id' &&
+	filter.op === '=' &&
+	filter.value === '';
+
+const isAnySpanScopeFilter = (filter: TagFilterItem): boolean =>
+	isRootSpanFilter(filter) ||
+	isLegacySpanScopeFilter(filter, 'isRoot') ||
+	isLegacySpanScopeFilter(filter, 'isEntryPoint');
+
+const getCurrentScopeFromFilters = (
+	filters: TagFilterItem[] = [],
+): SpanScope => {
+	if (
+		filters.some(
+			(filter) =>
+				isRootSpanFilter(filter) || isLegacySpanScopeFilter(filter, 'isRoot'),
+		)
+	) {
+		return SpanScope.ROOT_SPANS;
+	}
+	if (
+		filters.some((filter) => isLegacySpanScopeFilter(filter, 'isEntryPoint'))
+	) {
+		return SpanScope.ENTRYPOINT_SPANS;
+	}
+	return SpanScope.ALL_SPANS;
+};
+
+const getUpdatedFilters = (
+	currentFilters: TagFilterItem[] = [],
+	isTargetQuery: boolean,
+	newScope: SpanScope,
+): TagFilterItem[] => {
+	if (!isTargetQuery) {
+		return currentFilters;
+	}
+
+	const config = SPAN_FILTER_CONFIG[newScope];
+	const newScopeFilter = config !== null ? [createFilterItem(config)] : [];
+	return [
+		...currentFilters.filter((filter) => !isAnySpanScopeFilter(filter)),
+		...newScopeFilter,
+	];
+};
+
+const spanScopeKeysToRemove = [
+	...Object.values(SPAN_FILTER_CONFIG)
+		.map((config) => config?.key)
+		.filter((key): key is string => typeof key === 'string'),
+	'span.parent_span_id',
 ];
 
 function SpanScopeSelector({
@@ -65,26 +130,6 @@ function SpanScopeSelector({
 	const [selectedScope, setSelectedScope] = useState<SpanScope>(
 		SpanScope.ALL_SPANS,
 	);
-
-	const getCurrentScopeFromFilters = (
-		filters: TagFilterItem[] = [],
-	): SpanScope => {
-		const hasFilter = (key: string): boolean =>
-			filters?.some(
-				(filter) =>
-					filter.key?.type === 'spanSearchScope' &&
-					filter.key.key === key &&
-					filter.value === 'true',
-			);
-
-		if (hasFilter('isRoot')) {
-			return SpanScope.ROOT_SPANS;
-		}
-		if (hasFilter('isEntryPoint')) {
-			return SpanScope.ENTRYPOINT_SPANS;
-		}
-		return SpanScope.ALL_SPANS;
-	};
 
 	useEffect(() => {
 		let queryData = (currentQuery?.builder?.queryData || [])?.find(
@@ -103,38 +148,12 @@ function SpanScopeSelector({
 	const handleScopeChange = (newScope: SpanScope): void => {
 		const newQuery = cloneDeep(currentQuery);
 
-		const getUpdatedFilters = (
-			currentFilters: TagFilterItem[] = [],
-			isTargetQuery: boolean,
-		): TagFilterItem[] => {
-			if (!isTargetQuery) {
-				return currentFilters;
-			}
-
-			const nonScopeFilters = currentFilters.filter(
-				(filter) =>
-					!(
-						filter.key?.type === 'spanSearchScope' &&
-						(filter.key.key === 'isRoot' || filter.key.key === 'isEntryPoint')
-					),
-			);
-
-			const config = SPAN_FILTER_CONFIG[newScope];
-			const newScopeFilter = config !== null ? [createFilterItem(config)] : [];
-
-			return [...nonScopeFilters, ...newScopeFilter];
-		};
-
-		const keysToRemove = Object.values(SPAN_FILTER_CONFIG)
-			.map((config) => config?.key)
-			.filter((key): key is string => typeof key === 'string');
-
 		newQuery.builder.queryData = newQuery.builder.queryData.map((item) => ({
 			...item,
 			filter: {
 				expression: removeKeysFromExpression(
 					item.filter?.expression ?? '',
-					keysToRemove,
+					spanScopeKeysToRemove,
 				),
 			},
 			filters: {
@@ -142,6 +161,7 @@ function SpanScopeSelector({
 				items: getUpdatedFilters(
 					item.filters?.items,
 					item.queryName === query?.queryName,
+					newScope,
 				),
 				op: item.filters?.op || 'AND',
 			},
@@ -150,7 +170,8 @@ function SpanScopeSelector({
 		if (skipQueryBuilderRedirect && onChange && query) {
 			onChange({
 				...(query.filters || { items: [], op: 'AND' }),
-				items: getUpdatedFilters([...(query.filters?.items || [])], true) || [],
+				items:
+					getUpdatedFilters([...(query.filters?.items || [])], true, newScope) || [],
 			});
 
 			setSelectedScope(newScope);

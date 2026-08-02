@@ -80,21 +80,108 @@ function renderBuilder(
 
 describe('LiteQueryBuilder routing', () => {
 	it('uses Lite controls for a supported V5 state', () => {
-		renderBuilder(baseQuery);
+		const context = renderBuilder(baseQuery);
 		expect(screen.getByTestId('lite-query-builder')).toBeInTheDocument();
-		expect(screen.getByRole('button', { name: 'Add query' })).toBeInTheDocument();
+		fireEvent.click(screen.getByRole('button', { name: 'Add query' }));
+		fireEvent.click(screen.getByRole('button', { name: 'Add formula' }));
+		fireEvent.click(screen.getByRole('button', { name: 'Duplicate query A' }));
+		expect(context.addNewBuilderQuery).toHaveBeenCalledTimes(1);
+		expect(context.addNewFormula).toHaveBeenCalledTimes(1);
+		expect(context.cloneQuery).toHaveBeenCalledWith(
+			'query',
+			baseQuery.builder.queryData[0],
+		);
 	});
 
-	it('keeps a new filter in the Lite state bridge', () => {
+	it('uses the shared expression editor instead of legacy filter-row controls', () => {
+		renderBuilder(baseQuery);
+		expect(
+			screen.getByRole('textbox', { name: 'Filter expression for A' }),
+		).toBeInTheDocument();
+		expect(
+			screen.queryByRole('button', { name: 'Add filter' }),
+		).not.toBeInTheDocument();
+		expect(
+			screen.queryByRole('textbox', { name: 'Filter field 1' }),
+		).not.toBeInTheDocument();
+	});
+
+	it('synchronizes a valid filter expression into structured filters', () => {
 		const context = renderBuilder(baseQuery);
-		fireEvent.click(screen.getByRole('button', { name: 'Add filter' }));
+		fireEvent.change(
+			screen.getByRole('textbox', { name: 'Filter expression for A' }),
+			{
+				target: {
+					value:
+						"resource.service.name = 'api' AND attribute.http.status_code >= 500",
+				},
+			},
+		);
 		expect(context.handleSetQueryData).toHaveBeenCalledWith(
 			0,
 			expect.objectContaining({
-				filter: { expression: '' },
+				filter: {
+					expression:
+						"resource.service.name = 'api' AND attribute.http.status_code >= 500",
+				},
+				filters: expect.objectContaining({
+					op: 'AND',
+					items: [
+						expect.objectContaining({
+							key: expect.objectContaining({
+								key: 'resource.service.name',
+								type: 'resource',
+							}),
+							value: 'api',
+						}),
+						expect.objectContaining({
+							key: expect.objectContaining({
+								key: 'attribute.http.status_code',
+								type: 'attribute',
+							}),
+							value: 500,
+						}),
+					],
+				}),
+			}),
+		);
+	});
+
+	it('keeps invalid filter expression drafts out of query state', () => {
+		const context = renderBuilder(baseQuery);
+		fireEvent.change(
+			screen.getByRole('textbox', { name: 'Filter expression for A' }),
+			{ target: { value: 'resource.service.name =' } },
+		);
+		expect(screen.getByText('Invalid filter syntax.')).toBeInTheDocument();
+		expect(context.handleSetQueryData).not.toHaveBeenCalled();
+	});
+
+	it('hydrates a valid expression-only saved filter into structured state', () => {
+		const expressionOnlyQuery = {
+			...baseQuery,
+			builder: {
+				...baseQuery.builder,
+				queryData: [
+					{
+						...baseQuery.builder.queryData[0],
+						filter: { expression: "severity_text = 'ERROR'" },
+						filters: undefined,
+					},
+				],
+			},
+		};
+		const context = renderBuilder(expressionOnlyQuery);
+		expect(context.handleSetQueryData).toHaveBeenCalledWith(
+			0,
+			expect.objectContaining({
+				filter: { expression: "severity_text = 'ERROR'" },
 				filters: expect.objectContaining({
 					items: [
-						expect.objectContaining({ key: expect.objectContaining({ key: '' }) }),
+						expect.objectContaining({
+							key: expect.objectContaining({ key: 'severity_text' }),
+							value: 'ERROR',
+						}),
 					],
 				}),
 			}),
@@ -107,11 +194,54 @@ describe('LiteQueryBuilder routing', () => {
 		expect(screen.queryByText('Limit')).not.toBeInTheDocument();
 	});
 
-	it('hides aggregation-only controls on raw list panels', () => {
-		renderBuilder(baseQuery, PANEL_TYPES.LIST);
-		expect(screen.getByText('Limit')).toBeInTheDocument();
-		expect(screen.queryByText('Group by')).not.toBeInTheDocument();
-		expect(screen.queryByText('Aggregate')).not.toBeInTheDocument();
+	it.each([PANEL_TYPES.LIST, PANEL_TYPES.TRACE])(
+		'hides result controls and query labels on %s panels',
+		(panelType) => {
+			renderBuilder(baseQuery, panelType);
+			expect(
+				document.querySelector('.lite-query-row-header'),
+			).not.toBeInTheDocument();
+			expect(screen.queryByText('A')).not.toBeInTheDocument();
+			expect(screen.queryByText('Limit')).not.toBeInTheDocument();
+			expect(screen.queryByText('Order field')).not.toBeInTheDocument();
+			expect(screen.queryByText('Order')).not.toBeInTheDocument();
+			expect(screen.queryByText('Legend')).not.toBeInTheDocument();
+			expect(screen.queryByText('Group by')).not.toBeInTheDocument();
+			expect(screen.queryByText('Aggregate')).not.toBeInTheDocument();
+			expect(
+				screen.queryByRole('button', { name: 'Add query' }),
+			).not.toBeInTheDocument();
+			expect(
+				screen.queryByRole('button', { name: 'Add formula' }),
+			).not.toBeInTheDocument();
+			expect(
+				screen.queryByRole('button', { name: 'Duplicate query A' }),
+			).not.toBeInTheDocument();
+		},
+	);
+
+	it('renders multiple queries and formulas on aggregate panels', () => {
+		renderBuilder({
+			...baseQuery,
+			builder: {
+				...baseQuery.builder,
+				queryData: [
+					baseQuery.builder.queryData[0],
+					{ ...baseQuery.builder.queryData[0], queryName: 'B', expression: 'B' },
+				],
+				queryFormulas: [
+					{ queryName: 'F1', expression: 'A + B', disabled: false, legend: '' },
+				],
+			},
+		});
+		expect(screen.getByTestId('lite-query-A')).toBeInTheDocument();
+		expect(screen.getByTestId('lite-query-B')).toBeInTheDocument();
+		expect(screen.getByDisplayValue('A + B')).toBeInTheDocument();
+		expect(
+			screen.queryByText(
+				'This saved query uses capabilities that are not supported by the lightweight query engine.',
+			),
+		).not.toBeInTheDocument();
 	});
 
 	it('shows the migration boundary for an unsupported saved query', () => {

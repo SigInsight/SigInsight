@@ -1,4 +1,5 @@
 // @ts-nocheck
+import type { QueryRangeRequestOptions } from 'api/v5/queryRange/getQueryRange';
 import { createAggregation } from 'api/v5/queryRange/prepareQueryRangePayloadV5';
 import {
 	getQueryRangeV5,
@@ -170,6 +171,7 @@ export async function GetMetricQueryRange(
 	dynamicVariables?: IDashboardVariable[],
 	signal?: AbortSignal,
 	headers?: Record<string, string>,
+	requestOptions?: QueryRangeRequestOptions,
 ): Promise<MetricQueryRangeSuccessResponse> {
 	const panelType = props.originalGraphType || props.graphType;
 
@@ -235,6 +237,7 @@ export async function GetMetricQueryRange(
 		v5Result.queryPayload,
 		signal,
 		headers,
+		requestOptions,
 	);
 
 	const response = normalizeQueryRangeResponse(

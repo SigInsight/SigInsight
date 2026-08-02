@@ -27,13 +27,20 @@ func TestNewDefaultQuickFilterUsesCanonicalHTTPMethod(t *testing.T) {
 	require.NoError(t, json.Unmarshal([]byte(tracesFilter.Filter), &filters))
 
 	var keys []string
+	typesByKey := map[string]string{}
 	for _, filter := range filters {
 		keys = append(keys, filter.Key)
+		typesByKey[filter.Key] = filter.Type.String()
 	}
 	assert.Contains(t, keys, "http_method")
 	assert.NotContains(t, keys, "http.method")
 	assert.Contains(t, keys, "has_error")
 	assert.NotContains(t, keys, "hasError")
+	for _, key := range []string{"duration_nano", "has_error", "name", "response_status_code", "http_host", "http_method", "http_url", "trace_id"} {
+		assert.Equal(t, "span", typesByKey[key], key)
+	}
+	assert.Equal(t, "tag", typesByKey["rpc.method"])
+	assert.Equal(t, "tag", typesByKey["http.route"])
 }
 
 func TestNewDefaultQuickFilterExcludesUnusedResourceFilters(t *testing.T) {

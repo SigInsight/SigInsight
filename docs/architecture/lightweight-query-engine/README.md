@@ -41,6 +41,7 @@
 - [ADR-014：字段元数据消歧契约](decisions/014-field-metadata-disambiguation.md)
 - [ADR-015：语义 Gauge 与物理 Metric Series 对齐](decisions/015-semantic-gauge-physical-series.md)
 - [ADR-016：查询正确性不变量与结果预算](decisions/016-query-correctness-invariants.md)
+- [ADR-017：OTel Entrypoint、V5 Identity 与结果截断协议](decisions/017-otel-entrypoint-and-result-limit.md)
 
 ## 文档状态
 

@@ -49,6 +49,9 @@ Live Logs 暂时保留现有独立链路。是否纳入轻量引擎由后续 ADR
 
 - Trace 和 Span 列表及 offset 分页；V5 opaque cursor 明确拒绝。
 - service、operation、status、duration、resource/span attribute 过滤。
+- Trace Detail 的 All Spans、Root Spans、Entrypoint Spans scope。Root 是无 parent 的拓扑根；
+  Entrypoint 是 Collector 物化的 root/cross-service operation 中的非根 span，适合高亮一个
+  trace 内所有下游服务入口。
 - 按 trace 聚合与返回匹配 trace 的基础查询。
 - count、duration avg、p50、p90、p95、p99。
 - time series、scalar、raw 和 trace 结果。
@@ -230,16 +233,25 @@ V5 请求
 
 消歧规则按序执行：
 
-1. **显式上下文/类型优先**：请求已指定 context 或 data type 时，metadata 只在该
+1. **intrinsic 静态解析**：裸字段或显式 log/span 字段命中信号 schema 时直接解析；
+   `name:string` 等显式类型只校验 schema，不能触发 metadata 查找；
+2. **显式上下文/类型优先**：动态字段已指定 context 或 data type 时，metadata 只在该
    约束内匹配，不覆盖显式值；
-2. **类型与 fallback 匹配**：未指定 data type 时，先选择与操作符推断类型一致的候选；
-3. **裸名 resource 优先**：类型匹配后仍有 resource 与 attribute 同名候选时，选择
+3. **类型与 fallback 匹配**：未指定 data type 时，先选择与操作符推断类型一致的候选；
+4. **裸名 resource 优先**：类型匹配后仍有 resource 与 attribute 同名候选时，选择
    resource（保持既有 V5 行为）；
-4. **存储类型约束**：resource map 只存字符串；metadata 未登记的裸 number/bool 字段
+5. **存储类型约束**：resource map 只存字符串；metadata 未登记的裸 number/bool 字段
    可确定性解析为 attribute；
-5. **唯一候选才消歧**：多候选歧义时不猜测，交由后续校验给出明确错误；
-6. **intrinsic 字段静态解析**：信号固有字段不查询 metadata store，直接由 schema
-   catalog 确定 context/type。
+6. **唯一候选才消歧**：多候选歧义时不猜测，交由后续校验给出明确错误。
+
+前端 QuickFilters 的契约同样是类型化的：Trace 固有列写为 span context，候选字符串在
+写回时按字段 data type 恢复为 bool/number，空 `IN/NOT IN` 不序列化。结构化
+`filters.items` 变化后必须同步 `filter.expression`，防止 URL 中的旧文本表达式覆盖最新
+UI 状态。同步时直接生成 `span.*`、`resource.*`、`attribute.*` 限定名；V5 serializer
+保留手写表达式的逻辑只是兼容边界，不能作为 QuickFilters 的 context 补全机制。
+结构化字段和表达式字段通过 canonical identity 合并，使 `service.name`（resource
+context）与 `resource.service.name` 更新同一谓词；执行前只删除 field、operator、value
+完全等价的历史重复项。
 
 metadata 前置解析只处理启用的 builder query，并在访问 store 前验证时间范围；禁用的旧
 查询不能因为缺字段或指标 metadata 阻断当前请求。Catalog 在最终物理映射处再次强制

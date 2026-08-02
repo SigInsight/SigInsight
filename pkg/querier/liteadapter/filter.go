@@ -252,6 +252,37 @@ func textFieldToLite(text string, signal litequery.Signal, fallback litequery.Va
 func fieldToLite(key telemetrytypes.TelemetryFieldKey, signal litequery.Signal, fallback litequery.ValueType, metadata MetricMetadata) (litequery.FieldRef, error) {
 	key.Normalize()
 	originalContext := key.FieldContext
+	// Intrinsic fields belong to the static signal schema, so they must be
+	// resolved before consulting telemetry metadata. Saved V5 filters may carry
+	// an explicit data type (for example name:string); that type annotation
+	// should validate the intrinsic rather than make it look like a dynamic
+	// attribute that must have been observed in the metadata registry.
+	if context, err := fieldContext(key.FieldContext, signal); err == nil {
+		if _, isTraceScope := litequery.TraceScopeForName(signal, context, key.Name); isTraceScope {
+			if key.FieldDataType != telemetrytypes.FieldDataTypeUnspecified {
+				declaredType, typeErr := fieldType(key.FieldDataType, fallback)
+				if typeErr != nil {
+					return litequery.FieldRef{}, typeErr
+				}
+				if declaredType != litequery.ValueTypeBool {
+					return litequery.FieldRef{}, unsupported("trace scope field " + strconv.Quote(key.Name) + " has type bool, not " + string(declaredType))
+				}
+			}
+			return litequery.FieldRef{Name: key.Name, Context: context, Type: litequery.ValueTypeBool}, nil
+		}
+		if intrinsicType, ok := litequery.IntrinsicFieldType(signal, context, key.Name); ok {
+			if key.FieldDataType != telemetrytypes.FieldDataTypeUnspecified {
+				declaredType, typeErr := fieldType(key.FieldDataType, fallback)
+				if typeErr != nil {
+					return litequery.FieldRef{}, typeErr
+				}
+				if declaredType != intrinsicType {
+					return litequery.FieldRef{}, unsupported("intrinsic field " + strconv.Quote(key.Name) + " has type " + string(intrinsicType) + ", not " + string(declaredType))
+				}
+			}
+			return litequery.FieldRef{Name: key.Name, Context: context, Type: intrinsicType}, nil
+		}
+	}
 	resolvedFromMetadata := false
 	inferredFromSchema := false
 	if resolved, ok := resolveFieldMetadata(key, signal, fallback, metadata.FieldKeys[key.Name]); ok {
@@ -268,11 +299,6 @@ func fieldToLite(key telemetrytypes.TelemetryFieldKey, signal litequery.Signal, 
 	context, err := fieldContext(key.FieldContext, signal)
 	if err != nil {
 		return litequery.FieldRef{}, err
-	}
-	if key.FieldDataType == telemetrytypes.FieldDataTypeUnspecified {
-		if intrinsicType, ok := litequery.IntrinsicFieldType(signal, context, key.Name); ok {
-			return litequery.FieldRef{Name: key.Name, Context: context, Type: intrinsicType}, nil
-		}
 	}
 	if originalContext == telemetrytypes.FieldContextUnspecified && metadata.FieldKeys != nil && !resolvedFromMetadata && !inferredFromSchema {
 		return litequery.FieldRef{}, unsupported("unqualified " + string(signal) + " field " + strconv.Quote(key.Name) + " was not found in telemetry metadata; qualify it as resource or attribute")

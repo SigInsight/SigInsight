@@ -1,11 +1,12 @@
 package litequery
 
 type Statement struct {
-	Name     string
-	SQL      string
-	Args     []any
-	Columns  []ResultColumn
-	Warnings []string
+	Name        string
+	SQL         string
+	Args        []any
+	Columns     []ResultColumn
+	Warnings    []string
+	ResultLimit uint32
 }
 
 // ResultColumn preserves semantic result names without using user-controlled

@@ -7,7 +7,7 @@ export interface PayloadProps {
 
 export type ListItem = {
 	timestamp: string;
-	data: Omit<ILog, 'timestamp' | 'span_id'>;
+	data: Omit<ILog, 'timestamp'>;
 };
 
 export interface QueryData {

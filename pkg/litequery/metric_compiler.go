@@ -178,11 +178,13 @@ func (c Compiler) compileNumericMetric(plan Plan, source MetricSource, aggregati
 		return Statement{}, err
 	}
 	query += " ORDER BY " + order
+	resultLimit := uint32(0)
 	if common.Limit != 0 {
 		query += " LIMIT ?"
-		args = append(args, common.Limit)
+		args = append(args, common.Limit+1)
+		resultLimit = common.Limit
 	}
-	return Statement{Name: common.Name, SQL: query, Args: args, Columns: columns}, nil
+	return Statement{Name: common.Name, SQL: query, Args: args, Columns: columns, ResultLimit: resultLimit}, nil
 }
 
 func (c Compiler) compileHistogram(plan Plan, source MetricSource, aggregation MetricAggregation, common CommonQuery) (Statement, error) {
@@ -281,11 +283,13 @@ func (c Compiler) compileHistogram(plan Plan, source MetricSource, aggregation M
 		return Statement{}, err
 	}
 	query += " ORDER BY " + order
+	resultLimit := uint32(0)
 	if common.Limit != 0 {
 		query += " LIMIT ?"
-		args = append(args, common.Limit)
+		args = append(args, common.Limit+1)
+		resultLimit = common.Limit
 	}
-	return Statement{Name: common.Name, SQL: query, Args: args, Columns: columns}, nil
+	return Statement{Name: common.Name, SQL: query, Args: args, Columns: columns, ResultLimit: resultLimit}, nil
 }
 
 func (c Compiler) compileMetricSeries(source MetricSource, aggregation MetricAggregation, common CommonQuery, signal Signal, timeRange TimeRange, histogram bool) (string, []any, []ResultColumn, error) {

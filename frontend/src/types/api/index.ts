@@ -52,8 +52,8 @@ export interface AdditionalWarnings {
 export interface Warning {
 	code: string;
 	message: string;
-	url: string;
-	warnings: AdditionalWarnings[];
+	url?: string;
+	warnings?: AdditionalWarnings[];
 }
 
 export interface RawSuccessResponse<T> {
