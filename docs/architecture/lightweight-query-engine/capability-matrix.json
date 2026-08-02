@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "endpoint": "/api/v5/query_range",
   "resultTypes": ["raw", "trace", "time_series", "scalar"],
   "queryTypes": {
@@ -26,7 +26,14 @@
       "not_in",
       "exists",
       "not_exists",
-      "contains"
+      "contains",
+      "not_contains",
+      "like",
+      "not_like",
+      "ilike",
+      "not_ilike",
+      "regexp",
+      "not_regexp"
     ],
     "booleanOperators": ["and", "or"],
     "filterExpressionShape": "one_flat_and_or_chain",
@@ -46,7 +53,13 @@
     "having": false,
     "internalAggregationPredicate": "single_typed_numeric_predicate",
     "functions": [],
-    "formatOptions": ["fillGaps"]
+    "formatOptions": ["fillGaps"],
+    "stringPatternLimitBytes": 1024
+  },
+  "traceFunnel": {
+    "filterSubset": "single_span_predicates_per_step",
+    "supported": ["span_fields", "resource_attributes", "span_attributes", "string_patterns", "error_status"],
+    "rejected": ["step_sequencing", "cross_span_join", "ancestor_descendant", "latency_pointer", "funnel_planner"]
   },
   "signals": {
     "logs": {

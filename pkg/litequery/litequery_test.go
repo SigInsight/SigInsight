@@ -2,6 +2,7 @@ package litequery
 
 import (
 	"math"
+	"strings"
 	"testing"
 
 	"github.com/SigNoz/signoz/pkg/errors"
@@ -113,6 +114,14 @@ func TestValidateRejectsUnsupportedOrInvalidRequests(t *testing.T) {
 		{
 			name: "filter rejects non finite number", code: ErrorInvalidFilter,
 			req: Request{Range: TimeRange{StartMS: 1, EndMS: 2}, ResultType: ResultRaw, Queries: []Query{LogQuery{Common: CommonQuery{Name: "A", Filter: Predicate{Field: FieldRef{Name: "duration", Context: FieldContextLog, Type: ValueTypeNumber}, Op: FilterGreaterThan, Value: Value{Kind: ValueNumber, Number: math.NaN()}}}, Aggregation: LogAggregateCount}}},
+		},
+		{
+			name: "filter rejects invalid regular expression", code: ErrorInvalidFilter,
+			req: Request{Range: TimeRange{StartMS: 1, EndMS: 2}, ResultType: ResultRaw, Queries: []Query{LogQuery{Common: CommonQuery{Name: "A", Filter: Predicate{Field: stringField, Op: FilterRegexp, Value: Value{Kind: ValueString, String: "["}}}, Aggregation: LogAggregateCount}}},
+		},
+		{
+			name: "filter rejects oversized pattern", code: ErrorBudgetExceeded,
+			req: Request{Range: TimeRange{StartMS: 1, EndMS: 2}, ResultType: ResultRaw, Queries: []Query{LogQuery{Common: CommonQuery{Name: "A", Filter: Predicate{Field: stringField, Op: FilterLike, Value: Value{Kind: ValueString, String: strings.Repeat("x", maxPatternLength+1)}}}, Aggregation: LogAggregateCount}}},
 		},
 		{
 			name: "time series rejects offset", code: ErrorInvalidRequest,

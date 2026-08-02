@@ -1,9 +1,8 @@
 import { useCallback } from 'react';
 import { Typography } from 'antd';
 import logEvent from 'api/common/logEvent';
-import QuerySearch from 'components/QueryBuilder/Query/QuerySearch/QuerySearch';
-import { convertExpressionToFilters } from 'components/QueryBuilder/utils';
-import { DataSource } from 'types/common/queryBuilder';
+import QueryBuilderSearchV3 from 'features/query-builder-v3/QueryBuilderSearchV3';
+import { TagFilter } from 'types/api/queryBuilder/queryBuilderData';
 
 import { MetricsExplorerEventKeys, MetricsExplorerEvents } from '../events';
 import { MetricFiltersProps } from './types';
@@ -14,14 +13,10 @@ function MetricFilters({
 	setCurrentQuery,
 }: MetricFiltersProps): JSX.Element {
 	const handleOnChange = useCallback(
-		(expression: string): void => {
+		(tagFilter: TagFilter, expression: string): void => {
 			logEvent(MetricsExplorerEvents.FilterApplied, {
 				[MetricsExplorerEventKeys.Modal]: 'inspect',
 			});
-			const tagFilter = {
-				items: convertExpressionToFilters(expression),
-				op: 'AND',
-			};
 			setCurrentQuery({
 				...currentQuery,
 				filters: tagFilter,
@@ -45,10 +40,10 @@ function MetricFilters({
 			className="inspect-metrics-input-group metric-filters"
 		>
 			<Typography.Text>Where</Typography.Text>
-			<QuerySearch
-				queryData={currentQuery}
+			<QueryBuilderSearchV3
+				query={currentQuery}
 				onChange={handleOnChange}
-				dataSource={DataSource.METRICS}
+				label=""
 			/>
 		</div>
 	);

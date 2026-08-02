@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import {
 	getRemovePrefixFromKey,
 	getTagToken,
-} from 'container/QueryBuilder/filters/QueryBuilderSearch/utils';
+} from 'container/QueryBuilder/filters/queryBuilderFilterUtils';
 import { BaseAutocompleteData } from 'types/api/queryBuilder/queryAutocompleteResponse';
 
 type ICurrentKeyAndOperator = [string, string, string[]];

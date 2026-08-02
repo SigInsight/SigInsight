@@ -18,9 +18,9 @@ enum SpanScope {
 }
 
 interface SpanFilterConfig {
+	dataType: DataTypes;
 	key: string;
 	type: string;
-	dataType: DataTypes;
 	value: boolean;
 }
 
@@ -48,20 +48,10 @@ const SPAN_FILTER_CONFIG: Record<SpanScope, SpanFilterConfig | null> = {
 
 const createFilterItem = (config: SpanFilterConfig): TagFilterItem => ({
 	id: uuid().slice(0, 8),
-	key: {
-		key: config.key,
-		dataType: config.dataType,
-		type: config?.type,
-	},
+	key: { key: config.key, dataType: config.dataType, type: config.type },
 	op: '=',
 	value: config.value,
 });
-
-const SELECT_OPTIONS = [
-	{ value: SpanScope.ALL_SPANS, label: 'All Spans' },
-	{ value: SpanScope.ROOT_SPANS, label: 'Root Spans' },
-	{ value: SpanScope.ENTRYPOINT_SPANS, label: 'Entrypoint Spans' },
-];
 
 const isLegacySpanScopeFilter = (filter: TagFilterItem, key: string): boolean =>
 	filter.key?.type === 'spanSearchScope' &&
@@ -78,9 +68,7 @@ const isAnySpanScopeFilter = (filter: TagFilterItem): boolean =>
 	isLegacySpanScopeFilter(filter, 'isRoot') ||
 	isLegacySpanScopeFilter(filter, 'isEntryPoint');
 
-const getCurrentScopeFromFilters = (
-	filters: TagFilterItem[] = [],
-): SpanScope => {
+const currentScope = (filters: TagFilterItem[] = []): SpanScope => {
 	if (
 		filters.some(
 			(filter) =>
@@ -97,87 +85,67 @@ const getCurrentScopeFromFilters = (
 	return SpanScope.ALL_SPANS;
 };
 
-const getUpdatedFilters = (
-	currentFilters: TagFilterItem[] = [],
-	isTargetQuery: boolean,
+const updatedFilters = (
+	filters: TagFilterItem[] = [],
 	newScope: SpanScope,
 ): TagFilterItem[] => {
-	if (!isTargetQuery) {
-		return currentFilters;
-	}
-
 	const config = SPAN_FILTER_CONFIG[newScope];
-	const newScopeFilter = config !== null ? [createFilterItem(config)] : [];
 	return [
-		...currentFilters.filter((filter) => !isAnySpanScopeFilter(filter)),
-		...newScopeFilter,
+		...filters.filter((filter) => !isAnySpanScopeFilter(filter)),
+		...(config ? [createFilterItem(config)] : []),
 	];
 };
 
-const spanScopeKeysToRemove = [
-	...Object.values(SPAN_FILTER_CONFIG)
-		.map((config) => config?.key)
-		.filter((key): key is string => typeof key === 'string'),
-	'span.parent_span_id',
-];
+const spanScopeKeys = ['isRoot', 'isEntryPoint', 'span.parent_span_id'];
 
 function SpanScopeSelector({
 	onChange,
 	query,
-	skipQueryBuilderRedirect,
+	skipQueryBuilderRedirect = false,
 }: SpanScopeSelectorProps): JSX.Element {
 	const { currentQuery, redirectWithQueryBuilderData } = useQueryBuilder();
-	const [selectedScope, setSelectedScope] = useState<SpanScope>(
-		SpanScope.ALL_SPANS,
-	);
+	const [selectedScope, setSelectedScope] = useState(SpanScope.ALL_SPANS);
 
 	useEffect(() => {
-		let queryData = (currentQuery?.builder?.queryData || [])?.find(
-			(item) => item.queryName === query?.queryName,
-		);
-
-		if (onChange && query) {
-			queryData = query;
-		}
-
-		const filters = queryData?.filters?.items;
-		const currentScope = getCurrentScopeFromFilters(filters);
-		setSelectedScope(currentScope);
+		const queryData =
+			onChange && query
+				? query
+				: currentQuery?.builder?.queryData.find(
+						(item) => item.queryName === query?.queryName,
+				  );
+		setSelectedScope(currentScope(queryData?.filters?.items));
 	}, [currentQuery, onChange, query]);
 
 	const handleScopeChange = (newScope: SpanScope): void => {
-		const newQuery = cloneDeep(currentQuery);
-
-		newQuery.builder.queryData = newQuery.builder.queryData.map((item) => ({
-			...item,
-			filter: {
-				expression: removeKeysFromExpression(
-					item.filter?.expression ?? '',
-					spanScopeKeysToRemove,
-				),
-			},
-			filters: {
-				...item.filters,
-				items: getUpdatedFilters(
-					item.filters?.items,
-					item.queryName === query?.queryName,
-					newScope,
-				),
-				op: item.filters?.op || 'AND',
-			},
-		}));
-
 		if (skipQueryBuilderRedirect && onChange && query) {
 			onChange({
 				...(query.filters || { items: [], op: 'AND' }),
-				items:
-					getUpdatedFilters([...(query.filters?.items || [])], true, newScope) || [],
+				items: updatedFilters(query.filters?.items, newScope),
 			});
-
 			setSelectedScope(newScope);
-		} else {
-			redirectWithQueryBuilderData(newQuery);
+			return;
 		}
+
+		const nextQuery = cloneDeep(currentQuery);
+		nextQuery.builder.queryData = nextQuery.builder.queryData.map((item) =>
+			item.queryName !== query?.queryName
+				? item
+				: {
+						...item,
+						filter: {
+							expression: removeKeysFromExpression(
+								item.filter?.expression ?? '',
+								spanScopeKeys,
+							),
+						},
+						filters: {
+							...item.filters,
+							items: updatedFilters(item.filters?.items, newScope),
+							op: item.filters?.op || 'AND',
+						},
+				  },
+		);
+		redirectWithQueryBuilderData(nextQuery);
 	};
 
 	return (
@@ -186,15 +154,13 @@ function SpanScopeSelector({
 			className="span-scope-selector"
 			data-testid="span-scope-selector"
 			onChange={handleScopeChange}
-			options={SELECT_OPTIONS}
+			options={[
+				{ value: SpanScope.ALL_SPANS, label: 'All Spans' },
+				{ value: SpanScope.ROOT_SPANS, label: 'Root Spans' },
+				{ value: SpanScope.ENTRYPOINT_SPANS, label: 'Entrypoint Spans' },
+			]}
 		/>
 	);
 }
-
-SpanScopeSelector.defaultProps = {
-	onChange: undefined,
-	query: undefined,
-	skipQueryBuilderRedirect: false,
-};
 
 export default SpanScopeSelector;

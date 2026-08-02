@@ -87,10 +87,21 @@ Meter 是 Metrics 查询的一种明确 source，不建立第四套通用查询�
 
 公共 Filter AST 第一版支持：
 
-- `AND`、`OR` 和括号分组。
+- 单一 flat `AND` 链或单一 flat `OR` 链；混合优先级和括号分组明确拒绝。
 - `=`、`!=`、`>`、`>=`、`<`、`<=`。
-- `IN`、`NOT IN`、`EXISTS`、`NOT EXISTS`、`CONTAINS`。
+- `IN`、`NOT IN`、`EXISTS`、`NOT EXISTS`、`CONTAINS`、`NOT CONTAINS`。
+- string 字段的 `LIKE`、`NOT LIKE`、`ILIKE`、`NOT ILIKE`、`REGEXP`、`NOT REGEXP`。
 - 字符串、布尔、整数、浮点，以及同类型的字符串/数值/布尔数组值。
+
+`CONTAINS` 是大小写不敏感的 literal substring，不解释 `%`/`_`；`LIKE/ILIKE` 使用
+ClickHouse wildcard；`REGEXP` 使用 RE2-compatible pattern。pattern 最长 1,024 bytes，
+regexp 在编译 SQL 前预校验，所有值仍通过参数传递。
+
+### 3.5.1 Trace Funnel-compatible filter subset
+
+Trace Funnel 的每个 step 可以复用公共 Filter AST 过滤当前 span 的 name、service、status、
+duration、resource/span attributes 和错误状态。轻量引擎不负责 step sequencing、跨 span
+join、ancestor/descendant、latency pointer 或 Funnel 专用多阶段规划。该边界详见 ADR-018。
 
 禁止将 SQL 片段作为 filter、aggregation 或 order expression 传入。
 

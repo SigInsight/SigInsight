@@ -45,7 +45,7 @@ function BreakoutOptions({
 		[],
 	);
 
-	// Using getKeySuggestions directly like in QuerySearch
+	// Breakout fields use the metadata endpoint directly because this is a selector, not a filter editor.
 	const { data, isFetching } = useQuery(
 		[
 			'keySuggestions',

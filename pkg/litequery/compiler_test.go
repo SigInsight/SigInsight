@@ -92,6 +92,49 @@ func TestCompilerCastsNumericMapComparisonParameter(t *testing.T) {
 	}
 }
 
+func TestCompilerCompilesParameterizedStringPatterns(t *testing.T) {
+	tests := []struct {
+		name      string
+		operator  FilterOperator
+		pattern   string
+		wantSQL   string
+		wantExist bool
+	}{
+		{"like", FilterLike, "/api/%", "toString(`attribute_string_http$$route`) LIKE ?", true},
+		{"not_like", FilterNotLike, "/internal/%", "NOT (toString(`attribute_string_http$$route`) LIKE ?)", false},
+		{"ilike", FilterILike, "/API/%", "toString(`attribute_string_http$$route`) ILIKE ?", true},
+		{"not_ilike", FilterNotILike, "/INTERNAL/%", "NOT (toString(`attribute_string_http$$route`) ILIKE ?)", false},
+		{"regexp", FilterRegexp, "^/api/[a-z]+$", "match(toString(`attribute_string_http$$route`), ?)", true},
+		{"not_regexp", FilterNotRegexp, "^/internal/", "NOT match(toString(`attribute_string_http$$route`), ?)", false},
+		{"not_contains", FilterNotContains, "health", "positionCaseInsensitiveUTF8(toString(`attribute_string_http$$route`), ?) = 0", false},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			statement := compileOne(t, Request{
+				Range: TimeRange{StartMS: 1_000, EndMS: 2_000}, ResultType: ResultRaw,
+				Queries: []Query{TraceQuery{Common: CommonQuery{
+					Name: "A",
+					Filter: Predicate{
+						Field: FieldRef{Name: "http.route", Context: FieldContextAttribute, Type: ValueTypeString},
+						Op:    test.operator,
+						Value: Value{Kind: ValueString, String: test.pattern},
+					},
+				}, Aggregation: TraceAggregateCount}},
+			})
+			if !strings.Contains(statement.SQL, test.wantSQL) {
+				t.Fatalf("SQL = %s, want %s", statement.SQL, test.wantSQL)
+			}
+			hasExistence := strings.Contains(statement.SQL, "`attribute_string_http$$route_exists`")
+			if hasExistence != test.wantExist {
+				t.Fatalf("SQL existence guard = %v, want %v: %s", hasExistence, test.wantExist, statement.SQL)
+			}
+			if !reflect.DeepEqual(statement.Args[len(statement.Args)-2], test.pattern) {
+				t.Fatalf("Args = %#v, want pattern %q before limit", statement.Args, test.pattern)
+			}
+		})
+	}
+}
+
 func TestCompilerCompilesLogRawWithJSONAndMapParameters(t *testing.T) {
 	statement := compileOne(t, Request{
 		Range: TimeRange{StartMS: 1_000, EndMS: 2_000}, ResultType: ResultRaw,

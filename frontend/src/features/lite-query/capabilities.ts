@@ -30,13 +30,50 @@ export const LITE_FILTER_OPERATORS = [
 	{ label: 'exists', value: 'exists' },
 	{ label: 'does not exist', value: 'not exists' },
 	{ label: 'contains', value: 'contains' },
+	{ label: 'does not contain', value: 'not contains' },
+	{ label: 'matches pattern', value: 'like' },
+	{ label: 'does not match pattern', value: 'not like' },
+	{ label: 'matches pattern ignoring case', value: 'ilike' },
+	{ label: 'does not match pattern ignoring case', value: 'not ilike' },
+	{ label: 'matches regular expression', value: 'regexp' },
+	{ label: 'does not match regular expression', value: 'not regexp' },
 ] as const;
+
+export type LiteFilterOperator = typeof LITE_FILTER_OPERATORS[number]['value'];
 
 const noValueOperators = new Set(['exists', 'not exists']);
 const listOperators = new Set(['in', 'not in']);
 const allowedFilterOperators: Set<string> = new Set(
 	LITE_FILTER_OPERATORS.map(({ value }) => value),
 );
+
+const stringOnlyOperators = new Set<LiteFilterOperator>([
+	'contains',
+	'not contains',
+	'like',
+	'not like',
+	'ilike',
+	'not ilike',
+	'regexp',
+	'not regexp',
+]);
+
+export function getLiteFilterOperatorsForField(
+	field?: LiteFilterField,
+): typeof LITE_FILTER_OPERATORS[number][] {
+	if (field?.semanticKind === 'positive_bool_scope') {
+		return LITE_FILTER_OPERATORS.filter(({ value }) => value === '=');
+	}
+	return LITE_FILTER_OPERATORS.filter(({ value }) => {
+		if (field?.dataType === DataTypes.bool) {
+			return ['=', '!=', 'in', 'not in', 'exists', 'not exists'].includes(value);
+		}
+		if (field?.dataType && field.dataType !== DataTypes.String) {
+			return !stringOnlyOperators.has(value);
+		}
+		return true;
+	});
+}
 
 const logAggregations = new Set(['count', 'sum', 'avg', 'min', 'max']);
 const traceAggregations = new Set([
@@ -153,11 +190,16 @@ const filterOperator = (
 ): string | undefined => {
 	const normalized = operator.trim().toLowerCase();
 	if (hasNegation) {
-		if (normalized === 'in') {
-			return 'not in';
-		}
-		if (normalized === 'exists') {
-			return 'not exists';
+		const negatedOperators: Record<string, string> = {
+			contains: 'not contains',
+			exists: 'not exists',
+			ilike: 'not ilike',
+			in: 'not in',
+			like: 'not like',
+			regexp: 'not regexp',
+		};
+		if (negatedOperators[normalized]) {
+			return negatedOperators[normalized];
 		}
 		return undefined;
 	}
@@ -196,11 +238,35 @@ const parseFilterLiteral = (rawValue: string): LiteFilterLiteral => {
 	return { dataType: DataTypes.String, kind: 'string', value: trimmed };
 };
 
+export function liteFilterFieldExpressionKey(field: LiteFilterField): string {
+	if (/^(resource|attribute|span|log|body|scope|metric)\./.test(field.key)) {
+		return field.key;
+	}
+	switch (field.type) {
+		case 'resource':
+		case 'attribute':
+		case 'span':
+		case 'log':
+		case 'body':
+		case 'scope':
+		case 'metric':
+			return `${field.type}.${field.key}`;
+		case 'tag':
+			return `attribute.${field.key}`;
+		case 'spanSearchScope':
+			return `span.${field.key}`;
+		default:
+			return field.key;
+	}
+}
+
 function matchingDefinedField(
 	key: string,
 	fields: readonly LiteFilterField[] | undefined,
 ): LiteFilterField | undefined {
-	return fields?.find((field) => field.key === key);
+	return fields?.find(
+		(field) => field.key === key || liteFilterFieldExpressionKey(field) === key,
+	);
 }
 
 function typesAreCompatible(expected: DataTypes, actual: DataTypes): boolean {
@@ -273,11 +339,16 @@ const validateLiteBooleanShape = (
 		}
 		if (
 			token.type === FilterQueryLexer.NOT &&
-			![FilterQueryLexer.IN, FilterQueryLexer.EXISTS].includes(
-				tokens[index + 1]?.type,
-			)
+			![
+				FilterQueryLexer.IN,
+				FilterQueryLexer.EXISTS,
+				FilterQueryLexer.LIKE,
+				FilterQueryLexer.ILIKE,
+				FilterQueryLexer.REGEXP,
+				FilterQueryLexer.CONTAINS,
+			].includes(tokens[index + 1]?.type)
 		) {
-			return { error: 'Only NOT IN and NOT EXISTS negation are supported.' };
+			return { error: 'Prefix NOT is not supported by lightweight filters.' };
 		}
 	}
 	return {

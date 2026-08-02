@@ -3,7 +3,7 @@ import {
 	OPERATORS,
 	QUERY_BUILDER_OPERATORS_BY_TYPES,
 } from 'constants/queryBuilder';
-import { getRemovePrefixFromKey } from 'container/QueryBuilder/filters/QueryBuilderSearch/utils';
+import { getRemovePrefixFromKey } from 'container/QueryBuilder/filters/queryBuilderFilterUtils';
 import { BaseAutocompleteData } from 'types/api/queryBuilder/queryAutocompleteResponse';
 
 type IOperators =

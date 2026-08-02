@@ -5,10 +5,10 @@ import { LoadingOutlined } from '@ant-design/icons';
 import { Spin, Table } from 'antd';
 import logEvent from 'api/common/logEvent';
 import cx from 'classnames';
-import QuerySearch from 'components/QueryBuilder/Query/QuerySearch/QuerySearch';
 import { initialQueriesMap } from 'constants/queryBuilder';
 import RightToolbarActions from 'container/QueryBuilder/components/ToolbarActions/RightToolbarActions';
 import Toolbar from 'container/Toolbar/Toolbar';
+import QueryBuilderSearchV3 from 'features/query-builder-v3/QueryBuilderSearchV3';
 import { useGetCompositeQueryParam } from 'hooks/queryBuilder/useGetCompositeQueryParam';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
 import { useQueryOperations } from 'hooks/queryBuilder/useQueryBuilderOperations';
@@ -17,6 +17,7 @@ import { useListOverview } from 'hooks/thirdPartyApis/useListOverview';
 import { get } from 'lodash-es';
 import { AppState } from 'store/reducers';
 import { BaseAutocompleteData } from 'types/api/queryBuilder/queryAutocompleteResponse';
+import { TagFilter } from 'types/api/queryBuilder/queryBuilderData';
 import { HandleChangeQueryDataV5 } from 'types/common/operations.types';
 import { DataSource } from 'types/common/queryBuilder';
 import { GlobalReducer } from 'types/reducer/globalTime';
@@ -84,7 +85,7 @@ function DomainList(): JSX.Element {
 	});
 
 	const handleSearchChange = useCallback(
-		(value: string) => {
+		(_filters: TagFilter, value: string) => {
 			(handleChangeQueryData as HandleChangeQueryDataV5)('filter', {
 				expression: value,
 			});
@@ -118,12 +119,12 @@ function DomainList(): JSX.Element {
 				rightActions={<RightToolbarActions onStageRunQuery={handleRunQuery} />}
 			/>
 			<div className={cx('api-monitoring-list-header')}>
-				<QuerySearch
-					dataSource={DataSource.TRACES}
-					queryData={query}
+				<QueryBuilderSearchV3
+					query={query}
 					onChange={handleSearchChange}
 					placeholder="Enter your filter query (e.g., service.name = 'frontend')"
 					hardcodedAttributeKeys={ApiMonitoringHardcodedAttributeKeys}
+					label=""
 				/>
 			</div>
 			{!isFetching && !isLoading && formattedDataForTable.length === 0 && (

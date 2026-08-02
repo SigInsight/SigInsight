@@ -469,9 +469,31 @@ func compilePredicate(field ResolvedField, predicate Predicate) (string, []any, 
 			return "(" + field.ExistsSQL + ") AND (" + condition + ")", append(append([]any{}, field.ExistsArgs...), args...), nil
 		}
 		return condition, args, nil
+	case FilterNotContains:
+		return compileStringPattern(field, "positionCaseInsensitiveUTF8(toString("+field.SQL+"), ?) = 0", predicate.Value.String, false)
+	case FilterLike:
+		return compileStringPattern(field, "toString("+field.SQL+") LIKE ?", predicate.Value.String, true)
+	case FilterNotLike:
+		return compileStringPattern(field, "NOT (toString("+field.SQL+") LIKE ?)", predicate.Value.String, false)
+	case FilterILike:
+		return compileStringPattern(field, "toString("+field.SQL+") ILIKE ?", predicate.Value.String, true)
+	case FilterNotILike:
+		return compileStringPattern(field, "NOT (toString("+field.SQL+") ILIKE ?)", predicate.Value.String, false)
+	case FilterRegexp:
+		return compileStringPattern(field, "match(toString("+field.SQL+"), ?)", predicate.Value.String, true)
+	case FilterNotRegexp:
+		return compileStringPattern(field, "NOT match(toString("+field.SQL+"), ?)", predicate.Value.String, false)
 	default:
 		return "", nil, newError(ErrorInvalidFilter, "filter.operator", "unsupported filter operator %q", predicate.Op)
 	}
+}
+
+func compileStringPattern(field ResolvedField, condition, value string, requireExistence bool) (string, []any, error) {
+	args := append(append([]any{}, field.Args...), value)
+	if field.RequiresExistence && requireExistence {
+		return "(" + field.ExistsSQL + ") AND (" + condition + ")", append(append([]any{}, field.ExistsArgs...), args...), nil
+	}
+	return condition, args, nil
 }
 
 func listValues(value Value) []any {

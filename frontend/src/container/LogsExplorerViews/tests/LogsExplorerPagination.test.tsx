@@ -120,10 +120,10 @@ jest.mock(
 );
 
 jest.mock(
-	'container/QueryBuilder/filters/QueryBuilderSearchV2/QueryBuilderSearchV2',
+	'features/query-builder-v3/QueryBuilderSearchV3',
 	() =>
-		function MockQueryBuilderSearchV2(): JSX.Element {
-			return <div>MockQueryBuilderSearchV2</div>;
+		function MockQueryBuilderSearchV3(): JSX.Element {
+			return <div>MockQueryBuilderSearchV3</div>;
 		},
 );
 jest.mock(

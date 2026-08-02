@@ -9,7 +9,7 @@ import {
 	getRemovePrefixFromKey,
 	getTagToken,
 	isInNInOperator,
-} from 'container/QueryBuilder/filters/QueryBuilderSearch/utils';
+} from 'container/QueryBuilder/filters/queryBuilderFilterUtils';
 import { useGetMetricsListFilterKeys } from 'hooks/metricsExplorer/useGetMetricsListFilterKeys';
 import useDebounceValue from 'hooks/useDebounce';
 import { cloneDeep, isEqual, uniqWith, unset } from 'lodash-es';

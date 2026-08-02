@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
-import { initialQueriesMap, OperatorConfigKeys } from 'constants/queryBuilder';
-import QueryBuilderSearchV2 from 'container/QueryBuilder/filters/QueryBuilderSearchV2/QueryBuilderSearchV2';
+import { initialQueriesMap } from 'constants/queryBuilder';
+import QueryBuilderSearchV3 from 'features/query-builder-v3/QueryBuilderSearchV3';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
 import { useQueryOperations } from 'hooks/queryBuilder/useQueryBuilderOperations';
 import { useShareBuilderUrl } from 'hooks/queryBuilder/useShareBuilderUrl';
@@ -53,11 +53,10 @@ function ResourceAttributesFilter(): JSX.Element | null {
 
 	return (
 		<div className="resourceAttributesFilter-container-v2">
-			<QueryBuilderSearchV2
+			<QueryBuilderSearchV3
 				query={query}
 				onChange={handleChangeTagFilters}
-				operatorConfigKey={OperatorConfigKeys.EXCEPTIONS}
-				hideSpanScopeSelector
+				label=""
 			/>
 		</div>
 	);

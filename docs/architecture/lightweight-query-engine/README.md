@@ -23,6 +23,7 @@
 - [M9：物化列加速查询](milestones/m9-materialized-column-acceleration.md)
 - [M10：退役不可达的 Legacy 编辑渲染树](milestones/m10-legacy-editor-render-tree.md)
 - [M11：清理无调用的 Legacy QueryBuilder Helper](milestones/m11-unused-builder-helpers.md)
+- [M12：QueryBuilderSearchV3 与 Trace Funnel 过滤子集](milestones/m12-query-builder-v3.md)
 - [架构决策记录规范](decisions/README.md)
 - [ADR 模板](decisions/000-template.md)
 - [ADR-001：采用受约束的类型化查询语言](decisions/001-constrained-query-language.md)
@@ -42,6 +43,7 @@
 - [ADR-015：语义 Gauge 与物理 Metric Series 对齐](decisions/015-semantic-gauge-physical-series.md)
 - [ADR-016：查询正确性不变量与结果预算](decisions/016-query-correctness-invariants.md)
 - [ADR-017：OTel Entrypoint、V5 Identity 与结果截断协议](decisions/017-otel-entrypoint-and-result-limit.md)
+- [ADR-018：QueryBuilderSearchV3 与 Trace Funnel 过滤边界](decisions/018-query-builder-v3-and-funnel-filter-boundary.md)
 
 ## 文档状态
 
@@ -61,6 +63,7 @@
 | M9 物化列加速查询 | Complete | Trace v1 静态 manifest、非 manifest Map、9 字段认证 API/query-log workload 与 Map-vs-column 基准已验证；当前无删列候选 |
 | M10 Legacy 编辑渲染树 | Complete | 已删除不可达的 Query/Formula/函数/聚合渲染树，保留共享状态、DTO 与独立筛选控件 |
 | M11 Legacy QueryBuilder Helper | Complete | 已删除无调用旧 helper，保留 metadata 与专用读取仍使用的 parser/field mapper |
+| M12 QueryBuilderSearchV3 | Complete | V3 文本补全、字符串谓词、生产消费者迁移和旧编辑器删除已完成；全量 build/test 与真实浏览器查询已闭环 |
 | 机器可读能力矩阵 | Accepted | `capability-matrix.json` 是后续协议和 UI 的约束来源 |
 
 ## 变更规则

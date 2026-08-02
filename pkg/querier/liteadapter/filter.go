@@ -103,13 +103,10 @@ func parsePrimary(context grammar.IPrimaryContext, signal litequery.Signal, meta
 }
 
 func parseComparison(context grammar.IComparisonContext, signal litequery.Signal, metadata MetricMetadata) (litequery.FilterNode, error) {
-	if context.BETWEEN() != nil || context.LIKE() != nil || context.ILIKE() != nil || context.REGEXP() != nil {
-		return nil, unsupported("BETWEEN, LIKE, ILIKE, or REGEXP filter")
+	if context.BETWEEN() != nil {
+		return nil, unsupported("BETWEEN filter")
 	}
-	if context.CONTAINS() != nil && context.NOT() != nil {
-		return nil, unsupported("NOT CONTAINS filter")
-	}
-	if context.NOT() != nil && context.EXISTS() == nil && context.NotInClause() == nil {
+	if context.NOT() != nil && context.EXISTS() == nil && context.NotInClause() == nil && context.LIKE() == nil && context.ILIKE() == nil && context.REGEXP() == nil && context.CONTAINS() == nil {
 		return nil, unsupported("negative filter operator")
 	}
 
@@ -170,7 +167,25 @@ func comparisonOperatorAndValue(context grammar.IComparisonContext) (litequery.F
 	case context.GE() != nil:
 		return litequery.FilterGreaterEq, value, fallbackType, nil
 	case context.CONTAINS() != nil:
+		if context.NOT() != nil {
+			return litequery.FilterNotContains, value, fallbackType, nil
+		}
 		return litequery.FilterContains, value, fallbackType, nil
+	case context.LIKE() != nil:
+		if context.NOT() != nil {
+			return litequery.FilterNotLike, value, fallbackType, nil
+		}
+		return litequery.FilterLike, value, fallbackType, nil
+	case context.ILIKE() != nil:
+		if context.NOT() != nil {
+			return litequery.FilterNotILike, value, fallbackType, nil
+		}
+		return litequery.FilterILike, value, fallbackType, nil
+	case context.REGEXP() != nil:
+		if context.NOT() != nil {
+			return litequery.FilterNotRegexp, value, fallbackType, nil
+		}
+		return litequery.FilterRegexp, value, fallbackType, nil
 	default:
 		return "", litequery.Value{}, "", unsupported("filter operator")
 	}

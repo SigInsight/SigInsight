@@ -15,8 +15,7 @@ import { MetricAggregation } from 'types/api/v5/queryRange';
 import { ExtendedSelectOption } from 'types/common/select';
 import { popupContainer } from 'utils/selectPopupContainer';
 
-import { selectStyle } from '../QueryBuilderSearch/config';
-import OptionRenderer from '../QueryBuilderSearch/OptionRenderer';
+import { MetricOptionRenderer, selectStyle } from '../sharedControls';
 
 import './MetricNameSelector.styles.scss';
 
@@ -154,7 +153,7 @@ export const MetricNameSelector = memo(function MetricNameSelector({
 
 		return metrics.map((metric) => ({
 			label: (
-				<OptionRenderer
+				<MetricOptionRenderer
 					label={metric.metricName}
 					value={metric.metricName}
 					dataType={DataTypes.Float64}

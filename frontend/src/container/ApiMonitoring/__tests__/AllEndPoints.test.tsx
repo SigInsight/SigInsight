@@ -34,28 +34,25 @@ jest.mock('container/GridCardLayout/GridCard', () => ({
 	)),
 }));
 
-jest.mock(
-	'container/QueryBuilder/filters/QueryBuilderSearchV2/QueryBuilderSearchV2',
-	() => ({
-		__esModule: true,
-		default: jest.fn().mockImplementation(({ onChange }) => (
-			<div data-testid="query-builder-mock">
-				<button
-					type="button"
-					data-testid="filter-change-button"
-					onClick={(): void =>
-						onChange({
-							items: [{ id: 'test', key: 'test', op: '=', value: 'test' }],
-							op: 'AND',
-						})
-					}
-				>
-					Change Filter
-				</button>
-			</div>
-		)),
-	}),
-);
+jest.mock('features/query-builder-v3/QueryBuilderSearchV3', () => ({
+	__esModule: true,
+	default: jest.fn().mockImplementation(({ onChange }) => (
+		<div data-testid="query-builder-mock">
+			<button
+				type="button"
+				data-testid="filter-change-button"
+				onClick={(): void =>
+					onChange({
+						items: [{ id: 'test', key: 'test', op: '=', value: 'test' }],
+						op: 'AND',
+					})
+				}
+			>
+				Change Filter
+			</button>
+		</div>
+	)),
+}));
 
 jest.mock('hooks/queryBuilder/useGetAggregateKeys', () => ({
 	useGetAggregateKeys: jest.fn(),

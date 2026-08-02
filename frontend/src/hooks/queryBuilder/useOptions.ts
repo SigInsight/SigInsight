@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
 	checkCommaInValue,
 	getTagToken,
-} from 'container/QueryBuilder/filters/QueryBuilderSearch/utils';
+} from 'container/QueryBuilder/filters/queryBuilderFilterUtils';
 import { Option } from 'container/QueryBuilder/type';
 import { useDashboardVariablesByType } from 'hooks/dashboard/useDashboardVariablesByType';
 import { isEmpty } from 'lodash-es';

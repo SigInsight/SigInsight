@@ -17,7 +17,7 @@ import {
 	PANEL_TYPES,
 } from 'constants/queryBuilder';
 import { DEBOUNCE_DELAY } from 'constants/queryBuilderFilterConfig';
-import { getOperatorValue } from 'container/QueryBuilder/filters/QueryBuilderSearch/utils';
+import { getOperatorValue } from 'container/QueryBuilder/filters/queryBuilderFilterUtils';
 import { useGetAggregateValues } from 'hooks/queryBuilder/useGetAggregateValues';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
 import useDebouncedFn from 'hooks/useDebouncedFunction';

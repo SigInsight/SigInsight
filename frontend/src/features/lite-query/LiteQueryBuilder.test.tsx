@@ -9,6 +9,51 @@ import { Query } from 'types/api/queryBuilder/queryBuilderData';
 import { EQueryType } from 'types/common/dashboard';
 import { DataSource, QueryBuilderContextType } from 'types/common/queryBuilder';
 
+jest.mock('features/query-builder-v3/QueryBuilderSearchV3', () => {
+	const React = jest.requireActual('react');
+	const {
+		parseLiteFilterExpression,
+		toLiteFilterExpression,
+	} = jest.requireActual('./capabilities');
+	return function MockQueryBuilderSearchV3({
+		ariaLabel,
+		fallbackExpression = '',
+		onChange,
+		query,
+	}: any): JSX.Element {
+		const expression = query.filters?.items?.length
+			? toLiteFilterExpression(query.filters)
+			: fallbackExpression || query.filter?.expression || '';
+		React.useEffect(() => {
+			if (!query.filters?.items?.length && expression) {
+				const parsed = parseLiteFilterExpression(expression);
+				if (parsed.ok) {
+					onChange(parsed.filters, expression);
+				}
+			}
+		}, []);
+		const [error, setError] = React.useState('');
+		return (
+			<div>
+				<input
+					aria-label={ariaLabel}
+					defaultValue={expression}
+					onChange={(event): void => {
+						const parsed = parseLiteFilterExpression(event.target.value);
+						if (!parsed.ok) {
+							setError(parsed.error);
+							return;
+						}
+						setError('');
+						onChange(parsed.filters, event.target.value);
+					}}
+				/>
+				{error && <span>{error}</span>}
+			</div>
+		);
+	};
+});
+
 const baseQuery: Query = {
 	id: 'lite-component-test',
 	queryType: EQueryType.QUERY_BUILDER,

@@ -4,7 +4,7 @@ import {
 	getTagToken,
 	isExistsNotExistsOperator,
 	isInNInOperator,
-} from 'container/QueryBuilder/filters/QueryBuilderSearch/utils';
+} from 'container/QueryBuilder/filters/queryBuilderFilterUtils';
 import { unparse } from 'papaparse';
 import {
 	IBuilderQuery,

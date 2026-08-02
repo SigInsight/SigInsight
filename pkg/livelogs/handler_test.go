@@ -63,9 +63,13 @@ func TestParseStartAndRawRowValidation(t *testing.T) {
 	_, _, err = rawRowFromValues([]any{uint64(1), "", "INFO", "body", "trace", "span"})
 	require.Error(t, err)
 
-	invalid, err := parseFilter("service.name like 'api%'")
-	require.Nil(t, invalid)
-	require.Error(t, err)
+	filter, err := parseFilter("service.name like 'api%'")
+	require.NoError(t, err)
+	require.Equal(t, litequery.Predicate{
+		Field: litequery.FieldRef{Name: "service.name", Context: litequery.FieldContextLog, Type: litequery.ValueTypeString},
+		Op:    litequery.FilterLike,
+		Value: litequery.Value{Kind: litequery.ValueString, String: "api%"},
+	}, filter)
 }
 
 func TestParseFilterResolvesLogFieldsFromMetadata(t *testing.T) {

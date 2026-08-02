@@ -17,13 +17,13 @@ import {
 import { MetricAggregation, TimeAggregation } from 'types/api/v5/queryRange';
 import { DataSource } from 'types/common/queryBuilder';
 
+import QueryBuilderSearchV3 from '../query-builder-v3/QueryBuilderSearchV3';
 import {
 	getLiteMetricAggregationOptions,
 	isLiteFormula,
 	LiteMetricType,
 	toLiteFilterExpression,
 } from './capabilities';
-import LiteFilterExpressionEditor from './LiteFilterExpressionEditor';
 
 import './LiteQueryBuilder.scss';
 
@@ -147,9 +147,9 @@ function LiteFilterEditor({
 }): JSX.Element {
 	const filters = query.filters || { items: [], op: 'AND' };
 	return (
-		<LiteFilterExpressionEditor
+		<QueryBuilderSearchV3
 			ariaLabel={`Filter expression for ${query.queryName}`}
-			filters={filters}
+			query={{ ...query, filters }}
 			onChange={onChange}
 			fallbackExpression={query.filter?.expression}
 			placeholder="resource.service.name = 'api' AND severity_text != 'DEBUG'"

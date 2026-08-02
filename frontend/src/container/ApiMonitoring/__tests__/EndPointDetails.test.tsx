@@ -59,39 +59,36 @@ jest.mock('container/ApiMonitoring/utils', () => ({
 	getRateOverTimeWidgetData: jest.fn(),
 }));
 
-jest.mock(
-	'container/QueryBuilder/filters/QueryBuilderSearchV2/QueryBuilderSearchV2',
-	() => ({
-		__esModule: true,
-		default: jest.fn().mockImplementation(({ onChange }) => (
-			<div data-testid="query-builder-search">
-				<button
-					type="button"
-					data-testid="filter-change-button"
-					onClick={(): void =>
-						onChange({
-							items: [
-								{
-									id: 'test-filter',
-									key: {
-										key: 'test.key',
-										dataType: DataTypes.String,
-										type: 'tag',
-									},
-									op: '=',
-									value: 'test-value',
+jest.mock('features/query-builder-v3/QueryBuilderSearchV3', () => ({
+	__esModule: true,
+	default: jest.fn().mockImplementation(({ onChange }) => (
+		<div data-testid="query-builder-search">
+			<button
+				type="button"
+				data-testid="filter-change-button"
+				onClick={(): void =>
+					onChange({
+						items: [
+							{
+								id: 'test-filter',
+								key: {
+									key: 'test.key',
+									dataType: DataTypes.String,
+									type: 'tag',
 								},
-							],
-							op: 'AND',
-						})
-					}
-				>
-					Change Filter
-				</button>
-			</div>
-		)),
-	}),
-);
+								op: '=',
+								value: 'test-value',
+							},
+						],
+						op: 'AND',
+					})
+				}
+			>
+				Change Filter
+			</button>
+		</div>
+	)),
+}));
 
 // Mock all child components to simplify testing
 jest.mock(

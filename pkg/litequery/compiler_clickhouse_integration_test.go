@@ -75,6 +75,17 @@ func TestCompilerExecutesOnCurrentClickHouseSchema(t *testing.T) {
 		},
 		{
 			Range: TimeRange{StartMS: now - 3_000, EndMS: now + 1_000}, ResultType: ResultTimeSeries, StepMS: 1_000,
+			Queries: []Query{TraceQuery{Common: CommonQuery{
+				Name: "trace_pattern_filters",
+				Filter: LogicalFilter{Operator: BooleanAnd, Items: []FilterNode{
+					Predicate{Field: FieldRef{Name: "http.route", Context: FieldContextAttribute, Type: ValueTypeString}, Op: FilterILike, Value: Value{Kind: ValueString, String: "/MATCHED-%"}},
+					Predicate{Field: FieldRef{Name: "name", Context: FieldContextSpan, Type: ValueTypeString}, Op: FilterRegexp, Value: Value{Kind: ValueString, String: "^(child|orphan)-operation$"}},
+					Predicate{Field: FieldRef{Name: "service.name", Context: FieldContextResource, Type: ValueTypeString}, Op: FilterNotLike, Value: Value{Kind: ValueString, String: "excluded-%"}},
+				}},
+			}, Aggregation: TraceAggregateCount}},
+		},
+		{
+			Range: TimeRange{StartMS: now - 3_000, EndMS: now + 1_000}, ResultType: ResultTimeSeries, StepMS: 1_000,
 			Queries: []Query{MetricQuery{Common: CommonQuery{
 				Name: "requests", GroupBy: []FieldRef{{Name: "service.name", Context: FieldContextLabel, Type: ValueTypeString}},
 			}, Aggregation: MetricAggregation{
@@ -128,7 +139,7 @@ func TestCompilerExecutesOnCurrentClickHouseSchema(t *testing.T) {
 			if err != nil {
 				t.Fatalf("Query(%s) error = %v\nSQL: %s\nArgs: %#v", statement.Name, err, statement.SQL, statement.Args)
 			}
-			if statement.Name == "requests" || statement.Name == "semantic_gauge" || statement.Name == "latency" || statement.Name == "latency_delta" || statement.Name == "meter" {
+			if statement.Name == "requests" || statement.Name == "semantic_gauge" || statement.Name == "latency" || statement.Name == "latency_delta" || statement.Name == "meter" || statement.Name == "trace_pattern_filters" {
 				assertPositiveMetricRows(t, statement.Name, rows)
 			}
 			if err := rows.Err(); err != nil {
@@ -300,6 +311,16 @@ func assertPositiveMetricRows(t *testing.T, name string, rows interface {
 	foundPositiveValue := false
 	for rows.Next() {
 		var timestamp int64
+		if name == "trace_pattern_filters" {
+			var value uint64
+			if err := rows.Scan(&timestamp, &value); err != nil {
+				t.Fatalf("Scan(%s) error = %v", name, err)
+			}
+			if value > 0 {
+				foundPositiveValue = true
+			}
+			continue
+		}
 		var value float64
 		if name == "latency" || name == "latency_delta" {
 			if err := rows.Scan(&timestamp, &value); err != nil {

@@ -1,8 +1,7 @@
 import { useCallback } from 'react';
-import QuerySearch from 'components/QueryBuilder/Query/QuerySearch/QuerySearch';
 import RunQueryBtn from 'container/QueryBuilder/components/RunQueryBtn/RunQueryBtn';
 import DateTimeSelectionV2 from 'container/TopNav/DateTimeSelectionV2';
-import { DataSource } from 'types/common/queryBuilder';
+import QueryBuilderSearchV3 from 'features/query-builder-v3/QueryBuilderSearchV3';
 
 import { MetricsSearchProps } from './types';
 
@@ -35,10 +34,9 @@ function MetricsSearch({
 	return (
 		<div className="metrics-search-container">
 			<div data-testid="qb-search-container" className="qb-search-container">
-				<QuerySearch
-					onChange={handleOnChange}
-					dataSource={DataSource.METRICS}
-					queryData={{
+				<QueryBuilderSearchV3
+					onChange={(_, expression): void => handleOnChange(expression)}
+					query={{
 						...query,
 						filter: {
 							...query?.filter,
@@ -46,8 +44,8 @@ function MetricsSearch({
 						},
 					}}
 					onRun={handleRunQuery}
-					showFilterSuggestionsWithoutMetric
 					placeholder="Search your metrics. Try service.name='api' to see all API service metrics, or http.client for HTTP client metrics."
+					label=""
 				/>
 			</div>
 			<RunQueryBtn

@@ -7,7 +7,7 @@ import {
 	getGroupByFiltersFromGroupByValues,
 } from 'container/ApiMonitoring/utils';
 import GridCard from 'container/GridCardLayout/GridCard';
-import QueryBuilderSearchV2 from 'container/QueryBuilder/filters/QueryBuilderSearchV2/QueryBuilderSearchV2';
+import QueryBuilderSearchV3 from 'features/query-builder-v3/QueryBuilderSearchV3';
 import { useGetAggregateKeys } from 'hooks/queryBuilder/useGetAggregateKeys';
 import { isEqual } from 'lodash-es';
 import { IBuilderQuery } from 'types/api/queryBuilder/queryBuilderData';
@@ -80,7 +80,7 @@ function AllEndPoints({
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [params.allEndpointsLocalFilters]);
 
-	// Handler for changes from the QueryBuilderSearchV2 component
+	// Keep local URL state synchronized with the validated V3 filter.
 	const handleFilterChange = useCallback(
 		(newFilters: IBuilderQuery['filters']): void => {
 			setFilters(newFilters);
@@ -235,10 +235,11 @@ function AllEndPoints({
 		<div className="all-endpoints-container">
 			<div className="all-endpoints-header">
 				<div className="filter-container">
-					<QueryBuilderSearchV2
+					<QueryBuilderSearchV3
 						query={query}
 						onChange={handleFilterChange}
 						placeholder="Search for filters..."
+						label=""
 					/>
 				</div>
 			</div>

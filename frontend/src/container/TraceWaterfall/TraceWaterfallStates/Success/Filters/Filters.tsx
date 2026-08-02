@@ -9,8 +9,8 @@ import {
 } from 'api/v5/queryRange/getQueryRange';
 import { AxiosError } from 'axios';
 import { initialQueriesMap, PANEL_TYPES } from 'constants/queryBuilder';
-import SpanScopeSelector from 'container/QueryBuilder/filters/QueryBuilderSearchV2/SpanScopeSelector';
-import LiteFilterExpressionEditor from 'features/lite-query/LiteFilterExpressionEditor';
+import QueryBuilderSearchV3 from 'features/query-builder-v3/QueryBuilderSearchV3';
+import SpanScopeSelector from 'features/query-builder-v3/SpanScopeSelector';
 import { GetMetricQueryRange } from 'lib/dashboard/getQueryResults';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { Warning } from 'types/api';
@@ -216,9 +216,9 @@ function Filters({
 	return (
 		<div className="filter-row">
 			<div className="trace-detail-filter-controls">
-				<LiteFilterExpressionEditor
+				<QueryBuilderSearchV3
 					ariaLabel="Filter trace spans"
-					filters={filters}
+					query={{ ...BASE_FILTER_QUERY, filters }}
 					onChange={handleFilterChange}
 					fields={fields}
 					label="Filter spans"

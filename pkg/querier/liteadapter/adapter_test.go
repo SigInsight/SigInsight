@@ -79,6 +79,33 @@ func TestToLiteRejectsMixedTypeInFilter(t *testing.T) {
 	}
 }
 
+func TestParseFilterSupportsBoundedTraceFunnelStringPredicates(t *testing.T) {
+	tests := []struct {
+		expression string
+		operator   litequery.FilterOperator
+	}{
+		{"attribute.http.route like '/api/%'", litequery.FilterLike},
+		{"attribute.http.route not like '/internal/%'", litequery.FilterNotLike},
+		{"attribute.http.route ilike '/API/%'", litequery.FilterILike},
+		{"attribute.http.route not ilike '/INTERNAL/%'", litequery.FilterNotILike},
+		{"attribute.http.route regexp '^/api/[a-z]+$'", litequery.FilterRegexp},
+		{"attribute.http.route not regexp '^/internal/'", litequery.FilterNotRegexp},
+		{"attribute.http.route not contains 'health'", litequery.FilterNotContains},
+	}
+	for _, test := range tests {
+		t.Run(test.expression, func(t *testing.T) {
+			filter, err := ParseFilter(test.expression, litequery.SignalTraces)
+			if err != nil {
+				t.Fatalf("ParseFilter() error = %v", err)
+			}
+			predicate, ok := filter.(litequery.Predicate)
+			if !ok || predicate.Op != test.operator || predicate.Value.String == "" {
+				t.Fatalf("filter = %#v, want operator %q with string pattern", filter, test.operator)
+			}
+		})
+	}
+}
+
 func TestToLiteDropsSumTemporalityWhenMetadataNormalizesMetricToGauge(t *testing.T) {
 	request := &qbtypes.QueryRangeRequest{
 		Start: 1_000, End: 61_000, RequestType: qbtypes.RequestTypeTimeSeries,

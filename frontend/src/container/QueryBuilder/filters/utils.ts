@@ -1,4 +1,3 @@
-import { AttributeValuesMap } from 'components/ClientSideQBSearch/ClientSideQBSearch';
 import { OperatorConfigKeys, OPERATORS_CONFIG } from 'constants/queryBuilder';
 import { HAVING_FILTER_REGEXP } from 'constants/regExp';
 import { IOption } from 'hooks/useResourceAttribute/types';
@@ -11,7 +10,17 @@ import {
 	orderByValueDelimiter,
 	splitOrderByFromString,
 } from './OrderByFilter/utils';
-import { getRemoveOrderFromValue } from './QueryBuilderSearch/utils';
+import { getRemoveOrderFromValue } from './queryBuilderFilterUtils';
+
+interface AttributeValue {
+	boolAttributeValues: boolean[];
+	numberAttributeValues: number[];
+	stringAttributeValues: string[];
+}
+
+export interface AttributeValuesMap {
+	[key: string]: AttributeValue;
+}
 
 export const handleKeyDownLimitFilter: React.KeyboardEventHandler<HTMLInputElement> = (
 	event,

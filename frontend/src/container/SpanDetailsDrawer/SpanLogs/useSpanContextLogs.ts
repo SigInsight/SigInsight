@@ -3,7 +3,7 @@ import { useQuery } from 'react-query';
 import { convertFiltersToExpression } from 'components/QueryBuilder/utils';
 import { OPERATORS } from 'constants/queryBuilder';
 import { REACT_QUERY_KEY } from 'constants/reactQueryKeys';
-import { getOperatorValue } from 'container/QueryBuilder/filters/QueryBuilderSearch/utils';
+import { getOperatorValue } from 'container/QueryBuilder/filters/queryBuilderFilterUtils';
 import { GetMetricQueryRange } from 'lib/dashboard/getQueryResults';
 import { ILog } from 'types/api/logs/log';
 import { DataTypes } from 'types/api/queryBuilder/queryAutocompleteResponse';

@@ -4,7 +4,7 @@ import {
 	OPERATORS,
 	QUERY_BUILDER_FUNCTIONS,
 } from 'constants/antlrQueryConstants';
-import { getOperatorValue } from 'container/QueryBuilder/filters/QueryBuilderSearch/utils';
+import { getOperatorValue } from 'container/QueryBuilder/filters/queryBuilderFilterUtils';
 import { cloneDeep, isEqual, sortBy } from 'lodash-es';
 import { IQueryPair } from 'types/antlrQueryTypes';
 import { BaseAutocompleteData } from 'types/api/queryBuilder/queryAutocompleteResponse';

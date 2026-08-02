@@ -181,6 +181,27 @@ describe('lightweight query capabilities', () => {
 	});
 
 	it.each([
+		['LIKE', 'like'],
+		['NOT LIKE', 'not like'],
+		['ILIKE', 'ilike'],
+		['NOT ILIKE', 'not ilike'],
+		['REGEXP', 'regexp'],
+		['NOT REGEXP', 'not regexp'],
+		['CONTAINS', 'contains'],
+		['NOT CONTAINS', 'not contains'],
+	])('parses the lightweight string predicate %s', (syntax, operator) => {
+		const result = parseLiteFilterExpression(
+			`attribute.http.route ${syntax} '/checkout%'`,
+		);
+		expect(result).toEqual({
+			ok: true,
+			filters: expect.objectContaining({
+				items: [expect.objectContaining({ op: operator, value: '/checkout%' })],
+			}),
+		});
+	});
+
+	it.each([
 		[
 			"service.name = 'api' AND severity_text = 'INFO' OR body CONTAINS 'x'",
 			'Mixing AND and OR',
@@ -189,7 +210,6 @@ describe('lightweight query capabilities', () => {
 			"(service.name = 'api' OR service.name = 'worker')",
 			'Parenthesized filter groups',
 		],
-		["service.name LIKE 'api%'", 'not supported'],
 		["http.status_code IN [200, '500']", 'homogeneous'],
 		['service.name =', 'Invalid filter syntax'],
 	])(

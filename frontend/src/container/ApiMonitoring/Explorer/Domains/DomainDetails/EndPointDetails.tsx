@@ -9,11 +9,11 @@ import {
 	getLatencyOverTimeWidgetData,
 	getRateOverTimeWidgetData,
 } from 'container/ApiMonitoring/utils';
-import QueryBuilderSearchV2 from 'container/QueryBuilder/filters/QueryBuilderSearchV2/QueryBuilderSearchV2';
 import {
 	CustomTimeType,
 	Time,
 } from 'container/TopNav/DateTimeSelectionV2/types';
+import QueryBuilderSearchV3 from 'features/query-builder-v3/QueryBuilderSearchV3';
 import { GetMetricQueryRange } from 'lib/dashboard/getQueryResults';
 import { SuccessResponse } from 'types/api';
 import { MetricRangePayloadProps } from 'types/api/metrics/getQueryRange';
@@ -118,7 +118,7 @@ function EndPointDetails({
 		setParams({ endPointDetailsLocalFilters: filtersWithoutHttpUrl });
 	}, [filters, setParams]);
 
-	// Handler for changes from the QueryBuilderSearchV2 component
+	// Keep endpoint and local URL state synchronized with the validated V3 filter.
 	const handleFilterChange = useCallback(
 		(newFilters: IBuilderQuery['filters']): void => {
 			// 1. Update local filters state immediately
@@ -251,10 +251,11 @@ function EndPointDetails({
 					/>
 				</div>
 				<div className="endpoint-details-filters-container-search">
-					<QueryBuilderSearchV2
+					<QueryBuilderSearchV3
 						query={query}
 						onChange={handleFilterChange}
 						placeholder="Search for filters..."
+						label=""
 					/>
 				</div>
 			</div>
