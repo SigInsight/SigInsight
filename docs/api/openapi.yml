@@ -1368,6 +1368,8 @@ components:
       type: string
     Querybuildertypesv5QueryWarnData:
       properties:
+        code:
+          type: string
         message:
           type: string
         url:
