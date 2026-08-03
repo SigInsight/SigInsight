@@ -154,8 +154,8 @@ func TestCompilerCompilesLogRawWithJSONAndMapParameters(t *testing.T) {
 	wantSQL := "SELECT timestamp AS field_0, JSON_VALUE(body, ?) AS field_1 FROM siginsight_logs.logs_v2 WHERE (siginsight_logs.logs_v2.timestamp >= toUInt64(?) AND siginsight_logs.logs_v2.timestamp < toUInt64(?)) AND ((mapContains(resources_string, ?)) AND (resources_string[?] = ?)) ORDER BY timestamp DESC, id DESC LIMIT ?"
 	wantArgs := []any{"$.request.id", int64(1_000_000_000), int64(2_000_000_000), "service.name", "service.name", "api", uint32(26)}
 	assertStatement(t, statement, wantSQL, wantArgs)
-	if statement.ResultLimit != 25 {
-		t.Fatalf("ResultLimit = %d, want 25", statement.ResultLimit)
+	if statement.Pagination == nil || statement.Pagination.Limit != 25 || statement.Pagination.Offset != 0 || statement.ResultLimit != 0 {
+		t.Fatalf("pagination = %#v, result limit = %d; want a 25-row first page", statement.Pagination, statement.ResultLimit)
 	}
 }
 
@@ -422,6 +422,9 @@ func TestCompilerCompilesRawAndTraceOffsets(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			statement := compileOne(t, test.request)
+			if statement.Pagination == nil || statement.Pagination.Limit != 20 || statement.Pagination.Offset != 100 || statement.ResultLimit != 0 {
+				t.Fatalf("statement pagination = %#v, result limit = %d; want limit 20 offset 100", statement.Pagination, statement.ResultLimit)
+			}
 			if test.wantSQL != "" {
 				assertStatement(t, statement, test.wantSQL, test.wantArgs)
 				return

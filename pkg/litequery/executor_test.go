@@ -131,7 +131,42 @@ func TestExecutorEnforcesStatementRowBudgetAndClosesRows(t *testing.T) {
 	}
 }
 
-func TestExecutorTrimsOverflowProbeAndAddsWarning(t *testing.T) {
+func TestExecutorReportsPaginationProbeWithoutWarning(t *testing.T) {
+	rows := &fakeRows{columns: []string{"value"}, data: [][]any{{1}, {2}, {3}}}
+	result, err := (Executor{
+		Config: ExecutorConfig{MaxRows: 10},
+		Query:  func(context.Context, string, ...any) (Rows, error) { return rows, nil },
+	}).executeStatement(context.Background(), Statement{
+		Name: "A", SQL: "SELECT value", Columns: []ResultColumn{{Name: "value"}}, Pagination: &Pagination{Limit: 2, Offset: 4},
+	})
+	if err != nil {
+		t.Fatalf("executeStatement() error = %v", err)
+	}
+	if len(result.Rows) != 2 || result.Truncated || len(result.Warnings) != 0 {
+		t.Fatalf("executeStatement() result = %#v, want two rows without truncation", result)
+	}
+	if result.PageInfo == nil || !result.PageInfo.HasNextPage || result.PageInfo.Limit != 2 || result.PageInfo.Offset != 4 || result.PageInfo.Returned != 2 {
+		t.Fatalf("executeStatement() page info = %#v, want a next page after offset 4", result.PageInfo)
+	}
+}
+
+func TestExecutorReportsCompletePageAtExactLimit(t *testing.T) {
+	rows := &fakeRows{columns: []string{"value"}, data: [][]any{{1}, {2}}}
+	result, err := (Executor{
+		Config: ExecutorConfig{MaxRows: 10},
+		Query:  func(context.Context, string, ...any) (Rows, error) { return rows, nil },
+	}).executeStatement(context.Background(), Statement{
+		Name: "A", SQL: "SELECT value", Columns: []ResultColumn{{Name: "value"}}, Pagination: &Pagination{Limit: 2},
+	})
+	if err != nil {
+		t.Fatalf("executeStatement() error = %v", err)
+	}
+	if result.PageInfo == nil || result.PageInfo.HasNextPage || result.PageInfo.Returned != 2 || len(result.Warnings) != 0 {
+		t.Fatalf("executeStatement() result = %#v, want a complete exact-size page", result)
+	}
+}
+
+func TestExecutorTrimsResultCapAndAddsWarning(t *testing.T) {
 	rows := &fakeRows{columns: []string{"value"}, data: [][]any{{1}, {2}, {3}}}
 	result, err := (Executor{
 		Config: ExecutorConfig{MaxRows: 10},
@@ -142,8 +177,24 @@ func TestExecutorTrimsOverflowProbeAndAddsWarning(t *testing.T) {
 	if err != nil {
 		t.Fatalf("executeStatement() error = %v", err)
 	}
-	if len(result.Rows) != 2 || !result.Truncated || len(result.Warnings) != 1 {
-		t.Fatalf("executeStatement() result = %#v, want two rows and a truncation warning", result)
+	if len(result.Rows) != 2 || !result.Truncated || len(result.Warnings) != 1 || result.PageInfo != nil {
+		t.Fatalf("executeStatement() result = %#v, want two capped rows and a truncation warning", result)
+	}
+}
+
+func TestExecutorRejectsConflictingLimitSemantics(t *testing.T) {
+	queryCalled := false
+	_, err := (Executor{
+			Query: func(context.Context, string, ...any) (Rows, error) {
+				queryCalled = true
+				return &fakeRows{}, nil
+			},
+	}).executeStatement(context.Background(), Statement{
+		Name: "A", Pagination: &Pagination{Limit: 10}, ResultLimit: 10,
+	})
+	var queryErr *Error
+	if !errors.As(err, &queryErr) || queryErr.Code != ErrorInvalidRequest || queryCalled {
+		t.Fatalf("executeStatement() error = %v, query called = %v; want pre-query limit invariant error", err, queryCalled)
 	}
 }
 

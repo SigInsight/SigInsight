@@ -18,19 +18,25 @@ function Controls({
 	handleCountItemsPerPageChange,
 	isLogPanel = false,
 	showSizeChanger = true,
+	hasNextPage,
 }: ControlsProps): JSX.Element | null {
-	const isNextAndPreviousDisabled = useMemo(
-		() => isLoading || countPerPage < 0 || totalCount === 0,
-		[isLoading, countPerPage, totalCount],
-	);
+	const isNavigationDisabled = useMemo(() => isLoading || countPerPage < 0, [
+		isLoading,
+		countPerPage,
+	]);
 	const isPreviousDisabled = useMemo(
-		() => (isLogPanel ? false : offset <= 0 || isNextAndPreviousDisabled),
-		[isLogPanel, isNextAndPreviousDisabled, offset],
+		() => (isLogPanel ? false : offset <= 0 || isNavigationDisabled),
+		[isLogPanel, isNavigationDisabled, offset],
 	);
 	const isNextDisabled = useMemo(
 		() =>
-			isLogPanel ? false : totalCount < countPerPage || isNextAndPreviousDisabled,
-		[countPerPage, isLogPanel, isNextAndPreviousDisabled, totalCount],
+			isLogPanel
+				? false
+				: isNavigationDisabled ||
+				  (hasNextPage === undefined
+						? totalCount === 0 || totalCount < countPerPage
+						: !hasNextPage),
+		[countPerPage, hasNextPage, isLogPanel, isNavigationDisabled, totalCount],
 	);
 
 	return (
@@ -92,6 +98,7 @@ export interface ControlsProps {
 	handleCountItemsPerPageChange: (value: Pagination['limit']) => void;
 	isLogPanel?: boolean;
 	showSizeChanger?: boolean;
+	hasNextPage?: boolean;
 }
 
 export default memo(Controls);

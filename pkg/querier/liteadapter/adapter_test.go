@@ -672,6 +672,9 @@ func TestFromLiteProducesV5TimeSeriesAndRawData(t *testing.T) {
 		Name:    "L",
 		Columns: []litequery.ResultColumn{{Name: "field_0", Field: &litequery.FieldRef{Name: "timestamp", Context: litequery.FieldContextLog, Type: litequery.ValueTypeNumber}}, {Name: "field_1", Field: &litequery.FieldRef{Name: "body", Context: litequery.FieldContextBody, Type: litequery.ValueTypeString}}, {Name: "field_2", Field: &traceID}, {Name: "field_3", Field: &spanID}},
 		Rows:    [][]any{{int64(1_000_000_000), "hello", "trace-1", "span-1"}},
+		PageInfo: &litequery.PageInfo{
+			Limit: 10, Offset: 20, Returned: 1, HasNextPage: true,
+		},
 	}}})
 	if err != nil {
 		t.Fatalf("FromLite() raw error = %v", err)
@@ -679,6 +682,12 @@ func TestFromLiteProducesV5TimeSeriesAndRawData(t *testing.T) {
 	raw := rawResult.Data.Results[0].(*qbtypes.RawData)
 	if raw.Rows[0].Data["body"] != "hello" || raw.Rows[0].Data["trace_id"] != "trace-1" || raw.Rows[0].Data["span_id"] != "span-1" || raw.Rows[0].Timestamp.UnixNano() != 1_000_000_000 {
 		t.Fatalf("raw response = %#v", raw)
+	}
+	if raw.PageInfo == nil || !raw.PageInfo.HasNextPage || raw.PageInfo.Limit != 10 || raw.PageInfo.Offset != 20 || raw.PageInfo.Returned != 1 || raw.PageInfo.NextOffset == nil || *raw.PageInfo.NextOffset != 30 {
+		t.Fatalf("raw page info = %#v, want next offset 30", raw.PageInfo)
+	}
+	if rawResult.Warning != nil {
+		t.Fatalf("raw pagination warning = %#v, want no warning for a normal next page", rawResult.Warning)
 	}
 }
 

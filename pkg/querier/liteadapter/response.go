@@ -222,7 +222,20 @@ func raw(query litequery.QueryResult) (*qbtypes.RawData, error) {
 		}
 		rows = append(rows, result)
 	}
-	return &qbtypes.RawData{QueryName: query.Name, Rows: rows}, nil
+	result := &qbtypes.RawData{QueryName: query.Name, Rows: rows}
+	if query.PageInfo != nil {
+		result.PageInfo = &qbtypes.PageInfo{
+			Limit:       query.PageInfo.Limit,
+			Offset:      query.PageInfo.Offset,
+			Returned:    query.PageInfo.Returned,
+			HasNextPage: query.PageInfo.HasNextPage,
+		}
+		if query.PageInfo.HasNextPage {
+			nextOffset := query.PageInfo.Offset + query.PageInfo.Limit
+			result.PageInfo.NextOffset = &nextOffset
+		}
+	}
+	return result, nil
 }
 
 func fieldKey(field litequery.FieldRef) telemetrytypes.TelemetryFieldKey {

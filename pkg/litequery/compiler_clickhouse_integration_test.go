@@ -278,8 +278,8 @@ func TestCompilerExecutesOnCurrentClickHouseSchema(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Execute overflow probe error = %v", err)
 	}
-	if len(overflowResult.Queries) != 1 || len(overflowResult.Queries[0].Rows) != 1 || !overflowResult.Queries[0].Truncated || len(overflowResult.Warnings) != 1 {
-		t.Fatalf("overflow result = %#v, want one retained row and truncation warning", overflowResult)
+	if len(overflowResult.Queries) != 1 || len(overflowResult.Queries[0].Rows) != 1 || overflowResult.Queries[0].Truncated || len(overflowResult.Warnings) != 0 || overflowResult.Queries[0].PageInfo == nil || !overflowResult.Queries[0].PageInfo.HasNextPage {
+		t.Fatalf("overflow result = %#v, want one retained row and a normal next page", overflowResult)
 	}
 }
 

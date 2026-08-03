@@ -203,6 +203,11 @@ function LogsExplorerViewsContainer({
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [data?.payload, data?.warning]);
 
+	const currentPageResult = data?.payload?.data?.queryResult?.data?.result?.[0];
+	const canLoadNextPage =
+		currentPageResult?.pageInfo?.hasNextPage ??
+		(currentPageResult?.list?.length || 0) >= pageSize;
+
 	const handleEndReached = useCallback(() => {
 		if (!listQuery) {
 			return;
@@ -211,7 +216,7 @@ function LogsExplorerViewsContainer({
 		if (isLimit) {
 			return;
 		}
-		if (logs.length < pageSize) {
+		if (!canLoadNextPage) {
 			return;
 		}
 
@@ -236,7 +241,16 @@ function LogsExplorerViewsContainer({
 		setPage((prevPage) => prevPage + 1);
 
 		setRequestData(newRequestData);
-	}, [isLimit, logs, listQuery, pageSize, stagedQuery, getRequestData, page]);
+	}, [
+		isLimit,
+		logs,
+		listQuery,
+		pageSize,
+		stagedQuery,
+		getRequestData,
+		page,
+		canLoadNextPage,
+	]);
 
 	useEffect(() => {}, [data]);
 

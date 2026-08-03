@@ -151,6 +151,10 @@ bucket 对齐，并严格生成半开时间范围 `[start, end)` 内可能出现
 
 图表继续使用现有 V2 visualization，不再引入新的图表栈。
 
+Raw/Trace 分页使用 `LIMIT pageSize + 1` 探测下一页，并在每个结果的 `pageInfo` 中返回
+`hasNextPage`；分页窗口不属于结果截断，不产生 warning。只有不可分页的聚合结果上限或专用
+读取总量预算导致语义结果不完整时，才返回 `result_limit_reached`。详细契约见 ADR-019。
+
 ## 4. 目标架构
 
 ```text

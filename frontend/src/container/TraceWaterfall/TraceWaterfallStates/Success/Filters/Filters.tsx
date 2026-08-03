@@ -111,16 +111,18 @@ export async function getFilteredSpanIds(
 			undefined,
 			{ notifyOnWarning: false },
 		);
-		const rows = response.payload.data.queryResult.data.result[0]?.list || [];
+		const queryResult = response.payload.data.queryResult.data.result[0];
+		const rows = queryResult?.list || [];
 		for (const row of rows) {
 			if (typeof row.data.span_id === 'string' && row.data.span_id !== '') {
 				spanIds.push(row.data.span_id);
 			}
 		}
 
-		const limitReached =
+		const hasNextPage =
+			queryResult?.pageInfo?.hasNextPage ??
 			response.warning?.code === QUERY_RESULT_LIMIT_WARNING_CODE;
-		if (!limitReached) {
+		if (!hasNextPage) {
 			return { spanIds: [...new Set(spanIds)], warning: response.warning };
 		}
 	}

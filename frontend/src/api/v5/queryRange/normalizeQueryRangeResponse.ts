@@ -245,6 +245,7 @@ function convertRawData(
 ): QueryRangeResult {
 	return {
 		queryName: rawData.queryName,
+		pageInfo: rawData.pageInfo,
 		legend: legendMap[rawData.queryName] || rawData.queryName,
 		series: null,
 		list: rawData.rows?.map((row) => ({

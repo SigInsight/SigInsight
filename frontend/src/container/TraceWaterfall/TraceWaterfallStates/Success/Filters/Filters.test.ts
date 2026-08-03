@@ -22,7 +22,8 @@ const filters: TagFilter = {
 
 function response(
 	spanIds: string[],
-	limitReached: boolean,
+	hasNextPage: boolean,
+	includePageInfo = true,
 ): ReturnType<typeof GetMetricQueryRange> {
 	return Promise.resolve({
 		payload: {
@@ -34,19 +35,28 @@ function response(
 								list: spanIds.map((spanId) => ({
 									data: { span_id: spanId },
 								})),
+								pageInfo: includePageInfo
+									? {
+											limit: 1000,
+											offset: 0,
+											returned: spanIds.length,
+											hasNextPage,
+									  }
+									: undefined,
 							},
 						],
 					},
 				},
 			},
 		},
-		warning: limitReached
-			? {
-					code: 'result_limit_reached',
-					message: 'Query results were truncated',
-					warnings: [],
-			  }
-			: undefined,
+		warning:
+			!includePageInfo && hasNextPage
+				? {
+						code: 'result_limit_reached',
+						message: 'Query results were truncated',
+						warnings: [],
+				  }
+				: undefined,
 	} as unknown) as ReturnType<typeof GetMetricQueryRange>;
 }
 
@@ -93,6 +103,19 @@ describe('getFilteredSpanIds', () => {
 		);
 		expect(result.warning?.code).toBe('result_limit_reached');
 		expect(result.warning?.warnings?.[0].message).toContain('10,000');
+	});
+
+	it('falls back to the legacy truncation warning when pageInfo is absent', async () => {
+		jest
+			.mocked(GetMetricQueryRange)
+			.mockReturnValueOnce(response(['span-0'], true, false))
+			.mockReturnValueOnce(response(['span-1'], false, false));
+
+		const result = await getFilteredSpanIds(filters, 'trace-id', 1, 2);
+
+		expect(result.spanIds).toEqual(['span-0', 'span-1']);
+		expect(result.warning).toBeUndefined();
+		expect(GetMetricQueryRange).toHaveBeenCalledTimes(2);
 	});
 
 	it('does not revive legacy V4 spanID response fields', async () => {

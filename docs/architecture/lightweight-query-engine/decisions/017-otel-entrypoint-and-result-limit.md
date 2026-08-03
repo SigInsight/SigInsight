@@ -3,6 +3,9 @@
 状态：Accepted
 日期：2026-08-02
 
+分页与截断相关的第 4-6 条已由 [ADR-019](019-pagination-and-truncation-semantics.md) 取代；
+Entrypoint 和 V5 identity 决策继续有效。
+
 ## 背景
 
 Trace Detail 曾用 Collector `top_level_operations` 中的 `(name, serviceName)` 推断

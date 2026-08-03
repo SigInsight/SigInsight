@@ -1,4 +1,5 @@
 import { ILog } from '../logs/log';
+import type { QueryPageInfo } from '../v5/queryRange';
 
 export interface PayloadProps {
 	status: 'success' | 'error';
@@ -63,6 +64,7 @@ export interface Column {
 export interface QueryRangeResult {
 	list: ListItem[] | null;
 	queryName: string;
+	pageInfo?: QueryPageInfo;
 	legend?: string;
 	series: SeriesItem[] | null;
 	quantity?: number;

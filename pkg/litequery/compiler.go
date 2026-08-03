@@ -142,11 +142,11 @@ func (c Compiler) compileRaw(table string, signal Signal, plan Plan, common Comm
 		args = append(args, common.Offset)
 	}
 	return Statement{
-		Name:        common.Name,
-		SQL:         "SELECT " + strings.Join(selects, ", ") + " FROM " + table + " WHERE " + where + " ORDER BY " + order + suffix,
-		Args:        args,
-		Columns:     columns,
-		ResultLimit: limit,
+		Name:       common.Name,
+		SQL:        "SELECT " + strings.Join(selects, ", ") + " FROM " + table + " WHERE " + where + " ORDER BY " + order + suffix,
+		Args:       args,
+		Columns:    columns,
+		Pagination: &Pagination{Limit: limit, Offset: common.Offset},
 	}, nil
 }
 
@@ -222,8 +222,8 @@ func (c Compiler) compileTraceSummary(table string, plan Plan, common CommonQuer
 			"SELECT roots.trace_id AS trace_id, roots.root_timestamp AS timestamp, stats.span_count AS span_count, " +
 			"roots.root_duration_nano AS duration_nano, roots.root_service_name AS service_name, roots.root_name AS name " +
 			"FROM __lite_trace_stats AS stats INNER JOIN __lite_roots AS roots USING (trace_id) ORDER BY " + order + suffix,
-		Args:        args,
-		ResultLimit: limit,
+		Args:       args,
+		Pagination: &Pagination{Limit: limit, Offset: common.Offset},
 		Columns: []ResultColumn{
 			{Name: "trace_id", Field: fieldPointer(FieldRef{Name: "trace_id", Context: FieldContextSpan, Type: ValueTypeString})},
 			{Name: "timestamp", Field: fieldPointer(FieldRef{Name: "timestamp", Context: FieldContextSpan, Type: ValueTypeNumber})},

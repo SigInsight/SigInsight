@@ -1220,6 +1220,34 @@ export enum Querybuildertypesv5OrderDirectionDTO {
 	asc = 'asc',
 	desc = 'desc',
 }
+export interface Querybuildertypesv5PageInfoDTO {
+	/**
+	 * @type boolean
+	 */
+	hasNextPage?: boolean;
+	/**
+	 * @type integer
+	 * @minimum 0
+	 */
+	limit?: number;
+	/**
+	 * @type integer
+	 * @minimum 0
+	 * @nullable true
+	 */
+	nextOffset?: number | null;
+	/**
+	 * @type integer
+	 * @minimum 0
+	 */
+	offset?: number;
+	/**
+	 * @type integer
+	 * @minimum 0
+	 */
+	returned?: number;
+}
+
 export interface Querybuildertypesv5QueryBuilderFormulaDTO {
 	/**
 	 * @type boolean
@@ -1615,6 +1643,10 @@ export interface Querybuildertypesv5QueryWarnDataDTO {
 	/**
 	 * @type string
 	 */
+	code?: string;
+	/**
+	 * @type string
+	 */
 	message?: string;
 	/**
 	 * @type string
@@ -1638,6 +1670,7 @@ export interface Querybuildertypesv5RawDataDTO {
 	 * @type string
 	 */
 	nextCursor?: string;
+	pageInfo?: Querybuildertypesv5PageInfoDTO;
 	/**
 	 * @type string
 	 */

@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "endpoint": "/api/v5/query_range",
   "resultTypes": ["raw", "trace", "time_series", "scalar"],
   "queryTypes": {
@@ -40,16 +40,19 @@
     "groupBy": true,
     "order": "global_only",
     "limit": {
-      "raw": "result_rows",
-      "trace": "result_rows",
-      "scalar": "result_rows",
+      "raw": "page_size",
+      "trace": "page_size",
+      "scalar": "result_cap",
       "time_series": "rejected_until_top_series_plan"
     },
     "pagination": {
       "offset": ["raw", "trace"],
       "opaqueCursor": false,
-      "typedCursor": "live_logs_only"
+      "typedCursor": "live_logs_only",
+      "pageInfo": ["raw", "trace"],
+      "overflowProbe": "limit_plus_one_without_warning"
     },
+    "resultTruncationWarning": "result_limit_reached_for_non_pageable_result_caps_only",
     "having": false,
     "internalAggregationPredicate": "single_typed_numeric_predicate",
     "functions": [],
