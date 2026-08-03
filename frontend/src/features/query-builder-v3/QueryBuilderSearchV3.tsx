@@ -35,12 +35,6 @@ import {
 import './QueryBuilderSearchV3.scss';
 
 const emptyFields: readonly LiteFilterField[] = [];
-const stopEvents = EditorView.domEventHandlers({
-	keydown: (event): boolean => {
-		event.stopPropagation();
-		return false;
-	},
-});
 
 function keywordCompletionResult(
 	completion: ReturnType<typeof getLiteCompletionContext>,
@@ -270,7 +264,6 @@ function QueryBuilderSearchV3({
 					extensions={[
 						EditorView.contentAttributes.of({ 'aria-label': ariaLabel }),
 						EditorView.lineWrapping,
-						stopEvents,
 						autocompletion({ override: [completionSource], activateOnTyping: true }),
 						Prec.highest(
 							keymap.of([

@@ -42,6 +42,20 @@ function TestComponentWithDeRegister({
 	return <span>Test Component</span>;
 }
 
+function TestComponentWithCopyShortcut({
+	handleShortcut,
+}: {
+	handleShortcut: () => void;
+}): JSX.Element {
+	const { registerShortcut } = useKeyboardHotkeys();
+
+	useEffect(() => {
+		registerShortcut('meta+c', handleShortcut);
+	}, [registerShortcut, handleShortcut]);
+
+	return <span>Test Component</span>;
+}
+
 describe('KeyboardHotkeysProvider', () => {
 	it('registers and triggers shortcuts correctly', async () => {
 		const handleShortcut = jest.fn();
@@ -71,6 +85,31 @@ describe('KeyboardHotkeysProvider', () => {
 
 		await user.keyboard('{b}');
 
+		expect(handleShortcut).not.toHaveBeenCalled();
+	});
+
+	it('leaves native copy shortcuts untouched inside a CodeMirror editor', () => {
+		const handleShortcut = jest.fn();
+		const { container } = render(
+			<KeyboardHotkeysProvider>
+				<>
+					<TestComponentWithCopyShortcut handleShortcut={handleShortcut} />
+					<div className="cm-editor">
+						<div contentEditable />
+					</div>
+				</>
+			</KeyboardHotkeysProvider>,
+		);
+		const editor = container.querySelector('.cm-editor') as HTMLElement;
+		const copy = new KeyboardEvent('keydown', {
+			bubbles: true,
+			cancelable: true,
+			ctrlKey: true,
+			key: 'c',
+		});
+
+		expect(editor.dispatchEvent(copy)).toBe(true);
+		expect(copy.defaultPrevented).toBe(false);
 		expect(handleShortcut).not.toHaveBeenCalled();
 	});
 });
