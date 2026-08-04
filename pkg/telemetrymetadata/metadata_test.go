@@ -207,6 +207,39 @@ func TestGetTraceStaticStringFieldValuesFromTraceTable(t *testing.T) {
 	require.NoError(t, mock.ExpectationsWereMet())
 }
 
+func TestGetTraceStaticStringFieldValuesUsesUnixMilliRange(t *testing.T) {
+	mockTelemetryStore := telemetrystoretest.New(telemetrystore.Config{}, &regexMatcher{})
+	mock := mockTelemetryStore.Mock()
+	metadata := newTestTelemetryMetaStoreTestHelper(mockTelemetryStore)
+
+	const (
+		startUnixMilli = int64(1_785_773_225_009)
+		endUnixMilli   = int64(1_785_816_425_009)
+	)
+	mock.ExpectQuery(`SELECT DISTINCT.*resource_string_service.*timestamp >= fromUnixTimestamp64Milli\(\?\).*timestamp <= fromUnixTimestamp64Milli\(\?\)`).
+		WithArgs("", startUnixMilli, startUnixMilli/1_000, endUnixMilli, endUnixMilli/1_000, 3).
+		WillReturnRows(cmock.NewRows([]cmock.ColumnType{
+			{Name: "resource_string_service$$name", Type: "String"},
+		}, [][]any{{"checkout"}, {"frontend"}}))
+
+	values, complete, err := metadata.GetAllValues(context.Background(), &telemetrytypes.FieldValueSelector{
+		FieldKeySelector: &telemetrytypes.FieldKeySelector{
+			Signal:         telemetrytypes.SignalTraces,
+			Name:           "service.name",
+			FieldContext:   telemetrytypes.FieldContextResource,
+			FieldDataType:  telemetrytypes.FieldDataTypeString,
+			StartUnixMilli: startUnixMilli,
+			EndUnixMilli:   endUnixMilli,
+		},
+		Limit: 2,
+	})
+
+	require.NoError(t, err)
+	assert.True(t, complete)
+	assert.Equal(t, []string{"checkout", "frontend"}, values.StringValues)
+	require.NoError(t, mock.ExpectationsWereMet())
+}
+
 func TestGetTraceAttributeFieldValuesFallsBackToMetadata(t *testing.T) {
 	mockTelemetryStore := telemetrystoretest.New(telemetrystore.Config{}, &regexMatcher{})
 	mock := mockTelemetryStore.Mock()

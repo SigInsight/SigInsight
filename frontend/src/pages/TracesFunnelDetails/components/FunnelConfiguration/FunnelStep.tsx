@@ -147,7 +147,8 @@ function FunnelStep({
 								<Form.Item name={['steps', stepData.id, 'service_name']}>
 									<FunnelFilterSelect
 										placeholder="Select Service"
-										attributeKey="serviceName"
+										attributeKey="service.name"
+										fieldContext="resource"
 										value={stepData.service_name}
 										onChange={
 											hasEditPermission
