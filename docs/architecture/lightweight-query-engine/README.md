@@ -10,6 +10,7 @@
 - [任务节点与里程碑](roadmap.md)
 - [ClickHouse schema 基线](schema-baseline.md)
 - [物化列术语与机制](materialized-columns.md)
+- [论文章节底稿：架构设计与边界防御](thesis-chapter-architecture.md)
 - [阶段工程文档规范](milestones/README.md)
 - [M0：能力与兼容基线](milestones/m0-capability-baseline.md)
 - [M1：Lite Query Core](milestones/m1-lite-query-core.md)
