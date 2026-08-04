@@ -1,6 +1,6 @@
 # M13: V2 Visualization Boundary and Container Consolidation
 
-Status: In progress
+Status: Complete
 Date: 2026-08-04
 Start commit: `47c2003`
 Related ADR: None. This milestone changes frontend ownership boundaries only. It does
@@ -327,6 +327,25 @@ more code than it adds, and container-to-container production imports decreased 
 states, drag URL updates, and browser time restoration. TypeScript, focused Explorer
 and dispatcher tests, affected-file ESLint, and the production Vite build passed.
 
+### Specialized V2 lifecycle boundary
+
+Completed in `refactor(visualization): centralize V2 chart lifecycle`:
+
+- added the public `UPlotChartHost`, which is the single owner of the required
+  `PlotContextProvider` and low-level `UPlotChart` composition;
+- migrated the shared chart wrapper, Alert History timeline and statistics, and
+  Metrics Inspect to the host;
+- deleted four repeated provider wrappers and removed production feature imports of
+  the low-level chart/context pair;
+- retained each feature's data adapter, configuration, click/hover behavior, and fixed
+  sizing because those are domain semantics rather than duplicate panel orchestration.
+
+The Alert History timeline plugin remains a 645-line, single-consumer implementation.
+Moving it unchanged into the Alert History directory would alter ownership but would
+not remove code or reduce runtime risk, so it is deliberately excluded by this
+milestone's no-folder-only-moves rule. Four focused suites (8 tests) passed for the
+timeline, statistics sparkline, Metrics Inspect, and panel drag selection.
+
 ## Planned Deletions
 
 - `lib/uPlotShared` after helper migration.
@@ -359,9 +378,11 @@ removed. Test LOC is reported separately and is not counted as production comple
 - The most meaningful optional V2 deletion is the 645-line Alert History timeline
   plugin. It remains until a product decision explicitly accepts a simpler Alert
   History view.
-- After Explorer consolidation, the remaining direct `UPlotChart` consumers are the
-  shared `ChartWrapper` plus feature-specific Alert History statistics/timeline and
-  Metrics Inspect adapters. They require ownership cleanup, not a second chart-stack
-  migration; all already render through V2.
+- Production code outside `lib/uPlotV2` no longer imports the low-level `UPlotChart`
+  component directly. `ChartManager` still consumes `usePlotContext` intentionally as
+  a child control of the public host.
+- The Alert History timeline plugin is the only large V2 single-consumer primitive.
+  Simplifying or deleting it is a product capability decision, not residual legacy
+  uPlot cleanup.
 - Container folder moves without a deleted dependency are prohibited by the milestone
   rules because they increase churn without reducing maintenance cost.

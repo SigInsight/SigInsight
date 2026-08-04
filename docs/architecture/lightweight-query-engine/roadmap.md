@@ -256,6 +256,8 @@ Explorer、详情页和保存查询兼容层使用的 DTO、状态、自动补�
 
 ## M13：收敛 V2 图表边界与 Container 编排层
 
+状态：已完成。
+
 目标：在旧 uPlot 已删除的前提下，消除 `PanelWrapper`、`TimeSeriesView` 与
 `PanelVisualization` 的重复适配和环依赖，保留 V2 单一渲染栈及核心图表能力。
 

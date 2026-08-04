@@ -1,0 +1,1 @@
+export { UPlotChartHost } from './UPlotChartHost';

@@ -6,10 +6,9 @@ import { Button, Skeleton, Switch, Typography } from 'antd';
 import logEvent from 'api/common/logEvent';
 import { useIsDarkMode } from 'hooks/useDarkMode';
 import { useResizeObserver } from 'hooks/useDimensions';
-import UPlotChart from 'lib/uPlotV2/components/UPlotChart/UPlotChart';
+import { UPlotChartHost } from 'lib/uPlotV2';
 import { DrawStyle, LineInterpolation } from 'lib/uPlotV2/config/types';
 import { UPlotConfigBuilder } from 'lib/uPlotV2/config/UPlotConfigBuilder';
-import { PlotContextProvider } from 'lib/uPlotV2/context/PlotContext';
 import { AppState } from 'store/reducers';
 import { GlobalReducer } from 'types/reducer/globalTime';
 import type uPlot from 'uplot';
@@ -212,15 +211,13 @@ function GraphView({
 					(isInspectMetricsRefetching ? (
 						<Skeleton active />
 					) : (
-						<PlotContextProvider>
-							<UPlotChart
-								config={config}
-								data={formattedInspectMetricsTimeSeries}
-								width={dimensions.width}
-								height={500}
-								data-testid="metrics-inspect-graph"
-							/>
-						</PlotContextProvider>
+						<UPlotChartHost
+							config={config}
+							data={formattedInspectMetricsTimeSeries}
+							width={dimensions.width}
+							height={500}
+							data-testid="metrics-inspect-graph"
+						/>
 					))}
 
 				{viewType === 'table' && (
