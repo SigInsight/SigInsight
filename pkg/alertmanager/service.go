@@ -16,6 +16,10 @@ import (
 	"github.com/SigNoz/signoz/pkg/types/alertmanagertypes"
 )
 
+// Alertmanager stores matcher parsers in package globals. Initialize them
+// before services start, then keep them immutable while alerts are validated.
+var matcherCompatInit sync.Once
+
 type Service struct {
 	// config is the config for the alertmanager service
 	config alertmanagerserver.Config
@@ -50,6 +54,10 @@ func New(
 	orgGetter organization.Getter,
 	nfManager nfmanager.NotificationManager,
 ) *Service {
+	matcherCompatInit.Do(func() {
+		compat.InitFromFlags(settings.Logger(), featurecontrol.NoopFlags{})
+	})
+
 	service := &Service{
 		config:              config,
 		stateStore:          stateStore,
@@ -65,7 +73,6 @@ func New(
 }
 
 func (service *Service) SyncServers(ctx context.Context) error {
-	compat.InitFromFlags(service.settings.Logger(), featurecontrol.NoopFlags{})
 	orgs, err := service.orgGetter.ListByOwnedKeyRange(ctx)
 	if err != nil {
 		return err
