@@ -1,4 +1,4 @@
-import { SPAN_ATTRIBUTES } from 'container/ApiMonitoring/Explorer/Domains/DomainDetails/constants';
+const SPAN_ATTRIBUTES = { HTTP_URL: 'http_url' } as const;
 import { ILog } from 'types/api/logs/log';
 import { Span } from 'types/api/trace/getTraceWaterfall';
 

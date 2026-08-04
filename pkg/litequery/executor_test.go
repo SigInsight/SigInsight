@@ -185,10 +185,10 @@ func TestExecutorTrimsResultCapAndAddsWarning(t *testing.T) {
 func TestExecutorRejectsConflictingLimitSemantics(t *testing.T) {
 	queryCalled := false
 	_, err := (Executor{
-			Query: func(context.Context, string, ...any) (Rows, error) {
-				queryCalled = true
-				return &fakeRows{}, nil
-			},
+		Query: func(context.Context, string, ...any) (Rows, error) {
+			queryCalled = true
+			return &fakeRows{}, nil
+		},
 	}).executeStatement(context.Background(), Statement{
 		Name: "A", Pagination: &Pagination{Limit: 10}, ResultLimit: 10,
 	})

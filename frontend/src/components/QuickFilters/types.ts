@@ -21,7 +21,6 @@ export enum SpecficFilterOperations {
 export enum SignalType {
 	TRACES = 'traces',
 	LOGS = 'logs',
-	API_MONITORING = 'api_monitoring',
 	EXCEPTIONS = 'exceptions',
 }
 
@@ -51,6 +50,5 @@ export enum QuickFiltersSource {
 	LOGS_EXPLORER = 'logs-explorer',
 	INFRA_MONITORING = 'infra-monitoring',
 	TRACES_EXPLORER = 'traces-explorer',
-	API_MONITORING = 'api-monitoring',
 	EXCEPTIONS = 'exceptions',
 }

@@ -38,7 +38,6 @@ import GraphControlsPanel from './Overview/GraphControlsPanel/GraphControlsPanel
 import { IServiceName } from './types';
 import {
 	handleNonInQueryRange,
-	onViewAPIMonitoringPopupClick,
 	onViewTracePopupClick,
 	useGetAPMToTracesQueries,
 	useGraphClickHandler,
@@ -46,7 +45,6 @@ import {
 
 function External(): JSX.Element {
 	const [selectedTimeStamp, setSelectedTimeStamp] = useState<number>(0);
-	const [selectedData, setSelectedData] = useState<any>(undefined);
 	const { servicename: encodedServiceName } = useParams<IServiceName>();
 
 	const servicename = decodeURIComponent(encodedServiceName);
@@ -224,10 +222,7 @@ function External(): JSX.Element {
 
 	const { safeNavigate } = useSafeNavigate();
 
-	const onGraphClickHandler = useGraphClickHandler(
-		setSelectedTimeStamp,
-		setSelectedData,
-	);
+	const onGraphClickHandler = useGraphClickHandler(setSelectedTimeStamp);
 
 	return (
 		<>
@@ -241,14 +236,6 @@ function External(): JSX.Element {
 							timestamp: selectedTimeStamp,
 							apmToTraceQuery: errorApmToTraceQuery,
 							stepInterval,
-							safeNavigate,
-						})}
-						onViewAPIMonitoringClick={onViewAPIMonitoringPopupClick({
-							servicename,
-							timestamp: selectedTimeStamp,
-							domainName: selectedData?.address || '',
-							isError: true,
-							stepInterval: 300,
 							safeNavigate,
 						})}
 					/>
@@ -283,14 +270,6 @@ function External(): JSX.Element {
 							timestamp: selectedTimeStamp,
 							apmToTraceQuery,
 							stepInterval,
-							safeNavigate,
-						})}
-						onViewAPIMonitoringClick={onViewAPIMonitoringPopupClick({
-							servicename,
-							timestamp: selectedTimeStamp,
-							domainName: selectedData?.address,
-							isError: false,
-							stepInterval: 300,
 							safeNavigate,
 						})}
 					/>
@@ -330,14 +309,6 @@ function External(): JSX.Element {
 							stepInterval,
 							safeNavigate,
 						})}
-						onViewAPIMonitoringClick={onViewAPIMonitoringPopupClick({
-							servicename,
-							timestamp: selectedTimeStamp,
-							domainName: selectedData?.address,
-							isError: false,
-							stepInterval: 300,
-							safeNavigate,
-						})}
 					/>
 					<Card data-testid="external_call_rps_by_address">
 						<GraphContainer>
@@ -370,14 +341,6 @@ function External(): JSX.Element {
 							timestamp: selectedTimeStamp,
 							apmToTraceQuery,
 							stepInterval,
-							safeNavigate,
-						})}
-						onViewAPIMonitoringClick={onViewAPIMonitoringPopupClick({
-							servicename,
-							timestamp: selectedTimeStamp,
-							domainName: selectedData?.address,
-							isError: false,
-							stepInterval: 300,
 							safeNavigate,
 						})}
 					/>

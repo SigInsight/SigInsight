@@ -4,7 +4,6 @@ import ROUTES from 'constants/routes';
 import {
 	BarChart2,
 	BellDot,
-	Binoculars,
 	BugIcon,
 	Building2,
 	Cloudy,
@@ -79,12 +78,6 @@ const menuItems: SidebarItem[] = [
 		icon: <BarChart2 size={16} />,
 		isNew: false,
 		itemKey: 'metrics',
-	},
-	{
-		key: ROUTES.API_MONITORING,
-		label: 'External APIs',
-		icon: <Binoculars size={16} />,
-		itemKey: 'external-apis',
 	},
 	{
 		key: ROUTES.LIST_ALL_ALERT,
@@ -167,13 +160,6 @@ export const defaultMoreMenuItems: SidebarItem[] = [
 		icon: <BugIcon size={16} />,
 		isEnabled: true,
 		itemKey: 'exceptions',
-	},
-	{
-		key: ROUTES.API_MONITORING,
-		label: 'External APIs',
-		icon: <Binoculars size={16} />,
-		isEnabled: true,
-		itemKey: 'external-apis',
 	},
 	{
 		key: ROUTES.SERVICE_MAP,
@@ -305,7 +291,6 @@ export const NEW_ROUTES_MENU_ITEM_KEY_MAP: Record<string, string> = {
 	[ROUTES.TRACE_EXPLORER]: ROUTES.TRACES_EXPLORER,
 	[ROUTES.LOGS_BASE]: ROUTES.LOGS_EXPLORER,
 	[ROUTES.METRICS_EXPLORER_BASE]: ROUTES.METRICS_EXPLORER,
-	[ROUTES.API_MONITORING_BASE]: ROUTES.API_MONITORING,
 };
 
 export default menuItems;
