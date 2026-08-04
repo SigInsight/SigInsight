@@ -1,8 +1,8 @@
 import { FC } from 'react';
 import Spinner from 'components/Spinner';
+import { PanelVisualizationProps } from 'container/PanelVisualization/panels/types';
 
 import { PanelTypeVsPanelWrapper } from './constants';
-import { PanelWrapperProps } from './panelWrapper.types';
 
 function PanelWrapper({
 	widget,
@@ -25,10 +25,10 @@ function PanelWrapper({
 	panelMode,
 	enableDrillDown = false,
 	onColumnWidthsChange,
-}: PanelWrapperProps): JSX.Element {
+}: PanelVisualizationProps): JSX.Element {
 	const Component = PanelTypeVsPanelWrapper[
 		selectedGraph || widget.panelTypes
-	] as FC<PanelWrapperProps>;
+	] as FC<PanelVisualizationProps>;
 
 	if (!Component) {
 		return <></>;

@@ -1,15 +1,14 @@
 import LogsPanelComponent from 'container/LogsPanelTable/LogsPanelComponent';
+import { PanelVisualizationProps } from 'container/PanelVisualization/panels/types';
 import TracesTableComponent from 'container/TracesTableComponent/TracesTableComponent';
 import { DataSource } from 'types/common/queryBuilder';
-
-import { PanelWrapperProps } from './panelWrapper.types';
 
 function ListPanelWrapper({
 	widget,
 	queryResponse,
 	setRequestData,
 	onColumnWidthsChange,
-}: PanelWrapperProps): JSX.Element {
+}: PanelVisualizationProps): JSX.Element {
 	const dataSource = widget.query.builder?.queryData[0]?.dataSource;
 
 	if (!setRequestData) {

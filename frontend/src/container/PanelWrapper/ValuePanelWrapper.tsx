@@ -1,13 +1,12 @@
 import GridValueComponent from 'container/GridValueComponent';
+import { PanelVisualizationProps } from 'container/PanelVisualization/panels/types';
 import { getUPlotChartData } from 'container/PanelVisualization/panels/utils/getUPlotChartData';
-
-import { PanelWrapperProps } from './panelWrapper.types';
 
 function ValuePanelWrapper({
 	widget,
 	queryResponse,
 	enableDrillDown = false,
-}: PanelWrapperProps): JSX.Element {
+}: PanelVisualizationProps): JSX.Element {
 	const { yAxisUnit, thresholds } = widget;
 	const data = getUPlotChartData(queryResponse?.data?.payload);
 	const dataNew = Object.values(

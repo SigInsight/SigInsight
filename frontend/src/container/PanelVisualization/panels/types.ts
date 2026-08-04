@@ -1,3 +1,14 @@
+import { Dispatch, MutableRefObject, SetStateAction } from 'react';
+import { UseQueryResult } from 'react-query';
+import { PANEL_TYPES } from 'constants/queryBuilder';
+import { GetQueryResultsProps } from 'lib/dashboard/getQueryResults';
+import { RowData } from 'lib/query/createTableColumnsFromQuery';
+import { OnClickPluginOpts } from 'lib/uPlotV2/plugins/onClickPlugin';
+import { Widgets } from 'types/api/dashboard/getAll';
+import { MetricQueryRangeSuccessResponse } from 'types/api/metrics/getQueryRange';
+import { QueryData } from 'types/api/widgets/getQuery';
+import type uPlot from 'uplot';
+
 /**
  * Represents the visibility state of a single series in a graph
  */
@@ -26,3 +37,26 @@ export enum PanelMode {
 	/** Panel rendered as a widget on a dashboard (read-only view). */
 	DASHBOARD_VIEW = 'DASHBOARD_VIEW',
 }
+
+export type PanelVisualizationProps = {
+	queryResponse: UseQueryResult<MetricQueryRangeSuccessResponse, Error>;
+	widget: Widgets;
+	setRequestData?: Dispatch<SetStateAction<GetQueryResultsProps>>;
+	isFullViewMode?: boolean;
+	onToggleModelHandler?: () => void;
+	graphVisibility?: boolean[];
+	setGraphVisibility?: Dispatch<SetStateAction<boolean[]>>;
+	onClickHandler?: OnClickPluginOpts['onClick'];
+	onDragSelect: (start: number, end: number) => void;
+	selectedGraph?: PANEL_TYPES;
+	tableProcessedDataRef?: MutableRefObject<RowData[]>;
+	searchTerm?: string;
+	customTooltipElement?: HTMLDivElement;
+	openTracesButton?: boolean;
+	onOpenTraceBtnClick?: (record: RowData) => void;
+	customOnRowClick?: (record: RowData) => void;
+	customSeries?: (data: QueryData[]) => uPlot.Series[];
+	enableDrillDown?: boolean;
+	panelMode: PanelMode;
+	onColumnWidthsChange?: (widths: Record<string, number>) => void;
+};

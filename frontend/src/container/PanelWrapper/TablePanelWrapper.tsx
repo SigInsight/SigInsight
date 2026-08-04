@@ -1,9 +1,8 @@
 import { PANEL_TYPES } from 'constants/queryBuilder';
 import GridTableComponent from 'container/GridTableComponent';
 import { GRID_TABLE_CONFIG } from 'container/GridTableComponent/config';
+import { PanelVisualizationProps } from 'container/PanelVisualization/panels/types';
 import { QueryRangeRequestV5 } from 'types/api/v5/queryRange';
-
-import { PanelWrapperProps } from './panelWrapper.types';
 
 function TablePanelWrapper({
 	widget,
@@ -15,7 +14,7 @@ function TablePanelWrapper({
 	customOnRowClick,
 	enableDrillDown = false,
 	onColumnWidthsChange,
-}: PanelWrapperProps): JSX.Element {
+}: PanelVisualizationProps): JSX.Element {
 	const panelData =
 		(queryResponse.data?.payload?.data?.result?.[0] as any)?.table || [];
 	const { thresholds } = widget;

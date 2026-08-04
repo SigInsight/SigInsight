@@ -262,8 +262,26 @@ yarn --cwd frontend build
 ```
 
 The import scan is empty. The targeted suite passed 7 suites and 51 tests; lint and the
-production build passed. The remaining M13 work starts with the
-`PanelWrapper`/`PanelVisualization` dependency cycle.
+production build passed.
+
+### Panel ownership boundary
+
+Completed in `refactor(visualization): remove PanelWrapper reverse dependencies`:
+
+- moved the panel rendering contract from `PanelWrapper` into
+  `PanelVisualization/panels/types` and removed its dependency on GridCard types;
+- moved histogram constants to the histogram owner and deleted an unused duplicate
+  bucket-size table;
+- moved metric drilldown time-range behavior beside QueryTable drilldown and added
+  direct tests;
+- moved Pie-only tooltip/color helpers beside Pie panel behavior;
+- deleted unused `getLabel` and uPlot-axis time-range helpers, then deleted
+  `PanelWrapper/panelWrapper.types.ts` and `PanelWrapper/utils.ts`;
+- reduced production imports from `PanelVisualization` to `PanelWrapper` to zero.
+
+The focused boundary suite passed 5 suites, 12 tests, and 2 snapshots; lint and the
+production build passed. The remaining M13 work starts with migrating the three direct
+callers from the `PanelWrapper` dispatcher and then deleting that dispatcher.
 
 ## Planned Deletions
 
@@ -280,7 +298,7 @@ production build passed. The remaining M13 work starts with the
 | --- | ---: | --- |
 | Legacy uPlot production imports | 0 | remains 0 |
 | `lib/uPlotShared` imports | active | 0 and directory deleted (completed) |
-| `PanelVisualization -> PanelWrapper` imports | active cycle | 0 |
+| `PanelVisualization -> PanelWrapper` imports | active cycle | 0 (completed) |
 | `PanelVisualization -> QueryTable` private imports | active | 0 or neutral public drilldown API |
 | `TimeSeriesView` duplicated chart preparation | 4 helper calls | 0 |
 | `container` cross-container production imports | 270 | decreases; no new reverse dependency |

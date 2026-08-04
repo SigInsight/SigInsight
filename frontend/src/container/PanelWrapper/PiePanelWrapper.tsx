@@ -5,6 +5,12 @@ import { Pie } from '@visx/shape';
 import { useTooltip, useTooltipInPortal } from '@visx/tooltip';
 import { getYAxisFormattedValue } from 'components/Graph/yAxisConfig';
 import { themeColors } from 'constants/theme';
+import {
+	lightenColor,
+	TooltipData,
+	tooltipStyles,
+} from 'container/PanelVisualization/panels/PiePanel/utils';
+import { PanelVisualizationProps } from 'container/PanelVisualization/panels/types';
 import { getPieChartClickData } from 'container/QueryTable/Drilldown/drilldownUtils';
 import useGraphContextMenu from 'container/QueryTable/Drilldown/useGraphContextMenu';
 import { useIsDarkMode } from 'hooks/useDarkMode';
@@ -13,16 +19,13 @@ import getLabelName from 'lib/getLabelName';
 import { isNaN } from 'lodash-es';
 import ContextMenu, { useCoordinates } from 'periscope/components/ContextMenu';
 
-import { PanelWrapperProps, TooltipData } from './panelWrapper.types';
-import { lightenColor, tooltipStyles } from './utils';
-
 import './PiePanelWrapper.styles.scss';
 
 function PiePanelWrapper({
 	queryResponse,
 	widget,
 	enableDrillDown = false,
-}: PanelWrapperProps): JSX.Element {
+}: PanelVisualizationProps): JSX.Element {
 	const [active, setActive] = useState<{
 		label: string;
 		value: string;

@@ -1,10 +1,10 @@
 import { useCallback } from 'react';
 import { UseQueryResult } from 'react-query';
+import { getUplotClickData } from 'container/QueryTable/Drilldown/drilldownUtils';
 import {
 	getTimeRangeFromStepInterval,
 	isApmMetric,
-} from 'container/PanelWrapper/utils';
-import { getUplotClickData } from 'container/QueryTable/Drilldown/drilldownUtils';
+} from 'container/QueryTable/Drilldown/metricTimeRange';
 import useGraphContextMenu from 'container/QueryTable/Drilldown/useGraphContextMenu';
 import {
 	PopoverPosition,
