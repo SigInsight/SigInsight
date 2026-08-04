@@ -1,9 +1,6 @@
-import { OperatorConfigKeys, OPERATORS_CONFIG } from 'constants/queryBuilder';
-import { HAVING_FILTER_REGEXP } from 'constants/regExp';
 import { IOption } from 'hooks/useResourceAttribute/types';
 import uniqWith from 'lodash-es/unionWith';
 import { parse } from 'papaparse';
-import { HavingForm } from 'types/api/queryBuilder/queryBuilderData';
 
 import { ORDERBY_FILTERS } from './OrderByFilter/config';
 import {
@@ -11,46 +8,6 @@ import {
 	splitOrderByFromString,
 } from './OrderByFilter/utils';
 import { getRemoveOrderFromValue } from './queryBuilderFilterUtils';
-
-interface AttributeValue {
-	boolAttributeValues: boolean[];
-	numberAttributeValues: number[];
-	stringAttributeValues: string[];
-}
-
-export interface AttributeValuesMap {
-	[key: string]: AttributeValue;
-}
-
-export const handleKeyDownLimitFilter: React.KeyboardEventHandler<HTMLInputElement> = (
-	event,
-): void => {
-	const keyCode = event.keyCode || event.which;
-	const isBackspace = keyCode === 8;
-	const isNumeric =
-		(keyCode >= 48 && keyCode <= 57) || (keyCode >= 96 && keyCode <= 105);
-
-	if (!isNumeric && !isBackspace) {
-		event.preventDefault();
-	}
-};
-
-export const getHavingObject = (currentSearch: string): HavingForm => {
-	const textArr = currentSearch.split(' ');
-	const [columnName = '', op = '', ...value] = textArr;
-
-	return { columnName, op, value };
-};
-
-export const isValidHavingValue = (search: string): boolean => {
-	const values = getHavingObject(search).value.join(' ');
-
-	if (values) {
-		return HAVING_FILTER_REGEXP.test(values);
-	}
-
-	return true;
-};
 
 export const getUniqueOrderByValues = (values: IOption[]): IOption[] => {
 	const modifiedValues = values.map((item) => {
@@ -109,32 +66,3 @@ export const getValidOrderByResult = (result: IOption[]): IOption[] =>
 
 		return acc;
 	}, []);
-
-export const transformKeyValuesToAttributeValuesMap = (
-	attributeValuesMap: Record<string, string[] | number[] | boolean[]>,
-): AttributeValuesMap =>
-	Object.fromEntries(
-		Object.entries(attributeValuesMap || {}).map(([key, values]) => [
-			key,
-			{
-				stringAttributeValues:
-					typeof values[0] === 'string' ? (values as string[]) : [],
-				numberAttributeValues:
-					typeof values[0] === 'number' ? (values as number[]) : [],
-				boolAttributeValues:
-					typeof values[0] === 'boolean' ? (values as boolean[]) : [],
-			},
-		]),
-	);
-
-export const filterByOperatorConfig = (
-	options: IOption[],
-	key?: OperatorConfigKeys,
-): IOption[] => {
-	if (!key || !OPERATORS_CONFIG[key]) {
-		return options;
-	}
-	return options.filter((option) =>
-		OPERATORS_CONFIG[key].includes(option.label),
-	);
-};
