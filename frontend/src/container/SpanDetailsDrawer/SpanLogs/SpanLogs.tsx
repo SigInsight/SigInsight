@@ -17,7 +17,7 @@ import LogsError from 'container/LogsError/LogsError';
 import { EmptyLogsListConfig } from 'container/LogsExplorerList/utils';
 import { LogsLoading } from 'container/LogsLoading/LogsLoading';
 import { FontSize } from 'container/OptionsMenu/types';
-import { getOperatorValue } from 'container/QueryBuilder/filters/QueryBuilderSearch/utils';
+import { getOperatorValue } from 'container/QueryBuilder/filters/queryBuilderFilterUtils';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
 import createQueryParams from 'lib/createQueryParams';
 import { Compass } from 'lucide-react';
@@ -106,8 +106,7 @@ function SpanLogs({
 			// Determine if this is a span log or context log
 			const isSpanLog = isLogSpanRelated(log.id);
 
-			// Extract log's span_id (handles both spanID and span_id properties)
-			const logSpanId = log.spanID || log.span_id || '';
+			const logSpanId = log.span_id || '';
 
 			// Use appropriate span ID: current span for span logs, individual log's span for context logs
 			const targetSpanId = isSpanLog ? spanId : logSpanId;
@@ -158,12 +157,8 @@ function SpanLogs({
 
 	const getItemContent = useCallback(
 		(_: number, logToRender: ILog): JSX.Element => {
-			const getIsSpanRelated = (log: ILog, currentSpanId: string): boolean => {
-				if (log.spanID) {
-					return log.spanID === currentSpanId;
-				}
-				return log.span_id === currentSpanId;
-			};
+			const getIsSpanRelated = (log: ILog, currentSpanId: string): boolean =>
+				log.span_id === currentSpanId;
 
 			const isSpanRelated = getIsSpanRelated(logToRender, spanId);
 

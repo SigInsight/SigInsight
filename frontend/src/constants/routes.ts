@@ -43,8 +43,6 @@ const ROUTES = {
 	METRICS_EXPLORER: '/metrics-explorer/summary',
 	METRICS_EXPLORER_EXPLORER: '/metrics-explorer/explorer',
 	METRICS_EXPLORER_VIEWS: '/metrics-explorer/views',
-	API_MONITORING_BASE: '/api-monitoring',
-	API_MONITORING: '/api-monitoring/explorer',
 	METRICS_EXPLORER_BASE: '/metrics-explorer',
 	HOME_PAGE: '/',
 } as const;

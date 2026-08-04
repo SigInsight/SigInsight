@@ -65,8 +65,9 @@ function TracesTableComponent({
 		[widget.selectedTracesFields],
 	);
 
-	const dataLength =
-		queryResponse.data?.payload?.data?.queryResult?.data?.result[0]?.list?.length;
+	const firstResult =
+		queryResponse.data?.payload?.data?.queryResult?.data?.result[0];
+	const dataLength = firstResult?.list?.length;
 	const totalCount = useMemo(() => dataLength || 0, [dataLength]);
 
 	const queryTableDataResult =
@@ -150,6 +151,7 @@ function TracesTableComponent({
 							offset: pagination.offset - pagination.limit,
 						});
 					}}
+					hasNextPage={firstResult?.pageInfo?.hasNextPage}
 					handleNavigateNext={(): void => {
 						handlePaginationChange({
 							...pagination,

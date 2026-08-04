@@ -53,7 +53,16 @@ func FromLite(request *qbtypes.QueryRangeRequest, result litequery.ExecutionResu
 		response.Data.Results = append(response.Data.Results, data)
 	}
 	if len(result.Warnings) != 0 {
-		response.Warning = &qbtypes.QueryWarnData{Message: "Encountered warnings"}
+		code := qbtypes.QueryWarningCodeGeneric
+		message := "Query completed with warnings"
+		for _, query := range result.Queries {
+			if query.Truncated {
+				code = qbtypes.QueryWarningCodeResultLimit
+				message = "Query results were truncated"
+				break
+			}
+		}
+		response.Warning = &qbtypes.QueryWarnData{Code: code, Message: message}
 		for _, warning := range result.Warnings {
 			response.Warning.Warnings = append(response.Warning.Warnings, qbtypes.QueryWarnDataAdditional{Message: warning})
 		}
@@ -213,7 +222,20 @@ func raw(query litequery.QueryResult) (*qbtypes.RawData, error) {
 		}
 		rows = append(rows, result)
 	}
-	return &qbtypes.RawData{QueryName: query.Name, Rows: rows}, nil
+	result := &qbtypes.RawData{QueryName: query.Name, Rows: rows}
+	if query.PageInfo != nil {
+		result.PageInfo = &qbtypes.PageInfo{
+			Limit:       query.PageInfo.Limit,
+			Offset:      query.PageInfo.Offset,
+			Returned:    query.PageInfo.Returned,
+			HasNextPage: query.PageInfo.HasNextPage,
+		}
+		if query.PageInfo.HasNextPage {
+			nextOffset := query.PageInfo.Offset + query.PageInfo.Limit
+			result.PageInfo.NextOffset = &nextOffset
+		}
+	}
+	return result, nil
 }
 
 func fieldKey(field litequery.FieldRef) telemetrytypes.TelemetryFieldKey {

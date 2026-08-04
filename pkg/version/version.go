@@ -3,7 +3,6 @@ package version
 import (
 	"fmt"
 	"runtime"
-	"strconv"
 	gotime "time"
 )
 
@@ -77,35 +76,14 @@ func (b Build) PrettyPrint(cfg Config) {
 		return
 	}
 
-	year := gotime.Now().Year()
-	ascii := []string{
-		"                       -**********=                        ",
-		"                  .::-=+**********+=--:.                   ",
-		"              .-=*******++=-----==+******=-.               ",
-		"           :-+*******=:.            :-+******=:            ",
-		"        .-********+:                   .=*******=.         ",
-		"      :+********+:                       .=*******+:       ",
-		"    .+*********+   :+***+.                 -********+:     ",
-		"   -**********+.  .****=                    =*********=    " + "  ____  _             _   _               ____  _       _   _                ",
-		" .************:   +****                      +**********:  " + " / ___|| |_ __ _ _ __| |_(_)_ __   __ _  / ___|(_) __ _| \\ | | ___ ____      ",
-		".************+   .----:                      -***********- " + " \\___ \\| __/ _` | '__| __| | '_ \\ / _` | \\___ \\| |/ _` |  \\| |/ _ \\_  /      ",
-		"*************=                               :************." + "  ___) | || (_| | |  | |_| | | | | (_| |  ___) | | (_| | |\\  | (_) / / _ _ _ ",
-		":************+    ----:                      -***********= " + " |____/ \\__\\__,_|_|   \\__|_|_| |_|\\__, | |____/|_|\\__, |_| \\_|\\___/___(_|_|_)",
-		" :************.   *****                      +**********:  " + "                                  |___/           |___/                      ",
-		"  .=**********+   :****=                    -*********+.   " + " Version: " + b.version + " (" + b.variant + ")" + " [Copyright " + strconv.Itoa(year) + " SigNoz, All rights reserved]",
-		"    :+*********+   :+***+                  -********+:     ",
-		"      :+********+.                        =*******+-       ",
-		"        :=********=.                    -*******=:         ",
-		"           :=*******+-.             .-+******=-.           ",
-		"              :-+*******+=--:::--=+******+=:               ",
-		"                  .:-==+***********+=-::                   ",
-		"                       :**********=                        ",
-	}
+	fmt.Print(b.banner(gotime.Now().Year())) //nolint:forbidigo
+}
 
-	fmt.Println() //nolint:forbidigo
-	for _, line := range ascii {
-		fmt.Print(line) //nolint:forbidigo
-		fmt.Println()   //nolint:forbidigo
-	}
-	fmt.Println() //nolint:forbidigo
+func (b Build) banner(year int) string {
+	return fmt.Sprintf(
+		"\nSigInsight\nVersion: %s (%s)\nCopyright %d SigInsight. All rights reserved.\n\n",
+		b.version,
+		b.variant,
+		year,
+	)
 }

@@ -32,10 +32,6 @@ export default function Toolbar({
 		pathname,
 	]);
 
-	const isApiMonitoringPage = useMemo(() => pathname === ROUTES.API_MONITORING, [
-		pathname,
-	]);
-
 	return (
 		<div className="toolbar">
 			<div className="leftActions">{leftActions}</div>
@@ -49,7 +45,7 @@ export default function Toolbar({
 						onExitLiveLogs={onExitLiveLogs}
 						onGoLive={onGoLive}
 						showAutoRefresh={showAutoRefresh}
-						showRefreshText={!isLogsExplorerPage && !isApiMonitoringPage}
+						showRefreshText={!isLogsExplorerPage}
 						hideShareModal
 					/>
 				</div>

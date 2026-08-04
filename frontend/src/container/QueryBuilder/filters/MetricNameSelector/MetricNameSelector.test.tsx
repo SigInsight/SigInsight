@@ -31,9 +31,11 @@ jest.mock('hooks/useDebounce', () => ({
 	default: <T,>(value: T): T => value,
 }));
 
-jest.mock('../QueryBuilderSearch/OptionRenderer', () => ({
-	__esModule: true,
-	default: ({ value }: { value: string }): JSX.Element => <span>{value}</span>,
+jest.mock('../sharedControls', () => ({
+	selectStyle: {},
+	MetricOptionRenderer: ({ value }: { value: string }): JSX.Element => (
+		<span>{value}</span>
+	),
 }));
 
 // Ref lets StatefulMetricQueryHarness wire handleSetQueryData to real state,

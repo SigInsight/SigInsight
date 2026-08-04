@@ -37,10 +37,19 @@ type Executor struct {
 }
 
 type QueryResult struct {
-	Name     string
-	Columns  []ResultColumn
-	Rows     [][]any
-	Warnings []string
+	Name      string
+	Columns   []ResultColumn
+	Rows      [][]any
+	Warnings  []string
+	PageInfo  *PageInfo
+	Truncated bool
+}
+
+type PageInfo struct {
+	Limit       uint32
+	Offset      uint32
+	Returned    uint32
+	HasNextPage bool
 }
 
 type ExecutionResult struct {
@@ -136,6 +145,9 @@ func (e Executor) Execute(ctx context.Context, plan Plan) (ExecutionResult, erro
 }
 
 func (e Executor) executeStatement(ctx context.Context, statement Statement) (QueryResult, error) {
+	if statement.Pagination != nil && (statement.Pagination.Limit == 0 || statement.ResultLimit != 0) {
+		return QueryResult{}, newError(ErrorInvalidRequest, "executor.limit", "query %q has conflicting or invalid row-limit semantics", statement.Name)
+	}
 	rows, err := e.Query(ctx, statement.SQL, statement.Args...)
 	if err != nil {
 		return QueryResult{}, err
@@ -168,6 +180,29 @@ func (e Executor) executeStatement(ctx context.Context, statement Statement) (Qu
 	}
 	if err := rows.Err(); err != nil {
 		return QueryResult{}, errors.WrapInternalf(err, errors.CodeInternal, "failed to read query %q", statement.Name)
+	}
+	if statement.Pagination != nil {
+		limit := statement.Pagination.Limit
+		hasNextPage := len(result.Rows) > int(limit)
+		if hasNextPage {
+			result.Rows = result.Rows[:limit]
+		}
+		result.PageInfo = &PageInfo{
+			Limit:       limit,
+			Offset:      statement.Pagination.Offset,
+			Returned:    uint32(len(result.Rows)),
+			HasNextPage: hasNextPage,
+		}
+	}
+	if statement.ResultLimit != 0 && len(result.Rows) > int(statement.ResultLimit) {
+		result.Rows = result.Rows[:statement.ResultLimit]
+		result.Truncated = true
+		result.Warnings = append(result.Warnings, fmt.Sprintf(
+			"query %q returned more than %d rows; only the first %d rows are included",
+			statement.Name,
+			statement.ResultLimit,
+			statement.ResultLimit,
+		))
 	}
 	return result, nil
 }

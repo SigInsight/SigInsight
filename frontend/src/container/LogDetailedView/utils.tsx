@@ -196,17 +196,15 @@ export const aggregateAttributesResourcesToString = (logData: ILog): string => {
 		body: logData.body,
 		date: logData.date,
 		id: logData.id,
-		severityNumber: logData.severityNumber,
-		severityText: logData.severityText,
-		spanID: logData.spanID,
+		severity_number: logData.severity_number,
+		severity_text: logData.severity_text,
+		span_id: logData.span_id,
 		timestamp: logData.timestamp,
-		traceFlags: logData.traceFlags,
-		traceId: logData.traceId,
+		trace_flags: logData.trace_flags,
+		trace_id: logData.trace_id,
 		attributes: {},
 		resources: {},
 		scope: {},
-		severity_text: logData.severity_text,
-		severity_number: logData.severity_number,
 	};
 
 	Object.keys(logData).forEach((key) => {

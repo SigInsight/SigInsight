@@ -113,7 +113,8 @@ function TracesView({
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [data?.payload, data?.warning]);
 
-	const responseData = data?.payload?.data?.queryResult?.data?.result[0]?.list;
+	const firstResult = data?.payload?.data?.queryResult?.data?.result[0];
+	const responseData = firstResult?.list;
 	const tableData = useMemo(
 		() => responseData?.map((listItem) => listItem.data),
 		[responseData],
@@ -146,6 +147,7 @@ function TracesView({
 							isLoading={isLoading}
 							totalCount={responseData?.length || 0}
 							perPageOptions={PER_PAGE_OPTIONS}
+							hasNextPage={firstResult?.pageInfo?.hasNextPage}
 						/>
 					</div>
 				</ActionsContainer>

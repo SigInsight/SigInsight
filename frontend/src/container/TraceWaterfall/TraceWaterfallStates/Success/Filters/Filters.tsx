@@ -1,22 +1,38 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+import { useQuery } from 'react-query';
 import { useHistory, useLocation } from 'react-router-dom';
 import { InfoCircleOutlined, LoadingOutlined } from '@ant-design/icons';
 import { Button, Spin, Tooltip, Typography } from 'antd';
+import {
+	notifyQueryRangeWarning,
+	QUERY_RESULT_LIMIT_WARNING_CODE,
+} from 'api/v5/queryRange/getQueryRange';
 import { AxiosError } from 'axios';
 import { initialQueriesMap, PANEL_TYPES } from 'constants/queryBuilder';
-import QueryBuilderSearchV2 from 'container/QueryBuilder/filters/QueryBuilderSearchV2/QueryBuilderSearchV2';
-import { useGetQueryRange } from 'hooks/queryBuilder/useGetQueryRange';
-import { uniqBy } from 'lodash-es';
+import QueryBuilderSearchV3 from 'features/query-builder-v3/QueryBuilderSearchV3';
+import SpanScopeSelector from 'features/query-builder-v3/SpanScopeSelector';
+import { GetMetricQueryRange } from 'lib/dashboard/getQueryResults';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import { Warning } from 'types/api';
 import { DataTypes } from 'types/api/queryBuilder/queryAutocompleteResponse';
 import { Query, TagFilter } from 'types/api/queryBuilder/queryBuilderData';
+import { Span } from 'types/api/trace/getTraceWaterfall';
 import { TracesAggregatorOperator } from 'types/common/queryBuilder';
 
-import { BASE_FILTER_QUERY } from './constants';
+import {
+	BASE_FILTER_QUERY,
+	TRACE_FILTER_PAGE_SIZE,
+	TRACE_FILTER_TOTAL_LIMIT,
+} from './constants';
+import { traceDetailFilterFields } from './traceFilterFields';
 
 import './Filters.styles.scss';
 
-function prepareQuery(filters: TagFilter, traceID: string): Query {
+function prepareQuery(
+	filters: TagFilter,
+	traceID: string,
+	offset: number,
+): Query {
 	return {
 		...initialQueriesMap.traces,
 		builder: {
@@ -26,6 +42,8 @@ function prepareQuery(filters: TagFilter, traceID: string): Query {
 					...initialQueriesMap.traces.builder.queryData[0],
 					aggregateOperator: TracesAggregatorOperator.NOOP,
 					orderBy: [{ columnName: 'timestamp', order: 'asc' }],
+					limit: TRACE_FILTER_PAGE_SIZE,
+					offset,
 					filters: {
 						...filters,
 						items: [
@@ -49,15 +67,91 @@ function prepareQuery(filters: TagFilter, traceID: string): Query {
 	};
 }
 
+interface FilteredSpansResult {
+	spanIds: string[];
+	warning?: Warning;
+}
+
+export async function getFilteredSpanIds(
+	filters: TagFilter,
+	traceID: string,
+	startTime: number,
+	endTime: number,
+	signal?: AbortSignal,
+): Promise<FilteredSpansResult> {
+	const spanIds: string[] = [];
+	for (
+		let offset = 0;
+		offset < TRACE_FILTER_TOTAL_LIMIT;
+		offset += TRACE_FILTER_PAGE_SIZE
+	) {
+		const response = await GetMetricQueryRange(
+			{
+				query: prepareQuery(filters, traceID, offset),
+				graphType: PANEL_TYPES.LIST,
+				selectedTime: 'GLOBAL_TIME',
+				start: startTime,
+				end: endTime,
+				params: { dataSource: 'traces' },
+				tableParams: {
+					pagination: { offset, limit: TRACE_FILTER_PAGE_SIZE },
+					selectColumns: [
+						{
+							key: 'name',
+							dataType: 'string',
+							type: 'span',
+							id: 'name--string--span--true',
+							isIndexed: false,
+						},
+					],
+				},
+			},
+			undefined,
+			signal,
+			undefined,
+			{ notifyOnWarning: false },
+		);
+		const queryResult = response.payload.data.queryResult.data.result[0];
+		const rows = queryResult?.list || [];
+		for (const row of rows) {
+			if (typeof row.data.span_id === 'string' && row.data.span_id !== '') {
+				spanIds.push(row.data.span_id);
+			}
+		}
+
+		const hasNextPage =
+			queryResult?.pageInfo?.hasNextPage ??
+			response.warning?.code === QUERY_RESULT_LIMIT_WARNING_CODE;
+		if (!hasNextPage) {
+			return { spanIds: [...new Set(spanIds)], warning: response.warning };
+		}
+	}
+
+	return {
+		spanIds: [...new Set(spanIds)],
+		warning: {
+			code: QUERY_RESULT_LIMIT_WARNING_CODE,
+			message: 'Trace filter results were truncated',
+			warnings: [
+				{
+					message: `More than ${TRACE_FILTER_TOTAL_LIMIT.toLocaleString()} spans matched; only the first ${TRACE_FILTER_TOTAL_LIMIT.toLocaleString()} are highlighted.`,
+				},
+			],
+		},
+	};
+}
+
 function Filters({
 	startTime,
 	endTime,
 	traceID,
+	spans,
 	onFilteredSpansChange = (): void => {},
 }: {
 	startTime: number;
 	endTime: number;
 	traceID: string;
+	spans: Span[];
 	onFilteredSpansChange?: (spanIds: string[], isFilterActive: boolean) => void;
 }): JSX.Element {
 	const [filters, setFilters] = useState<TagFilter>(
@@ -66,6 +160,7 @@ function Filters({
 	const [noData, setNoData] = useState<boolean>(false);
 	const [filteredSpanIds, setFilteredSpanIds] = useState<string[]>([]);
 	const [currentSearchedIndex, setCurrentSearchedIndex] = useState<number>(0);
+	const fields = useMemo(() => traceDetailFilterFields(spans), [spans]);
 
 	const handleFilterChange = useCallback(
 		(value: TagFilter): void => {
@@ -96,44 +191,15 @@ function Filters({
 		[filteredSpanIds, history, search],
 	);
 
-	const { isFetching, error } = useGetQueryRange(
+	const { isFetching, error } = useQuery(
+		['trace-detail-filter', traceID, startTime, endTime, filters],
+		({ signal }) =>
+			getFilteredSpanIds(filters, traceID, startTime, endTime, signal),
 		{
-			query: prepareQuery(filters, traceID),
-			graphType: PANEL_TYPES.LIST,
-			selectedTime: 'GLOBAL_TIME',
-			start: startTime,
-			end: endTime,
-			params: {
-				dataSource: 'traces',
-			},
-			tableParams: {
-				pagination: {
-					offset: 0,
-					limit: 200,
-				},
-				selectColumns: [
-					{
-						key: 'name',
-						dataType: 'string',
-						type: 'tag',
-						id: 'name--string--tag--true',
-						isIndexed: false,
-					},
-				],
-			},
-		},
-		{
-			queryKey: [filters],
 			enabled: filters.items.length > 0,
-			onSuccess: (data) => {
+			onSuccess: ({ spanIds, warning }) => {
 				const isFilterActive = filters.items.length > 0;
-				if (data?.payload.data.queryResult.data.result[0].list) {
-					const uniqueSpans = uniqBy(
-						data?.payload.data.queryResult.data.result[0].list,
-						'data.spanID',
-					);
-
-					const spanIds = uniqueSpans.map((val) => val.data.spanID);
+				if (spanIds.length > 0) {
 					setFilteredSpanIds(spanIds);
 					onFilteredSpansChange?.(spanIds, isFilterActive);
 					handlePrevNext(0, spanIds[0]);
@@ -144,22 +210,28 @@ function Filters({
 					onFilteredSpansChange?.([], isFilterActive);
 					setCurrentSearchedIndex(0);
 				}
+				notifyQueryRangeWarning(warning);
 			},
 		},
 	);
 
 	return (
 		<div className="filter-row">
-			<QueryBuilderSearchV2
-				query={{
-					...BASE_FILTER_QUERY,
-					filters,
-				}}
-				onChange={handleFilterChange}
-				hideSpanScopeSelector={false}
-				skipQueryBuilderRedirect
-				selectProps={{ listHeight: 125 }}
-			/>
+			<div className="trace-detail-filter-controls">
+				<QueryBuilderSearchV3
+					ariaLabel="Filter trace spans"
+					query={{ ...BASE_FILTER_QUERY, filters }}
+					onChange={handleFilterChange}
+					fields={fields}
+					label="Filter spans"
+					placeholder="http.route = '/checkout' AND duration_nano > 100000000"
+				/>
+				<SpanScopeSelector
+					query={{ ...BASE_FILTER_QUERY, filters }}
+					onChange={handleFilterChange}
+					skipQueryBuilderRedirect
+				/>
+			</div>
 			{filteredSpanIds.length > 0 && (
 				<div className="pre-next-toggle">
 					<Typography.Text>
@@ -186,7 +258,7 @@ function Filters({
 				</div>
 			)}
 			{isFetching && <Spin indicator={<LoadingOutlined spin />} size="small" />}
-			{error && (
+			{Boolean(error) && (
 				<Tooltip title={(error as AxiosError)?.message || 'Something went wrong'}>
 					<InfoCircleOutlined size={14} />
 				</Tooltip>

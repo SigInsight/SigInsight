@@ -15,7 +15,7 @@ interface WarningContentProps {
 
 export function WarningContent({ warning }: WarningContentProps): JSX.Element {
 	const {
-		warnings: warningMessages,
+		warnings: warningMessages = [],
 		code: warningCode,
 		message: warningMessage,
 	} = warning || {};
@@ -41,7 +41,7 @@ export function WarningContent({ warning }: WarningContentProps): JSX.Element {
 					</div>
 				</header>
 
-				{warningMessages?.length > 0 && (
+				{warningMessages.length > 0 && (
 					<div className="warning-content__message-badge">
 						<KeyValueLabel
 							badgeKey={
@@ -64,14 +64,14 @@ export function WarningContent({ warning }: WarningContentProps): JSX.Element {
 				<div className="warning-content__message-list-container">
 					<OverlayScrollbar>
 						<ul className="warning-content__message-list">
-							{warningMessages?.map((warning) => (
+							{warningMessages.map((warning) => (
 								<li className="warning-content__message-item" key={warning.message}>
 									{warning.message}
 								</li>
 							))}
 						</ul>
 					</OverlayScrollbar>
-					{warningMessages?.length > 10 && (
+					{warningMessages.length > 10 && (
 						<div className="warning-content__scroll-hint">
 							<ChevronsDown
 								size={16}

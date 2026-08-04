@@ -65,6 +65,27 @@ func TestCompilerExecutesOnCurrentClickHouseSchema(t *testing.T) {
 		},
 		{
 			Range: TimeRange{StartMS: now - 3_000, EndMS: now + 1_000}, ResultType: ResultTimeSeries, StepMS: 1_000,
+			Queries: []Query{TraceQuery{Common: CommonQuery{
+				Name: "trace_quick_filters",
+				Filter: LogicalFilter{Operator: BooleanAnd, Items: []FilterNode{
+					Predicate{Field: FieldRef{Name: "name", Context: FieldContextSpan, Type: ValueTypeString}, Op: FilterNotIn, Value: Value{Kind: ValueStringList, Strings: []string{"excluded-operation"}}},
+					Predicate{Field: FieldRef{Name: "has_error", Context: FieldContextSpan, Type: ValueTypeBool}, Op: FilterNotIn, Value: Value{Kind: ValueBoolList, Bools: []bool{true}}},
+				}},
+			}, Aggregation: TraceAggregateCount}},
+		},
+		{
+			Range: TimeRange{StartMS: now - 3_000, EndMS: now + 1_000}, ResultType: ResultTimeSeries, StepMS: 1_000,
+			Queries: []Query{TraceQuery{Common: CommonQuery{
+				Name: "trace_pattern_filters",
+				Filter: LogicalFilter{Operator: BooleanAnd, Items: []FilterNode{
+					Predicate{Field: FieldRef{Name: "http.route", Context: FieldContextAttribute, Type: ValueTypeString}, Op: FilterILike, Value: Value{Kind: ValueString, String: "/MATCHED-%"}},
+					Predicate{Field: FieldRef{Name: "name", Context: FieldContextSpan, Type: ValueTypeString}, Op: FilterRegexp, Value: Value{Kind: ValueString, String: "^(child|orphan)-operation$"}},
+					Predicate{Field: FieldRef{Name: "service.name", Context: FieldContextResource, Type: ValueTypeString}, Op: FilterNotLike, Value: Value{Kind: ValueString, String: "excluded-%"}},
+				}},
+			}, Aggregation: TraceAggregateCount}},
+		},
+		{
+			Range: TimeRange{StartMS: now - 3_000, EndMS: now + 1_000}, ResultType: ResultTimeSeries, StepMS: 1_000,
 			Queries: []Query{MetricQuery{Common: CommonQuery{
 				Name: "requests", GroupBy: []FieldRef{{Name: "service.name", Context: FieldContextLabel, Type: ValueTypeString}},
 			}, Aggregation: MetricAggregation{
@@ -118,7 +139,7 @@ func TestCompilerExecutesOnCurrentClickHouseSchema(t *testing.T) {
 			if err != nil {
 				t.Fatalf("Query(%s) error = %v\nSQL: %s\nArgs: %#v", statement.Name, err, statement.SQL, statement.Args)
 			}
-			if statement.Name == "requests" || statement.Name == "semantic_gauge" || statement.Name == "latency" || statement.Name == "latency_delta" || statement.Name == "meter" {
+			if statement.Name == "requests" || statement.Name == "semantic_gauge" || statement.Name == "latency" || statement.Name == "latency_delta" || statement.Name == "meter" || statement.Name == "trace_pattern_filters" {
 				assertPositiveMetricRows(t, statement.Name, rows)
 			}
 			if err := rows.Err(); err != nil {
@@ -190,6 +211,76 @@ func TestCompilerExecutesOnCurrentClickHouseSchema(t *testing.T) {
 	if orphan == nil || orphan[2] != uint64(1) || orphan[3] != uint64(4_000_000) || fmt.Sprint(orphan[4]) != "orphan-service" || fmt.Sprint(orphan[5]) != "orphan-operation" {
 		t.Fatalf("orphan trace summary row = %#v", orphan)
 	}
+
+	// Verify Root and Entrypoint remain distinct: Entrypoint follows the OTel
+	// receiving-boundary semantics encoded directly on the span row.
+	for _, test := range []struct {
+		name       string
+		field      string
+		wantSpanID string
+	}{
+		{name: "root", field: "isRoot", wantSpanID: "root-span"},
+		{name: "entrypoint", field: "isEntryPoint", wantSpanID: "child-span"},
+	} {
+		t.Run("trace_detail_"+test.name, func(t *testing.T) {
+			scopePlan, err := (DefaultPlanner{}).Plan(Request{
+				Range: TimeRange{StartMS: now - 3_000, EndMS: now + 1_000}, ResultType: ResultRaw,
+				Queries: []Query{TraceQuery{Common: CommonQuery{
+					Name:   "trace_detail_scope",
+					Select: []FieldRef{{Name: "span_id", Context: FieldContextSpan, Type: ValueTypeString}},
+					Filter: LogicalFilter{Operator: BooleanAnd, Items: []FilterNode{
+						Predicate{Field: FieldRef{Name: "trace_id", Context: FieldContextSpan, Type: ValueTypeString}, Op: FilterEqual, Value: Value{Kind: ValueString, String: traceIDs[0]}},
+						Predicate{Field: FieldRef{Name: test.field, Context: FieldContextSpan, Type: ValueTypeBool}, Op: FilterEqual, Value: Value{Kind: ValueBool, Bool: true}},
+					}},
+				}, Aggregation: TraceAggregateCount}},
+			})
+			if err != nil {
+				t.Fatalf("Plan() error = %v", err)
+			}
+			result, err := (Executor{Query: func(ctx context.Context, query string, args ...any) (Rows, error) {
+				rows, err := conn.Query(ctx, query, args...)
+				if err != nil {
+					return nil, err
+				}
+				return WrapClickHouseRows(rows), nil
+			}}).Execute(ctx, scopePlan)
+			if err != nil {
+				t.Fatalf("Execute() error = %v", err)
+			}
+			if len(result.Queries) != 1 || len(result.Queries[0].Rows) != 1 || fmt.Sprint(result.Queries[0].Rows[0][0]) != test.wantSpanID {
+				t.Fatalf("scope result = %#v, want span %q", result, test.wantSpanID)
+			}
+		})
+	}
+
+	overflowPlan, err := (DefaultPlanner{}).Plan(Request{
+		Range: TimeRange{StartMS: now - 3_000, EndMS: now + 1_000}, ResultType: ResultRaw,
+		Queries: []Query{TraceQuery{Common: CommonQuery{
+			Name:  "trace_limit_probe",
+			Limit: 1,
+			Filter: Predicate{
+				Field: FieldRef{Name: "trace_id", Context: FieldContextSpan, Type: ValueTypeString},
+				Op:    FilterEqual,
+				Value: Value{Kind: ValueString, String: traceIDs[0]},
+			},
+		}, Aggregation: TraceAggregateCount}},
+	})
+	if err != nil {
+		t.Fatalf("Plan overflow probe error = %v", err)
+	}
+	overflowResult, err := (Executor{Query: func(ctx context.Context, query string, args ...any) (Rows, error) {
+		rows, err := conn.Query(ctx, query, args...)
+		if err != nil {
+			return nil, err
+		}
+		return WrapClickHouseRows(rows), nil
+	}}).Execute(ctx, overflowPlan)
+	if err != nil {
+		t.Fatalf("Execute overflow probe error = %v", err)
+	}
+	if len(overflowResult.Queries) != 1 || len(overflowResult.Queries[0].Rows) != 1 || overflowResult.Queries[0].Truncated || len(overflowResult.Warnings) != 0 || overflowResult.Queries[0].PageInfo == nil || !overflowResult.Queries[0].PageInfo.HasNextPage {
+		t.Fatalf("overflow result = %#v, want one retained row and a normal next page", overflowResult)
+	}
 }
 
 // clickHouseRows is a test-side driver adapter. The lightweight executor stays
@@ -220,6 +311,16 @@ func assertPositiveMetricRows(t *testing.T, name string, rows interface {
 	foundPositiveValue := false
 	for rows.Next() {
 		var timestamp int64
+		if name == "trace_pattern_filters" {
+			var value uint64
+			if err := rows.Scan(&timestamp, &value); err != nil {
+				t.Fatalf("Scan(%s) error = %v", name, err)
+			}
+			if value > 0 {
+				foundPositiveValue = true
+			}
+			continue
+		}
 		var value float64
 		if name == "latency" || name == "latency_delta" {
 			if err := rows.Scan(&timestamp, &value); err != nil {
@@ -298,11 +399,11 @@ func seedTraceSummaryData(t *testing.T, conn clickhouse.Conn, now int64) [2]stri
 	traceID := fmt.Sprintf("%032x", now)
 	orphanTraceID := fmt.Sprintf("%032x", now+1)
 	insert := "INSERT INTO siginsight_traces.span_index_v3 " +
-		"(timestamp, trace_id, span_id, parent_span_id, name, duration_nano, resources_string, attributes_string) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+		"(timestamp, trace_id, span_id, parent_span_id, name, duration_nano, kind, is_remote, resources_string, attributes_string) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 	rows := [][]any{
-		{time.UnixMilli(now - 2_000), traceID, "root-span", "", "root-operation", uint64(10_000_000), map[string]string{"service.name": "root-service"}, map[string]string{}},
-		{time.UnixMilli(now - 1_500), traceID, "child-span", "root-span", "child-operation", uint64(3_000_000), map[string]string{"service.name": "child-service"}, map[string]string{"http.route": "/matched-child"}},
-		{time.UnixMilli(now - 1_000), orphanTraceID, "orphan-span", "missing-parent", "orphan-operation", uint64(4_000_000), map[string]string{"service.name": "orphan-service"}, map[string]string{"http.route": "/matched-child"}},
+		{time.UnixMilli(now - 2_000), traceID, "root-span", "", "root-operation", uint64(10_000_000), int8(2), "no", map[string]string{"service.name": "root-service"}, map[string]string{}},
+		{time.UnixMilli(now - 1_500), traceID, "child-span", "root-span", "child-operation", uint64(3_000_000), int8(2), "yes", map[string]string{"service.name": "child-service"}, map[string]string{"http.route": "/matched-child"}},
+		{time.UnixMilli(now - 1_000), orphanTraceID, "orphan-span", "missing-parent", "orphan-operation", uint64(4_000_000), int8(1), "no", map[string]string{"service.name": "orphan-service"}, map[string]string{"http.route": "/matched-child"}},
 	}
 	for _, row := range rows {
 		if err := conn.Exec(context.Background(), insert, row...); err != nil {

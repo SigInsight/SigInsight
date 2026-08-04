@@ -13,6 +13,7 @@ import {
 const useQueryPagination = (
 	totalCount: number,
 	perPageOptions: number[] = DEFAULT_PER_PAGE_OPTIONS,
+	hasNextPage?: boolean,
 ): UseQueryPagination => {
 	const defaultPaginationConfig = useMemo(
 		() => getDefaultPaginationConfig(perPageOptions),
@@ -45,14 +46,20 @@ const useQueryPagination = (
 	}, [paginationQueryData, redirectWithCurrentPagination]);
 
 	const handleNavigateNext = useCallback(() => {
+		const canNavigateNext =
+			hasNextPage ?? paginationQueryData.limit === totalCount;
 		redirectWithCurrentPagination({
 			...paginationQueryData,
-			offset:
-				paginationQueryData.limit === totalCount
-					? paginationQueryData.offset + paginationQueryData.limit
-					: paginationQueryData.offset,
+			offset: canNavigateNext
+				? paginationQueryData.offset + paginationQueryData.limit
+				: paginationQueryData.offset,
 		});
-	}, [totalCount, paginationQueryData, redirectWithCurrentPagination]);
+	}, [
+		hasNextPage,
+		totalCount,
+		paginationQueryData,
+		redirectWithCurrentPagination,
+	]);
 
 	useEffect(() => {
 		const isValidPaginationData = checkIsValidPaginationData(

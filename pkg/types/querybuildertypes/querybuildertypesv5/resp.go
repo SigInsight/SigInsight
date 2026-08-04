@@ -30,10 +30,16 @@ type QBEvent struct {
 }
 
 type QueryWarnData struct {
+	Code     string                    `json:"code,omitempty"`
 	Message  string                    `json:"message"`
 	Url      string                    `json:"url,omitempty"`
 	Warnings []QueryWarnDataAdditional `json:"warnings,omitempty"`
 }
+
+const (
+	QueryWarningCodeGeneric     = "query_warning"
+	QueryWarningCodeResultLimit = "result_limit_reached"
+)
 
 type QueryWarnDataAdditional struct {
 	Message string `json:"message"`
@@ -206,7 +212,16 @@ type ScalarData struct {
 type RawData struct {
 	QueryName  string    `json:"queryName"`
 	NextCursor string    `json:"nextCursor"`
+	PageInfo   *PageInfo `json:"pageInfo,omitempty"`
 	Rows       []*RawRow `json:"rows"`
+}
+
+type PageInfo struct {
+	Limit       uint32  `json:"limit"`
+	Offset      uint32  `json:"offset"`
+	Returned    uint32  `json:"returned"`
+	HasNextPage bool    `json:"hasNextPage"`
+	NextOffset  *uint32 `json:"nextOffset,omitempty"`
 }
 
 type RawRow struct {

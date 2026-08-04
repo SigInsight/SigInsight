@@ -11,7 +11,7 @@ import {
 } from 'antd';
 import cx from 'classnames';
 import { initialQueriesMap } from 'constants/queryBuilder';
-import QueryBuilderSearchV2 from 'container/QueryBuilder/filters/QueryBuilderSearchV2/QueryBuilderSearchV2';
+import QueryBuilderSearchV3 from 'features/query-builder-v3/QueryBuilderSearchV3';
 import { ChevronDown, PencilLine } from 'lucide-react';
 import { LatencyPointers } from 'pages/TracesFunnelDetails/constants';
 import { useFunnelContext } from 'pages/TracesFunnels/FunnelContext';
@@ -147,7 +147,8 @@ function FunnelStep({
 								<Form.Item name={['steps', stepData.id, 'service_name']}>
 									<FunnelFilterSelect
 										placeholder="Select Service"
-										attributeKey="serviceName"
+										attributeKey="service.name"
+										fieldContext="resource"
 										value={stepData.service_name}
 										onChange={
 											hasEditPermission
@@ -178,16 +179,16 @@ function FunnelStep({
 						<div className="filters__where-filter">
 							<div className="label">Where</div>
 							<Form.Item name={['steps', stepData.id, 'filters']}>
-								<QueryBuilderSearchV2
+								<QueryBuilderSearchV3
 									query={query}
 									onChange={
 										hasEditPermission
 											? (query): void => onStepChange(index, { filters: query })
 											: (): void => {}
 									}
-									hasPopupContainer={false}
 									placeholder="Search for filters..."
-									rootClassName="traces-funnel-where-filter"
+									className="traces-funnel-where-filter"
+									label=""
 								/>
 							</Form.Item>
 						</div>

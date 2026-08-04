@@ -387,9 +387,18 @@ export interface RawRow {
 	data: Record<string, any>;
 }
 
+export interface QueryPageInfo {
+	limit: number;
+	offset: number;
+	returned: number;
+	hasNextPage: boolean;
+	nextOffset?: number;
+}
+
 export interface RawData {
 	queryName: string;
 	nextCursor?: string;
+	pageInfo?: QueryPageInfo;
 	rows: RawRow[];
 }
 

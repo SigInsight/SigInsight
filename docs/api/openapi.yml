@@ -1031,6 +1031,24 @@ components:
       - asc
       - desc
       type: string
+    Querybuildertypesv5PageInfo:
+      properties:
+        hasNextPage:
+          type: boolean
+        limit:
+          minimum: 0
+          type: integer
+        nextOffset:
+          minimum: 0
+          nullable: true
+          type: integer
+        offset:
+          minimum: 0
+          type: integer
+        returned:
+          minimum: 0
+          type: integer
+      type: object
     Querybuildertypesv5QueryBuilderFormula:
       properties:
         disabled:
@@ -1368,6 +1386,8 @@ components:
       type: string
     Querybuildertypesv5QueryWarnData:
       properties:
+        code:
+          type: string
         message:
           type: string
         url:
@@ -1386,6 +1406,8 @@ components:
       properties:
         nextCursor:
           type: string
+        pageInfo:
+          $ref: '#/components/schemas/Querybuildertypesv5PageInfo'
         queryName:
           type: string
         rows:

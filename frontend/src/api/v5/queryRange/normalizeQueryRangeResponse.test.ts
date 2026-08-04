@@ -4,6 +4,7 @@ import {
 	QueryBuilderFormula,
 	QueryRangeRequestV5,
 	QueryRangeResponseV5,
+	RawData,
 	RequestType,
 	ScalarData,
 	TelemetryFieldKey,
@@ -279,5 +280,45 @@ describe('normalizeQueryRangeResponse', () => {
 				A: 580,
 			},
 		});
+	});
+
+	it('preserves raw pagination metadata without turning it into a warning', () => {
+		const raw: RawData = {
+			queryName: 'A',
+			rows: [{ timestamp: '2026-08-03T00:00:00Z', data: { body: 'hello' } }],
+			pageInfo: {
+				limit: 10,
+				offset: 20,
+				returned: 10,
+				hasNextPage: true,
+				nextOffset: 30,
+			},
+		};
+		const v5Data: QueryRangeResponseV5 = {
+			type: 'raw',
+			data: { results: [raw] },
+			meta: { rowsScanned: 0, bytesScanned: 0, durationMs: 0, stepIntervals: {} },
+		};
+		const params = makeBaseParams('raw', [
+			{
+				type: 'builder_query',
+				spec: {
+					name: 'A',
+					signal: 'logs',
+					stepInterval: 60,
+					disabled: false,
+					aggregations: [],
+				},
+			},
+		]);
+
+		const result = normalizeQueryRangeResponse(
+			makeBaseSuccess({ data: v5Data }, params),
+			{},
+			false,
+		);
+
+		expect(result.payload.warning).toBeUndefined();
+		expect(result.payload.data.result[0].pageInfo).toEqual(raw.pageInfo);
 	});
 });

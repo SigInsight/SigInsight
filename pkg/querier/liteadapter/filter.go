@@ -103,13 +103,10 @@ func parsePrimary(context grammar.IPrimaryContext, signal litequery.Signal, meta
 }
 
 func parseComparison(context grammar.IComparisonContext, signal litequery.Signal, metadata MetricMetadata) (litequery.FilterNode, error) {
-	if context.BETWEEN() != nil || context.LIKE() != nil || context.ILIKE() != nil || context.REGEXP() != nil {
-		return nil, unsupported("BETWEEN, LIKE, ILIKE, or REGEXP filter")
+	if context.BETWEEN() != nil {
+		return nil, unsupported("BETWEEN filter")
 	}
-	if context.CONTAINS() != nil && context.NOT() != nil {
-		return nil, unsupported("NOT CONTAINS filter")
-	}
-	if context.NOT() != nil && context.EXISTS() == nil && context.NotInClause() == nil {
+	if context.NOT() != nil && context.EXISTS() == nil && context.NotInClause() == nil && context.LIKE() == nil && context.ILIKE() == nil && context.REGEXP() == nil && context.CONTAINS() == nil {
 		return nil, unsupported("negative filter operator")
 	}
 
@@ -170,7 +167,25 @@ func comparisonOperatorAndValue(context grammar.IComparisonContext) (litequery.F
 	case context.GE() != nil:
 		return litequery.FilterGreaterEq, value, fallbackType, nil
 	case context.CONTAINS() != nil:
+		if context.NOT() != nil {
+			return litequery.FilterNotContains, value, fallbackType, nil
+		}
 		return litequery.FilterContains, value, fallbackType, nil
+	case context.LIKE() != nil:
+		if context.NOT() != nil {
+			return litequery.FilterNotLike, value, fallbackType, nil
+		}
+		return litequery.FilterLike, value, fallbackType, nil
+	case context.ILIKE() != nil:
+		if context.NOT() != nil {
+			return litequery.FilterNotILike, value, fallbackType, nil
+		}
+		return litequery.FilterILike, value, fallbackType, nil
+	case context.REGEXP() != nil:
+		if context.NOT() != nil {
+			return litequery.FilterNotRegexp, value, fallbackType, nil
+		}
+		return litequery.FilterRegexp, value, fallbackType, nil
 	default:
 		return "", litequery.Value{}, "", unsupported("filter operator")
 	}
@@ -252,6 +267,37 @@ func textFieldToLite(text string, signal litequery.Signal, fallback litequery.Va
 func fieldToLite(key telemetrytypes.TelemetryFieldKey, signal litequery.Signal, fallback litequery.ValueType, metadata MetricMetadata) (litequery.FieldRef, error) {
 	key.Normalize()
 	originalContext := key.FieldContext
+	// Intrinsic fields belong to the static signal schema, so they must be
+	// resolved before consulting telemetry metadata. Saved V5 filters may carry
+	// an explicit data type (for example name:string); that type annotation
+	// should validate the intrinsic rather than make it look like a dynamic
+	// attribute that must have been observed in the metadata registry.
+	if context, err := fieldContext(key.FieldContext, signal); err == nil {
+		if _, isTraceScope := litequery.TraceScopeForName(signal, context, key.Name); isTraceScope {
+			if key.FieldDataType != telemetrytypes.FieldDataTypeUnspecified {
+				declaredType, typeErr := fieldType(key.FieldDataType, fallback)
+				if typeErr != nil {
+					return litequery.FieldRef{}, typeErr
+				}
+				if declaredType != litequery.ValueTypeBool {
+					return litequery.FieldRef{}, unsupported("trace scope field " + strconv.Quote(key.Name) + " has type bool, not " + string(declaredType))
+				}
+			}
+			return litequery.FieldRef{Name: key.Name, Context: context, Type: litequery.ValueTypeBool}, nil
+		}
+		if intrinsicType, ok := litequery.IntrinsicFieldType(signal, context, key.Name); ok {
+			if key.FieldDataType != telemetrytypes.FieldDataTypeUnspecified {
+				declaredType, typeErr := fieldType(key.FieldDataType, fallback)
+				if typeErr != nil {
+					return litequery.FieldRef{}, typeErr
+				}
+				if declaredType != intrinsicType {
+					return litequery.FieldRef{}, unsupported("intrinsic field " + strconv.Quote(key.Name) + " has type " + string(intrinsicType) + ", not " + string(declaredType))
+				}
+			}
+			return litequery.FieldRef{Name: key.Name, Context: context, Type: intrinsicType}, nil
+		}
+	}
 	resolvedFromMetadata := false
 	inferredFromSchema := false
 	if resolved, ok := resolveFieldMetadata(key, signal, fallback, metadata.FieldKeys[key.Name]); ok {
@@ -268,11 +314,6 @@ func fieldToLite(key telemetrytypes.TelemetryFieldKey, signal litequery.Signal, 
 	context, err := fieldContext(key.FieldContext, signal)
 	if err != nil {
 		return litequery.FieldRef{}, err
-	}
-	if key.FieldDataType == telemetrytypes.FieldDataTypeUnspecified {
-		if intrinsicType, ok := litequery.IntrinsicFieldType(signal, context, key.Name); ok {
-			return litequery.FieldRef{Name: key.Name, Context: context, Type: intrinsicType}, nil
-		}
 	}
 	if originalContext == telemetrytypes.FieldContextUnspecified && metadata.FieldKeys != nil && !resolvedFromMetadata && !inferredFromSchema {
 		return litequery.FieldRef{}, unsupported("unqualified " + string(signal) + " field " + strconv.Quote(key.Name) + " was not found in telemetry metadata; qualify it as resource or attribute")

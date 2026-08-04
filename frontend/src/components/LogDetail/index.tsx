@@ -5,7 +5,6 @@ import { Button, Divider, Drawer, Radio, Tooltip, Typography } from 'antd';
 import type { RadioChangeEvent } from 'antd/lib';
 import cx from 'classnames';
 import { LogType } from 'components/Logs/LogStateIndicator/LogStateIndicator';
-import QuerySearch from 'components/QueryBuilder/Query/QuerySearch/QuerySearch';
 import { convertExpressionToFilters } from 'components/QueryBuilder/utils';
 import { LOCALSTORAGE } from 'constants/localStorage';
 import ContextView from 'container/LogDetailedView/ContextView/ContextView';
@@ -18,6 +17,7 @@ import {
 } from 'container/LogDetailedView/utils';
 import useInitialQuery from 'container/LogsExplorerContext/useInitialQuery';
 import { useOptionsMenu } from 'container/OptionsMenu';
+import QueryBuilderSearchV3 from 'features/query-builder-v3/QueryBuilderSearchV3';
 import { useCopyLogLink } from 'hooks/logs/useCopyLogLink';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
 import { useIsDarkMode } from 'hooks/useDarkMode';
@@ -203,7 +203,7 @@ function LogDetailInner({
 	};
 
 	const handleQueryExpressionChange = useCallback(
-		(value: string, queryIndex: number) => {
+		(value: string, queryIndex: number, filters?: TagFilter) => {
 			// update the query at the given index
 			setContextQuery((prev) => {
 				if (!prev) {
@@ -222,6 +222,7 @@ function LogDetailInner({
 											...query.filter,
 											expression: value,
 										},
+										filters: filters || query.filters,
 								  }
 								: query,
 						),
@@ -440,11 +441,13 @@ function LogDetailInner({
 				</div>
 				{isFilterVisible && contextQuery?.builder.queryData[0] && (
 					<div className="log-detail-drawer-query-container">
-						<QuerySearch
-							onChange={(value): void => handleQueryExpressionChange(value, 0)}
-							dataSource={DataSource.LOGS}
-							queryData={contextQuery?.builder.queryData[0]}
+						<QueryBuilderSearchV3
+							onChange={(filters, value): void =>
+								handleQueryExpressionChange(value, 0, filters)
+							}
+							query={contextQuery?.builder.queryData[0]}
 							onRun={handleRunQuery}
+							label=""
 						/>
 					</div>
 				)}

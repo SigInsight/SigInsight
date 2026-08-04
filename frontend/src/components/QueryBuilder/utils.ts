@@ -4,7 +4,7 @@ import {
 	OPERATORS,
 	QUERY_BUILDER_FUNCTIONS,
 } from 'constants/antlrQueryConstants';
-import { getOperatorValue } from 'container/QueryBuilder/filters/QueryBuilderSearch/utils';
+import { getOperatorValue } from 'container/QueryBuilder/filters/queryBuilderFilterUtils';
 import { cloneDeep, isEqual, sortBy } from 'lodash-es';
 import { IQueryPair } from 'types/antlrQueryTypes';
 import { BaseAutocompleteData } from 'types/api/queryBuilder/queryAutocompleteResponse';
@@ -51,8 +51,8 @@ const FILTER_OPERATOR_TO_QUERY_OPERATOR: Record<string, string> = {
 	nhasall: `${OPERATORS.NOT} ${QUERY_BUILDER_FUNCTIONS.HASALL}`,
 };
 
-const toQueryOperator = (operator: string): string => {
-	const normalized = operator.trim().toLowerCase();
+const toQueryOperator = (operator?: string): string => {
+	const normalized = operator?.trim().toLowerCase() || '';
 	return FILTER_OPERATOR_TO_QUERY_OPERATOR[normalized] || normalized;
 };
 
@@ -124,12 +124,18 @@ export const convertFiltersToExpression = (
 		.map((filter) => {
 			const { key, op, value } = filter;
 
-			// Skip if key is not defined
-			if (!key?.key) {
+			// Incomplete Query Builder rows are valid UI state but not predicates.
+			if (!key?.key || !op) {
 				return '';
 			}
 
 			const operator = toQueryOperator(op);
+			if (
+				value == null ||
+				(isArrayOperator(operator) && Array.isArray(value) && value.length === 0)
+			) {
+				return '';
+			}
 			const keyText = options?.qualifyFieldContext
 				? fieldKeyWithContext(key)
 				: key.key;
@@ -155,8 +161,9 @@ export const convertFiltersToExpression = (
 		})
 		.filter((expression) => expression !== ''); // Remove empty expressions
 
+	const logicalOperator = filters.op?.toUpperCase() === 'OR' ? 'OR' : 'AND';
 	return {
-		expression: expressions.join(' AND '),
+		expression: expressions.join(` ${logicalOperator} `),
 	};
 };
 
@@ -198,6 +205,29 @@ const fieldKeyWithContext = (key: BaseAutocompleteData): string => {
 		return key.key;
 	}
 	return `${context}.${key.key}`;
+};
+
+export const deduplicateEquivalentFilterItems = (
+	items: TagFilterItem[],
+): TagFilterItem[] => {
+	const seen = new Set<string>();
+	return items.filter((item) => {
+		if (!item.key?.key || !item.op) {
+			return true;
+		}
+		const operator = toQueryOperator(item.op);
+		const value = isNonValueOperator(operator)
+			? ''
+			: formatValueForExpression(item.value, operator);
+		const signature = `${fieldKeyWithContext(
+			item.key,
+		)}\u0000${operator}\u0000${value}`;
+		if (seen.has(signature)) {
+			return false;
+		}
+		seen.add(signature);
+		return true;
+	});
 };
 
 /**
@@ -287,9 +317,51 @@ const getQueryPairsMap = (query: string): Map<string, IQueryPair> => {
 	return queryPairsMap;
 };
 
+const queryPairLookupKeys = (
+	key: BaseAutocompleteData,
+	operator: string,
+): string[] => {
+	const knownPrefixes = [
+		'attribute',
+		'body',
+		'event',
+		'log',
+		'metric',
+		'resource',
+		'scope',
+		'span',
+		'tag',
+		'trace',
+	];
+	const prefixPattern = new RegExp(`^(${knownPrefixes.join('|')})\\.`, 'i');
+	const keyCandidates = new Set([
+		key.key,
+		fieldKeyWithContext(key),
+		key.key.replace(prefixPattern, ''),
+	]);
+	return Array.from(keyCandidates).map((candidate) =>
+		`${candidate}-${operator}`.trim().toLowerCase(),
+	);
+};
+
+const findQueryPair = (
+	queryPairsMap: Map<string, IQueryPair>,
+	key: BaseAutocompleteData,
+	operator: string,
+): { mapKey: string; pair: IQueryPair } | undefined => {
+	for (const mapKey of queryPairLookupKeys(key, operator)) {
+		const pair = queryPairsMap.get(mapKey);
+		if (pair) {
+			return { mapKey, pair };
+		}
+	}
+	return undefined;
+};
+
 export const convertFiltersToExpressionWithExistingQuery = (
 	filters: TagFilter,
 	existingQuery: string | undefined,
+	options?: { qualifyFieldContext?: boolean },
 ): { filters: TagFilter; filter: { expression: string } } => {
 	const updatedFilters = cloneDeep(filters);
 	updatedFilters.items = updatedFilters.items.map((item) => ({
@@ -301,7 +373,7 @@ export const convertFiltersToExpressionWithExistingQuery = (
 		// If no existing query, return filters with a newly generated expression
 		return {
 			filters: updatedFilters,
-			filter: convertFiltersToExpression(updatedFilters),
+			filter: convertFiltersToExpression(updatedFilters, options),
 		};
 	}
 
@@ -315,8 +387,9 @@ export const convertFiltersToExpressionWithExistingQuery = (
 	filters?.items?.forEach((filter) => {
 		const { key, op, value } = filter;
 
-		// Skip invalid filters with no key
-		if (!key) {
+		// Keep incomplete rows in the editor state, but do not merge them into
+		// the executable text expression.
+		if (!key || !op) {
 			return;
 		}
 
@@ -329,9 +402,8 @@ export const convertFiltersToExpressionWithExistingQuery = (
 				sanitizedOperator,
 			)
 		) {
-			const existingPair = queryPairsMap.get(
-				`${key.key}-${op}`.trim().toLowerCase(),
-			);
+			const existingMatch = findQueryPair(queryPairsMap, key, op);
+			const existingPair = existingMatch?.pair;
 			const formattedValue = formatValueForExpression(value, op);
 
 			// If a matching query pair exists, modify the query
@@ -340,7 +412,7 @@ export const convertFiltersToExpressionWithExistingQuery = (
 				existingPair.position?.valueStart &&
 				existingPair.position?.valueEnd
 			) {
-				visitedPairs.add(`${key.key}-${op}`.trim().toLowerCase());
+				visitedPairs.add(existingMatch.mapKey);
 
 				// Check if existing values match current filter values (for array-based operators)
 				if (existingPair.valueList && filter.value && Array.isArray(filter.value)) {
@@ -377,19 +449,18 @@ export const convertFiltersToExpressionWithExistingQuery = (
 
 			// Handle the different cases for IN operator
 			switch (sanitizedOperator) {
-				case OPERATORS.IN:
+				case OPERATORS.IN: {
 					// If there's a NOT IN or equal operator, merge the filter
-					if (
-						queryPairsMap.has(
-							`${key.key}-${OPERATORS.NOT} ${op}`.trim().toLowerCase(),
-						)
-					) {
-						const notInPair = queryPairsMap.get(
-							`${key.key}-${OPERATORS.NOT} ${op}`.trim().toLowerCase(),
-						);
-						visitedPairs.add(
-							`${key.key}-${OPERATORS.NOT} ${op}`.trim().toLowerCase(),
-						);
+					const notInMatch = findQueryPair(
+						queryPairsMap,
+						key,
+						`${OPERATORS.NOT} ${op}`,
+					);
+					const equalsMatch = findQueryPair(queryPairsMap, key, OPERATORS['=']);
+					const notEqualsMatch = findQueryPair(queryPairsMap, key, OPERATORS['!=']);
+					if (notInMatch) {
+						const notInPair = notInMatch.pair;
+						visitedPairs.add(notInMatch.mapKey);
 						if (notInPair?.position?.valueEnd) {
 							modifiedQuery = `${modifiedQuery.slice(
 								0,
@@ -400,13 +471,9 @@ export const convertFiltersToExpressionWithExistingQuery = (
 							queryPairsMap = getQueryPairsMap(modifiedQuery);
 						}
 						shouldAddToNonExisting = false; // Don't add this to non-existing filters
-					} else if (
-						queryPairsMap.has(`${key.key}-${OPERATORS['=']}`.trim().toLowerCase())
-					) {
-						const equalsPair = queryPairsMap.get(
-							`${key.key}-${OPERATORS['=']}`.trim().toLowerCase(),
-						);
-						visitedPairs.add(`${key.key}-${OPERATORS['=']}`.trim().toLowerCase());
+					} else if (equalsMatch) {
+						const equalsPair = equalsMatch.pair;
+						visitedPairs.add(equalsMatch.mapKey);
 						if (equalsPair?.position?.valueEnd) {
 							modifiedQuery = `${modifiedQuery.slice(
 								0,
@@ -417,13 +484,9 @@ export const convertFiltersToExpressionWithExistingQuery = (
 							queryPairsMap = getQueryPairsMap(modifiedQuery);
 						}
 						shouldAddToNonExisting = false; // Don't add this to non-existing filters
-					} else if (
-						queryPairsMap.has(`${key.key}-${OPERATORS['!=']}`.trim().toLowerCase())
-					) {
-						const notEqualsPair = queryPairsMap.get(
-							`${key.key}-${OPERATORS['!=']}`.trim().toLowerCase(),
-						);
-						visitedPairs.add(`${key.key}-${OPERATORS['!=']}`.trim().toLowerCase());
+					} else if (notEqualsMatch) {
+						const notEqualsPair = notEqualsMatch.pair;
+						visitedPairs.add(notEqualsMatch.mapKey);
 						if (notEqualsPair?.position?.valueEnd) {
 							modifiedQuery = `${modifiedQuery.slice(
 								0,
@@ -436,14 +499,15 @@ export const convertFiltersToExpressionWithExistingQuery = (
 						shouldAddToNonExisting = false; // Don't add this to non-existing filters
 					}
 					break;
+				}
 				case `${OPERATORS.NOT} ${OPERATORS.IN}`:
-					if (
-						queryPairsMap.has(`${key.key}-${OPERATORS['!=']}`.trim().toLowerCase())
-					) {
-						const notEqualsPair = queryPairsMap.get(
-							`${key.key}-${OPERATORS['!=']}`.trim().toLowerCase(),
-						);
-						visitedPairs.add(`${key.key}-${OPERATORS['!=']}`.trim().toLowerCase());
+					{
+						const notEqualsMatch = findQueryPair(queryPairsMap, key, OPERATORS['!=']);
+						if (!notEqualsMatch) {
+							break;
+						}
+						const notEqualsPair = notEqualsMatch.pair;
+						visitedPairs.add(notEqualsMatch.mapKey);
 						if (notEqualsPair?.position?.valueEnd) {
 							modifiedQuery = `${modifiedQuery.slice(
 								0,
@@ -463,12 +527,9 @@ export const convertFiltersToExpressionWithExistingQuery = (
 			}
 		}
 
-		if (
-			queryPairsMap.has(`${filter.key?.key}-${filter.op}`.trim().toLowerCase())
-		) {
-			const existingPair = queryPairsMap.get(
-				`${filter.key?.key}-${filter.op}`.trim().toLowerCase(),
-			);
+		const matchingPair = findQueryPair(queryPairsMap, key, op);
+		if (matchingPair) {
+			const existingPair = matchingPair.pair;
 			if (
 				existingPair &&
 				existingPair.position?.valueStart &&
@@ -483,14 +544,11 @@ export const convertFiltersToExpressionWithExistingQuery = (
 				queryPairsMap = getQueryPairsMap(modifiedQuery);
 			}
 
-			visitedPairs.add(`${filter.key?.key}-${filter.op}`.trim().toLowerCase());
+			visitedPairs.add(matchingPair.mapKey);
 		}
 
 		// Add filters that don't have an existing pair to non-existing filters
-		if (
-			shouldAddToNonExisting &&
-			!queryPairsMap.has(`${filter.key?.key}-${filter.op}`.trim().toLowerCase())
-		) {
+		if (shouldAddToNonExisting && !findQueryPair(queryPairsMap, key, op)) {
 			nonExistingFilters.push(filter);
 		}
 	});
@@ -532,18 +590,23 @@ export const convertFiltersToExpressionWithExistingQuery = (
 	}
 
 	// Convert non-existing filters to an expression and append to the modified query
-	const nonExistingFilterExpression = convertFiltersToExpression({
-		items: nonExistingFilters,
-		op: filters.op || 'AND',
-	});
+	const nonExistingFilterExpression = convertFiltersToExpression(
+		{
+			items: nonExistingFilters,
+			op: filters.op || 'AND',
+		},
+		options,
+	);
 
 	if (nonExistingFilterExpression.expression) {
+		const existingExpression = modifiedQuery.trim();
+		const logicalOperator = filters.op?.toUpperCase() === 'OR' ? 'OR' : 'AND';
 		return {
 			filters: updatedFilters,
 			filter: {
-				expression: `${modifiedQuery.trim()} ${
-					nonExistingFilterExpression.expression
-				}`,
+				expression: existingExpression
+					? `${existingExpression} ${logicalOperator} ${nonExistingFilterExpression.expression}`
+					: nonExistingFilterExpression.expression,
 			},
 		};
 	}

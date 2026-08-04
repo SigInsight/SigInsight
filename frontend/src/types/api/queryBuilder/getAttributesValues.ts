@@ -10,6 +10,8 @@ export interface IGetAttributeValuesPayload {
 	attributeKey: string;
 	filterAttributeKeyDataType: BaseAutocompleteData['dataType'];
 	tagType: BaseAutocompleteData['type'];
+	startUnixNano?: number;
+	endUnixNano?: number;
 }
 
 export interface IAttributeValuesResponse {

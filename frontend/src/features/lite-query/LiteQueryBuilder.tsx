@@ -17,12 +17,10 @@ import {
 import { MetricAggregation, TimeAggregation } from 'types/api/v5/queryRange';
 import { DataSource } from 'types/common/queryBuilder';
 
+import QueryBuilderSearchV3 from '../query-builder-v3/QueryBuilderSearchV3';
 import {
-	createLiteFilter,
 	getLiteMetricAggregationOptions,
 	isLiteFormula,
-	isNoValueLiteFilter,
-	LITE_FILTER_OPERATORS,
 	LiteMetricType,
 	toLiteFilterExpression,
 } from './capabilities';
@@ -140,19 +138,6 @@ function buildLogOrTraceAggregation(
 	];
 }
 
-function updateFilterAt(
-	filters: TagFilter,
-	index: number,
-	patch: Partial<TagFilter['items'][number]>,
-): TagFilter {
-	return {
-		...filters,
-		items: filters.items.map((filter, filterIndex) =>
-			filterIndex === index ? { ...filter, ...patch } : filter,
-		),
-	};
-}
-
 function LiteFilterEditor({
 	query,
 	onChange,
@@ -161,97 +146,14 @@ function LiteFilterEditor({
 	onChange: (filters: TagFilter) => void;
 }): JSX.Element {
 	const filters = query.filters || { items: [], op: 'AND' };
-	const update = useCallback((next: TagFilter): void => onChange(next), [
-		onChange,
-	]);
-
 	return (
-		<div className="lite-query-filters">
-			<div className="lite-query-field-label">Filters</div>
-			{filters.items.map((filter, index) => (
-				<div className="lite-query-filter-row" key={filter.id}>
-					<Input
-						aria-label={`Filter field ${index + 1}`}
-						value={filter.key?.key}
-						placeholder="field"
-						onChange={(event): void =>
-							update(
-								updateFilterAt(filters, index, {
-									key: createField(event.target.value),
-								}),
-							)
-						}
-					/>
-					<Select
-						aria-label={`Filter operator ${index + 1}`}
-						value={filter.op}
-						options={LITE_FILTER_OPERATORS.map((operator) => ({ ...operator }))}
-						onChange={(op): void => update(updateFilterAt(filters, index, { op }))}
-					/>
-					{!isNoValueLiteFilter(filter.op) && (
-						<Input
-							aria-label={`Filter value ${index + 1}`}
-							value={
-								Array.isArray(filter.value)
-									? filter.value.join(', ')
-									: String(filter.value ?? '')
-							}
-							placeholder={
-								filter.op === 'in' || filter.op === 'not in'
-									? 'comma-separated values'
-									: 'value'
-							}
-							onChange={(event): void => {
-								update(
-									updateFilterAt(filters, index, {
-										value:
-											filter.op === 'in' || filter.op === 'not in'
-												? event.target.value.split(',').map((value) => value.trim())
-												: event.target.value,
-									}),
-								);
-							}}
-						/>
-					)}
-					<Tooltip title="Remove filter">
-						<Button
-							aria-label={`Remove filter ${index + 1}`}
-							icon={<Trash2 size={15} />}
-							onClick={(): void =>
-								update({
-									...filters,
-									items: filters.items.filter((_, filterIndex) => filterIndex !== index),
-								})
-							}
-						/>
-					</Tooltip>
-				</div>
-			))}
-			<div className="lite-query-filter-actions">
-				{filters.items.length > 1 && (
-					<Select
-						aria-label="Filter join"
-						value={filters.op}
-						options={[
-							{ label: 'Match all', value: 'AND' },
-							{ label: 'Match any', value: 'OR' },
-						]}
-						onChange={(op): void => update({ ...filters, op })}
-					/>
-				)}
-				<Button
-					icon={<Plus size={15} />}
-					onClick={(): void =>
-						update({
-							...filters,
-							items: [...filters.items, createLiteFilter('')],
-						})
-					}
-				>
-					Add filter
-				</Button>
-			</div>
-		</div>
+		<QueryBuilderSearchV3
+			ariaLabel={`Filter expression for ${query.queryName}`}
+			query={{ ...query, filters }}
+			onChange={onChange}
+			fallbackExpression={query.filter?.expression}
+			placeholder="resource.service.name = 'api' AND severity_text != 'DEBUG'"
+		/>
 	);
 }
 
@@ -424,27 +326,30 @@ function LiteBuilderRow({
 
 	return (
 		<div className="lite-query-row" data-testid={`lite-query-${query.queryName}`}>
-			<div className="lite-query-row-header">
-				<strong>{query.queryName}</strong>
-				<div className="lite-query-row-actions">
-					<Tooltip title="Duplicate query">
-						<Button
-							icon={<Plus size={15} />}
-							onClick={(): void => cloneQuery('query', query)}
-						/>
-					</Tooltip>
-					{currentQuery.builder.queryData.length > 1 && (
-						<Tooltip title="Remove query">
+			{!isRaw && (
+				<div className="lite-query-row-header">
+					<strong>{query.queryName}</strong>
+					<div className="lite-query-row-actions">
+						<Tooltip title="Duplicate query">
 							<Button
-								icon={<Trash2 size={15} />}
-								onClick={(): void =>
-									removeQueryBuilderEntityByIndex('queryData', index)
-								}
+								aria-label={`Duplicate query ${query.queryName}`}
+								icon={<Plus size={15} />}
+								onClick={(): void => cloneQuery('query', query)}
 							/>
 						</Tooltip>
-					)}
+						{currentQuery.builder.queryData.length > 1 && (
+							<Tooltip title="Remove query">
+								<Button
+									icon={<Trash2 size={15} />}
+									onClick={(): void =>
+										removeQueryBuilderEntityByIndex('queryData', index)
+									}
+								/>
+							</Tooltip>
+						)}
+					</div>
 				</div>
-			</div>
+			)}
 
 			<div className="lite-query-grid">
 				{allowSourceChange && (
@@ -551,7 +456,7 @@ function LiteBuilderRow({
 						/>
 					</div>
 				)}
-				{!isTimeSeries && (
+				{!isRaw && !isTimeSeries && (
 					<div className="lite-query-control">
 						<span>Limit</span>
 						<InputNumber
@@ -562,33 +467,37 @@ function LiteBuilderRow({
 						/>
 					</div>
 				)}
-				<div className="lite-query-control">
-					<span>Order field</span>
-					<Input
-						value={query.orderBy[0]?.columnName}
-						placeholder="value or field"
-						onChange={(event): void => setOrder({ columnName: event.target.value })}
-					/>
-				</div>
-				<div className="lite-query-control">
-					<span>Order</span>
-					<Select
-						value={query.orderBy[0]?.order || 'desc'}
-						options={[
-							{ label: 'Descending', value: 'desc' },
-							{ label: 'Ascending', value: 'asc' },
-						]}
-						onChange={(order): void => setOrder({ order })}
-					/>
-				</div>
-				<div className="lite-query-control lite-query-legend">
-					<span>Legend</span>
-					<Input
-						value={query.legend}
-						placeholder="Optional legend"
-						onChange={(event): void => update({ legend: event.target.value })}
-					/>
-				</div>
+				{!isRaw && (
+					<>
+						<div className="lite-query-control">
+							<span>Order field</span>
+							<Input
+								value={query.orderBy[0]?.columnName}
+								placeholder="value or field"
+								onChange={(event): void => setOrder({ columnName: event.target.value })}
+							/>
+						</div>
+						<div className="lite-query-control">
+							<span>Order</span>
+							<Select
+								value={query.orderBy[0]?.order || 'desc'}
+								options={[
+									{ label: 'Descending', value: 'desc' },
+									{ label: 'Ascending', value: 'asc' },
+								]}
+								onChange={(order): void => setOrder({ order })}
+							/>
+						</div>
+						<div className="lite-query-control lite-query-legend">
+							<span>Legend</span>
+							<Input
+								value={query.legend}
+								placeholder="Optional legend"
+								onChange={(event): void => update({ legend: event.target.value })}
+							/>
+						</div>
+					</>
+				)}
 			</div>
 			<LiteFilterEditor query={query} onChange={changeFilters} />
 		</div>
@@ -675,6 +584,8 @@ export function LiteQueryBuilder({
 	const initialSource =
 		config?.queryVariant === 'static' ? config.initialDataSource : null;
 	const queryVariant = config?.queryVariant || 'dropdown';
+	const isRawPanel =
+		panelType === PANEL_TYPES.LIST || panelType === PANEL_TYPES.TRACE;
 
 	useEffect(() => {
 		if (initialDataSource !== initialSource || activePanelType !== panelType) {
@@ -731,14 +642,16 @@ export function LiteQueryBuilder({
 			{currentQuery.builder.queryFormulas.map((formula, index) => (
 				<LiteFormulaRow key={formula.queryName} index={index} formula={formula} />
 			))}
-			<div className="lite-query-footer">
-				<Button icon={<Plus size={15} />} onClick={addNewBuilderQuery}>
-					Add query
-				</Button>
-				<Button icon={<Sigma size={15} />} onClick={addNewFormula}>
-					Add formula
-				</Button>
-			</div>
+			{!isRawPanel && (
+				<div className="lite-query-footer">
+					<Button icon={<Plus size={15} />} onClick={addNewBuilderQuery}>
+						Add query
+					</Button>
+					<Button icon={<Sigma size={15} />} onClick={addNewFormula}>
+						Add formula
+					</Button>
+				</div>
+			)}
 		</div>
 	);
 }

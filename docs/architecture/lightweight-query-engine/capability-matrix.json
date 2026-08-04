@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 4,
   "endpoint": "/api/v5/query_range",
   "resultTypes": ["raw", "trace", "time_series", "scalar"],
   "queryTypes": {
@@ -11,6 +11,10 @@
     "clickhouse_sql": "rejected"
   },
   "common": {
+    "composition": {
+      "rawAndTrace": "single_builder_query_without_formula",
+      "timeSeriesAndScalar": "multiple_builder_queries_with_arithmetic_formulas"
+    },
     "filterOperators": [
       "eq",
       "neq",
@@ -22,26 +26,43 @@
       "not_in",
       "exists",
       "not_exists",
-      "contains"
+      "contains",
+      "not_contains",
+      "like",
+      "not_like",
+      "ilike",
+      "not_ilike",
+      "regexp",
+      "not_regexp"
     ],
     "booleanOperators": ["and", "or"],
+    "filterExpressionShape": "one_flat_and_or_chain",
     "groupBy": true,
     "order": "global_only",
     "limit": {
-      "raw": "result_rows",
-      "trace": "result_rows",
-      "scalar": "result_rows",
+      "raw": "page_size",
+      "trace": "page_size",
+      "scalar": "result_cap",
       "time_series": "rejected_until_top_series_plan"
     },
     "pagination": {
       "offset": ["raw", "trace"],
       "opaqueCursor": false,
-      "typedCursor": "live_logs_only"
+      "typedCursor": "live_logs_only",
+      "pageInfo": ["raw", "trace"],
+      "overflowProbe": "limit_plus_one_without_warning"
     },
+    "resultTruncationWarning": "result_limit_reached_for_non_pageable_result_caps_only",
     "having": false,
     "internalAggregationPredicate": "single_typed_numeric_predicate",
     "functions": [],
-    "formatOptions": ["fillGaps"]
+    "formatOptions": ["fillGaps"],
+    "stringPatternLimitBytes": 1024
+  },
+  "traceFunnel": {
+    "filterSubset": "single_span_predicates_per_step",
+    "supported": ["span_fields", "resource_attributes", "span_attributes", "string_patterns", "error_status"],
+    "rejected": ["step_sequencing", "cross_span_join", "ancestor_descendant", "latency_pointer", "funnel_planner"]
   },
   "signals": {
     "logs": {

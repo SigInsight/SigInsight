@@ -76,8 +76,9 @@ function LogsPanelComponent({
 		[widget.selectedLogFields],
 	);
 
-	const dataLength =
-		queryResponse.data?.payload?.data?.queryResult?.data?.result[0]?.list?.length;
+	const firstResult =
+		queryResponse.data?.payload?.data?.queryResult?.data?.result[0];
+	const dataLength = firstResult?.list?.length;
 	const totalCount = useMemo(() => dataLength || 0, [dataLength]);
 
 	const { logs } = useLogsData({
@@ -169,6 +170,7 @@ function LogsPanelComponent({
 							handleNavigatePrevious={handlePreviousPagination}
 							handleNavigateNext={handleNextPagination}
 							handleCountItemsPerPageChange={handleChangePageSize}
+							hasNextPage={firstResult?.pageInfo?.hasNextPage}
 						/>
 					</div>
 				)}

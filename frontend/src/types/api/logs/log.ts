@@ -2,35 +2,20 @@ export interface ILog {
 	date: string;
 	timestamp: number | string;
 	id: string;
-	traceId: string;
-	spanID: string;
 	span_id?: string;
-	traceFlags: number;
-	severityText: string;
-	severityNumber: number;
+	trace_id?: string;
+	trace_flags: number;
+	severity_text: string;
+	severity_number: number;
 	body: string;
 	resources_string: Record<string, never>;
 	scope_string: Record<string, never>;
-	attributesString: Record<string, never>;
 	attributes_string: Record<string, never>;
-	attributesInt: Record<string, never>;
-	attributesFloat: Record<string, never>;
-	severity_text: string;
-	severity_number: number;
-	trace_id?: string;
 }
 
 type OmitAttributesResources = Pick<
 	ILog,
-	Exclude<
-		keyof ILog,
-		| 'resources_string'
-		| 'scope_string'
-		| 'attributesString'
-		| 'attributes_string'
-		| 'attributesInt'
-		| 'attributesFloat'
-	>
+	Exclude<keyof ILog, 'resources_string' | 'scope_string' | 'attributes_string'>
 >;
 
 export type ILogAggregateAttributesResources = OmitAttributesResources & {

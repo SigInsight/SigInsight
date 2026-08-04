@@ -2,7 +2,7 @@ import getSpanPercentiles from 'api/trace/getSpanPercentiles';
 import getUserPreference from 'api/v5/user/preferences/name/get';
 import { QueryParams } from 'constants/query';
 import ROUTES from 'constants/routes';
-import { SPAN_ATTRIBUTES } from 'container/ApiMonitoring/Explorer/Domains/DomainDetails/constants';
+const SPAN_ATTRIBUTES = { HTTP_URL: 'http_url' } as const;
 import { GetMetricQueryRange } from 'lib/dashboard/getQueryResults';
 import { server } from 'mocks-server/server';
 import { QueryBuilderContext } from 'providers/QueryBuilder';

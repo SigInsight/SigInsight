@@ -34,11 +34,19 @@ The UI derives its option sets from a frontend representation of
 - one aggregation per builder query;
 - Logs and Traces expose count plus their documented typed aggregates;
 - Metrics expose Gauge, Sum, Histogram and Meter operations only;
-- filters are conjunctions of typed predicates using `=`, `!=`, comparison,
-  `IN`, `NOT IN`, `EXISTS`, `NOT EXISTS`, and `CONTAINS`;
-- group-by and global order remain available; result-row limit is shown only for raw, trace and
-  scalar panels, while Time Series limit is rejected until a top-series plan exists;
+- filters are flat `AND` or `OR` chains of typed predicates using `=`, `!=`,
+  comparison, `IN`, `NOT IN`, `EXISTS`, `NOT EXISTS`, and `CONTAINS`; a
+  one-line Lite DSL editor parses valid expressions into the same structured
+  filter state, while mixed boolean chains, parenthesized groups and unsupported
+  operators remain local validation errors;
+- group-by and global order remain available; scalar panels may set a result-row limit, while
+  Log/Trace list pagination owns raw result limits and ordering; Time Series limit is rejected
+  until a top-series plan exists;
 - formulas permit only references joined by `+`, `-`, `*`, and `/`;
+- time-series and scalar panels may compose multiple builder queries and
+  arithmetic formulas; raw/trace panels keep one builder query and hide
+  composition actions because their view model exposes one row stream and
+  formulas are invalid for raw results;
 - advanced having, post-processing functions, raw SQL, joins, subqueries and
   Trace Operator are absent from the Lite editor.
 
@@ -57,6 +65,9 @@ removed the flag after real Collector readback passed.
 - unit tests cover capability selection, generated filter expression, formula
   validation and generated V5 payloads;
 - component tests cover valid editing and rejected advanced input;
+- component tests also prove Lite DSL/structured-filter synchronization and
+  ensure visible query/formula actions cannot transition the editor into its
+  unsupported-state boundary;
 - production build and scoped lint cover the new editor package;
 - an existing V5 payload test remains the contract test between the new editor
   state and the HTTP request.
@@ -64,6 +75,23 @@ removed the flag after real Collector readback passed.
 The authenticated API run and current Collector readback were completed by M7;
 the post-M8 serializer additionally removes stale raw/trace group-by/select
 state and unsupported Time Series limit before sending the V5 request.
+
+Trace raw identity is now canonical V5 `trace_id`/`span_id`; production consumers
+do not fall back to V4 camelCase response fields. Query-result truncation is also
+part of the shared frontend contract: the V5 API client displays structured
+warnings for normal calls. Trace Detail filter pagination suppresses intermediate
+page warnings, requests at most 1,000 spans per page, and displays a final warning
+when its 10,000-span highlighting budget is exhausted. See ADR-017.
+
+Trace Detail uses the same one-line Lite filter editor as Explorer and panel
+queries; it no longer has a second token/tag parser. The current waterfall's
+`tagMap` supplies attribute context to that editor, so a displayed span attribute
+such as `http.route = '/checkout'` becomes
+`attribute.http.route = '/checkout'` before V5 serialization. `isRoot` and
+`isEntryPoint` are typed boolean semantic fields. The parser distinguishes
+`true` from `'true'`, validates the field type and the scope's `= true` rule, and
+then writes typed structured filter state. The V5 serializer only encodes that
+state; it must not coerce string literals into booleans or numbers.
 
 ## Delivered Integration
 

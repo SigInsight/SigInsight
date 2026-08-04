@@ -8,18 +8,13 @@ import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
 import useClickOutside from 'hooks/useClickOutside';
 import useResourceAttribute from 'hooks/useResourceAttribute';
 import { resourceAttributesToTracesFilterItems } from 'hooks/useResourceAttribute/utils';
-import createQueryParams from 'lib/createQueryParams';
 import { prepareQueryWithDefaultTimestamp } from 'pages/LogsExplorer/utils';
 import { traceFilterKeys } from 'pages/TracesExplorer/Filter/filterUtils';
 import {
 	BaseAutocompleteData,
 	DataTypes,
 } from 'types/api/queryBuilder/queryAutocompleteResponse';
-import {
-	IBuilderQuery,
-	Query,
-	TagFilterItem,
-} from 'types/api/queryBuilder/queryBuilderData';
+import { Query, TagFilterItem } from 'types/api/queryBuilder/queryBuilderData';
 import { DataSource } from 'types/common/queryBuilder';
 import { Tags } from 'types/reducer/trace';
 import { secondsToMilliseconds } from 'utils/timeUtils';
@@ -42,16 +37,6 @@ interface OnViewTracePopupClickProps {
 	apmToTraceQuery: Query;
 	isViewLogsClicked?: boolean;
 	stepInterval?: number;
-	safeNavigate: (url: string) => void;
-}
-
-interface OnViewAPIMonitoringPopupClickProps {
-	servicename: string;
-	timestamp: number;
-	stepInterval?: number;
-	domainName: string;
-	isError: boolean;
-
 	safeNavigate: (url: string) => void;
 }
 
@@ -111,78 +96,6 @@ export function onViewTracePopupClick({
 			urlParams,
 			JSONCompositeQuery,
 			queryString,
-		);
-
-		safeNavigate(newPath);
-	};
-}
-
-const generateAPIMonitoringPath = (
-	domainName: string,
-	startTime: number,
-	endTime: number,
-	filters: IBuilderQuery['filters'],
-): string => {
-	const basePath = ROUTES.API_MONITORING;
-	return `${basePath}?${createQueryParams({
-		apiMonitoringParams: JSON.stringify({
-			selectedDomain: domainName,
-			selectedView: 'endpoint_stats',
-			modalTimeRange: {
-				startTime,
-				endTime,
-			},
-			selectedInterval: 'custom',
-			endPointDetailsLocalFilters: filters,
-		}),
-	})}`;
-};
-export function onViewAPIMonitoringPopupClick({
-	servicename,
-	timestamp,
-	domainName,
-	isError,
-	stepInterval,
-	safeNavigate,
-}: OnViewAPIMonitoringPopupClickProps): VoidFunction {
-	return (): void => {
-		const endTime = timestamp + (stepInterval || 60);
-		const startTime = timestamp - (stepInterval || 60);
-		const filters = {
-			items: [
-				...(isError
-					? [
-							{
-								id: uuid().slice(0, 8),
-								key: {
-									key: 'hasError',
-									dataType: DataTypes.bool,
-									type: 'tag',
-									id: 'hasError--bool--tag--true',
-								},
-								op: 'in',
-								value: ['true'],
-							},
-					  ]
-					: []),
-				{
-					id: uuid().slice(0, 8),
-					key: {
-						key: 'service.name',
-						dataType: DataTypes.String,
-						type: 'resource',
-					},
-					op: '=',
-					value: servicename,
-				},
-			],
-			op: 'AND',
-		};
-		const newPath = generateAPIMonitoringPath(
-			domainName,
-			startTime,
-			endTime,
-			filters,
 		);
 
 		safeNavigate(newPath);

@@ -1260,14 +1260,16 @@ func (t *telemetryMetaStore) getTraceStaticFieldValues(
 		sb.Where(sb.NE(column, ""))
 	}
 	if selector.StartUnixMilli > 0 {
-		sb.Where(sb.GE("timestamp", selector.StartUnixMilli*1_000_000))
+		// Multiplying epoch milliseconds to compare DateTime64 timestamps overflows
+		// ClickHouse Decimal arithmetic for current dates. Convert the bound instead.
+		sb.Where(fmt.Sprintf("timestamp >= fromUnixTimestamp64Milli(%s)", sb.Var(selector.StartUnixMilli)))
 		sb.Where(sb.GE("ts_bucket_start", selector.StartUnixMilli/1_000))
 	} else {
 		sb.Where("timestamp >= toDateTime64(now() - INTERVAL 48 HOUR, 9)")
 		sb.Where("ts_bucket_start >= toUInt64(toUnixTimestamp(now() - INTERVAL 48 HOUR))")
 	}
 	if selector.EndUnixMilli > 0 {
-		sb.Where(sb.LE("timestamp", selector.EndUnixMilli*1_000_000))
+		sb.Where(fmt.Sprintf("timestamp <= fromUnixTimestamp64Milli(%s)", sb.Var(selector.EndUnixMilli)))
 		sb.Where(sb.LE("ts_bucket_start", selector.EndUnixMilli/1_000))
 	}
 	if selector.Value != "" {

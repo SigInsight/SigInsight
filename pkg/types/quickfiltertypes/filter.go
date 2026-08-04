@@ -31,11 +31,10 @@ func (enum *Signal) UnmarshalJSON(data []byte) error {
 }
 
 var (
-	SignalTraces        = Signal{valuer.NewString("traces")}
-	SignalLogs          = Signal{valuer.NewString("logs")}
-	SignalApiMonitoring = Signal{valuer.NewString("api_monitoring")}
-	SignalExceptions    = Signal{valuer.NewString("exceptions")}
-	SignalMeter         = Signal{valuer.NewString("meter")}
+	SignalTraces     = Signal{valuer.NewString("traces")}
+	SignalLogs       = Signal{valuer.NewString("logs")}
+	SignalExceptions = Signal{valuer.NewString("exceptions")}
+	SignalMeter      = Signal{valuer.NewString("meter")}
 )
 
 // NewSignal creates a Signal from a string
@@ -45,8 +44,6 @@ func NewSignal(s string) (Signal, error) {
 		return SignalTraces, nil
 	case "logs":
 		return SignalLogs, nil
-	case "api_monitoring":
-		return SignalApiMonitoring, nil
 	case "exceptions":
 		return SignalExceptions, nil
 	case "meter":
@@ -140,28 +137,23 @@ func NewSignalFilterFromStorableQuickFilter(storableQuickFilter *StorableQuickFi
 // NewDefaultQuickFilter generates default filters for all supported signals
 func NewDefaultQuickFilter(orgID valuer.UUID) ([]*StorableQuickFilter, error) {
 	tracesFilters := []map[string]interface{}{
-		{"key": "duration_nano", "dataType": "float64", "type": "tag"},
-		{"key": "has_error", "dataType": "bool", "type": "tag"},
+		{"key": "duration_nano", "dataType": "float64", "type": "span"},
+		{"key": "has_error", "dataType": "bool", "type": "span"},
 		{"key": "service.name", "dataType": "string", "type": "resource"},
-		{"key": "name", "dataType": "string", "type": "tag"},
+		{"key": "name", "dataType": "string", "type": "span"},
 		{"key": "rpc.method", "dataType": "string", "type": "tag"},
-		{"key": "response_status_code", "dataType": "string", "type": "tag"},
-		{"key": "http_host", "dataType": "string", "type": "tag"},
-		{"key": "http_method", "dataType": "string", "type": "tag"},
+		{"key": "response_status_code", "dataType": "string", "type": "span"},
+		{"key": "http_host", "dataType": "string", "type": "span"},
+		{"key": "http_method", "dataType": "string", "type": "span"},
 		{"key": "http.route", "dataType": "string", "type": "tag"},
-		{"key": "http_url", "dataType": "string", "type": "tag"},
-		{"key": "trace_id", "dataType": "string", "type": "tag"},
+		{"key": "http_url", "dataType": "string", "type": "span"},
+		{"key": "trace_id", "dataType": "string", "type": "span"},
 	}
 
 	logsFilters := []map[string]interface{}{
 		{"key": "severity_text", "dataType": "string", "type": ""},
 		{"key": "service.name", "dataType": "string", "type": "resource"},
 		{"key": "host.name", "dataType": "string", "type": "resource"},
-	}
-
-	apiMonitoringFilters := []map[string]interface{}{
-		{"key": "service.name", "dataType": "string", "type": "resource"},
-		{"key": "rpc.method", "dataType": "string", "type": "tag"},
 	}
 
 	exceptionsFilters := []map[string]interface{}{
@@ -182,11 +174,6 @@ func NewDefaultQuickFilter(orgID valuer.UUID) ([]*StorableQuickFilter, error) {
 	logsJSON, err := json.Marshal(logsFilters)
 	if err != nil {
 		return nil, errors.Wrapf(err, errors.TypeInternal, errors.CodeInternal, "failed to marshal logs filters")
-	}
-
-	apiMonitoringJSON, err := json.Marshal(apiMonitoringFilters)
-	if err != nil {
-		return nil, errors.Wrapf(err, errors.TypeInternal, errors.CodeInternal, "failed to marshal api monitoring filters")
 	}
 
 	exceptionsJSON, err := json.Marshal(exceptionsFilters)
@@ -221,18 +208,6 @@ func NewDefaultQuickFilter(orgID valuer.UUID) ([]*StorableQuickFilter, error) {
 			OrgID:  orgID,
 			Filter: string(logsJSON),
 			Signal: SignalLogs,
-			TimeAuditable: types.TimeAuditable{
-				CreatedAt: timeRightNow,
-				UpdatedAt: timeRightNow,
-			},
-		},
-		{
-			Identifiable: types.Identifiable{
-				ID: valuer.GenerateUUID(),
-			},
-			OrgID:  orgID,
-			Filter: string(apiMonitoringJSON),
-			Signal: SignalApiMonitoring,
 			TimeAuditable: types.TimeAuditable{
 				CreatedAt: timeRightNow,
 				UpdatedAt: timeRightNow,

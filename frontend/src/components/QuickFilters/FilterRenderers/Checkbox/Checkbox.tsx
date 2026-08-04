@@ -2,7 +2,11 @@
 import { Fragment, useMemo, useState } from 'react';
 import { Button, Checkbox, Input, Skeleton, Typography } from 'antd';
 import cx from 'classnames';
-import { removeKeysFromExpression } from 'components/QueryBuilder/utils';
+import {
+	convertFiltersToExpressionWithExistingQuery,
+	deduplicateEquivalentFilterItems,
+	removeKeysFromExpression,
+} from 'components/QueryBuilder/utils';
 import {
 	IQuickFiltersConfig,
 	QuickFiltersSource,
@@ -13,13 +17,16 @@ import {
 	PANEL_TYPES,
 } from 'constants/queryBuilder';
 import { DEBOUNCE_DELAY } from 'constants/queryBuilderFilterConfig';
-import { getOperatorValue } from 'container/QueryBuilder/filters/QueryBuilderSearch/utils';
+import { getOperatorValue } from 'container/QueryBuilder/filters/queryBuilderFilterUtils';
 import { useGetAggregateValues } from 'hooks/queryBuilder/useGetAggregateValues';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
 import useDebouncedFn from 'hooks/useDebouncedFunction';
 import { cloneDeep, isArray, isFunction } from 'lodash-es';
 import { ChevronDown, ChevronRight } from 'lucide-react';
-import { DataTypes } from 'types/api/queryBuilder/queryAutocompleteResponse';
+import {
+	BaseAutocompleteData,
+	DataTypes,
+} from 'types/api/queryBuilder/queryAutocompleteResponse';
 import { Query, TagFilterItem } from 'types/api/queryBuilder/queryBuilderData';
 import { DataSource } from 'types/common/queryBuilder';
 import { v4 as uuid } from 'uuid';
@@ -33,6 +40,50 @@ const SELECTED_OPERATORS = [OPERATORS['='], 'in'];
 const NON_SELECTED_OPERATORS = [OPERATORS['!='], 'not in'];
 
 const SOURCES_WITH_EMPTY_STATE_ENABLED = [QuickFiltersSource.LOGS_EXPLORER];
+
+const queryValueForDataType = (
+	value: string,
+	dataType?: DataTypes,
+): string | number | boolean => {
+	if (dataType === DataTypes.bool) {
+		return value.toLowerCase() === 'true';
+	}
+	if (dataType === DataTypes.Float64 || dataType === DataTypes.Int64) {
+		const parsed = Number(value);
+		return Number.isFinite(parsed) ? parsed : value;
+	}
+	return value;
+};
+
+const expressionKeysForQuickFilter = (
+	attributeKey: BaseAutocompleteData,
+): string[] => {
+	const contextAliases: Record<string, string> = {
+		tag: 'attribute',
+		spanfield: 'span',
+		logfield: 'log',
+	};
+	const key = attributeKey.key;
+	const context = attributeKey.type
+		? contextAliases[attributeKey.type] || attributeKey.type
+		: '';
+	const dataType = attributeKey.dataType || '';
+	const legacyContexts = context === 'span' ? ['attribute', 'tag'] : [];
+	return Array.from(
+		new Set([
+			key,
+			...(context ? [`${context}.${key}`] : []),
+			...legacyContexts.map((legacyContext) => `${legacyContext}.${key}`),
+			...(dataType ? [`${key}:${dataType}`] : []),
+			...(context && dataType ? [`${context}.${key}:${dataType}`] : []),
+			...(dataType
+				? legacyContexts.map(
+						(legacyContext) => `${legacyContext}.${key}:${dataType}`,
+				  )
+				: []),
+		]),
+	);
+};
 
 function setDefaultValues(
 	values: string[],
@@ -190,16 +241,22 @@ export default function CheckboxFilter(props: ICheckboxProps): JSX.Element {
 	]);
 
 	// disable the filter when there are multiple entries of the same attribute key present in the filter bar
-	const isFilterDisabled = useMemo(
-		() =>
-			(currentQuery?.builder?.queryData?.[
-				activeQueryIndex
-			]?.filters?.items?.filter((item) =>
+	const isFilterDisabled = useMemo(() => {
+		const items =
+			currentQuery?.builder?.queryData?.[activeQueryIndex]?.filters?.items || [];
+		const normalizedItems = deduplicateEquivalentFilterItems(
+			items.map((item) =>
+				isKeyMatch(item.key?.key, filter.attributeKey.key)
+					? { ...item, key: filter.attributeKey }
+					: item,
+			),
+		);
+		return (
+			normalizedItems.filter((item) =>
 				isKeyMatch(item.key?.key, filter.attributeKey.key),
-			)?.length || 0) > 1,
-
-		[currentQuery?.builder?.queryData, activeQueryIndex, filter.attributeKey],
-	);
+			).length > 1
+		);
+	}, [currentQuery?.builder?.queryData, activeQueryIndex, filter.attributeKey]);
 
 	// variable to check if the current filter has multiple values to its name in the key op value section
 	const isMultipleValuesTrueForTheKey =
@@ -223,6 +280,7 @@ export default function CheckboxFilter(props: ICheckboxProps): JSX.Element {
 	);
 
 	const handleClearFilterAttribute = (): void => {
+		const expressionKeys = expressionKeysForQuickFilter(filter.attributeKey);
 		const preparedQuery: Query = {
 			...currentQuery,
 			builder: {
@@ -230,9 +288,10 @@ export default function CheckboxFilter(props: ICheckboxProps): JSX.Element {
 				queryData: currentQuery.builder.queryData.map((item, idx) => ({
 					...item,
 					filter: {
-						expression: removeKeysFromExpression(item.filter?.expression ?? '', [
-							filter.attributeKey.key,
-						]),
+						expression: removeKeysFromExpression(
+							item.filter?.expression ?? '',
+							expressionKeys,
+						),
 					},
 					filters: {
 						...item.filters,
@@ -262,6 +321,20 @@ export default function CheckboxFilter(props: ICheckboxProps): JSX.Element {
 		// eslint-disable-next-line sonarjs/cognitive-complexity
 	): void => {
 		const query = cloneDeep(currentQuery.builder.queryData?.[activeQueryIndex]);
+		if (query?.filters) {
+			query.filters.items = deduplicateEquivalentFilterItems(
+				query.filters.items.map((item) =>
+					isKeyMatch(item.key?.key, filter.attributeKey.key)
+						? { ...item, key: filter.attributeKey }
+						: item,
+				),
+			);
+		}
+		const queryValue = queryValueForDataType(value, filter.attributeKey.dataType);
+		const expressionWithoutCurrentFilter = removeKeysFromExpression(
+			query?.filter?.expression ?? '',
+			expressionKeysForQuickFilter(filter.attributeKey),
+		);
 
 		// if only or all are clicked we do not need to worry about anything just override whatever we have
 		// by either adding a new IN operator value clause in case of ONLY or remove everything we have for ALL.
@@ -287,7 +360,7 @@ export default function CheckboxFilter(props: ICheckboxProps): JSX.Element {
 					id: uuid(),
 					op: getOperatorValue(OPERATORS.IN),
 					key: filter.attributeKey,
-					value,
+					value: queryValue,
 				};
 				query.filters.items = [...query.filters.items, newFilterItem];
 			}
@@ -312,7 +385,7 @@ export default function CheckboxFilter(props: ICheckboxProps): JSX.Element {
 								if (isArray(currentFilter.value)) {
 									const newFilter = {
 										...currentFilter,
-										value: [...currentFilter.value, value],
+										value: [...currentFilter.value, queryValue],
 									};
 									query.filters.items = query.filters.items.map((item) => {
 										if (isKeyMatch(item.key?.key, filter.attributeKey.key)) {
@@ -324,7 +397,7 @@ export default function CheckboxFilter(props: ICheckboxProps): JSX.Element {
 									// if the current state wasn't an array we make it one and add our value
 									const newFilter = {
 										...currentFilter,
-										value: [currentFilter.value as string, value],
+										value: [currentFilter.value, queryValue],
 									};
 									query.filters.items = query.filters.items.map((item) => {
 										if (isKeyMatch(item.key?.key, filter.attributeKey.key)) {
@@ -339,7 +412,7 @@ export default function CheckboxFilter(props: ICheckboxProps): JSX.Element {
 								if (isArray(currentFilter.value)) {
 									const newFilter = {
 										...currentFilter,
-										value: currentFilter.value.filter((val) => val !== value),
+										value: currentFilter.value.filter((val) => String(val) !== value),
 									};
 
 									if (newFilter.value.length === 0) {
@@ -370,7 +443,7 @@ export default function CheckboxFilter(props: ICheckboxProps): JSX.Element {
 								if (isArray(currentFilter.value)) {
 									const newFilter = {
 										...currentFilter,
-										value: [...currentFilter.value, value],
+										value: [...currentFilter.value, queryValue],
 									};
 									query.filters.items = query.filters.items.map((item) => {
 										if (isKeyMatch(item.key?.key, filter.attributeKey.key)) {
@@ -382,7 +455,7 @@ export default function CheckboxFilter(props: ICheckboxProps): JSX.Element {
 									// in case of not an array make it one!
 									const newFilter = {
 										...currentFilter,
-										value: [currentFilter.value as string, value],
+										value: [currentFilter.value, queryValue],
 									};
 									query.filters.items = query.filters.items.map((item) => {
 										if (isKeyMatch(item.key?.key, filter.attributeKey.key)) {
@@ -396,7 +469,7 @@ export default function CheckboxFilter(props: ICheckboxProps): JSX.Element {
 								if (isArray(currentFilter.value)) {
 									const newFilter = {
 										...currentFilter,
-										value: currentFilter.value.filter((val) => val !== value),
+										value: currentFilter.value.filter((val) => String(val) !== value),
 									};
 									if (newFilter.value.length === 0) {
 										query.filters.items = query.filters.items.filter(
@@ -419,7 +492,8 @@ export default function CheckboxFilter(props: ICheckboxProps): JSX.Element {
 								} else {
 									const newFilter = {
 										...currentFilter,
-										value: currentFilter.value === value ? null : currentFilter.value,
+										value:
+											String(currentFilter.value) === value ? null : currentFilter.value,
 									};
 									if (newFilter.value === null && query.filter?.expression) {
 										query.filter.expression = removeKeysFromExpression(
@@ -438,7 +512,12 @@ export default function CheckboxFilter(props: ICheckboxProps): JSX.Element {
 								const newFilter = {
 									...currentFilter,
 									op: getOperatorValue(OPERATORS.IN),
-									value: [currentFilter.value as string, value],
+									value: [
+										...(Array.isArray(currentFilter.value)
+											? currentFilter.value
+											: [currentFilter.value]),
+										queryValue,
+									],
 								};
 								query.filters.items = query.filters.items.map((item) => {
 									if (isKeyMatch(item.key?.key, filter.attributeKey.key)) {
@@ -457,7 +536,12 @@ export default function CheckboxFilter(props: ICheckboxProps): JSX.Element {
 								const newFilter = {
 									...currentFilter,
 									op: getOperatorValue('NOT_IN'),
-									value: [currentFilter.value as string, value],
+									value: [
+										...(Array.isArray(currentFilter.value)
+											? currentFilter.value
+											: [currentFilter.value]),
+										queryValue,
+									],
 								};
 								query.filters.items = query.filters.items.map((item) => {
 									if (isKeyMatch(item.key?.key, filter.attributeKey.key)) {
@@ -481,10 +565,19 @@ export default function CheckboxFilter(props: ICheckboxProps): JSX.Element {
 					id: uuid(),
 					op: getOperatorValue('NOT_IN'),
 					key: filter.attributeKey,
-					value,
+					value: queryValue,
 				};
 				query.filters.items = [...query.filters.items, newFilterItem];
 			}
+		}
+		if (query?.filters) {
+			const synchronized = convertFiltersToExpressionWithExistingQuery(
+				query.filters,
+				expressionWithoutCurrentFilter,
+				{ qualifyFieldContext: true },
+			);
+			query.filters = synchronized.filters;
+			query.filter = synchronized.filter;
 		}
 		const finalQuery = {
 			...currentQuery,

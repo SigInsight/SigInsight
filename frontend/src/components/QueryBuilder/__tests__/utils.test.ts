@@ -11,6 +11,7 @@ import {
 	convertAggregationToExpression,
 	convertFiltersToExpression,
 	convertFiltersToExpressionWithExistingQuery,
+	deduplicateEquivalentFilterItems,
 	formatValueForExpression,
 	removeKeysFromExpression,
 } from '../utils';
@@ -113,6 +114,12 @@ describe('convertFiltersToExpression', () => {
 					op: '>=',
 					value: 500,
 				},
+				{
+					id: '3',
+					key: { key: 'name', type: 'span' },
+					op: 'not in',
+					value: ['GET /health'],
+				},
 			],
 			op: 'AND',
 		};
@@ -121,7 +128,7 @@ describe('convertFiltersToExpression', () => {
 			convertFiltersToExpression(filters, { qualifyFieldContext: true }),
 		).toEqual({
 			expression:
-				"resource.host.name = 'worker-1' AND attribute.http.status_code >= 500",
+				"resource.host.name = 'worker-1' AND attribute.http.status_code >= 500 AND span.name not in ['GET /health']",
 		});
 	});
 
@@ -191,7 +198,7 @@ describe('convertFiltersToExpression', () => {
 		const result = convertFiltersToExpression(filters);
 		expect(result).toEqual({
 			expression:
-				"service in ['api-gateway', 'user-service', 'auth-service'] AND status in ['success'] AND tags in [] AND name in ['John\\'s', 'Mary\\'s', 'Bob']",
+				"service in ['api-gateway', 'user-service', 'auth-service'] AND status in ['success'] AND name in ['John\\'s', 'Mary\\'s', 'Bob']",
 		});
 	});
 
@@ -750,8 +757,140 @@ describe('convertFiltersToExpression', () => {
 
 		expect(result.filters.items).toHaveLength(2); // Original + new filter
 		expect(result.filter.expression).toBe(
-			"service.name = 'old-service' new.key = 'new-value'",
+			"service.name = 'old-service' AND new.key = 'new-value'",
 		);
+	});
+
+	it('qualifies newly appended trace attribute filters', () => {
+		const result = convertFiltersToExpressionWithExistingQuery(
+			{
+				items: [
+					{
+						id: '1',
+						key: {
+							key: 'http.route',
+							type: 'tag',
+							dataType: DataTypes.String,
+						},
+						op: 'not in',
+						value: ['/health'],
+					},
+				],
+				op: 'AND',
+			},
+			"span.name = 'GET /orders'",
+			{ qualifyFieldContext: true },
+		);
+
+		expect(result.filter.expression).toBe(
+			"span.name = 'GET /orders' AND attribute.http.route not in ['/health']",
+		);
+	});
+
+	it('updates a qualified expression without duplicating its unqualified structured field', () => {
+		const result = convertFiltersToExpressionWithExistingQuery(
+			{
+				items: [
+					{
+						id: 'service-name',
+						key: {
+							key: 'service.name',
+							type: 'resource',
+							dataType: DataTypes.String,
+						},
+						op: 'not in',
+						value: 'matreeg_biz',
+					},
+				],
+				op: 'AND',
+			},
+			"resource.service.name not in ['old-service']",
+			{ qualifyFieldContext: true },
+		);
+
+		expect(result.filters.items).toHaveLength(1);
+		expect(result.filter.expression).toBe(
+			"resource.service.name not in ['matreeg_biz']",
+		);
+	});
+
+	it('repairs a scalar NOT IN value while matching a qualified field', () => {
+		const result = convertFiltersToExpressionWithExistingQuery(
+			{
+				items: [
+					{
+						id: 'service-name',
+						key: {
+							key: 'service.name',
+							type: 'resource',
+							dataType: DataTypes.String,
+						},
+						op: 'not in',
+						value: 'matreeg_biz',
+					},
+				],
+				op: 'AND',
+			},
+			"resource.service.name not in 'old-service'",
+			{ qualifyFieldContext: true },
+		);
+
+		expect(result.filters.items).toHaveLength(1);
+		expect(result.filter.expression).toBe(
+			"resource.service.name not in ['matreeg_biz']",
+		);
+	});
+
+	it('preserves the requested logical operator when generating filters', () => {
+		const result = convertFiltersToExpression({
+			items: [
+				{
+					id: '1',
+					key: { key: 'service.name', type: 'resource' },
+					op: '=',
+					value: 'frontend',
+				},
+				{
+					id: '2',
+					key: { key: 'service.name', type: 'resource' },
+					op: '=',
+					value: 'backend',
+				},
+			],
+			op: 'OR',
+		});
+
+		expect(result.expression).toBe(
+			"service.name = 'frontend' OR service.name = 'backend'",
+		);
+	});
+
+	it('deduplicates equivalent qualified and unqualified structured filters', () => {
+		const items = deduplicateEquivalentFilterItems([
+			{
+				id: 'unqualified',
+				key: {
+					key: 'service.name',
+					type: 'resource',
+					dataType: DataTypes.String,
+				},
+				op: 'not in',
+				value: 'matreeg_biz',
+			},
+			{
+				id: 'qualified',
+				key: {
+					key: 'resource.service.name',
+					type: 'resource',
+					dataType: DataTypes.String,
+				},
+				op: 'not in',
+				value: ['matreeg_biz'],
+			},
+		]);
+
+		expect(items).toHaveLength(1);
+		expect(items[0].id).toBe('unqualified');
 	});
 
 	it('should handle simple value replacement', () => {

@@ -39,12 +39,15 @@ export const transformDataWithDate = (
 	data[0]?.list?.map(({ data, timestamp }) => ({ ...data, date: timestamp })) ||
 	[];
 
-export const getTraceLink = (record: RowData): string =>
-	`${ROUTES.TRACE}/${record.traceID || record.trace_id}${formUrlParams({
-		spanId: record.spanID || record.span_id,
+export const getTraceLink = (record: RowData): string => {
+	const traceID = record.trace_id || '';
+	const spanID = record.span_id || '';
+	return `${ROUTES.TRACE}/${traceID}${formUrlParams({
+		...(spanID ? { spanId: spanID } : {}),
 		levelUp: 0,
 		levelDown: 0,
 	})}`;
+};
 
 export const getListColumns = (
 	selectedColumns: TelemetryFieldKey[],
@@ -98,12 +101,7 @@ export const getListColumns = (
 						);
 					}
 
-					if (
-						name === 'httpMethod' ||
-						name === 'responseStatusCode' ||
-						name === 'response_status_code' ||
-						name === 'http_method'
-					) {
+					if (name === 'response_status_code' || name === 'http_method') {
 						return (
 							<BlockLink to={getTraceLink(item)} openInNewTab={false}>
 								<Tag data-testid={name} color="magenta">
@@ -113,7 +111,7 @@ export const getListColumns = (
 						);
 					}
 
-					if (name === 'durationNano' || name === 'duration_nano') {
+					if (name === 'duration_nano') {
 						return (
 							<BlockLink to={getTraceLink(item)} openInNewTab={false}>
 								<Typography data-testid={name}>{getMs(value)}ms</Typography>

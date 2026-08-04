@@ -167,8 +167,8 @@ function ListView({
 		}
 	}, [isLoading, isFetching, setIsLoadingQueries]);
 
-	const dataLength =
-		data?.payload?.data?.queryResult?.data?.result[0]?.list?.length;
+	const firstResult = data?.payload?.data?.queryResult?.data?.result[0];
+	const dataLength = firstResult?.list?.length;
 	const totalCount = useMemo(() => dataLength || 0, [dataLength]);
 
 	const queryTableDataResult = data?.payload?.data?.queryResult?.data?.result;
@@ -239,6 +239,7 @@ function ListView({
 					totalCount={totalCount}
 					config={config}
 					perPageOptions={PER_PAGE_OPTIONS}
+					hasNextPage={firstResult?.pageInfo?.hasNextPage}
 				/>
 			</div>
 

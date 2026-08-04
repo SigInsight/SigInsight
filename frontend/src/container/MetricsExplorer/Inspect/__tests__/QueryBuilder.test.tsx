@@ -40,13 +40,13 @@ jest.mock('hooks/useDebounce', () => ({
 	default: <T,>(value: T): T => value,
 }));
 
-jest.mock(
-	'container/QueryBuilder/filters/QueryBuilderSearch/OptionRenderer',
-	() => ({
-		__esModule: true,
-		default: ({ value }: { value: string }): JSX.Element => <span>{value}</span>,
-	}),
-);
+jest.mock('container/QueryBuilder/filters/sharedControls', () => ({
+	__esModule: true,
+	selectStyle: {},
+	MetricOptionRenderer: ({ value }: { value: string }): JSX.Element => (
+		<span>{value}</span>
+	),
+}));
 
 jest.spyOn(appContextHooks, 'useAppContext').mockReturnValue({
 	user: {

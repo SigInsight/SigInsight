@@ -5,7 +5,7 @@ import {
 	getTagToken,
 	replaceStringWithMaxLength,
 	tagRegexp,
-} from 'container/QueryBuilder/filters/QueryBuilderSearch/utils';
+} from 'container/QueryBuilder/filters/queryBuilderFilterUtils';
 import { Option } from 'container/QueryBuilder/type';
 import { parse } from 'papaparse';
 import {

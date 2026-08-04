@@ -12,15 +12,13 @@ import {
 	ComboboxList,
 	ComboboxTrigger,
 } from '@signozhq/combobox';
-import { Skeleton, Switch, Tooltip, Typography } from 'antd';
+import { Skeleton, Tooltip, Typography } from 'antd';
 import getLocalStorageKey from 'api/browser/localstorage/get';
 import setLocalStorageKey from 'api/browser/localstorage/set';
-import logEvent from 'api/common/logEvent';
 import classNames from 'classnames';
 import OverlayScrollbar from 'components/OverlayScrollbar/OverlayScrollbar';
 import { LOCALSTORAGE } from 'constants/localStorage';
 import { PANEL_TYPES } from 'constants/queryBuilder';
-import { useApiMonitoringParams } from 'container/ApiMonitoring/queryParams';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
 import { isFunction, isNull } from 'lodash-es';
 import { Frown, Settings2 as SettingsIcon } from 'lucide-react';
@@ -52,9 +50,6 @@ export default function QuickFilters(props: IQuickFiltersProps): JSX.Element {
 	const { user } = useAppContext();
 	const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 	const isAdmin = user.role === USER_ROLES.ADMIN;
-	const [params, setParams] = useApiMonitoringParams();
-	const showIP = params.showIP ?? true;
-
 	const {
 		filterConfig,
 		isDynamicFilters,
@@ -275,22 +270,6 @@ export default function QuickFilters(props: IQuickFiltersProps): JSX.Element {
 
 	const renderContent = (): JSX.Element => (
 		<>
-			{source === QuickFiltersSource.API_MONITORING && (
-				<div className="api-quick-filters-header">
-					<Typography.Text>Show IP addresses</Typography.Text>
-					<Switch
-						size="small"
-						style={{ marginLeft: 'auto' }}
-						checked={showIP ?? true}
-						onChange={(checked): void => {
-							logEvent('API Monitoring: Show IP addresses clicked', {
-								showIP: checked,
-							});
-							setParams({ showIP: checked });
-						}}
-					/>
-				</div>
-			)}
 			<section className="filters">
 				{filterConfig.map((filter) => {
 					switch (filter.type) {

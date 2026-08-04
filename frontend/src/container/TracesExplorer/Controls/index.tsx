@@ -13,13 +13,14 @@ function TraceExplorerControls({
 	perPageOptions,
 	config,
 	showSizeChanger = true,
+	hasNextPage,
 }: TraceExplorerControlsProps): JSX.Element | null {
 	const {
 		pagination,
 		handleCountItemsPerPageChange,
 		handleNavigateNext,
 		handleNavigatePrevious,
-	} = useQueryPagination(totalCount, perPageOptions);
+	} = useQueryPagination(totalCount, perPageOptions, hasNextPage);
 
 	return (
 		<Container>
@@ -39,6 +40,7 @@ function TraceExplorerControls({
 				handleCountItemsPerPageChange={handleCountItemsPerPageChange}
 				handleNavigateNext={handleNavigateNext}
 				handleNavigatePrevious={handleNavigatePrevious}
+				hasNextPage={hasNextPage}
 				showSizeChanger={showSizeChanger}
 			/>
 		</Container>
@@ -54,6 +56,7 @@ type TraceExplorerControlsProps = Pick<
 	'isLoading' | 'totalCount' | 'perPageOptions'
 > & {
 	config?: OptionsMenuConfig | null;
+	hasNextPage?: boolean;
 	showSizeChanger?: boolean;
 };
 

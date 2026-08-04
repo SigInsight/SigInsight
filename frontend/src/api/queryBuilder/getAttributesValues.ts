@@ -14,6 +14,8 @@ export const getAttributesValues = async ({
 	attributeKey,
 	tagType,
 	searchText,
+	startUnixNano,
+	endUnixNano,
 }: IGetAttributeValuesPayload): Promise<
 	SuccessResponse<IAttributeValuesResponse> | ErrorResponse
 > => {
@@ -24,6 +26,10 @@ export const getAttributesValues = async ({
 			searchText,
 			metricName: aggregateAttribute,
 			fieldContext: tagType === 'resource' ? 'resource' : undefined,
+			startUnixMilli: startUnixNano
+				? Math.floor(startUnixNano / 1_000_000)
+				: undefined,
+			endUnixMilli: endUnixNano ? Math.floor(endUnixNano / 1_000_000) : undefined,
 		});
 
 		return {

@@ -42,6 +42,8 @@ export const getFieldValues = (params: {
 	searchText?: string;
 	metricName?: string;
 	fieldContext?: string;
+	startUnixMilli?: number;
+	endUnixMilli?: number;
 	source?: 'meter';
 }): Promise<AxiosResponse<GetFieldsValues200>> =>
 	ApiV5Instance.get<GetFieldsValues200>('/fields/values', { params });

@@ -46,7 +46,6 @@ The `module` key determines where users are redirected after completing onboardi
 | `metrics` | Metrics Explorer |
 | `integrations` | Integrations page |
 | `home` | Home page |
-| `api-monitoring` | API Monitoring |
 
 ## Question Object Structure
 

@@ -40,7 +40,7 @@ export const SIGNAL_TYPES: Record<string, SignalType> = {
 
 export const TRACE_AGGREGATIONS = {
 	COUNT: 'count()',
-	COUNT_DISTINCT_TRACE_ID: 'count_distinct(traceID)',
+	COUNT_DISTINCT_TRACE_ID: 'count_distinct(trace_id)',
 	AVG_DURATION: 'avg(duration_nano)',
 	P50_DURATION: 'p50(duration_nano)',
 	P95_DURATION: 'p95(duration_nano)',

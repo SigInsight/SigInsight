@@ -39,6 +39,12 @@ Lite engine 替换 legacy engine 后，审计发现若干不会产生 SQL error�
     的物理 map 只接受 string，由 Catalog 作为最终 schema 边界强制执行。
 12. 前端 serializer 清除 Time Series 的陈旧 limit；执行 deadline 到达后，即使 driver 返回
     自有中断错误，也按执行 context 映射为领域 timeout，不能泄漏成内部错误。
+13. Trace raw 结果无条件投影 `timestamp`、`trace_id`、`span_id`。它们是 Trace Detail
+    跳转和列表时间显示所需的 transport identity，不属于用户选择的展示列；前端不得把缺失值
+    序列化为 `/trace/undefined` 或 `spanId=undefined`。
+14. `isRoot` 与 `isEntryPoint` 是 V5 的语义 trace scope，不是 Catalog 字段，也不能由前端
+    改写为物理列。编译器是唯一的展开点。Entrypoint 的具体定义已由 ADR-017 改为 OTel
+    接收边界语义，不再依赖 Collector `top_level_operations` operation 目录。
 
 ## 影响
 
@@ -47,18 +53,24 @@ Lite engine 替换 legacy engine 后，审计发现若干不会产生 SQL error�
 - Time Series 图表不依赖 SQL 返回顺序，但现阶段不提供 top-N series。
 - 行预算保护 SigInsight 进程；它不限制 ClickHouse 聚合中间状态。高基数 group-by 的
   ClickHouse 侧预算和真正 top-series 选择仍需后续独立设计。
+- Trace Explorer 可隐藏 identity 列，但每个 raw 行仍可稳定打开对应 Trace Detail。
+- Trace Detail 的 All/Root/Entrypoint 三种 scope 继续使用 V5 语义字段；它们不会查询
+  不存在的 `isRoot`/`isEntryPoint` 物理列，且 Entrypoint 能高亮同一 trace 中所有 OTel
+  Server/Consumer remote-parent 接收边界。
 
 ## 验证
 
-- `pkg/litequery/compiler_test.go`：Trace CTE、Catalog table、typed IN 和排序字段。
-- `pkg/litequery/compiler_clickhouse_integration_test.go`：ClickHouse 25.5.6 上 root、child、
-  orphan trace 与 Metrics/Meter 实际执行。
+- `pkg/litequery/compiler_test.go`：Trace CTE、scope 展开、Catalog table、typed IN 和排序字段。
+- `pkg/litequery/compiler_clickhouse_integration_test.go`：ClickHouse 25.5.6 上 root、entrypoint、
+  child、orphan trace 与 Metrics/Meter 实际执行。
 - `pkg/litequery/executor_test.go`：formula 对齐/schema/顺序、结果行预算和 rows 关闭。
 - `pkg/querier/liteadapter/adapter_test.go`：确定性 series、点排序、非有限数和 gap filling。
 - `pkg/querier/litemetadata` 与 `liteadapter` 测试：范围前置校验、禁用查询在 metadata、能力
   解析、范围约束与 gap-fill step 选择中全部短路，intrinsic/aggregate alias 跳过和同名字段
   消歧。
 - 前端 payload/component 测试：raw/trace 状态清理和按结果类型隐藏 Group By/Limit。
+- `pkg/litequery/compiler_test.go` 与 Trace ListView 单测：raw trace identity 投影、V5
+  snake-case identity 和详情链接。
 - `tests/integration/scripts/run-litequery-collector-collaboration.sh`：2026-08-01 在 ClickHouse
   25.5.6 上运行当前 Collector migrations，经 OTLP 写入 Logs、Traces、Metrics、Meter，再由
   最新 SigInsight 的认证 V5 API 读回；四张物理表的 ClickHouse query log 均无错误。

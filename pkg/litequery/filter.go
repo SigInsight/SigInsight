@@ -1,6 +1,9 @@
 package litequery
 
-import "strings"
+import (
+	"regexp"
+	"strings"
+)
 
 type BooleanOperator string
 
@@ -23,7 +26,16 @@ const (
 	FilterExists      FilterOperator = "exists"
 	FilterNotExists   FilterOperator = "not_exists"
 	FilterContains    FilterOperator = "contains"
+	FilterNotContains FilterOperator = "not_contains"
+	FilterLike        FilterOperator = "like"
+	FilterNotLike     FilterOperator = "not_like"
+	FilterILike       FilterOperator = "ilike"
+	FilterNotILike    FilterOperator = "not_ilike"
+	FilterRegexp      FilterOperator = "regexp"
+	FilterNotRegexp   FilterOperator = "not_regexp"
 )
+
+const maxPatternLength = 1024
 
 type ValueKind string
 
@@ -129,9 +141,17 @@ func validatePredicate(p Predicate) error {
 		if p.Value.Kind != ValueNone {
 			return newError(ErrorInvalidFilter, "filter.value", "%s does not accept a value", p.Op)
 		}
-	case FilterContains:
+	case FilterContains, FilterNotContains, FilterLike, FilterNotLike, FilterILike, FilterNotILike, FilterRegexp, FilterNotRegexp:
 		if p.Field.Type != ValueTypeString || p.Value.Kind != ValueString || strings.TrimSpace(p.Value.String) == "" {
-			return newError(ErrorInvalidFilter, "filter", "contains requires a non-empty string value and string field")
+			return newError(ErrorInvalidFilter, "filter", "%s requires a non-empty string value and string field", p.Op)
+		}
+		if len(p.Value.String) > maxPatternLength {
+			return newError(ErrorBudgetExceeded, "filter.value", "%s pattern exceeds %d bytes", p.Op, maxPatternLength)
+		}
+		if p.Op == FilterRegexp || p.Op == FilterNotRegexp {
+			if _, err := regexp.Compile(p.Value.String); err != nil {
+				return newError(ErrorInvalidFilter, "filter.value", "invalid RE2-compatible regular expression")
+			}
 		}
 	default:
 		return newError(ErrorInvalidFilter, "filter.operator", "unsupported filter operator %q", p.Op)

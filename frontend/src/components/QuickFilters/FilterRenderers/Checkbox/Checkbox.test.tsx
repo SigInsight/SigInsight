@@ -448,6 +448,70 @@ describe('CheckboxFilter - User Flows', () => {
 		expect(screen.getByText(OTEL_DEMO)).toBeInTheDocument();
 	});
 
+	it('should self-heal equivalent qualified and unqualified quick filters', async () => {
+		const redirectWithQueryBuilderData = jest.fn();
+		mockUseQueryBuilder.mockReturnValue({
+			lastUsedQuery: 0,
+			currentQuery: {
+				builder: {
+					queryData: [
+						{
+							filter: {
+								expression:
+									"service.name not in ['matreeg_biz'] AND resource.service.name not in ['matreeg_biz']",
+							},
+							filters: {
+								op: 'AND',
+								items: [
+									{
+										id: 'unqualified',
+										key: {
+											key: 'service.name',
+											type: 'resource',
+											dataType: DataTypes.String,
+										},
+										op: 'not in',
+										value: 'matreeg_biz',
+									},
+									{
+										id: 'qualified',
+										key: {
+											key: 'resource.service.name',
+											type: 'resource',
+											dataType: DataTypes.String,
+										},
+										op: 'not in',
+										value: ['matreeg_biz'],
+									},
+								],
+							},
+						},
+					],
+				},
+			},
+			redirectWithQueryBuilderData,
+		} as any);
+
+		render(
+			<CheckboxFilter
+				filter={createMockFilter({ defaultOpen: true })}
+				source={QuickFiltersSource.LOGS_EXPLORER}
+			/>,
+		);
+
+		const checkboxes = await screen.findAllByRole('checkbox');
+		expect(checkboxes[0]).not.toBeDisabled();
+		await userEvent.click(checkboxes[0]);
+
+		const [updatedQuery] = redirectWithQueryBuilderData.mock.calls[0];
+		const queryData = updatedQuery.builder.queryData[0];
+		expect(queryData.filters.items).toHaveLength(1);
+		expect(queryData.filters.items[0].value).toEqual(['matreeg_biz', MQ_KAFKA]);
+		expect(queryData.filter.expression).toBe(
+			"resource.service.name not in ['matreeg_biz', 'mq-kafka']",
+		);
+	});
+
 	it('should extend an existing IN filter when checking an additional value', async () => {
 		const redirectWithQueryBuilderData = jest.fn();
 
@@ -507,5 +571,198 @@ describe('CheckboxFilter - User Flows', () => {
 		expect(filterForServiceName.key.key).toBe(SERVICE_NAME_KEY);
 		expect(filterForServiceName.op).toBe('in');
 		expect(filterForServiceName.value).toEqual(['mq-kafka', 'otel-demo']);
+	});
+
+	it('should preserve boolean types and synchronize the generated expression', async () => {
+		const redirectWithQueryBuilderData = jest.fn();
+		mockUseGetAggregateValues.mockReturnValue(({
+			data: {
+				payload: {
+					stringAttributeValues: null,
+					numberAttributeValues: null,
+					boolAttributeValues: ['true', 'false'],
+				},
+			},
+			isLoading: false,
+		} as unknown) as UseQueryResult<SuccessResponse<IAttributeValuesResponse>>);
+		mockUseQueryBuilder.mockReturnValue({
+			...createMockQueryBuilderData(false),
+			redirectWithQueryBuilderData,
+		} as any);
+
+		const mockFilter = createMockFilter({
+			title: 'Has Error',
+			attributeKey: {
+				key: 'has_error',
+				dataType: DataTypes.bool,
+				type: 'span',
+			},
+			dataSource: DataSource.TRACES,
+			defaultOpen: true,
+		});
+
+		render(
+			<CheckboxFilter
+				filter={mockFilter}
+				source={QuickFiltersSource.TRACES_EXPLORER}
+			/>,
+		);
+		await waitFor(() => {
+			expect(screen.getAllByRole('checkbox')).toHaveLength(2);
+		});
+
+		await userEvent.click(screen.getAllByRole('checkbox')[0]);
+
+		const [updatedQuery] = redirectWithQueryBuilderData.mock.calls[0];
+		const queryData = updatedQuery.builder.queryData[0];
+		expect(queryData.filters.items[0]).toEqual(
+			expect.objectContaining({
+				op: 'not in',
+				value: true,
+			}),
+		);
+		expect(queryData.filter.expression).toBe('span.has_error not in [true]');
+	});
+
+	it('should remove a legacy attribute-qualified intrinsic expression when its exclusion is reselected', async () => {
+		const redirectWithQueryBuilderData = jest.fn();
+		mockUseGetAggregateValues.mockReturnValue(({
+			data: {
+				payload: {
+					stringAttributeValues: null,
+					numberAttributeValues: null,
+					boolAttributeValues: ['true', 'false'],
+				},
+			},
+			isLoading: false,
+		} as unknown) as UseQueryResult<SuccessResponse<IAttributeValuesResponse>>);
+		mockUseQueryBuilder.mockReturnValue({
+			lastUsedQuery: 0,
+			currentQuery: {
+				builder: {
+					queryData: [
+						{
+							filter: {
+								expression: 'attribute.has_error:bool NOT IN [true]',
+							},
+							filters: {
+								op: 'AND',
+								items: [
+									{
+										id: 'has-error',
+										key: {
+											key: 'has_error',
+											dataType: DataTypes.bool,
+											type: 'span',
+										},
+										op: 'not in',
+										value: true,
+									},
+								],
+							},
+						},
+					],
+				},
+			},
+			redirectWithQueryBuilderData,
+		} as any);
+
+		const mockFilter = createMockFilter({
+			title: 'Has Error',
+			attributeKey: {
+				key: 'has_error',
+				dataType: DataTypes.bool,
+				type: 'span',
+			},
+			dataSource: DataSource.TRACES,
+			defaultOpen: true,
+		});
+		render(
+			<CheckboxFilter
+				filter={mockFilter}
+				source={QuickFiltersSource.TRACES_EXPLORER}
+			/>,
+		);
+		await waitFor(() => {
+			expect(screen.getAllByRole('checkbox')).toHaveLength(2);
+		});
+
+		// Checked values sort first, so the excluded true value is second.
+		await userEvent.click(screen.getAllByRole('checkbox')[1]);
+
+		const [updatedQuery] = redirectWithQueryBuilderData.mock.calls[0];
+		const queryData = updatedQuery.builder.queryData[0];
+		expect(queryData.filters.items).toEqual([]);
+		expect(queryData.filter.expression).toBe('');
+	});
+
+	it('should restore trace attribute context for a filter recovered from an unqualified expression', async () => {
+		const redirectWithQueryBuilderData = jest.fn();
+		mockUseGetAggregateValues.mockReturnValue(({
+			data: {
+				payload: {
+					stringAttributeValues: ['/health', '/orders'],
+					numberAttributeValues: null,
+					boolAttributeValues: null,
+				},
+			},
+			isLoading: false,
+		} as unknown) as UseQueryResult<SuccessResponse<IAttributeValuesResponse>>);
+		mockUseQueryBuilder.mockReturnValue({
+			lastUsedQuery: 0,
+			currentQuery: {
+				builder: {
+					queryData: [
+						{
+							filter: { expression: "http.route not in ['/health']" },
+							filters: {
+								op: 'AND',
+								items: [
+									{
+										id: 'http-route',
+										key: { key: 'http.route', type: '' },
+										op: 'not in',
+										value: '/health',
+									},
+								],
+							},
+						},
+					],
+				},
+			},
+			redirectWithQueryBuilderData,
+		} as any);
+
+		const mockFilter = createMockFilter({
+			title: 'HTTP Route',
+			attributeKey: {
+				key: 'http.route',
+				dataType: DataTypes.String,
+				type: 'tag',
+			},
+			dataSource: DataSource.TRACES,
+			defaultOpen: true,
+		});
+		render(
+			<CheckboxFilter
+				filter={mockFilter}
+				source={QuickFiltersSource.TRACES_EXPLORER}
+			/>,
+		);
+		await waitFor(() => {
+			expect(screen.getAllByRole('checkbox')).toHaveLength(2);
+		});
+
+		// Checked values sort first. Unchecking /orders adds it to NOT IN.
+		await userEvent.click(screen.getAllByRole('checkbox')[0]);
+
+		const [updatedQuery] = redirectWithQueryBuilderData.mock.calls[0];
+		const queryData = updatedQuery.builder.queryData[0];
+		expect(queryData.filters.items[0].key).toEqual(
+			expect.objectContaining({ key: 'http.route', type: 'tag' }),
+		);
+		expect(queryData.filter.expression).toBe(
+			"attribute.http.route not in ['/health', '/orders']",
+		);
 	});
 });

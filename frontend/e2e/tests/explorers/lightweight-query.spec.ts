@@ -178,10 +178,44 @@ test.describe('lightweight query explorer', () => {
 			timeout: 20_000,
 		});
 
-		await page.getByRole('button', { name: 'Add filter' }).click();
-		await page.getByLabel('Filter field 1').fill('severity_text');
-		await page.getByLabel('Filter value 1').fill('ERROR');
+		await page
+			.getByRole('textbox', { name: 'Filter expression for A' })
+			.fill("severity_text = 'ERROR'");
 		await runQueryAndExpectPayload(page, calls, 'severity_text');
+	});
+
+	test('keeps query composition actions inside their supported panel boundary', async ({
+		page,
+	}) => {
+		await page.goto('/logs/logs-explorer');
+		await replaceUnsupportedQuery(page);
+		await expect(page.getByTestId('lite-query-builder')).toBeVisible({
+			timeout: 20_000,
+		});
+		await expect(page.getByRole('button', { name: 'Add query' })).toHaveCount(0);
+		await expect(page.getByRole('button', { name: 'Add formula' })).toHaveCount(
+			0,
+		);
+		await expect(
+			page.getByRole('button', { name: 'Duplicate query A' }),
+		).toHaveCount(0);
+
+		const quickFilterAnnouncement = page.getByRole('button', { name: 'Okay' });
+		if (await quickFilterAnnouncement.count()) {
+			await quickFilterAnnouncement.click();
+		}
+		await page.getByRole('button', { name: 'Time Series' }).click();
+		await expect(page.getByRole('button', { name: 'Add query' })).toBeVisible();
+		await page.getByRole('button', { name: 'Duplicate query A' }).click();
+		await page.getByRole('button', { name: 'Add query' }).click();
+		await page.getByRole('button', { name: 'Add formula' }).click();
+
+		await expect(page.getByTestId('lite-query-builder')).toBeVisible();
+		await expect(
+			page.getByText(
+				'This saved query uses capabilities that are not supported by the lightweight query engine.',
+			),
+		).toHaveCount(0);
 	});
 
 	test('loads the trace explorer without a lightweight validation error', async ({
@@ -192,7 +226,7 @@ test.describe('lightweight query explorer', () => {
 		await expectSuccessfulQueryRange(page, calls);
 	});
 
-	test('runs a trace numeric filter without losing its field type', async ({
+	test('runs a typed trace numeric filter through the shared expression editor', async ({
 		page,
 	}) => {
 		const calls = observeQueryRange(page);
@@ -203,14 +237,9 @@ test.describe('lightweight query explorer', () => {
 			timeout: 20_000,
 		});
 
-		await page.getByRole('button', { name: 'Add filter' }).click();
-		await page.getByLabel('Filter field 1').fill('duration_nano');
-		await page.getByLabel('Filter operator 1').first().click();
 		await page
-			.locator('.ant-select-dropdown:not(.ant-select-dropdown-hidden)')
-			.getByText('greater than', { exact: true })
-			.click();
-		await page.getByLabel('Filter value 1').fill('0');
+			.getByRole('textbox', { name: 'Filter expression for A' })
+			.fill('duration_nano > 0');
 		await runQueryAndExpectPayload(page, calls, 'duration_nano');
 	});
 

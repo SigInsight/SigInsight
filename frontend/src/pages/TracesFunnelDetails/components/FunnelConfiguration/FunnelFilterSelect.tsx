@@ -16,6 +16,7 @@ import { GlobalReducer } from 'types/reducer/globalTime';
 interface FunnelFilterSelectProps {
 	placeholder: string;
 	attributeKey: string;
+	fieldContext?: 'resource';
 	value: string;
 	onChange?: (value: string) => void;
 }
@@ -23,6 +24,7 @@ interface FunnelFilterSelectProps {
 function FunnelFilterSelect({
 	placeholder,
 	attributeKey,
+	fieldContext,
 	value,
 	onChange,
 }: FunnelFilterSelectProps): JSX.Element {
@@ -46,7 +48,9 @@ function FunnelFilterSelect({
 				attributeKey,
 				searchText,
 				filterAttributeKeyDataType: DataTypes.String,
-				tagType: 'tag',
+				tagType: fieldContext || 'tag',
+				startUnixNano: minTime,
+				endUnixNano: maxTime,
 			});
 			const values =
 				payload?.[DATA_TYPE_VS_ATTRIBUTE_VALUES_KEY[DataTypes.String]] || [];
@@ -94,6 +98,7 @@ function FunnelFilterSelect({
 }
 
 FunnelFilterSelect.defaultProps = {
+	fieldContext: undefined,
 	onChange: undefined,
 };
 
