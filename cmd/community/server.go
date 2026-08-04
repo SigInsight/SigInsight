@@ -28,7 +28,7 @@ func registerServer(parentCmd *cobra.Command, logger *slog.Logger) {
 
 	serverCmd := &cobra.Command{
 		Use:                "server",
-		Short:              "Run the SigNoz server",
+		Short:              "Run the SigInsight server",
 		FParseErrWhitelist: cobra.FParseErrWhitelist{UnknownFlags: true},
 		RunE: func(currCmd *cobra.Command, args []string) error {
 			config, err := cmd.NewSigNozConfig(currCmd.Context(), logger, configFiles)
@@ -72,7 +72,7 @@ func runServer(ctx context.Context, config signoz.Config, logger *slog.Logger) e
 		},
 	)
 	if err != nil {
-		logger.ErrorContext(ctx, "failed to create signoz", errors.Attr(err))
+		logger.ErrorContext(ctx, "failed to create siginsight", errors.Attr(err))
 		return err
 	}
 
@@ -90,7 +90,7 @@ func runServer(ctx context.Context, config signoz.Config, logger *slog.Logger) e
 	signoz.Start(ctx)
 
 	if err := signoz.Wait(ctx); err != nil {
-		logger.ErrorContext(ctx, "failed to start signoz", errors.Attr(err))
+		logger.ErrorContext(ctx, "failed to start siginsight", errors.Attr(err))
 		return err
 	}
 
@@ -102,7 +102,7 @@ func runServer(ctx context.Context, config signoz.Config, logger *slog.Logger) e
 
 	err = signoz.Stop(ctx)
 	if err != nil {
-		logger.ErrorContext(ctx, "failed to stop signoz", errors.Attr(err))
+		logger.ErrorContext(ctx, "failed to stop siginsight", errors.Attr(err))
 		return err
 	}
 

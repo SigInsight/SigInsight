@@ -77,13 +77,13 @@ func New(
 	querierHandlerCallback func(factory.ProviderSettings, querier.Querier, analytics.Analytics) querier.Handler,
 ) (*SigNoz, error) {
 	// Initialize instrumentation
-	instrumentation, err := instrumentation.New(ctx, config.Instrumentation, version.Info, "signoz")
+	instrumentation, err := instrumentation.New(ctx, config.Instrumentation, version.Info, "siginsight")
 	if err != nil {
 		return nil, err
 	}
 
-	instrumentation.Logger().InfoContext(ctx, "starting signoz", slog.String("version", version.Info.Version()), slog.String("variant", version.Info.Variant()), slog.String("commit", version.Info.Hash()), slog.String("branch", version.Info.Branch()), slog.String("go", version.Info.GoVersion()), slog.String("time", version.Info.Time()))
-	instrumentation.Logger().DebugContext(ctx, "loaded signoz config", slog.Any("config", config))
+	instrumentation.Logger().InfoContext(ctx, "starting siginsight", slog.String("version", version.Info.Version()), slog.String("variant", version.Info.Variant()), slog.String("commit", version.Info.Hash()), slog.String("branch", version.Info.Branch()), slog.String("go", version.Info.GoVersion()), slog.String("time", version.Info.Time()))
+	instrumentation.Logger().DebugContext(ctx, "loaded siginsight config", slog.Any("config", config))
 
 	// Get the provider settings from instrumentation
 	providerSettings := instrumentation.ToProviderSettings()
