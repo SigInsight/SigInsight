@@ -150,14 +150,7 @@ function LogsExplorerViewsContainer({
 		'custom',
 	);
 
-	const {
-		data,
-		isLoading,
-		isFetching,
-		isError,
-		isSuccess,
-		error,
-	} = useGetExplorerQueryRange(
+	const queryResponse = useGetExplorerQueryRange(
 		requestData,
 		selectedPanelType,
 		{
@@ -177,6 +170,14 @@ function LogsExplorerViewsContainer({
 		// custom selected time interval to prevent recalculating the start and end timestamps before fetching next pages
 		'custom',
 	);
+	const {
+		data,
+		isLoading,
+		isFetching,
+		isError,
+		isSuccess,
+		error,
+	} = queryResponse;
 
 	const getRequestData = useCallback(
 		(
@@ -450,10 +451,7 @@ function LogsExplorerViewsContainer({
 								<BuilderUnitsFilter onChange={onUnitChange} yAxisUnit={yAxisUnit} />
 							</div>
 							<TimeSeriesView
-								isLoading={isLoading || isFetching}
-								data={data}
-								isError={isError}
-								error={error as APIError}
+								queryResponse={queryResponse}
 								yAxisUnit={yAxisUnit}
 								isFilterApplied={!isEmpty(listQuery?.filters?.items)}
 								dataSource={DataSource.LOGS}

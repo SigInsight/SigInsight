@@ -303,6 +303,30 @@ Validation after deletion passed TypeScript `--noEmit`, 8 focused suites with 33
 and 2 snapshots, ESLint, and the production Vite build. The remaining M13 work is the
 duplicate Explorer `TimeSeriesView` preparation path and specialized chart ownership.
 
+### Explorer rendering consolidation
+
+Completed in `refactor(visualization): unify explorer panel rendering`:
+
+- migrated Logs, Traces, and Metrics Explorer charts to the same
+  `PanelVisualization` dispatcher used by dashboards and alert previews;
+- replaced the React Query implementation type at the panel boundary with the smaller
+  `MetricQueryRangeResult` snapshot actually consumed by visualization code, allowing
+  unit-converted responses without unsafe casts or fabricated query lifecycle fields;
+- extracted Redux/URL drag selection and browser navigation restoration into
+  `useExplorerTimeRangeSelection`;
+- retained Explorer-owned loading, error, filtered-empty, unfiltered-empty, warning,
+  and telemetry behavior;
+- explicitly disabled dashboard context menus in Explorer, preserving the previous
+  click behavior while sharing chart construction;
+- deleted direct `BarChart`/`TimeSeries` rendering, resize state, scale state, and all
+  four duplicated `prepare*` calls from `TimeSeriesView`.
+
+`TimeSeriesView.tsx` decreased from 330 to 141 lines. The production change deletes
+more code than it adds, and container-to-container production imports decreased from
+270 to 264. Six new direct tests cover delegation, warnings, loading, errors, all empty
+states, drag URL updates, and browser time restoration. TypeScript, focused Explorer
+and dispatcher tests, affected-file ESLint, and the production Vite build passed.
+
 ## Planned Deletions
 
 - `lib/uPlotShared` after helper migration.
@@ -320,8 +344,8 @@ duplicate Explorer `TimeSeriesView` preparation path and specialized chart owner
 | `lib/uPlotShared` imports | active | 0 and directory deleted (completed) |
 | `PanelVisualization -> PanelWrapper` imports | active cycle | 0 (completed) |
 | `PanelVisualization -> QueryTable` private imports | active | 0 or neutral public drilldown API |
-| `TimeSeriesView` duplicated chart preparation | 4 helper calls | 0 |
-| `container` cross-container production imports | 270 | decreases; no new reverse dependency |
+| `TimeSeriesView` duplicated chart preparation | 4 helper calls | 0 (completed) |
+| `container` cross-container production imports | 270 | 264; no new reverse dependency |
 | Milestone production LOC | baseline recorded above | net negative |
 
 Every implementation commit records added/deleted production LOC and the imports it
@@ -335,5 +359,9 @@ removed. Test LOC is reported separately and is not counted as production comple
 - The most meaningful optional V2 deletion is the 645-line Alert History timeline
   plugin. It remains until a product decision explicitly accepts a simpler Alert
   History view.
+- After Explorer consolidation, the remaining direct `UPlotChart` consumers are the
+  shared `ChartWrapper` plus feature-specific Alert History statistics/timeline and
+  Metrics Inspect adapters. They require ownership cleanup, not a second chart-stack
+  migration; all already render through V2.
 - Container folder moves without a deleted dependency are prohibited by the milestone
   rules because they increase churn without reducing maintenance cost.

@@ -17,7 +17,6 @@ import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
 import useUrlYAxisUnit from 'hooks/useUrlYAxisUnit';
 import { AppState } from 'store/reducers';
 import { Warning } from 'types/api';
-import APIError from 'types/api/error';
 import { DataSource } from 'types/common/queryBuilder';
 import { GlobalReducer } from 'types/reducer/globalTime';
 
@@ -73,7 +72,7 @@ function TimeSeriesViewContainer({
 		queryKeyRef.current = queryKey;
 	}
 
-	const { data, isLoading, isFetching, isError, error } = useGetQueryRange(
+	const queryResponse = useGetQueryRange(
 		{
 			query: stagedQuery || initialQueriesMap[dataSource],
 			graphType: panelType || PANEL_TYPES.TIME_SERIES,
@@ -88,6 +87,7 @@ function TimeSeriesViewContainer({
 			enabled: !!stagedQuery && panelType === PANEL_TYPES.TIME_SERIES,
 		},
 	);
+	const { data, isLoading, isFetching } = queryResponse;
 
 	useEffect(() => {
 		if (data?.payload) {
@@ -99,6 +99,10 @@ function TimeSeriesViewContainer({
 	const responseData = useMemo(
 		() => (isValidToConvertToMs ? convertDataValueToMs(data) : data),
 		[data, isValidToConvertToMs],
+	);
+	const visualizationQueryResponse = useMemo(
+		() => ({ ...queryResponse, data: responseData }),
+		[queryResponse, responseData],
 	);
 
 	useEffect(() => {
@@ -116,10 +120,7 @@ function TimeSeriesViewContainer({
 			</div>
 			<TimeSeriesView
 				isFilterApplied={isFilterApplied}
-				isError={isError}
-				error={error as APIError}
-				isLoading={isLoading || isFetching}
-				data={responseData}
+				queryResponse={visualizationQueryResponse}
 				yAxisUnit={yAxisUnit}
 				dataSource={dataSource}
 				setWarning={setWarning}

@@ -22,6 +22,7 @@ function TimeSeriesPanel(props: PanelVisualizationProps): JSX.Element {
 		widget,
 		onDragSelect,
 		onClickHandler,
+		contextMenuEnabled = true,
 		isFullViewMode,
 		onToggleModelHandler,
 	} = props;
@@ -67,7 +68,9 @@ function TimeSeriesPanel(props: PanelVisualizationProps): JSX.Element {
 			widget,
 			isDarkMode,
 			currentQuery: widget.query,
-			onClick: onClickHandler ?? clickHandlerWithContextMenu,
+			onClick:
+				onClickHandler ??
+				(contextMenuEnabled ? clickHandlerWithContextMenu : undefined),
 			onDragSelect,
 			apiResponse: queryResponse?.data?.payload,
 			timezone,
@@ -80,6 +83,7 @@ function TimeSeriesPanel(props: PanelVisualizationProps): JSX.Element {
 		isDarkMode,
 		clickHandlerWithContextMenu,
 		onClickHandler,
+		contextMenuEnabled,
 		onDragSelect,
 		queryResponse?.data?.payload,
 		panelMode,

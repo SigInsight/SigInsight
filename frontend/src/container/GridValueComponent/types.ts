@@ -1,8 +1,6 @@
-import { UseQueryResult } from 'react-query';
 import { ThresholdProps } from 'features/query-visualization/threshold';
-import { SuccessResponse } from 'types/api';
 import { ContextLinksData, Widgets } from 'types/api/dashboard/getAll';
-import { MetricRangePayloadProps } from 'types/api/metrics/getQueryRange';
+import { MetricQueryRangeResult } from 'types/api/metrics/getQueryRange';
 import uPlot from 'uplot';
 
 export type GridValueComponentProps = {
@@ -13,10 +11,7 @@ export type GridValueComponentProps = {
 	thresholds?: ThresholdProps[];
 	// Context menu related props
 	widget?: Widgets;
-	queryResponse?: UseQueryResult<
-		SuccessResponse<MetricRangePayloadProps, unknown>,
-		Error
-	>;
+	queryResponse?: MetricQueryRangeResult;
 	contextLinks?: ContextLinksData;
 	enableDrillDown?: boolean;
 };

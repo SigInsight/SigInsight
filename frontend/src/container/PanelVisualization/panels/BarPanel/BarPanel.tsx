@@ -22,6 +22,7 @@ function BarPanel(props: PanelVisualizationProps): JSX.Element {
 		widget,
 		onDragSelect,
 		onClickHandler,
+		contextMenuEnabled = true,
 		isFullViewMode,
 		onToggleModelHandler,
 	} = props;
@@ -57,7 +58,9 @@ function BarPanel(props: PanelVisualizationProps): JSX.Element {
 			widget,
 			isDarkMode,
 			currentQuery: widget.query,
-			onClick: onClickHandler ?? clickHandlerWithContextMenu,
+			onClick:
+				onClickHandler ??
+				(contextMenuEnabled ? clickHandlerWithContextMenu : undefined),
 			onDragSelect,
 			apiResponse: queryResponse?.data?.payload,
 			timezone,
@@ -71,6 +74,7 @@ function BarPanel(props: PanelVisualizationProps): JSX.Element {
 		queryResponse?.data?.payload,
 		clickHandlerWithContextMenu,
 		onClickHandler,
+		contextMenuEnabled,
 		onDragSelect,
 		minTimeScale,
 		maxTimeScale,

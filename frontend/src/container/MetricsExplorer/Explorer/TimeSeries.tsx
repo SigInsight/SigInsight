@@ -280,12 +280,13 @@ function TimeSeries({
 								)}
 								<TimeSeriesView
 									isFilterApplied={false}
-									isError={queries[index].isError}
-									isLoading={queries[index].isLoading || isMetricUnitsLoading}
-									data={datapoint}
+									queryResponse={{
+										...queries[index],
+										data: datapoint,
+										isLoading: queries[index].isLoading || isMetricUnitsLoading,
+									}}
 									yAxisUnit={currentYAxisUnit}
 									dataSource={DataSource.METRICS}
-									error={queries[index].error as APIError}
 									setWarning={setWarning}
 								/>
 							</div>
