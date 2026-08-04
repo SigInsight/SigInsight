@@ -2,12 +2,11 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button, Tabs, Tooltip, Typography } from 'antd';
 import logEvent from 'api/common/logEvent';
-import { QueryBuilder } from 'components/QueryBuilder/QueryBuilder';
 import { ALERTS_DATA_SOURCE_MAP } from 'constants/alerts';
-import { ENTITY_VERSION_V5 } from 'constants/app';
 import { PANEL_TYPES } from 'constants/queryBuilder';
 import { QBShortcuts } from 'constants/shortcuts/QBShortcuts';
 import RunQueryBtn from 'container/QueryBuilder/components/RunQueryBtn/RunQueryBtn';
+import { LiteQueryBuilder } from 'features/lite-query/LiteQueryBuilder';
 import { useKeyboardHotkeys } from 'hooks/hotkeys/useKeyboardHotkeys';
 import { isEmpty } from 'lodash-es';
 import { Atom } from 'lucide-react';
@@ -32,7 +31,6 @@ function QuerySection({
 	// init namespace for translations
 	const { t } = useTranslation('alerts');
 	const [currentTab, setCurrentTab] = useState(queryCategory);
-	const [signalSource, setSignalSource] = useState<string>('metrics');
 
 	const handleQueryCategoryChange = (queryType: string): void => {
 		setQueryCategory(queryType as EQueryType);
@@ -46,22 +44,13 @@ function QuerySection({
 		}
 	}, [currentTab, setQueryCategory]);
 
-	const handleSignalSourceChange = (value: string): void => {
-		setSignalSource(value);
-	};
-
 	const renderMetricUI = (): JSX.Element => (
-		<QueryBuilder
+		<LiteQueryBuilder
 			panelType={panelType}
 			config={{
 				queryVariant: 'static',
 				initialDataSource: ALERTS_DATA_SOURCE_MAP[alertType],
-				signalSource: signalSource === 'meter' ? 'meter' : '',
 			}}
-			showFunctions={alertType === AlertTypes.LOGS_BASED_ALERT}
-			version={ENTITY_VERSION_V5}
-			onSignalSourceChange={handleSignalSourceChange}
-			signalSourceChangeEnabled
 		/>
 	);
 

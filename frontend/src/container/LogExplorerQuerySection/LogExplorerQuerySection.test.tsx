@@ -15,8 +15,6 @@ import { explorerViewToPanelType } from 'utils/explorerUtils';
 
 import LogExplorerQuerySection from './index';
 
-const CM_EDITOR_SELECTOR = '.cm-editor .cm-content';
-
 // Mock DOM APIs that CodeMirror needs
 beforeAll(() => {
 	// Mock getClientRects and getBoundingClientRect for Range objects
@@ -129,8 +127,7 @@ const mockRedirectWithQueryBuilderData = jest.fn() as jest.MockedFunction<
 	(query: Query) => void
 >;
 
-// Create a mock query that we'll use to verify persistence
-const createMockQuery = (filterExpression?: string): Query => ({
+const createMockQuery = (): Query => ({
 	id: 'test-query-id',
 	queryType: EQueryType.QUERY_BUILDER,
 	builder: {
@@ -150,11 +147,6 @@ const createMockQuery = (filterExpression?: string): Query => ({
 					items: [],
 					op: 'AND',
 				},
-				filter: filterExpression
-					? {
-							expression: filterExpression,
-					  }
-					: undefined,
 				functions: [],
 				groupBy: [
 					{
@@ -177,29 +169,6 @@ const createMockQuery = (filterExpression?: string): Query => ({
 	},
 	clickhouse_sql: [],
 });
-
-// Helper function to verify CodeMirror content
-const verifyCodeMirrorContent = async (
-	expectedFilterExpression: string,
-): Promise<void> => {
-	await waitFor(
-		() => {
-			const editorContent = document.querySelector(
-				CM_EDITOR_SELECTOR,
-			) as HTMLElement;
-			expect(editorContent).toBeInTheDocument();
-			const textContent = editorContent.textContent || '';
-			expect(textContent).toBe(expectedFilterExpression);
-		},
-		{ timeout: 3000 },
-	);
-};
-
-const VIEWS_TO_TEST = [
-	ExplorerViews.LIST,
-	ExplorerViews.TIMESERIES,
-	ExplorerViews.TABLE,
-];
 
 describe('LogExplorerQuerySection', () => {
 	let mockQuery: Query;
@@ -239,48 +208,6 @@ describe('LogExplorerQuerySection', () => {
 		jest.clearAllMocks();
 	});
 
-	it('should maintain query state across multiple view changes', () => {
-		const { rerender } = render(
-			<LogExplorerQuerySection selectedView={ExplorerViews.LIST} />,
-			undefined,
-			{
-				queryBuilderOverrides: mockQueryBuilderContext as QueryBuilderContextType,
-			},
-		);
-
-		const initialQuery = mockQueryBuilderContext.currentQuery;
-
-		VIEWS_TO_TEST.forEach((view) => {
-			rerender(<LogExplorerQuerySection selectedView={view} />);
-			expect(mockQueryBuilderContext.currentQuery).toEqual(initialQuery);
-		});
-	});
-
-	it('should persist filter expressions across view changes', async () => {
-		// Test with a more complex filter expression
-		const complexFilter =
-			"(service.name = 'api-gateway' OR service.name = 'backend') AND http.status_code IN [500, 502, 503] AND NOT error = 'timeout'";
-		const queryWithComplexFilter = createMockQuery(complexFilter);
-
-		const contextWithComplexFilter: Partial<QueryBuilderContextType> = {
-			...mockQueryBuilderContext,
-			currentQuery: queryWithComplexFilter,
-		};
-
-		const { rerender } = render(
-			<LogExplorerQuerySection selectedView={ExplorerViews.LIST} />,
-			undefined,
-			{
-				queryBuilderOverrides: contextWithComplexFilter as QueryBuilderContextType,
-			},
-		);
-
-		VIEWS_TO_TEST.forEach(async (view) => {
-			rerender(<LogExplorerQuerySection selectedView={view} />);
-			await verifyCodeMirrorContent(complexFilter);
-		});
-	});
-
 	it('keeps the Lite Query Builder view-specific controls when switching views', async () => {
 		mockUseGetPanelTypesQueryParam.mockReturnValue(PANEL_TYPES.LIST);
 		const contextWithList: Partial<QueryBuilderContextType> = {
@@ -288,13 +215,9 @@ describe('LogExplorerQuerySection', () => {
 			panelType: PANEL_TYPES.LIST,
 		};
 
-		render(
-			<LogExplorerQuerySection selectedView={ExplorerViews.LIST} />,
-			undefined,
-			{
-				queryBuilderOverrides: contextWithList as QueryBuilderContextType,
-			},
-		);
+		render(<LogExplorerQuerySection />, undefined, {
+			queryBuilderOverrides: contextWithList as QueryBuilderContextType,
+		});
 
 		expect(screen.getByTestId('lite-query-builder')).toBeInTheDocument();
 		expect(screen.getByText('Filters')).toBeInTheDocument();
@@ -310,13 +233,9 @@ describe('LogExplorerQuerySection', () => {
 			panelType: timeseriesPanelType,
 		};
 
-		render(
-			<LogExplorerQuerySection selectedView={ExplorerViews.TIMESERIES} />,
-			undefined,
-			{
-				queryBuilderOverrides: contextWithTimeseries as QueryBuilderContextType,
-			},
-		);
+		render(<LogExplorerQuerySection />, undefined, {
+			queryBuilderOverrides: contextWithTimeseries as QueryBuilderContextType,
+		});
 
 		await waitFor(() => {
 			expect(screen.getByTestId('lite-query-builder')).toBeInTheDocument();
@@ -334,13 +253,9 @@ describe('LogExplorerQuerySection', () => {
 			panelType: tablePanelType,
 		};
 
-		render(
-			<LogExplorerQuerySection selectedView={ExplorerViews.TABLE} />,
-			undefined,
-			{
-				queryBuilderOverrides: contextWithTable as QueryBuilderContextType,
-			},
-		);
+		render(<LogExplorerQuerySection />, undefined, {
+			queryBuilderOverrides: contextWithTable as QueryBuilderContextType,
+		});
 
 		await waitFor(() => {
 			expect(screen.getByTestId('lite-query-builder')).toBeInTheDocument();

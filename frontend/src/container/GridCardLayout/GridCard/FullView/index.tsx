@@ -11,7 +11,6 @@ import { Button, Input, Spin } from 'antd';
 import cx from 'classnames';
 import { ToggleGraphProps } from 'components/Graph/types';
 import OverlayScrollbar from 'components/OverlayScrollbar/OverlayScrollbar';
-import { QueryBuilder } from 'components/QueryBuilder/QueryBuilder';
 import Spinner from 'components/Spinner';
 import TimePreference from 'components/TimePreferenceDropDown';
 import WarningPopover from 'components/WarningPopover/WarningPopover';
@@ -22,6 +21,7 @@ import { populateMultipleResults } from 'container/NewWidget/LeftContainer/Widge
 import { PanelMode } from 'container/PanelVisualization/panels/types';
 import PanelWrapper from 'container/PanelWrapper/PanelWrapper';
 import RightToolbarActions from 'container/QueryBuilder/components/ToolbarActions/RightToolbarActions';
+import { LiteQueryBuilder } from 'features/lite-query/LiteQueryBuilder';
 import {
 	timeItems,
 	timePreferance,
@@ -79,7 +79,7 @@ function FullView({
 		setCurrentGraphRef(fullViewRef);
 	}, [setCurrentGraphRef]);
 
-	const { selectedDashboard, setColumnWidths } = useDashboardStore();
+	const { setColumnWidths } = useDashboardStore();
 	const isDashboardLocked = useDashboardStore(selectIsDashboardLocked);
 
 	const onColumnWidthsChange = useCallback(
@@ -306,14 +306,7 @@ function FullView({
 						)}
 						{enableDrillDown && (
 							<>
-								<QueryBuilder
-									panelType={selectedPanelType}
-									version={selectedDashboard?.data?.version || 'v5'}
-									isListViewPanel={selectedPanelType === PANEL_TYPES.LIST}
-									signalSourceChangeEnabled
-									// filterConfigs={filterConfigs}
-									// queryComponents={queryComponents}
-								/>
+								<LiteQueryBuilder panelType={selectedPanelType} />
 								<RightToolbarActions
 									onStageRunQuery={(): void => {
 										handleRunQuery();

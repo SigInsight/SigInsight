@@ -1,7 +1,7 @@
 /* eslint-disable sonarjs/cognitive-complexity */
 import { ChangeEvent, useCallback, useEffect } from 'react';
-import { Button, Input, InputNumber, Select, Tooltip } from 'antd';
-import { PANEL_TYPES } from 'constants/queryBuilder';
+import { Alert, Button, Input, InputNumber, Select, Tooltip } from 'antd';
+import { initialQueriesMap, PANEL_TYPES } from 'constants/queryBuilder';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
 import { Plus, Sigma, Trash2 } from 'lucide-react';
 import {
@@ -21,6 +21,7 @@ import QueryBuilderSearchV3 from '../query-builder-v3/QueryBuilderSearchV3';
 import {
 	getLiteMetricAggregationOptions,
 	isLiteFormula,
+	isLiteQueryState,
 	LiteMetricType,
 	toLiteFilterExpression,
 } from './capabilities';
@@ -28,6 +29,17 @@ import {
 import './LiteQueryBuilder.scss';
 
 const defaultStepSeconds = 60;
+
+export type LiteQueryBuilderConfig =
+	| { queryVariant: 'static'; initialDataSource: DataSource }
+	| { queryVariant: 'dropdown' };
+
+export type LiteQueryBuilderProps = {
+	panelType: PANEL_TYPES;
+	config?: LiteQueryBuilderConfig;
+	onSignalSourceChange?: (value: string) => void;
+	signalSourceChangeEnabled?: boolean;
+};
 
 const sourceOptions = [
 	{ label: 'Metrics', value: DataSource.METRICS },
@@ -558,19 +570,59 @@ function LiteFormulaRow({
 	);
 }
 
-export function LiteQueryBuilder({
+function UnsupportedLiteQuery({
+	config,
+}: Pick<LiteQueryBuilderProps, 'config'>): JSX.Element {
+	const { currentQuery, redirectWithQueryBuilderData } = useQueryBuilder();
+	const source =
+		(config?.queryVariant === 'static' && config.initialDataSource) ||
+		currentQuery.builder.queryData[0]?.dataSource ||
+		DataSource.METRICS;
+
+	const replaceWithSupportedQuery = useCallback((): void => {
+		const initial = initialQueriesMap[source];
+		redirectWithQueryBuilderData({
+			...initial,
+			id: currentQuery.id,
+			clickhouse_sql: [],
+			builder: {
+				queryData: initial.builder.queryData.map((query) => ({
+					...query,
+					functions: [],
+					filters: { items: [], op: 'AND' },
+					filter: { expression: '' },
+					groupBy: [],
+					having: [],
+					orderBy: [],
+				})),
+				queryFormulas: [],
+				queryTraceOperator: [],
+			},
+		});
+	}, [currentQuery.id, redirectWithQueryBuilderData, source]);
+
+	return (
+		<div className="lite-query-builder">
+			<Alert
+				type="warning"
+				showIcon
+				message="This saved query uses capabilities that are not supported by the lightweight query engine."
+				action={
+					<Button type="primary" onClick={replaceWithSupportedQuery}>
+						Replace query
+					</Button>
+				}
+			/>
+		</div>
+	);
+}
+
+function LiteQueryBuilderContent({
 	panelType,
 	config,
 	onSignalSourceChange,
 	signalSourceChangeEnabled = false,
-}: {
-	panelType: PANEL_TYPES;
-	config?:
-		| { queryVariant: 'static'; initialDataSource: DataSource }
-		| { queryVariant: 'dropdown' };
-	onSignalSourceChange?: (value: string) => void;
-	signalSourceChangeEnabled?: boolean;
-}): JSX.Element {
+}: LiteQueryBuilderProps): JSX.Element {
 	const {
 		currentQuery,
 		initialDataSource,
@@ -654,4 +706,12 @@ export function LiteQueryBuilder({
 			)}
 		</div>
 	);
+}
+
+export function LiteQueryBuilder(props: LiteQueryBuilderProps): JSX.Element {
+	const { currentQuery } = useQueryBuilder();
+	if (!isLiteQueryState(currentQuery, props.panelType)) {
+		return <UnsupportedLiteQuery config={props.config} />;
+	}
+	return <LiteQueryBuilderContent {...props} />;
 }
