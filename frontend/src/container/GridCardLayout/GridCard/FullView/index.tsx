@@ -9,7 +9,6 @@ import {
 } from '@ant-design/icons';
 import { Button, Input, Spin } from 'antd';
 import cx from 'classnames';
-import { ToggleGraphProps } from 'components/Graph/types';
 import OverlayScrollbar from 'components/OverlayScrollbar/OverlayScrollbar';
 import Spinner from 'components/Spinner';
 import TimePreference from 'components/TimePreferenceDropDown';
@@ -19,7 +18,7 @@ import { PANEL_TYPES } from 'constants/queryBuilder';
 import useDrilldown from 'container/GridCardLayout/GridCard/FullView/useDrilldown';
 import { populateMultipleResults } from 'container/NewWidget/LeftContainer/WidgetGraph/util';
 import { PanelMode } from 'container/PanelVisualization/panels/types';
-import PanelWrapper from 'container/PanelWrapper/PanelWrapper';
+import PanelVisualization from 'container/PanelVisualization/PanelVisualization';
 import RightToolbarActions from 'container/QueryBuilder/components/ToolbarActions/RightToolbarActions';
 import { LiteQueryBuilder } from 'features/lite-query/LiteQueryBuilder';
 import {
@@ -45,7 +44,6 @@ import { GlobalReducer } from 'types/reducer/globalTime';
 import { getGraphType } from 'utils/getGraphType';
 import { getSortedSeriesData } from 'utils/getSortedSeriesData';
 
-import { getLocalStorageGraphVisibilityState } from '../utils';
 import { PANEL_TYPES_VS_FULL_VIEW_TABLE } from './contants';
 import PanelTypeSelector from './PanelTypeSelector';
 import { GraphContainer, TimeContainer } from './styles';
@@ -57,13 +55,11 @@ function FullView({
 	widget,
 	fullViewOptions = true,
 	version,
-	originalName,
 	tableProcessedDataRef,
 	isDependedDataLoaded = false,
 	onToggleModelHandler,
 	onClickHandler,
 	customOnDragSelect,
-	setCurrentGraphRef,
 	enableDrillDown = false,
 }: FullViewProps): JSX.Element {
 	const { selectedTime: globalSelectedTime, minTime, maxTime } = useSelector<
@@ -74,10 +70,6 @@ function FullView({
 
 	const fullViewRef = useRef<HTMLDivElement>(null);
 	const { handleRunQuery } = useQueryBuilder();
-
-	useEffect(() => {
-		setCurrentGraphRef(fullViewRef);
-	}, [setCurrentGraphRef]);
 
 	const { setColumnWidths } = useDashboardStore();
 	const isDashboardLocked = useDashboardStore(selectIsDashboardLocked);
@@ -95,8 +87,6 @@ function FullView({
 			timeItems.find((e) => e.enum === (widget?.timePreferance || 'GLOBAL_TIME')),
 		[widget],
 	);
-
-	const fullViewChartRef = useRef<ToggleGraphProps>();
 
 	const [selectedTime, setSelectedTime] = useState<timePreferance>({
 		name: getSelectedTime()?.name || '',
@@ -211,20 +201,6 @@ function FullView({
 		}));
 	}, []);
 
-	const [graphsVisibilityStates, setGraphsVisibilityStates] = useState<
-		boolean[]
-	>(Array(response.data?.payload?.data?.result?.length).fill(true));
-
-	useEffect(() => {
-		const {
-			graphVisibilityStates: localStoredVisibilityState,
-		} = getLocalStorageGraphVisibilityState({
-			apiResponse: response.data?.payload.data.result || [],
-			name: originalName,
-		});
-		setGraphsVisibilityStates(localStoredVisibilityState);
-	}, [originalName, response.data?.payload.data.result]);
-
 	const canModifyChart = useChartMutable({
 		panelType: selectedPanelType,
 		panelTypeVisibility: PANEL_TYPES_VS_FULL_VIEW_TABLE,
@@ -241,12 +217,6 @@ function FullView({
 		const transformedData = populateMultipleResults(response?.data);
 		response.data = transformedData;
 	}
-
-	useEffect(() => {
-		graphsVisibilityStates?.forEach((e, i) => {
-			fullViewChartRef?.current?.toggleGraph(i, e);
-		});
-	}, [graphsVisibilityStates]);
 
 	const isListView = selectedPanelType === PANEL_TYPES.LIST;
 
@@ -343,19 +313,17 @@ function FullView({
 									}}
 								/>
 							)}
-							<PanelWrapper
+							<PanelVisualization
 								panelMode={PanelMode.STANDALONE_VIEW}
 								queryResponse={response}
 								widget={widget}
 								setRequestData={setRequestData}
 								isFullViewMode
 								onToggleModelHandler={onToggleModelHandler}
-								setGraphVisibility={setGraphsVisibilityStates}
-								graphVisibility={graphsVisibilityStates}
+								onClickHandler={onClickHandler}
 								onDragSelect={customOnDragSelect ?? onDragSelect}
 								tableProcessedDataRef={tableProcessedDataRef}
 								searchTerm={searchTerm}
-								onClickHandler={onClickHandler}
 								enableDrillDown={enableDrillDown}
 								selectedGraph={selectedPanelType}
 								onColumnWidthsChange={onColumnWidthsChange}

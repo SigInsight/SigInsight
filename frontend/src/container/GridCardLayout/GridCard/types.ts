@@ -1,6 +1,5 @@
-import { Dispatch, MutableRefObject, ReactNode, SetStateAction } from 'react';
+import { Dispatch, ReactNode, SetStateAction } from 'react';
 import { UseQueryResult } from 'react-query';
-import { ToggleGraphProps } from 'components/Graph/types';
 import { GetQueryResultsProps } from 'lib/dashboard/getQueryResults';
 import { RowData } from 'lib/query/createTableColumnsFromQuery';
 import { OnClickPluginOpts } from 'lib/uPlotV2/plugins/onClickPlugin';
@@ -8,16 +7,8 @@ import { IDashboardVariables } from 'providers/Dashboard/store/dashboardVariable
 import { SuccessResponse } from 'types/api';
 import { Widgets } from 'types/api/dashboard/getAll';
 import { MetricRangePayloadProps } from 'types/api/metrics/getQueryRange';
-import { QueryData } from 'types/api/widgets/getQuery';
-import uPlot from 'uplot';
 
 import { MenuItemKeys } from '../WidgetHeader/contants';
-import { LegendEntryProps } from './FullView/utils';
-
-export interface GraphVisibilityLegendEntryProps {
-	graphVisibilityStates: boolean[];
-	legendEntry: LegendEntryProps[];
-}
 
 export interface WidgetGraphComponentProps {
 	widget: Widgets;
@@ -35,13 +26,10 @@ export interface WidgetGraphComponentProps {
 	onClickHandler?: OnClickPluginOpts['onClick'];
 	onDragSelect: (start: number, end: number) => void;
 	customOnDragSelect?: (start: number, end: number) => void;
-	customTooltipElement?: HTMLDivElement;
 	openTracesButton?: boolean;
 	onOpenTraceBtnClick?: (record: RowData) => void;
-	customSeries?: (data: QueryData[]) => uPlot.Series[];
 	customErrorMessage?: string;
 	customOnRowClick?: (record: RowData) => void;
-	customTimeRangeWindowForCoRelation?: string | undefined;
 	enableDrillDown?: boolean;
 }
 
@@ -55,12 +43,10 @@ export interface GridCardGraphProps {
 	version?: string;
 	onDragSelect: (start: number, end: number) => void;
 	customOnDragSelect?: (start: number, end: number) => void;
-	customTooltipElement?: HTMLDivElement;
 	dataAvailable?: (isDataAvailable: boolean) => void;
 	getGraphData?: (graphData?: MetricRangePayloadProps['data']) => void;
 	openTracesButton?: boolean;
 	onOpenTraceBtnClick?: (record: RowData) => void;
-	customSeries?: (data: QueryData[]) => uPlot.Series[];
 	customErrorMessage?: string;
 	start?: number;
 	end?: number;
@@ -71,17 +57,5 @@ export interface GridCardGraphProps {
 		endTime: number;
 	};
 	customOnRowClick?: (record: RowData) => void;
-	customTimeRangeWindowForCoRelation?: string | undefined;
 	enableDrillDown?: boolean;
-}
-
-export interface GetGraphVisibilityStateOnLegendClickProps {
-	options: uPlot.Options;
-	isExpandedName: boolean;
-	name: string;
-}
-
-export interface ToggleGraphsVisibilityInChartProps {
-	graphsVisibilityStates: GraphVisibilityLegendEntryProps['graphVisibilityStates'];
-	lineChartRef: MutableRefObject<ToggleGraphProps | undefined>;
 }

@@ -280,14 +280,34 @@ Completed in `refactor(visualization): remove PanelWrapper reverse dependencies`
 - reduced production imports from `PanelVisualization` to `PanelWrapper` to zero.
 
 The focused boundary suite passed 5 suites, 12 tests, and 2 snapshots; lint and the
-production build passed. The remaining M13 work starts with migrating the three direct
-callers from the `PanelWrapper` dispatcher and then deleting that dispatcher.
+production build passed.
+
+### Panel dispatcher consolidation
+
+Completed in `refactor(visualization): consolidate panel dispatcher`:
+
+- moved Table, List, Value, and Pie panel ownership under `PanelVisualization`;
+- replaced the `PanelWrapper` component and exported mapping with an internal typed
+  dispatcher;
+- migrated Dashboard cards, dashboard full view, Alert Preview, panel selection, and
+  dispatcher tests to the new entry point;
+- moved `getLegend` tests from the deleted container to their actual `lib/dashboard`
+  owner;
+- deleted the complete `container/PanelWrapper` tree;
+- deleted the unreferenced legacy graph-click menu, explorer-navigation adapter,
+  visibility refs, related types/mocks/styles, and custom time-range helper;
+- retained the externally consumed `onClickHandler` interaction and connected it to
+  TimeSeries/Bar V2 configuration, with the V2 context menu as the fallback.
+
+Validation after deletion passed TypeScript `--noEmit`, 8 focused suites with 33 tests
+and 2 snapshots, ESLint, and the production Vite build. The remaining M13 work is the
+duplicate Explorer `TimeSeriesView` preparation path and specialized chart ownership.
 
 ## Planned Deletions
 
 - `lib/uPlotShared` after helper migration.
 - `PanelWrapper/PanelWrapper.tsx` and its dispatch mapping after all retained callers
-  use `PanelVisualization`.
+  use `PanelVisualization` (completed; entire directory deleted).
 - The duplicate chart-data/config branch in `TimeSeriesView` after explorer migration.
 - Feature-specific compatibility props, mocks, and styles revealed by each deleted
   adapter.

@@ -1,7 +1,7 @@
 import { MutableRefObject } from 'react';
 import { PANEL_TYPES } from 'constants/queryBuilder';
 import { PanelMode } from 'container/PanelVisualization/panels/types';
-import PanelWrapper from 'container/PanelWrapper/PanelWrapper';
+import PanelVisualization from 'container/PanelVisualization/PanelVisualization';
 import { RowData } from 'lib/query/createTableColumnsFromQuery';
 import { render, screen, waitFor } from 'tests/test-utils';
 import { Widgets } from 'types/api/dashboard/getAll';
@@ -10,9 +10,11 @@ import { EQueryType } from 'types/common/dashboard';
 import { DataSource } from 'types/common/queryBuilder';
 
 // Mock dependencies
-jest.mock('container/PanelWrapper/constants', () => ({
-	PanelTypeVsPanelWrapper: {
-		[PANEL_TYPES.TIME_SERIES]: ({
+jest.mock(
+	'container/PanelVisualization/panels/TimeSeriesPanel/TimeSeriesPanel',
+	() => ({
+		__esModule: true,
+		default: ({
 			onDragSelect,
 		}: {
 			onDragSelect: (start: number, end: number) => void;
@@ -52,8 +54,8 @@ jest.mock('container/PanelWrapper/constants', () => ({
 				</div>
 			);
 		},
-	},
-}));
+	}),
+);
 
 // Mock data
 const mockWidget: Widgets = {
@@ -142,7 +144,7 @@ const mockQueryResponse: any = {
 	refetch: jest.fn(),
 };
 
-describe('PanelWrapper with DragSelect', () => {
+describe('PanelVisualization with drag selection', () => {
 	const tableProcessedDataRef = { current: [] } as MutableRefObject<RowData[]>;
 
 	beforeEach(() => {
@@ -153,7 +155,7 @@ describe('PanelWrapper with DragSelect', () => {
 		const mockOnDragSelect = jest.fn();
 
 		render(
-			<PanelWrapper
+			<PanelVisualization
 				panelMode={PanelMode.STANDALONE_VIEW}
 				widget={mockWidget}
 				queryResponse={mockQueryResponse}

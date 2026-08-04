@@ -3,7 +3,7 @@ import { PanelVisualizationProps } from 'container/PanelVisualization/panels/typ
 import TracesTableComponent from 'container/TracesTableComponent/TracesTableComponent';
 import { DataSource } from 'types/common/queryBuilder';
 
-function ListPanelWrapper({
+function ListPanel({
 	widget,
 	queryResponse,
 	setRequestData,
@@ -35,4 +35,4 @@ function ListPanelWrapper({
 	);
 }
 
-export default ListPanelWrapper;
+export default ListPanel;

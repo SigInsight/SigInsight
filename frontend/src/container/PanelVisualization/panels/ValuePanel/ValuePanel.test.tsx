@@ -2,12 +2,12 @@ import { PanelMode } from 'container/PanelVisualization/panels/types';
 import { render } from 'tests/test-utils';
 import { Widgets } from 'types/api/dashboard/getAll';
 
-import ValuePanelWrapper from '../ValuePanelWrapper';
 import {
 	thresholds,
 	valuePanelQueryResponse,
 	valuePanelWidget,
-} from './valuePanelWrapperHelper';
+} from './testHelpers';
+import ValuePanel from './ValuePanel';
 
 window.ResizeObserver =
 	window.ResizeObserver ||
@@ -17,10 +17,10 @@ window.ResizeObserver =
 		unobserve: jest.fn(),
 	}));
 
-describe('Value panel wrappper tests', () => {
+describe('ValuePanel', () => {
 	it('should render value panel correctly with yaxis unit', () => {
 		const { getByText } = render(
-			<ValuePanelWrapper
+			<ValuePanel
 				panelMode={PanelMode.DASHBOARD_VIEW}
 				widget={(valuePanelWidget as unknown) as Widgets}
 				queryResponse={(valuePanelQueryResponse as unknown) as any}
@@ -35,7 +35,7 @@ describe('Value panel wrappper tests', () => {
 
 	it('should render tooltip when there are conflicting thresholds', () => {
 		const { getByTestId, container } = render(
-			<ValuePanelWrapper
+			<ValuePanel
 				panelMode={PanelMode.DASHBOARD_VIEW}
 				widget={({ ...valuePanelWidget, thresholds } as unknown) as Widgets}
 				queryResponse={(valuePanelQueryResponse as unknown) as any}

@@ -19,9 +19,9 @@ import getLabelName from 'lib/getLabelName';
 import { isNaN } from 'lodash-es';
 import ContextMenu, { useCoordinates } from 'periscope/components/ContextMenu';
 
-import './PiePanelWrapper.styles.scss';
+import './PiePanel.styles.scss';
 
-function PiePanelWrapper({
+function PiePanel({
 	queryResponse,
 	widget,
 	enableDrillDown = false,
@@ -405,4 +405,4 @@ function PiePanelWrapper({
 	);
 }
 
-export default PiePanelWrapper;
+export default PiePanel;

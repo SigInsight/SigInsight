@@ -4,7 +4,7 @@ import { GRID_TABLE_CONFIG } from 'container/GridTableComponent/config';
 import { PanelVisualizationProps } from 'container/PanelVisualization/panels/types';
 import { QueryRangeRequestV5 } from 'types/api/v5/queryRange';
 
-function TablePanelWrapper({
+function TablePanel({
 	widget,
 	queryResponse,
 	tableProcessedDataRef,
@@ -49,4 +49,4 @@ function TablePanelWrapper({
 	);
 }
 
-export default TablePanelWrapper;
+export default TablePanel;

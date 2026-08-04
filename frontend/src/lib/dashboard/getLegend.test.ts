@@ -4,7 +4,7 @@ import { QueryData } from 'types/api/widgets/getQuery';
 import { EQueryType } from 'types/common/dashboard';
 import { DataSource } from 'types/common/queryBuilder';
 
-import { getMockQuery, getMockQueryData } from './testUtils';
+import { getMockQuery, getMockQueryData } from './getLegend.testUtils';
 
 const mockQueryData = getMockQueryData();
 const mockQuery = getMockQuery();

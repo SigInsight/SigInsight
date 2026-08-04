@@ -1,4 +1,4 @@
-import { Dispatch, MutableRefObject, RefObject, SetStateAction } from 'react';
+import { MutableRefObject } from 'react';
 import { RowData } from 'lib/query/createTableColumnsFromQuery';
 import { OnClickPluginOpts } from 'lib/uPlotV2/plugins/onClickPlugin';
 import { Widgets } from 'types/api/dashboard/getAll';
@@ -11,11 +11,9 @@ export interface FullViewProps {
 	name: string;
 	tableProcessedDataRef: MutableRefObject<RowData[]>;
 	version?: string;
-	originalName: string;
 	yAxisUnit?: string;
 	isDependedDataLoaded?: boolean;
 	onToggleModelHandler?: () => void;
-	setCurrentGraphRef: Dispatch<SetStateAction<RefObject<HTMLDivElement> | null>>;
 	enableDrillDown?: boolean;
 }
 

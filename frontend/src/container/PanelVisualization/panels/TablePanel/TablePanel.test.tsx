@@ -2,16 +2,13 @@ import { PanelMode } from 'container/PanelVisualization/panels/types';
 import { render } from 'tests/test-utils';
 import { Widgets } from 'types/api/dashboard/getAll';
 
-import TablePanelWrapper from '../TablePanelWrapper';
-import {
-	tablePanelQueryResponse,
-	tablePanelWidgetQuery,
-} from './tablePanelWrapperHelper';
+import TablePanel from './TablePanel';
+import { tablePanelQueryResponse, tablePanelWidgetQuery } from './testHelpers';
 
-describe('Table panel wrappper tests', () => {
+describe('TablePanel', () => {
 	it('table should render fine with the query response and column units', () => {
 		const { container, getByText } = render(
-			<TablePanelWrapper
+			<TablePanel
 				panelMode={PanelMode.DASHBOARD_VIEW}
 				widget={(tablePanelWidgetQuery as unknown) as Widgets}
 				queryResponse={(tablePanelQueryResponse as unknown) as any}

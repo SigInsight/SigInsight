@@ -2,7 +2,7 @@ import GridValueComponent from 'container/GridValueComponent';
 import { PanelVisualizationProps } from 'container/PanelVisualization/panels/types';
 import { getUPlotChartData } from 'container/PanelVisualization/panels/utils/getUPlotChartData';
 
-function ValuePanelWrapper({
+function ValuePanel({
 	widget,
 	queryResponse,
 	enableDrillDown = false,
@@ -30,4 +30,4 @@ function ValuePanelWrapper({
 	);
 }
 
-export default ValuePanelWrapper;
+export default ValuePanel;
