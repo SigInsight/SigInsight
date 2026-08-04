@@ -1,6 +1,5 @@
 import { themeColors } from 'constants/theme';
-
-import { generateColor } from './generateColor';
+import { generateColor } from 'lib/color/generateColor';
 
 function isSeriesValueValid(seriesValue: number | undefined | null): boolean {
 	return (

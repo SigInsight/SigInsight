@@ -20,7 +20,7 @@ import SpanLineActionButtons from 'container/TraceWaterfall/SpanLineActionButton
 import { IInterestedSpan } from 'container/TraceWaterfall/TraceWaterfall';
 import { useSafeNavigate } from 'hooks/useSafeNavigate';
 import useUrlQuery from 'hooks/useUrlQuery';
-import { generateColor } from 'lib/uPlotShared/generateColor';
+import { generateColor } from 'lib/color/generateColor';
 import { AlertCircle, ChevronDown, ChevronRight, Leaf } from 'lucide-react';
 import { useAppContext } from 'providers/App/App';
 import { Span } from 'types/api/trace/getTraceWaterfall';

@@ -1,9 +1,9 @@
 import type uPlot from 'uplot';
 
-import { getFocusedSeriesAtPosition } from './getFocusedSeriesAtPosition';
-import onClickPlugin from './onClickPlugin';
+import { getFocusedSeriesAtPosition } from '../../utils/getFocusedSeriesAtPosition';
+import onClickPlugin from '../onClickPlugin';
 
-jest.mock('./getFocusedSeriesAtPosition', () => ({
+jest.mock('../../utils/getFocusedSeriesAtPosition', () => ({
 	getFocusedSeriesAtPosition: jest.fn(),
 }));
 

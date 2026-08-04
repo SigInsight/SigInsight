@@ -1,6 +1,6 @@
 # M13: V2 Visualization Boundary and Container Consolidation
 
-Status: Planned
+Status: In progress
 Date: 2026-08-04
 Start commit: `47c2003`
 Related ADR: None. This milestone changes frontend ownership boundaries only. It does
@@ -232,8 +232,38 @@ rg -n "from 'container/PanelWrapper" frontend/src
 
 ## Implementation Results
 
-Not started. No production refactor is permitted until this design is reviewed and the
-documentation commit is present.
+### Shared helper ownership migration
+
+Completed in `refactor(visualization): consolidate V2 shared helpers`:
+
+- moved the generic color hash from `uPlotShared` to `lib/color`;
+- moved focused-series, grid-color, axis-format, and click-plugin helpers into their
+  respective `lib/uPlotV2` owners;
+- moved response-to-uPlot data conversion beside the panel data adapters and reused the
+  existing shared timestamp alignment helper;
+- migrated all source imports, mocks, and direct tests, then deleted
+  `lib/uPlotShared`.
+
+Validation completed after the deletion:
+
+```bash
+rg -n "lib/uPlotShared|uPlotShared" frontend/src
+yarn --cwd frontend jest \
+  src/lib/uPlotV2/config/__tests__/UPlotAxisBuilder.test.ts \
+  src/lib/uPlotV2/plugins/__tests__/TooltipPlugin.test.ts \
+  src/lib/uPlotV2/plugins/__tests__/onClickPlugin.test.ts \
+  src/lib/uPlotV2/utils/__tests__/getGridColor.test.ts \
+  src/container/PanelVisualization/panels/utils/__tests__/baseConfigBuilder.test.ts \
+  src/container/PanelVisualization/panels/utils/__tests__/getUPlotChartData.test.ts \
+  src/container/NewWidget/__test__/getUplotChartData.test.ts \
+  --runInBand
+yarn --cwd frontend lint
+yarn --cwd frontend build
+```
+
+The import scan is empty. The targeted suite passed 7 suites and 51 tests; lint and the
+production build passed. The remaining M13 work starts with the
+`PanelWrapper`/`PanelVisualization` dependency cycle.
 
 ## Planned Deletions
 
@@ -249,7 +279,7 @@ documentation commit is present.
 | Metric | Baseline | Exit condition |
 | --- | ---: | --- |
 | Legacy uPlot production imports | 0 | remains 0 |
-| `lib/uPlotShared` imports | active | 0 and directory deleted |
+| `lib/uPlotShared` imports | active | 0 and directory deleted (completed) |
 | `PanelVisualization -> PanelWrapper` imports | active cycle | 0 |
 | `PanelVisualization -> QueryTable` private imports | active | 0 or neutral public drilldown API |
 | `TimeSeriesView` duplicated chart preparation | 4 helper calls | 0 |

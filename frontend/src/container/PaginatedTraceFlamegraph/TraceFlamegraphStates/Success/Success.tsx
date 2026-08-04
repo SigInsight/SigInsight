@@ -13,7 +13,7 @@ import Color from 'color';
 import TimelineV2 from 'components/TimelineV2/TimelineV2';
 import { themeColors } from 'constants/theme';
 import { useIsDarkMode } from 'hooks/useDarkMode';
-import { generateColor } from 'lib/uPlotShared/generateColor';
+import { generateColor } from 'lib/color/generateColor';
 import { FlamegraphSpan } from 'types/api/trace/getTraceFlamegraph';
 import { Span } from 'types/api/trace/getTraceWaterfall';
 import { toFixed } from 'utils/toFixed';

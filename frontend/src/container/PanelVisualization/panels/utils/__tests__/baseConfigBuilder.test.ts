@@ -22,7 +22,7 @@ const calculateWidthBasedOnStepIntervalMock = jest.requireMock(
 	'lib/uPlotV2/utils',
 ).calculateWidthBasedOnStepInterval as jest.Mock;
 
-jest.mock('lib/uPlotShared/onClickPlugin', () => ({
+jest.mock('lib/uPlotV2/plugins/onClickPlugin', () => ({
 	__esModule: true,
 	default: jest.fn().mockReturnValue({ name: 'onClickPlugin' }),
 }));
@@ -145,7 +145,7 @@ describe('buildBaseConfig', () => {
 	});
 
 	it('adds onClick plugin when onClick is a function', () => {
-		const onClickPlugin = jest.requireMock('lib/uPlotShared/onClickPlugin')
+		const onClickPlugin = jest.requireMock('lib/uPlotV2/plugins/onClickPlugin')
 			.default;
 		const onClick = jest.fn();
 
@@ -162,7 +162,7 @@ describe('buildBaseConfig', () => {
 	});
 
 	it('does not add onClick plugin when onClick is not a function', () => {
-		const onClickPlugin = jest.requireMock('lib/uPlotShared/onClickPlugin')
+		const onClickPlugin = jest.requireMock('lib/uPlotV2/plugins/onClickPlugin')
 			.default;
 
 		const builder = buildBaseConfig({

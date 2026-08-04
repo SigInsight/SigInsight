@@ -32,7 +32,7 @@ import { USER_PREFERENCES } from 'constants/userPreferences';
 import AttributeActions from 'container/SpanDetailsDrawer/Attributes/AttributeActions';
 import dayjs from 'dayjs';
 import useClickOutside from 'hooks/useClickOutside';
-import { generateColor } from 'lib/uPlotShared/generateColor';
+import { generateColor } from 'lib/color/generateColor';
 import {
 	Anvil,
 	Bookmark,

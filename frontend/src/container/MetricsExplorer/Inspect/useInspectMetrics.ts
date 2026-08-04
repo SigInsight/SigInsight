@@ -3,7 +3,7 @@ import { InspectMetricsSeries } from 'api/metricsExplorer/getInspectMetricsDetai
 import { themeColors } from 'constants/theme';
 import { useGetInspectMetricsDetails } from 'hooks/metricsExplorer/useGetInspectMetricsDetails';
 import { useIsDarkMode } from 'hooks/useDarkMode';
-import { generateColor } from 'lib/uPlotShared/generateColor';
+import { generateColor } from 'lib/color/generateColor';
 
 import { INITIAL_INSPECT_METRICS_OPTIONS } from './constants';
 import {

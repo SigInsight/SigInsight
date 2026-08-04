@@ -1,4 +1,4 @@
-import { getUPlotChartData } from './getUPlotChartData';
+import { getUPlotChartData } from '../getUPlotChartData';
 
 describe('getUPlotChartData', () => {
 	it('aligns sparse series to the shared timestamp axis', () => {

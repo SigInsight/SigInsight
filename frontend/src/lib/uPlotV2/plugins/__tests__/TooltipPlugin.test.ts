@@ -11,7 +11,7 @@ import { DashboardCursorSync } from '../TooltipPlugin/types';
 
 // Avoid depending on the full uPlot + onClickPlugin behaviour in these tests.
 // We only care that pinning logic runs without throwing, not which series is focused.
-jest.mock('lib/uPlotShared/getFocusedSeriesAtPosition', () => ({
+jest.mock('lib/uPlotV2/utils/getFocusedSeriesAtPosition', () => ({
 	getFocusedSeriesAtPosition: jest.fn(() => null),
 }));
 

@@ -1,5 +1,6 @@
-import { getFocusedSeriesAtPosition } from 'lib/uPlotShared/getFocusedSeriesAtPosition';
+import { getFocusedSeriesAtPosition } from 'lib/uPlotV2/utils/getFocusedSeriesAtPosition';
 import { MetricRangePayloadProps } from 'types/api/metrics/getQueryRange';
+
 export interface OnClickPluginOpts {
 	onClick: (
 		xValue: number,
@@ -38,20 +39,12 @@ function onClickPlugin(opts: OnClickPluginOpts): uPlot.Plugin {
 		init: (u: uPlot) => {
 			// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 			handleClick = function (event: MouseEvent) {
-				// relative coordinates
 				const mouseX = event.offsetX + 40;
 				const mouseY = event.offsetY + 40;
-
-				// absolute coordinates
 				const absoluteMouseX = event.clientX;
 				const absoluteMouseY = event.clientY;
-
-				// Convert pixel positions to data values
-				// do not use mouseX and mouseY here as it offsets the timestamp as well
 				const xValue = u.posToVal(event.offsetX, 'x');
 				const yValue = u.posToVal(event.offsetY, 'y');
-
-				// Get the focused/highlighted series (the one that would be bold in hover)
 				const focusedSeriesData = getFocusedSeriesAtPosition(event, u);
 
 				let metric = {};
@@ -72,12 +65,9 @@ function onClickPlugin(opts: OnClickPluginOpts): uPlot.Plugin {
 					outputMetric.inFocusOrNot = true;
 				}
 
-				// Get the actual data point timestamp from the focused series
-				let actualDataTimestamp = xValue; // fallback to click position timestamp
+				let actualDataTimestamp = xValue;
 				if (focusedSeriesData) {
-					// Get the data index from the focused series
 					const dataIndex = u.posToIdx(event.offsetX);
-					// Get the actual timestamp from the x-axis data (u.data[0])
 					if (u.data[0] && u.data[0][dataIndex] !== undefined) {
 						actualDataTimestamp = u.data[0][dataIndex];
 					}

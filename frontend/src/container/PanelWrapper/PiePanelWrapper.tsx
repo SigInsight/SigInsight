@@ -8,8 +8,8 @@ import { themeColors } from 'constants/theme';
 import { getPieChartClickData } from 'container/QueryTable/Drilldown/drilldownUtils';
 import useGraphContextMenu from 'container/QueryTable/Drilldown/useGraphContextMenu';
 import { useIsDarkMode } from 'hooks/useDarkMode';
+import { generateColor } from 'lib/color/generateColor';
 import getLabelName from 'lib/getLabelName';
-import { generateColor } from 'lib/uPlotShared/generateColor';
 import { isNaN } from 'lodash-es';
 import ContextMenu, { useCoordinates } from 'periscope/components/ContextMenu';
 

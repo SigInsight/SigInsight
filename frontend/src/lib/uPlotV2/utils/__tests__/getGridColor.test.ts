@@ -1,4 +1,4 @@
-import getGridColor from './getGridColor';
+import getGridColor from '../getGridColor';
 
 describe('getGridColor', () => {
 	it('uses the chart grid color for the selected theme', () => {

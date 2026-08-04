@@ -1,7 +1,7 @@
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import cx from 'classnames';
-import { getFocusedSeriesAtPosition } from 'lib/uPlotShared/getFocusedSeriesAtPosition';
+import { getFocusedSeriesAtPosition } from 'lib/uPlotV2/utils/getFocusedSeriesAtPosition';
 import uPlot from 'uplot';
 
 import {

@@ -3,7 +3,7 @@ import { UseQueryResult } from 'react-query';
 import { ToggleGraphProps } from 'components/Graph/types';
 import { GetQueryResultsProps } from 'lib/dashboard/getQueryResults';
 import { RowData } from 'lib/query/createTableColumnsFromQuery';
-import { OnClickPluginOpts } from 'lib/uPlotShared/onClickPlugin';
+import { OnClickPluginOpts } from 'lib/uPlotV2/plugins/onClickPlugin';
 import { IDashboardVariables } from 'providers/Dashboard/store/dashboardVariables/dashboardVariablesStoreTypes';
 import { SuccessResponse } from 'types/api';
 import { Widgets } from 'types/api/dashboard/getAll';

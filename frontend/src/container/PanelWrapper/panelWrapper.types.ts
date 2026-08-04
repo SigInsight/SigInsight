@@ -4,7 +4,7 @@ import { PANEL_TYPES } from 'constants/queryBuilder';
 import { WidgetGraphComponentProps } from 'container/GridCardLayout/GridCard/types';
 import { PanelMode } from 'container/PanelVisualization/panels/types';
 import { RowData } from 'lib/query/createTableColumnsFromQuery';
-import { OnClickPluginOpts } from 'lib/uPlotShared/onClickPlugin';
+import { OnClickPluginOpts } from 'lib/uPlotV2/plugins/onClickPlugin';
 import { Widgets } from 'types/api/dashboard/getAll';
 import { MetricQueryRangeSuccessResponse } from 'types/api/metrics/getQueryRange';
 import { QueryData } from 'types/api/widgets/getQuery';

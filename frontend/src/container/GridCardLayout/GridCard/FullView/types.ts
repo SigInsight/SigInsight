@@ -1,6 +1,6 @@
 import { Dispatch, MutableRefObject, RefObject, SetStateAction } from 'react';
 import { RowData } from 'lib/query/createTableColumnsFromQuery';
-import { OnClickPluginOpts } from 'lib/uPlotShared/onClickPlugin';
+import { OnClickPluginOpts } from 'lib/uPlotV2/plugins/onClickPlugin';
 import { Widgets } from 'types/api/dashboard/getAll';
 
 export interface FullViewProps {
