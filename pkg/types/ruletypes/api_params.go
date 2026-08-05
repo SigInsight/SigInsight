@@ -2,7 +2,6 @@ package ruletypes
 
 import (
 	"encoding/json"
-	"slices"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -66,10 +65,17 @@ func (r *PostableRule) GetRuleChannels() ([]string, error) {
 		return nil, err
 	}
 	channels := make([]string, 0)
+	seen := make(map[string]struct{})
 	for _, receiver := range threshold.GetRuleReceivers() {
-		channels = append(channels, receiver.Channels...)
+		for _, channel := range receiver.Channels {
+			if _, exists := seen[channel]; exists {
+				continue
+			}
+			seen[channel] = struct{}{}
+			channels = append(channels, channel)
+		}
 	}
-	return slices.Compact(channels), nil
+	return channels, nil
 }
 
 // EvalWindow derives the current evaluation window for related-data links.

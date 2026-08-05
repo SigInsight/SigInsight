@@ -180,43 +180,17 @@ func (store *config) GetMatchers(ctx context.Context, orgID string) (map[string]
 	return matchersMap, nil
 }
 
-// ruleChannels keeps alertmanager's persisted route in sync with the current
-// threshold schema while retaining the old preferredChannels representation.
+// ruleChannels derives persisted Alertmanager routes from the same v3 rule
+// contract used by rule creation and evaluation.
 func ruleChannels(data string) []string {
-	var stored struct {
-		PreferredChannels []string `json:"preferredChannels"`
-		Condition         struct {
-			Thresholds struct {
-				Spec []struct {
-					Channels []string `json:"channels"`
-				} `json:"spec"`
-			} `json:"thresholds"`
-		} `json:"condition"`
-	}
-	if err := json.Unmarshal([]byte(data), &stored); err != nil {
+	var rule ruletypes.PostableRule
+	if err := json.Unmarshal([]byte(data), &rule); err != nil {
 		return nil
 	}
-
-	channels := make([]string, 0, len(stored.PreferredChannels))
-	seen := make(map[string]struct{}, len(stored.PreferredChannels))
-	appendChannel := func(channel string) {
-		if _, exists := seen[channel]; exists {
-			return
-		}
-		seen[channel] = struct{}{}
-		channels = append(channels, channel)
+	channels, err := rule.GetRuleChannels()
+	if err != nil {
+		return nil
 	}
-	for _, threshold := range stored.Condition.Thresholds.Spec {
-		for _, channel := range threshold.Channels {
-			appendChannel(channel)
-		}
-	}
-	if len(channels) == 0 {
-		for _, channel := range stored.PreferredChannels {
-			appendChannel(channel)
-		}
-	}
-
 	return channels
 }
 

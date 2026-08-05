@@ -27,6 +27,10 @@ Logs、Traces、Metrics、Exceptions 和 Meter 场景需要的查询、累计评
 - No Data 告警、最小数据点数和按 group-by 生成告警实例。
 - 查询预览、规则测试、创建、编辑、启停、状态历史和基本通知。
 - 新 Alert JSON 只接受 `schemaVersion: "v3alpha1"`；旧规则允许直接删除，不做版本转换。
+  SQL migration `087_drop_retired_alert_rules` 会删除所有无法按当前 V3 契约解码的已存规则，避免
+  旧 JSON 在规则列表、调度器或状态查询时再次进入读取链路。
+- Alertmanager 持久化 route 同样从 `PostableRule` V3 解码出的 threshold channels 构建；不再读取
+  `preferredChannels` 或旧 `condition.thresholds` JSON 路径。
 
 ### 2.2 删除
 
