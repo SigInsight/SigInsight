@@ -53,6 +53,10 @@ type Row struct {
 type Point struct {
 	Timestamp int64
 	Value     float64
+	// BoolValue is present for typed boolean query results. It deliberately
+	// remains separate from Value so alert conditions cannot mistake false for
+	// a numeric zero or true for a numeric one.
+	BoolValue *bool
 }
 
 // MarshalJSON implements json.Marshaler.

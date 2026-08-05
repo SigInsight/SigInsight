@@ -34,6 +34,9 @@ func (rollingWindow RollingWindow) Validate() error {
 	if !rollingWindow.Frequency.IsPositive() {
 		return errors.NewInvalidInputf(errors.CodeInvalidInput, "frequency must be greater than zero")
 	}
+	if rollingWindow.Frequency.Duration() > rollingWindow.EvalWindow.Duration() {
+		return errors.NewInvalidInputf(errors.CodeInvalidInput, "frequency must not exceed evalWindow")
+	}
 	return nil
 }
 
@@ -46,178 +49,79 @@ func (rollingWindow RollingWindow) GetFrequency() valuer.TextDuration {
 }
 
 type CumulativeWindow struct {
-	Schedule  CumulativeSchedule  `json:"schedule"`
+	// Period is deliberately limited to fixed calendar boundaries. It is not a
+	// duration measured back from now: 1d and 7d begin at local midnight, so
+	// they retain their correct meaning across DST changes.
+	Period    CumulativePeriod    `json:"period"`
 	Frequency valuer.TextDuration `json:"frequency"`
 	Timezone  string              `json:"timezone"`
 }
 
-type CumulativeSchedule struct {
-	Type    ScheduleType `json:"type"`
-	Minute  *int         `json:"minute,omitempty"`  // 0-59, for all types
-	Hour    *int         `json:"hour,omitempty"`    // 0-23, for daily/weekly/monthly
-	Day     *int         `json:"day,omitempty"`     // 1-31, for monthly
-	Weekday *int         `json:"weekday,omitempty"` // 0-6 (Sunday=0), for weekly
-}
+// CumulativePeriod is a calendar-boundary selector, not a generic duration.
+// Keeping it separate from TextDuration makes unsupported periods such as a
+// month impossible to reinterpret as an arbitrary number of hours.
+type CumulativePeriod string
 
-type ScheduleType struct {
-	valuer.String
-}
-
-var (
-	ScheduleTypeHourly  = ScheduleType{valuer.NewString("hourly")}
-	ScheduleTypeDaily   = ScheduleType{valuer.NewString("daily")}
-	ScheduleTypeWeekly  = ScheduleType{valuer.NewString("weekly")}
-	ScheduleTypeMonthly = ScheduleType{valuer.NewString("monthly")}
+const (
+	CumulativePeriodHour CumulativePeriod = "1h"
+	CumulativePeriodDay  CumulativePeriod = "1d"
+	CumulativePeriodWeek CumulativePeriod = "7d"
 )
 
-func (cumulativeWindow CumulativeWindow) Validate() error {
-	// Validate schedule
-	if err := cumulativeWindow.Schedule.Validate(); err != nil {
-		return err
+func (period CumulativePeriod) duration() time.Duration {
+	switch period {
+	case CumulativePeriodHour:
+		return time.Hour
+	case CumulativePeriodDay:
+		return 24 * time.Hour
+	case CumulativePeriodWeek:
+		return 7 * 24 * time.Hour
+	default:
+		return 0
 	}
+}
 
+func (cumulativeWindow CumulativeWindow) Validate() error {
+	switch cumulativeWindow.Period {
+	case CumulativePeriodHour, CumulativePeriodDay, CumulativePeriodWeek:
+	default:
+		return errors.NewInvalidInputf(errors.CodeInvalidInput, "cumulative period must be one of 1h, 1d, or 7d")
+	}
+	if cumulativeWindow.Timezone == "" {
+		return errors.NewInvalidInputf(errors.CodeInvalidInput, "timezone is required")
+	}
 	if _, err := time.LoadLocation(cumulativeWindow.Timezone); err != nil {
 		return errors.NewInvalidInputf(errors.CodeInvalidInput, "timezone is invalid")
 	}
 	if !cumulativeWindow.Frequency.IsPositive() {
 		return errors.NewInvalidInputf(errors.CodeInvalidInput, "frequency must be greater than zero")
 	}
-	return nil
-}
-
-func (cs CumulativeSchedule) Validate() error {
-	switch cs.Type {
-	case ScheduleTypeHourly:
-		if cs.Minute == nil {
-			return errors.NewInvalidInputf(errors.CodeInvalidInput, "minute must be specified for hourly schedule")
-		}
-		if *cs.Minute < 0 || *cs.Minute > 59 {
-			return errors.NewInvalidInputf(errors.CodeInvalidInput, "minute must be between 0 and 59")
-		}
-	case ScheduleTypeDaily:
-		if cs.Hour == nil || cs.Minute == nil {
-			return errors.NewInvalidInputf(errors.CodeInvalidInput, "hour and minute must be specified for daily schedule")
-		}
-		if *cs.Hour < 0 || *cs.Hour > 23 {
-			return errors.NewInvalidInputf(errors.CodeInvalidInput, "hour must be between 0 and 23")
-		}
-		if *cs.Minute < 0 || *cs.Minute > 59 {
-			return errors.NewInvalidInputf(errors.CodeInvalidInput, "minute must be between 0 and 59")
-		}
-	case ScheduleTypeWeekly:
-		if cs.Weekday == nil || cs.Hour == nil || cs.Minute == nil {
-			return errors.NewInvalidInputf(errors.CodeInvalidInput, "weekday, hour and minute must be specified for weekly schedule")
-		}
-		if *cs.Weekday < 0 || *cs.Weekday > 6 {
-			return errors.NewInvalidInputf(errors.CodeInvalidInput, "weekday must be between 0 and 6 (Sunday=0)")
-		}
-		if *cs.Hour < 0 || *cs.Hour > 23 {
-			return errors.NewInvalidInputf(errors.CodeInvalidInput, "hour must be between 0 and 23")
-		}
-		if *cs.Minute < 0 || *cs.Minute > 59 {
-			return errors.NewInvalidInputf(errors.CodeInvalidInput, "minute must be between 0 and 59")
-		}
-	case ScheduleTypeMonthly:
-		if cs.Day == nil || cs.Hour == nil || cs.Minute == nil {
-			return errors.NewInvalidInputf(errors.CodeInvalidInput, "day, hour and minute must be specified for monthly schedule")
-		}
-		if *cs.Day < 1 || *cs.Day > 31 {
-			return errors.NewInvalidInputf(errors.CodeInvalidInput, "day must be between 1 and 31")
-		}
-		if *cs.Hour < 0 || *cs.Hour > 23 {
-			return errors.NewInvalidInputf(errors.CodeInvalidInput, "hour must be between 0 and 23")
-		}
-		if *cs.Minute < 0 || *cs.Minute > 59 {
-			return errors.NewInvalidInputf(errors.CodeInvalidInput, "minute must be between 0 and 59")
-		}
-	default:
-		return errors.NewInvalidInputf(errors.CodeInvalidInput, "invalid schedule type")
+	if cumulativeWindow.Frequency.Duration() > cumulativeWindow.Period.duration() {
+		return errors.NewInvalidInputf(errors.CodeInvalidInput, "frequency must not exceed cumulative period")
 	}
 	return nil
 }
 
 func (cumulativeWindow CumulativeWindow) NextWindowFor(curr time.Time) (time.Time, time.Time) {
-	loc := time.UTC
-	if cumulativeWindow.Timezone != "" {
-		if tz, err := time.LoadLocation(cumulativeWindow.Timezone); err == nil {
-			loc = tz
-		}
+	loc, err := time.LoadLocation(cumulativeWindow.Timezone)
+	if err != nil {
+		loc = time.UTC
 	}
-
-	currInTZ := curr.In(loc)
-	windowStart := cumulativeWindow.getLastScheduleTime(currInTZ, loc)
-
-	return windowStart.In(time.UTC), currInTZ.In(time.UTC)
-}
-
-func (cumulativeWindow CumulativeWindow) getLastScheduleTime(curr time.Time, loc *time.Location) time.Time {
-	schedule := cumulativeWindow.Schedule
-
-	switch schedule.Type {
-	case ScheduleTypeHourly:
-		// Find the most recent hour boundary with the specified minute
-		minute := *schedule.Minute
-		candidate := time.Date(curr.Year(), curr.Month(), curr.Day(), curr.Hour(), minute, 0, 0, loc)
-		if candidate.After(curr) {
-			candidate = candidate.Add(-time.Hour)
-		}
-		return candidate
-
-	case ScheduleTypeDaily:
-		// Find the most recent day boundary with the specified hour and minute
-		hour := *schedule.Hour
-		minute := *schedule.Minute
-		candidate := time.Date(curr.Year(), curr.Month(), curr.Day(), hour, minute, 0, 0, loc)
-		if candidate.After(curr) {
-			candidate = candidate.AddDate(0, 0, -1)
-		}
-		return candidate
-
-	case ScheduleTypeWeekly:
-		weekday := time.Weekday(*schedule.Weekday)
-		hour := *schedule.Hour
-		minute := *schedule.Minute
-
-		// Calculate days to subtract to reach the target weekday
-		daysBack := int(curr.Weekday() - weekday)
-		if daysBack < 0 {
-			daysBack += 7
-		}
-
-		candidate := time.Date(curr.Year(), curr.Month(), curr.Day(), hour, minute, 0, 0, loc).AddDate(0, 0, -daysBack)
-		if candidate.After(curr) {
-			candidate = candidate.AddDate(0, 0, -7)
-		}
-		return candidate
-
-	case ScheduleTypeMonthly:
-		// Find the most recent month boundary with the specified day, hour and minute
-		targetDay := *schedule.Day
-		hour := *schedule.Hour
-		minute := *schedule.Minute
-
-		// Try current month first
-		lastDayOfCurrentMonth := time.Date(curr.Year(), curr.Month()+1, 0, 0, 0, 0, 0, loc).Day()
-		dayInCurrentMonth := targetDay
-		if targetDay > lastDayOfCurrentMonth {
-			dayInCurrentMonth = lastDayOfCurrentMonth
-		}
-
-		candidate := time.Date(curr.Year(), curr.Month(), dayInCurrentMonth, hour, minute, 0, 0, loc)
-		if candidate.After(curr) {
-			prevMonth := curr.AddDate(0, -1, 0)
-			lastDayOfPrevMonth := time.Date(prevMonth.Year(), prevMonth.Month()+1, 0, 0, 0, 0, 0, loc).Day()
-			dayInPrevMonth := targetDay
-			if targetDay > lastDayOfPrevMonth {
-				dayInPrevMonth = lastDayOfPrevMonth
-			}
-			candidate = time.Date(prevMonth.Year(), prevMonth.Month(), dayInPrevMonth, hour, minute, 0, 0, loc)
-		}
-		return candidate
-
+	local := curr.In(loc)
+	var start time.Time
+	switch cumulativeWindow.Period {
+	case CumulativePeriodHour:
+		start = time.Date(local.Year(), local.Month(), local.Day(), local.Hour(), 0, 0, 0, loc)
+	case CumulativePeriodDay:
+		start = time.Date(local.Year(), local.Month(), local.Day(), 0, 0, 0, 0, loc)
+	case CumulativePeriodWeek:
+		daysSinceMonday := (int(local.Weekday()) + 6) % 7
+		day := local.AddDate(0, 0, -daysSinceMonday)
+		start = time.Date(day.Year(), day.Month(), day.Day(), 0, 0, 0, 0, loc)
 	default:
-		return curr
+		start = local
 	}
+	return start.UTC(), curr.UTC()
 }
 
 func (cumulativeWindow CumulativeWindow) GetFrequency() valuer.TextDuration {
@@ -240,7 +144,7 @@ func (e *EvaluationEnvelope) UnmarshalJSON(data []byte) error {
 	switch e.Kind {
 	case RollingEvaluation:
 		var rollingWindow RollingWindow
-		if err := json.Unmarshal(raw["spec"], &rollingWindow); err != nil {
+		if err := unmarshalEvaluationSpec(raw["spec"], &rollingWindow, "evalWindow", "frequency"); err != nil {
 			return errors.NewInvalidInputf(errors.CodeInvalidInput, "failed to unmarshal rolling window: %v", err)
 		}
 		err := rollingWindow.Validate()
@@ -250,7 +154,7 @@ func (e *EvaluationEnvelope) UnmarshalJSON(data []byte) error {
 		e.Spec = rollingWindow
 	case CumulativeEvaluation:
 		var cumulativeWindow CumulativeWindow
-		if err := json.Unmarshal(raw["spec"], &cumulativeWindow); err != nil {
+		if err := unmarshalEvaluationSpec(raw["spec"], &cumulativeWindow, "period", "frequency", "timezone"); err != nil {
 			return errors.NewInvalidInputf(errors.CodeInvalidInput, "failed to unmarshal cumulative window: %v", err)
 		}
 		err := cumulativeWindow.Validate()
@@ -266,9 +170,29 @@ func (e *EvaluationEnvelope) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func unmarshalEvaluationSpec(raw json.RawMessage, target any, allowed ...string) error {
+	if len(raw) == 0 {
+		return errors.NewInvalidInputf(errors.CodeInvalidInput, "evaluation spec is required")
+	}
+	var values map[string]json.RawMessage
+	if err := json.Unmarshal(raw, &values); err != nil {
+		return err
+	}
+	allowedSet := make(map[string]struct{}, len(allowed))
+	for _, field := range allowed {
+		allowedSet[field] = struct{}{}
+	}
+	for field := range values {
+		if _, ok := allowedSet[field]; !ok {
+			return errors.NewInvalidInputf(errors.CodeInvalidInput, "unsupported evaluation field %q", field)
+		}
+	}
+	return json.Unmarshal(raw, target)
+}
+
 func (e *EvaluationEnvelope) GetEvaluation() (Evaluation, error) {
-	if e.Kind.IsZero() {
-		e.Kind = RollingEvaluation
+	if e == nil {
+		return nil, errors.NewInvalidInputf(errors.CodeInvalidInput, "evaluation is required")
 	}
 
 	switch e.Kind {

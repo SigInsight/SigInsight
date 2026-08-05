@@ -25,7 +25,7 @@ const (
 	AlertTypeExceptions AlertType = "EXCEPTIONS_BASED_ALERT"
 )
 
-const CurrentSchemaVersion = "v2alpha1"
+const CurrentSchemaVersion = "v3alpha1"
 
 // PostableRule is used to create alerting rule from HTTP api
 type PostableRule struct {
@@ -139,6 +139,15 @@ func (r *PostableRule) UnmarshalJSON(bytes []byte) error {
 		if _, ok := raw[field]; ok {
 			return signozError.NewInvalidInputf(signozError.CodeInvalidInput, "retired alert field %q is not supported", field)
 		}
+	}
+	var version struct {
+		SchemaVersion string `json:"schemaVersion"`
+	}
+	if err := json.Unmarshal(bytes, &version); err != nil {
+		return signozError.NewInvalidInputf(signozError.CodeInvalidInput, "failed to parse schema version: %v", err)
+	}
+	if version.SchemaVersion != CurrentSchemaVersion {
+		return signozError.NewInvalidInputf(signozError.CodeInvalidInput, "only schema version %q is supported, got %q", CurrentSchemaVersion, version.SchemaVersion)
 	}
 
 	var decoded Alias

@@ -29,7 +29,7 @@ func TestRuleConditionGetSelectedQueryName(t *testing.T) {
 	}
 }
 
-func TestRuleConditionIsValidRequiresV5Queries(t *testing.T) {
+func TestRuleConditionIsValidRequiresV3Condition(t *testing.T) {
 	require.False(t, (*RuleCondition)(nil).IsValid())
 
 	condition := &RuleCondition{
@@ -38,7 +38,17 @@ func TestRuleConditionIsValidRequiresV5Queries(t *testing.T) {
 
 	require.False(t, condition.IsValid())
 
+	target := 1.0
 	condition.CompositeQuery = v5CompositeQuery("A")
+	condition.Kind = ConditionKindNumeric
+	condition.SelectedQuery = "A"
+	condition.Numeric = &NumericThresholdCondition{
+		Reduction: ReductionLast,
+		Operator:  NumericOperatorGreaterThan,
+		Thresholds: []NumericThreshold{{
+			Severity: "critical", Target: &target,
+		}},
+	}
 	require.True(t, condition.IsValid())
 }
 
@@ -52,17 +62,9 @@ func TestCompositeQueryRejectsLegacyFields(t *testing.T) {
 	}
 }
 
-func TestCompositeQueryMigratesLegacyUnitOnUnmarshal(t *testing.T) {
+func TestCompositeQueryRejectsLegacyUnitOnUnmarshal(t *testing.T) {
 	var compositeQuery CompositeQuery
-	require.NoError(t, json.Unmarshal([]byte(`{"queries":[],"unit":"ns"}`), &compositeQuery))
-	require.Equal(t, "ns", compositeQuery.ResultUnit)
-	require.Equal(t, "ns", compositeQuery.DisplayUnit)
-
-	encoded, err := json.Marshal(compositeQuery)
-	require.NoError(t, err)
-	require.NotContains(t, string(encoded), `"unit"`)
-	require.Contains(t, string(encoded), `"resultUnit":"ns"`)
-	require.Contains(t, string(encoded), `"displayUnit":"ns"`)
+	require.ErrorContains(t, json.Unmarshal([]byte(`{"queries":[],"unit":"ns"}`), &compositeQuery), "unsupported alert composite query field")
 }
 
 func TestNormalizeRuleUnitsCorrectsLogCount(t *testing.T) {
@@ -72,7 +74,6 @@ func TestNormalizeRuleUnitsCorrectsLogCount(t *testing.T) {
 		RuleCondition: &RuleCondition{
 			SelectedQuery: "A",
 			CompositeQuery: &CompositeQuery{
-				Unit: "s",
 				Queries: []qbtypes.QueryEnvelope{{
 					Type: qbtypes.QueryTypeBuilder,
 					Spec: qbtypes.QueryBuilderQuery[qbtypes.LogAggregation]{
@@ -83,7 +84,7 @@ func TestNormalizeRuleUnitsCorrectsLogCount(t *testing.T) {
 			},
 			Thresholds: &RuleThresholdData{
 				Kind: BasicThresholdKind,
-				Spec: BasicRuleThresholds{{TargetValue: &target, TargetUnit: "s"}},
+				Spec: BasicRuleThresholds{{TargetValue: &target}},
 			},
 		},
 	}
@@ -151,7 +152,7 @@ func TestValidateRejectsUnitsWithoutResultUnit(t *testing.T) {
 	target := 1.0
 	rule := &PostableRule{
 		Version:       "v5",
-		SchemaVersion: "v2alpha1",
+		SchemaVersion: CurrentSchemaVersion,
 		RuleCondition: &RuleCondition{
 			CompositeQuery: &CompositeQuery{DisplayUnit: "s"},
 			Thresholds: &RuleThresholdData{

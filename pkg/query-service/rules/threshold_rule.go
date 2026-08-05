@@ -197,10 +197,12 @@ func ruleSeriesFromTimeSeries(series *qbtypes.TimeSeries) *timeseriestypes.Serie
 		if value == nil || value.Partial {
 			continue
 		}
-		result.Points = append(result.Points, timeseriestypes.Point{
-			Timestamp: value.Timestamp,
-			Value:     value.Value,
-		})
+		point := timeseriestypes.Point{Timestamp: value.Timestamp, Value: value.Value}
+		if value.BoolValue != nil {
+			boolean := *value.BoolValue
+			point.BoolValue = &boolean
+		}
+		result.Points = append(result.Points, point)
 	}
 	return result
 }
@@ -328,8 +330,12 @@ func (r *ThresholdRule) Eval(ctx context.Context, ts time.Time) (int, error) {
 		for name, value := range r.annotations.Map() {
 			annotations = append(annotations, labels.Label{Name: name, Value: value})
 		}
+		value := strconv.FormatFloat(smpl.V, 'f', -1, 64)
+		if smpl.BoolValue != nil {
+			value = strconv.FormatBool(*smpl.BoolValue)
+		}
 		annotations = append(annotations,
-			labels.Label{Name: "value", Value: strconv.FormatFloat(smpl.V, 'f', -1, 64)},
+			labels.Label{Name: "value", Value: value},
 			labels.Label{Name: "threshold", Value: strconv.FormatFloat(smpl.Target, 'f', -1, 64)},
 		)
 		if smpl.IsMissing {

@@ -458,6 +458,16 @@ V5 `time_series`/`scalar` 响应以 `valueType: number|bool` 明确结果类型�
 
 提交锚点：`refactor(alerts): establish v3alpha1 rule contract`
 
+完成记录：对外 Alert JSON 已收敛为仅接受 `schemaVersion: "v3alpha1"` 的判别联合。
+`condition.kind` 明确区分 `numeric` 与 `boolean`：数值条件使用受限归约、比较运算符和一至三个
+严重性阈值；布尔条件只允许 `last`、`at_least_once`、`all_the_time` 三种策略。No Data 使用可保留
+秒级精度的 `noDataFor`，不再经旧的分钟整数截断。
+
+`cumulative` 仅接受 `{period: 1h|1d|7d, frequency, timezone}`，以 IANA 时区的整点、当地午夜和
+周一午夜计算边界，并有 UTC、上海和纽约 DST 边界测试。旧 `schedule`、`unit`、`thresholds`、
+`v2alpha1`、renotify 和模板字段均在 JSON 解码阶段明确拒绝。规则 evaluator 仍通过一个未序列化的
+内部适配器复用既有状态机；该适配器不是旧协议兼容层，也不会接受或输出旧 JSON。
+
 ### 10.4 统一 Basic Alert Editor
 
 - 以单一 `BasicAlertDraft` 替换分裂的 Stepper/reducer 状态。

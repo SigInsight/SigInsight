@@ -139,6 +139,14 @@ func TestRuleSeriesFromTimeSeries(t *testing.T) {
 	assert.Empty(t, ruleSeriesFromTimeSeries(nil).Points)
 }
 
+func TestRuleSeriesFromTimeSeriesPreservesTypedBooleanValues(t *testing.T) {
+	trueValue := true
+	series := ruleSeriesFromTimeSeries(&qbtypes.TimeSeries{Values: []*qbtypes.TimeSeriesValue{{Timestamp: 1, BoolValue: &trueValue}}})
+	if len(series.Points) != 1 || series.Points[0].BoolValue == nil || !*series.Points[0].BoolValue {
+		t.Fatalf("ruleSeriesFromTimeSeries() = %#v, want typed true point", series)
+	}
+}
+
 func TestThresholdRuleEval(t *testing.T) {
 	postableRule := ruletypes.PostableRule{
 		AlertName: "Eval test without recovery target",
@@ -643,7 +651,7 @@ func TestThresholdRuleUnitCombinations(t *testing.T) {
 		postableRule.RuleCondition.CompareOp = ruletypes.CompareOp(c.compareOp)
 		postableRule.RuleCondition.MatchType = ruletypes.MatchType(c.matchType)
 		postableRule.RuleCondition.Target = &c.target
-		postableRule.RuleCondition.CompositeQuery.Unit = c.yAxisUnit
+		postableRule.RuleCondition.CompositeQuery.ResultUnit = c.yAxisUnit
 		postableRule.RuleCondition.TargetUnit = c.targetUnit
 		postableRule.RuleCondition.Thresholds = &ruletypes.RuleThresholdData{
 			Kind: ruletypes.BasicThresholdKind,
@@ -798,7 +806,7 @@ func TestThresholdRuleTracesLink(t *testing.T) {
 		postableRule.RuleCondition.CompareOp = ruletypes.CompareOp(c.compareOp)
 		postableRule.RuleCondition.MatchType = ruletypes.MatchType(c.matchType)
 		postableRule.RuleCondition.Target = &c.target
-		postableRule.RuleCondition.CompositeQuery.Unit = c.yAxisUnit
+		postableRule.RuleCondition.CompositeQuery.ResultUnit = c.yAxisUnit
 		postableRule.RuleCondition.TargetUnit = c.targetUnit
 		postableRule.RuleCondition.Thresholds = &ruletypes.RuleThresholdData{
 			Kind: ruletypes.BasicThresholdKind,
@@ -885,7 +893,7 @@ func TestThresholdRuleLogsLink(t *testing.T) {
 		postableRule.RuleCondition.CompareOp = ruletypes.CompareOp(c.compareOp)
 		postableRule.RuleCondition.MatchType = ruletypes.MatchType(c.matchType)
 		postableRule.RuleCondition.Target = &c.target
-		postableRule.RuleCondition.CompositeQuery.Unit = c.yAxisUnit
+		postableRule.RuleCondition.CompositeQuery.ResultUnit = c.yAxisUnit
 		postableRule.RuleCondition.TargetUnit = c.targetUnit
 		postableRule.RuleCondition.Thresholds = &ruletypes.RuleThresholdData{
 			Kind: ruletypes.BasicThresholdKind,
@@ -1082,7 +1090,7 @@ func TestMultipleThresholdRule(t *testing.T) {
 		postableRule.RuleCondition.CompareOp = ruletypes.CompareOp(c.compareOp)
 		postableRule.RuleCondition.MatchType = ruletypes.MatchType(c.matchType)
 		postableRule.RuleCondition.Target = &c.target
-		postableRule.RuleCondition.CompositeQuery.Unit = c.yAxisUnit
+		postableRule.RuleCondition.CompositeQuery.ResultUnit = c.yAxisUnit
 		postableRule.RuleCondition.TargetUnit = c.targetUnit
 		postableRule.RuleCondition.Thresholds = &ruletypes.RuleThresholdData{
 			Kind: ruletypes.BasicThresholdKind,
