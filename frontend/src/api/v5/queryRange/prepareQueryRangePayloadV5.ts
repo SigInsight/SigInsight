@@ -5,9 +5,9 @@ import {
 	deduplicateEquivalentFilterItems,
 } from 'components/QueryBuilder/utils';
 import { PANEL_TYPES } from 'constants/queryBuilder';
-import { GetQueryResultsProps } from 'lib/dashboard/getQueryResults';
 import getStartEndRangeTime from 'lib/getStartEndRangeTime';
 import { mapQueryDataToApi } from 'lib/newQueryBuilder/queryBuilderMappers/mapQueryDataToApi';
+import { GetQueryResultsProps } from 'lib/query/getQueryResults';
 import { isEmpty } from 'lodash-es';
 import { BaseAutocompleteData } from 'types/api/queryBuilder/queryAutocompleteResponse';
 import { IBuilderQuery } from 'types/api/queryBuilder/queryBuilderData';
@@ -30,10 +30,9 @@ import {
 	TelemetryFieldKey,
 	TraceAggregation,
 	VariableItem,
-	VariableType,
 } from 'types/api/v5/queryRange';
-import { EQueryType } from 'types/common/dashboard';
 import { DataSource } from 'types/common/queryBuilder';
+import { EQueryType } from 'types/common/queryType';
 import { normalizeFunctionName } from 'utils/functionNameNormalizer';
 
 type PrepareQueryRangePayloadV5Result = {
@@ -388,7 +387,6 @@ export const prepareQueryRangePayloadV5 = ({
 	formatForWeb,
 	originalGraphType,
 	fillGaps,
-	dynamicVariables,
 }: GetQueryResultsProps): PrepareQueryRangePayloadV5Result => {
 	let legendMap: Record<string, string> = {};
 	const requestType = mapPanelTypeToRequestType(graphType);
@@ -474,9 +472,6 @@ export const prepareQueryRangePayloadV5 = ({
 		variables: Object.entries(variables).reduce((acc, [key, value]) => {
 			acc[key] = {
 				value,
-				type: dynamicVariables
-					?.find((v) => v.name === key)
-					?.type?.toLowerCase() as VariableType,
 			};
 			return acc;
 		}, {} as Record<string, VariableItem>),

@@ -1,10 +1,20 @@
-import { uniqueOptions } from 'hooks/dashboard/dashboardVariableUtils';
-
 import { OptionData } from './types';
 
 export const SPACEKEY = ' ';
 
 export const ALL_SELECTED_VALUE = '__ALL__'; // Constant for the special value
+
+export const uniqueOptions = (options: OptionData[]): OptionData[] => {
+	const seenValues = new Set<string>();
+	return options.filter((option) => {
+		const value = option.value || '';
+		if (seenValues.has(value)) {
+			return false;
+		}
+		seenValues.add(value);
+		return true;
+	});
+};
 
 export const prioritizeOrAddOptionForSingleSelect = (
 	options: OptionData[],

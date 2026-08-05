@@ -6,7 +6,7 @@ import ValueGraph from 'components/ValueGraph';
 import useGraphContextMenu from 'container/QueryTable/Drilldown/useGraphContextMenu';
 import { generateGridTitle } from 'lib/generateGridTitle';
 import ContextMenu, { useCoordinates } from 'periscope/components/ContextMenu';
-import { EQueryType } from 'types/common/dashboard';
+import { EQueryType } from 'types/common/queryType';
 
 import { TitleContainer, ValueContainer } from './styles';
 import { GridValueComponentProps } from './types';

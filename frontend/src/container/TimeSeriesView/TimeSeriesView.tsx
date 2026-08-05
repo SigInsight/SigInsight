@@ -12,9 +12,9 @@ import PanelVisualization from 'container/PanelVisualization/PanelVisualization'
 import { TracesLoading } from 'container/TracesExplorer/TraceLoading/TraceLoading';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
 import { Warning } from 'types/api';
-import { Widgets } from 'types/api/dashboard/getAll';
 import APIError from 'types/api/error';
 import { MetricQueryRangeResult } from 'types/api/metrics/getQueryRange';
+import { Widgets } from 'types/api/widgets/getAll';
 import { DataSource } from 'types/common/queryBuilder';
 
 import { useExplorerTimeRangeSelection } from './useExplorerTimeRangeSelection';

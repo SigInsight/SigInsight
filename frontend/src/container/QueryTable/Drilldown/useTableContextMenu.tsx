@@ -2,9 +2,9 @@ import { useMemo } from 'react';
 import { PANEL_TYPES } from 'constants/queryBuilder';
 import { useGetCompositeQueryParam } from 'hooks/queryBuilder/useGetCompositeQueryParam';
 import { ClickedData } from 'periscope/components/ContextMenu/types';
-import { ContextLinksData } from 'types/api/dashboard/getAll';
 import { Query } from 'types/api/queryBuilder/queryBuilderData';
 import { QueryRangeRequestV5 } from 'types/api/v5/queryRange';
+import { ContextLinksData } from 'types/api/widgets/getAll';
 import { getTimeRangeFromQueryRangeRequest } from 'utils/getTimeRange';
 
 import { ConfigType } from './contextConfig';

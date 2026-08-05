@@ -5,7 +5,7 @@ import { ENTITY_VERSION_V5 } from 'constants/app';
 import Graph from 'container/GridCardLayout/GridCard';
 import { Card, GraphContainer } from 'container/MetricsApplication/styles';
 import { OnClickPluginOpts } from 'lib/uPlotV2/plugins/onClickPlugin';
-import { Widgets } from 'types/api/dashboard/getAll';
+import { Widgets } from 'types/api/widgets/getAll';
 
 function TopLevelOperation({
 	name,

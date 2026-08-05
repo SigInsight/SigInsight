@@ -5,12 +5,12 @@ import { ExplorerViews } from 'pages/LogsExplorer/utils';
 import { cleanup, render, screen, waitFor } from 'tests/test-utils';
 import { DataTypes } from 'types/api/queryBuilder/queryAutocompleteResponse';
 import { Query, QueryState } from 'types/api/queryBuilder/queryBuilderData';
-import { EQueryType } from 'types/common/dashboard';
 import {
 	DataSource,
 	QueryBuilderContextType,
 	ReduceOperators,
 } from 'types/common/queryBuilder';
+import { EQueryType } from 'types/common/queryType';
 import { explorerViewToPanelType } from 'utils/explorerUtils';
 
 import LogExplorerQuerySection from './index';
@@ -86,12 +86,6 @@ beforeAll(() => {
 
 jest.mock('hooks/useDarkMode', () => ({
 	useIsDarkMode: (): boolean => false,
-}));
-
-jest.mock('providers/Dashboard/store/useDashboardStore', () => ({
-	useDashboardStore: (): { selectedDashboard: undefined } => ({
-		selectedDashboard: undefined,
-	}),
 }));
 
 jest.mock('api/querySuggestions/getKeySuggestions', () => ({

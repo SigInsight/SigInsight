@@ -8,7 +8,7 @@ import {
 import { getSelectedQueryOptions } from 'container/FormAlertRules/utils';
 import { IUser } from 'providers/App/types';
 import { Query } from 'types/api/queryBuilder/queryBuilderData';
-import { EQueryType } from 'types/common/dashboard';
+import { EQueryType } from 'types/common/queryType';
 import { USER_ROLES } from 'types/roles';
 
 export function getQueryNames(currentQuery: Query): BaseOptionType[] {

@@ -50,7 +50,6 @@ import {
 	QueryState,
 } from 'types/api/queryBuilder/queryBuilderData';
 import { ViewProps } from 'types/api/saveViews/types';
-import { EQueryType } from 'types/common/dashboard';
 import {
 	DataSource,
 	IsDefaultQueryProps,
@@ -58,6 +57,7 @@ import {
 	QueryBuilderData,
 	ReduceOperators,
 } from 'types/common/queryBuilder';
+import { EQueryType } from 'types/common/queryType';
 import { sanitizeOrderByForExplorer } from 'utils/sanitizeOrderBy';
 import { v4 as uuid } from 'uuid';
 

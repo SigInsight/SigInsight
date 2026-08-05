@@ -8,7 +8,7 @@ import {
 	PostableAlertRule,
 } from 'types/api/alerts/alertRule';
 import { AlertTypes } from 'types/api/alerts/alertTypes';
-import { EQueryType } from 'types/common/dashboard';
+import { EQueryType } from 'types/common/queryType';
 import { compositeQueryToQueryEnvelope } from 'utils/compositeQueryToQueryEnvelope';
 
 const defaultAnnotations = {

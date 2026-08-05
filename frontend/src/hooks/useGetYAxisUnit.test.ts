@@ -3,8 +3,8 @@ import { MetricsexplorertypesMetricMetadataDTO } from 'api/generated/services/si
 import { UniversalYAxisUnit } from 'components/YAxisUnitSelector/types';
 import { useGetMetrics } from 'container/MetricsExplorer/Explorer/utils';
 import { Query } from 'types/api/queryBuilder/queryBuilderData';
-import { EQueryType } from 'types/common/dashboard';
 import { DataSource, QueryBuilderContextType } from 'types/common/queryBuilder';
+import { EQueryType } from 'types/common/queryType';
 
 import { useQueryBuilder } from './queryBuilder/useQueryBuilder';
 import useGetYAxisUnit from './useGetYAxisUnit';

@@ -4,10 +4,10 @@ import { PanelMode } from 'container/PanelVisualization/panels/types';
 import PanelVisualization from 'container/PanelVisualization/PanelVisualization';
 import { RowData } from 'lib/query/createTableColumnsFromQuery';
 import { render, screen, waitFor } from 'tests/test-utils';
-import { Widgets } from 'types/api/dashboard/getAll';
 import { DataTypes } from 'types/api/queryBuilder/queryAutocompleteResponse';
-import { EQueryType } from 'types/common/dashboard';
+import { Widgets } from 'types/api/widgets/getAll';
 import { DataSource } from 'types/common/queryBuilder';
+import { EQueryType } from 'types/common/queryType';
 
 // Mock dependencies
 jest.mock(

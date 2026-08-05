@@ -580,21 +580,6 @@ type SavedViewsInfo struct {
 	LogsSavedViewWithContainsOp int `json:"logsSavedViewWithContainsOp"`
 }
 
-type DashboardsInfo struct {
-	TotalDashboards                 int      `json:"totalDashboards"`
-	TotalDashboardsWithPanelAndName int      `json:"totalDashboardsWithPanelAndName"` // dashboards with panel and name without sample title
-	LogsBasedPanels                 int      `json:"logsBasedPanels"`
-	MetricBasedPanels               int      `json:"metricBasedPanels"`
-	TracesBasedPanels               int      `json:"tracesBasedPanels"`
-	DashboardNames                  []string `json:"dashboardNames"`
-	QueriesWithTSV2                 int      `json:"queriesWithTSV2"`
-	QueriesWithTagAttrs             int      `json:"queriesWithTagAttrs"`
-	DashboardsWithLogsChQuery       int      `json:"dashboardsWithLogsChQuery"`
-	DashboardsWithTraceChQuery      int      `json:"dashboardsWithTraceChQuery"`
-	DashboardNamesWithTraceChQuery  []string `json:"dashboardNamesWithTraceChQuery"`
-	LogsPanelsWithAttrContainsOp    int      `json:"logsPanelsWithAttrContainsOp"`
-}
-
 type TagTelemetryData struct {
 	ServiceName string `json:"serviceName" ch:"serviceName"`
 	Env         string `json:"env" ch:"env"`

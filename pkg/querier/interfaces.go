@@ -23,5 +23,4 @@ type BucketCache interface {
 
 type Handler interface {
 	QueryRange(rw http.ResponseWriter, req *http.Request)
-	ReplaceVariables(rw http.ResponseWriter, req *http.Request)
 }

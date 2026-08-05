@@ -1,10 +1,10 @@
-import { GetMetricQueryRange } from 'lib/dashboard/getQueryResults';
+import { GetMetricQueryRange } from 'lib/query/getQueryResults';
 import { TagFilter } from 'types/api/queryBuilder/queryBuilderData';
 
 import { TRACE_FILTER_TOTAL_LIMIT } from './constants';
 import { getFilteredSpanIds } from './Filters';
 
-jest.mock('lib/dashboard/getQueryResults', () => ({
+jest.mock('lib/query/getQueryResults', () => ({
 	GetMetricQueryRange: jest.fn(),
 }));
 
@@ -80,7 +80,7 @@ describe('getFilteredSpanIds', () => {
 		expect(
 			jest.mocked(GetMetricQueryRange).mock.calls[1][0].tableParams?.pagination,
 		).toEqual({ offset: 1000, limit: 1000 });
-		expect(jest.mocked(GetMetricQueryRange).mock.calls[0][4]).toEqual({
+		expect(jest.mocked(GetMetricQueryRange).mock.calls[0][3]).toEqual({
 			notifyOnWarning: false,
 		});
 	});

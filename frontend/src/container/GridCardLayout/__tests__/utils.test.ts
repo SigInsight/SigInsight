@@ -1,6 +1,6 @@
 import { Query } from 'types/api/queryBuilder/queryBuilderData';
-import { EQueryType } from 'types/common/dashboard';
 import { DataSource, ReduceOperators } from 'types/common/queryBuilder';
+import { EQueryType } from 'types/common/queryType';
 
 import { getBarStepIntervalPoints, updateBarStepInterval } from '../utils';
 

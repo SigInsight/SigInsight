@@ -14,7 +14,7 @@ import useResourceAttribute from 'hooks/useResourceAttribute';
 import { convertRawQueriesToTraceSelectedTags } from 'hooks/useResourceAttribute/utils';
 import { RowData } from 'lib/query/createTableColumnsFromQuery';
 import { AppState } from 'store/reducers';
-import { EQueryType } from 'types/common/dashboard';
+import { EQueryType } from 'types/common/queryType';
 import { GlobalReducer } from 'types/reducer/globalTime';
 import { v4 as uuid } from 'uuid';
 

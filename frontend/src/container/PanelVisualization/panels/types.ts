@@ -1,10 +1,10 @@
 import { Dispatch, MutableRefObject, SetStateAction } from 'react';
 import { PANEL_TYPES } from 'constants/queryBuilder';
-import { GetQueryResultsProps } from 'lib/dashboard/getQueryResults';
 import { RowData } from 'lib/query/createTableColumnsFromQuery';
+import { GetQueryResultsProps } from 'lib/query/getQueryResults';
 import { OnClickPluginOpts } from 'lib/uPlotV2/plugins/onClickPlugin';
-import { Widgets } from 'types/api/dashboard/getAll';
 import { MetricQueryRangeResult } from 'types/api/metrics/getQueryRange';
+import { Widgets } from 'types/api/widgets/getAll';
 
 /**
  * Represents the visibility state of a single series in a graph

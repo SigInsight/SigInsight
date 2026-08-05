@@ -8,7 +8,7 @@ import {
 	IClickHouseQuery,
 	Query,
 } from 'types/api/queryBuilder/queryBuilderData';
-import { EQueryType } from 'types/common/dashboard';
+import { EQueryType } from 'types/common/queryType';
 import { compositeQueryToQueryEnvelope } from 'utils/compositeQueryToQueryEnvelope';
 
 import { mapQueryDataToApi } from './mapQueryDataToApi';

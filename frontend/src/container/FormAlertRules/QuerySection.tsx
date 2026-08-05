@@ -12,7 +12,7 @@ import { isEmpty } from 'lodash-es';
 import { Atom } from 'lucide-react';
 import { AlertTypes } from 'types/api/alerts/alertTypes';
 import { AlertDef } from 'types/api/alerts/def';
-import { EQueryType } from 'types/common/dashboard';
+import { EQueryType } from 'types/common/queryType';
 
 import { FormContainer, StepHeading } from './styles';
 

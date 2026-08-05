@@ -53,3 +53,13 @@
 - OpenAPI、生成的 TypeScript client、集成 fixture 和能力矩阵不再声明该 query type。
 - 保留 Builder Query/Formula 的原有 DTO 测试，并增加旧类型无法解码的边界测试。
 - 本阶段净删除约 2,800 行；精确数字以里程碑提交的 `git show --numstat` 为准。
+
+### Dashboard 残留
+
+- 删除无生产初始化入口的变量、layout、lock、column-width store 及其 38 个实现/测试文件。
+- 删除只为 Dashboard 变量解析服务的 `/api/v5/substitute_vars` API 和前端调用；V5
+  `query_range` 协议的通用 `variables` 字段仍保留。
+- 删除 Dashboard 变量 drilldown、动态变量建议、变量替换标题和无效等待状态；context link
+  的全局时间和行字段变量迁至通用 `useContextVariables`。
+- 将活跃的 Widget 和 query-result 类型、V5 panel adapter 和 chart cursor sync 迁出
+  Dashboard 命名空间，避免目录名继续掩盖生产依赖。

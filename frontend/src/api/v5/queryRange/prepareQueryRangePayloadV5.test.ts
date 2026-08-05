@@ -1,5 +1,5 @@
 import { PANEL_TYPES } from 'constants/queryBuilder';
-import { GetQueryResultsProps } from 'lib/dashboard/getQueryResults';
+import { GetQueryResultsProps } from 'lib/query/getQueryResults';
 import { DataTypes } from 'types/api/queryBuilder/queryAutocompleteResponse';
 import {
 	IBuilderFormula,
@@ -15,8 +15,8 @@ import {
 	QueryRangePayloadV5,
 	TraceBuilderQuery,
 } from 'types/api/v5/queryRange';
-import { EQueryType } from 'types/common/dashboard';
 import { DataSource, ReduceOperators } from 'types/common/queryBuilder';
+import { EQueryType } from 'types/common/queryType';
 
 import { prepareQueryRangePayloadV5 } from './prepareQueryRangePayloadV5';
 

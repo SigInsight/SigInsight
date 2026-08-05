@@ -19,7 +19,7 @@ import { REACT_QUERY_KEY } from 'constants/reactQueryKeys';
 import TimeSeriesView from 'container/TimeSeriesView/TimeSeriesView';
 import { convertDataValueToMs } from 'container/TimeSeriesView/utils';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
-import { GetMetricQueryRange } from 'lib/dashboard/getQueryResults';
+import { GetMetricQueryRange } from 'lib/query/getQueryResults';
 import { AlertTriangle } from 'lucide-react';
 import { AppState } from 'store/reducers';
 import { SuccessResponse } from 'types/api';

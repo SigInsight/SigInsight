@@ -4,12 +4,11 @@ import { isAxiosError } from 'axios';
 import { PANEL_TYPES } from 'constants/queryBuilder';
 import { REACT_QUERY_KEY } from 'constants/reactQueryKeys';
 import { updateBarStepInterval } from 'container/GridCardLayout/utils';
-import { useDashboardVariablesByType } from 'hooks/dashboard/useDashboardVariablesByType';
+import getStartEndRangeTime from 'lib/getStartEndRangeTime';
 import {
 	GetMetricQueryRange,
 	GetQueryResultsProps,
-} from 'lib/dashboard/getQueryResults';
-import getStartEndRangeTime from 'lib/getStartEndRangeTime';
+} from 'lib/query/getQueryResults';
 import APIError from 'types/api/error';
 import { MetricQueryRangeSuccessResponse } from 'types/api/metrics/getQueryRange';
 import { DataSource } from 'types/common/queryBuilder';
@@ -63,11 +62,6 @@ export const useGetQueryRange: UseGetQueryRange = (
 	options,
 	headers,
 ) => {
-	const dashboardDynamicVariables = useDashboardVariablesByType(
-		'DYNAMIC',
-		'values',
-	);
-
 	const newRequestData: GetQueryResultsProps = useMemo(() => {
 		const firstQueryData = requestData.query.builder?.queryData[0];
 		const isListWithSingleTimestampOrder =
@@ -161,12 +155,7 @@ export const useGetQueryRange: UseGetQueryRange = (
 
 	return useQuery<MetricQueryRangeSuccessResponse, APIError | Error>({
 		queryFn: async ({ signal }) =>
-			GetMetricQueryRange(
-				modifiedRequestData,
-				dashboardDynamicVariables,
-				signal,
-				headers,
-			),
+			GetMetricQueryRange(modifiedRequestData, signal, headers),
 		...options,
 		retry,
 		queryKey,

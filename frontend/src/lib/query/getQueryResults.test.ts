@@ -1,5 +1,5 @@
 import { PANEL_TYPES } from 'constants/queryBuilder';
-import { EQueryType } from 'types/common/dashboard';
+import { EQueryType } from 'types/common/queryType';
 
 import { GetMetricQueryRange, GetQueryResultsProps } from './getQueryResults';
 
@@ -35,7 +35,7 @@ describe('GetMetricQueryRange', () => {
 			formatForWeb: true,
 		} as GetQueryResultsProps;
 
-		await GetMetricQueryRange(request, undefined, controller.signal, headers);
+		await GetMetricQueryRange(request, controller.signal, headers);
 
 		expect(getQueryRangeV5).toHaveBeenCalledWith(
 			expect.any(Object),
@@ -54,7 +54,7 @@ describe('GetMetricQueryRange', () => {
 		} as GetQueryResultsProps;
 		const options = { notifyOnWarning: false };
 
-		await GetMetricQueryRange(request, undefined, undefined, undefined, options);
+		await GetMetricQueryRange(request, undefined, undefined, options);
 
 		expect(getQueryRangeV5).toHaveBeenCalledWith(
 			expect.any(Object),

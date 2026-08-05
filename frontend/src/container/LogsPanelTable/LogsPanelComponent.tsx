@@ -16,12 +16,12 @@ import { PER_PAGE_OPTIONS } from 'container/TracesExplorer/ListView/configs';
 import { tableStyles } from 'container/TracesExplorer/ListView/styles';
 import useLogDetailHandlers from 'hooks/logs/useLogDetailHandlers';
 import { useLogsData } from 'hooks/useLogsData';
-import { GetQueryResultsProps } from 'lib/dashboard/getQueryResults';
 import { FlatLogData } from 'lib/logs/flatLogData';
 import { RowData } from 'lib/query/createTableColumnsFromQuery';
+import { GetQueryResultsProps } from 'lib/query/getQueryResults';
 import { useTimezone } from 'providers/Timezone';
-import { Widgets } from 'types/api/dashboard/getAll';
 import { MetricQueryRangeResult } from 'types/api/metrics/getQueryRange';
+import { Widgets } from 'types/api/widgets/getAll';
 
 import { getLogPanelColumnsList } from './utils';
 

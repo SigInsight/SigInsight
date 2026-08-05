@@ -15,12 +15,11 @@ import { timePreferenceType } from 'features/query-visualization/timePreference'
 import { Pagination } from 'hooks/queryPagination';
 import { buildMetricQueryRangePayload } from 'lib/newQueryBuilder/buildMetricQueryRangePayload';
 import { isEmpty } from 'lodash-es';
-import { IDashboardVariable } from 'types/api/dashboard/getAll';
 import { MetricQueryRangeSuccessResponse } from 'types/api/metrics/getQueryRange';
 import { IBuilderQuery, Query } from 'types/api/queryBuilder/queryBuilderData';
 import { QueryData } from 'types/api/widgets/getQuery';
-import { EQueryType } from 'types/common/dashboard';
 import { DataSource } from 'types/common/queryBuilder';
+import { EQueryType } from 'types/common/queryType';
 
 /**
  * Validates if metric name is available for METRICS data source
@@ -164,7 +163,6 @@ export const getLegend = (
 // eslint-disable-next-line sonarjs/cognitive-complexity
 export async function GetMetricQueryRange(
 	props: GetQueryResultsProps,
-	dynamicVariables?: IDashboardVariable[],
 	signal?: AbortSignal,
 	headers?: Record<string, string>,
 	requestOptions?: QueryRangeRequestOptions,
@@ -201,7 +199,6 @@ export async function GetMetricQueryRange(
 
 	const v5Result = prepareQueryRangePayloadV5({
 		...props,
-		dynamicVariables,
 	});
 	const legendMap = v5Result.legendMap;
 
@@ -313,5 +310,4 @@ export interface GetQueryResultsProps {
 	end?: number;
 	step?: number;
 	originalGraphType?: PANEL_TYPES;
-	dynamicVariables?: IDashboardVariable[];
 }

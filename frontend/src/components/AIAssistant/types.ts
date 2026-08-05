@@ -1,6 +1,6 @@
 import { PANEL_TYPES } from 'constants/queryBuilder';
-import { EQueryType } from 'types/common/dashboard';
 import { DataSource } from 'types/common/queryBuilder';
+import { EQueryType } from 'types/common/queryType';
 
 export type AIAssistantRole = 'assistant' | 'user';
 

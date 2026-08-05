@@ -1,8 +1,8 @@
 import { UniversalYAxisUnit } from 'components/YAxisUnitSelector/types';
 import { AlertTypes } from 'types/api/alerts/alertTypes';
 import { Query } from 'types/api/queryBuilder/queryBuilderData';
-import { EQueryType } from 'types/common/dashboard';
 import { DataSource } from 'types/common/queryBuilder';
+import { EQueryType } from 'types/common/queryType';
 
 import {
 	getCompatibleUnitOptions,

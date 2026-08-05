@@ -25,19 +25,13 @@ import {
 	timeItems,
 	timePreferance,
 } from 'features/query-visualization/timePreference';
-import { useDashboardVariables } from 'hooks/dashboard/useDashboardVariables';
 import { useGetQueryRange } from 'hooks/queryBuilder/useGetQueryRange';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
 import { useChartMutable } from 'hooks/useChartMutable';
 import useUrlQuery from 'hooks/useUrlQuery';
-import { GetQueryResultsProps } from 'lib/dashboard/getQueryResults';
-import { getDashboardVariables } from 'lib/dashboardVariables/getDashboardVariables';
 import GetMinMax from 'lib/getMinMax';
+import { GetQueryResultsProps } from 'lib/query/getQueryResults';
 import { isEmpty } from 'lodash-es';
-import {
-	selectIsDashboardLocked,
-	useDashboardStore,
-} from 'providers/Dashboard/store/useDashboardStore';
 import { AppState } from 'store/reducers';
 import { Warning } from 'types/api';
 import { GlobalReducer } from 'types/reducer/globalTime';
@@ -71,17 +65,6 @@ function FullView({
 	const fullViewRef = useRef<HTMLDivElement>(null);
 	const { handleRunQuery } = useQueryBuilder();
 
-	const { setColumnWidths } = useDashboardStore();
-	const isDashboardLocked = useDashboardStore(selectIsDashboardLocked);
-
-	const onColumnWidthsChange = useCallback(
-		(widths: Record<string, number>) => {
-			setColumnWidths((prev) => ({ ...prev, [widget.id]: widths }));
-		},
-		[setColumnWidths, widget.id],
-	);
-	const { dashboardVariables } = useDashboardVariables();
-
 	const getSelectedTime = useCallback(
 		() =>
 			timeItems.find((e) => e.enum === (widget?.timePreferance || 'GLOBAL_TIME')),
@@ -111,7 +94,6 @@ function FullView({
 				graphType: getGraphType(selectedPanelType),
 				query: updatedQuery,
 				globalSelectedInterval: globalSelectedTime,
-				variables: getDashboardVariables(dashboardVariables),
 				fillGaps: widget.fillSpans,
 				formatForWeb: selectedPanelType === PANEL_TYPES.TABLE,
 				originalGraphType: selectedPanelType,
@@ -122,7 +104,6 @@ function FullView({
 			graphType: PANEL_TYPES.LIST,
 			selectedTime: widget?.timePreferance || 'GLOBAL_TIME',
 			globalSelectedInterval: globalSelectedTime,
-			variables: getDashboardVariables(dashboardVariables),
 			tableParams: {
 				pagination: {
 					offset: 0,
@@ -288,7 +269,6 @@ function FullView({
 
 					<div
 						className={cx('graph-container', {
-							disabled: isDashboardLocked,
 							'height-widget':
 								widget?.mergeAllActiveQueries || widget?.stackedBarChart,
 							'full-view-graph-container': isListView,
@@ -326,7 +306,6 @@ function FullView({
 								searchTerm={searchTerm}
 								enableDrillDown={enableDrillDown}
 								selectedGraph={selectedPanelType}
-								onColumnWidthsChange={onColumnWidthsChange}
 							/>
 						</GraphContainer>
 					</div>

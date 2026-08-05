@@ -1,9 +1,9 @@
 import { useMemo } from 'react';
 import { PANEL_TYPES } from 'constants/queryBuilder';
 import { useGetCompositeQueryParam } from 'hooks/queryBuilder/useGetCompositeQueryParam';
-import { ContextLinksData } from 'types/api/dashboard/getAll';
 import { MetricQueryRangeResult } from 'types/api/metrics/getQueryRange';
 import { Query } from 'types/api/queryBuilder/queryBuilderData';
+import { ContextLinksData } from 'types/api/widgets/getAll';
 
 import { isValidQueryName } from './drilldownUtils';
 import useAggregateDrilldown, { AggregateData } from './useAggregateDrilldown';

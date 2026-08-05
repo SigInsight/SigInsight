@@ -1,8 +1,8 @@
-import { getLegend } from 'lib/dashboard/getQueryResults';
+import { getLegend } from 'lib/query/getQueryResults';
 import { DataTypes } from 'types/api/queryBuilder/queryAutocompleteResponse';
 import { QueryData } from 'types/api/widgets/getQuery';
-import { EQueryType } from 'types/common/dashboard';
 import { DataSource } from 'types/common/queryBuilder';
+import { EQueryType } from 'types/common/queryType';
 
 import { getMockQuery, getMockQueryData } from './getLegend.testUtils';
 

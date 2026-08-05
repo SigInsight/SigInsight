@@ -1,6 +1,5 @@
 export const TableDataSource = {
 	Alert: 'alert',
-	Dashboard: 'dashboard',
 } as const;
 
 export const DynamicColumnsKey = {

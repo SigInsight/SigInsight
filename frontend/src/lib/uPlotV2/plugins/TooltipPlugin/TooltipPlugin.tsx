@@ -15,7 +15,7 @@ import {
 	updateWindowSize,
 } from './tooltipController';
 import {
-	DashboardCursorSync,
+	CursorSyncMode,
 	TooltipClickData,
 	TooltipControllerContext,
 	TooltipControllerState,
@@ -38,7 +38,7 @@ export default function TooltipPlugin({
 	render,
 	maxWidth = 300,
 	maxHeight = 400,
-	syncMode = DashboardCursorSync.None,
+	syncMode = CursorSyncMode.None,
 	syncKey = '_tooltip_sync_global_',
 	pinnedTooltipElement,
 	canPinTooltip = false,
@@ -94,11 +94,11 @@ export default function TooltipPlugin({
 			updateState({ hasPlot: false });
 		};
 
-		const syncTooltipWithDashboard = syncMode === DashboardCursorSync.Tooltip;
+		const syncTooltipAcrossCharts = syncMode === CursorSyncMode.Tooltip;
 
 		// Enable uPlot's built-in cursor sync when requested so that
 		// crosshair / tooltip can follow the dashboard-wide cursor.
-		if (syncMode !== DashboardCursorSync.None && config.scales[0]?.props.time) {
+		if (syncMode !== CursorSyncMode.None && config.scales[0]?.props.time) {
 			config.setCursor({
 				sync: { key: syncKey, scales: ['x', null] },
 			});
@@ -349,8 +349,8 @@ export default function TooltipPlugin({
 			dismissTooltip,
 		};
 
-		const handleSetSeries = createSetSeriesHandler(ctx, syncTooltipWithDashboard);
-		const handleSetLegend = createSetLegendHandler(ctx, syncTooltipWithDashboard);
+		const handleSetSeries = createSetSeriesHandler(ctx, syncTooltipAcrossCharts);
+		const handleSetLegend = createSetLegendHandler(ctx, syncTooltipAcrossCharts);
 		const handleSetCursor = createSetCursorHandler(ctx);
 
 		handleWindowResize();

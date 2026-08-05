@@ -17,7 +17,7 @@ import { resourceAttributesToTagFilterItems } from 'hooks/useResourceAttribute/u
 import { useSafeNavigate } from 'hooks/useSafeNavigate';
 import { OnClickPluginOpts } from 'lib/uPlotV2/plugins/onClickPlugin';
 import { useAppContext } from 'providers/App/App';
-import { EQueryType } from 'types/common/dashboard';
+import { EQueryType } from 'types/common/queryType';
 import { v4 as uuid } from 'uuid';
 
 import { IServiceName } from '../types';

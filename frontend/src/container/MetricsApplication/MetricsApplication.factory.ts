@@ -1,10 +1,10 @@
 import { PANEL_TYPES } from 'constants/queryBuilder';
-import { Widgets } from 'types/api/dashboard/getAll';
 import {
 	IBuilderFormula,
 	IBuilderQuery,
 } from 'types/api/queryBuilder/queryBuilderData';
-import { EQueryType } from 'types/common/dashboard';
+import { Widgets } from 'types/api/widgets/getAll';
+import { EQueryType } from 'types/common/queryType';
 import { v4 } from 'uuid';
 
 import { GetWidgetQueryBuilderProps } from './types';

@@ -2543,14 +2543,6 @@ export type RotateSession200 = {
 	status: string;
 };
 
-export type ReplaceVariables200 = {
-	data: Querybuildertypesv5QueryRangeRequestDTO;
-	/**
-	 * @type string
-	 */
-	status: string;
-};
-
 export type DeleteUserPathParameters = {
 	id: string;
 };

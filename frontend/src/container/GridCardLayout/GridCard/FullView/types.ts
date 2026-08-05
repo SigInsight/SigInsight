@@ -1,7 +1,7 @@
 import { MutableRefObject } from 'react';
 import { RowData } from 'lib/query/createTableColumnsFromQuery';
 import { OnClickPluginOpts } from 'lib/uPlotV2/plugins/onClickPlugin';
-import { Widgets } from 'types/api/dashboard/getAll';
+import { Widgets } from 'types/api/widgets/getAll';
 
 export interface FullViewProps {
 	widget: Widgets;

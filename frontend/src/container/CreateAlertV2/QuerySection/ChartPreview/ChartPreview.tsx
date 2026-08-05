@@ -13,7 +13,7 @@ import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
 import useGetYAxisUnit from 'hooks/useGetYAxisUnit';
 import { AppState } from 'store/reducers';
 import { AlertDef } from 'types/api/alerts/def';
-import { EQueryType } from 'types/common/dashboard';
+import { EQueryType } from 'types/common/queryType';
 import { GlobalReducer } from 'types/reducer/globalTime';
 
 import {

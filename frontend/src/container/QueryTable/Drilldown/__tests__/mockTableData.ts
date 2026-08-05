@@ -1,5 +1,5 @@
-import { EQueryType } from 'types/common/dashboard';
 import { DataSource } from 'types/common/queryBuilder';
+import { EQueryType } from 'types/common/queryType';
 
 export const MOCK_COORDINATES = {
 	x: 996,

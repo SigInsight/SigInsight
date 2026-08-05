@@ -2,12 +2,8 @@ import { useCallback } from 'react';
 // eslint-disable-next-line no-restricted-imports
 import { useSelector } from 'react-redux';
 import { QueryParams } from 'constants/query';
-import { PANEL_TYPES } from 'constants/queryBuilder';
 import ROUTES from 'constants/routes';
-import useUpdatedQuery from 'container/GridCardLayout/useResolveQuery';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
-import { useNotifications } from 'hooks/useNotifications';
-import { useDashboardStore } from 'providers/Dashboard/store/useDashboardStore';
 import { AppState } from 'store/reducers';
 import { Query, TagFilterItem } from 'types/api/queryBuilder/queryBuilderData';
 import { DataSource, MetricAggregateOperator } from 'types/common/queryBuilder';
@@ -19,7 +15,6 @@ export interface NavigateToExplorerProps {
 	startTime?: number;
 	endTime?: number;
 	sameTab?: boolean;
-	shouldResolveQuery?: boolean;
 	widgetQuery?: Query;
 }
 
@@ -77,19 +72,14 @@ export function useNavigateToExplorer(): (
 		[currentQuery],
 	);
 
-	const { getUpdatedQuery } = useUpdatedQuery();
-	const { selectedDashboard } = useDashboardStore();
-	const { notifications } = useNotifications();
-
 	return useCallback(
-		async (props: NavigateToExplorerProps): Promise<void> => {
+		(props: NavigateToExplorerProps): void => {
 			const {
 				filters,
 				dataSource,
 				startTime,
 				endTime,
 				sameTab,
-				shouldResolveQuery,
 				widgetQuery,
 			} = props;
 			const urlParams = new URLSearchParams();
@@ -101,26 +91,7 @@ export function useNavigateToExplorer(): (
 				urlParams.set(QueryParams.endTime, (maxTime / 1000000).toString());
 			}
 
-			let preparedQuery = prepareQuery(filters, dataSource, widgetQuery);
-
-			if (shouldResolveQuery) {
-				await getUpdatedQuery({
-					widgetConfig: {
-						query: preparedQuery,
-						panelTypes: PANEL_TYPES.TIME_SERIES,
-						timePreferance: 'GLOBAL_TIME',
-					},
-					selectedDashboard,
-				})
-					.then((query) => {
-						preparedQuery = query;
-					})
-					.catch(() => {
-						notifications.error({
-							message: 'Unable to resolve variables',
-						});
-					});
-			}
+			const preparedQuery = prepareQuery(filters, dataSource, widgetQuery);
 
 			const JSONCompositeQuery = encodeURIComponent(JSON.stringify(preparedQuery));
 			const basePath =
@@ -133,13 +104,6 @@ export function useNavigateToExplorer(): (
 
 			window.open(newExplorerPath, sameTab ? '_self' : '_blank');
 		},
-		[
-			prepareQuery,
-			minTime,
-			maxTime,
-			getUpdatedQuery,
-			selectedDashboard,
-			notifications,
-		],
+		[prepareQuery, minTime, maxTime],
 	);
 }

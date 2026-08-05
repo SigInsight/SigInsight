@@ -1,11 +1,11 @@
 import { TelemetryFieldKey } from 'api/v5/v5';
 import { Format } from 'features/query-visualization/types';
-import { EQueryType } from 'types/common/dashboard';
 import {
 	DataSource,
 	QueryBuilderData,
 	ReduceOperators,
 } from 'types/common/queryBuilder';
+import { EQueryType } from 'types/common/queryType';
 
 import {
 	Filter,

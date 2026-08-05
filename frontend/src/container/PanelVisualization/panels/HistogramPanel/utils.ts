@@ -1,11 +1,11 @@
 import { histogramBucketSizes } from '@grafana/data';
 import { PANEL_TYPES } from 'constants/queryBuilder';
-import { getLegend } from 'lib/dashboard/getQueryResults';
 import getLabelName from 'lib/getLabelName';
+import { getLegend } from 'lib/query/getQueryResults';
 import { DrawStyle } from 'lib/uPlotV2/config/types';
 import { UPlotConfigBuilder } from 'lib/uPlotV2/config/UPlotConfigBuilder';
-import { Widgets } from 'types/api/dashboard/getAll';
 import { MetricRangePayloadProps } from 'types/api/metrics/getQueryRange';
+import { Widgets } from 'types/api/widgets/getAll';
 import { AlignedData } from 'uplot';
 import { incrRoundDn, roundDecimals } from 'utils/round';
 

@@ -6,7 +6,7 @@ import { ThresholdProps } from 'features/query-visualization/threshold';
 import { RowData } from 'lib/query/createTableColumnsFromQuery';
 import { isEmpty, isNaN } from 'lodash-es';
 import { Query } from 'types/api/queryBuilder/queryBuilderData';
-import { EQueryType } from 'types/common/dashboard';
+import { EQueryType } from 'types/common/queryType';
 
 // Custom column type that extends ColumnType to include isValueColumn
 export interface CustomDataColumnType<T> extends ColumnType<T> {

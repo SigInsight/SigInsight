@@ -11,7 +11,7 @@ import {
 import { buildInitialAlertDef } from 'container/CreateAlertV2/context/utils';
 import store from 'store';
 import { AlertTypes } from 'types/api/alerts/alertTypes';
-import { EQueryType } from 'types/common/dashboard';
+import { EQueryType } from 'types/common/queryType';
 
 import { CreateAlertProvider } from '../../context';
 import ChartPreview from '../ChartPreview/ChartPreview';

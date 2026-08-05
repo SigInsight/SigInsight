@@ -12,7 +12,7 @@ import {
 	defaultMatchType,
 	defaultSeasonality,
 } from 'types/api/alerts/def';
-import { EQueryType } from 'types/common/dashboard';
+import { EQueryType } from 'types/common/queryType';
 import { compositeQueryToQueryEnvelope } from 'utils/compositeQueryToQueryEnvelope';
 
 const defaultAlertDescription =

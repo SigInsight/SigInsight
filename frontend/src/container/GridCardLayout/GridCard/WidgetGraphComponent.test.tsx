@@ -7,8 +7,8 @@ import { ErrorModalProvider } from 'providers/ErrorModalProvider';
 import MockQueryClientProvider from 'providers/test/MockQueryClientProvider';
 import store from 'store';
 import { DataTypes } from 'types/api/queryBuilder/queryAutocompleteResponse';
-import { EQueryType } from 'types/common/dashboard';
 import { DataSource, ReduceOperators } from 'types/common/queryBuilder';
+import { EQueryType } from 'types/common/queryType';
 
 import {
 	MENUITEM_KEYS_VS_LABELS,
@@ -149,20 +149,6 @@ const mockProps: WidgetGraphComponentProps = {
 	openTracesButton: false,
 	onOpenTraceBtnClick: jest.fn(),
 };
-
-// Mock useDashabord hook
-jest.mock('providers/Dashboard/store/useDashboardStore', () => ({
-	useDashboardStore: (): any => ({
-		selectedDashboard: {
-			data: {
-				variables: [],
-			},
-		},
-		setLayouts: jest.fn(),
-		setSelectedDashboard: jest.fn(),
-		setColumnWidths: jest.fn(),
-	}),
-}));
 
 describe('WidgetGraphComponent', () => {
 	it('should show correct menu items when hovering over more options while loading', async () => {

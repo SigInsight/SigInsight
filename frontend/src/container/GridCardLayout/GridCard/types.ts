@@ -1,12 +1,11 @@
 import { Dispatch, ReactNode, SetStateAction } from 'react';
 import { UseQueryResult } from 'react-query';
-import { GetQueryResultsProps } from 'lib/dashboard/getQueryResults';
 import { RowData } from 'lib/query/createTableColumnsFromQuery';
+import { GetQueryResultsProps } from 'lib/query/getQueryResults';
 import { OnClickPluginOpts } from 'lib/uPlotV2/plugins/onClickPlugin';
-import { IDashboardVariables } from 'providers/Dashboard/store/dashboardVariables/dashboardVariablesStoreTypes';
 import { SuccessResponse } from 'types/api';
-import { Widgets } from 'types/api/dashboard/getAll';
 import { MetricRangePayloadProps } from 'types/api/metrics/getQueryRange';
+import { Widgets } from 'types/api/widgets/getAll';
 
 import { MenuItemKeys } from '../WidgetHeader/contants';
 
@@ -39,7 +38,6 @@ export interface GridCardGraphProps {
 	headerMenuList?: WidgetGraphComponentProps['headerMenuList'];
 	onClickHandler?: OnClickPluginOpts['onClick'];
 	isQueryEnabled: boolean;
-	variables?: IDashboardVariables;
 	version?: string;
 	onDragSelect: (start: number, end: number) => void;
 	customOnDragSelect?: (start: number, end: number) => void;

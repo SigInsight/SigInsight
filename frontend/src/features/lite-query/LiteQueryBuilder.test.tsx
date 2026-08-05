@@ -5,8 +5,8 @@ import { PANEL_TYPES } from 'constants/queryBuilder';
 import { QueryBuilderContext } from 'providers/QueryBuilder';
 import { DataTypes } from 'types/api/queryBuilder/queryAutocompleteResponse';
 import { Query } from 'types/api/queryBuilder/queryBuilderData';
-import { EQueryType } from 'types/common/dashboard';
 import { DataSource, QueryBuilderContextType } from 'types/common/queryBuilder';
+import { EQueryType } from 'types/common/queryType';
 
 import { LiteQueryBuilder } from './LiteQueryBuilder';
 

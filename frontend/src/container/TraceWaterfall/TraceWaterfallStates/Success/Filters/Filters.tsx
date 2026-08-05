@@ -11,7 +11,7 @@ import { AxiosError } from 'axios';
 import { initialQueriesMap, PANEL_TYPES } from 'constants/queryBuilder';
 import QueryBuilderSearchV3 from 'features/query-builder-v3/QueryBuilderSearchV3';
 import SpanScopeSelector from 'features/query-builder-v3/SpanScopeSelector';
-import { GetMetricQueryRange } from 'lib/dashboard/getQueryResults';
+import { GetMetricQueryRange } from 'lib/query/getQueryResults';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { Warning } from 'types/api';
 import { DataTypes } from 'types/api/queryBuilder/queryAutocompleteResponse';
@@ -106,7 +106,6 @@ export async function getFilteredSpanIds(
 					],
 				},
 			},
-			undefined,
 			signal,
 			undefined,
 			{ notifyOnWarning: false },

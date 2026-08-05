@@ -8,8 +8,8 @@ import {
 	IClickHouseQuery,
 	Query,
 } from 'types/api/queryBuilder/queryBuilderData';
-import { EQueryType } from 'types/common/dashboard';
 import { DataSource } from 'types/common/queryBuilder';
+import { EQueryType } from 'types/common/queryType';
 
 const COUNT_EXPRESSION = /^count(?:_distinct|if)?\s*\(/i;
 const DURATION_ATTRIBUTE = /(?:^|[.(])duration(?:_nano)?(?:[),]|$)/i;

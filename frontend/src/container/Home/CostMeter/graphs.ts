@@ -1,13 +1,13 @@
 import { PANEL_TYPES } from 'constants/queryBuilder';
 import { GetWidgetQueryBuilderProps } from 'container/MetricsApplication/types';
-import { Widgets } from 'types/api/dashboard/getAll';
 import { DataTypes } from 'types/api/queryBuilder/queryAutocompleteResponse';
 import {
 	IBuilderFormula,
 	IBuilderQuery,
 } from 'types/api/queryBuilder/queryBuilderData';
-import { EQueryType } from 'types/common/dashboard';
+import { Widgets } from 'types/api/widgets/getAll';
 import { DataSource, ReduceOperators } from 'types/common/queryBuilder';
+import { EQueryType } from 'types/common/queryType';
 import { v4 as uuid } from 'uuid';
 
 interface GetWidgetQueryProps {

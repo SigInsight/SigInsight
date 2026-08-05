@@ -19,7 +19,6 @@ import {
 	QueryState,
 	TagFilter,
 } from 'types/api/queryBuilder/queryBuilderData';
-import { EQueryType } from 'types/common/dashboard';
 import {
 	BoolOperators,
 	DataSource,
@@ -33,6 +32,7 @@ import {
 	StringOperators,
 	TracesAggregatorOperator,
 } from 'types/common/queryBuilder';
+import { EQueryType } from 'types/common/queryType';
 import { SelectOption } from 'types/common/select';
 import { v4 as uuid } from 'uuid';
 
