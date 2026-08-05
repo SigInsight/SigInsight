@@ -550,7 +550,7 @@ func (aH *APIHandler) getRuleStateHistory(w http.ResponseWriter, r *http.Request
 			}
 			end := time.Unix(res.Items[idx].UnixMilli/1000, 0)
 			// Alert evaluation includes a built-in delay, so widen the link range by three minutes.
-			start := end.Add(-rule.EvalWindow.Duration() - 3*time.Minute)
+			start := end.Add(-rule.EvalWindow().Duration() - 3*time.Minute)
 			res.Items[idx].RelatedLogsLink, res.Items[idx].RelatedTracesLink = relatedRuleLinks(
 				rule,
 				start,

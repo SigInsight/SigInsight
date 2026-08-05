@@ -182,29 +182,10 @@ export function getNotificationSettingsStateFromAlertDef(
 	const description = alertDef.annotations?.description || '';
 	const multipleNotifications = alertDef.notificationSettings?.groupBy || [];
 
-	const reNotificationEnabled =
-		alertDef.notificationSettings?.renotify?.enabled || false;
-	const reNotificationConditions =
-		alertDef.notificationSettings?.renotify?.alertStates?.map(
-			(state) => state as 'firing' | 'nodata',
-		) || [];
-	const reNotificationValue = alertDef.notificationSettings?.renotify
-		? parseGoTime(alertDef.notificationSettings.renotify.interval || '30m').time
-		: 30;
-	const reNotificationUnit = alertDef.notificationSettings?.renotify
-		? parseGoTime(alertDef.notificationSettings.renotify.interval || '30m').unit
-		: UniversalYAxisUnit.MINUTES;
-
 	return {
 		...INITIAL_NOTIFICATION_SETTINGS_STATE,
 		description,
 		multipleNotifications,
-		reNotification: {
-			enabled: reNotificationEnabled,
-			conditions: reNotificationConditions,
-			value: reNotificationValue,
-			unit: reNotificationUnit,
-		},
 	};
 }
 

@@ -63,3 +63,14 @@
   的全局时间和行字段变量迁至通用 `useContextVariables`。
 - 将活跃的 Widget 和 query-result 类型、V5 panel adapter 和 chart cursor sync 迁出
   Dashboard 命名空间，避免目录名继续掩盖生产依赖。
+
+### Alert 兼容与高级通知
+
+- 删除未被生产调用的 `pkg/transition` Alert/V4 查询转换器，以及 Alert JSON v1 自动补齐、
+  schema 分支序列化和旧字段转换。
+- Alert API 现在只接受 `schemaVersion: "v2alpha1"` 与 `version: "v5"`；旧
+  `evalWindow`、`frequency`、`preferredChannels` 和 `renotify` 会明确返回 invalid input。
+- 删除规则标签/注解的 Go template 展开和 Alert Builder 的模板提示、可配置重复通知、旧详情页
+  与编辑页分支。描述只接受静态文本；运行时仍自动附加标准 `value`、`threshold` 注解。
+- 保留阈值、评估窗口、缺失数据、最小点数、通知渠道和按 group-by 的通知分组。重通知使用
+  Alertmanager 默认的 firing/no-data 4 小时间隔，不能按规则调整。

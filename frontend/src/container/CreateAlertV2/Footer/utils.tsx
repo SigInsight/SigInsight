@@ -54,14 +54,6 @@ export function getNotificationSettingsProps(
 ): PostableAlertRule['notificationSettings'] {
 	const notificationSettingsProps: PostableAlertRule['notificationSettings'] = {
 		groupBy: notificationSettings.multipleNotifications || [],
-		renotify: {
-			enabled: notificationSettings.reNotification.enabled,
-			interval: getFormattedTimeValue(
-				notificationSettings.reNotification.value,
-				notificationSettings.reNotification.unit,
-			),
-			alertStates: notificationSettings.reNotification.conditions,
-		},
 	};
 
 	return notificationSettingsProps;
@@ -273,63 +265,6 @@ export function buildCreateThresholdAlertRulePayload(
 		notificationSettings: notificationSettingsProps,
 		version: 'v5',
 		schemaVersion: 'v2alpha1',
-		source: window?.location.toString(),
-	};
-}
-
-// Build Create Anomaly Alert Rule Payload
-// TODO: Update this function before enabling anomaly alert rule creation
-export function buildCreateAnomalyAlertRulePayload(
-	args: BuildCreateAlertRulePayloadArgs,
-): PostableAlertRule {
-	const {
-		alertType,
-		basicAlertState,
-		query,
-		notificationSettings,
-		evaluationWindow,
-		advancedOptions,
-	} = args;
-
-	const compositeQuery = compositeQueryToQueryEnvelope({
-		builderQueries: {
-			...mapQueryDataToApi(query.builder.queryData, 'queryName').data,
-			...mapQueryDataToApi(query.builder.queryFormulas, 'queryName').data,
-		},
-		chQueries: mapQueryDataToApi(query.clickhouse_sql, 'name').data,
-		queryType: query.queryType,
-		panelType: PANEL_TYPES.TIME_SERIES,
-		resultUnit: basicAlertState.resultUnit,
-		displayUnit: basicAlertState.displayUnit,
-	});
-
-	const alertOnAbsentProps = getAlertOnAbsentProps(advancedOptions);
-	const enforceMinimumDatapointsProps = getEnforceMinimumDatapointsProps(
-		advancedOptions,
-	);
-	const evaluationProps = getEvaluationProps(evaluationWindow, advancedOptions);
-	const notificationSettingsProps = getNotificationSettingsProps(
-		notificationSettings,
-	);
-
-	return {
-		alert: basicAlertState.name,
-		ruleType: AlertRuleType.THRESHOLD,
-		alertType,
-		condition: {
-			compositeQuery,
-			...alertOnAbsentProps,
-			...enforceMinimumDatapointsProps,
-		},
-		labels: basicAlertState.labels,
-		annotations: {
-			description: notificationSettings.description,
-			summary: notificationSettings.description,
-		},
-		notificationSettings: notificationSettingsProps,
-		evaluation: evaluationProps,
-		version: '',
-		schemaVersion: '',
 		source: window?.location.toString(),
 	};
 }

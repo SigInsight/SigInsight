@@ -173,27 +173,11 @@ export const ADVANCED_OPTIONS_TIME_UNIT_OPTIONS = [
 	{ value: UniversalYAxisUnit.HOURS, label: 'Hours' },
 ];
 
-export const RE_NOTIFICATION_TIME_UNIT_OPTIONS = [
-	{ value: UniversalYAxisUnit.MINUTES, label: 'Minutes' },
-	{ value: UniversalYAxisUnit.HOURS, label: 'Hours' },
-];
-
 export const NOTIFICATION_MESSAGE_PLACEHOLDER =
-	'This alert is fired when the defined metric (current value: {{$value}}) crosses the threshold ({{$threshold}})';
-
-export const RE_NOTIFICATION_CONDITION_OPTIONS = [
-	{ value: 'firing', label: 'Firing' },
-	{ value: 'nodata', label: 'No Data' },
-];
+	'The configured alert condition was met.';
 
 export const INITIAL_NOTIFICATION_SETTINGS_STATE: NotificationSettingsState = {
 	multipleNotifications: [],
-	reNotification: {
-		enabled: false,
-		value: 30,
-		unit: UniversalYAxisUnit.MINUTES,
-		conditions: [],
-	},
 	description: NOTIFICATION_MESSAGE_PLACEHOLDER,
 };
 

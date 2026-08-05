@@ -15,10 +15,8 @@ import {
 import { EQueryType } from 'types/common/queryType';
 import { compositeQueryToQueryEnvelope } from 'utils/compositeQueryToQueryEnvelope';
 
-const defaultAlertDescription =
-	'This alert is fired when the defined metric (current value: {{$value}}) crosses the threshold ({{$threshold}})';
-const defaultAlertSummary =
-	'The rule threshold is set to {{$threshold}}, and the observed metric value is {{$value}}';
+const defaultAlertDescription = 'The configured alert condition was met.';
+const defaultAlertSummary = 'The configured alert condition was met.';
 
 const defaultAnnotations = {
 	description: defaultAlertDescription,

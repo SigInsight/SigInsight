@@ -7,6 +7,7 @@ import (
 	"github.com/SigNoz/signoz/pkg/types/timeseriestypes"
 	"log/slog"
 	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/SigNoz/signoz/pkg/contextlinks"
@@ -14,14 +15,11 @@ import (
 	"github.com/SigNoz/signoz/pkg/query-service/interfaces"
 	"github.com/SigNoz/signoz/pkg/query-service/model"
 	"github.com/SigNoz/signoz/pkg/query-service/utils/labels"
-	"github.com/SigNoz/signoz/pkg/query-service/utils/times"
-	"github.com/SigNoz/signoz/pkg/query-service/utils/timestamp"
 	"github.com/SigNoz/signoz/pkg/types/ctxtypes"
 	"github.com/SigNoz/signoz/pkg/types/instrumentationtypes"
 	qbtypes "github.com/SigNoz/signoz/pkg/types/querybuildertypes/querybuildertypesv5"
 	"github.com/SigNoz/signoz/pkg/types/ruletypes"
 	"github.com/SigNoz/signoz/pkg/types/telemetrytypes"
-	"github.com/SigNoz/signoz/pkg/units"
 	"github.com/SigNoz/signoz/pkg/valuer"
 )
 
@@ -72,9 +70,7 @@ func (r *ThresholdRule) Type() ruletypes.RuleType {
 }
 
 func (r *ThresholdRule) prepareQueryRange(ctx context.Context, ts time.Time) (*qbtypes.QueryRangeRequest, error) {
-	r.logger.InfoContext(
-		ctx, "prepare query range request v5", "ts", ts.UnixMilli(), "eval_window", r.evalWindow.Milliseconds(), "eval_delay", r.evalDelay.Milliseconds(),
-	)
+	r.logger.InfoContext(ctx, "prepare query range request v5", "ts", ts.UnixMilli(), "eval_delay", r.evalDelay.Milliseconds())
 
 	startTs, endTs := r.Timestamps(ts)
 	start, end := startTs.UnixMilli(), endTs.UnixMilli()
@@ -297,8 +293,6 @@ func (r *ThresholdRule) buildAndRunQuery(ctx context.Context, orgID valuer.UUID,
 func (r *ThresholdRule) Eval(ctx context.Context, ts time.Time) (int, error) {
 	prevState := r.State()
 
-	valueFormatter := units.FormatterFromUnit(r.ResultUnit())
-
 	r.logger.InfoContext(ctx, "running query")
 	res, err := r.buildAndRunQuery(ctx, r.orgID, ts)
 
@@ -319,44 +313,11 @@ func (r *ThresholdRule) Eval(ctx context.Context, ts time.Time) (int, error) {
 	}
 
 	for _, smpl := range res {
-		l := make(map[string]string, len(smpl.Metric))
-		for _, lbl := range smpl.Metric {
-			l[lbl.Name] = lbl.Value
-		}
-
-		value := valueFormatter.Format(smpl.V, r.ResultUnit())
-		// todo(aniket): handle different threshold
-		threshold := valueFormatter.Format(smpl.Target, smpl.TargetUnit)
-		r.logger.DebugContext(ctx, "Alert template data for rule", "rule_name", r.Name(), "formatter", valueFormatter.Name(), "value", value, "threshold", threshold)
-
-		tmplData := ruletypes.AlertTemplateData(l, value, threshold)
-		// Inject some convenience variables that are easier to remember for users
-		// who are not used to Go's templating system.
-		defs := "{{$labels := .Labels}}{{$value := .Value}}{{$threshold := .Threshold}}"
-
-		// utility function to apply go template on labels and annotations
-		expand := func(text string) string {
-			tmpl := ruletypes.NewTemplateExpander(
-				ctx,
-				defs+text,
-				"__alert_"+r.Name(),
-				tmplData,
-				times.Time(timestamp.FromTime(ts)),
-				nil,
-			)
-			result, err := tmpl.Expand()
-			if err != nil {
-				result = fmt.Sprintf("<error expanding template: %s>", err)
-				r.logger.ErrorContext(ctx, "Expanding alert template failed", errors.Attr(err), "data", tmplData)
-			}
-			return result
-		}
-
 		lb := labels.NewBuilder(smpl.Metric).Del(labels.MetricNameLabel).Del(labels.TemporalityLabel)
 		resultLabels := labels.NewBuilder(smpl.Metric).Del(labels.MetricNameLabel).Del(labels.TemporalityLabel).Labels()
 
 		for name, value := range r.labels.Map() {
-			lb.Set(name, expand(value))
+			lb.Set(name, value)
 		}
 
 		lb.Set(labels.AlertNameLabel, r.Name())
@@ -365,8 +326,12 @@ func (r *ThresholdRule) Eval(ctx context.Context, ts time.Time) (int, error) {
 
 		annotations := make(labels.Labels, 0, len(r.annotations.Map()))
 		for name, value := range r.annotations.Map() {
-			annotations = append(annotations, labels.Label{Name: name, Value: expand(value)})
+			annotations = append(annotations, labels.Label{Name: name, Value: value})
 		}
+		annotations = append(annotations,
+			labels.Label{Name: "value", Value: strconv.FormatFloat(smpl.V, 'f', -1, 64)},
+			labels.Label{Name: "threshold", Value: strconv.FormatFloat(smpl.Target, 'f', -1, 64)},
+		)
 		if smpl.IsMissing {
 			lb.Set(labels.AlertNameLabel, "[No data] "+r.Name())
 			lb.Set(labels.NoDataLabel, "true")
@@ -530,12 +495,10 @@ func (r *ThresholdRule) Eval(ctx context.Context, ts time.Time) (int, error) {
 
 func (r *ThresholdRule) String() string {
 	ar := ruletypes.PostableRule{
-		AlertName:         r.name,
-		RuleCondition:     r.ruleCondition,
-		EvalWindow:        r.evalWindow,
-		Labels:            r.labels.Map(),
-		Annotations:       r.annotations.Map(),
-		PreferredChannels: r.preferredChannels,
+		AlertName:     r.name,
+		RuleCondition: r.ruleCondition,
+		Labels:        r.labels.Map(),
+		Annotations:   r.annotations.Map(),
 	}
 
 	byt, err := json.Marshal(ar)

@@ -37,9 +37,12 @@ describe('NotificationMessage', () => {
 		jest.clearAllMocks();
 	});
 
-	it('renders textarea with message and placeholder', () => {
+	it('renders textarea with static description guidance', () => {
 		render(<NotificationMessage />);
-		expect(screen.getByText('Notification Message')).toBeInTheDocument();
+		expect(screen.getByText('Description')).toBeInTheDocument();
+		expect(
+			screen.getByText('A static description included with each notification.'),
+		).toBeInTheDocument();
 		const textarea = screen.getByPlaceholderText('Enter notification message...');
 		expect(textarea).toBeInTheDocument();
 	});

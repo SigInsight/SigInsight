@@ -28,8 +28,6 @@ type Rule interface {
 	// ActiveAlertsLabelFP returns a map of active alert labels fingerprint
 	ActiveAlertsLabelFP() map[uint64]struct{}
 
-	PreferredChannels() []string
-
 	// Eval evaluates the rule at the given timestamp and returns the number of active alerts.
 	Eval(context.Context, time.Time) (int, error)
 	String() string

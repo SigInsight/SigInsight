@@ -4,7 +4,7 @@ import {
 	PANEL_TYPES,
 } from 'constants/queryBuilder';
 import {
-	NEW_ALERT_SCHEMA_VERSION,
+	CURRENT_ALERT_SCHEMA_VERSION,
 	PostableAlertRule,
 } from 'types/api/alerts/alertRule';
 import { AlertTypes } from 'types/api/alerts/alertTypes';
@@ -12,19 +12,12 @@ import { EQueryType } from 'types/common/queryType';
 import { compositeQueryToQueryEnvelope } from 'utils/compositeQueryToQueryEnvelope';
 
 const defaultAnnotations = {
-	description:
-		'This alert is fired when the defined metric (current value: {{$value}}) crosses the threshold ({{$threshold}})',
-	summary:
-		'The rule threshold is set to {{$threshold}}, and the observed metric value is {{$value}}',
+	description: 'The configured alert condition was met.',
+	summary: 'The configured alert condition was met.',
 };
 
 const defaultNotificationSettings: PostableAlertRule['notificationSettings'] = {
 	groupBy: [],
-	renotify: {
-		enabled: false,
-		interval: '30m',
-		alertStates: [],
-	},
 };
 
 const defaultEvaluation: PostableAlertRule['evaluation'] = {
@@ -38,7 +31,7 @@ const defaultEvaluation: PostableAlertRule['evaluation'] = {
 export const defaultPostableAlertRule: PostableAlertRule = {
 	alertType: AlertTypes.METRICS_BASED_ALERT,
 	version: ENTITY_VERSION_V5,
-	schemaVersion: NEW_ALERT_SCHEMA_VERSION,
+	schemaVersion: CURRENT_ALERT_SCHEMA_VERSION,
 	condition: {
 		compositeQuery: compositeQueryToQueryEnvelope({
 			builderQueries: {

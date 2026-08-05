@@ -173,34 +173,7 @@ describe('CreateAlertV2 utils', () => {
 	});
 
 	describe('getNotificationSettingsStateFromAlertDef', () => {
-		it('should return the correct notification settings state for the given alert def', () => {
-			const args: PostableAlertRule = {
-				...defaultPostableAlertRule,
-				notificationSettings: {
-					groupBy: ['email'],
-					renotify: {
-						enabled: true,
-						interval: '1m0s',
-						alertStates: ['firing'],
-					},
-				},
-			};
-			const props = getNotificationSettingsStateFromAlertDef(args);
-			expect(props).toBeDefined();
-			expect(props).toMatchObject({
-				multipleNotifications: ['email'],
-				reNotification: {
-					enabled: true,
-					value: 1,
-					unit: UniversalYAxisUnit.MINUTES,
-					conditions: ['firing'],
-				},
-				description:
-					'This alert is fired when the defined metric (current value: {{$value}}) crosses the threshold ({{$threshold}})',
-			});
-		});
-
-		it('when renotification is not provided', () => {
+		it('keeps grouping and static description from the current alert contract', () => {
 			const args: PostableAlertRule = {
 				...defaultPostableAlertRule,
 				notificationSettings: {
@@ -211,12 +184,7 @@ describe('CreateAlertV2 utils', () => {
 			expect(props).toBeDefined();
 			expect(props).toMatchObject({
 				multipleNotifications: ['email'],
-				reNotification: {
-					enabled: false,
-					value: 30,
-					unit: UniversalYAxisUnit.MINUTES,
-					conditions: [],
-				},
+				description: 'The configured alert condition was met.',
 			});
 		});
 	});

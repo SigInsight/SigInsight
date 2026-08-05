@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
 import { Breadcrumb, Button, Divider } from 'antd';
 import logEvent from 'api/common/logEvent';
-import classNames from 'classnames';
 import { Filters } from 'components/AlertDetailsFilters/Filters';
 import RouteTab from 'components/RouteTab';
 import Spinner from 'components/Spinner';
@@ -14,7 +13,7 @@ import { getCreateAlertLocalStateFromAlertDef } from 'container/CreateAlertV2/ut
 import useUrlQuery from 'hooks/useUrlQuery';
 import history from 'lib/history';
 import {
-	NEW_ALERT_SCHEMA_VERSION,
+	CURRENT_ALERT_SCHEMA_VERSION,
 	PostableAlertRule,
 } from 'types/api/alerts/alertRule';
 import { AlertTypes } from 'types/api/alerts/alertTypes';
@@ -127,7 +126,9 @@ function AlertDetails(): JSX.Element {
 		isError ||
 		!isValidRuleId ||
 		(alertDetailsResponse && alertDetailsResponse.statusCode !== 200) ||
-		(!isLoading && !alertRuleDetails)
+		(!isLoading && !alertRuleDetails) ||
+		(!isLoading &&
+			alertRuleDetails?.schemaVersion !== CURRENT_ALERT_SCHEMA_VERSION)
 	) {
 		return <AlertNotFound isTestAlert={isTestAlert} />;
 	}
@@ -137,8 +138,6 @@ function AlertDetails(): JSX.Element {
 			logEvent('Alert History tab: Visited', { ruleId });
 		}
 	};
-
-	const isV2Alert = alertRuleDetails?.schemaVersion === NEW_ALERT_SCHEMA_VERSION;
 
 	// Show spinner until we have alert data loaded
 	if (isLoading && !alertRuleDetails) {
@@ -152,9 +151,7 @@ function AlertDetails(): JSX.Element {
 			initialAlertType={alertRuleDetails?.alertType as AlertTypes}
 			initialAlertState={initialAlertState}
 		>
-			<div
-				className={classNames('alert-details', { 'alert-details-v2': isV2Alert })}
-			>
+			<div className="alert-details alert-details-v2">
 				<Breadcrumb
 					className="alert-details__breadcrumb"
 					items={[

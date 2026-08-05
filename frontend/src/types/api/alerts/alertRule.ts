@@ -11,8 +11,10 @@ export interface BasicThreshold {
 	targetUnit: string;
 }
 
+export const CURRENT_ALERT_SCHEMA_VERSION = 'v2alpha1';
+
 export interface PostableAlertRule {
-	schemaVersion: string;
+	schemaVersion: typeof CURRENT_ALERT_SCHEMA_VERSION;
 	id?: string;
 	alert: string;
 	alertType?: AlertTypes;
@@ -50,11 +52,6 @@ export interface PostableAlertRule {
 	};
 	notificationSettings?: {
 		groupBy?: string[];
-		renotify?: {
-			enabled: boolean;
-			interval?: string;
-			alertStates?: string[];
-		};
 	};
 	version?: string;
 	source?: string;
@@ -63,7 +60,7 @@ export interface PostableAlertRule {
 }
 
 export interface AlertRule extends PostableAlertRule {
-	schemaVersion: string;
+	schemaVersion: typeof CURRENT_ALERT_SCHEMA_VERSION;
 	state: string;
 	disabled: boolean;
 	createAt: string;
@@ -71,5 +68,3 @@ export interface AlertRule extends PostableAlertRule {
 	updateAt: string;
 	updateBy: string;
 }
-
-export const NEW_ALERT_SCHEMA_VERSION = 'v2alpha1';

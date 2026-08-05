@@ -244,12 +244,6 @@ export type EvaluationCadenceMode = 'default' | 'custom' | 'rrule';
 
 export interface NotificationSettingsState {
 	multipleNotifications: string[] | null;
-	reNotification: {
-		enabled: boolean;
-		value: number;
-		unit: string;
-		conditions: ('firing' | 'nodata')[];
-	};
 	description: string;
 }
 
@@ -257,15 +251,6 @@ export type NotificationSettingsAction =
 	| {
 			type: 'SET_MULTIPLE_NOTIFICATIONS';
 			payload: string[] | null;
-	  }
-	| {
-			type: 'SET_RE_NOTIFICATION';
-			payload: {
-				enabled: boolean;
-				value: number;
-				unit: string;
-				conditions: ('firing' | 'nodata')[];
-			};
 	  }
 	| { type: 'SET_DESCRIPTION'; payload: string }
 	| { type: 'SET_INITIAL_STATE'; payload: NotificationSettingsState }

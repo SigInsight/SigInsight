@@ -238,8 +238,6 @@ export const notificationSettingsReducer = (
 	switch (action.type) {
 		case 'SET_MULTIPLE_NOTIFICATIONS':
 			return { ...state, multipleNotifications: action.payload };
-		case 'SET_RE_NOTIFICATION':
-			return { ...state, reNotification: action.payload };
 		case 'SET_DESCRIPTION':
 			return { ...state, description: action.payload };
 		case 'RESET':
