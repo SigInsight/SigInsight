@@ -39,6 +39,9 @@ func defaultTestNotification(opts PrepareTestRuleOptions) (EvaluationPreview, *m
 	var err error
 
 	if parsedRule.RuleType == ruletypes.RuleTypeThreshold {
+		if parsedRule.Labels == nil {
+			parsedRule.Labels = make(map[string]string)
+		}
 
 		// add special labels for test alerts
 		parsedRule.Labels[labels.RuleSourceLabel] = ""
@@ -76,7 +79,21 @@ func defaultTestNotification(opts PrepareTestRuleOptions) (EvaluationPreview, *m
 		slog.Error("evaluating rule failed", "rule", rule.Name(), errors.Attr(err))
 		return EvaluationPreview{}, model.InternalError(fmt.Errorf("rule evaluation failed"))
 	}
-	rule.SendAlerts(ctx, ts, 0, time.Duration(1*time.Minute), opts.NotifyFunc)
+	if opts.NotifyFunc == nil {
+		return EvaluationPreview{}, model.InternalError(fmt.Errorf("test notification sender is required"))
+	}
+	var notificationErr error
+	rule.SendAlerts(ctx, ts, 0, time.Duration(1*time.Minute), func(
+		ctx context.Context,
+		orgID string,
+		expr string,
+		alerts ...*ruletypes.Alert,
+	) {
+		notificationErr = opts.NotifyFunc(ctx, orgID, expr, alerts...)
+	})
+	if notificationErr != nil {
+		return EvaluationPreview{}, model.InternalError(fmt.Errorf("test notification delivery failed"))
+	}
 
 	return EvaluationPreview{
 		AlertCount:  alertsFound,

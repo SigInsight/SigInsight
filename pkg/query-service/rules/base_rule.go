@@ -333,6 +333,13 @@ func (r *BaseRule) GetEvaluationTimestamp() time.Time {
 func (r *BaseRule) State() model.AlertState {
 	maxState := model.StateInactive
 	for _, a := range r.Active {
+		// No Data is an externally visible alert state, not just a label on a
+		// firing alert. Preserve pending while the alert is within its hold
+		// period, but report a firing missing-data alert as nodata to previews,
+		// rule lists, and state history.
+		if a.Missing && a.State == model.StateFiring {
+			return model.StateNoData
+		}
 		if a.State > maxState {
 			maxState = a.State
 		}

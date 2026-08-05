@@ -529,7 +529,9 @@ v2 rule JSON 类型和原生 SQL 默认告警。列表编辑只传递 rule id，
   它不读取或写入现有 SigInsight SQLite，结束时关闭源进程并删除临时目录。
 - 在 ClickHouse `25.5.6` 和运行中的 Collector 数据上，该脚本验证了认证后的 `query_range`：Metrics、
   Logs、Traces 以及 `has_error = true` Exceptions；随后对四个信号分别执行 `testRule`，验证每次都
-  返回结构化 `evaluationPreview`。Metrics 规则还完成了 create、read、edit、read-back、delete。
+  返回结构化 `evaluationPreview`。它创建只监听 `127.0.0.1` 的临时 webhook channel，并用一个确定
+  无数据的 Logs 规则验证 `nodata` preview、实际 webhook 回执和通知渠道配置。Metrics 规则还完成了
+  create、read、edit、history timeline read-back、delete。
 - 可复现命令（从仓库根目录执行，`8080` 必须空闲）：
 
   ```bash
@@ -546,7 +548,7 @@ v2 rule JSON 类型和原生 SQL 默认告警。列表编辑只传递 rule id，
     ClickHouse: configured telemetry store
     SQLite: fresh temporary database and migrations
     Query API: metrics, logs, traces, exceptions
-    Alert API: four-signal testRule preview; metrics create, read, edit, delete
+    Alert API: four-signal previews, no-data state, local webhook, history read-back; metrics create, read, edit, delete
   ```
 
 - 浏览器覆盖在 Vite 源前端指向同一源后端时执行：新建 Metrics v3 规则、选择 Sum 指标、配置阈值和
@@ -572,3 +574,11 @@ v2 rule JSON 类型和原生 SQL 默认告警。列表编辑只传递 rule id，
 - 本次真实保存还发现并修复了一个协议不变量：关闭 No Data 告警时，前端以前仍会发送 `noDataFor: "5m"`，
   而后端正确拒绝这种组合。serializer 现在只在 `alertOnNoData=true` 时发送该字段；读取时仍以编辑器默认值
   补齐缺失的 UI 状态。该行为有前端单测，并由上述真实创建/编辑路径覆盖。
+
+- 补充的 Go 回归测试从 v3 JSON 边界构造 `30s` No Data 规则，并验证空聚合序列会触发一个 `nodata`
+  preview、带 `nodata=true` 与 `testalert=true` 标签的测试通知，以及跨多个严重性渠道的稳定去重路由。
+  该测试同时固定了三项正确性约束：空 series 不是有效数据；`labels` 可以在 API 请求中省略；No Data
+  是规则级状态，必须向规则全部已配置的通知渠道发送，而不是因为没有 threshold label 而丢弃渠道。
+- `testRule` 的通知回调现在是仅用于该 API 的同步错误边界：Alertmanager 未就绪、缺失 receiver 或
+  webhook 投递失败会返回内部错误，不再记录日志后谎报“notification sent”。常规调度仍保持原有的
+  best-effort 通知语义；回归测试同时验证这两条边界没有混淆。

@@ -251,7 +251,15 @@ func (r *ThresholdRule) buildAndRunQuery(ctx context.Context, orgID valuer.UUID,
 		}
 	}
 
-	hasData := queryFound && len(seriesToProcess) > 0
+	hasData := false
+	if queryFound {
+		for _, series := range seriesToProcess {
+			if len(series.Points) > 0 {
+				hasData = true
+				break
+			}
+		}
+	}
 	if missingDataAlert := r.HandleMissingDataAlert(ctx, ts, hasData); missingDataAlert != nil {
 		return ruletypes.Vector{*missingDataAlert}, nil
 	}
@@ -377,7 +385,7 @@ func (r *ThresholdRule) Eval(ctx context.Context, ts time.Time) (int, error) {
 			State:             model.StatePending,
 			Value:             smpl.V,
 			GeneratorURL:      r.GeneratorURL(),
-			Receivers:         ruleReceiverMap[lbs.Map()[ruletypes.LabelThresholdName]],
+			Receivers:         receiversForSample(smpl, lbs, ruleReceivers, ruleReceiverMap),
 			Missing:           smpl.IsMissing,
 			IsRecovering:      smpl.IsRecovering,
 		}
@@ -497,6 +505,34 @@ func (r *ThresholdRule) Eval(ctx context.Context, ts time.Time) (int, error) {
 	r.lastError = err
 
 	return len(r.Active), nil
+}
+
+// receiversForSample keeps threshold alerts scoped to their severity while a
+// no-data event fans out to every channel configured on the rule. No-data has
+// no threshold label, and the Basic Alert contract intentionally has no
+// separate no-data channel selector.
+func receiversForSample(
+	sample ruletypes.Sample,
+	labels labels.BaseLabels,
+	ruleReceivers []ruletypes.RuleReceivers,
+	byThreshold map[string][]string,
+) []string {
+	if !sample.IsMissing {
+		return byThreshold[labels.Map()[ruletypes.LabelThresholdName]]
+	}
+
+	seen := make(map[string]struct{})
+	channels := make([]string, 0)
+	for _, receiver := range ruleReceivers {
+		for _, channel := range receiver.Channels {
+			if _, exists := seen[channel]; exists {
+				continue
+			}
+			seen[channel] = struct{}{}
+			channels = append(channels, channel)
+		}
+	}
+	return channels
 }
 
 func (r *ThresholdRule) String() string {
