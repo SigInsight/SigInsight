@@ -1,6 +1,6 @@
 # M15：基础告警编辑器功能边界与交互设计
 
-状态：Accepted，设计已确认；本阶段尚未开始实现
+状态：In progress；设计已确认，10.1 Typed Formula Core 已完成
 
 最后更新：2026-08-05
 
@@ -430,6 +430,11 @@ serializer 和同一套 validator，禁止分别拼装三种近似 payload。
 - 为语法优先级、非法别名、循环引用、单位冲突和 missing 真值表增加 Go 单元/模糊测试。
 
 提交锚点：`feat(formula): add typed alert expression core`
+
+完成记录：项目自有 parser、typed AST、canonical serializer、公式依赖图、number/bool 类型、
+基础单位兼容/换算、series signature 对齐与严格 missing 传播已实现并由单元及 fuzz 测试覆盖。
+四个内联函数、V5 bool result 和 Alert 协议仍属于 10.2 及后续阶段，不能据此向当前 V5 UI
+开放布尔公式。
 
 ### 10.2 V5 Typed Result 与内联函数
 
