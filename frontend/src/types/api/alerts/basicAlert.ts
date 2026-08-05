@@ -17,7 +17,10 @@ export type BooleanPolicy = 'at_least_once' | 'all_the_time' | 'last';
 
 export interface AlertDataQuality {
 	alertOnNoData: boolean;
-	noDataFor: string;
+	// This only has meaning when alertOnNoData is true. Omitting it otherwise
+	// preserves the backend invariant that a disabled no-data policy has no
+	// duration configured.
+	noDataFor?: string;
 	minPoints: number;
 }
 

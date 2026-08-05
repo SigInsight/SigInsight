@@ -174,12 +174,19 @@ function serializeCondition(
 	query: Query,
 ): V3RuleCondition {
 	const compositeQuery = serializeCompositeQuery(query);
+	const dataQuality = {
+		alertOnNoData: draft.dataQuality.alertOnNoData,
+		minPoints: draft.dataQuality.minPoints,
+		...(draft.dataQuality.alertOnNoData
+			? { noDataFor: draft.dataQuality.noDataFor }
+			: {}),
+	};
 	if (draft.condition.kind === 'boolean') {
 		return {
 			kind: 'boolean',
 			compositeQuery,
 			selectedQueryName: draft.condition.selectedQueryName,
-			dataQuality: draft.dataQuality,
+			dataQuality,
 			boolean: {
 				policy: draft.condition.policy,
 				severity: draft.condition.severity,
@@ -191,7 +198,7 @@ function serializeCondition(
 		kind: 'numeric',
 		compositeQuery,
 		selectedQueryName: draft.condition.selectedQueryName,
-		dataQuality: draft.dataQuality,
+		dataQuality,
 		numeric: {
 			reduction: draft.condition.reduction,
 			operator: draft.condition.operator,

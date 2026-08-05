@@ -94,6 +94,33 @@ describe('basic alert v3 serializer', () => {
 		expect(JSON.stringify(rule)).not.toContain('"unit"');
 	});
 
+	it('omits no-data duration when no-data alerting is disabled', () => {
+		const rule = serializeBasicAlertDraft(numericDraft(), queryFixture());
+
+		expect(rule.condition.dataQuality).toEqual({
+			alertOnNoData: true,
+			noDataFor: '30s',
+			minPoints: 2,
+		});
+
+		const disabledNoDataRule = serializeBasicAlertDraft(
+			{
+				...numericDraft(),
+				dataQuality: {
+					alertOnNoData: false,
+					noDataFor: '5m',
+					minPoints: 2,
+				},
+			},
+			queryFixture(),
+		);
+
+		expect(disabledNoDataRule.condition.dataQuality).toEqual({
+			alertOnNoData: false,
+			minPoints: 2,
+		});
+	});
+
 	it('serializes boolean formulas without a numeric sentinel threshold', () => {
 		const query = queryFixture();
 		query.builder.queryFormulas = [

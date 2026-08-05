@@ -110,7 +110,10 @@ export function isV3BasicAlertRule(
 
 export function draftFromV3Rule(rule: PostableBasicAlertRule): BasicAlertDraft {
 	const base = defaultBasicAlertDraft(rule.alertType);
-	const dataQuality = rule.condition.dataQuality || base.dataQuality;
+	const dataQuality = {
+		...base.dataQuality,
+		...rule.condition.dataQuality,
+	};
 	const condition =
 		rule.condition.kind === 'boolean'
 			? {

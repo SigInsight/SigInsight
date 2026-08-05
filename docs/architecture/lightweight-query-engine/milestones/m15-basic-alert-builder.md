@@ -1,6 +1,6 @@
 # M15：基础告警编辑器功能边界与交互设计
 
-状态：In progress；10.1-10.5 已完成，10.6 协作验证进行中
+状态：Completed；10.1-10.6 已完成
 
 最后更新：2026-08-05
 
@@ -522,6 +522,53 @@ v2 rule JSON 类型和原生 SQL 默认告警。列表编辑只传递 rule id，
 
 提交锚点：`test(alerts): verify basic editor collaboration`
 
-当前记录：规则测试 API 已升级为 `evaluationPreview {alertCount,state,evaluatedAt}`，并有 rules
-和 HTTP handler Go 测试；前端显示状态而不是只显示计数。完整 ClickHouse/SQLite/webhook 与浏览器
-闭环仍须在本阶段完成，且不得将未执行的真实环境验证标记为完成。
+完成记录（2026-08-05）：
+
+- [run-basic-alert-source-collaboration.sh](../../../../tests/integration/scripts/run-basic-alert-source-collaboration.sh)
+  会启动当前工作区编译出的源后端，使用新的临时 SQLite、`19091` 指标端口和配置的 ClickHouse。
+  它不读取或写入现有 SigInsight SQLite，结束时关闭源进程并删除临时目录。
+- 在 ClickHouse `25.5.6` 和运行中的 Collector 数据上，该脚本验证了认证后的 `query_range`：Metrics、
+  Logs、Traces 以及 `has_error = true` Exceptions；随后对四个信号分别执行 `testRule`，验证每次都
+  返回结构化 `evaluationPreview`。Metrics 规则还完成了 create、read、edit、read-back、delete。
+- 可复现命令（从仓库根目录执行，`8080` 必须空闲）：
+
+  ```bash
+  SIGINSIGHT_TELEMETRYSTORE_CLICKHOUSE_DSN=tcp://<clickhouse-host>:9000 \
+    ./tests/integration/scripts/run-basic-alert-source-collaboration.sh
+  ```
+
+  默认指标为正在运行 Collector 产生的
+  `http.server.request.duration.sum`；其他环境可以用
+  `SIGINSIGHT_M15_METRIC_NAME=<cumulative-sum-metric>` 覆盖。实际输出为：
+
+  ```text
+  basic alert source collaboration passed
+    ClickHouse: configured telemetry store
+    SQLite: fresh temporary database and migrations
+    Query API: metrics, logs, traces, exceptions
+    Alert API: four-signal testRule preview; metrics create, read, edit, delete
+  ```
+
+- 浏览器覆盖在 Vite 源前端指向同一源后端时执行：新建 Metrics v3 规则、选择 Sum 指标、配置阈值和
+  一次性本地 webhook、保存并在 `finally` 中删除规则。该 Playwright 用例默认跳过，只有显式提供
+  真实数据环境时运行，避免 CI 依赖外部遥测：
+
+  ```bash
+  VITE_FRONTEND_API_ENDPOINT=http://127.0.0.1:8080 yarn dev --host 127.0.0.1 --port 3302
+
+  LOGIN_USERNAME=<temporary-admin-email> \
+  LOGIN_PASSWORD=<temporary-admin-password> \
+  BASIC_ALERT_E2E_METRIC=http.server.request.duration.sum \
+  BASIC_ALERT_E2E_CHANNEL=<disposable-local-webhook-channel> \
+  SIGINSIGHT_E2E_BASE_URL=http://127.0.0.1:3302 \
+  SIGINSIGHT_E2E_API_BASE_URL=http://127.0.0.1:8080 \
+  yarn --cwd frontend playwright test e2e/tests/alerts/basic-alert-editor.spec.ts \
+    --project=chromium --workers=1 --timeout=30000 --reporter=list
+  ```
+
+  本次执行结果为 `2 passed`。通知渠道使用只绑定 `127.0.0.1` 的一次性 webhook；测试规则随后被删除，
+  不会向外部系统发送通知。
+
+- 本次真实保存还发现并修复了一个协议不变量：关闭 No Data 告警时，前端以前仍会发送 `noDataFor: "5m"`，
+  而后端正确拒绝这种组合。serializer 现在只在 `alertOnNoData=true` 时发送该字段；读取时仍以编辑器默认值
+  补齐缺失的 UI 状态。该行为有前端单测，并由上述真实创建/编辑路径覆盖。

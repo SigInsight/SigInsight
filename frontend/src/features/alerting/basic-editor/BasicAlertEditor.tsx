@@ -238,6 +238,7 @@ function NumericThresholdRow({
 			/>
 			<Select
 				mode="multiple"
+				aria-label={`Notification channels for ${threshold.severity}`}
 				placeholder="Notification channels"
 				value={threshold.channels}
 				options={channelOptions}
@@ -790,6 +791,7 @@ function BasicAlertEditor({
 						/>
 						<Select
 							mode="multiple"
+							aria-label="Notification channels for boolean condition"
 							placeholder="Notification channels"
 							value={draft.condition.channels}
 							options={channelOptions}
