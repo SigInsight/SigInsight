@@ -29,10 +29,6 @@ jest.mock('api/generated/services/metrics', () => ({
 		isError: false,
 		data: { data: { metrics: [] } },
 	}),
-	useUpdateMetricMetadata: jest.fn().mockReturnValue({
-		mutate: jest.fn(),
-		isLoading: false,
-	}),
 }));
 
 jest.mock('hooks/useDebounce', () => ({

@@ -7,7 +7,8 @@ import (
 	"github.com/SigNoz/signoz/pkg/query-service/model/querytypes"
 )
 
-type UpdateMetricsMetadata struct {
+// MetricMetadata is derived directly from collected metric time series.
+type MetricMetadata struct {
 	MetricName  string                 `json:"metricName" ch:"metric_name"`
 	MetricType  querytypes.MetricType  `json:"metricType" ch:"type"`
 	Description string                 `json:"description" ch:"description"`
@@ -17,9 +18,9 @@ type UpdateMetricsMetadata struct {
 	CreatedAt   time.Time              `json:"created_at" ch:"created_at"`
 }
 
-func (c *UpdateMetricsMetadata) MarshalBinary() (data []byte, err error) {
+func (c *MetricMetadata) MarshalBinary() (data []byte, err error) {
 	return json.Marshal(c)
 }
-func (c *UpdateMetricsMetadata) UnmarshalBinary(data []byte) error {
+func (c *MetricMetadata) UnmarshalBinary(data []byte) error {
 	return json.Unmarshal(data, c)
 }

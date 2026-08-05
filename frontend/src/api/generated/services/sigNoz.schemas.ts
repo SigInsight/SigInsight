@@ -814,27 +814,6 @@ export interface MetricsexplorertypesTreemapResponseDTO {
 	timeseries: MetricsexplorertypesTreemapEntryDTO[] | null;
 }
 
-export interface MetricsexplorertypesUpdateMetricMetadataRequestDTO {
-	/**
-	 * @type string
-	 */
-	description: string;
-	/**
-	 * @type boolean
-	 */
-	isMonotonic: boolean;
-	/**
-	 * @type string
-	 */
-	metricName: string;
-	temporality: MetrictypesTemporalityDTO;
-	type: MetrictypesTypeDTO;
-	/**
-	 * @type string
-	 */
-	unit: string;
-}
-
 export interface MetrictypesComparisonSpaceAggregationParamDTO {
 	/**
 	 * @type string
@@ -2374,9 +2353,6 @@ export type GetMetricMetadata200 = {
 	status: string;
 };
 
-export type UpdateMetricMetadataPathParameters = {
-	metricName: string;
-};
 export type GetMetricsStats200 = {
 	data: MetricsexplorertypesStatsResponseDTO;
 	/**

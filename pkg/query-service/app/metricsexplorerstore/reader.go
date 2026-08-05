@@ -35,7 +35,7 @@ const (
 )
 
 type metadataReader interface {
-	GetUpdatedMetricsMetadata(context.Context, valuer.UUID, ...string) (map[string]*model.UpdateMetricsMetadata, error)
+	GetMetricsMetadata(context.Context, valuer.UUID, ...string) (map[string]*model.MetricMetadata, error)
 }
 
 func metricColumn(key string) (string, bool) {
@@ -184,9 +184,9 @@ func (r *Reader) GetMetricAggregateAttributes(ctx context.Context, orgID valuer.
 	}
 
 	// Get all metadata in one shot
-	metadataMap, err := r.metadata.GetUpdatedMetricsMetadata(ctx, orgID, metricNames...)
+	metadataMap, err := r.metadata.GetMetricsMetadata(ctx, orgID, metricNames...)
 	if err != nil {
-		return &response, fmt.Errorf("error getting updated metrics metadata: %w", err)
+		return &response, fmt.Errorf("error getting metrics metadata: %w", err)
 	}
 
 	seen := make(map[string]struct{})

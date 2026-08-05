@@ -10,8 +10,6 @@ import (
 
 const (
 	DBName                           = "siginsight_metrics"
-	UpdatedMetadataTableName         = "updated_metadata"
-	UpdatedMetadataLocalTableName    = "updated_metadata"
 	SamplesV4TableName               = "samples_v4"
 	SamplesV4LocalTableName          = "samples_v4"
 	SamplesV4Agg5mTableName          = "samples_v4_agg_5m"

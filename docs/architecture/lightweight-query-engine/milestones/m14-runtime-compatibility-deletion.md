@@ -34,7 +34,7 @@
 ### Metrics 元数据编辑
 
 - 删除 Metrics UI 中 description/unit/type/temporality/monotonicity 的编辑入口。
-- 删除 UpdateMetricMetadata HTTP、module、SQL 写入和写后缓存更新。
+- 删除 UpdateMetricMetadata HTTP、module、SQL 写入、历史覆盖表读取和写后缓存更新。
 - 保留元数据读取，因为 Summary、Metric Details、编译类型解析和自动补全仍消费它。
 
 ## 验收
@@ -74,3 +74,14 @@
   与编辑页分支。描述只接受静态文本；运行时仍自动附加标准 `value`、`threshold` 注解。
 - 保留阈值、评估窗口、缺失数据、最小点数、通知渠道和按 group-by 的通知分组。重通知使用
   Alertmanager 默认的 firing/no-data 4 小时间隔，不能按规则调整。
+
+### Metrics 元数据编辑
+
+- 删除 `POST /api/v5/metrics/{metric_name}/metadata`、其 OpenAPI/生成 client、模块写入、
+  前端表单、临时单位的保存提示和对应测试 mock。
+- `updated_metadata` 不再是读取优先级的一部分。查询服务和 Metrics Explorer 统一从采集的
+  `time_series_v4` 读取元数据，并仅缓存该结果；旧人工 type/unit/description 覆盖允许丢失。
+- Collector schema migration `siginsight_metrics/2001` 直接删除 `updated_metadata`。冻结的
+  v1 baseline 保持不变，因而新库会在 baseline 后立即执行该清理迁移。
+- Summary 和 Metric Details 的元数据显示、Lite compiler 类型解析、指标字段补全和临时 Y 轴
+  显示单位保持可用；前端不再能够修改采集端声明的类型或单位。

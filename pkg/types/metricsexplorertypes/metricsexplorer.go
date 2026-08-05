@@ -135,16 +135,6 @@ func (m *MetricMetadata) UnmarshalBinary(data []byte) error {
 	return json.Unmarshal(data, m)
 }
 
-// UpdateMetricMetadataRequest represents the payload for updating metric metadata.
-type UpdateMetricMetadataRequest struct {
-	MetricName  string                  `json:"metricName" required:"true"`
-	Type        metrictypes.Type        `json:"type" required:"true"`
-	Description string                  `json:"description" required:"true"`
-	Unit        string                  `json:"unit" required:"true"`
-	Temporality metrictypes.Temporality `json:"temporality" required:"true"`
-	IsMonotonic bool                    `json:"isMonotonic" required:"true"`
-}
-
 // TreemapRequest represents the payload for the metrics treemap endpoint.
 type TreemapRequest struct {
 	Filter *qbtypes.Filter `json:"filter,omitempty"`

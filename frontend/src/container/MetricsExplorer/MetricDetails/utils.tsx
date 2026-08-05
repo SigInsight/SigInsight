@@ -1,7 +1,5 @@
-import { UpdateMetricMetadataMutationBody } from 'api/generated/services/metrics';
 import {
 	GetMetricMetadata200,
-	MetrictypesTemporalityDTO,
 	MetrictypesTypeDTO,
 } from 'api/generated/services/sigNoz.schemas';
 import { SpaceAggregation, TimeAggregation } from 'api/v5/v5';
@@ -10,7 +8,7 @@ import { DataTypes } from 'types/api/queryBuilder/queryAutocompleteResponse';
 import { Query } from 'types/api/queryBuilder/queryBuilderData';
 import { DataSource, ReduceOperators } from 'types/common/queryBuilder';
 
-import { MetricMetadata, MetricMetadataFormState } from './types';
+import { MetricMetadata } from './types';
 
 export function formatTimestampToReadableDate(
 	timestamp: number | string | undefined,
@@ -58,28 +56,6 @@ export function formatNumberToCompactFormat(num: number | undefined): string {
 		notation: 'compact',
 		maximumFractionDigits: 1,
 	}).format(num);
-}
-
-export function determineIsMonotonic(
-	metricType: MetrictypesTypeDTO,
-	temporality?: MetrictypesTemporalityDTO,
-): boolean {
-	if (
-		metricType === MetrictypesTypeDTO.histogram ||
-		metricType === MetrictypesTypeDTO.exponentialhistogram
-	) {
-		return true;
-	}
-	if (
-		metricType === MetrictypesTypeDTO.gauge ||
-		metricType === MetrictypesTypeDTO.summary
-	) {
-		return false;
-	}
-	if (metricType === MetrictypesTypeDTO.sum) {
-		return temporality === MetrictypesTemporalityDTO.cumulative;
-	}
-	return false;
 }
 
 export function getMetricDetailsQuery(
@@ -205,23 +181,5 @@ export function transformMetricMetadata(
 		unit,
 		temporality,
 		isMonotonic,
-	};
-}
-
-export function transformUpdateMetricMetadataRequest(
-	metricName: string,
-	metricMetadata: MetricMetadataFormState,
-): UpdateMetricMetadataMutationBody {
-	return {
-		metricName: metricName,
-		type: metricMetadata.type,
-		description: metricMetadata.description,
-		unit: metricMetadata.unit,
-		temporality:
-			metricMetadata.temporality ?? MetrictypesTemporalityDTO.unspecified,
-		isMonotonic: determineIsMonotonic(
-			metricMetadata.type,
-			metricMetadata.temporality,
-		),
 	};
 }

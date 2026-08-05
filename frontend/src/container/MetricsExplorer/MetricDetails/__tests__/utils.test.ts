@@ -1,63 +1,9 @@
-import {
-	MetrictypesTemporalityDTO,
-	MetrictypesTypeDTO,
-} from 'api/generated/services/sigNoz.schemas';
+import { MetrictypesTypeDTO } from 'api/generated/services/sigNoz.schemas';
 import { ATTRIBUTE_TYPES } from 'constants/queryBuilder';
 
-import {
-	determineIsMonotonic,
-	formatTimestampToReadableDate,
-	getMetricDetailsQuery,
-} from '../utils';
+import { formatTimestampToReadableDate, getMetricDetailsQuery } from '../utils';
 
 describe('MetricDetails utils', () => {
-	describe('determineIsMonotonic', () => {
-		it('should return true for histogram metrics', () => {
-			expect(determineIsMonotonic(MetrictypesTypeDTO.histogram)).toBe(true);
-		});
-
-		it('should return true for exponential histogram metrics', () => {
-			expect(determineIsMonotonic(MetrictypesTypeDTO.exponentialhistogram)).toBe(
-				true,
-			);
-		});
-
-		it('should return false for gauge metrics', () => {
-			expect(determineIsMonotonic(MetrictypesTypeDTO.gauge)).toBe(false);
-		});
-
-		it('should return false for summary metrics', () => {
-			expect(determineIsMonotonic(MetrictypesTypeDTO.summary)).toBe(false);
-		});
-
-		it('should return true for sum metrics with cumulative temporality', () => {
-			expect(
-				determineIsMonotonic(
-					MetrictypesTypeDTO.sum,
-					MetrictypesTemporalityDTO.cumulative,
-				),
-			).toBe(true);
-		});
-
-		it('should return false for sum metrics with delta temporality', () => {
-			expect(
-				determineIsMonotonic(
-					MetrictypesTypeDTO.sum,
-					MetrictypesTemporalityDTO.delta,
-				),
-			).toBe(false);
-		});
-
-		it('should return false by default', () => {
-			expect(
-				determineIsMonotonic(
-					'' as MetrictypesTypeDTO,
-					'' as MetrictypesTemporalityDTO,
-				),
-			).toBe(false);
-		});
-	});
-
 	describe('formatTimestampToReadableDate', () => {
 		const FEW_SECONDS_AGO = 'Few seconds ago';
 

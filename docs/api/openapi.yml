@@ -678,28 +678,6 @@ components:
       - timeseries
       - samples
       type: object
-    MetricsexplorertypesUpdateMetricMetadataRequest:
-      properties:
-        description:
-          type: string
-        isMonotonic:
-          type: boolean
-        metricName:
-          type: string
-        temporality:
-          $ref: '#/components/schemas/MetrictypesTemporality'
-        type:
-          $ref: '#/components/schemas/MetrictypesType'
-        unit:
-          type: string
-      required:
-      - metricName
-      - type
-      - description
-      - unit
-      - temporality
-      - isMonotonic
-      type: object
     MetrictypesComparisonSpaceAggregationParam:
       properties:
         operator:
@@ -2833,59 +2811,6 @@ paths:
       - tokenizer:
         - VIEWER
       summary: Get metric metadata
-      tags:
-      - metrics
-    post:
-      deprecated: false
-      description: This endpoint helps to update metadata information like metric
-        description, unit, type, temporality, monotonicity for a specified metric
-      operationId: UpdateMetricMetadata
-      parameters:
-      - in: path
-        name: metric_name
-        required: true
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/MetricsexplorertypesUpdateMetricMetadataRequest'
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                type: string
-          description: OK
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Bad Request
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - tokenizer:
-        - EDITOR
-      summary: Update metric metadata
       tags:
       - metrics
   /api/v5/metrics/stats:

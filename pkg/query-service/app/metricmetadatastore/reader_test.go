@@ -77,11 +77,11 @@ func (c *fakeCache) DeleteMany(_ context.Context, _ valuer.UUID, keys []string) 
 	}
 }
 
-func TestGetMetricMetadataUsesSharedMetadataCache(t *testing.T) {
+func TestGetMetricMetadataUsesCollectedMetadataCache(t *testing.T) {
 	ctx := context.Background()
 	orgID := valuer.GenerateUUID()
 	cache := &fakeCache{data: map[string][]byte{}}
-	metadata := &model.UpdateMetricsMetadata{
+	metadata := &model.MetricMetadata{
 		MetricName:  "request.count",
 		MetricType:  querytypes.MetricTypeGauge,
 		Description: "Requests handled",
@@ -92,7 +92,7 @@ func TestGetMetricMetadataUsesSharedMetadataCache(t *testing.T) {
 	require.NoError(t, cache.Set(
 		ctx,
 		orgID,
-		constants.UpdatedMetricsMetadataCachePrefix+metadata.MetricName,
+		constants.MetricsMetadataCachePrefix+metadata.MetricName,
 		metadata,
 		0,
 	))
@@ -110,7 +110,7 @@ func TestGetMetricMetadataUsesSharedMetadataCache(t *testing.T) {
 	require.Empty(t, result.Le)
 }
 
-func TestGetUpdatedMetricsMetadataCachesFallbackResult(t *testing.T) {
+func TestGetMetricsMetadataCachesCollectedResult(t *testing.T) {
 	ctx := context.Background()
 	orgID := valuer.GenerateUUID()
 	cache := &fakeCache{data: map[string][]byte{}}
@@ -118,54 +118,30 @@ func TestGetUpdatedMetricsMetadataCachesFallbackResult(t *testing.T) {
 	reader := New(slog.New(slog.NewTextHandler(io.Discard, nil)), queryOnlyConn{
 		query: func(_ context.Context, query string, _ ...any) (driver.Rows, error) {
 			queries++
-			switch {
-			case strings.Contains(query, siginsightUpdatedMetricsMetadataTable):
-				return cmock.NewRows(metricMetadataColumns, nil), nil
-			case strings.Contains(query, siginsightTSTableNameV4):
-				return cmock.NewRows(metricMetadataColumns, [][]any{{"request.count", "Gauge", "Requests", "Cumulative", true, "requests"}}), nil
-			default:
-				t.Fatalf("unexpected query: %s", query)
-				return nil, nil
-			}
+			require.Contains(t, query, siginsightTSTableNameV4)
+			require.NotContains(t, query, "updated_metadata")
+			return cmock.NewRows(metricMetadataColumns, [][]any{{"request.count", "Gauge", "Requests", "Cumulative", true, "requests"}}), nil
 		},
 	}, cache)
 
-	metadata, apiErr := reader.GetUpdatedMetricsMetadata(ctx, orgID, "request.count")
-	require.Nil(t, apiErr)
+	metadata, err := reader.GetMetricsMetadata(ctx, orgID, "request.count")
+	require.NoError(t, err)
 	require.Equal(t, querytypes.MetricTypeGauge, metadata["request.count"].MetricType)
-	require.Equal(t, 2, queries)
+	require.Equal(t, 1, queries)
 
-	metadata, apiErr = reader.GetUpdatedMetricsMetadata(ctx, orgID, "request.count")
-	require.Nil(t, apiErr)
+	metadata, err = reader.GetMetricsMetadata(ctx, orgID, "request.count")
+	require.NoError(t, err)
 	require.Equal(t, "Requests", metadata["request.count"].Description)
-	require.Equal(t, 2, queries, "cached fallback metadata must avoid another ClickHouse query")
+	require.Equal(t, 1, queries, "cached metadata must avoid another ClickHouse query")
 }
 
-func TestGetUpdatedMetricsMetadataDoesNotFallbackWhenMetadataTableHasResult(t *testing.T) {
-	ctx := context.Background()
-	orgID := valuer.GenerateUUID()
-	cache := &fakeCache{data: map[string][]byte{}}
-	reader := New(slog.New(slog.NewTextHandler(io.Discard, nil)), queryOnlyConn{
-		query: func(_ context.Context, query string, _ ...any) (driver.Rows, error) {
-			require.Contains(t, query, siginsightUpdatedMetricsMetadataTable)
-			return cmock.NewRows(metricMetadataColumns, [][]any{{"system.cpu", "Gauge", "CPU", "Cumulative", false, "percent"}}), nil
-		},
-	}, cache)
-
-	metadata, apiErr := reader.GetUpdatedMetricsMetadata(ctx, orgID, "system.cpu")
-	require.Nil(t, apiErr)
-	require.Equal(t, "CPU", metadata["system.cpu"].Description)
-}
-
-func TestGetUpdatedMetricsMetadataBindsMetricNames(t *testing.T) {
+func TestGetMetricsMetadataBindsMetricNames(t *testing.T) {
 	ctx := context.Background()
 	orgID := valuer.GenerateUUID()
 	cache := &fakeCache{data: map[string][]byte{}}
 	metricName := "request'count"
-	queries := 0
 	reader := New(slog.New(slog.NewTextHandler(io.Discard, nil)), queryOnlyConn{
 		query: func(_ context.Context, query string, args ...any) (driver.Rows, error) {
-			queries++
 			require.Contains(t, query, "IN ({metric_names:Array(String)})")
 			require.NotContains(t, query, metricName)
 			require.Len(t, args, 1)
@@ -173,36 +149,29 @@ func TestGetUpdatedMetricsMetadataBindsMetricNames(t *testing.T) {
 			require.True(t, ok)
 			require.Equal(t, "metric_names", named.Name)
 			require.Equal(t, []string{metricName}, named.Value)
-
-			if strings.Contains(query, siginsightUpdatedMetricsMetadataTable) {
-				return cmock.NewRows(metricMetadataColumns, nil), nil
-			}
 			return cmock.NewRows(metricMetadataColumns, [][]any{{metricName, "Gauge", "Requests", "Cumulative", true, "requests"}}), nil
 		},
 	}, cache)
 
-	metadata, apiErr := reader.GetUpdatedMetricsMetadata(ctx, orgID, metricName)
-	require.Nil(t, apiErr)
-	require.Equal(t, 2, queries)
+	metadata, err := reader.GetMetricsMetadata(ctx, orgID, metricName)
+	require.NoError(t, err)
 	require.Equal(t, metricName, metadata[metricName].MetricName)
 }
 
-func TestGetUpdatedMetricsMetadataReturnsFallbackRowsError(t *testing.T) {
+func TestGetMetricsMetadataReturnsRowsError(t *testing.T) {
 	ctx := context.Background()
 	orgID := valuer.GenerateUUID()
 	cache := &fakeCache{data: map[string][]byte{}}
-	fallbackErr := errors.New("fallback stream interrupted")
+	queryErr := errors.New("collected metadata stream interrupted")
 	reader := New(slog.New(slog.NewTextHandler(io.Discard, nil)), queryOnlyConn{
 		query: func(_ context.Context, query string, _ ...any) (driver.Rows, error) {
-			if strings.Contains(query, siginsightUpdatedMetricsMetadataTable) {
-				return cmock.NewRows(metricMetadataColumns, nil), nil
-			}
-			return rowsWithError{Rows: cmock.NewRows(metricMetadataColumns, nil), err: fallbackErr}, nil
+			require.True(t, strings.Contains(query, siginsightTSTableNameV4))
+			return rowsWithError{Rows: cmock.NewRows(metricMetadataColumns, nil), err: queryErr}, nil
 		},
 	}, cache)
 
-	metadata, err := reader.GetUpdatedMetricsMetadata(ctx, orgID, "request.count")
+	metadata, err := reader.GetMetricsMetadata(ctx, orgID, "request.count")
 	require.Empty(t, metadata)
-	require.ErrorIs(t, err, fallbackErr)
-	require.ErrorContains(t, err, "error scanning fallback metadata")
+	require.ErrorIs(t, err, queryErr)
+	require.ErrorContains(t, err, "error scanning collected metrics metadata")
 }

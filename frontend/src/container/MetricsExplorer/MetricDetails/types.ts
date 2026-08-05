@@ -3,7 +3,6 @@ import {
 	MetricsexplorertypesMetricAttributeDTO,
 	MetricsexplorertypesMetricHighlightsResponseDTO,
 	MetricsexplorertypesMetricMetadataDTO,
-	MetrictypesTemporalityDTO,
 	MetrictypesTypeDTO,
 } from 'api/generated/services/sigNoz.schemas';
 
@@ -54,14 +53,6 @@ export type MetricHighlight = MetricsexplorertypesMetricHighlightsResponseDTO;
 export type MetricAlert = MetricsexplorertypesMetricAlertDTO;
 
 export type MetricMetadata = MetricsexplorertypesMetricMetadataDTO;
-export interface MetricMetadataFormState {
-	type: MetrictypesTypeDTO;
-	description: string;
-	temporality?: MetrictypesTemporalityDTO;
-	unit: string;
-	isMonotonic: boolean;
-}
-
 export type MetricAttribute = MetricsexplorertypesMetricAttributeDTO;
 
 export enum TableFields {

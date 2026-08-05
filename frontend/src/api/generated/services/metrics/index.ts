@@ -35,9 +35,7 @@ import type {
 	ListMetricsParams,
 	MetricsexplorertypesStatsRequestDTO,
 	MetricsexplorertypesTreemapRequestDTO,
-	MetricsexplorertypesUpdateMetricMetadataRequestDTO,
 	RenderErrorResponseDTO,
-	UpdateMetricMetadataPathParameters,
 } from '../sigNoz.schemas';
 
 /**
@@ -570,105 +568,6 @@ export const invalidateGetMetricMetadata = async (
 	return queryClient;
 };
 
-/**
- * This endpoint helps to update metadata information like metric description, unit, type, temporality, monotonicity for a specified metric
- * @summary Update metric metadata
- */
-export const updateMetricMetadata = (
-	{ metricName }: UpdateMetricMetadataPathParameters,
-	metricsexplorertypesUpdateMetricMetadataRequestDTO: BodyType<MetricsexplorertypesUpdateMetricMetadataRequestDTO>,
-	signal?: AbortSignal,
-) => {
-	return GeneratedAPIInstance<string>({
-		url: `/api/v5/metrics/${metricName}/metadata`,
-		method: 'POST',
-		headers: { 'Content-Type': 'application/json' },
-		data: metricsexplorertypesUpdateMetricMetadataRequestDTO,
-		signal,
-	});
-};
-
-export const getUpdateMetricMetadataMutationOptions = <
-	TError = ErrorType<RenderErrorResponseDTO>,
-	TContext = unknown
->(options?: {
-	mutation?: UseMutationOptions<
-		Awaited<ReturnType<typeof updateMetricMetadata>>,
-		TError,
-		{
-			pathParams: UpdateMetricMetadataPathParameters;
-			data: BodyType<MetricsexplorertypesUpdateMetricMetadataRequestDTO>;
-		},
-		TContext
-	>;
-}): UseMutationOptions<
-	Awaited<ReturnType<typeof updateMetricMetadata>>,
-	TError,
-	{
-		pathParams: UpdateMetricMetadataPathParameters;
-		data: BodyType<MetricsexplorertypesUpdateMetricMetadataRequestDTO>;
-	},
-	TContext
-> => {
-	const mutationKey = ['updateMetricMetadata'];
-	const { mutation: mutationOptions } = options
-		? options.mutation &&
-		  'mutationKey' in options.mutation &&
-		  options.mutation.mutationKey
-			? options
-			: { ...options, mutation: { ...options.mutation, mutationKey } }
-		: { mutation: { mutationKey } };
-
-	const mutationFn: MutationFunction<
-		Awaited<ReturnType<typeof updateMetricMetadata>>,
-		{
-			pathParams: UpdateMetricMetadataPathParameters;
-			data: BodyType<MetricsexplorertypesUpdateMetricMetadataRequestDTO>;
-		}
-	> = (props) => {
-		const { pathParams, data } = props ?? {};
-
-		return updateMetricMetadata(pathParams, data);
-	};
-
-	return { mutationFn, ...mutationOptions };
-};
-
-export type UpdateMetricMetadataMutationResult = NonNullable<
-	Awaited<ReturnType<typeof updateMetricMetadata>>
->;
-export type UpdateMetricMetadataMutationBody = BodyType<MetricsexplorertypesUpdateMetricMetadataRequestDTO>;
-export type UpdateMetricMetadataMutationError = ErrorType<RenderErrorResponseDTO>;
-
-/**
- * @summary Update metric metadata
- */
-export const useUpdateMetricMetadata = <
-	TError = ErrorType<RenderErrorResponseDTO>,
-	TContext = unknown
->(options?: {
-	mutation?: UseMutationOptions<
-		Awaited<ReturnType<typeof updateMetricMetadata>>,
-		TError,
-		{
-			pathParams: UpdateMetricMetadataPathParameters;
-			data: BodyType<MetricsexplorertypesUpdateMetricMetadataRequestDTO>;
-		},
-		TContext
-	>;
-}): UseMutationResult<
-	Awaited<ReturnType<typeof updateMetricMetadata>>,
-	TError,
-	{
-		pathParams: UpdateMetricMetadataPathParameters;
-		data: BodyType<MetricsexplorertypesUpdateMetricMetadataRequestDTO>;
-	},
-	TContext
-> => {
-	const mutationOptions = getUpdateMetricMetadataMutationOptions(options);
-
-	return useMutation(mutationOptions);
-};
 /**
  * This endpoint provides list of metrics with their number of samples and timeseries for the given time range
  * @summary Get metrics statistics
