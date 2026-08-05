@@ -85,7 +85,6 @@ const baseQuery: Query = {
 			},
 		],
 		queryFormulas: [],
-		queryTraceOperator: [],
 	},
 	clickhouse_sql: [],
 };
@@ -287,35 +286,5 @@ describe('LiteQueryBuilder routing', () => {
 				'This saved query uses capabilities that are not supported by the lightweight query engine.',
 			),
 		).not.toBeInTheDocument();
-	});
-
-	it('shows the migration boundary for an unsupported saved query', () => {
-		const context = renderBuilder({
-			...baseQuery,
-			builder: {
-				...baseQuery.builder,
-				queryTraceOperator: [
-					{ ...baseQuery.builder.queryData[0], expression: 'A -> B' },
-				],
-			},
-		});
-		expect(screen.queryByTestId('lite-query-builder')).not.toBeInTheDocument();
-		expect(
-			screen.getByText(
-				'This saved query uses capabilities that are not supported by the lightweight query engine.',
-			),
-		).toBeInTheDocument();
-		const replace = screen.getByRole('button', { name: 'Replace query' });
-		expect(replace).toBeInTheDocument();
-		fireEvent.click(replace);
-		expect(context.redirectWithQueryBuilderData).toHaveBeenCalledWith(
-			expect.objectContaining({
-				clickhouse_sql: [],
-				builder: expect.objectContaining({
-					queryFormulas: [],
-					queryTraceOperator: [],
-				}),
-			}),
-		);
 	});
 });

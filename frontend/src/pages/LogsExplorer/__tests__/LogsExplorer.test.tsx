@@ -187,7 +187,6 @@ describe('Logs Explorer Tests', () => {
 									initialQueryBuilderFormValues,
 									initialQueryBuilderFormValues,
 								],
-								queryTraceOperator: [],
 							},
 						},
 						setSupersetQuery: jest.fn(),

@@ -121,7 +121,6 @@ const mockWidget: Widgets = {
 		builder: {
 			queryData: [],
 			queryFormulas: [],
-			queryTraceOperator: [],
 		},
 		clickhouse_sql: [],
 		id: 'query-id',

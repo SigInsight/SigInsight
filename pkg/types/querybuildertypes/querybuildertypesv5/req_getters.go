@@ -5,19 +5,8 @@ import "github.com/SigNoz/signoz/pkg/types/telemetrytypes"
 // GetExpression returns the expression string.
 func (q *QueryEnvelope) GetExpression() string {
 	switch spec := q.Spec.(type) {
-	case QueryBuilderTraceOperator:
-		return spec.Expression
 	case QueryBuilderFormula:
 		return spec.Expression
-	}
-	return ""
-}
-
-// GetReturnSpansFrom returns the return-spans-from value.
-func (q *QueryEnvelope) GetReturnSpansFrom() string {
-	switch spec := q.Spec.(type) {
-	case QueryBuilderTraceOperator:
-		return spec.ReturnSpansFrom
 	}
 	return ""
 }
@@ -96,8 +85,6 @@ func (q *QueryEnvelope) GetOn() string {
 // GetQueryName returns the name of the spec.
 func (q *QueryEnvelope) GetQueryName() string {
 	switch spec := q.Spec.(type) {
-	case QueryBuilderTraceOperator:
-		return spec.Name
 	case QueryBuilderQuery[TraceAggregation]:
 		return spec.Name
 	case QueryBuilderQuery[LogAggregation]:
@@ -117,8 +104,6 @@ func (q *QueryEnvelope) GetQueryName() string {
 // IsDisabled returns whether the spec is disabled.
 func (q *QueryEnvelope) IsDisabled() bool {
 	switch spec := q.Spec.(type) {
-	case QueryBuilderTraceOperator:
-		return spec.Disabled
 	case QueryBuilderQuery[TraceAggregation]:
 		return spec.Disabled
 	case QueryBuilderQuery[LogAggregation]:
@@ -138,8 +123,6 @@ func (q *QueryEnvelope) IsDisabled() bool {
 // GetLimit returns the row limit.
 func (q *QueryEnvelope) GetLimit() int {
 	switch spec := q.Spec.(type) {
-	case QueryBuilderTraceOperator:
-		return spec.Limit
 	case QueryBuilderQuery[TraceAggregation]:
 		return spec.Limit
 	case QueryBuilderQuery[LogAggregation]:
@@ -157,8 +140,6 @@ func (q *QueryEnvelope) GetLimit() int {
 // GetOffset returns the row offset.
 func (q *QueryEnvelope) GetOffset() int {
 	switch spec := q.Spec.(type) {
-	case QueryBuilderTraceOperator:
-		return spec.Offset
 	case QueryBuilderQuery[TraceAggregation]:
 		return spec.Offset
 	case QueryBuilderQuery[LogAggregation]:
@@ -177,8 +158,6 @@ func (q *QueryEnvelope) GetType() QueryType {
 // GetOrder returns the order-by clauses.
 func (q *QueryEnvelope) GetOrder() []OrderBy {
 	switch spec := q.Spec.(type) {
-	case QueryBuilderTraceOperator:
-		return spec.Order
 	case QueryBuilderQuery[TraceAggregation]:
 		return spec.Order
 	case QueryBuilderQuery[LogAggregation]:
@@ -196,8 +175,6 @@ func (q *QueryEnvelope) GetOrder() []OrderBy {
 // GetGroupBy returns the group-by keys.
 func (q *QueryEnvelope) GetGroupBy() []GroupByKey {
 	switch spec := q.Spec.(type) {
-	case QueryBuilderTraceOperator:
-		return spec.GroupBy
 	case QueryBuilderQuery[TraceAggregation]:
 		return spec.GroupBy
 	case QueryBuilderQuery[LogAggregation]:
@@ -213,8 +190,6 @@ func (q *QueryEnvelope) GetGroupBy() []GroupByKey {
 // GetFilter returns the filter.
 func (q *QueryEnvelope) GetFilter() *Filter {
 	switch spec := q.Spec.(type) {
-	case QueryBuilderTraceOperator:
-		return spec.Filter
 	case QueryBuilderQuery[TraceAggregation]:
 		return spec.Filter
 	case QueryBuilderQuery[LogAggregation]:
@@ -230,8 +205,6 @@ func (q *QueryEnvelope) GetFilter() *Filter {
 // GetHaving returns the having clause.
 func (q *QueryEnvelope) GetHaving() *Having {
 	switch spec := q.Spec.(type) {
-	case QueryBuilderTraceOperator:
-		return spec.Having
 	case QueryBuilderQuery[TraceAggregation]:
 		return spec.Having
 	case QueryBuilderQuery[LogAggregation]:
@@ -249,8 +222,6 @@ func (q *QueryEnvelope) GetHaving() *Having {
 // GetFunctions returns the post-processing functions.
 func (q *QueryEnvelope) GetFunctions() []Function {
 	switch spec := q.Spec.(type) {
-	case QueryBuilderTraceOperator:
-		return spec.Functions
 	case QueryBuilderQuery[TraceAggregation]:
 		return spec.Functions
 	case QueryBuilderQuery[LogAggregation]:
@@ -268,8 +239,6 @@ func (q *QueryEnvelope) GetFunctions() []Function {
 // GetSelectFields returns the selected fields.
 func (q *QueryEnvelope) GetSelectFields() []telemetrytypes.TelemetryFieldKey {
 	switch spec := q.Spec.(type) {
-	case QueryBuilderTraceOperator:
-		return spec.SelectFields
 	case QueryBuilderQuery[TraceAggregation]:
 		return spec.SelectFields
 	case QueryBuilderQuery[LogAggregation]:
@@ -285,8 +254,6 @@ func (q *QueryEnvelope) GetSelectFields() []telemetrytypes.TelemetryFieldKey {
 // GetLegend returns the legend label.
 func (q *QueryEnvelope) GetLegend() string {
 	switch spec := q.Spec.(type) {
-	case QueryBuilderTraceOperator:
-		return spec.Legend
 	case QueryBuilderQuery[TraceAggregation]:
 		return spec.Legend
 	case QueryBuilderQuery[LogAggregation]:
@@ -304,8 +271,6 @@ func (q *QueryEnvelope) GetLegend() string {
 // GetCursor returns the pagination cursor.
 func (q *QueryEnvelope) GetCursor() string {
 	switch spec := q.Spec.(type) {
-	case QueryBuilderTraceOperator:
-		return spec.Cursor
 	case QueryBuilderQuery[TraceAggregation]:
 		return spec.Cursor
 	case QueryBuilderQuery[LogAggregation]:
@@ -319,8 +284,6 @@ func (q *QueryEnvelope) GetCursor() string {
 // GetStepInterval returns the step interval.
 func (q *QueryEnvelope) GetStepInterval() Step {
 	switch spec := q.Spec.(type) {
-	case QueryBuilderTraceOperator:
-		return spec.StepInterval
 	case QueryBuilderQuery[TraceAggregation]:
 		return spec.StepInterval
 	case QueryBuilderQuery[LogAggregation]:

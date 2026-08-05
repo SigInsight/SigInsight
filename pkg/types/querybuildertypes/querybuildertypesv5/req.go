@@ -49,12 +49,6 @@ type queryEnvelopeFormula struct {
 // 	Spec QueryBuilderJoin `json:"spec" description:"The join specification."`
 // }
 
-// queryEnvelopeTraceOperator is the OpenAPI schema for a QueryEnvelope with type=builder_trace_operator.
-type queryEnvelopeTraceOperator struct {
-	Type QueryType                 `json:"type" description:"The type of the query."`
-	Spec QueryBuilderTraceOperator `json:"spec" description:"The trace operator specification."`
-}
-
 // queryEnvelopeClickHouseSQL is the OpenAPI schema for a QueryEnvelope with type=clickhouse_sql.
 type queryEnvelopeClickHouseSQL struct {
 	Type QueryType       `json:"type" description:"The type of the query."`
@@ -72,7 +66,6 @@ func (QueryEnvelope) JSONSchemaOneOf() []any {
 		queryEnvelopeBuilderMetric{},
 		queryEnvelopeFormula{},
 		// queryEnvelopeJoin{},
-		queryEnvelopeTraceOperator{},
 		queryEnvelopeClickHouseSQL{},
 	}
 }
@@ -148,13 +141,6 @@ func (q *QueryEnvelope) UnmarshalJSON(data []byte) error {
 		}
 		q.Spec = spec
 
-	case QueryTypeTraceOperator:
-		var spec QueryBuilderTraceOperator
-		if err := json.Unmarshal(shadow.Spec, &spec); err != nil {
-			return wrapUnmarshalError(err, "invalid trace operator spec: %v", err)
-		}
-		q.Spec = spec
-
 	case QueryTypeClickHouseSQL:
 		var spec ClickHouseQuery
 		// TODO(srikanthccv): use json.Unmarshal here after implementing custom unmarshaler for ClickHouseQuery
@@ -169,7 +155,7 @@ func (q *QueryEnvelope) UnmarshalJSON(data []byte) error {
 			"unknown query type %q",
 			shadow.Type,
 		).WithAdditional(
-			"Valid query types are: builder_query, builder_sub_query, builder_formula, builder_join, builder_trace_operator, clickhouse_sql",
+			"Valid query types are: builder_query, builder_sub_query, builder_formula, builder_join, clickhouse_sql",
 		)
 	}
 
@@ -400,8 +386,7 @@ func (q *QueryEnvelope) UseDefaultOrderByForListQuery() {
 	}
 
 	switch q.Spec.(type) {
-	case QueryBuilderQuery[TraceAggregation],
-		QueryBuilderTraceOperator:
+	case QueryBuilderQuery[TraceAggregation]:
 		q.SetOrder(
 			[]OrderBy{
 				{
@@ -489,16 +474,6 @@ func (r *QueryRangeRequest) IsAnomalyRequest() (*QueryBuilderQuery[MetricAggrega
 	}
 
 	return &q, hasAnomaly
-}
-
-func (r *QueryRangeRequest) TraceOperatorQueryIndex() int {
-	for idx, query := range r.CompositeQuery.Queries {
-		switch query.Spec.(type) {
-		case QueryBuilderTraceOperator:
-			return idx
-		}
-	}
-	return -1
 }
 
 // We do not support fill gaps for these queries. Maybe support in future?

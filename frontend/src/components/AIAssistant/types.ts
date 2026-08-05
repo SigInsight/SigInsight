@@ -52,7 +52,6 @@ export type AIAssistantContextSnapshot = {
 	visibleDataSummary?: AIAssistantVisibleDataSummary;
 	queryCount: number;
 	formulaCount: number;
-	traceOperatorCount: number;
 	queries: AIAssistantQuerySummary[];
 	capturedAt: number;
 };

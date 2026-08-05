@@ -133,7 +133,6 @@ function buildContextSummary(
 		},
 		queryCount: currentQuery.builder.queryData.length,
 		formulaCount: currentQuery.builder.queryFormulas.length,
-		traceOperatorCount: currentQuery.builder.queryTraceOperator.length,
 		queries,
 		capturedAt: Date.now(),
 	};

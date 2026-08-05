@@ -5,7 +5,6 @@ import getStep from 'lib/getStep';
 import {
 	IBuilderFormula,
 	IBuilderQuery,
-	IBuilderTraceOperator,
 	IClickHouseQuery,
 } from 'types/api/queryBuilder/queryBuilderData';
 
@@ -52,9 +51,7 @@ export const getUpdatedStepInterval = (evalWindow?: string): number => {
 };
 
 export const getSelectedQueryOptions = (
-	queries: Array<
-		IBuilderQuery | IBuilderTraceOperator | IBuilderFormula | IClickHouseQuery
-	>,
+	queries: Array<IBuilderQuery | IBuilderFormula | IClickHouseQuery>,
 ): SelectProps['options'] =>
 	queries
 		.filter((query) => !query.disabled)

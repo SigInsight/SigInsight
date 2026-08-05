@@ -182,9 +182,6 @@ export function QueryBuilderProvider({
 					...initialFormulaBuilderFormValues,
 					...item,
 				})),
-				// Retain persisted values until the V5 boundary rejects the retired
-				// feature; the editor deliberately exposes no way to create or alter them.
-				queryTraceOperator: query.builder.queryTraceOperator || [],
 			};
 
 			const setupedQueryData = builder.queryData.map((item) => {

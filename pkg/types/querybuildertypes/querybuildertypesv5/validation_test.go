@@ -283,28 +283,6 @@ func TestQueryRangeRequest_ValidateAllQueriesNotDisabled(t *testing.T) {
 			wantErr: true,
 			errMsg:  "all queries are disabled - at least one query must be enabled",
 		},
-		{
-			name: "trace operator query is rejected even when disabled",
-			request: QueryRangeRequest{
-				Start:       1640995200000,
-				End:         1640998800000,
-				RequestType: RequestTypeTimeSeries,
-				CompositeQuery: CompositeQuery{
-					Queries: []QueryEnvelope{
-						{
-							Type: QueryTypeTraceOperator,
-							Spec: QueryBuilderTraceOperator{
-								Name:       "TO1",
-								Expression: "count()",
-								Disabled:   true,
-							},
-						},
-					},
-				},
-			},
-			wantErr: true,
-			errMsg:  "trace operator queries are no longer supported",
-		},
 	}
 
 	for _, tt := range tests {
@@ -504,27 +482,6 @@ func TestQueryRangeRequest_ValidateCompositeQuery(t *testing.T) {
 			errMsg:  "ClickHouse SQL query is required",
 		},
 		{
-			name: "trace operator with empty expression is retired before syntax validation",
-			request: QueryRangeRequest{
-				Start:       1640995200000,
-				End:         1640998800000,
-				RequestType: RequestTypeTimeSeries,
-				CompositeQuery: CompositeQuery{
-					Queries: []QueryEnvelope{
-						{
-							Type: QueryTypeTraceOperator,
-							Spec: QueryBuilderTraceOperator{
-								Name:       "TO1",
-								Expression: "",
-							},
-						},
-					},
-				},
-			},
-			wantErr: true,
-			errMsg:  "trace operator queries are no longer supported",
-		},
-		{
 			name: "valid clickhouse query should pass",
 			request: QueryRangeRequest{
 				Start:       1640995200000,
@@ -661,32 +618,6 @@ func TestValidateQueryEnvelope(t *testing.T) {
 			wantErr:     false,
 		},
 		{
-			name: "trace operator is retired",
-			envelope: QueryEnvelope{
-				Type: QueryTypeTraceOperator,
-				Spec: QueryBuilderTraceOperator{
-					Name:       "TO1",
-					Expression: "count()",
-				},
-			},
-			requestType: RequestTypeTimeSeries,
-			wantErr:     true,
-			errMsg:      "trace operator queries are no longer supported",
-		},
-		{
-			name: "retired trace operator rejects before expression validation",
-			envelope: QueryEnvelope{
-				Type: QueryTypeTraceOperator,
-				Spec: QueryBuilderTraceOperator{
-					Name:       "TO1",
-					Expression: "",
-				},
-			},
-			requestType: RequestTypeTimeSeries,
-			wantErr:     true,
-			errMsg:      "trace operator queries are no longer supported",
-		},
-		{
 			name: "clickhouse with empty query should fail",
 			envelope: QueryEnvelope{
 				Type: QueryTypeClickHouseSQL,
@@ -754,11 +685,6 @@ func TestQueryEnvelope_Helpers(t *testing.T) {
 				want:     "CH1",
 			},
 			{
-				name:     "trace operator",
-				envelope: QueryEnvelope{Type: QueryTypeTraceOperator, Spec: QueryBuilderTraceOperator{Name: "TO1"}},
-				want:     "TO1",
-			},
-			{
 				name:     "join",
 				envelope: QueryEnvelope{Type: QueryTypeJoin, Spec: QueryBuilderJoin{Name: "J1"}},
 				want:     "J1",
@@ -803,11 +729,6 @@ func TestQueryEnvelope_Helpers(t *testing.T) {
 			{
 				name:     "disabled clickhouse",
 				envelope: QueryEnvelope{Type: QueryTypeClickHouseSQL, Spec: ClickHouseQuery{Disabled: true}},
-				want:     true,
-			},
-			{
-				name:     "disabled trace operator",
-				envelope: QueryEnvelope{Type: QueryTypeTraceOperator, Spec: QueryBuilderTraceOperator{Disabled: true}},
 				want:     true,
 			},
 			{
@@ -863,12 +784,6 @@ func TestGetQueryIdentifier(t *testing.T) {
 			envelope: QueryEnvelope{Type: QueryTypeClickHouseSQL, Spec: ClickHouseQuery{Name: "CH1"}},
 			index:    0,
 			want:     "ClickHouse query 'CH1'",
-		},
-		{
-			name:     "trace operator with name",
-			envelope: QueryEnvelope{Type: QueryTypeTraceOperator, Spec: QueryBuilderTraceOperator{Name: "TO1"}},
-			index:    0,
-			want:     "trace operator 'TO1'",
 		},
 		{
 			name:     "join without name",

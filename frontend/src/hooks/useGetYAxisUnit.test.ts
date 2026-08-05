@@ -41,7 +41,6 @@ function createMockCurrentQuery(
 		builder: {
 			queryData,
 			queryFormulas: [],
-			queryTraceOperator: [],
 		},
 		clickhouse_sql: [],
 		id: 'test-id',

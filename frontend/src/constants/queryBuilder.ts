@@ -53,7 +53,6 @@ export const MAX_QUERIES = 26;
 
 // Compatibility marker for decoding saved V5 queries. The editor no longer
 // creates Trace Operator entries and the backend rejects them at execution.
-export const TRACE_OPERATOR_QUERY_NAME = 'Trace Operator';
 
 export const idDivider = '--';
 export const selectValueDivider = '__';
@@ -277,7 +276,6 @@ export const initialClickHouseData: IClickHouseQuery = {
 export const initialQueryBuilderData: QueryBuilderData = {
 	queryData: [initialQueryBuilderFormValues],
 	queryFormulas: [],
-	queryTraceOperator: [],
 };
 
 export const initialSingleQueryMap: Record<

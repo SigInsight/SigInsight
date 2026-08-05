@@ -69,7 +69,6 @@ export function getWidgetQuery(
 			builder: {
 				queryData: props.queryData,
 				queryFormulas: (props.queryFormulas as IBuilderFormula[]) || [],
-				queryTraceOperator: [],
 			},
 			clickhouse_sql: [],
 			id: uuid(),

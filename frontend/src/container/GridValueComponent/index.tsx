@@ -45,7 +45,6 @@ function GridValueComponent({
 			builder: {
 				queryFormulas: [],
 				queryData: [],
-				queryTraceOperator: [],
 			},
 			clickhouse_sql: [],
 			id: '',

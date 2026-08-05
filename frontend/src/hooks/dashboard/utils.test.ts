@@ -62,7 +62,6 @@ const createMockClickHouseWidget = (
 		builder: {
 			queryData: [],
 			queryFormulas: [],
-			queryTraceOperator: [],
 		},
 		clickhouse_sql: clickhouseQueries,
 		id: 'query-1',
@@ -94,7 +93,6 @@ const createMockQueryBuilderWidget = (
 		builder: {
 			queryData: [queryData],
 			queryFormulas: [],
-			queryTraceOperator: [],
 		},
 		clickhouse_sql: [],
 		id: 'query-1',

@@ -224,7 +224,6 @@ describe('TableViewActions', () => {
 					},
 				],
 				queryFormulas: [],
-				queryTraceOperator: [],
 			},
 			clickhouse_sql: [],
 		};

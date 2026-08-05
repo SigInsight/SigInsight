@@ -1,11 +1,10 @@
 {
-  "version": 4,
+  "version": 5,
   "endpoint": "/api/v5/query_range",
   "resultTypes": ["raw", "trace", "time_series", "scalar"],
   "queryTypes": {
     "builder_query": "supported_subset",
     "builder_formula": "arithmetic_only",
-    "builder_trace_operator": "rejected",
     "builder_join": "rejected",
     "builder_sub_query": "rejected",
     "clickhouse_sql": "rejected"

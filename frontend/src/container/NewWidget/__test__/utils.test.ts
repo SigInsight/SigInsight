@@ -32,7 +32,6 @@ const buildSupersetQuery = (extras?: Record<string, unknown>): Query => ({
 				...(extras || {}),
 			},
 		],
-		queryTraceOperator: [],
 	},
 });
 

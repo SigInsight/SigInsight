@@ -19,7 +19,6 @@ function buildQuery(overrides: Partial<Query> = {}): Query {
 		builder: {
 			queryData: [],
 			queryFormulas: [],
-			queryTraceOperator: [],
 		},
 		clickhouse_sql: [],
 		...overrides,
@@ -34,7 +33,6 @@ describe('useGetQueryLabels', () => {
 				builder: {
 					queryData: [],
 					queryFormulas: (undefined as unknown) as IBuilderFormula[],
-					queryTraceOperator: [],
 				},
 			});
 
@@ -52,7 +50,6 @@ describe('useGetQueryLabels', () => {
 						({ queryName: 'F1' } as unknown) as IBuilderFormula,
 						({ queryName: 'F2' } as unknown) as IBuilderFormula,
 					],
-					queryTraceOperator: [],
 				},
 			});
 

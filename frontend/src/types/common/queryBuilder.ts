@@ -6,7 +6,6 @@ import { Format } from 'features/query-visualization/types';
 import {
 	IBuilderFormula,
 	IBuilderQuery,
-	IBuilderTraceOperator,
 	IClickHouseQuery,
 	Query,
 	QueryState,
@@ -229,7 +228,6 @@ export enum ReduceOperators {
 export type QueryBuilderData = {
 	queryData: IBuilderQuery[];
 	queryFormulas: IBuilderFormula[];
-	queryTraceOperator: IBuilderTraceOperator[];
 };
 
 export type QueryBuilderContextType = {

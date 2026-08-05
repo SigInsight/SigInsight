@@ -1,5 +1,4 @@
 import { CharStreams, CommonTokenStream } from 'antlr4';
-import { PANEL_TYPES } from 'constants/queryBuilder';
 import FilterQueryLexer from 'parser/FilterQueryLexer';
 import { IQueryPair } from 'types/antlrQueryTypes';
 import {
@@ -8,12 +7,9 @@ import {
 } from 'types/api/queryBuilder/queryAutocompleteResponse';
 import {
 	IBuilderFormula,
-	IBuilderQuery,
-	Query,
 	TagFilter,
 	TagFilterItem,
 } from 'types/api/queryBuilder/queryBuilderData';
-import { DataSource } from 'types/common/queryBuilder';
 import { extractQueryPairs } from 'utils/queryContextUtils';
 import { validateQuery } from 'utils/queryValidationUtils';
 import { isQuoted, unquote } from 'utils/stringUtils';
@@ -75,15 +71,6 @@ export function getLiteFilterOperatorsForField(
 	});
 }
 
-const logAggregations = new Set(['count', 'sum', 'avg', 'min', 'max']);
-const traceAggregations = new Set([
-	'count',
-	'duration_avg',
-	'duration_p50',
-	'duration_p90',
-	'duration_p95',
-	'duration_p99',
-]);
 const gaugeAggregations = new Set(['latest', 'avg', 'min', 'max']);
 const sumAggregations = new Set(['sum', 'rate', 'increase']);
 const histogramAggregations = new Set(['p50', 'p90', 'p95', 'p99']);
@@ -487,122 +474,6 @@ export function parseLiteFilterExpression(
 	return { filters: { items, op: booleanShape.join }, ok: true };
 }
 
-export function isLiteFilterSet(filters: TagFilter | undefined): boolean {
-	return Boolean(
-		filters &&
-			(filters.op === 'AND' || filters.op === 'OR') &&
-			Array.isArray(filters.items) &&
-			filters.items.every(
-				(filter) =>
-					// A newly added filter has no field yet. Keep that transient edit in
-					// the Lite UI instead of switching editors between keystrokes. The
-					// same applies after the field is typed but before its value is
-					// entered; the value is an editor intermediate state.
-					!filter.key?.key || allowedFilterOperators.has(filter.op),
-			),
-	);
-}
-
-export function createLiteFilter(
-	key: string,
-	op = '=',
-	value: TagFilterItem['value'] = '',
-): TagFilterItem {
-	return {
-		id: `lite-${key}-${op}`,
-		key: { id: key, key, dataType: DataTypes.EMPTY, type: '' },
-		op,
-		value,
-	};
-}
-
-function hasAdvancedHaving(query: IBuilderQuery): boolean {
-	if (Array.isArray(query.having)) {
-		return query.having.length > 0;
-	}
-	return Boolean(query.having?.expression?.trim());
-}
-
-function supportedLogOrTraceAggregation(query: IBuilderQuery): boolean {
-	if (query.dataSource === DataSource.LOGS) {
-		const expression =
-			query.aggregations?.[0] && 'expression' in query.aggregations[0]
-				? query.aggregations[0].expression.replace(/\s/g, '').toLowerCase()
-				: 'count()';
-		if (expression === 'count()') {
-			return true;
-		}
-		const match = expression.match(/^(sum|avg|min|max)\(([^()]+)\)$/);
-		return Boolean(match && logAggregations.has(match[1]));
-	}
-	const expression =
-		query.aggregations?.[0] && 'expression' in query.aggregations[0]
-			? query.aggregations[0].expression.replace(/\s/g, '').toLowerCase()
-			: 'count()';
-	if (expression === 'count()') {
-		return true;
-	}
-	return traceAggregations.has(
-		expression
-			.replace('avg(duration_nano)', 'duration_avg')
-			.replace('p50(duration_nano)', 'duration_p50')
-			.replace('p90(duration_nano)', 'duration_p90')
-			.replace('p95(duration_nano)', 'duration_p95')
-			.replace('p99(duration_nano)', 'duration_p99'),
-	);
-}
-
-function supportedMetricAggregation(query: IBuilderQuery): boolean {
-	const aggregation = query.aggregations?.[0];
-	if (!aggregation || !('timeAggregation' in aggregation)) {
-		return false;
-	}
-	const type = String(
-		query.aggregateAttribute?.type || '',
-	).toLowerCase() as LiteMetricType;
-	return getLiteMetricAggregationOptions(
-		type,
-		query.source === 'meter',
-	).includes(aggregation.timeAggregation);
-}
-
-function hasSupportedLiteFilterState(query: IBuilderQuery): boolean {
-	if (query.filters && !isLiteFilterSet(query.filters)) {
-		return false;
-	}
-	const expression = query.filter?.expression?.trim() || '';
-	if (!expression) {
-		return true;
-	}
-	const parsed = parseLiteFilterExpression(expression);
-	if (!parsed.ok) {
-		return false;
-	}
-	if (!query.filters?.items?.length) {
-		return true;
-	}
-	return (
-		toLiteFilterExpression(parsed.filters) ===
-		toLiteFilterExpression(query.filters)
-	);
-}
-
-export function isLiteBuilderQuery(query: IBuilderQuery): boolean {
-	if (
-		(query.functions?.length ?? 0) > 0 ||
-		hasAdvancedHaving(query) ||
-		(query.orderBy?.length ?? 0) > 1 ||
-		(query.limit !== null && query.limit < 0) ||
-		!hasSupportedLiteFilterState(query)
-	) {
-		return false;
-	}
-	if (query.dataSource === DataSource.METRICS) {
-		return supportedMetricAggregation(query);
-	}
-	return supportedLogOrTraceAggregation(query);
-}
-
 type FormulaToken = {
 	type: 'identifier' | 'number' | 'operator' | 'leftParen' | 'rightParen';
 	value: string;
@@ -695,42 +566,5 @@ export function isLiteFormula(formula: IBuilderFormula): boolean {
 		!formula.orderBy?.length &&
 		!formula.having?.length &&
 		(!expression || isLiteFormulaExpression(expression))
-	);
-}
-
-export function isLitePanelType(panelType: PANEL_TYPES): boolean {
-	return [
-		PANEL_TYPES.TIME_SERIES,
-		PANEL_TYPES.TABLE,
-		PANEL_TYPES.VALUE,
-		PANEL_TYPES.LIST,
-		PANEL_TYPES.TRACE,
-	].includes(panelType);
-}
-
-export function isLiteQueryState(
-	query: Query,
-	panelType: PANEL_TYPES,
-): boolean {
-	const traceOperators = query.builder.queryTraceOperator ?? [];
-	const queryData = query.builder.queryData ?? [];
-	const queryFormulas = query.builder.queryFormulas ?? [];
-	const isRawPanel =
-		panelType === PANEL_TYPES.LIST || panelType === PANEL_TYPES.TRACE;
-	const isTimeSeriesPanel = panelType === PANEL_TYPES.TIME_SERIES;
-	return (
-		isLitePanelType(panelType) &&
-		traceOperators.length === 0 &&
-		queryData.length > 0 &&
-		// Raw/trace views have a single row stream and cannot present multiple
-		// independent query results. Aggregate panels render every Lite query.
-		(!isRawPanel || queryData.length === 1) &&
-		queryData.every(
-			(builderQuery) =>
-				isLiteBuilderQuery(builderQuery) &&
-				(!isTimeSeriesPanel || builderQuery.limit == null),
-		) &&
-		(!isRawPanel || queryFormulas.length === 0) &&
-		queryFormulas.every(isLiteFormula)
 	);
 }

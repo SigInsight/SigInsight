@@ -266,6 +266,20 @@ Explorer、详情页和保存查询兼容层使用的 DTO、状态、自动补�
 
 提交锚点：`refactor(visualization): consolidate panel rendering boundary`
 
+## M14：删除运行时兼容与不可达产品残留
+
+状态：进行中。
+
+允许直接丢弃旧 Saved View、旧 Alert JSON 和 Dashboard 状态；删除旧查询迁移、无生产
+状态源的 Dashboard 逻辑、Alert 旧 schema/renotification/高级模板，以及 Metrics 元数据
+写路径。保留当前 Lite V5 查询、Saved View CRUD、基础 threshold alert、元数据读取和共享
+Panel 渲染。
+
+设计边界和验收矩阵见
+[M14 阶段文档](milestones/m14-runtime-compatibility-deletion.md)。
+
+提交锚点：`refactor(core): remove runtime compatibility and unreachable product state`
+
 ## 阶段提交准则
 
 每个生产代码提交至少满足一项：

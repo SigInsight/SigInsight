@@ -118,11 +118,7 @@ export const getLegend = (
 		return labelName;
 	}
 
-	// Combine queryData and queryTraceOperator
-	const allQueries = [
-		...(payloadQuery?.builder?.queryData || []),
-		...(payloadQuery?.builder?.queryTraceOperator || []),
-	];
+	const allQueries = payloadQuery?.builder?.queryData || [];
 
 	const aggregationPerQuery = allQueries.reduce((acc, query) => {
 		if (query.queryName === queryData.queryName) {

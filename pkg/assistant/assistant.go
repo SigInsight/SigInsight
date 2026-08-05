@@ -77,7 +77,6 @@ type ContextSnapshot struct {
 	VisibleDataSummary *VisibleDataSummary `json:"visibleDataSummary,omitempty"`
 	QueryCount         int                 `json:"queryCount"`
 	FormulaCount       int                 `json:"formulaCount"`
-	TraceOperatorCount int                 `json:"traceOperatorCount"`
 	Queries            []QuerySummary      `json:"queries"`
 	CapturedAt         int64               `json:"capturedAt"`
 }

@@ -63,8 +63,6 @@ components:
           $ref: '#/components/schemas/AssistantSelectedEntity'
         timeRange:
           $ref: '#/components/schemas/AssistantTimeRange'
-        traceOperatorCount:
-          type: integer
         visibleDataSummary:
           $ref: '#/components/schemas/AssistantVisibleDataSummary'
       type: object
@@ -1225,51 +1223,6 @@ components:
         stepInterval:
           $ref: '#/components/schemas/Querybuildertypesv5Step'
       type: object
-    Querybuildertypesv5QueryBuilderTraceOperator:
-      properties:
-        aggregations:
-          items:
-            $ref: '#/components/schemas/Querybuildertypesv5TraceAggregation'
-          type: array
-        cursor:
-          type: string
-        disabled:
-          type: boolean
-        expression:
-          type: string
-        filter:
-          $ref: '#/components/schemas/Querybuildertypesv5Filter'
-        functions:
-          items:
-            $ref: '#/components/schemas/Querybuildertypesv5Function'
-          type: array
-        groupBy:
-          items:
-            $ref: '#/components/schemas/Querybuildertypesv5GroupByKey'
-          type: array
-        having:
-          $ref: '#/components/schemas/Querybuildertypesv5Having'
-        legend:
-          type: string
-        limit:
-          type: integer
-        name:
-          type: string
-        offset:
-          type: integer
-        order:
-          items:
-            $ref: '#/components/schemas/Querybuildertypesv5OrderBy'
-          type: array
-        returnSpansFrom:
-          type: string
-        selectFields:
-          items:
-            $ref: '#/components/schemas/TelemetrytypesTelemetryFieldKey'
-          type: array
-        stepInterval:
-          $ref: '#/components/schemas/Querybuildertypesv5Step'
-      type: object
     Querybuildertypesv5QueryData:
       oneOf:
       - $ref: '#/components/schemas/Querybuildertypesv5TimeSeriesData'
@@ -1287,7 +1240,6 @@ components:
       - $ref: '#/components/schemas/Querybuildertypesv5QueryEnvelopeBuilderLog'
       - $ref: '#/components/schemas/Querybuildertypesv5QueryEnvelopeBuilderMetric'
       - $ref: '#/components/schemas/Querybuildertypesv5QueryEnvelopeFormula'
-      - $ref: '#/components/schemas/Querybuildertypesv5QueryEnvelopeTraceOperator'
       - $ref: '#/components/schemas/Querybuildertypesv5QueryEnvelopeClickHouseSQL'
       properties:
         spec: {}
@@ -1326,13 +1278,6 @@ components:
       properties:
         spec:
           $ref: '#/components/schemas/Querybuildertypesv5QueryBuilderFormula'
-        type:
-          $ref: '#/components/schemas/Querybuildertypesv5QueryType'
-      type: object
-    Querybuildertypesv5QueryEnvelopeTraceOperator:
-      properties:
-        spec:
-          $ref: '#/components/schemas/Querybuildertypesv5QueryBuilderTraceOperator'
         type:
           $ref: '#/components/schemas/Querybuildertypesv5QueryType'
       type: object
@@ -1381,7 +1326,6 @@ components:
       enum:
       - builder_query
       - builder_formula
-      - builder_trace_operator
       - clickhouse_sql
       type: string
     Querybuildertypesv5QueryWarnData:

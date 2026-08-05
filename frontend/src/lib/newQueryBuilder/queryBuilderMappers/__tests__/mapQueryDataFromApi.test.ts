@@ -121,7 +121,6 @@ describe('mapQueryDataFromApi', () => {
 
 		expect(output.builder.queryData).toEqual([]);
 		expect(output.builder.queryFormulas).toEqual([]);
-		expect(output.builder.queryTraceOperator).toEqual([]);
 		expect(output.clickhouse_sql).toEqual([]);
 	});
 });

@@ -11,11 +11,8 @@ import { EQueryType } from 'types/common/dashboard';
 import { DataSource } from 'types/common/queryBuilder';
 
 import {
-	createLiteFilter,
 	getLiteMetricAggregationOptions,
-	isLiteFilterSet,
 	isLiteFormula,
-	isLiteQueryState,
 	parseLiteFilterExpression,
 	toLiteFilterExpression,
 } from './capabilities';
@@ -42,9 +39,22 @@ const baseQuery: IBuilderQuery = {
 const baseState: Query = {
 	id: 'lite-test',
 	queryType: EQueryType.QUERY_BUILDER,
-	builder: { queryData: [baseQuery], queryFormulas: [], queryTraceOperator: [] },
+	builder: { queryData: [baseQuery], queryFormulas: [] },
 	clickhouse_sql: [],
 };
+
+function createLiteFilter(
+	key: string,
+	op = '=',
+	value: TagFilter['items'][number]['value'] = '',
+): TagFilter['items'][number] {
+	return {
+		id: `test-${key}-${op}`,
+		key: { id: key, key, dataType: DataTypes.EMPTY, type: '' },
+		op,
+		value,
+	};
+}
 
 function setFilterFieldMetadata(
 	filter: TagFilter['items'][number],
@@ -222,140 +232,6 @@ describe('lightweight query capabilities', () => {
 		},
 	);
 
-	it('keeps a filter in Lite state while its value is being entered', () => {
-		expect(
-			isLiteFilterSet({
-				items: [createLiteFilter('severity_text')],
-				op: 'AND',
-			}),
-		).toBe(true);
-	});
-
-	it('keeps advanced saved state out of the Lite editor', () => {
-		expect(isLiteQueryState(baseState, PANEL_TYPES.TIME_SERIES)).toBe(true);
-		expect(
-			isLiteQueryState(
-				{
-					...baseState,
-					builder: {
-						...baseState.builder,
-						queryData: [baseQuery, { ...baseQuery, queryName: 'B' }],
-						queryFormulas: [
-							{
-								queryName: 'F1',
-								expression: 'A + B',
-								disabled: false,
-								legend: '',
-							},
-						],
-					},
-				},
-				PANEL_TYPES.TIME_SERIES,
-			),
-		).toBe(true);
-		expect(
-			isLiteQueryState(
-				{
-					...baseState,
-					builder: {
-						...baseState.builder,
-						queryData: [baseQuery, { ...baseQuery, queryName: 'B' }],
-					},
-				},
-				PANEL_TYPES.LIST,
-			),
-		).toBe(false);
-		expect(
-			isLiteQueryState(
-				{
-					...baseState,
-					builder: {
-						...baseState.builder,
-						queryData: [{ ...baseQuery, functions: [{ name: 'ewma3', args: [] }] }],
-					},
-				},
-				PANEL_TYPES.TIME_SERIES,
-			),
-		).toBe(false);
-		expect(
-			isLiteQueryState(
-				{
-					...baseState,
-					builder: {
-						...baseState.builder,
-						queryTraceOperator: [{ ...baseQuery, expression: 'A -> B' }],
-					},
-				},
-				PANEL_TYPES.TIME_SERIES,
-			),
-		).toBe(false);
-		expect(
-			isLiteQueryState(
-				{
-					...baseState,
-					builder: {
-						...baseState.builder,
-						queryData: [{ ...baseQuery, aggregations: [{ expression: 'sum(' }] }],
-					},
-				},
-				PANEL_TYPES.TIME_SERIES,
-			),
-		).toBe(false);
-	});
-
-	it('accepts historical builder queries that omit optional editor fields', () => {
-		const historicalQuery = ({
-			...baseQuery,
-			functions: undefined,
-			filters: undefined,
-			orderBy: undefined,
-		} as unknown) as IBuilderQuery;
-		const historicalState = ({
-			...baseState,
-			builder: {
-				queryData: [historicalQuery],
-				queryFormulas: undefined,
-				queryTraceOperator: undefined,
-			},
-		} as unknown) as Query;
-
-		expect(isLiteQueryState(historicalState, PANEL_TYPES.TIME_SERIES)).toBe(true);
-	});
-
-	it('accepts expression-only filters but rejects conflicting dual filter state', () => {
-		const expressionOnly = {
-			...baseState,
-			builder: {
-				...baseState.builder,
-				queryData: [
-					{
-						...baseQuery,
-						filter: { expression: "severity_text = 'ERROR'" },
-						filters: undefined,
-					},
-				],
-			},
-		};
-		expect(isLiteQueryState(expressionOnly, PANEL_TYPES.TIME_SERIES)).toBe(true);
-
-		const conflicting = {
-			...expressionOnly,
-			builder: {
-				...expressionOnly.builder,
-				queryData: [
-					{
-						...expressionOnly.builder.queryData[0],
-						filters: {
-							op: 'AND',
-							items: [createLiteFilter('severity_text', '=', 'INFO')],
-						} as TagFilter,
-					},
-				],
-			},
-		};
-		expect(isLiteQueryState(conflicting, PANEL_TYPES.TIME_SERIES)).toBe(false);
-	});
-
 	it('restricts metrics and formulas to the documented subset', () => {
 		expect(getLiteMetricAggregationOptions('gauge', false)).toEqual([
 			'latest',
@@ -401,55 +277,6 @@ describe('lightweight query capabilities', () => {
 		expect(isLiteFormula({ ...simpleFormula, limit: 10 })).toBe(false);
 	});
 
-	it('preserves stale group-by state on raw panels but rejects formulas', () => {
-		const grouped = {
-			...baseState,
-			builder: {
-				...baseState.builder,
-				queryData: [
-					{
-						...baseQuery,
-						groupBy: [
-							{
-								id: 'host',
-								key: 'host.name',
-								dataType: DataTypes.String,
-								type: 'resource',
-							},
-						],
-					},
-				],
-			},
-		};
-		expect(isLiteQueryState(grouped, PANEL_TYPES.LIST)).toBe(true);
-
-		const withFormula = {
-			...baseState,
-			builder: {
-				...baseState.builder,
-				queryFormulas: [
-					{ queryName: 'F', expression: 'A + B', disabled: false, legend: '' },
-				],
-			},
-		};
-		expect(isLiteQueryState(withFormula, PANEL_TYPES.TRACE)).toBe(false);
-	});
-
-	it('rejects time-series row limits until top-series semantics exist', () => {
-		expect(
-			isLiteQueryState(
-				{
-					...baseState,
-					builder: {
-						...baseState.builder,
-						queryData: [{ ...baseQuery, limit: 10 }],
-					},
-				},
-				PANEL_TYPES.TIME_SERIES,
-			),
-		).toBe(false);
-	});
-
 	it('keeps the Lite state on the shared V5 wire contract', () => {
 		const meterQuery: Query = {
 			...baseState,
@@ -483,7 +310,6 @@ describe('lightweight query capabilities', () => {
 				queryFormulas: [
 					{ queryName: 'F1', expression: 'A * 2', disabled: false, legend: '' },
 				],
-				queryTraceOperator: [],
 			},
 		};
 

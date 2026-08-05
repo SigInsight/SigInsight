@@ -86,7 +86,6 @@ const mockWidget: Widgets = {
 				},
 			],
 			queryFormulas: [],
-			queryTraceOperator: [],
 		},
 		clickhouse_sql: [],
 		id: 'test-query-id',

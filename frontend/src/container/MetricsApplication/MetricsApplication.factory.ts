@@ -71,7 +71,6 @@ export const getWidgetQuery = ({
 		builder: {
 			queryData,
 			queryFormulas: queryFormulas || [],
-			queryTraceOperator: [],
 		},
 		clickhouse_sql: [],
 		id: v4(),

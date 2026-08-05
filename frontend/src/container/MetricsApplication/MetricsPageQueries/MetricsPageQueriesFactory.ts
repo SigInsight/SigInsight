@@ -65,7 +65,6 @@ export const getQueryBuilderQueries = ({
 
 		return newQueryData;
 	}),
-	queryTraceOperator: [],
 });
 
 export const getQueryBuilderQuerieswithFormula = ({
@@ -108,5 +107,4 @@ export const getQueryBuilderQuerieswithFormula = ({
 		}),
 		dataSource,
 	})),
-	queryTraceOperator: [],
 });

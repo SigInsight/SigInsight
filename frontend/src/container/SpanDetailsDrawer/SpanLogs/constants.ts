@@ -60,7 +60,6 @@ export const getSpanLogsQueryPayload = (
 				},
 			],
 			queryFormulas: [],
-			queryTraceOperator: [],
 		},
 		id: uuidv4(),
 		queryType: EQueryType.QUERY_BUILDER,

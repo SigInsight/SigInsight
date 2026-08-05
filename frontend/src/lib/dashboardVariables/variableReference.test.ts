@@ -105,7 +105,7 @@ GROUP BY host_name`;
 const baseQuery: Query = {
 	id: 'test-query',
 	queryType: EQueryType.QUERY_BUILDER,
-	builder: { queryData: [], queryFormulas: [], queryTraceOperator: [] },
+	builder: { queryData: [], queryFormulas: [] },
 	clickhouse_sql: [],
 };
 
@@ -131,7 +131,6 @@ describe('extractQueryTextStrings', () => {
 					} as unknown) as IBuilderQuery,
 				],
 				queryFormulas: [],
-				queryTraceOperator: [],
 			},
 		};
 
@@ -151,7 +150,6 @@ describe('extractQueryTextStrings', () => {
 					} as unknown) as IBuilderQuery,
 				],
 				queryFormulas: [],
-				queryTraceOperator: [],
 			},
 		};
 
@@ -173,7 +171,6 @@ describe('extractQueryTextStrings', () => {
 					} as unknown) as IBuilderQuery,
 				],
 				queryFormulas: [],
-				queryTraceOperator: [],
 			},
 		};
 
@@ -219,7 +216,6 @@ describe('extractQueryTextStrings', () => {
 					} as unknown) as IBuilderQuery,
 				],
 				queryFormulas: [],
-				queryTraceOperator: [],
 			},
 		};
 
@@ -241,7 +237,6 @@ describe('extractQueryTextStrings', () => {
 					} as unknown) as IBuilderQuery,
 				],
 				queryFormulas: [],
-				queryTraceOperator: [],
 			},
 		};
 
@@ -309,7 +304,6 @@ describe('getVariableReferencesInQuery', () => {
 					} as unknown) as IBuilderQuery,
 				],
 				queryFormulas: [],
-				queryTraceOperator: [],
 			},
 		};
 
@@ -352,7 +346,6 @@ describe('getVariableReferencesInQuery', () => {
 					} as unknown) as IBuilderQuery,
 				],
 				queryFormulas: [],
-				queryTraceOperator: [],
 			},
 		};
 

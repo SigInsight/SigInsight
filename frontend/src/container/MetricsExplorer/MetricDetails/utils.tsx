@@ -187,7 +187,6 @@ export function getMetricDetailsQuery(
 				},
 			],
 			queryFormulas: [],
-			queryTraceOperator: [],
 		},
 	};
 }
