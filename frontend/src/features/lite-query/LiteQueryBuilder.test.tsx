@@ -238,6 +238,23 @@ describe('LiteQueryBuilder routing', () => {
 		expect(screen.queryByText('Limit')).not.toBeInTheDocument();
 	});
 
+	it('keeps a new formula empty until the user enters an expression', () => {
+		const context = renderBuilder({
+			...baseQuery,
+			builder: {
+				...baseQuery.builder,
+				queryFormulas: [
+					{ queryName: 'F1', expression: '', disabled: false, legend: '' },
+				],
+			},
+		});
+
+		expect(
+			screen.getByRole('textbox', { name: 'Formula F1' }),
+		).toBeInTheDocument();
+		expect(context.handleSetFormulaData).not.toHaveBeenCalled();
+	});
+
 	it.each([PANEL_TYPES.LIST, PANEL_TYPES.TRACE])(
 		'hides result controls and query labels on %s panels',
 		(panelType) => {
@@ -280,7 +297,9 @@ describe('LiteQueryBuilder routing', () => {
 		});
 		expect(screen.getByTestId('lite-query-A')).toBeInTheDocument();
 		expect(screen.getByTestId('lite-query-B')).toBeInTheDocument();
-		expect(screen.getByDisplayValue('A + B')).toBeInTheDocument();
+		expect(screen.getByRole('textbox', { name: 'Formula F1' })).toHaveTextContent(
+			'A + B',
+		);
 		expect(
 			screen.queryByText(
 				'This saved query uses capabilities that are not supported by the lightweight query engine.',

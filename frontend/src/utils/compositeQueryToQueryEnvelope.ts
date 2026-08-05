@@ -13,26 +13,28 @@ import { OrderBy, QueryEnvelope } from 'types/api/v5/queryRange';
 function convertFormulasToV5(
 	formulas: BuilderQueryDataResourse,
 ): QueryEnvelope[] {
-	return Object.entries(formulas).map(
-		([queryName, formulaData]): QueryEnvelope => ({
-			type: 'builder_formula' as const,
-			spec: {
-				name: queryName,
-				expression: formulaData.expression || '',
-				disabled: formulaData.disabled,
-				limit: formulaData.limit ?? undefined,
-				legend: formulaData.legend,
-				order: formulaData.orderBy?.map(
-					(order: any): OrderBy => ({
-						key: {
-							name: order.columnName,
-						},
-						direction: order.order,
-					}),
-				),
-			},
-		}),
-	);
+	return Object.entries(formulas)
+		.filter(([, formulaData]) => formulaData.expression.trim())
+		.map(
+			([queryName, formulaData]): QueryEnvelope => ({
+				type: 'builder_formula' as const,
+				spec: {
+					name: queryName,
+					expression: formulaData.expression || '',
+					disabled: formulaData.disabled,
+					limit: formulaData.limit ?? undefined,
+					legend: formulaData.legend,
+					order: formulaData.orderBy?.map(
+						(order: any): OrderBy => ({
+							key: {
+								name: order.columnName,
+							},
+							direction: order.order,
+						}),
+					),
+				},
+			}),
+		);
 }
 
 export function compositeQueryToQueryEnvelope(

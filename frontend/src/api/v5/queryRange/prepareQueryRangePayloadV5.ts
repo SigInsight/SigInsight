@@ -396,7 +396,13 @@ export const prepareQueryRangePayloadV5 = ({
 		case EQueryType.QUERY_BUILDER: {
 			const { queryData: data, queryFormulas } = query.builder;
 			const currentQueryData = mapQueryDataToApi(data, 'queryName', tableParams);
-			const currentFormulas = mapQueryDataToApi(queryFormulas, 'queryName');
+			// A newly added formula is an editable UI row until it has an
+			// expression. Do not send that transient row to the backend, whose
+			// formula contract requires a non-empty expression.
+			const currentFormulas = mapQueryDataToApi(
+				queryFormulas.filter((formula) => formula.expression.trim()),
+				'queryName',
+			);
 
 			// Combine legend maps
 			legendMap = {

@@ -1,5 +1,5 @@
 /* eslint-disable sonarjs/cognitive-complexity */
-import { ChangeEvent, useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { Button, Input, InputNumber, Select, Tooltip } from 'antd';
 import { PANEL_TYPES } from 'constants/queryBuilder';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
@@ -24,6 +24,7 @@ import {
 	LiteMetricType,
 	toLiteFilterExpression,
 } from './capabilities';
+import { FormulaExpressionEditor } from './FormulaExpressionEditor';
 
 import './LiteQueryBuilder.scss';
 
@@ -518,9 +519,11 @@ function LiteBuilderRow({
 function LiteFormulaRow({
 	index,
 	formula,
+	queryNames,
 }: {
 	index: number;
 	formula: IBuilderFormula;
+	queryNames: readonly string[];
 }): JSX.Element {
 	const {
 		currentQuery,
@@ -529,15 +532,16 @@ function LiteFormulaRow({
 	} = useQueryBuilder();
 	const error =
 		formula.expression.trim() && !isLiteFormula(formula)
-			? 'Use query names joined only by +, -, * or /.'
+			? 'Use query names or numbers joined by +, -, * or /.'
 			: '';
 
 	const update = useCallback(
-		(event: ChangeEvent<HTMLInputElement>): void => {
-			const next = { ...formula, [event.target.name]: event.target.value };
-			if (!event.target.value.trim() || isLiteFormula(next)) {
-				handleSetFormulaData(index, next);
-			}
+		(value: string): void => {
+			// Formula validation is intentionally advisory while editing. A
+			// complete expression cannot be typed atomically (for example, the
+			// intermediate `A +` state is invalid), so rejecting it here loses
+			// keystrokes and makes operators impossible to enter.
+			handleSetFormulaData(index, { ...formula, expression: value });
 		},
 		[formula, handleSetFormulaData, index],
 	);
@@ -556,12 +560,11 @@ function LiteFormulaRow({
 					/>
 				</Tooltip>
 			</div>
-			<Input
-				name="expression"
-				aria-label={`Formula ${formula.queryName}`}
+			<FormulaExpressionEditor
+				ariaLabel={`Formula ${formula.queryName}`}
 				value={formula.expression}
 				placeholder="A / B"
-				status={error ? 'error' : undefined}
+				queryNames={queryNames}
 				onChange={update}
 			/>
 			{error && <div className="lite-query-error">{error}</div>}
@@ -581,7 +584,6 @@ function LiteQueryBuilderContent({
 		panelType: activePanelType,
 		handleSetConfig,
 		handleSetQueryData,
-		handleSetFormulaData,
 		addNewBuilderQuery,
 		addNewFormula,
 	} = useQueryBuilder();
@@ -614,20 +616,15 @@ function LiteQueryBuilderContent({
 		});
 	}, [currentQuery.builder.queryData, handleSetQueryData, panelType]);
 
-	useEffect(() => {
-		currentQuery.builder.queryFormulas.forEach((formula, index) => {
-			if (!formula.expression.trim()) {
-				handleSetFormulaData(index, {
-					...formula,
-					expression: currentQuery.builder.queryData[0]?.queryName || 'A',
-				});
-			}
-		});
-	}, [
-		currentQuery.builder.queryData,
-		currentQuery.builder.queryFormulas,
-		handleSetFormulaData,
-	]);
+	const formulaQueryNames = useMemo(
+		() => [
+			...currentQuery.builder.queryData.map((query) => query.queryName),
+			...currentQuery.builder.queryFormulas
+				.filter((formula) => formula.expression.trim())
+				.map((formula) => formula.queryName),
+		],
+		[currentQuery.builder.queryData, currentQuery.builder.queryFormulas],
+	);
 
 	return (
 		<div className="lite-query-builder" data-testid="lite-query-builder">
@@ -644,7 +641,12 @@ function LiteQueryBuilderContent({
 				/>
 			))}
 			{currentQuery.builder.queryFormulas.map((formula, index) => (
-				<LiteFormulaRow key={formula.queryName} index={index} formula={formula} />
+				<LiteFormulaRow
+					key={formula.queryName}
+					index={index}
+					formula={formula}
+					queryNames={formulaQueryNames.filter((name) => name !== formula.queryName)}
+				/>
 			))}
 			{!isRawPanel && (
 				<div className="lite-query-footer">

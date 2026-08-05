@@ -207,6 +207,31 @@ describe('prepareQueryRangePayloadV5', () => {
 		expect(formulaSpec.legend).toBe('Formula Legend');
 	});
 
+	it('omits an empty formula row while it is still being edited', () => {
+		const result = prepareQueryRangePayloadV5({
+			query: {
+				queryType: EQueryType.QUERY_BUILDER,
+				id: 'q-empty-formula',
+				unit: undefined,
+				clickhouse_sql: [],
+				builder: {
+					queryData: [baseBuilderQuery()],
+					queryFormulas: [baseFormula({ expression: '' })],
+				},
+			},
+			graphType: PANEL_TYPES.TIME_SERIES,
+			selectedTime: 'GLOBAL_TIME',
+			start,
+			end,
+		});
+
+		expect(result.legendMap).toEqual({ A: 'Legend A' });
+		expect(result.queryPayload.compositeQuery.queries).toHaveLength(1);
+		expect(result.queryPayload.compositeQuery.queries[0].type).toBe(
+			'builder_query',
+		);
+	});
+
 	it('builds payload for ClickHouse queries and maps requestType from panel', () => {
 		const props: GetQueryResultsProps = {
 			query: {
