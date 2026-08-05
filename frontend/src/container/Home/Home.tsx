@@ -27,7 +27,6 @@ import { popupContainer } from 'utils/selectPopupContainer';
 
 import AlertRules from './AlertRules/AlertRules';
 import { defaultChecklistItemsState } from './constants';
-import CostMeter from './CostMeter/CostMeter';
 import DataSourceInfo from './DataSourceInfo/DataSourceInfo';
 import HomeChecklist, { ChecklistItem } from './HomeChecklist/HomeChecklist';
 import SavedViews from './SavedViews/SavedViews';
@@ -550,7 +549,6 @@ export default function Home(): JSX.Element {
 					)}
 				</div>
 			</div>
-			<CostMeter />
 		</div>
 	);
 }

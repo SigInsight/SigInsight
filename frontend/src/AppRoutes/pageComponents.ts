@@ -4,6 +4,10 @@ export const Home = Loadable(
 	() => import(/* webpackChunkName: "Home" */ 'pages/HomePage/HomePage'),
 );
 
+export const CostMeterPage = Loadable(
+	() => import(/* webpackChunkName: "CostMeterPage" */ 'pages/CostMeter'),
+);
+
 export const ServicesTablePage = Loadable(
 	() => import(/* webpackChunkName: "ServicesTablePage" */ 'pages/Services'),
 );
