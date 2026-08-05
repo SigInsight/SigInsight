@@ -7,6 +7,7 @@ import {
 	AlertTypeSelectionPage,
 	AllAlertChannels,
 	AllErrors,
+	CostMeterPage,
 	CreateAlertChannelAlerts,
 	CreateNewAlerts,
 	EditRulesPage,
@@ -52,6 +53,13 @@ const routes: AppRoutes[] = [
 		component: Home,
 		isPrivate: true,
 		key: 'HOME',
+	},
+	{
+		path: ROUTES.METER,
+		exact: true,
+		component: CostMeterPage,
+		isPrivate: true,
+		key: 'METER',
 	},
 	{
 		component: LogsIndexToFields,

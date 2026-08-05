@@ -89,14 +89,14 @@ function Section(section: MetricSection): JSX.Element {
 
 	return (
 		<div className="meter-column-graph">
-			<CardContainer className="row-card" isDarkMode={isDarkMode}>
+			<CardContainer className="row-card" $isDarkMode={isDarkMode}>
 				<Typography.Text className="section-title">{title}</Typography.Text>
 			</CardContainer>
 			<div className="meter-page-grid">
 				{graphs.map((widget) => (
 					<Card
 						key={widget?.id}
-						isDarkMode={isDarkMode}
+						$isDarkMode={isDarkMode}
 						$panelType={PANEL_TYPES.BAR}
 						className="meter-graph"
 					>
