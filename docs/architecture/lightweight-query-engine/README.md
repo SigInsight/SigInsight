@@ -25,6 +25,9 @@
 - [M10：退役不可达的 Legacy 编辑渲染树](milestones/m10-legacy-editor-render-tree.md)
 - [M11：清理无调用的 Legacy QueryBuilder Helper](milestones/m11-unused-builder-helpers.md)
 - [M12：QueryBuilderSearchV3 与 Trace Funnel 过滤子集](milestones/m12-query-builder-v3.md)
+- [M13：收敛 V2 图表边界与 Container 编排层](milestones/m13-visualization-container-consolidation.md)
+- [M14：删除运行时兼容与不可达产品残留](milestones/m14-runtime-compatibility-deletion.md)
+- [M15：基础告警编辑器](milestones/m15-basic-alert-builder.md)
 - [架构决策记录规范](decisions/README.md)
 - [ADR 模板](decisions/000-template.md)
 - [ADR-001：采用受约束的类型化查询语言](decisions/001-constrained-query-language.md)
@@ -65,6 +68,9 @@
 | M10 Legacy 编辑渲染树 | Complete | 已删除不可达的 Query/Formula/函数/聚合渲染树，保留共享状态、DTO 与独立筛选控件 |
 | M11 Legacy QueryBuilder Helper | Complete | 已删除无调用旧 helper，保留 metadata 与专用读取仍使用的 parser/field mapper |
 | M12 QueryBuilderSearchV3 | Complete | V3 文本补全、字符串谓词、生产消费者迁移和旧编辑器删除已完成；全量 build/test 与真实浏览器查询已闭环 |
+| M13 V2 图表与 Container | Complete | 已收敛为 V2 单一渲染栈，删除旧 uPlot 与重复的 Container 适配链路 |
+| M14 运行时兼容删除 | Complete | 已删除旧保存查询兼容、不可达 Dashboard 状态、旧 Alert schema/模板/renotify 和指标元数据写路径 |
+| M15 基础告警编辑器 | Accepted | 功能、协议、类型公式、时区、交互和验证边界已确认，尚未开始实现 |
 | 机器可读能力矩阵 | Accepted | `capability-matrix.json` 是后续协议和 UI 的约束来源 |
 
 ## 查询引擎边界：引擎之外的专用查询构建器

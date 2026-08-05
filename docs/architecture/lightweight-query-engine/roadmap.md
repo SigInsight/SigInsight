@@ -280,6 +280,19 @@ Panel 渲染。
 
 提交锚点：`refactor(core): remove runtime compatibility and unreachable product state`
 
+## M15：基础告警编辑器
+
+状态：Accepted，设计已确认，待实现。
+
+保留固定边界的 Rolling/Cumulative 评估、显式 IANA 时区、多个 Lite 数据查询和有类型的
+算术/布尔公式；删除复杂 cadence 以及日历/自定义调度，并将当前分裂的 Alert Builder 状态
+收敛为单一领域草稿。
+
+功能边界、累计窗口语义、UI 信息架构和补全约定见
+[M15 阶段文档](milestones/m15-basic-alert-builder.md)。
+
+提交锚点：`refactor(alerts): consolidate basic alert editor`
+
 ## 阶段提交准则
 
 每个生产代码提交至少满足一项：
