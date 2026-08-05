@@ -1,7 +1,5 @@
-import { AlertDef } from './def';
-
 export interface Props {
-	id: AlertDef['id'];
+	id: string | undefined;
 }
 
 export interface PayloadProps {

@@ -1,9 +1,8 @@
 import { useMemo } from 'react';
 import { PANEL_TYPES } from 'constants/queryBuilder';
-import useDashboardVarConfig from 'container/QueryTable/Drilldown/useDashboardVarConfig';
-import { ContextLinksData } from 'types/api/dashboard/getAll';
 import { MetricQueryRangeResult } from 'types/api/metrics/getQueryRange';
 import { Query } from 'types/api/queryBuilder/queryBuilderData';
+import { ContextLinksData } from 'types/api/widgets/getAll';
 import { getTimeRange } from 'utils/getTimeRange';
 
 import { ContextMenuItem } from './contextConfig';
@@ -125,23 +124,12 @@ const useAggregateDrilldown = ({
 		query,
 	]);
 
-	const { dashbaordVariablesConfig } = useDashboardVarConfig({
-		setSubMenu,
-		fieldVariables,
-		query,
-		// panelType,
-		aggregateData: aggregateDataWithTimeRange,
-		onClose,
-	});
-
 	const { baseAggregateOptionsConfig } = useBaseAggregateOptions({
 		query,
 		onClose,
 		aggregateData: aggregateDataWithTimeRange,
-		subMenu,
 		setSubMenu,
 		contextLinks,
-		panelType,
 		fieldVariables,
 	});
 
@@ -155,17 +143,12 @@ const useAggregateDrilldown = ({
 			return breakoutConfig;
 		}
 
-		if (subMenu === 'dashboard_variables') {
-			return dashbaordVariablesConfig;
-		}
-
 		return baseAggregateOptionsConfig;
 	}, [
 		subMenu,
 		aggregateDataWithTimeRange,
 		breakoutConfig,
 		baseAggregateOptionsConfig,
-		dashbaordVariablesConfig,
 	]);
 
 	return { aggregateDrilldownConfig };

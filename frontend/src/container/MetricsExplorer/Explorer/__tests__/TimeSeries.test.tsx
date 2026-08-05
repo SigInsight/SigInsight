@@ -1,19 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import * as metricsExplorerHooks from 'api/generated/services/metrics';
 
 import TimeSeries from '../TimeSeries';
 import { TimeSeriesProps } from '../types';
-import { MOCK_METRIC_METADATA } from './testUtils';
-
-const mockUpdateMetricMetadata = jest.fn();
-const updateMetricMetadataSpy = jest.spyOn(
-	metricsExplorerHooks,
-	'useUpdateMetricMetadata',
-);
-type UseUpdateMetricMetadataReturnType = ReturnType<
-	typeof metricsExplorerHooks.useUpdateMetricMetadata
->;
 
 jest.mock('container/TimeSeriesView/TimeSeriesView', () => ({
 	__esModule: true,
@@ -26,9 +15,6 @@ jest.mock('container/TimeSeriesView/TimeSeriesView', () => ({
 
 jest.mock('react-query', () => ({
 	...jest.requireActual('react-query'),
-	useQueryClient: jest.fn().mockReturnValue({
-		invalidateQueries: jest.fn(),
-	}),
 	useQueries: jest.fn().mockImplementation((queries: any[]) =>
 		queries.map(() => ({
 			data: undefined,
@@ -51,7 +37,6 @@ jest.mock('react-redux', () => ({
 }));
 
 const mockSetWarning = jest.fn();
-const mockSetIsMetricDetailsOpen = jest.fn();
 const mockSetYAxisUnit = jest.fn();
 
 function renderTimeSeries(
@@ -61,13 +46,9 @@ function renderTimeSeries(
 		<TimeSeries
 			showOneChartPerQuery={false}
 			setWarning={mockSetWarning}
-			areAllMetricUnitsSame={false}
 			isMetricUnitsLoading={false}
 			metricUnits={[]}
 			metricNames={[]}
-			metrics={[]}
-			isMetricUnitsError={false}
-			handleOpenMetricDetails={mockSetIsMetricDetailsOpen}
 			yAxisUnit="count"
 			setYAxisUnit={mockSetYAxisUnit}
 			showYAxisUnitSelector={false}
@@ -77,13 +58,6 @@ function renderTimeSeries(
 }
 
 describe('TimeSeries', () => {
-	beforeEach(() => {
-		updateMetricMetadataSpy.mockReturnValue(({
-			mutate: mockUpdateMetricMetadata,
-			isLoading: false,
-		} as Partial<UseUpdateMetricMetadataReturnType>) as UseUpdateMetricMetadataReturnType);
-	});
-
 	it('shows select metric message when no metric is selected', () => {
 		renderTimeSeries({ metricNames: [] });
 
@@ -97,7 +71,6 @@ describe('TimeSeries', () => {
 		renderTimeSeries({
 			metricNames: ['metric1'],
 			metricUnits: ['count'],
-			metrics: [MOCK_METRIC_METADATA],
 		});
 
 		expect(screen.getByText('TimeSeriesView')).toBeInTheDocument();
@@ -110,7 +83,6 @@ describe('TimeSeries', () => {
 		renderTimeSeries({
 			metricUnits: ['', 'count'],
 			metricNames: ['metric1', 'metric2'],
-			metrics: [undefined, undefined],
 		});
 
 		expect(
@@ -118,35 +90,33 @@ describe('TimeSeries', () => {
 		).toBeInTheDocument();
 	});
 
-	it('warning tooltip shows metric details link', async () => {
+	it('warning tooltip explains that the collected metric has no unit', async () => {
 		const user = userEvent.setup();
 		renderTimeSeries({
 			metricUnits: ['', 'count'],
 			metricNames: ['metric1', 'metric2'],
-			metrics: [MOCK_METRIC_METADATA, MOCK_METRIC_METADATA],
 			yAxisUnit: 'seconds',
 		});
 
 		const alertIcon = screen.getByRole('img', { name: 'no unit warning' });
 		await user.hover(alertIcon);
 
-		expect(await screen.findByText('metric details')).toBeInTheDocument();
+		expect(
+			await screen.findByText('No unit is set for this metric.'),
+		).toBeInTheDocument();
 	});
 
-	it('shows save unit prompt with enabled button when metric has no unit and a unit is selected', async () => {
+	it('uses the selected unit only for the current chart view', async () => {
 		renderTimeSeries({
 			metricUnits: [undefined],
 			metricNames: ['metric1'],
-			metrics: [MOCK_METRIC_METADATA],
 			yAxisUnit: 'seconds',
 			showYAxisUnitSelector: true,
 		});
 
+		expect(await screen.findByTestId('y-axis-unit-selector')).toBeInTheDocument();
 		expect(
-			await screen.findByText('Set the selected unit as the metric unit?'),
-		).toBeInTheDocument();
-
-		const yesButton = screen.getByRole('button', { name: 'Yes' });
-		expect(yesButton).toBeEnabled();
+			screen.queryByText('Set the selected unit as the metric unit?'),
+		).not.toBeInTheDocument();
 	});
 });

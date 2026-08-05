@@ -5,20 +5,8 @@ import "github.com/SigNoz/signoz/pkg/types/telemetrytypes"
 // SetExpression sets the expression string of the spec, if applicable.
 func (q *QueryEnvelope) SetExpression(expression string) {
 	switch spec := q.Spec.(type) {
-	case QueryBuilderTraceOperator:
-		spec.Expression = expression
-		q.Spec = spec
 	case QueryBuilderFormula:
 		spec.Expression = expression
-		q.Spec = spec
-	}
-}
-
-// SetReturnSpansFrom sets the return-spans-from value, if applicable.
-func (q *QueryEnvelope) SetReturnSpansFrom(returnSpansFrom string) {
-	switch spec := q.Spec.(type) {
-	case QueryBuilderTraceOperator:
-		spec.ReturnSpansFrom = returnSpansFrom
 		q.Spec = spec
 	}
 }
@@ -101,9 +89,6 @@ func (q *QueryEnvelope) SetOn(on string) {
 // SetQueryName sets the name of the spec, if applicable.
 func (q *QueryEnvelope) SetQueryName(name string) {
 	switch spec := q.Spec.(type) {
-	case QueryBuilderTraceOperator:
-		spec.Name = name
-		q.Spec = spec
 	case QueryBuilderQuery[TraceAggregation]:
 		spec.Name = name
 		q.Spec = spec
@@ -128,9 +113,6 @@ func (q *QueryEnvelope) SetQueryName(name string) {
 // SetDisabled sets the disabled flag of the spec, if applicable.
 func (q *QueryEnvelope) SetDisabled(disabled bool) {
 	switch spec := q.Spec.(type) {
-	case QueryBuilderTraceOperator:
-		spec.Disabled = disabled
-		q.Spec = spec
 	case QueryBuilderQuery[TraceAggregation]:
 		spec.Disabled = disabled
 		q.Spec = spec
@@ -155,9 +137,6 @@ func (q *QueryEnvelope) SetDisabled(disabled bool) {
 // SetLimit sets the row limit of the spec, if applicable.
 func (q *QueryEnvelope) SetLimit(limit int) {
 	switch spec := q.Spec.(type) {
-	case QueryBuilderTraceOperator:
-		spec.Limit = limit
-		q.Spec = spec
 	case QueryBuilderQuery[TraceAggregation]:
 		spec.Limit = limit
 		q.Spec = spec
@@ -179,9 +158,6 @@ func (q *QueryEnvelope) SetLimit(limit int) {
 // SetOffset sets the row offset of the spec, if applicable.
 func (q *QueryEnvelope) SetOffset(offset int) {
 	switch spec := q.Spec.(type) {
-	case QueryBuilderTraceOperator:
-		spec.Offset = offset
-		q.Spec = spec
 	case QueryBuilderQuery[TraceAggregation]:
 		spec.Offset = offset
 		q.Spec = spec
@@ -202,9 +178,6 @@ func (q *QueryEnvelope) SetType(t QueryType) {
 // SetOrder sets the order-by clauses of the spec, if applicable.
 func (q *QueryEnvelope) SetOrder(order []OrderBy) {
 	switch spec := q.Spec.(type) {
-	case QueryBuilderTraceOperator:
-		spec.Order = order
-		q.Spec = spec
 	case QueryBuilderQuery[TraceAggregation]:
 		spec.Order = order
 		q.Spec = spec
@@ -226,9 +199,6 @@ func (q *QueryEnvelope) SetOrder(order []OrderBy) {
 // SetGroupBy sets the group-by keys of the spec, if applicable.
 func (q *QueryEnvelope) SetGroupBy(groupBy []GroupByKey) {
 	switch spec := q.Spec.(type) {
-	case QueryBuilderTraceOperator:
-		spec.GroupBy = groupBy
-		q.Spec = spec
 	case QueryBuilderQuery[TraceAggregation]:
 		spec.GroupBy = groupBy
 		q.Spec = spec
@@ -247,9 +217,6 @@ func (q *QueryEnvelope) SetGroupBy(groupBy []GroupByKey) {
 // SetFilter sets the filter of the spec, if applicable.
 func (q *QueryEnvelope) SetFilter(filter *Filter) {
 	switch spec := q.Spec.(type) {
-	case QueryBuilderTraceOperator:
-		spec.Filter = filter
-		q.Spec = spec
 	case QueryBuilderQuery[TraceAggregation]:
 		spec.Filter = filter
 		q.Spec = spec
@@ -268,9 +235,6 @@ func (q *QueryEnvelope) SetFilter(filter *Filter) {
 // SetHaving sets the having clause of the spec, if applicable.
 func (q *QueryEnvelope) SetHaving(having *Having) {
 	switch spec := q.Spec.(type) {
-	case QueryBuilderTraceOperator:
-		spec.Having = having
-		q.Spec = spec
 	case QueryBuilderQuery[TraceAggregation]:
 		spec.Having = having
 		q.Spec = spec
@@ -292,9 +256,6 @@ func (q *QueryEnvelope) SetHaving(having *Having) {
 // SetFunctions sets the post-processing functions of the spec, if applicable.
 func (q *QueryEnvelope) SetFunctions(functions []Function) {
 	switch spec := q.Spec.(type) {
-	case QueryBuilderTraceOperator:
-		spec.Functions = functions
-		q.Spec = spec
 	case QueryBuilderQuery[TraceAggregation]:
 		spec.Functions = functions
 		q.Spec = spec
@@ -316,9 +277,6 @@ func (q *QueryEnvelope) SetFunctions(functions []Function) {
 // SetSelectFields sets the selected fields of the spec, if applicable.
 func (q *QueryEnvelope) SetSelectFields(fields []telemetrytypes.TelemetryFieldKey) {
 	switch spec := q.Spec.(type) {
-	case QueryBuilderTraceOperator:
-		spec.SelectFields = fields
-		q.Spec = spec
 	case QueryBuilderQuery[TraceAggregation]:
 		spec.SelectFields = fields
 		q.Spec = spec
@@ -337,9 +295,6 @@ func (q *QueryEnvelope) SetSelectFields(fields []telemetrytypes.TelemetryFieldKe
 // SetLegend sets the legend label of the spec, if applicable.
 func (q *QueryEnvelope) SetLegend(legend string) {
 	switch spec := q.Spec.(type) {
-	case QueryBuilderTraceOperator:
-		spec.Legend = legend
-		q.Spec = spec
 	case QueryBuilderQuery[TraceAggregation]:
 		spec.Legend = legend
 		q.Spec = spec
@@ -361,9 +316,6 @@ func (q *QueryEnvelope) SetLegend(legend string) {
 // SetCursor sets the pagination cursor of the spec, if applicable.
 func (q *QueryEnvelope) SetCursor(cursor string) {
 	switch spec := q.Spec.(type) {
-	case QueryBuilderTraceOperator:
-		spec.Cursor = cursor
-		q.Spec = spec
 	case QueryBuilderQuery[TraceAggregation]:
 		spec.Cursor = cursor
 		q.Spec = spec
@@ -379,9 +331,6 @@ func (q *QueryEnvelope) SetCursor(cursor string) {
 // SetStepInterval sets the step interval of the spec, if applicable.
 func (q *QueryEnvelope) SetStepInterval(step Step) {
 	switch spec := q.Spec.(type) {
-	case QueryBuilderTraceOperator:
-		spec.StepInterval = step
-		q.Spec = spec
 	case QueryBuilderQuery[TraceAggregation]:
 		spec.StepInterval = step
 		q.Spec = spec

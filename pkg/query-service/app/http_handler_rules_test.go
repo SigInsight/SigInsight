@@ -1,11 +1,14 @@
 package app
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
+	"github.com/SigNoz/signoz/pkg/query-service/model"
+	"github.com/SigNoz/signoz/pkg/query-service/rules"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/require"
 )
@@ -35,4 +38,26 @@ func TestRuleStateHistoryEndpointsRejectInvalidRuleID(t *testing.T) {
 			require.Contains(t, recorder.Body.String(), `"errorType":"bad_data"`)
 		})
 	}
+}
+
+func TestTestRuleResponseUsesStructuredEvaluationPreview(t *testing.T) {
+	response := testRuleResponse{
+		EvaluationPreview: rules.EvaluationPreview{
+			AlertCount:  2,
+			State:       model.StateFiring,
+			EvaluatedAt: 1780000000000,
+		},
+		Message: "notification sent",
+	}
+
+	encoded, err := json.Marshal(response)
+	require.NoError(t, err)
+	require.JSONEq(t, `{
+		"evaluationPreview": {
+			"alertCount": 2,
+			"state": "firing",
+			"evaluatedAt": 1780000000000
+		},
+		"message": "notification sent"
+	}`, string(encoded))
 }

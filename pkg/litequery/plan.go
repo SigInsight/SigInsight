@@ -9,6 +9,10 @@ type Plan struct {
 	StepMS     int64
 	Queries    []QueryPlan
 	Formulas   []Formula
+	// TypedFormulas validate the formula language and dependency graph before
+	// SQL execution. The executor rebinds this same language to concrete result
+	// units and group-by signatures, which are unavailable at planning time.
+	TypedFormulas map[string]*TypedFormula
 }
 
 type QueryPlan struct {
@@ -39,11 +43,27 @@ func (p DefaultPlanner) Plan(request Request) (Plan, error) {
 			Query:  query,
 		})
 	}
+	typedFormulas, err := AnalyzeTypedFormulaSet(request.Formulas, formulaBindingsForQueries(request.Queries))
+	if err != nil {
+		return Plan{}, err
+	}
 	return Plan{
-		Range:      request.Range,
-		ResultType: request.ResultType,
-		StepMS:     request.StepMS,
-		Queries:    queries,
-		Formulas:   request.Formulas,
+		Range:         request.Range,
+		ResultType:    request.ResultType,
+		StepMS:        request.StepMS,
+		Queries:       queries,
+		Formulas:      request.Formulas,
+		TypedFormulas: typedFormulas,
 	}, nil
+}
+
+func formulaBindingsForQueries(queries []Query) map[string]FormulaBinding {
+	bindings := make(map[string]FormulaBinding, len(queries))
+	for _, query := range queries {
+		if query == nil {
+			continue
+		}
+		bindings[query.GetCommon().Name] = FormulaBinding{Type: FormulaStaticType{Kind: FormulaValueNumber}}
+	}
+	return bindings
 }

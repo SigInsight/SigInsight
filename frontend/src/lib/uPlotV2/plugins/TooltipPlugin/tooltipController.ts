@@ -83,12 +83,12 @@ export function isScrollEventInPlot(
 
 export function shouldShowTooltipForSync(
 	controller: TooltipControllerState,
-	syncTooltipWithDashboard: boolean,
+	syncTooltipAcrossCharts: boolean,
 ): boolean {
 	return (
 		controller.plotWithinViewport &&
 		controller.isAnySeriesActive &&
-		syncTooltipWithDashboard
+		syncTooltipAcrossCharts
 	);
 }
 
@@ -100,13 +100,13 @@ export function shouldShowTooltipForInteraction(
 
 export function updateHoverState(
 	controller: TooltipControllerState,
-	syncTooltipWithDashboard: boolean,
+	syncTooltipAcrossCharts: boolean,
 ): void {
 	// When the cursor is driven by dashboard‑level sync, we only show
 	// the tooltip if the plot is in viewport and at least one series
 	// is active. Otherwise we fall back to local interaction logic.
 	controller.hoverActive = controller.cursorDrivenBySync
-		? shouldShowTooltipForSync(controller, syncTooltipWithDashboard)
+		? shouldShowTooltipForSync(controller, syncTooltipAcrossCharts)
 		: shouldShowTooltipForInteraction(controller);
 }
 
@@ -169,7 +169,7 @@ export function createSetCursorHandler(
 
 export function createSetLegendHandler(
 	ctx: TooltipControllerContext,
-	syncTooltipWithDashboard: boolean,
+	syncTooltipAcrossCharts: boolean,
 ): (u: uPlot) => void {
 	return (u: uPlot): void => {
 		const { controller } = ctx;
@@ -194,7 +194,7 @@ export function createSetLegendHandler(
 		controller.cursorDrivenBySync = u.cursor.event == null;
 
 		const previousHover = controller.hoverActive;
-		updateHoverState(controller, syncTooltipWithDashboard);
+		updateHoverState(controller, syncTooltipAcrossCharts);
 		const hoverStateChanged = controller.hoverActive !== previousHover;
 
 		const cursorDrivenBySyncChanged =
@@ -209,7 +209,7 @@ export function createSetLegendHandler(
 
 export function createSetSeriesHandler(
 	ctx: TooltipControllerContext,
-	syncTooltipWithDashboard: boolean,
+	syncTooltipAcrossCharts: boolean,
 ): (u: uPlot, seriesIdx: number | null, opts: uPlot.Series) => void {
 	return (u: uPlot, seriesIdx: number | null, opts: uPlot.Series): void => {
 		const { controller } = ctx;
@@ -221,7 +221,7 @@ export function createSetSeriesHandler(
 		// logic even when the tooltip is being synced externally.
 		controller.focusedSeriesIndex = seriesIdx ?? null;
 		controller.cursorDrivenBySync = u.cursor.event == null;
-		updateHoverState(controller, syncTooltipWithDashboard);
+		updateHoverState(controller, syncTooltipAcrossCharts);
 		ctx.scheduleRender();
 	};
 }

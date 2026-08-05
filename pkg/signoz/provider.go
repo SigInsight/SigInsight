@@ -101,6 +101,7 @@ func NewSQLMigrationProviderFactories() factory.NamedMap[factory.ProviderFactory
 		sqlmigration.NewNormalizeLogSeverityQuickFilterFactory(),
 		sqlmigration.NewSplitAlertUnitsFactory(),
 		sqlmigration.NewNormalizeTraceIntrinsicQuickFilterFactory(),
+		sqlmigration.NewDropRetiredAlertRulesFactory(),
 	)
 }
 

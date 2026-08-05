@@ -4,7 +4,7 @@ import {
 	CustomTimeType,
 	Time,
 } from 'container/TopNav/DateTimeSelectionV2/types';
-import { GetQueryResultsProps } from 'lib/dashboard/getQueryResults';
+import { GetQueryResultsProps } from 'lib/query/getQueryResults';
 import { SuccessResponse } from 'types/api';
 import { MetricRangePayloadProps } from 'types/api/metrics/getQueryRange';
 import { ServicesList } from 'types/api/metrics/getService';

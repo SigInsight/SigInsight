@@ -96,7 +96,9 @@ function convertTimeSeriesData(
 					: [],
 				values: series.values.map((value: any) => ({
 					timestamp: value.timestamp,
-					value: String(value.value),
+					value: String(
+						timeSeriesData.valueType === 'bool' ? value.boolValue : value.value,
+					),
 				})),
 				metaData: {
 					alias,

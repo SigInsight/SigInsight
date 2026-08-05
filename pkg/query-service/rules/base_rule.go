@@ -37,9 +37,8 @@ type BaseRule struct {
 	ruleCondition *ruletypes.RuleCondition
 
 	Threshold ruletypes.RuleThreshold
-	// evalWindow is the time window used for evaluating the rule
-	// i.e. each time we lookback from the current time, we look at data for the last
-	// evalWindow duration
+	// evalWindow is derived from the current evaluation specification for detail
+	// links; it is not an independently persisted alert field.
 	evalWindow valuer.TextDuration
 	// holdDuration is the duration for which the alert waits before firing
 	holdDuration valuer.TextDuration
@@ -52,10 +51,7 @@ type BaseRule struct {
 	// these are the same for all alerts created for this rule
 	labels      qslabels.BaseLabels
 	annotations qslabels.BaseLabels
-	// preferredChannels is the list of channels to send the alert to
-	// if the rule is triggered
-	preferredChannels []string
-	mtx               sync.Mutex
+	mtx         sync.Mutex
 	// the time it took to evaluate the rule (most recent evaluation)
 	evaluationDuration time.Duration
 	// the timestamp of the last evaluation
@@ -149,32 +145,30 @@ func NewBaseRule(id string, orgID valuer.UUID, p *ruletypes.PostableRule, reader
 	if err != nil {
 		return nil, errors.NewInvalidInputf(errors.CodeInvalidInput, "failed to get evaluation: %v", err)
 	}
+	now := time.Now()
+	windowStart, windowEnd := evaluation.NextWindowFor(now)
+	evalWindow := valuer.MustParseTextDuration(windowEnd.Sub(windowStart).String())
 
 	baseRule := &BaseRule{
-		id:                id,
-		orgID:             orgID,
-		name:              p.AlertName,
-		source:            p.Source,
-		typ:               p.AlertType,
-		ruleCondition:     p.RuleCondition,
-		evalWindow:        p.EvalWindow,
-		labels:            qslabels.FromMap(p.Labels),
-		annotations:       qslabels.FromMap(p.Annotations),
-		preferredChannels: p.PreferredChannels,
-		health:            ruletypes.HealthUnknown,
-		Active:            map[uint64]*ruletypes.Alert{},
-		reader:            reader,
-		Threshold:         threshold,
-		evaluation:        evaluation,
+		id:            id,
+		orgID:         orgID,
+		name:          p.AlertName,
+		source:        p.Source,
+		typ:           p.AlertType,
+		ruleCondition: p.RuleCondition,
+		evalWindow:    evalWindow,
+		labels:        qslabels.FromMap(p.Labels),
+		annotations:   qslabels.FromMap(p.Annotations),
+		health:        ruletypes.HealthUnknown,
+		Active:        map[uint64]*ruletypes.Alert{},
+		reader:        reader,
+		Threshold:     threshold,
+		evaluation:    evaluation,
 	}
 
 	// Store newGroupEvalDelay and groupBy keys from NotificationSettings
 	if p.NotificationSettings != nil {
 		baseRule.newGroupEvalDelay = p.NotificationSettings.NewGroupEvalDelay
-	}
-
-	if baseRule.evalWindow.IsZero() {
-		baseRule.evalWindow = valuer.MustParseTextDuration("5m")
 	}
 
 	for _, opt := range opts {
@@ -255,7 +249,6 @@ func (r *BaseRule) Name() string                        { return r.name }
 func (r *BaseRule) Condition() *ruletypes.RuleCondition { return r.ruleCondition }
 func (r *BaseRule) Labels() qslabels.BaseLabels         { return r.labels }
 func (r *BaseRule) Annotations() qslabels.BaseLabels    { return r.annotations }
-func (r *BaseRule) PreferredChannels() []string         { return r.preferredChannels }
 
 func (r *BaseRule) GeneratorURL() string {
 	return ruletypes.PrepareRuleGeneratorURL(r.ID(), r.source)
@@ -340,6 +333,13 @@ func (r *BaseRule) GetEvaluationTimestamp() time.Time {
 func (r *BaseRule) State() model.AlertState {
 	maxState := model.StateInactive
 	for _, a := range r.Active {
+		// No Data is an externally visible alert state, not just a label on a
+		// firing alert. Preserve pending while the alert is within its hold
+		// period, but report a firing missing-data alert as nodata to previews,
+		// rule lists, and state history.
+		if a.Missing && a.State == model.StateFiring {
+			return model.StateNoData
+		}
 		if a.State > maxState {
 			maxState = a.State
 		}
@@ -688,7 +688,7 @@ func (r *BaseRule) FilterNewSeries(ctx context.Context, ts time.Time, series []*
 
 // HandleMissingDataAlert handles missing data alert logic by tracking the last timestamp
 // with data points and checking if a missing data alert should be sent based on the
-// [ruletypes.RuleCondition.AlertOnAbsent] and [ruletypes.RuleCondition.AbsentFor] conditions.
+// [ruletypes.DataQualityPolicy] conditions.
 //
 // Returns a pointer to the missing data alert if conditions are met, nil otherwise.
 func (r *BaseRule) HandleMissingDataAlert(ctx context.Context, ts time.Time, hasData bool) *ruletypes.Sample {
@@ -697,7 +697,7 @@ func (r *BaseRule) HandleMissingDataAlert(ctx context.Context, ts time.Time, has
 		r.lastTimestampWithDatapoints = ts
 	}
 
-	if !r.ruleCondition.AlertOnAbsent || ts.Before(r.lastTimestampWithDatapoints.Add(time.Duration(r.ruleCondition.AbsentFor)*time.Minute)) {
+	if !r.ruleCondition.AlertOnAbsent || ts.Before(r.lastTimestampWithDatapoints.Add(r.ruleCondition.NoDataAfter())) {
 		return nil
 	}
 

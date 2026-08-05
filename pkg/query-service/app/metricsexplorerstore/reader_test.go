@@ -57,16 +57,16 @@ func (c aggregateQueryConn) Query(ctx context.Context, query string, args ...any
 
 type aggregateMetadataReader struct {
 	requested []string
-	metadata  map[string]*model.UpdateMetricsMetadata
+	metadata  map[string]*model.MetricMetadata
 }
 
-func (r *aggregateMetadataReader) GetUpdatedMetricsMetadata(_ context.Context, _ valuer.UUID, metricNames ...string) (map[string]*model.UpdateMetricsMetadata, error) {
+func (r *aggregateMetadataReader) GetMetricsMetadata(_ context.Context, _ valuer.UUID, metricNames ...string) (map[string]*model.MetricMetadata, error) {
 	r.requested = append(r.requested, metricNames...)
 	return r.metadata, nil
 }
 
 func TestGetMetricAggregateAttributesUsesMetadataBoundary(t *testing.T) {
-	metadata := &aggregateMetadataReader{metadata: map[string]*model.UpdateMetricsMetadata{
+	metadata := &aggregateMetadataReader{metadata: map[string]*model.MetricMetadata{
 		"request.count": {
 			MetricName:  "request.count",
 			MetricType:  querytypes.MetricTypeSum,
@@ -101,7 +101,7 @@ func TestGetMetricAggregateAttributesRejectsMissingMetadata(t *testing.T) {
 		query: func(_ context.Context, _ string, _ ...any) (driver.Rows, error) {
 			return cmock.NewRows([]cmock.ColumnType{{Name: "metric_name", Type: "String"}}, [][]any{{"request.count"}}), nil
 		},
-	}, &aggregateMetadataReader{metadata: map[string]*model.UpdateMetricsMetadata{}})
+	}, &aggregateMetadataReader{metadata: map[string]*model.MetricMetadata{}})
 
 	response, err := reader.GetMetricAggregateAttributes(
 		context.Background(),

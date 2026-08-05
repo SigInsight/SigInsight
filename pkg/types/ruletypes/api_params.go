@@ -1,9 +1,8 @@
 package ruletypes
 
 import (
-	"context"
 	"encoding/json"
-	"slices"
+	"strings"
 	"time"
 	"unicode/utf8"
 
@@ -11,9 +10,6 @@ import (
 
 	signozError "github.com/SigNoz/signoz/pkg/errors"
 	"github.com/SigNoz/signoz/pkg/query-service/model"
-	"github.com/SigNoz/signoz/pkg/query-service/model/querytypes"
-	"github.com/SigNoz/signoz/pkg/query-service/utils/times"
-	"github.com/SigNoz/signoz/pkg/query-service/utils/timestamp"
 	"github.com/SigNoz/signoz/pkg/types/alertmanagertypes"
 	"github.com/SigNoz/signoz/pkg/units"
 	"github.com/SigNoz/signoz/pkg/valuer"
@@ -28,24 +24,13 @@ const (
 	AlertTypeExceptions AlertType = "EXCEPTIONS_BASED_ALERT"
 )
 
-const (
-	DefaultSchemaVersion = "v1"
-)
-
-type RuleDataKind string
-
-const (
-	RuleDataKindJson RuleDataKind = "json"
-)
+const CurrentSchemaVersion = "v3alpha1"
 
 // PostableRule is used to create alerting rule from HTTP api
 type PostableRule struct {
-	AlertName   string              `json:"alert,omitempty"`
-	AlertType   AlertType           `json:"alertType,omitempty"`
-	Description string              `json:"description,omitempty"`
-	RuleType    RuleType            `json:"ruleType,omitempty"`
-	EvalWindow  valuer.TextDuration `json:"evalWindow,omitempty"`
-	Frequency   valuer.TextDuration `json:"frequency,omitempty"`
+	AlertName string    `json:"alert,omitempty"`
+	AlertType AlertType `json:"alertType,omitempty"`
+	RuleType  RuleType  `json:"ruleType,omitempty"`
 
 	RuleCondition *RuleCondition    `json:"condition,omitempty"`
 	Labels        map[string]string `json:"labels,omitempty"`
@@ -56,8 +41,6 @@ type PostableRule struct {
 	// Source captures the source url where rule has been created
 	Source string `json:"source,omitempty"`
 
-	PreferredChannels []string `json:"preferredChannels,omitempty"`
-
 	Version string `json:"version,omitempty"`
 
 	Evaluation    *EvaluationEnvelope `yaml:"evaluation,omitempty" json:"evaluation,omitempty"`
@@ -67,33 +50,13 @@ type PostableRule struct {
 }
 
 type NotificationSettings struct {
-	GroupBy  []string `json:"groupBy,omitempty"`
-	Renotify Renotify `json:"renotify,omitempty"`
+	GroupBy []string `json:"groupBy,omitempty"`
 	// NewGroupEvalDelay is the grace period for new series to be excluded from alerts evaluation
 	NewGroupEvalDelay valuer.TextDuration `json:"newGroupEvalDelay,omitzero"`
 }
 
-type Renotify struct {
-	Enabled          bool                `json:"enabled"`
-	ReNotifyInterval valuer.TextDuration `json:"interval,omitzero"`
-	AlertStates      []model.AlertState  `json:"alertStates,omitempty"`
-}
-
 func (ns *NotificationSettings) GetAlertManagerNotificationConfig() alertmanagertypes.NotificationConfig {
-	var renotifyInterval time.Duration
-	var noDataRenotifyInterval time.Duration
-	if ns.Renotify.Enabled {
-		if slices.Contains(ns.Renotify.AlertStates, model.StateNoData) {
-			noDataRenotifyInterval = ns.Renotify.ReNotifyInterval.Duration()
-		}
-		if slices.Contains(ns.Renotify.AlertStates, model.StateFiring) {
-			renotifyInterval = ns.Renotify.ReNotifyInterval.Duration()
-		}
-	} else {
-		renotifyInterval = 8760 * time.Hour //1 year for no renotify substitute
-		noDataRenotifyInterval = 8760 * time.Hour
-	}
-	return alertmanagertypes.NewNotificationConfig(ns.GroupBy, renotifyInterval, noDataRenotifyInterval)
+	return alertmanagertypes.NewNotificationConfig(ns.GroupBy, 0, 0)
 }
 
 func (r *PostableRule) GetRuleChannels() ([]string, error) {
@@ -102,10 +65,32 @@ func (r *PostableRule) GetRuleChannels() ([]string, error) {
 		return nil, err
 	}
 	channels := make([]string, 0)
+	seen := make(map[string]struct{})
 	for _, receiver := range threshold.GetRuleReceivers() {
-		channels = append(channels, receiver.Channels...)
+		for _, channel := range receiver.Channels {
+			if _, exists := seen[channel]; exists {
+				continue
+			}
+			seen[channel] = struct{}{}
+			channels = append(channels, channel)
+		}
 	}
-	return slices.Compact(channels), nil
+	return channels, nil
+}
+
+// EvalWindow derives the current evaluation window for related-data links.
+// The window is part of Evaluation and is intentionally not a second JSON field.
+func (r *PostableRule) EvalWindow() valuer.TextDuration {
+	if r.Evaluation == nil {
+		return valuer.TextDuration{}
+	}
+	evaluation, err := r.Evaluation.GetEvaluation()
+	if err != nil {
+		return valuer.TextDuration{}
+	}
+	now := time.Now()
+	start, end := evaluation.NextWindowFor(now)
+	return valuer.MustParseTextDuration(end.Sub(start).String())
 }
 
 func (r *PostableRule) GetInhibitRules(ruleId string) ([]config.InhibitRule, error) {
@@ -150,119 +135,51 @@ func (r *PostableRule) GetInhibitRules(ruleId string) ([]config.InhibitRule, err
 	return inhibitRules, nil
 }
 
-func (ns *NotificationSettings) UnmarshalJSON(data []byte) error {
-	type Alias NotificationSettings
-	aux := &struct {
-		*Alias
-	}{
-		Alias: (*Alias)(ns),
-	}
-
-	if err := json.Unmarshal(data, &aux); err != nil {
-		return err
-	}
-
-	// Validate states after unmarshaling
-	for _, state := range ns.Renotify.AlertStates {
-		if state != model.StateFiring && state != model.StateNoData {
-			return signozError.NewInvalidInputf(signozError.CodeInvalidInput, "invalid alert state: %s", state)
-
-		}
-	}
-	return nil
-}
-
-// processRuleDefaults applies the default values
-// for the rule options that are blank or unset.
-func (r *PostableRule) processRuleDefaults() {
-
-	if r.SchemaVersion == "" {
-		r.SchemaVersion = DefaultSchemaVersion
-	}
-
-	if r.EvalWindow.IsZero() {
-		r.EvalWindow = valuer.MustParseTextDuration("5m")
-	}
-
-	if r.Frequency.IsZero() {
-		r.Frequency = valuer.MustParseTextDuration("1m")
-	}
-
-	if r.RuleCondition != nil {
-		switch r.RuleCondition.CompositeQuery.QueryType {
-		case querytypes.QueryTypeBuilder:
-			if r.RuleType == "" {
-				r.RuleType = RuleTypeThreshold
-			}
-		}
-
-		//added alerts v2 fields
-		if r.SchemaVersion == DefaultSchemaVersion {
-			thresholdName := CriticalThresholdName
-			if r.Labels != nil {
-				if severity, ok := r.Labels["severity"]; ok {
-					thresholdName = severity
-				}
-			}
-
-			thresholdData := RuleThresholdData{
-				Kind: BasicThresholdKind,
-				Spec: BasicRuleThresholds{{
-					Name:        thresholdName,
-					TargetUnit:  r.RuleCondition.TargetUnit,
-					TargetValue: r.RuleCondition.Target,
-					MatchType:   r.RuleCondition.MatchType,
-					CompareOp:   r.RuleCondition.CompareOp,
-					Channels:    r.PreferredChannels,
-				}},
-			}
-			r.RuleCondition.Thresholds = &thresholdData
-			r.Evaluation = &EvaluationEnvelope{RollingEvaluation, RollingWindow{EvalWindow: r.EvalWindow, Frequency: r.Frequency}}
-			r.NotificationSettings = &NotificationSettings{
-				Renotify: Renotify{
-					Enabled:          true,
-					ReNotifyInterval: valuer.MustParseTextDuration("4h"),
-					AlertStates:      []model.AlertState{model.StateFiring},
-				},
-			}
-			if r.RuleCondition.AlertOnAbsent {
-				r.NotificationSettings.Renotify.AlertStates = append(r.NotificationSettings.Renotify.AlertStates, model.StateNoData)
-			}
-		}
-	}
-
-	normalizeRuleUnits(r)
-}
-
-func (r *PostableRule) MarshalJSON() ([]byte, error) {
-	type Alias PostableRule
-
-	switch r.SchemaVersion {
-	case DefaultSchemaVersion:
-		copyStruct := *r
-		aux := Alias(copyStruct)
-		if aux.RuleCondition != nil {
-			aux.RuleCondition.Thresholds = nil
-		}
-		aux.Evaluation = nil
-		aux.SchemaVersion = ""
-		aux.NotificationSettings = nil
-		return json.Marshal(aux)
-	default:
-		copyStruct := *r
-		aux := Alias(copyStruct)
-		return json.Marshal(aux)
-	}
-}
-
 func (r *PostableRule) UnmarshalJSON(bytes []byte) error {
 	type Alias PostableRule
-	aux := (*Alias)(r)
-	if err := json.Unmarshal(bytes, aux); err != nil {
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(bytes, &raw); err != nil {
 		return signozError.NewInvalidInputf(signozError.CodeInvalidInput, "failed to parse json: %v", err)
 	}
-	r.processRuleDefaults()
+	for _, field := range []string{"description", "evalWindow", "frequency", "preferredChannels"} {
+		if _, ok := raw[field]; ok {
+			return signozError.NewInvalidInputf(signozError.CodeInvalidInput, "retired alert field %q is not supported", field)
+		}
+	}
+	var version struct {
+		SchemaVersion string `json:"schemaVersion"`
+	}
+	if err := json.Unmarshal(bytes, &version); err != nil {
+		return signozError.NewInvalidInputf(signozError.CodeInvalidInput, "failed to parse schema version: %v", err)
+	}
+	if version.SchemaVersion != CurrentSchemaVersion {
+		return signozError.NewInvalidInputf(signozError.CodeInvalidInput, "only schema version %q is supported, got %q", CurrentSchemaVersion, version.SchemaVersion)
+	}
+
+	var decoded Alias
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return signozError.NewInvalidInputf(signozError.CodeInvalidInput, "failed to parse json: %v", err)
+	}
+	*r = PostableRule(decoded)
+	normalizeRuleUnits(r)
 	return r.validate()
+}
+
+func (ns *NotificationSettings) UnmarshalJSON(data []byte) error {
+	type Alias NotificationSettings
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+	if _, ok := raw["renotify"]; ok {
+		return signozError.NewInvalidInputf(signozError.CodeInvalidInput, "retired notification setting %q is not supported", "renotify")
+	}
+	var decoded Alias
+	if err := json.Unmarshal(data, &decoded); err != nil {
+		return err
+	}
+	*ns = NotificationSettings(decoded)
+	return nil
 }
 
 func isValidLabelName(ln string) bool {
@@ -308,6 +225,9 @@ func (r *PostableRule) validate() error {
 	if r.Version != "v5" {
 		errs = append(errs, signozError.NewInvalidInputf(signozError.CodeInvalidInput, "only version v5 is supported, got %q", r.Version))
 	}
+	if r.SchemaVersion != CurrentSchemaVersion {
+		errs = append(errs, signozError.NewInvalidInputf(signozError.CodeInvalidInput, "only schema version %q is supported, got %q", CurrentSchemaVersion, r.SchemaVersion))
+	}
 
 	if isAllQueriesDisabled(r.RuleCondition.CompositeQuery) {
 		errs = append(errs, signozError.NewInvalidInputf(signozError.CodeInvalidInput, "all queries are disabled in rule condition"))
@@ -316,7 +236,7 @@ func (r *PostableRule) validate() error {
 	if r.RuleCondition.CompositeQuery != nil {
 		query := r.RuleCondition.CompositeQuery
 		resultUnit := query.EffectiveResultUnit()
-		if r.SchemaVersion != DefaultSchemaVersion && resultUnit == "" && query.DisplayUnit != "" {
+		if resultUnit == "" && query.DisplayUnit != "" {
 			errs = append(errs, signozError.NewInvalidInputf(signozError.CodeInvalidInput, "display unit requires a result unit"))
 		}
 		if inferredUnit := inferredRuleResultUnit(r); inferredUnit != "" && resultUnit != inferredUnit {
@@ -328,7 +248,7 @@ func (r *PostableRule) validate() error {
 		if r.RuleCondition.Thresholds != nil {
 			if thresholds, ok := r.RuleCondition.Thresholds.Spec.(BasicRuleThresholds); ok {
 				for _, threshold := range thresholds {
-					if r.SchemaVersion != DefaultSchemaVersion && resultUnit == "" && threshold.TargetUnit != "" {
+					if resultUnit == "" && threshold.TargetUnit != "" {
 						errs = append(errs, signozError.NewInvalidInputf(signozError.CodeInvalidInput, "target unit requires a result unit"))
 					}
 					if resultUnit != "" && threshold.TargetUnit != "" && !units.AreCompatible(units.Unit(resultUnit), units.Unit(threshold.TargetUnit)) {
@@ -347,56 +267,20 @@ func (r *PostableRule) validate() error {
 		if !isValidLabelValue(v) {
 			errs = append(errs, signozError.NewInvalidInputf(signozError.CodeInvalidInput, "invalid label value: %s", v))
 		}
+		if strings.Contains(v, "{{") || strings.Contains(v, "}}") {
+			errs = append(errs, signozError.NewInvalidInputf(signozError.CodeInvalidInput, "alert label templates are not supported"))
+		}
 	}
 
-	for k := range r.Annotations {
+	for k, v := range r.Annotations {
 		if !isValidLabelName(k) {
 			errs = append(errs, signozError.NewInvalidInputf(signozError.CodeInvalidInput, "invalid annotation name: %s", k))
 		}
+		if strings.Contains(v, "{{") || strings.Contains(v, "}}") {
+			errs = append(errs, signozError.NewInvalidInputf(signozError.CodeInvalidInput, "alert annotation templates are not supported"))
+		}
 	}
-
-	errs = append(errs, testTemplateParsing(r)...)
 	return signozError.Join(errs...)
-}
-
-func testTemplateParsing(rl *PostableRule) (errs []error) {
-	if rl.AlertName == "" {
-		// Not an alerting rule.
-		return errs
-	}
-
-	// Trying to parse templates.
-	tmplData := AlertTemplateData(make(map[string]string), "0", "0")
-	defs := "{{$labels := .Labels}}{{$value := .Value}}{{$threshold := .Threshold}}"
-	parseTest := func(text string) error {
-		tmpl := NewTemplateExpander(
-			context.TODO(),
-			defs+text,
-			"__alert_"+rl.AlertName,
-			tmplData,
-			times.Time(timestamp.FromTime(time.Now())),
-			nil,
-		)
-		return tmpl.ParseTest()
-	}
-
-	// Parsing Labels.
-	for _, val := range rl.Labels {
-		err := parseTest(val)
-		if err != nil {
-			errs = append(errs, signozError.NewInvalidInputf(signozError.CodeInvalidInput, "template parsing error: %s", err.Error()))
-		}
-	}
-
-	// Parsing Annotations.
-	for _, val := range rl.Annotations {
-		err := parseTest(val)
-		if err != nil {
-			errs = append(errs, signozError.NewInvalidInputf(signozError.CodeInvalidInput, "template parsing error: %s", err.Error()))
-		}
-	}
-
-	return errs
 }
 
 // GettableRules has info for all stored rules.
@@ -413,25 +297,4 @@ type GettableRule struct {
 	CreatedBy *string    `json:"createBy"`
 	UpdatedAt *time.Time `json:"updateAt"`
 	UpdatedBy *string    `json:"updateBy"`
-}
-
-func (g *GettableRule) MarshalJSON() ([]byte, error) {
-	type Alias GettableRule
-
-	switch g.SchemaVersion {
-	case DefaultSchemaVersion:
-		copyStruct := *g
-		aux := Alias(copyStruct)
-		if aux.RuleCondition != nil {
-			aux.RuleCondition.Thresholds = nil
-		}
-		aux.Evaluation = nil
-		aux.SchemaVersion = ""
-		aux.NotificationSettings = nil
-		return json.Marshal(aux)
-	default:
-		copyStruct := *g
-		aux := Alias(copyStruct)
-		return json.Marshal(aux)
-	}
 }

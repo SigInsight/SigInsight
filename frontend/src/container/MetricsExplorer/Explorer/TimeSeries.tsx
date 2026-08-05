@@ -1,14 +1,9 @@
 import { useMemo } from 'react';
-import { useQueries, useQueryClient } from 'react-query';
+import { useQueries } from 'react-query';
 // eslint-disable-next-line no-restricted-imports
 import { useSelector } from 'react-redux';
 import { Color } from '@signozhq/design-tokens';
-import { toast } from '@signozhq/sonner';
-import { Button, Tooltip, Typography } from 'antd';
-import {
-	invalidateGetMetricMetadata,
-	useUpdateMetricMetadata,
-} from 'api/generated/services/metrics';
+import { Tooltip, Typography } from 'antd';
 import { isAxiosError } from 'axios';
 import classNames from 'classnames';
 import YAxisUnitSelector from 'components/YAxisUnitSelector';
@@ -19,7 +14,7 @@ import { REACT_QUERY_KEY } from 'constants/reactQueryKeys';
 import TimeSeriesView from 'container/TimeSeriesView/TimeSeriesView';
 import { convertDataValueToMs } from 'container/TimeSeriesView/utils';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
-import { GetMetricQueryRange } from 'lib/dashboard/getQueryResults';
+import { GetMetricQueryRange } from 'lib/query/getQueryResults';
 import { AlertTriangle } from 'lucide-react';
 import { AppState } from 'store/reducers';
 import { SuccessResponse } from 'types/api';
@@ -30,10 +25,7 @@ import { GlobalReducer } from 'types/reducer/globalTime';
 
 import EmptyMetricsSearch from './EmptyMetricsSearch';
 import { TimeSeriesProps } from './types';
-import {
-	buildUpdateMetricYAxisUnitPayload,
-	splitQueryIntoOneChartPerQuery,
-} from './utils';
+import { splitQueryIntoOneChartPerQuery } from './utils';
 
 function TimeSeries({
 	showOneChartPerQuery,
@@ -41,11 +33,9 @@ function TimeSeries({
 	isMetricUnitsLoading,
 	metricUnits,
 	metricNames,
-	handleOpenMetricDetails,
 	yAxisUnit,
 	setYAxisUnit,
 	showYAxisUnitSelector,
-	metrics,
 }: TimeSeriesProps): JSX.Element {
 	const { stagedQuery, currentQuery } = useQueryBuilder();
 
@@ -53,7 +43,6 @@ function TimeSeries({
 		AppState,
 		GlobalReducer
 	>((state) => state.globalTime);
-	const queryClient = useQueryClient();
 
 	const isValidToConvertToMs = useMemo(() => {
 		const isValid: boolean[] = [];
@@ -146,52 +135,6 @@ function TimeSeries({
 		setYAxisUnit(value);
 	};
 
-	// Show the save unit button if
-	// 1. There is only one metric
-	// 2. The metric has no saved unit
-	// 3. The user has selected a unit
-	const showSaveUnitButton = useMemo(
-		() =>
-			metricUnits.length === 1 &&
-			Boolean(metrics[0]) &&
-			!metricUnits[0] &&
-			yAxisUnit,
-		[metricUnits, metrics, yAxisUnit],
-	);
-
-	const {
-		mutate: updateMetricMetadata,
-		isLoading: isUpdatingMetricMetadata,
-	} = useUpdateMetricMetadata();
-
-	const handleSaveUnit = (): void => {
-		if (metrics[0] && yAxisUnit) {
-			updateMetricMetadata(
-				{
-					pathParams: {
-						metricName: metricNames[0],
-					},
-					data: buildUpdateMetricYAxisUnitPayload(
-						metricNames[0],
-						metrics[0],
-						yAxisUnit,
-					),
-				},
-				{
-					onSuccess: () => {
-						toast.success('Unit saved successfully');
-						invalidateGetMetricMetadata(queryClient, {
-							metricName: metricNames[0],
-						});
-					},
-					onError: () => {
-						toast.error('Failed to save unit');
-					},
-				},
-			);
-		}
-	};
-
 	return (
 		<>
 			<div className="y-axis-unit-selector-container">
@@ -203,21 +146,6 @@ function TimeSeries({
 							source={YAxisSource.EXPLORER}
 							data-testid="y-axis-unit-selector"
 						/>
-						{showSaveUnitButton && (
-							<div className="save-unit-container">
-								<Typography.Text>
-									Set the selected unit as the metric unit?
-								</Typography.Text>
-								<Button
-									type="primary"
-									size="small"
-									disabled={isUpdatingMetricMetadata}
-									onClick={handleSaveUnit}
-								>
-									<Typography.Paragraph>Yes</Typography.Paragraph>
-								</Button>
-							</div>
-						)}
 					</>
 				)}
 			</div>
@@ -259,15 +187,7 @@ function TimeSeries({
 									<Tooltip
 										className="no-unit-warning"
 										title={
-											<Typography.Text>
-												No unit is set for this metric. You can assign one from the{' '}
-												<Typography.Link
-													onClick={(): void => handleOpenMetricDetails(metricName)}
-												>
-													metric details
-												</Typography.Link>{' '}
-												page.
-											</Typography.Text>
+											<Typography.Text>No unit is set for this metric.</Typography.Text>
 										}
 									>
 										<AlertTriangle

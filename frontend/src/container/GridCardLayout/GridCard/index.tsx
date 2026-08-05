@@ -8,13 +8,10 @@ import { PANEL_TYPES } from 'constants/queryBuilder';
 import { populateMultipleResults } from 'container/NewWidget/LeftContainer/WidgetGraph/util';
 import { useScrollWidgetIntoView } from 'container/PanelVisualization/hooks/useScrollWidgetIntoView';
 import { CustomTimeType } from 'container/TopNav/DateTimeSelectionV2/types';
-import { useIsPanelWaitingOnVariable } from 'hooks/dashboard/useVariableFetchState';
 import { useGetQueryRange } from 'hooks/queryBuilder/useGetQueryRange';
 import { useIntersectionObserver } from 'hooks/useIntersectionObserver';
-import { GetQueryResultsProps } from 'lib/dashboard/getQueryResults';
-import { getDashboardVariables } from 'lib/dashboardVariables/getDashboardVariables';
-import { getVariableReferencesInQuery } from 'lib/dashboardVariables/variableReference';
 import getTimeString from 'lib/getTimeString';
+import { GetQueryResultsProps } from 'lib/query/getQueryResults';
 import { isEqual } from 'lodash-es';
 import isEmpty from 'lodash-es/isEmpty';
 import { UpdateTimeInterval } from 'store/actions';
@@ -42,7 +39,6 @@ function GridCardGraph({
 	headerMenuList = [MenuItemKeys.View],
 	isQueryEnabled,
 	threshold,
-	variables,
 	version,
 	onClickHandler,
 	onDragSelect,
@@ -71,7 +67,7 @@ function GridCardGraph({
 		const timeoutId = setTimeout(() => {
 			if (!queryRangeCalledRef.current) {
 				Sentry.captureEvent({
-					message: `Dashboard query range not called within expected timeframe for widget ${widget?.id}`,
+					message: `Panel query range not called within expected timeframe for widget ${widget?.id}`,
 					level: 'warning',
 				});
 			}
@@ -123,28 +119,11 @@ function GridCardGraph({
 
 	const updatedQuery = widget?.query;
 
-	const referencedVariableNames = useMemo(() => {
-		if (!variables || !updatedQuery) {
-			return [];
-		}
-		const allNames = Object.values(variables)
-			.map((v) => v.name)
-			.filter((name): name is string => !!name);
-		return getVariableReferencesInQuery(updatedQuery, allNames);
-	}, [updatedQuery, variables]);
-
 	const isEmptyWidget =
 		widget?.id === PANEL_TYPES.EMPTY_WIDGET || isEmpty(widget);
 
-	const isPanelWaitingOnAnyVariable = useIsPanelWaitingOnVariable(
-		referencedVariableNames,
-	);
-
 	const queryEnabledCondition =
-		(fetchWhenHidden || isVisible) &&
-		!isEmptyWidget &&
-		isQueryEnabled &&
-		!isPanelWaitingOnAnyVariable;
+		(fetchWhenHidden || isVisible) && !isEmptyWidget && isQueryEnabled;
 
 	const [requestData, setRequestData] = useState<GetQueryResultsProps>(() => {
 		if (widget.panelTypes !== PANEL_TYPES.LIST) {
@@ -153,7 +132,6 @@ function GridCardGraph({
 				graphType: getGraphType(widget.panelTypes),
 				query: updatedQuery,
 				globalSelectedInterval,
-				variables: getDashboardVariables(variables),
 				fillGaps: widget.fillSpans,
 				formatForWeb: widget.panelTypes === PANEL_TYPES.TABLE,
 				start: customTimeRange?.startTime || start,
@@ -204,7 +182,6 @@ function GridCardGraph({
 	const queryResponse = useGetQueryRange(
 		{
 			...requestData,
-			variables: getDashboardVariables(variables),
 			selectedTime: widget.timePreferance || 'GLOBAL_TIME',
 			globalSelectedInterval:
 				widget?.panelTypes === PANEL_TYPES.LIST && isLogsQuery
@@ -226,14 +203,6 @@ function GridCardGraph({
 				widget.timePreferance,
 				widget.fillSpans,
 				requestData,
-				variables
-					? Object.entries(variables).reduce((acc, [id, variable]) => {
-							if (variable.name && referencedVariableNames.includes(variable.name)) {
-								return { ...acc, [id]: variable.selectedValue };
-							}
-							return acc;
-					  }, {})
-					: {},
 				...(customTimeRange && customTimeRange.startTime && customTimeRange.endTime
 					? [customTimeRange.startTime, customTimeRange.endTime]
 					: []),
@@ -312,9 +281,7 @@ function GridCardGraph({
 					version={version}
 					threshold={threshold}
 					headerMenuList={menuList}
-					isFetchingResponse={
-						queryResponse.isFetching || isPanelWaitingOnAnyVariable
-					}
+					isFetchingResponse={queryResponse.isFetching}
 					setRequestData={setRequestData}
 					onClickHandler={onClickHandler}
 					onDragSelect={onDragSelect}

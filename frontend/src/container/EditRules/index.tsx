@@ -1,24 +1,18 @@
-import EditAlertV2 from 'container/EditAlertV2';
-import { PostableAlertRule } from 'types/api/alerts/alertRule';
-import { AlertTypes } from 'types/api/alerts/alertTypes';
-import { AlertDef } from 'types/api/alerts/def';
+import BasicAlertEditor from 'features/alerting/basic-editor';
+import { PostableBasicAlertRule } from 'features/alerting/basic-editor/types';
 
-function EditRules({
-	initialValue,
-	initialAlertValue,
-}: EditRulesProps): JSX.Element {
+function EditRules({ initialAlertValue }: EditRulesProps): JSX.Element {
 	return (
-		<EditAlertV2
-			initialAlert={initialAlertValue as PostableAlertRule}
-			alertType={initialValue.alertType as AlertTypes}
+		<BasicAlertEditor
+			initialRule={initialAlertValue}
+			ruleId={initialAlertValue.id}
+			alertType={initialAlertValue.alertType}
 		/>
 	);
 }
 
 interface EditRulesProps {
-	initialValue: AlertDef;
-	ruleId: string;
-	initialAlertValue: PostableAlertRule | null;
+	initialAlertValue: PostableBasicAlertRule & { id: string };
 }
 
 export default EditRules;

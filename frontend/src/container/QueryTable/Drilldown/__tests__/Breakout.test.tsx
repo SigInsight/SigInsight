@@ -37,14 +37,6 @@ jest.mock('hooks/queryBuilder/useQueryBuilder', () => ({
 	}),
 }));
 
-jest.mock('container/GridCardLayout/useResolveQuery', () => ({
-	__esModule: true,
-	default: (): any => ({
-		getUpdatedQuery: jest.fn().mockResolvedValue({}),
-		isLoading: false,
-	}),
-}));
-
 jest.mock('react-router-dom', () => ({
 	...jest.requireActual('react-router-dom'),
 	useLocation: (): { pathname: string } => ({
@@ -63,16 +55,6 @@ jest.mock('react-redux', () => ({
 			maxTime: 1713738000000,
 			minTime: 1713734400000,
 		},
-	}),
-}));
-
-jest.mock('container/QueryTable/Drilldown/useDashboardVarConfig', () => ({
-	__esModule: true,
-	default: (): any => ({
-		dashbaordVariablesConfig: {
-			items: <>items</>,
-		},
-		// contextItems: <></>,
 	}),
 }));
 
@@ -144,13 +126,6 @@ const renderWithProviders = (
 describe('TableDrilldown Breakout Functionality', () => {
 	beforeEach((): void => {
 		jest.clearAllMocks();
-
-		// Mock the substitute_vars API that's causing network errors
-		server.use(
-			rest.post('*/api/v5/substitute_vars', (req, res, ctx) =>
-				res(ctx.status(200), ctx.json({ status: 'success', data: {} })),
-			),
-		);
 	});
 
 	it('should show breakout options when "Breakout by" is clicked', async (): Promise<void> => {

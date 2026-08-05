@@ -1,50 +1,22 @@
 import { useEffect, useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
 import { Breadcrumb, Button, Divider } from 'antd';
 import logEvent from 'api/common/logEvent';
-import classNames from 'classnames';
 import { Filters } from 'components/AlertDetailsFilters/Filters';
 import RouteTab from 'components/RouteTab';
 import Spinner from 'components/Spinner';
 import { QueryParams } from 'constants/query';
 import ROUTES from 'constants/routes';
-import { CreateAlertProvider } from 'container/CreateAlertV2/context';
-import { getCreateAlertLocalStateFromAlertDef } from 'container/CreateAlertV2/utils';
+import { isV3BasicAlertRule } from 'features/alerting/basic-editor/draft';
+import { PostableBasicAlertRule } from 'features/alerting/basic-editor/types';
 import useUrlQuery from 'hooks/useUrlQuery';
 import history from 'lib/history';
-import {
-	NEW_ALERT_SCHEMA_VERSION,
-	PostableAlertRule,
-} from 'types/api/alerts/alertRule';
-import { AlertTypes } from 'types/api/alerts/alertTypes';
 
 import AlertHeader from './AlertHeader/AlertHeader';
 import AlertNotFound from './AlertNotFound';
 import { useGetAlertRuleDetails, useRouteTabUtils } from './hooks';
-import { AlertDetailsStatusRendererProps } from './types';
 
 import './AlertDetails.styles.scss';
-
-function AlertDetailsStatusRenderer({
-	isLoading,
-	isError,
-	isRefetching,
-	data,
-}: AlertDetailsStatusRendererProps): JSX.Element {
-	const alertRuleDetails = useMemo(() => data?.payload?.data, [data]);
-	const { t } = useTranslation('common');
-
-	if (isLoading || isRefetching) {
-		return <Spinner tip="Loading..." />;
-	}
-
-	if (isError) {
-		return <div>{data?.error || t('something_went_wrong')}</div>;
-	}
-
-	return <AlertHeader alertDetails={alertRuleDetails} />;
-}
 
 function BreadCrumbItem({
 	title,
@@ -84,7 +56,6 @@ function AlertDetails(): JSX.Element {
 
 	const {
 		isLoading,
-		isRefetching,
 		isError,
 		ruleId,
 		isValidRuleId,
@@ -113,21 +84,29 @@ function AlertDetails(): JSX.Element {
 		document.title = getDocumentTitle;
 	}, [getDocumentTitle]);
 
-	const alertRuleDetails = useMemo(
-		() => alertDetailsResponse?.payload?.data as PostableAlertRule | undefined,
-		[alertDetailsResponse],
-	);
-
-	const initialAlertState = useMemo(
-		() => getCreateAlertLocalStateFromAlertDef(alertRuleDetails),
-		[alertRuleDetails],
-	);
+	const alertRuleDetails = useMemo(() => {
+		const rule = alertDetailsResponse?.payload?.data;
+		if (!isV3BasicAlertRule(rule) || !ruleId) {
+			return undefined;
+		}
+		return {
+			...rule,
+			id: rule.id || ruleId,
+			state: rule.state || (rule.disabled ? 'disabled' : 'normal'),
+			disabled: Boolean(rule.disabled),
+		} as PostableBasicAlertRule & {
+			id: string;
+			state: string;
+			disabled: boolean;
+		};
+	}, [alertDetailsResponse, ruleId]);
 
 	if (
 		isError ||
 		!isValidRuleId ||
 		(alertDetailsResponse && alertDetailsResponse.statusCode !== 200) ||
-		(!isLoading && !alertRuleDetails)
+		(!isLoading && !alertRuleDetails) ||
+		(!isLoading && !isV3BasicAlertRule(alertDetailsResponse?.payload?.data))
 	) {
 		return <AlertNotFound isTestAlert={isTestAlert} />;
 	}
@@ -138,53 +117,40 @@ function AlertDetails(): JSX.Element {
 		}
 	};
 
-	const isV2Alert = alertRuleDetails?.schemaVersion === NEW_ALERT_SCHEMA_VERSION;
-
 	// Show spinner until we have alert data loaded
-	if (isLoading && !alertRuleDetails) {
+	if (!alertRuleDetails) {
 		return <Spinner />;
 	}
 
 	return (
-		<CreateAlertProvider
-			ruleId={ruleId || ''}
-			isEditMode
-			initialAlertType={alertRuleDetails?.alertType as AlertTypes}
-			initialAlertState={initialAlertState}
-		>
-			<div
-				className={classNames('alert-details', { 'alert-details-v2': isV2Alert })}
-			>
-				<Breadcrumb
-					className="alert-details__breadcrumb"
-					items={[
-						{
-							title: (
-								<BreadCrumbItem title="Alert Rules" route={ROUTES.LIST_ALL_ALERT} />
-							),
-						},
-						{
-							title: <BreadCrumbItem title={ruleId} isLast />,
-						},
-					]}
-				/>
-				<Divider className="divider breadcrumb-divider" />
+		<div className="alert-details alert-details-v2">
+			<Breadcrumb
+				className="alert-details__breadcrumb"
+				items={[
+					{
+						title: (
+							<BreadCrumbItem title="Alert Rules" route={ROUTES.LIST_ALL_ALERT} />
+						),
+					},
+					{
+						title: <BreadCrumbItem title={ruleId} isLast />,
+					},
+				]}
+			/>
+			<Divider className="divider breadcrumb-divider" />
 
-				<AlertDetailsStatusRenderer
-					{...{ isLoading, isError, isRefetching, data: alertDetailsResponse }}
+			<AlertHeader alertDetails={alertRuleDetails} />
+			<Divider className="divider" />
+			<div className="tabs-and-filters">
+				<RouteTab
+					routes={routes}
+					activeKey={pathname}
+					history={history}
+					onChangeHandler={handleTabChange}
+					tabBarExtraContent={<Filters />}
 				/>
-				<Divider className="divider" />
-				<div className="tabs-and-filters">
-					<RouteTab
-						routes={routes}
-						activeKey={pathname}
-						history={history}
-						onChangeHandler={handleTabChange}
-						tabBarExtraContent={<Filters />}
-					/>
-				</div>
 			</div>
-		</CreateAlertProvider>
+		</div>
 	);
 }
 

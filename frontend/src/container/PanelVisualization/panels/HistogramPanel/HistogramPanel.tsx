@@ -2,7 +2,7 @@ import { useMemo, useRef } from 'react';
 import { useIsDarkMode } from 'hooks/useDarkMode';
 import { useResizeObserver } from 'hooks/useDimensions';
 import { LegendPosition } from 'lib/uPlotV2/components/types';
-import { DashboardCursorSync } from 'lib/uPlotV2/plugins/TooltipPlugin/types';
+import { CursorSyncMode } from 'lib/uPlotV2/plugins/TooltipPlugin/types';
 import { useTimezone } from 'providers/Timezone';
 import uPlot from 'uplot';
 
@@ -95,7 +95,7 @@ function HistogramPanel(props: PanelVisualizationProps): JSX.Element {
 					isQueriesMerged={widget.mergeAllActiveQueries}
 					yAxisUnit={widget.yAxisUnit}
 					decimalPrecision={widget.decimalPrecision}
-					syncMode={DashboardCursorSync.Crosshair}
+					syncMode={CursorSyncMode.Crosshair}
 					timezone={timezone}
 					data={chartData as uPlot.AlignedData}
 					width={containerDimensions.width}

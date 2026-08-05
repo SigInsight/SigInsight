@@ -3,7 +3,7 @@ import { PrecisionOption } from 'components/Graph/types';
 import { LegendConfig, TooltipRenderArgs } from 'lib/uPlotV2/components/types';
 import { UPlotConfigBuilder } from 'lib/uPlotV2/config/UPlotConfigBuilder';
 import {
-	DashboardCursorSync,
+	CursorSyncMode,
 	TooltipClickData,
 } from 'lib/uPlotV2/plugins/TooltipPlugin/types';
 
@@ -24,7 +24,7 @@ interface UPlotBasedChartProps {
 	config: UPlotConfigBuilder;
 	data: uPlot.AlignedData;
 	legendConfig: LegendConfig;
-	syncMode?: DashboardCursorSync;
+	syncMode?: CursorSyncMode;
 	syncKey?: string;
 	plotRef?: (plot: uPlot | null) => void;
 	onDestroy?: (plot: uPlot) => void;

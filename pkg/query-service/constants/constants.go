@@ -28,7 +28,7 @@ const SpanSearchScopeEntryPoint = "isentrypoint"
 const OrderBySpanCount = "span_count"
 
 var MetricsExplorerClickhouseThreads = GetOrDefaultEnvInt("METRICS_EXPLORER_CLICKHOUSE_THREADS", 8)
-var UpdatedMetricsMetadataCachePrefix = GetOrDefaultEnv("METRICS_UPDATED_METADATA_CACHE_KEY", "UPDATED_METRICS_METADATA")
+var MetricsMetadataCachePrefix = GetOrDefaultEnv("METRICS_METADATA_CACHE_KEY", "METRICS_METADATA")
 
 const NormalizedMetricsMapCacheKey = "NORMALIZED_METRICS_MAP_CACHE_KEY"
 const NormalizedMetricsMapQueryThreads = 10

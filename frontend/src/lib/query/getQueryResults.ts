@@ -1,0 +1,313 @@
+// @ts-nocheck
+import type { QueryRangeRequestOptions } from 'api/v5/queryRange/getQueryRange';
+import { createAggregation } from 'api/v5/queryRange/prepareQueryRangePayloadV5';
+import {
+	getQueryRangeV5,
+	normalizeQueryRangeResponse,
+	prepareQueryRangePayloadV5,
+} from 'api/v5/v5';
+import { PANEL_TYPES } from 'constants/queryBuilder';
+import {
+	CustomTimeType,
+	Time,
+} from 'container/TopNav/DateTimeSelectionV2/types';
+import { timePreferenceType } from 'features/query-visualization/timePreference';
+import { Pagination } from 'hooks/queryPagination';
+import { buildMetricQueryRangePayload } from 'lib/newQueryBuilder/buildMetricQueryRangePayload';
+import { isEmpty } from 'lodash-es';
+import { MetricQueryRangeSuccessResponse } from 'types/api/metrics/getQueryRange';
+import { IBuilderQuery, Query } from 'types/api/queryBuilder/queryBuilderData';
+import { QueryData } from 'types/api/widgets/getQuery';
+import { DataSource } from 'types/common/queryBuilder';
+import { EQueryType } from 'types/common/queryType';
+
+/**
+ * Validates if metric name is available for METRICS data source
+ */
+function validateMetricNameForMetricsDataSource(query: Query): boolean {
+	if (query.queryType !== 'builder') {
+		return true; // Non-builder queries don't need this validation
+	}
+
+	const { queryData } = query.builder;
+
+	// Check if any METRICS data source queries exist
+	const metricsQueries = queryData.filter(
+		(queryItem) => queryItem.dataSource === DataSource.METRICS,
+	);
+
+	// If no METRICS queries, validation passes
+	if (metricsQueries.length === 0) {
+		return true;
+	}
+
+	// Check if ALL METRICS queries are missing metric names
+	const allMetricsQueriesMissingNames = metricsQueries.every((queryItem) => {
+		const metricName =
+			queryItem.aggregations?.[0]?.metricName || queryItem.aggregateAttribute?.key;
+		return !metricName || metricName.trim() === '';
+	});
+
+	// Return false only if ALL METRICS queries are missing metric names
+	return !allMetricsQueriesMissingNames;
+}
+
+const getLegendForSingleAggregation = (
+	queryData: QueryData,
+	allQueries: IBuilderQuery[],
+	aggregationAlias: string,
+	aggregationExpression: string,
+	labelName: string,
+	singleAggregation: boolean,
+): string => {
+	const queryItem = allQueries.find(
+		(query) => query.queryName === queryData.queryName,
+	);
+
+	const legend = queryItem?.legend;
+	// Check if groupBy exists and has items
+	const hasGroupBy = queryItem?.groupBy && queryItem.groupBy.length > 0;
+
+	if (hasGroupBy) {
+		if (singleAggregation) {
+			return labelName;
+		}
+		return `${aggregationAlias || aggregationExpression}-${labelName}`;
+	}
+	if (singleAggregation) {
+		return aggregationAlias || legend || aggregationExpression;
+	}
+	return aggregationAlias || aggregationExpression;
+};
+
+const getLegendForMultipleAggregations = (
+	queryData: QueryData,
+	allQueries: IBuilderQuery[],
+	aggregationAlias: string,
+	aggregationExpression: string,
+	labelName: string,
+	singleAggregation: boolean,
+): string => {
+	const queryItem = allQueries.find(
+		(query) => query.queryName === queryData.queryName,
+	);
+
+	// Check if groupBy exists and has items
+	const hasGroupBy = queryItem?.groupBy && queryItem.groupBy.length > 0;
+
+	if (hasGroupBy) {
+		if (singleAggregation) {
+			return labelName;
+		}
+		return `${aggregationAlias || aggregationExpression}-${labelName}`;
+	}
+	if (singleAggregation) {
+		return aggregationAlias || labelName || aggregationExpression;
+	}
+	return `${aggregationAlias || aggregationExpression}-${labelName}`;
+};
+
+export const getLegend = (
+	queryData: QueryData,
+	payloadQuery: Query,
+	labelName: string,
+): string => {
+	// For non-query builder queries, return the label name directly
+	if (payloadQuery.queryType !== EQueryType.QUERY_BUILDER) {
+		return labelName;
+	}
+
+	const allQueries = payloadQuery?.builder?.queryData || [];
+
+	const aggregationPerQuery = allQueries.reduce((acc, query) => {
+		if (query.queryName === queryData.queryName) {
+			acc[query.queryName] = createAggregation(query);
+		}
+		return acc;
+	}, {});
+
+	const metaData = queryData?.metaData;
+	const aggregation =
+		aggregationPerQuery?.[metaData?.queryName]?.[metaData?.index];
+
+	const aggregationAlias = aggregation?.alias || '';
+	const aggregationExpression = aggregation?.expression || '';
+
+	// Check if there's only one total query
+	const singleQuery = allQueries.length === 1;
+	const singleAggregation =
+		aggregationPerQuery?.[metaData?.queryName]?.length === 1;
+
+	if (aggregationAlias || aggregationExpression) {
+		return singleQuery
+			? getLegendForSingleAggregation(
+					queryData,
+					allQueries,
+					aggregationAlias,
+					aggregationExpression,
+					labelName,
+					singleAggregation,
+			  )
+			: getLegendForMultipleAggregations(
+					queryData,
+					allQueries,
+					aggregationAlias,
+					aggregationExpression,
+					labelName,
+					singleAggregation,
+			  );
+	}
+	return labelName || metaData?.queryName || queryData.queryName;
+};
+
+// eslint-disable-next-line sonarjs/cognitive-complexity
+export async function GetMetricQueryRange(
+	props: GetQueryResultsProps,
+	signal?: AbortSignal,
+	headers?: Record<string, string>,
+	requestOptions?: QueryRangeRequestOptions,
+): Promise<MetricQueryRangeSuccessResponse> {
+	const panelType = props.originalGraphType || props.graphType;
+
+	const finalFormatForWeb =
+		props.formatForWeb || panelType === PANEL_TYPES.TABLE;
+
+	// Validate metric name for METRICS data source before making the API call
+	if (!validateMetricNameForMetricsDataSource(props.query)) {
+		// Return empty response to avoid 400 error when metric name is missing
+		return {
+			statusCode: 200,
+			error: null,
+			message: 'Metric name is required for metrics data source',
+			payload: {
+				data: {
+					result: [],
+					resultType: '',
+					queryResult: {
+						data: {
+							result: [],
+							resultType: '',
+						},
+					},
+				},
+				warning: undefined,
+			},
+			params: props,
+			warnings: [],
+		};
+	}
+
+	const v5Result = prepareQueryRangePayloadV5({
+		...props,
+	});
+	const legendMap = v5Result.legendMap;
+
+	// atleast one query should be there to make call to v5 api
+	if (v5Result.queryPayload.compositeQuery.queries.length === 0) {
+		return {
+			statusCode: 200,
+			error: null,
+			message: 'At least one query is required',
+			payload: {
+				data: {
+					result: [],
+					resultType: '',
+					queryResult: {
+						data: {
+							result: [],
+							resultType: '',
+						},
+					},
+				},
+			},
+			warning: undefined,
+			params: props,
+			warnings: [],
+		};
+	}
+
+	const v5Response = await getQueryRangeV5(
+		v5Result.queryPayload,
+		signal,
+		headers,
+		requestOptions,
+	);
+
+	const response = normalizeQueryRangeResponse(
+		{
+			payload: v5Response.data,
+			params: v5Result.queryPayload,
+		},
+		legendMap,
+		finalFormatForWeb,
+	);
+
+	const warning = response.payload.warning || undefined;
+	const meta = response.payload.meta || undefined;
+	if (finalFormatForWeb) {
+		return response;
+	}
+
+	if (response.payload?.data?.result) {
+		const normalizedPayload = buildMetricQueryRangePayload(response.payload);
+
+		response.payload = normalizedPayload;
+
+		response.payload.data.result = response.payload.data.result.map(
+			(queryData) => {
+				const newQueryData = queryData;
+				newQueryData.legend = legendMap[queryData.queryName]; // Adds the legend if it is already defined by the user.
+				// If metric names is an empty object
+				if (isEmpty(queryData.metric)) {
+					// If metrics list is empty && the user haven't defined a legend then add the legend equal to the name of the query.
+					if (!newQueryData.legend) {
+						newQueryData.legend = queryData.queryName;
+					}
+					// If name of the query and the legend if inserted is same then add the same to the metrics object.
+					if (queryData.queryName === newQueryData.legend) {
+						newQueryData.metric[queryData.queryName] = queryData.queryName;
+					}
+				}
+
+				return newQueryData;
+			},
+		);
+	}
+
+	if (response.payload?.data?.queryResult?.data?.resultType === 'anomaly') {
+		response.payload.data.queryResult.data.result = response.payload.data.queryResult.data.result.map(
+			(queryData) => {
+				if (legendMap[queryData.queryName]) {
+					queryData.legend = legendMap[queryData.queryName];
+				}
+
+				return queryData;
+			},
+		);
+	}
+
+	return {
+		...response,
+		warning,
+		meta,
+	};
+}
+
+export interface GetQueryResultsProps {
+	query: Query;
+	graphType: PANEL_TYPES;
+	selectedTime: timePreferenceType;
+	globalSelectedInterval?: Time | CustomTimeType;
+	variables?: Record<string, unknown>;
+	params?: Record<string, unknown>;
+	fillGaps?: boolean;
+	formatForWeb?: boolean;
+	tableParams?: {
+		pagination?: Pagination;
+		selectColumns?: any;
+	};
+	start?: number;
+	end?: number;
+	step?: number;
+	originalGraphType?: PANEL_TYPES;
+}

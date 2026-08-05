@@ -1,6 +1,6 @@
 import { PANEL_TYPES } from 'constants/queryBuilder';
 import { Spline } from 'lucide-react';
-import { EQueryType } from 'types/common/dashboard';
+import { EQueryType } from 'types/common/queryType';
 
 import QueryTypeTag from '../QueryTypeTag';
 

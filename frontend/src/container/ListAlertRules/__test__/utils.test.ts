@@ -1,3 +1,4 @@
+import { AlertTypes } from 'types/api/alerts/alertTypes';
 import { GettableAlert } from 'types/api/alerts/get';
 
 import { filterAlerts } from '../utils';
@@ -10,7 +11,8 @@ describe('filterAlerts', () => {
 		createBy: 'test-user',
 		updateAt: '2024-01-01T00:00:00Z',
 		updateBy: 'test-user',
-		version: '1',
+		version: 'v5',
+		schemaVersion: 'v3alpha1',
 	};
 
 	const mockAlerts: GettableAlert[] = [
@@ -18,7 +20,7 @@ describe('filterAlerts', () => {
 			...mockAlertBase,
 			id: '1',
 			alert: 'High CPU Usage',
-			alertType: 'metrics',
+			alertType: AlertTypes.METRICS_BASED_ALERT,
 			labels: {
 				severity: 'warning',
 				status: 'ok',
@@ -29,7 +31,7 @@ describe('filterAlerts', () => {
 			...mockAlertBase,
 			id: '2',
 			alert: 'Memory Leak Detected',
-			alertType: 'metrics',
+			alertType: AlertTypes.METRICS_BASED_ALERT,
 			labels: {
 				severity: 'critical',
 				status: 'firing',
@@ -40,7 +42,7 @@ describe('filterAlerts', () => {
 			...mockAlertBase,
 			id: '3',
 			alert: 'Database Connection Error',
-			alertType: 'metrics',
+			alertType: AlertTypes.METRICS_BASED_ALERT,
 			labels: {
 				severity: 'error',
 				status: 'pending',
@@ -102,7 +104,7 @@ describe('filterAlerts', () => {
 				...mockAlertBase,
 				id: '4',
 				alert: 'Test Alert',
-				alertType: 'metrics',
+				alertType: AlertTypes.METRICS_BASED_ALERT,
 				labels: undefined,
 			} as GettableAlert,
 		];
@@ -117,7 +119,7 @@ describe('filterAlerts', () => {
 				...mockAlertBase,
 				id: '5',
 				alert: '',
-				alertType: 'metrics',
+				alertType: AlertTypes.METRICS_BASED_ALERT,
 				labels: {
 					severity: 'warning',
 				},

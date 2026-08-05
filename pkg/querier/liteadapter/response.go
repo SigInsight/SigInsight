@@ -71,6 +71,10 @@ func FromLite(request *qbtypes.QueryRangeRequest, result litequery.ExecutionResu
 }
 
 func fillTimeSeriesGaps(data *qbtypes.TimeSeriesData, startMS, endMS, stepMS int64) error {
+	if data.ValueType == string(litequery.FormulaValueBool) {
+		// A missing boolean is semantically No Data, not false. Never fill it.
+		return nil
+	}
 	if stepMS <= 0 {
 		return errors.NewInternalf(errors.CodeInternal, "time series query %q has no positive step for gap filling", data.QueryName)
 	}
@@ -109,6 +113,7 @@ func fillTimeSeriesGaps(data *qbtypes.TimeSeriesData, startMS, endMS, stepMS int
 }
 
 func timeSeries(query litequery.QueryResult) (*qbtypes.TimeSeriesData, error) {
+	valueType := queryValueType(query)
 	timestampIndex, valueIndex := -1, -1
 	labelIndexes := make([]int, 0)
 	for index, column := range query.Columns {
@@ -134,11 +139,7 @@ func timeSeries(query litequery.QueryResult) (*qbtypes.TimeSeriesData, error) {
 		if !ok {
 			return nil, errors.NewInternalf(errors.CodeInternal, "time series query %q returned invalid timestamp %T", query.Name, row[timestampIndex])
 		}
-		value, ok := number(row[valueIndex])
-		if !ok {
-			return nil, errors.NewInternalf(errors.CodeInternal, "time series query %q returned invalid value %T", query.Name, row[valueIndex])
-		}
-		if math.IsNaN(value) || math.IsInf(value, 0) {
+		if row[valueIndex] == nil {
 			continue
 		}
 		labels := make([]*qbtypes.Label, 0, len(labelIndexes))
@@ -158,19 +159,36 @@ func timeSeries(query litequery.QueryResult) (*qbtypes.TimeSeriesData, error) {
 			seriesByKey[key] = series
 			seriesInOrder = append(seriesInOrder, series)
 		}
-		series.Values = append(series.Values, &qbtypes.TimeSeriesValue{Timestamp: timestamp, Value: value})
+		if valueType == litequery.FormulaValueBool {
+			value, ok := row[valueIndex].(bool)
+			if !ok {
+				return nil, errors.NewInternalf(errors.CodeInternal, "time series query %q returned invalid bool value %T", query.Name, row[valueIndex])
+			}
+			series.Values = append(series.Values, &qbtypes.TimeSeriesValue{Timestamp: timestamp, BoolValue: &value})
+		} else {
+			value, ok := number(row[valueIndex])
+			if !ok {
+				return nil, errors.NewInternalf(errors.CodeInternal, "time series query %q returned invalid value %T", query.Name, row[valueIndex])
+			}
+			if math.IsNaN(value) || math.IsInf(value, 0) {
+				continue
+			}
+			series.Values = append(series.Values, &qbtypes.TimeSeriesValue{Timestamp: timestamp, Value: value})
+		}
 	}
 	bucket := &qbtypes.AggregationBucket{Index: 0, Alias: "value"}
+	bucket.Meta.ValueType = string(valueType)
 	for _, series := range seriesInOrder {
 		sort.SliceStable(series.Values, func(left, right int) bool {
 			return series.Values[left].Timestamp < series.Values[right].Timestamp
 		})
 		bucket.Series = append(bucket.Series, series)
 	}
-	return &qbtypes.TimeSeriesData{QueryName: query.Name, Aggregations: []*qbtypes.AggregationBucket{bucket}}, nil
+	return &qbtypes.TimeSeriesData{QueryName: query.Name, ValueType: string(valueType), Aggregations: []*qbtypes.AggregationBucket{bucket}}, nil
 }
 
 func scalar(query litequery.QueryResult) (*qbtypes.ScalarData, error) {
+	valueType := queryValueType(query)
 	columns := make([]*qbtypes.ColumnDescriptor, len(query.Columns))
 	for index, column := range query.Columns {
 		kind := qbtypes.ColumnTypeGroup
@@ -198,7 +216,18 @@ func scalar(query litequery.QueryResult) (*qbtypes.ScalarData, error) {
 			}
 		}
 	}
-	return &qbtypes.ScalarData{QueryName: query.Name, Columns: columns, Data: data}, nil
+	return &qbtypes.ScalarData{QueryName: query.Name, ValueType: string(valueType), Columns: columns, Data: data}, nil
+}
+
+func queryValueType(query litequery.QueryResult) litequery.FormulaValueType {
+	if len(query.Columns) == 0 {
+		return litequery.FormulaValueNumber
+	}
+	valueType := query.Columns[len(query.Columns)-1].ValueType
+	if valueType == "" {
+		return litequery.FormulaValueNumber
+	}
+	return valueType
 }
 
 func raw(query litequery.QueryResult) (*qbtypes.RawData, error) {

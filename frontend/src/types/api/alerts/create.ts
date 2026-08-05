@@ -1,7 +1,7 @@
-import { AlertDef } from 'types/api/alerts/def';
+import { PostableBasicAlertRule } from './basicAlert';
 
 export interface Props {
-	data: AlertDef;
+	data: PostableBasicAlertRule;
 }
 
 export interface PayloadProps {

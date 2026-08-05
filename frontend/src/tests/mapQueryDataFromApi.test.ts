@@ -6,8 +6,8 @@ import {
 	QueryEnvelope,
 	TraceAggregation,
 } from 'types/api/v5/queryRange';
-import { EQueryType } from 'types/common/dashboard';
 import { DataSource } from 'types/common/queryBuilder';
+import { EQueryType } from 'types/common/queryType';
 
 import { mapQueryDataFromApi } from '../lib/newQueryBuilder/queryBuilderMappers/mapQueryDataFromApi';
 

@@ -63,8 +63,6 @@ components:
           $ref: '#/components/schemas/AssistantSelectedEntity'
         timeRange:
           $ref: '#/components/schemas/AssistantTimeRange'
-        traceOperatorCount:
-          type: integer
         visibleDataSummary:
           $ref: '#/components/schemas/AssistantVisibleDataSummary'
       type: object
@@ -680,28 +678,6 @@ components:
       - timeseries
       - samples
       type: object
-    MetricsexplorertypesUpdateMetricMetadataRequest:
-      properties:
-        description:
-          type: string
-        isMonotonic:
-          type: boolean
-        metricName:
-          type: string
-        temporality:
-          $ref: '#/components/schemas/MetrictypesTemporality'
-        type:
-          $ref: '#/components/schemas/MetrictypesType'
-        unit:
-          type: string
-      required:
-      - metricName
-      - type
-      - description
-      - unit
-      - temporality
-      - isMonotonic
-      type: object
     MetrictypesComparisonSpaceAggregationParam:
       properties:
         operator:
@@ -798,6 +774,8 @@ components:
         meta:
           properties:
             unit:
+              type: string
+            valueType:
               type: string
           type: object
         predictedSeries:
@@ -1225,51 +1203,6 @@ components:
         stepInterval:
           $ref: '#/components/schemas/Querybuildertypesv5Step'
       type: object
-    Querybuildertypesv5QueryBuilderTraceOperator:
-      properties:
-        aggregations:
-          items:
-            $ref: '#/components/schemas/Querybuildertypesv5TraceAggregation'
-          type: array
-        cursor:
-          type: string
-        disabled:
-          type: boolean
-        expression:
-          type: string
-        filter:
-          $ref: '#/components/schemas/Querybuildertypesv5Filter'
-        functions:
-          items:
-            $ref: '#/components/schemas/Querybuildertypesv5Function'
-          type: array
-        groupBy:
-          items:
-            $ref: '#/components/schemas/Querybuildertypesv5GroupByKey'
-          type: array
-        having:
-          $ref: '#/components/schemas/Querybuildertypesv5Having'
-        legend:
-          type: string
-        limit:
-          type: integer
-        name:
-          type: string
-        offset:
-          type: integer
-        order:
-          items:
-            $ref: '#/components/schemas/Querybuildertypesv5OrderBy'
-          type: array
-        returnSpansFrom:
-          type: string
-        selectFields:
-          items:
-            $ref: '#/components/schemas/TelemetrytypesTelemetryFieldKey'
-          type: array
-        stepInterval:
-          $ref: '#/components/schemas/Querybuildertypesv5Step'
-      type: object
     Querybuildertypesv5QueryData:
       oneOf:
       - $ref: '#/components/schemas/Querybuildertypesv5TimeSeriesData'
@@ -1287,7 +1220,6 @@ components:
       - $ref: '#/components/schemas/Querybuildertypesv5QueryEnvelopeBuilderLog'
       - $ref: '#/components/schemas/Querybuildertypesv5QueryEnvelopeBuilderMetric'
       - $ref: '#/components/schemas/Querybuildertypesv5QueryEnvelopeFormula'
-      - $ref: '#/components/schemas/Querybuildertypesv5QueryEnvelopeTraceOperator'
       - $ref: '#/components/schemas/Querybuildertypesv5QueryEnvelopeClickHouseSQL'
       properties:
         spec: {}
@@ -1326,13 +1258,6 @@ components:
       properties:
         spec:
           $ref: '#/components/schemas/Querybuildertypesv5QueryBuilderFormula'
-        type:
-          $ref: '#/components/schemas/Querybuildertypesv5QueryType'
-      type: object
-    Querybuildertypesv5QueryEnvelopeTraceOperator:
-      properties:
-        spec:
-          $ref: '#/components/schemas/Querybuildertypesv5QueryBuilderTraceOperator'
         type:
           $ref: '#/components/schemas/Querybuildertypesv5QueryType'
       type: object
@@ -1381,7 +1306,6 @@ components:
       enum:
       - builder_query
       - builder_formula
-      - builder_trace_operator
       - clickhouse_sql
       type: string
     Querybuildertypesv5QueryWarnData:
@@ -1458,6 +1382,8 @@ components:
           type: array
         queryName:
           type: string
+        valueType:
+          type: string
       type: object
     Querybuildertypesv5SecondaryAggregation:
       properties:
@@ -1511,9 +1437,14 @@ components:
           type: array
         queryName:
           type: string
+        valueType:
+          type: string
       type: object
     Querybuildertypesv5TimeSeriesValue:
       properties:
+        boolValue:
+          nullable: true
+          type: boolean
         bucket:
           $ref: '#/components/schemas/Querybuildertypesv5Bucket'
         partial:
@@ -2889,59 +2820,6 @@ paths:
       - tokenizer:
         - VIEWER
       summary: Get metric metadata
-      tags:
-      - metrics
-    post:
-      deprecated: false
-      description: This endpoint helps to update metadata information like metric
-        description, unit, type, temporality, monotonicity for a specified metric
-      operationId: UpdateMetricMetadata
-      parameters:
-      - in: path
-        name: metric_name
-        required: true
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/MetricsexplorertypesUpdateMetricMetadataRequest'
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                type: string
-          description: OK
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Bad Request
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - tokenizer:
-        - EDITOR
-      summary: Update metric metadata
       tags:
       - metrics
   /api/v5/metrics/stats:
@@ -4419,61 +4297,6 @@ paths:
       summary: Rotate session
       tags:
       - sessions
-  /api/v5/substitute_vars:
-    post:
-      deprecated: false
-      description: Replace variables in a query
-      operationId: ReplaceVariables
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Querybuildertypesv5QueryRangeRequest'
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                properties:
-                  data:
-                    $ref: '#/components/schemas/Querybuildertypesv5QueryRangeRequest'
-                  status:
-                    type: string
-                required:
-                - status
-                - data
-                type: object
-          description: OK
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Bad Request
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Forbidden
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RenderErrorResponse'
-          description: Internal Server Error
-      security:
-      - tokenizer:
-        - VIEWER
-      summary: Replace variables
-      tags:
-      - querier
   /api/v5/user/{id}:
     delete:
       deprecated: false

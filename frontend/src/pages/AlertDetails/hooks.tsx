@@ -34,8 +34,8 @@ import { OrderPreferenceItems } from 'pages/Logs/config';
 import PaginationInfoText from 'periscope/components/PaginationInfoText/PaginationInfoText';
 import { useAlertRule } from 'providers/Alert';
 import { ErrorResponse, SuccessResponse } from 'types/api';
+import { PostableBasicAlertRule } from 'types/api/alerts/basicAlert';
 import {
-	AlertDef,
 	AlertRuleStatsPayload,
 	AlertRuleTimelineGraphResponsePayload,
 	AlertRuleTimelineTableResponse,
@@ -414,7 +414,7 @@ export const useAlertRuleStatusToggle = ({
 export const useAlertRuleDuplicate = ({
 	alertDetails,
 }: {
-	alertDetails: AlertDef;
+	alertDetails: PostableBasicAlertRule;
 }): {
 	handleAlertDuplicate: () => void;
 } => {
@@ -462,45 +462,6 @@ export const useAlertRuleDuplicate = ({
 
 	return { handleAlertDuplicate };
 };
-export const useAlertRuleUpdate = ({
-	alertDetails,
-	setUpdatedName,
-	intermediateName,
-}: {
-	alertDetails: AlertDef;
-	setUpdatedName: (name: string) => void;
-	intermediateName: string;
-}): {
-	handleAlertUpdate: () => void;
-	isLoading: boolean;
-} => {
-	const { notifications } = useNotifications();
-	const handleError = useAxiosError();
-
-	const { mutate: updateAlertRule, isLoading } = useMutation(
-		[REACT_QUERY_KEY.UPDATE_ALERT_RULE, alertDetails.id],
-		save,
-		{
-			onMutate: () => setUpdatedName(intermediateName),
-			onSuccess: () =>
-				notifications.success({ message: 'Alert renamed successfully' }),
-			onError: (error) => {
-				setUpdatedName(alertDetails.alert);
-				handleError(error);
-			},
-		},
-	);
-
-	const handleAlertUpdate = (): void => {
-		updateAlertRule({
-			data: { ...alertDetails, alert: intermediateName },
-			id: alertDetails.id,
-		});
-	};
-
-	return { handleAlertUpdate, isLoading };
-};
-
 export const useAlertRuleDelete = ({
 	ruleId,
 }: {

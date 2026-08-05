@@ -1,4 +1,4 @@
-import { EQueryType } from 'types/common/dashboard';
+import { EQueryType } from 'types/common/queryType';
 
 function QueryTypeTag({ queryType }: IQueryTypeTagProps): JSX.Element {
 	switch (queryType) {

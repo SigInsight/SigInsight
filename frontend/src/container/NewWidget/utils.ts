@@ -19,10 +19,10 @@ import {
 } from 'container/OptionsMenu/constants';
 import { categoryToSupport } from 'container/QueryBuilder/filters/BuilderUnitsFilter/config';
 import { cloneDeep, defaultTo, isEmpty, isEqual, set, unset } from 'lodash-es';
-import { Widgets } from 'types/api/dashboard/getAll';
 import { IBuilderQuery, Query } from 'types/api/queryBuilder/queryBuilderData';
-import { EQueryType } from 'types/common/dashboard';
+import { Widgets } from 'types/api/widgets/getAll';
 import { DataSource } from 'types/common/queryBuilder';
+import { EQueryType } from 'types/common/queryType';
 
 import { getCategoryName } from './RightContainer/dataFormatCategories';
 
@@ -528,10 +528,6 @@ export function handleQueryChange(
 
 				return tempQuery;
 			}),
-			queryTraceOperator:
-				newPanelType === PANEL_TYPES.LIST
-					? []
-					: supersetQuery.builder.queryTraceOperator,
 		},
 	};
 }

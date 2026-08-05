@@ -63,42 +63,36 @@ func normalizeRuleUnits(rule *PostableRule) {
 		return
 	}
 	query := rule.RuleCondition.CompositeQuery
-	isLegacyUnit := query.Unit != ""
-	if query.ResultUnit == "" {
-		query.ResultUnit = query.Unit
-	}
 	if query.DisplayUnit == "" {
 		query.DisplayUnit = query.ResultUnit
 	}
 
 	inferredUnit := inferredRuleResultUnit(rule)
-	if inferredUnit != "" && (isLegacyUnit || query.ResultUnit == "") {
+	if inferredUnit != "" && query.ResultUnit == "" {
 		query.ResultUnit = inferredUnit
 		query.DisplayUnit = inferredUnit
-		rule.RuleCondition.TargetUnit = inferredUnit
-		if rule.RuleCondition.Thresholds != nil {
-			if thresholds, ok := rule.RuleCondition.Thresholds.Spec.(BasicRuleThresholds); ok {
-				for index := range thresholds {
-					thresholds[index].TargetUnit = inferredUnit
-				}
-				rule.RuleCondition.Thresholds.Spec = thresholds
-			}
-		}
-		return
 	}
 
 	if query.ResultUnit != "" && !units.AreCompatible(units.Unit(query.ResultUnit), units.Unit(query.DisplayUnit)) {
-		if isLegacyUnit {
-			query.DisplayUnit = query.ResultUnit
-		}
+		return
 	}
 
+	if rule.RuleCondition.Numeric != nil {
+		for index := range rule.RuleCondition.Numeric.Thresholds {
+			if rule.RuleCondition.Numeric.Thresholds[index].TargetUnit == "" && query.ResultUnit != "" {
+				rule.RuleCondition.Numeric.Thresholds[index].TargetUnit = query.ResultUnit
+			}
+		}
+		rule.RuleCondition.populateRuntimeFields()
+		return
+	}
+
+	// The direct adapter is retained until the state-machine tests are moved to
+	// v3 construction. It is not a JSON compatibility path.
 	if rule.RuleCondition.Thresholds != nil {
 		if thresholds, ok := rule.RuleCondition.Thresholds.Spec.(BasicRuleThresholds); ok {
 			for index := range thresholds {
 				if thresholds[index].TargetUnit == "" && query.ResultUnit != "" {
-					thresholds[index].TargetUnit = query.ResultUnit
-				} else if isLegacyUnit && !units.AreCompatible(units.Unit(thresholds[index].TargetUnit), units.Unit(query.ResultUnit)) {
 					thresholds[index].TargetUnit = query.ResultUnit
 				}
 			}

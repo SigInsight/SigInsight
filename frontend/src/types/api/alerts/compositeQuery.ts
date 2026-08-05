@@ -4,7 +4,7 @@ import {
 	BuilderQueryDataResourse,
 	Query,
 } from 'types/api/queryBuilder/queryBuilderData';
-import { EQueryType } from 'types/common/dashboard';
+import { EQueryType } from 'types/common/queryType';
 
 import { QueryEnvelope } from '../v5/queryRange';
 

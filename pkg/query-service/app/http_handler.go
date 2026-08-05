@@ -48,6 +48,11 @@ import (
 
 type status string
 
+type testRuleResponse struct {
+	EvaluationPreview rules.EvaluationPreview `json:"evaluationPreview"`
+	Message           string                  `json:"message"`
+}
+
 const (
 	statusSuccess status = "success"
 	statusError   status = "error"
@@ -550,7 +555,7 @@ func (aH *APIHandler) getRuleStateHistory(w http.ResponseWriter, r *http.Request
 			}
 			end := time.Unix(res.Items[idx].UnixMilli/1000, 0)
 			// Alert evaluation includes a built-in delay, so widen the link range by three minutes.
-			start := end.Add(-rule.EvalWindow.Duration() - 3*time.Minute)
+			start := end.Add(-rule.EvalWindow().Duration() - 3*time.Minute)
 			res.Items[idx].RelatedLogsLink, res.Items[idx].RelatedTracesLink = relatedRuleLinks(
 				rule,
 				start,
@@ -635,17 +640,16 @@ func (aH *APIHandler) testRule(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
 	defer cancel()
 
-	alertCount, apiRrr := aH.ruleManager.TestNotification(ctx, orgID, string(body))
+	evaluationPreview, apiRrr := aH.ruleManager.TestNotification(ctx, orgID, string(body))
 	if apiRrr != nil {
 		RespondError(w, apiRrr, nil)
 		return
 	}
 
-	response := map[string]interface{}{
-		"alertCount": alertCount,
-		"message":    "notification sent",
-	}
-	aH.Respond(w, response)
+	aH.Respond(w, testRuleResponse{
+		EvaluationPreview: evaluationPreview,
+		Message:           "notification sent",
+	})
 }
 
 func (aH *APIHandler) deleteRule(w http.ResponseWriter, r *http.Request) {

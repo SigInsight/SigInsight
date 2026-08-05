@@ -5,9 +5,9 @@ import {
 	fillMissingXAxisTimestamps,
 	getXAxisTimestamps,
 } from 'container/PanelVisualization/panels/utils';
-import { getLegend } from 'lib/dashboard/getQueryResults';
 import { convertValue } from 'lib/getConvertedValue';
 import getLabelName from 'lib/getLabelName';
+import { getLegend } from 'lib/query/getQueryResults';
 import {
 	DrawStyle,
 	FillMode,
@@ -18,9 +18,9 @@ import { UPlotConfigBuilder } from 'lib/uPlotV2/config/UPlotConfigBuilder';
 import { OnClickPluginOpts } from 'lib/uPlotV2/plugins/onClickPlugin';
 import { isInvalidPlotValue } from 'lib/uPlotV2/utils/dataUtils';
 import get from 'lodash-es/get';
-import { Widgets } from 'types/api/dashboard/getAll';
 import { MetricRangePayloadProps } from 'types/api/metrics/getQueryRange';
 import { Query } from 'types/api/queryBuilder/queryBuilderData';
+import { Widgets } from 'types/api/widgets/getAll';
 import { QueryData } from 'types/api/widgets/getQuery';
 
 import { PanelMode } from '../types';

@@ -45,7 +45,6 @@ describe('drilldownUtils', () => {
 						},
 					],
 					queryFormulas: [],
-					queryTraceOperator: [],
 				},
 				clickhouse_sql: [],
 			};
@@ -76,7 +75,6 @@ describe('drilldownUtils', () => {
 						},
 					],
 					queryFormulas: [],
-					queryTraceOperator: [],
 				},
 				clickhouse_sql: [],
 			};
@@ -130,7 +128,6 @@ describe('drilldownUtils', () => {
 					},
 				],
 				queryFormulas: [],
-				queryTraceOperator: [],
 			},
 			clickhouse_sql: [],
 		};

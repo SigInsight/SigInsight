@@ -170,7 +170,7 @@ describe('Logs Explorer Tests', () => {
 	test('Multiple Current Queries', async () => {
 		// mocking the query range API to return the logs
 		logsQueryServerRequest();
-		const { getByRole, getByText } = render(
+		const { getAllByTestId, queryByRole, queryByText } = render(
 			<MemoryRouter
 				initialEntries={[
 					'/logs-explorer/?panelType=list&selectedExplorerView=list',
@@ -187,7 +187,6 @@ describe('Logs Explorer Tests', () => {
 									initialQueryBuilderFormValues,
 									initialQueryBuilderFormValues,
 								],
-								queryTraceOperator: [],
 							},
 						},
 						setSupersetQuery: jest.fn(),
@@ -230,12 +229,17 @@ describe('Logs Explorer Tests', () => {
 			</MemoryRouter>,
 		);
 
+		// Multiple builder rows are supported by the lightweight engine. The old
+		// replacement warning was removed with the legacy query path.
+		expect(getAllByTestId('lite-query-A')).toHaveLength(2);
 		expect(
-			getByText(
+			queryByText(
 				'This saved query uses capabilities that are not supported by the lightweight query engine.',
 			),
-		).toBeInTheDocument();
-		expect(getByRole('button', { name: 'Replace query' })).toBeInTheDocument();
+		).not.toBeInTheDocument();
+		expect(
+			queryByRole('button', { name: 'Replace query' }),
+		).not.toBeInTheDocument();
 	});
 
 	test('frequency chart visibility and switch toggle', async () => {

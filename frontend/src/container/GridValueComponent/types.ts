@@ -1,6 +1,6 @@
 import { ThresholdProps } from 'features/query-visualization/threshold';
-import { ContextLinksData, Widgets } from 'types/api/dashboard/getAll';
 import { MetricQueryRangeResult } from 'types/api/metrics/getQueryRange';
+import { ContextLinksData, Widgets } from 'types/api/widgets/getAll';
 import uPlot from 'uplot';
 
 export type GridValueComponentProps = {

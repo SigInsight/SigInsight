@@ -1,9 +1,9 @@
-import { Widgets } from 'types/api/dashboard/getAll';
 import {
 	MetricRangePayloadProps,
 	QueryRangeViewPayload,
 } from 'types/api/metrics/getQueryRange';
 import { Query } from 'types/api/queryBuilder/queryBuilderData';
+import { Widgets } from 'types/api/widgets/getAll';
 
 import { PanelMode } from '../../types';
 import { prepareChartData, prepareUPlotConfig } from '../utils';
@@ -20,7 +20,7 @@ jest.mock('lib/uPlotV2/plugins/onClickPlugin', () => ({
 	default: jest.fn().mockReturnValue({ name: 'onClickPlugin' }),
 }));
 
-jest.mock('lib/dashboard/getQueryResults', () => ({
+jest.mock('lib/query/getQueryResults', () => ({
 	getLegend: jest.fn(
 		(_queryData: unknown, _query: unknown, labelName: string) =>
 			`legend-${labelName}`,
@@ -34,7 +34,7 @@ jest.mock('lib/getLabelName', () => ({
 	),
 }));
 
-const getLegendMock = jest.requireMock('lib/dashboard/getQueryResults')
+const getLegendMock = jest.requireMock('lib/query/getQueryResults')
 	.getLegend as jest.Mock;
 const getLabelNameMock = jest.requireMock('lib/getLabelName')
 	.default as jest.Mock;

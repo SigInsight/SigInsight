@@ -1,7 +1,7 @@
 /* eslint-disable sonarjs/cognitive-complexity */
-import { ChangeEvent, useCallback, useEffect } from 'react';
-import { Alert, Button, Input, InputNumber, Select, Tooltip } from 'antd';
-import { initialQueriesMap, PANEL_TYPES } from 'constants/queryBuilder';
+import { useCallback, useEffect, useMemo } from 'react';
+import { Button, Input, InputNumber, Select, Tooltip } from 'antd';
+import { PANEL_TYPES } from 'constants/queryBuilder';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
 import { Plus, Sigma, Trash2 } from 'lucide-react';
 import {
@@ -21,10 +21,10 @@ import QueryBuilderSearchV3 from '../query-builder-v3/QueryBuilderSearchV3';
 import {
 	getLiteMetricAggregationOptions,
 	isLiteFormula,
-	isLiteQueryState,
 	LiteMetricType,
 	toLiteFilterExpression,
 } from './capabilities';
+import { FormulaExpressionEditor } from './FormulaExpressionEditor';
 
 import './LiteQueryBuilder.scss';
 
@@ -39,6 +39,11 @@ export type LiteQueryBuilderProps = {
 	config?: LiteQueryBuilderConfig;
 	onSignalSourceChange?: (value: string) => void;
 	signalSourceChangeEnabled?: boolean;
+	limits?: {
+		maxDataQueries?: number;
+		maxFormulas?: number;
+	};
+	alertMode?: boolean;
 };
 
 const sourceOptions = [
@@ -519,9 +524,13 @@ function LiteBuilderRow({
 function LiteFormulaRow({
 	index,
 	formula,
+	queryNames,
+	alertMode,
 }: {
 	index: number;
 	formula: IBuilderFormula;
+	queryNames: readonly string[];
+	alertMode: boolean;
 }): JSX.Element {
 	const {
 		currentQuery,
@@ -530,15 +539,16 @@ function LiteFormulaRow({
 	} = useQueryBuilder();
 	const error =
 		formula.expression.trim() && !isLiteFormula(formula)
-			? 'Use query names joined only by +, -, * or /.'
+			? 'Use query names or numbers joined by +, -, * or /.'
 			: '';
 
 	const update = useCallback(
-		(event: ChangeEvent<HTMLInputElement>): void => {
-			const next = { ...formula, [event.target.name]: event.target.value };
-			if (!event.target.value.trim() || isLiteFormula(next)) {
-				handleSetFormulaData(index, next);
-			}
+		(value: string): void => {
+			// Formula validation is intentionally advisory while editing. A
+			// complete expression cannot be typed atomically (for example, the
+			// intermediate `A +` state is invalid), so rejecting it here loses
+			// keystrokes and makes operators impossible to enter.
+			handleSetFormulaData(index, { ...formula, expression: value });
 		},
 		[formula, handleSetFormulaData, index],
 	);
@@ -557,62 +567,15 @@ function LiteFormulaRow({
 					/>
 				</Tooltip>
 			</div>
-			<Input
-				name="expression"
-				aria-label={`Formula ${formula.queryName}`}
+			<FormulaExpressionEditor
+				ariaLabel={`Formula ${formula.queryName}`}
 				value={formula.expression}
 				placeholder="A / B"
-				status={error ? 'error' : undefined}
+				queryNames={queryNames}
+				alertMode={alertMode}
 				onChange={update}
 			/>
 			{error && <div className="lite-query-error">{error}</div>}
-		</div>
-	);
-}
-
-function UnsupportedLiteQuery({
-	config,
-}: Pick<LiteQueryBuilderProps, 'config'>): JSX.Element {
-	const { currentQuery, redirectWithQueryBuilderData } = useQueryBuilder();
-	const source =
-		(config?.queryVariant === 'static' && config.initialDataSource) ||
-		currentQuery.builder.queryData[0]?.dataSource ||
-		DataSource.METRICS;
-
-	const replaceWithSupportedQuery = useCallback((): void => {
-		const initial = initialQueriesMap[source];
-		redirectWithQueryBuilderData({
-			...initial,
-			id: currentQuery.id,
-			clickhouse_sql: [],
-			builder: {
-				queryData: initial.builder.queryData.map((query) => ({
-					...query,
-					functions: [],
-					filters: { items: [], op: 'AND' },
-					filter: { expression: '' },
-					groupBy: [],
-					having: [],
-					orderBy: [],
-				})),
-				queryFormulas: [],
-				queryTraceOperator: [],
-			},
-		});
-	}, [currentQuery.id, redirectWithQueryBuilderData, source]);
-
-	return (
-		<div className="lite-query-builder">
-			<Alert
-				type="warning"
-				showIcon
-				message="This saved query uses capabilities that are not supported by the lightweight query engine."
-				action={
-					<Button type="primary" onClick={replaceWithSupportedQuery}>
-						Replace query
-					</Button>
-				}
-			/>
 		</div>
 	);
 }
@@ -622,6 +585,8 @@ function LiteQueryBuilderContent({
 	config,
 	onSignalSourceChange,
 	signalSourceChangeEnabled = false,
+	limits,
+	alertMode = false,
 }: LiteQueryBuilderProps): JSX.Element {
 	const {
 		currentQuery,
@@ -629,7 +594,6 @@ function LiteQueryBuilderContent({
 		panelType: activePanelType,
 		handleSetConfig,
 		handleSetQueryData,
-		handleSetFormulaData,
 		addNewBuilderQuery,
 		addNewFormula,
 	} = useQueryBuilder();
@@ -638,6 +602,14 @@ function LiteQueryBuilderContent({
 	const queryVariant = config?.queryVariant || 'dropdown';
 	const isRawPanel =
 		panelType === PANEL_TYPES.LIST || panelType === PANEL_TYPES.TRACE;
+	const maxDataQueries = limits?.maxDataQueries;
+	const maxFormulas = limits?.maxFormulas;
+	const dataQueryLimitReached =
+		maxDataQueries !== undefined &&
+		currentQuery.builder.queryData.length >= maxDataQueries;
+	const formulaLimitReached =
+		maxFormulas !== undefined &&
+		currentQuery.builder.queryFormulas.length >= maxFormulas;
 
 	useEffect(() => {
 		if (initialDataSource !== initialSource || activePanelType !== panelType) {
@@ -662,20 +634,15 @@ function LiteQueryBuilderContent({
 		});
 	}, [currentQuery.builder.queryData, handleSetQueryData, panelType]);
 
-	useEffect(() => {
-		currentQuery.builder.queryFormulas.forEach((formula, index) => {
-			if (!formula.expression.trim()) {
-				handleSetFormulaData(index, {
-					...formula,
-					expression: currentQuery.builder.queryData[0]?.queryName || 'A',
-				});
-			}
-		});
-	}, [
-		currentQuery.builder.queryData,
-		currentQuery.builder.queryFormulas,
-		handleSetFormulaData,
-	]);
+	const formulaQueryNames = useMemo(
+		() => [
+			...currentQuery.builder.queryData.map((query) => query.queryName),
+			...currentQuery.builder.queryFormulas
+				.filter((formula) => formula.expression.trim())
+				.map((formula) => formula.queryName),
+		],
+		[currentQuery.builder.queryData, currentQuery.builder.queryFormulas],
+	);
 
 	return (
 		<div className="lite-query-builder" data-testid="lite-query-builder">
@@ -692,16 +659,46 @@ function LiteQueryBuilderContent({
 				/>
 			))}
 			{currentQuery.builder.queryFormulas.map((formula, index) => (
-				<LiteFormulaRow key={formula.queryName} index={index} formula={formula} />
+				<LiteFormulaRow
+					key={formula.queryName}
+					index={index}
+					formula={formula}
+					queryNames={formulaQueryNames.filter((name) => name !== formula.queryName)}
+					alertMode={alertMode}
+				/>
 			))}
 			{!isRawPanel && (
 				<div className="lite-query-footer">
-					<Button icon={<Plus size={15} />} onClick={addNewBuilderQuery}>
-						Add query
-					</Button>
-					<Button icon={<Sigma size={15} />} onClick={addNewFormula}>
-						Add formula
-					</Button>
+					<Tooltip
+						title={
+							dataQueryLimitReached
+								? `Basic alerts support at most ${maxDataQueries} data queries`
+								: undefined
+						}
+					>
+						<Button
+							icon={<Plus size={15} />}
+							onClick={addNewBuilderQuery}
+							disabled={dataQueryLimitReached}
+						>
+							Add query
+						</Button>
+					</Tooltip>
+					<Tooltip
+						title={
+							formulaLimitReached
+								? `Basic alerts support at most ${maxFormulas} formulas`
+								: undefined
+						}
+					>
+						<Button
+							icon={<Sigma size={15} />}
+							onClick={addNewFormula}
+							disabled={formulaLimitReached}
+						>
+							Add formula
+						</Button>
+					</Tooltip>
 				</div>
 			)}
 		</div>
@@ -709,9 +706,5 @@ function LiteQueryBuilderContent({
 }
 
 export function LiteQueryBuilder(props: LiteQueryBuilderProps): JSX.Element {
-	const { currentQuery } = useQueryBuilder();
-	if (!isLiteQueryState(currentQuery, props.panelType)) {
-		return <UnsupportedLiteQuery config={props.config} />;
-	}
 	return <LiteQueryBuilderContent {...props} />;
 }

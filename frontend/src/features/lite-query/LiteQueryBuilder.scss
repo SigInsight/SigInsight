@@ -51,6 +51,23 @@
 	margin-top: 4px;
 }
 
+.lite-formula-row .cm-editor {
+	border: 1px solid var(--bg-slate-400, #d9d9d9);
+	border-radius: 4px;
+	font-family: inherit;
+	font-size: 14px;
+	min-height: 32px;
+}
+
+.lite-formula-row .cm-editor:focus-within {
+	border-color: var(--primary-500, #1677ff);
+	box-shadow: 0 0 0 2px rgb(22 119 255 / 12%);
+}
+
+.lite-formula-row .cm-content {
+	padding: 6px 11px;
+}
+
 @media (max-width: 640px) {
 	.lite-query-legend {
 		grid-column: span 1;

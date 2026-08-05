@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 import requests
 
@@ -60,31 +60,10 @@ class BuilderQuery:
 
 
 @dataclass
-class TraceOperatorQuery:
-    name: str
-    expression: str
-    return_spans_from: str
-    limit: Optional[int] = None
-    order: Optional[List[OrderBy]] = None
-
-    def to_dict(self) -> Dict:
-        spec: Dict[str, Any] = {
-            "name": self.name,
-            "expression": self.expression,
-            "returnSpansFrom": self.return_spans_from,
-        }
-        if self.limit is not None:
-            spec["limit"] = self.limit
-        if self.order:
-            spec["order"] = [o.to_dict() for o in self.order]
-        return {"type": "builder_trace_operator", "spec": spec}
-
-
-@dataclass
 class QueryRangeRequest:
     start: int  # nanoseconds
     end: int  # nanoseconds
-    queries: List[Union[BuilderQuery, TraceOperatorQuery]]
+    queries: List[BuilderQuery]
     request_type: Optional[str] = "raw"
 
     def to_dict(self) -> Dict:

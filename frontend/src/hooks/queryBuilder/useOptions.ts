@@ -4,7 +4,6 @@ import {
 	getTagToken,
 } from 'container/QueryBuilder/filters/queryBuilderFilterUtils';
 import { Option } from 'container/QueryBuilder/type';
-import { useDashboardVariablesByType } from 'hooks/dashboard/useDashboardVariablesByType';
 import { isEmpty } from 'lodash-es';
 import { BaseAutocompleteData } from 'types/api/queryBuilder/queryAutocompleteResponse';
 
@@ -29,18 +28,6 @@ export const useOptions = (
 ): Option[] => {
 	const [options, setOptions] = useState<Option[]>([]);
 	const operators = useOperators(key, keys);
-
-	// get matching dynamic variables to suggest
-	const dashboardDynamicVariables = useDashboardVariablesByType(
-		'DYNAMIC',
-		'values',
-	);
-
-	const variableName = dashboardDynamicVariables?.find(
-		(variable) => variable?.dynamicVariablesAttribute === key,
-	)?.name;
-
-	const variableAsValue = variableName ? `$${variableName}` : '';
 
 	const getLabel = useCallback(
 		(data: BaseAutocompleteData): Option['label'] => data?.key,
@@ -72,12 +59,7 @@ export const useOptions = (
 		(key: string, results: string[], searchValue: string) => {
 			const hasAllResults = results.every((value) => result.includes(value));
 
-			let newResults = results;
-			if (!isEmpty(variableAsValue)) {
-				newResults = [variableAsValue, ...newResults];
-			}
-
-			const values = getKeyOpValue(newResults);
+			const values = getKeyOpValue(results);
 
 			return hasAllResults
 				? [
@@ -94,7 +76,7 @@ export const useOptions = (
 						...values,
 				  ];
 		},
-		[getKeyOpValue, result, variableAsValue],
+		[getKeyOpValue, result],
 	);
 
 	const getKeyOperatorOptions = useCallback(
@@ -142,10 +124,7 @@ export const useOptions = (
 			newOptions = getKeyOperatorOptions(key);
 		} else if (key && operator) {
 			if (isMulti) {
-				const resultsWithVariable = isEmpty(variableAsValue)
-					? results
-					: [variableAsValue, ...results];
-				newOptions = resultsWithVariable.map((item) => ({
+				newOptions = results.map((item) => ({
 					label: checkCommaInValue(String(item)),
 					value: String(item),
 				}));
@@ -178,7 +157,6 @@ export const useOptions = (
 		getKeyOperatorOptions,
 		getOptionsWithValidOperator,
 		isFetching,
-		variableAsValue,
 	]);
 
 	return useMemo(

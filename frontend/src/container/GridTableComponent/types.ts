@@ -8,9 +8,9 @@ import {
 	ThresholdProps,
 } from 'features/query-visualization/threshold';
 import { RowData } from 'lib/query/createTableColumnsFromQuery';
-import { ColumnUnit, ContextLinksData } from 'types/api/dashboard/getAll';
 import { Query } from 'types/api/queryBuilder/queryBuilderData';
 import { QueryRangeRequestV5 } from 'types/api/v5/queryRange';
+import { ColumnUnit, ContextLinksData } from 'types/api/widgets/getAll';
 
 export type GridTableComponentProps = {
 	query: Query;

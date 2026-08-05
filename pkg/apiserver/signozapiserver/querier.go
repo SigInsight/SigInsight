@@ -429,21 +429,5 @@ func (provider *provider) addQuerierRoutes(router *mux.Router) error {
 		return err
 	}
 
-	if err := router.Handle("/api/v5/substitute_vars", handler.New(provider.authZ.ViewAccess(provider.querierHandler.ReplaceVariables), handler.OpenAPIDef{
-		ID:                  "ReplaceVariables",
-		Tags:                []string{"querier"},
-		Summary:             "Replace variables",
-		Description:         "Replace variables in a query",
-		Request:             new(qbtypes.QueryRangeRequest),
-		RequestContentType:  "application/json",
-		Response:            new(qbtypes.QueryRangeRequest),
-		ResponseContentType: "application/json",
-		SuccessStatusCode:   http.StatusOK,
-		ErrorStatusCodes:    []int{http.StatusBadRequest},
-		SecuritySchemes:     newSecuritySchemes(types.RoleViewer),
-	})).Methods(http.MethodPost).GetError(); err != nil {
-		return err
-	}
-
 	return nil
 }

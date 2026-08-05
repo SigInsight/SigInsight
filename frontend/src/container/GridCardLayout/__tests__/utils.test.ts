@@ -1,6 +1,6 @@
 import { Query } from 'types/api/queryBuilder/queryBuilderData';
-import { EQueryType } from 'types/common/dashboard';
 import { DataSource, ReduceOperators } from 'types/common/queryBuilder';
+import { EQueryType } from 'types/common/queryType';
 
 import { getBarStepIntervalPoints, updateBarStepInterval } from '../utils';
 
@@ -131,7 +131,6 @@ describe('GridCardLayout Utils', () => {
 					},
 				],
 				queryFormulas: [],
-				queryTraceOperator: [],
 			},
 			clickhouse_sql: [],
 			id: 'test-query',
@@ -171,7 +170,6 @@ describe('GridCardLayout Utils', () => {
 						},
 					],
 					queryFormulas: [],
-					queryTraceOperator: [],
 				},
 			};
 
@@ -196,7 +194,6 @@ describe('GridCardLayout Utils', () => {
 						},
 					],
 					queryFormulas: [],
-					queryTraceOperator: [],
 				},
 			};
 
@@ -242,7 +239,6 @@ describe('GridCardLayout Utils', () => {
 						},
 					],
 					queryFormulas: [],
-					queryTraceOperator: [],
 				},
 			};
 
@@ -271,7 +267,6 @@ describe('GridCardLayout Utils', () => {
 						},
 					],
 					queryFormulas: [],
-					queryTraceOperator: [],
 				},
 			};
 

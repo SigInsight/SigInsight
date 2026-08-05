@@ -34,9 +34,10 @@ func ThresholdRuleAtLeastOnceValueAbove(target float64, recovery *float64) rulet
 			"service.name": "frontend",
 		},
 		Annotations: map[string]string{
-			"value": "{{$value}}",
+			"description": "The configured alert condition was met.",
 		},
-		Version: "v5",
+		Version:       "v5",
+		SchemaVersion: ruletypes.CurrentSchemaVersion,
 		RuleCondition: &ruletypes.RuleCondition{
 			MatchType:     ruletypes.AtleastOnce,
 			CompareOp:     ruletypes.ValueIsAbove,

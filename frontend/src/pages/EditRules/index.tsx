@@ -8,14 +8,11 @@ import { QueryParams } from 'constants/query';
 import { REACT_QUERY_KEY } from 'constants/reactQueryKeys';
 import ROUTES from 'constants/routes';
 import EditRulesContainer from 'container/EditRules';
+import { isV3BasicAlertRule } from 'features/alerting/basic-editor/draft';
 import { useNotifications } from 'hooks/useNotifications';
 import { useSafeNavigate } from 'hooks/useSafeNavigate';
 import useUrlQuery from 'hooks/useUrlQuery';
 import history from 'lib/history';
-import {
-	NEW_ALERT_SCHEMA_VERSION,
-	PostableAlertRule,
-} from 'types/api/alerts/alertRule';
 
 import {
 	errorMessageReceivedFromBackend,
@@ -92,17 +89,23 @@ function EditRules(): JSX.Element {
 		return <Spinner tip="Loading Rules..." />;
 	}
 
-	let initialAlertValue: PostableAlertRule | null = null;
-	if (data.payload.data.schemaVersion === NEW_ALERT_SCHEMA_VERSION) {
-		initialAlertValue = data.payload.data as PostableAlertRule;
+	if (!isV3BasicAlertRule(data.payload.data)) {
+		return (
+			<div className="edit-rules-container edit-rules-container--error">
+				<Card size="small" className="edit-rules-card">
+					<p className="content">This alert uses a retired rule schema.</p>
+				</Card>
+			</div>
+		);
 	}
 
 	return (
 		<div className="edit-rules-container">
 			<EditRulesContainer
-				ruleId={ruleId || ''}
-				initialValue={data.payload.data}
-				initialAlertValue={initialAlertValue}
+				initialAlertValue={{
+					...data.payload.data,
+					id: ruleId,
+				}}
 			/>
 		</div>
 	);

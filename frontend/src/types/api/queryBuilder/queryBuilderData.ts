@@ -1,11 +1,11 @@
 import { TelemetryFieldKey } from 'api/v5/v5';
 import { Format } from 'features/query-visualization/types';
-import { EQueryType } from 'types/common/dashboard';
 import {
 	DataSource,
 	QueryBuilderData,
 	ReduceOperators,
 } from 'types/common/queryBuilder';
+import { EQueryType } from 'types/common/queryType';
 
 import {
 	Filter,
@@ -28,8 +28,6 @@ export interface IBuilderFormula {
 	stepInterval?: number;
 	orderBy?: OrderByPayload[];
 }
-
-export type IBuilderTraceOperator = IBuilderQuery;
 
 export interface TagFilterItem {
 	id: string;
@@ -114,14 +112,10 @@ export type QueryState = Omit<Query, 'queryType'>;
 export type BuilderClickHouseResource = Record<string, IClickHouseQuery>;
 export type BuilderQueryDataResourse = Record<
 	string,
-	IBuilderQuery | IBuilderFormula | IBuilderTraceOperator
+	IBuilderQuery | IBuilderFormula
 >;
 
-export type MapData =
-	| IBuilderQuery
-	| IBuilderFormula
-	| IBuilderTraceOperator
-	| IClickHouseQuery;
+export type MapData = IBuilderQuery | IBuilderFormula | IClickHouseQuery;
 
 export type MapQueryDataToApiResult<T> = {
 	data: T;

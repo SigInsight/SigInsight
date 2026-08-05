@@ -9,8 +9,8 @@ import {
 	PopoverPosition,
 	useCoordinates,
 } from 'periscope/components/ContextMenu';
-import { Widgets } from 'types/api/dashboard/getAll';
 import { MetricQueryRangeResult } from 'types/api/metrics/getQueryRange';
+import { Widgets } from 'types/api/widgets/getAll';
 import { DataSource } from 'types/common/queryBuilder';
 
 interface UseTimeSeriesContextMenuParams {

@@ -10,9 +10,9 @@ import { QueryParams } from 'constants/query';
 import { PANEL_TYPES } from 'constants/queryBuilder';
 import { useGetCompositeQueryParam } from 'hooks/queryBuilder/useGetCompositeQueryParam';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
-import { GetQueryResultsProps } from 'lib/dashboard/getQueryResults';
-import { Widgets } from 'types/api/dashboard/getAll';
+import { GetQueryResultsProps } from 'lib/query/getQueryResults';
 import { Query } from 'types/api/queryBuilder/queryBuilderData';
+import { Widgets } from 'types/api/widgets/getAll';
 
 export interface DrilldownQueryProps {
 	widget: Widgets;

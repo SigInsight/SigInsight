@@ -1,6 +1,6 @@
 import { PANEL_TYPES } from 'constants/queryBuilder';
-import { EQueryType } from 'types/common/dashboard';
 import { DataSource } from 'types/common/queryBuilder';
+import { EQueryType } from 'types/common/queryType';
 
 export type AIAssistantRole = 'assistant' | 'user';
 
@@ -52,7 +52,6 @@ export type AIAssistantContextSnapshot = {
 	visibleDataSummary?: AIAssistantVisibleDataSummary;
 	queryCount: number;
 	formulaCount: number;
-	traceOperatorCount: number;
 	queries: AIAssistantQuerySummary[];
 	capturedAt: number;
 };

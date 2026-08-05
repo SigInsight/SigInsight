@@ -1,8 +1,8 @@
 import { PANEL_TYPES } from 'constants/queryBuilder';
 import { ICompositeMetricQuery } from 'types/api/alerts/compositeQuery';
 import { QueryEnvelope } from 'types/api/v5/queryRange';
-import { EQueryType } from 'types/common/dashboard';
 import { DataSource } from 'types/common/queryBuilder';
+import { EQueryType } from 'types/common/queryType';
 
 import { mapQueryDataFromApi } from '../mapQueryDataFromApi';
 
@@ -121,7 +121,6 @@ describe('mapQueryDataFromApi', () => {
 
 		expect(output.builder.queryData).toEqual([]);
 		expect(output.builder.queryFormulas).toEqual([]);
-		expect(output.builder.queryTraceOperator).toEqual([]);
 		expect(output.clickhouse_sql).toEqual([]);
 	});
 });

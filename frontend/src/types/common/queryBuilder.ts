@@ -6,14 +6,13 @@ import { Format } from 'features/query-visualization/types';
 import {
 	IBuilderFormula,
 	IBuilderQuery,
-	IBuilderTraceOperator,
 	IClickHouseQuery,
 	Query,
 	QueryState,
 } from 'types/api/queryBuilder/queryBuilderData';
 import { ViewProps } from 'types/api/saveViews/types';
 
-import { EQueryType } from './dashboard';
+import { EQueryType } from './queryType';
 
 export enum DataSource {
 	METRICS = 'metrics',
@@ -229,7 +228,6 @@ export enum ReduceOperators {
 export type QueryBuilderData = {
 	queryData: IBuilderQuery[];
 	queryFormulas: IBuilderFormula[];
-	queryTraceOperator: IBuilderTraceOperator[];
 };
 
 export type QueryBuilderContextType = {

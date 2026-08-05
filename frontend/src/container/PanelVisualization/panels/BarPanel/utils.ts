@@ -2,15 +2,15 @@ import { ExecStats } from 'api/v5/v5';
 import { Timezone } from 'components/CustomTimePicker/timezoneUtils';
 import { PANEL_TYPES } from 'constants/queryBuilder';
 import { getInitialStackedBands } from 'container/PanelVisualization/charts/utils/stackSeriesUtils';
-import { getLegend } from 'lib/dashboard/getQueryResults';
 import getLabelName from 'lib/getLabelName';
+import { getLegend } from 'lib/query/getQueryResults';
 import { DrawStyle } from 'lib/uPlotV2/config/types';
 import { UPlotConfigBuilder } from 'lib/uPlotV2/config/UPlotConfigBuilder';
 import { OnClickPluginOpts } from 'lib/uPlotV2/plugins/onClickPlugin';
 import { get } from 'lodash-es';
-import { Widgets } from 'types/api/dashboard/getAll';
 import { MetricRangePayloadProps } from 'types/api/metrics/getQueryRange';
 import { Query } from 'types/api/queryBuilder/queryBuilderData';
+import { Widgets } from 'types/api/widgets/getAll';
 import { AlignedData } from 'uplot';
 
 import { PanelMode } from '../types';

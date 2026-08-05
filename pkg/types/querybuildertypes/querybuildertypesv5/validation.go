@@ -20,8 +20,6 @@ func getQueryIdentifier(envelope QueryEnvelope, index int) string {
 		typeLabel = "query"
 	case QueryTypeFormula:
 		typeLabel = "formula"
-	case QueryTypeTraceOperator:
-		typeLabel = "trace operator"
 	case QueryTypeJoin:
 		typeLabel = "join"
 	case QueryTypeClickHouseSQL:
@@ -586,11 +584,6 @@ func validateQueryEnvelope(envelope QueryEnvelope, opts ...ValidationOption) err
 			)
 		}
 		return nil
-	case QueryTypeTraceOperator:
-		return errors.NewInvalidInputf(
-			errors.CodeInvalidInput,
-			"trace operator queries are no longer supported",
-		)
 	case QueryTypeClickHouseSQL:
 		spec, ok := envelope.Spec.(ClickHouseQuery)
 		if !ok {
@@ -612,7 +605,7 @@ func validateQueryEnvelope(envelope QueryEnvelope, opts ...ValidationOption) err
 			"unknown query type: %s",
 			envelope.Type,
 		).WithAdditional(
-			"Valid query types are: builder_query, builder_sub_query, builder_formula, builder_join, clickhouse_sql, trace_operator",
+			"Valid query types are: builder_query, builder_sub_query, builder_formula, builder_join, clickhouse_sql",
 		)
 	}
 }

@@ -12,9 +12,9 @@ import { IAppContext } from 'providers/App/types';
 import configureStore from 'redux-mock-store';
 import thunk from 'redux-thunk';
 import { SuccessResponse, Warning } from 'types/api';
-import { Widgets } from 'types/api/dashboard/getAll';
 import { MetricRangePayloadProps } from 'types/api/metrics/getQueryRange';
-import { EQueryType } from 'types/common/dashboard';
+import { Widgets } from 'types/api/widgets/getAll';
+import { EQueryType } from 'types/common/queryType';
 import { ROLES } from 'types/roles';
 
 import { MenuItemKeys } from '../contants';
@@ -24,7 +24,6 @@ const TEST_WIDGET_TITLE = 'Test Widget';
 const TABLE_WIDGET_TITLE = 'Table Widget';
 const WIDGET_HEADER_SEARCH = 'widget-header-search';
 const WIDGET_HEADER_SEARCH_INPUT = 'widget-header-search-input';
-const TEST_WIDGET_TITLE_RESOLVED = 'Test Widget Title';
 const CREATE_ALERTS_TEXT = 'Create Alerts';
 const WIDGET_HEADER_OPTIONS_ID = 'widget-header-options';
 
@@ -88,17 +87,6 @@ jest.mock('hooks/queryBuilder/useCreateAlerts', () => ({
 	default: jest.fn(() => jest.fn()),
 }));
 
-jest.mock('hooks/dashboard/useGetResolvedText', () => {
-	const TEST_WIDGET_TITLE_RESOLVED = 'Test Widget Title';
-	return {
-		__esModule: true,
-		default: jest.fn(() => ({
-			truncatedText: TEST_WIDGET_TITLE_RESOLVED,
-			fullText: TEST_WIDGET_TITLE_RESOLVED,
-		})),
-	};
-});
-
 jest.mock('lucide-react', () => ({
 	CircleX: (): JSX.Element => <svg data-testid="lucide-circle-x" />,
 	TriangleAlert: (): JSX.Element => <svg data-testid="lucide-triangle-alert" />,
@@ -121,7 +109,6 @@ const mockWidget: Widgets = {
 		builder: {
 			queryData: [],
 			queryFormulas: [],
-			queryTraceOperator: [],
 		},
 		clickhouse_sql: [],
 		id: 'query-id',
@@ -193,7 +180,7 @@ describe('WidgetHeader', () => {
 			/>,
 		);
 
-		expect(screen.getByText(TEST_WIDGET_TITLE_RESOLVED)).toBeInTheDocument();
+		expect(screen.getByText('Test Widget')).toBeInTheDocument();
 	});
 
 	it('returns null for empty widget', () => {
@@ -509,7 +496,7 @@ describe('WidgetHeader', () => {
 				/>,
 			);
 
-			expect(useCreateAlerts).toHaveBeenCalledWith(mockWidget, 'dashboardView');
+			expect(useCreateAlerts).toHaveBeenCalledWith(mockWidget);
 
 			const moreOptionsIcon = await screen.findByTestId(WIDGET_HEADER_OPTIONS_ID);
 			await userEvent.hover(moreOptionsIcon);

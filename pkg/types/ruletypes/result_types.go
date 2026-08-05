@@ -44,18 +44,25 @@ func (s Sample) MarshalJSON() ([]byte, error) {
 }
 
 type Point struct {
-	T  int64
-	V  float64
-	Vs []float64
+	T         int64
+	V         float64
+	Vs        []float64
+	BoolValue *bool
 }
 
 func (p Point) String() string {
+	if p.BoolValue != nil {
+		return fmt.Sprintf("%t @[%v]", *p.BoolValue, p.T)
+	}
 	v := strconv.FormatFloat(p.V, 'f', -1, 64)
 	return fmt.Sprintf("%v @[%v]", v, p.T)
 }
 
 // MarshalJSON implements json.Marshaler.
 func (p Point) MarshalJSON() ([]byte, error) {
+	if p.BoolValue != nil {
+		return json.Marshal([...]interface{}{float64(p.T) / 1000, *p.BoolValue})
+	}
 	v := strconv.FormatFloat(p.V, 'f', -1, 64)
 	return json.Marshal([...]interface{}{float64(p.T) / 1000, v})
 }

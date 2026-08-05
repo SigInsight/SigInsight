@@ -24,7 +24,6 @@ import { DataSource } from 'types/common/queryBuilder';
 import { explorerViewToPanelType } from 'utils/explorerUtils';
 
 import { MetricsExplorerEventKeys, MetricsExplorerEvents } from '../events';
-import MetricDetails from '../MetricDetails/MetricDetails';
 import TimeSeries from './TimeSeries';
 import { ExplorerTabs } from './types';
 import {
@@ -46,7 +45,6 @@ function Explorer(): JSX.Element {
 		handleSetConfig,
 	} = useQueryBuilder();
 	const { handleExplorerTabChange } = useHandleExplorerTabChange();
-	const [isMetricDetailsOpen, setIsMetricDetailsOpen] = useState(false);
 
 	const metricNames = useMemo(() => {
 		const currentMetricNames: string[] = [];
@@ -201,20 +199,6 @@ function Explorer(): JSX.Element {
 		[stagedQuery, metricNames, units],
 	);
 
-	const [selectedMetricName, setSelectedMetricName] = useState<string | null>(
-		null,
-	);
-
-	const handleOpenMetricDetails = (metricName: string): void => {
-		setIsMetricDetailsOpen(true);
-		setSelectedMetricName(metricName);
-	};
-
-	const handleCloseMetricDetails = (): void => {
-		setIsMetricDetailsOpen(false);
-		setSelectedMetricName(null);
-	};
-
 	useEffect(() => {
 		logEvent(MetricsExplorerEvents.TabChanged, {
 			[MetricsExplorerEventKeys.Tab]: 'explorer',
@@ -298,13 +282,9 @@ function Explorer(): JSX.Element {
 						<TimeSeries
 							showOneChartPerQuery={showOneChartPerQuery}
 							setWarning={setWarning}
-							areAllMetricUnitsSame={areAllMetricUnitsSame}
 							isMetricUnitsLoading={isMetricUnitsLoading}
-							isMetricUnitsError={isMetricUnitsError}
 							metricUnits={units}
 							metricNames={metricNames}
-							metrics={metrics}
-							handleOpenMetricDetails={handleOpenMetricDetails}
 							yAxisUnit={yAxisUnit}
 							setYAxisUnit={setYAxisUnit}
 							showYAxisUnitSelector={showYAxisUnitSelector}
@@ -324,14 +304,6 @@ function Explorer(): JSX.Element {
 				splitedQueries={splitedQueries}
 				handleChangeSelectedView={handleChangeSelectedView}
 			/>
-			{isMetricDetailsOpen && selectedMetricName && (
-				<MetricDetails
-					metricName={selectedMetricName}
-					isOpen={isMetricDetailsOpen}
-					onClose={handleCloseMetricDetails}
-					isModalTimeSelection={false}
-				/>
-			)}
 		</Sentry.ErrorBoundary>
 	);
 }

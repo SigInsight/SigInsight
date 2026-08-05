@@ -46,20 +46,21 @@ func TestGetMatchersUsesCurrentRuleChannelsAndScopesRules(t *testing.T) {
 	}
 
 	currentID := insertRule(orgID, 0, `{
-		"condition":{"thresholds":{"kind":"basic","spec":[
-			{"channels":["critical", "pager"]},
-			{"channels":["pager", "email", "critical"]}
-		]}}
+		"alert":"cpu usage","alertType":"METRIC_BASED_ALERT","ruleType":"threshold_rule","version":"v5","schemaVersion":"v3alpha1",
+		"condition":{"kind":"numeric","compositeQuery":{"queryType":"builder","queries":[{"type":"builder_query","spec":{"name":"A","signal":"metrics","aggregations":[{"metricName":"cpu_usage","spaceAggregation":"sum"}],"stepInterval":"1m"}}]},"selectedQueryName":"A","numeric":{"reduction":"at_least_once","operator":"gt","thresholds":[
+			{"severity":"critical","target":90,"channels":["critical","pager"]},
+			{"severity":"warning","target":80,"channels":["pager","email","critical"]}
+		]}},
+		"evaluation":{"kind":"rolling","spec":{"evalWindow":"5m","frequency":"1m"}},"notificationSettings":{"groupBy":[]}
 	}`)
-	legacyID := insertRule(orgID, 0, `{"preferredChannels":["legacy"]}`)
-	insertRule("other-org", 0, `{"preferredChannels":["other-org"]}`)
-	insertRule(orgID, 1, `{"preferredChannels":["deleted"]}`)
+	insertRule(orgID, 0, `{"schemaVersion":"v2alpha1","preferredChannels":["legacy"]}`)
+	insertRule("other-org", 0, `{"schemaVersion":"v2alpha1","preferredChannels":["other-org"]}`)
+	insertRule(orgID, 1, `{"schemaVersion":"v2alpha1","preferredChannels":["deleted"]}`)
 	insertRule(orgID, 0, `{not-json}`)
 
 	matchers, err := NewConfigStore(&testSQLStore{db: db}).GetMatchers(ctx, orgID)
 	require.NoError(t, err)
 	require.Equal(t, map[string][]string{
 		currentID: {"critical", "pager", "email"},
-		legacyID:  {"legacy"},
 	}, matchers)
 }

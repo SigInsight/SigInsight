@@ -4,9 +4,9 @@ import { TableProps } from 'antd';
 import { PANEL_TYPES } from 'constants/queryBuilder';
 import { DownloadOptions } from 'container/Download/Download.types';
 import { RowData } from 'lib/query/createTableColumnsFromQuery';
-import { ContextLinksData } from 'types/api/dashboard/getAll';
 import { Query } from 'types/api/queryBuilder/queryBuilderData';
 import { QueryRangeRequestV5 } from 'types/api/v5/queryRange';
+import { ContextLinksData } from 'types/api/widgets/getAll';
 import { QueryRangeResult } from 'types/api/widgets/getQuery';
 
 export type QueryTableProps = Omit<

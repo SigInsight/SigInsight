@@ -5,8 +5,8 @@ import { PANEL_TYPES } from 'constants/queryBuilder';
 import { QueryBuilderContext } from 'providers/QueryBuilder';
 import { DataTypes } from 'types/api/queryBuilder/queryAutocompleteResponse';
 import { Query } from 'types/api/queryBuilder/queryBuilderData';
-import { EQueryType } from 'types/common/dashboard';
 import { DataSource, QueryBuilderContextType } from 'types/common/queryBuilder';
+import { EQueryType } from 'types/common/queryType';
 
 import { LiteQueryBuilder } from './LiteQueryBuilder';
 
@@ -85,7 +85,6 @@ const baseQuery: Query = {
 			},
 		],
 		queryFormulas: [],
-		queryTraceOperator: [],
 	},
 	clickhouse_sql: [],
 };
@@ -239,6 +238,23 @@ describe('LiteQueryBuilder routing', () => {
 		expect(screen.queryByText('Limit')).not.toBeInTheDocument();
 	});
 
+	it('keeps a new formula empty until the user enters an expression', () => {
+		const context = renderBuilder({
+			...baseQuery,
+			builder: {
+				...baseQuery.builder,
+				queryFormulas: [
+					{ queryName: 'F1', expression: '', disabled: false, legend: '' },
+				],
+			},
+		});
+
+		expect(
+			screen.getByRole('textbox', { name: 'Formula F1' }),
+		).toBeInTheDocument();
+		expect(context.handleSetFormulaData).not.toHaveBeenCalled();
+	});
+
 	it.each([PANEL_TYPES.LIST, PANEL_TYPES.TRACE])(
 		'hides result controls and query labels on %s panels',
 		(panelType) => {
@@ -281,41 +297,13 @@ describe('LiteQueryBuilder routing', () => {
 		});
 		expect(screen.getByTestId('lite-query-A')).toBeInTheDocument();
 		expect(screen.getByTestId('lite-query-B')).toBeInTheDocument();
-		expect(screen.getByDisplayValue('A + B')).toBeInTheDocument();
+		expect(screen.getByRole('textbox', { name: 'Formula F1' })).toHaveTextContent(
+			'A + B',
+		);
 		expect(
 			screen.queryByText(
 				'This saved query uses capabilities that are not supported by the lightweight query engine.',
 			),
 		).not.toBeInTheDocument();
-	});
-
-	it('shows the migration boundary for an unsupported saved query', () => {
-		const context = renderBuilder({
-			...baseQuery,
-			builder: {
-				...baseQuery.builder,
-				queryTraceOperator: [
-					{ ...baseQuery.builder.queryData[0], expression: 'A -> B' },
-				],
-			},
-		});
-		expect(screen.queryByTestId('lite-query-builder')).not.toBeInTheDocument();
-		expect(
-			screen.getByText(
-				'This saved query uses capabilities that are not supported by the lightweight query engine.',
-			),
-		).toBeInTheDocument();
-		const replace = screen.getByRole('button', { name: 'Replace query' });
-		expect(replace).toBeInTheDocument();
-		fireEvent.click(replace);
-		expect(context.redirectWithQueryBuilderData).toHaveBeenCalledWith(
-			expect.objectContaining({
-				clickhouse_sql: [],
-				builder: expect.objectContaining({
-					queryFormulas: [],
-					queryTraceOperator: [],
-				}),
-			}),
-		);
 	});
 });

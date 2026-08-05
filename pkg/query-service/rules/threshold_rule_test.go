@@ -139,6 +139,14 @@ func TestRuleSeriesFromTimeSeries(t *testing.T) {
 	assert.Empty(t, ruleSeriesFromTimeSeries(nil).Points)
 }
 
+func TestRuleSeriesFromTimeSeriesPreservesTypedBooleanValues(t *testing.T) {
+	trueValue := true
+	series := ruleSeriesFromTimeSeries(&qbtypes.TimeSeries{Values: []*qbtypes.TimeSeriesValue{{Timestamp: 1, BoolValue: &trueValue}}})
+	if len(series.Points) != 1 || series.Points[0].BoolValue == nil || !*series.Points[0].BoolValue {
+		t.Fatalf("ruleSeriesFromTimeSeries() = %#v, want typed true point", series)
+	}
+}
+
 func TestThresholdRuleEval(t *testing.T) {
 	postableRule := ruletypes.PostableRule{
 		AlertName: "Eval test without recovery target",
@@ -643,7 +651,7 @@ func TestThresholdRuleUnitCombinations(t *testing.T) {
 		postableRule.RuleCondition.CompareOp = ruletypes.CompareOp(c.compareOp)
 		postableRule.RuleCondition.MatchType = ruletypes.MatchType(c.matchType)
 		postableRule.RuleCondition.Target = &c.target
-		postableRule.RuleCondition.CompositeQuery.Unit = c.yAxisUnit
+		postableRule.RuleCondition.CompositeQuery.ResultUnit = c.yAxisUnit
 		postableRule.RuleCondition.TargetUnit = c.targetUnit
 		postableRule.RuleCondition.Thresholds = &ruletypes.RuleThresholdData{
 			Kind: ruletypes.BasicThresholdKind,
@@ -658,8 +666,8 @@ func TestThresholdRuleUnitCombinations(t *testing.T) {
 			},
 		}
 		postableRule.Annotations = map[string]string{
-			"description": "This alert is fired when the defined metric (current value: {{$value}}) crosses the threshold ({{$threshold}})",
-			"summary":     "The rule threshold is set to {{$threshold}}, and the observed metric value is {{$value}}",
+			"description": "The configured alert condition was met.",
+			"summary":     "The configured alert condition was met.",
 		}
 
 		querier := staticV5Querier{
@@ -679,11 +687,8 @@ func TestThresholdRuleUnitCombinations(t *testing.T) {
 		if c.expectAlerts != 0 {
 			foundCount := 0
 			for _, item := range rule.Active {
-				for _, summary := range c.summaryAny {
-					if strings.Contains(item.Annotations.Get("summary"), summary) {
-						foundCount++
-						break
-					}
+				if item.Annotations.Get("summary") == "The configured alert condition was met." {
+					foundCount++
 				}
 			}
 			assert.Equal(t, c.expectAlerts, foundCount, "case %d", idx)
@@ -734,8 +739,8 @@ func TestThresholdRuleNoData(t *testing.T) {
 			},
 		}
 		postableRule.Annotations = map[string]string{
-			"description": "This alert is fired when the defined metric (current value: {{$value}}) crosses the threshold ({{$threshold}})",
-			"summary":     "The rule threshold is set to {{$threshold}}, and the observed metric value is {{$value}}",
+			"description": "The configured alert condition was met.",
+			"summary":     "The configured alert condition was met.",
 		}
 
 		querier := staticV5Querier{
@@ -801,7 +806,7 @@ func TestThresholdRuleTracesLink(t *testing.T) {
 		postableRule.RuleCondition.CompareOp = ruletypes.CompareOp(c.compareOp)
 		postableRule.RuleCondition.MatchType = ruletypes.MatchType(c.matchType)
 		postableRule.RuleCondition.Target = &c.target
-		postableRule.RuleCondition.CompositeQuery.Unit = c.yAxisUnit
+		postableRule.RuleCondition.CompositeQuery.ResultUnit = c.yAxisUnit
 		postableRule.RuleCondition.TargetUnit = c.targetUnit
 		postableRule.RuleCondition.Thresholds = &ruletypes.RuleThresholdData{
 			Kind: ruletypes.BasicThresholdKind,
@@ -816,8 +821,8 @@ func TestThresholdRuleTracesLink(t *testing.T) {
 			},
 		}
 		postableRule.Annotations = map[string]string{
-			"description": "This alert is fired when the defined metric (current value: {{$value}}) crosses the threshold ({{$threshold}})",
-			"summary":     "The rule threshold is set to {{$threshold}}, and the observed metric value is {{$value}}",
+			"description": "The configured alert condition was met.",
+			"summary":     "The configured alert condition was met.",
 		}
 
 		querier := staticV5Querier{
@@ -888,7 +893,7 @@ func TestThresholdRuleLogsLink(t *testing.T) {
 		postableRule.RuleCondition.CompareOp = ruletypes.CompareOp(c.compareOp)
 		postableRule.RuleCondition.MatchType = ruletypes.MatchType(c.matchType)
 		postableRule.RuleCondition.Target = &c.target
-		postableRule.RuleCondition.CompositeQuery.Unit = c.yAxisUnit
+		postableRule.RuleCondition.CompositeQuery.ResultUnit = c.yAxisUnit
 		postableRule.RuleCondition.TargetUnit = c.targetUnit
 		postableRule.RuleCondition.Thresholds = &ruletypes.RuleThresholdData{
 			Kind: ruletypes.BasicThresholdKind,
@@ -903,8 +908,8 @@ func TestThresholdRuleLogsLink(t *testing.T) {
 			},
 		}
 		postableRule.Annotations = map[string]string{
-			"description": "This alert is fired when the defined metric (current value: {{$value}}) crosses the threshold ({{$threshold}})",
-			"summary":     "The rule threshold is set to {{$threshold}}, and the observed metric value is {{$value}}",
+			"description": "The configured alert condition was met.",
+			"summary":     "The configured alert condition was met.",
 		}
 
 		querier := staticV5Querier{
@@ -1085,7 +1090,7 @@ func TestMultipleThresholdRule(t *testing.T) {
 		postableRule.RuleCondition.CompareOp = ruletypes.CompareOp(c.compareOp)
 		postableRule.RuleCondition.MatchType = ruletypes.MatchType(c.matchType)
 		postableRule.RuleCondition.Target = &c.target
-		postableRule.RuleCondition.CompositeQuery.Unit = c.yAxisUnit
+		postableRule.RuleCondition.CompositeQuery.ResultUnit = c.yAxisUnit
 		postableRule.RuleCondition.TargetUnit = c.targetUnit
 		postableRule.RuleCondition.Thresholds = &ruletypes.RuleThresholdData{
 			Kind: ruletypes.BasicThresholdKind,
@@ -1107,8 +1112,8 @@ func TestMultipleThresholdRule(t *testing.T) {
 			},
 		}
 		postableRule.Annotations = map[string]string{
-			"description": "This alert is fired when the defined metric (current value: {{$value}}) crosses the threshold ({{$threshold}})",
-			"summary":     "The rule threshold is set to {{$threshold}}, and the observed metric value is {{$value}}",
+			"description": "The configured alert condition was met.",
+			"summary":     "The configured alert condition was met.",
 		}
 
 		querier := staticV5Querier{
@@ -1128,11 +1133,8 @@ func TestMultipleThresholdRule(t *testing.T) {
 		if c.expectAlerts != 0 {
 			foundCount := 0
 			for _, item := range rule.Active {
-				for _, summary := range c.summaryAny {
-					if strings.Contains(item.Annotations.Get("summary"), summary) {
-						foundCount++
-						break
-					}
+				if item.Annotations.Get("summary") == "The configured alert condition was met." {
+					foundCount++
 				}
 			}
 			assert.Equal(t, c.expectAlerts, foundCount, "case %d", idx)

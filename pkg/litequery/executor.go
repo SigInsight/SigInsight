@@ -3,7 +3,6 @@ package litequery
 import (
 	"context"
 	"fmt"
-	"math"
 	"strconv"
 	"strings"
 	"sync"
@@ -134,12 +133,11 @@ func (e Executor) Execute(ctx context.Context, plan Plan) (ExecutionResult, erro
 		warnings = append(warnings, result.Warnings...)
 	}
 	if len(plan.Formulas) != 0 {
-		formulaResults, formulaWarnings, err := evaluateFormulas(plan, results)
+		formulaResults, err := evaluateFormulas(plan, results)
 		if err != nil {
 			return ExecutionResult{}, err
 		}
 		results = append(results, formulaResults...)
-		warnings = append(warnings, formulaWarnings...)
 	}
 	return ExecutionResult{Queries: results, Warnings: warnings, Duration: time.Since(started)}, nil
 }
@@ -220,41 +218,61 @@ func normalizeExecutionError(ctx context.Context, err error) error {
 	return err
 }
 
-func evaluateFormulas(plan Plan, queryResults []QueryResult) ([]QueryResult, []string, error) {
+func evaluateFormulas(plan Plan, queryResults []QueryResult) ([]QueryResult, error) {
 	resultByName := make(map[string]QueryResult, len(queryResults))
 	for _, result := range queryResults {
 		resultByName[result.Name] = result
 	}
+	// Planning validates the formula language and dependency graph before SQL
+	// runs. Result units and group-by signatures only exist after statements
+	// have produced rows, so bind the same parsed language to those concrete
+	// inputs here. Reusing AnalyzeTypedFormulaSet keeps the two checks on one
+	// grammar while preventing a query plan from silently accepting incompatible
+	// result schemas.
+	programs, err := AnalyzeTypedFormulaSet(plan.Formulas, formulaBindingsForResults(queryResults))
+	if err != nil {
+		return nil, err
+	}
+	for name, planned := range plan.TypedFormulas {
+		program := programs[name]
+		if planned == nil || program == nil || planned.Canonical() != program.Canonical() {
+			return nil, newError(ErrorInvalidFormula, "formula.expression", "formula %q no longer matches its validated plan", name)
+		}
+	}
 	formulaByName := make(map[string]QueryResult, len(plan.Formulas))
-	warnings := make([]string, 0)
 	pending := append([]Formula{}, plan.Formulas...)
+	zeroDefaults := formulaZeroDefaults(plan)
 	for len(pending) != 0 {
 		progress := false
 		remaining := make([]Formula, 0, len(pending))
 		for _, formula := range pending {
-			tokens, err := tokenizeFormula(formula.Expression)
-			if err != nil {
-				return nil, nil, err
+			program := programs[formula.Name]
+			if program == nil {
+				return nil, newError(ErrorInvalidFormula, "formula.expression", "formula %q has no typed program", formula.Name)
 			}
-			if !formulaDependenciesReady(tokens, resultByName) {
+			if !formulaDependenciesReady(program.References(), resultByName) {
 				remaining = append(remaining, formula)
 				continue
 			}
-			keys, values, columns, missing, err := formulaInputs(tokens, resultByName)
+			keys, values, columns, err := formulaInputs(program.References(), resultByName, zeroDefaults)
 			if err != nil {
-				return nil, nil, err
+				return nil, err
 			}
-			if missing {
-				warnings = append(warnings, "formula "+formula.Name+" substituted zero for a missing aligned value")
-			}
+			columns = append(columns, ResultColumn{Name: "value", ValueType: program.Type().Kind, Unit: program.Type().Unit})
 			formulaResult := QueryResult{Name: formula.Name, Columns: columns}
 			for _, key := range keys {
-				value, err := evaluateFormulaTokens(tokens, values[key.text])
+				value, err := program.Evaluate(values[key.text])
 				if err != nil {
-					return nil, nil, err
+					return nil, err
 				}
 				row := append([]any{}, key.values...)
-				row = append(row, value)
+				if value.Missing {
+					row = append(row, nil)
+				} else if value.Type.Kind == FormulaValueBool {
+					row = append(row, value.Bool)
+				} else {
+					row = append(row, value.Number)
+				}
 				formulaResult.Rows = append(formulaResult.Rows, row)
 			}
 			resultByName[formula.Name] = formulaResult
@@ -262,7 +280,7 @@ func evaluateFormulas(plan Plan, queryResults []QueryResult) ([]QueryResult, []s
 			progress = true
 		}
 		if !progress {
-			return nil, nil, newError(ErrorInvalidFormula, "formula.expression", "formula dependencies could not be resolved")
+			return nil, newError(ErrorInvalidFormula, "formula.expression", "formula dependencies could not be resolved")
 		}
 		pending = remaining
 	}
@@ -270,15 +288,13 @@ func evaluateFormulas(plan Plan, queryResults []QueryResult) ([]QueryResult, []s
 	for _, formula := range plan.Formulas {
 		formulas = append(formulas, formulaByName[formula.Name])
 	}
-	return formulas, warnings, nil
+	return formulas, nil
 }
 
-func formulaDependenciesReady(tokens []formulaToken, results map[string]QueryResult) bool {
-	for _, token := range tokens {
-		if token.kind == formulaIdentifier {
-			if _, ok := results[token.value]; !ok {
-				return false
-			}
+func formulaDependenciesReady(references []string, results map[string]QueryResult) bool {
+	for _, reference := range references {
+		if _, ok := results[reference]; !ok {
+			return false
 		}
 	}
 	return true
@@ -289,43 +305,31 @@ type formulaKey struct {
 	values []any
 }
 
-func formulaInputs(tokens []formulaToken, results map[string]QueryResult) ([]formulaKey, map[string]map[string]float64, []ResultColumn, bool, error) {
+func formulaInputs(references []string, results map[string]QueryResult, zeroDefaults map[string]bool) ([]formulaKey, map[string]map[string]FormulaValue, []ResultColumn, error) {
 	keys := make([]formulaKey, 0)
 	seen := make(map[string]struct{})
-	values := make(map[string]map[string]float64)
-	columns := []ResultColumn{{Name: "value"}}
+	values := make(map[string]map[string]FormulaValue)
+	columns := make([]ResultColumn, 0)
 	schemaSet := false
-	missing := false
-	dependencies := make([]string, 0)
-	dependencySeen := make(map[string]struct{})
-	for _, token := range tokens {
-		if token.kind != formulaIdentifier {
-			continue
-		}
-		result, ok := results[token.value]
+	for _, reference := range references {
+		result, ok := results[reference]
 		if !ok {
-			continue
+			return nil, nil, nil, newError(ErrorInvalidFormula, "formula.expression", "formula input %q is unavailable", reference)
 		}
-		if _, ok := dependencySeen[token.value]; ok {
-			continue
-		}
-		dependencySeen[token.value] = struct{}{}
-		dependencies = append(dependencies, token.value)
 		if len(result.Columns) == 0 || result.Columns[len(result.Columns)-1].Name != "value" {
-			return nil, nil, nil, false, newError(ErrorInvalidFormula, "formula.expression", "formula input %q has no value column", token.value)
+			return nil, nil, nil, newError(ErrorInvalidFormula, "formula.expression", "formula input %q has no value column", reference)
 		}
 		candidate := result.Columns[:len(result.Columns)-1]
 		if !schemaSet {
 			columns = append([]ResultColumn{}, candidate...)
-			columns = append(columns, ResultColumn{Name: "value"})
 			schemaSet = true
-		} else if !sameResultColumns(columns[:len(columns)-1], candidate) {
-			return nil, nil, nil, false, newError(ErrorInvalidFormula, "formula.expression", "formula inputs must use identical timestamp and group columns")
+		} else if !sameResultColumns(columns, candidate) {
+			return nil, nil, nil, newError(ErrorInvalidFormula, "formula.expression", "formula inputs must use identical timestamp and group columns")
 		}
+		valueType := queryResultFormulaType(result)
 		for _, row := range result.Rows {
 			if len(row) != len(result.Columns) || len(row) == 0 {
-				missing = true
-				continue
+				return nil, nil, nil, newError(ErrorInvalidFormula, "formula.expression", "formula input %q returned an invalid row", reference)
 			}
 			keyValues := append([]any{}, row[:len(row)-1]...)
 			key := formulaKey{text: alignmentKey(keyValues), values: keyValues}
@@ -334,24 +338,113 @@ func formulaInputs(tokens []formulaToken, results map[string]QueryResult) ([]for
 				keys = append(keys, key)
 			}
 			if values[key.text] == nil {
-				values[key.text] = make(map[string]float64)
+				values[key.text] = make(map[string]FormulaValue)
 			}
-			value, ok := numericValue(row[len(row)-1])
-			if !ok {
-				missing = true
-				continue
+			value, err := formulaValueFromResult(row[len(row)-1], valueType)
+			if err != nil {
+				return nil, nil, nil, err
 			}
-			values[key.text][token.value] = value
+			values[key.text][reference] = value
 		}
 	}
 	for _, key := range keys {
-		for _, dependency := range dependencies {
-			if _, ok := values[key.text][dependency]; !ok {
-				missing = true
+		for _, reference := range references {
+			if _, ok := values[key.text][reference]; ok {
+				continue
+			}
+			result := results[reference]
+			typ := queryResultFormulaType(result)
+			if zeroDefaults[reference] && typ.Kind == FormulaValueNumber {
+				values[key.text][reference] = FormulaValue{Type: typ}
+			} else {
+				values[key.text][reference] = FormulaValue{Type: typ, Missing: true}
 			}
 		}
 	}
-	return keys, values, columns, missing, nil
+	return keys, values, columns, nil
+}
+
+func formulaValueFromResult(value any, typ FormulaStaticType) (FormulaValue, error) {
+	if value == nil {
+		return FormulaValue{Type: typ, Missing: true}, nil
+	}
+	if typ.Kind == FormulaValueBool {
+		boolean, ok := value.(bool)
+		if !ok {
+			return FormulaValue{}, newError(ErrorInvalidFormula, "formula.expression", "formula input returned %T, want bool", value)
+		}
+		return FormulaValue{Type: typ, Bool: boolean}, nil
+	}
+	number, ok := numericValue(value)
+	if !ok {
+		return FormulaValue{}, newError(ErrorInvalidFormula, "formula.expression", "formula input returned %T, want number", value)
+	}
+	return checkedFormulaNumber(typ, number), nil
+}
+
+func queryResultFormulaType(result QueryResult) FormulaStaticType {
+	if len(result.Columns) == 0 {
+		return FormulaStaticType{Kind: FormulaValueNumber}
+	}
+	value := result.Columns[len(result.Columns)-1]
+	typ := FormulaStaticType{Kind: value.ValueType, Unit: value.Unit}
+	if typ.Kind == "" {
+		typ.Kind = FormulaValueNumber
+	}
+	return typ
+}
+
+func formulaBindingsForResults(results []QueryResult) map[string]FormulaBinding {
+	bindings := make(map[string]FormulaBinding, len(results))
+	for _, result := range results {
+		bindings[result.Name] = FormulaBinding{Type: queryResultFormulaType(result), SeriesSignature: formulaResultSeriesSignature(result)}
+	}
+	return bindings
+}
+
+func formulaResultSeriesSignature(result QueryResult) string {
+	if len(result.Columns) < 2 {
+		return ""
+	}
+	var key strings.Builder
+	for _, column := range result.Columns[:len(result.Columns)-1] {
+		key.WriteString(column.Name)
+		key.WriteByte(':')
+		if column.Field != nil {
+			key.WriteString(string(column.Field.Context))
+			key.WriteByte('.')
+			key.WriteString(column.Field.Name)
+		}
+		key.WriteByte(';')
+	}
+	return key.String()
+}
+
+func formulaZeroDefaults(plan Plan) map[string]bool {
+	defaults := make(map[string]bool, len(plan.Queries))
+	for _, queryPlan := range plan.Queries {
+		name := queryPlan.Query.GetCommon().Name
+		switch query := queryPlan.Query.(type) {
+		case LogQuery:
+			defaults[name] = query.Aggregation == LogAggregateCount || query.Aggregation == LogAggregateSum
+		case TraceQuery:
+			defaults[name] = query.Aggregation == TraceAggregateCount
+		case MetricQuery:
+			defaults[name] = aggregationDefaultsMissingToZero(query.Aggregation.TimeAggregation)
+		case MeterQuery:
+			defaults[name] = aggregationDefaultsMissingToZero(query.Aggregation.TimeAggregation)
+		}
+	}
+	return defaults
+}
+
+func aggregationDefaultsMissingToZero(aggregation TimeAggregation) bool {
+	switch aggregation {
+	case TimeAggregateCount, TimeAggregateSum, TimeAggregateRate, TimeAggregateIncrease:
+		return true
+	default:
+		return false
+	}
 }
 
 func sameResultColumns(left, right []ResultColumn) bool {
@@ -381,88 +474,6 @@ func alignmentKey(values []any) string {
 		key.WriteString(encoded)
 	}
 	return key.String()
-}
-
-func evaluateFormulaTokens(tokens []formulaToken, values map[string]float64) (float64, error) {
-	position := 0
-	value, err := parseFormulaExpression(tokens, &position, values)
-	if err != nil || position != len(tokens) {
-		if err != nil {
-			return 0, err
-		}
-		return 0, newError(ErrorInvalidFormula, "formula.expression", "could not consume formula expression")
-	}
-	return value, nil
-}
-
-func parseFormulaExpression(tokens []formulaToken, position *int, values map[string]float64) (float64, error) {
-	value, err := parseFormulaTerm(tokens, position, values)
-	if err != nil {
-		return 0, err
-	}
-	for *position < len(tokens) && tokens[*position].kind == formulaOperator && (tokens[*position].value == "+" || tokens[*position].value == "-") {
-		op := tokens[*position].value
-		*position++
-		right, err := parseFormulaTerm(tokens, position, values)
-		if err != nil {
-			return 0, err
-		}
-		if op == "+" {
-			value += right
-		} else {
-			value -= right
-		}
-	}
-	return value, nil
-}
-
-func parseFormulaTerm(tokens []formulaToken, position *int, values map[string]float64) (float64, error) {
-	value, err := parseFormulaFactor(tokens, position, values)
-	if err != nil {
-		return 0, err
-	}
-	for *position < len(tokens) && tokens[*position].kind == formulaOperator && (tokens[*position].value == "*" || tokens[*position].value == "/") {
-		op := tokens[*position].value
-		*position++
-		right, err := parseFormulaFactor(tokens, position, values)
-		if err != nil {
-			return 0, err
-		}
-		if op == "*" {
-			value *= right
-		} else if right == 0 {
-			value = math.NaN()
-		} else {
-			value /= right
-		}
-	}
-	return value, nil
-}
-
-func parseFormulaFactor(tokens []formulaToken, position *int, values map[string]float64) (float64, error) {
-	if *position >= len(tokens) {
-		return 0, newError(ErrorInvalidFormula, "formula.expression", "missing formula operand")
-	}
-	token := tokens[*position]
-	*position++
-	switch token.kind {
-	case formulaNumber:
-		return strconv.ParseFloat(token.value, 64)
-	case formulaIdentifier:
-		return values[token.value], nil
-	case formulaLeftParen:
-		value, err := parseFormulaExpression(tokens, position, values)
-		if err != nil {
-			return 0, err
-		}
-		if *position >= len(tokens) || tokens[*position].kind != formulaRightParen {
-			return 0, newError(ErrorInvalidFormula, "formula.expression", "missing closing parenthesis")
-		}
-		*position++
-		return value, nil
-	default:
-		return 0, newError(ErrorInvalidFormula, "formula.expression", "unexpected token %q", token.value)
-	}
 }
 
 func numericValue(value any) (float64, bool) {
@@ -495,5 +506,3 @@ func numericValue(value any) (float64, bool) {
 		return 0, false
 	}
 }
-
-func (k formulaKey) String() string { return strings.TrimSpace(k.text) }

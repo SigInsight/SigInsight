@@ -23,10 +23,9 @@ import (
 )
 
 const (
-	siginsightMetricDBName                = "siginsight_metrics"
-	siginsightTSTableNameV4               = "time_series_v4"
-	siginsightTSTableNameV41Day           = "time_series_v4_1day"
-	siginsightUpdatedMetricsMetadataTable = "updated_metadata"
+	siginsightMetricDBName      = "siginsight_metrics"
+	siginsightTSTableNameV4     = "time_series_v4"
+	siginsightTSTableNameV41Day = "time_series_v4_1day"
 )
 
 type Reader struct {
@@ -47,7 +46,7 @@ func (r *Reader) GetMetricMetadata(ctx context.Context, orgID valuer.UUID, metri
 		instrumentationtypes.CodeNamespace:    "metric-metadata-store",
 		instrumentationtypes.CodeFunctionName: "GetMetricMetadata",
 	})
-	metadataMap, err := r.GetUpdatedMetricsMetadata(ctx, orgID, metricName)
+	metadataMap, err := r.GetMetricsMetadata(ctx, orgID, metricName)
 	if err != nil {
 		r.logger.Error("Error in getting metric cached metadata", errorsV2.Attr(err))
 		return nil, fmt.Errorf("error fetching metric metadata: %w", err)
@@ -104,17 +103,17 @@ func (r *Reader) GetMetricMetadata(ctx context.Context, orgID valuer.UUID, metri
 	}, nil
 }
 
-func (r *Reader) GetUpdatedMetricsMetadata(ctx context.Context, orgID valuer.UUID, metricNames ...string) (map[string]*model.UpdateMetricsMetadata, error) {
+func (r *Reader) GetMetricsMetadata(ctx context.Context, orgID valuer.UUID, metricNames ...string) (map[string]*model.MetricMetadata, error) {
 	ctx = ctxtypes.NewContextWithCommentVals(ctx, map[string]string{
 		instrumentationtypes.TelemetrySignal:  telemetrytypes.SignalMetrics.StringValue(),
 		instrumentationtypes.CodeNamespace:    "metric-metadata-store",
-		instrumentationtypes.CodeFunctionName: "GetUpdatedMetricsMetadata",
+		instrumentationtypes.CodeFunctionName: "GetMetricsMetadata",
 	})
-	cachedMetadata := make(map[string]*model.UpdateMetricsMetadata)
+	cachedMetadata := make(map[string]*model.MetricMetadata)
 	var missingMetrics []string
 	for _, metricName := range metricNames {
-		metadata := new(model.UpdateMetricsMetadata)
-		cacheKey := constants.UpdatedMetricsMetadataCachePrefix + metricName
+		metadata := new(model.MetricMetadata)
+		cacheKey := constants.MetricsMetadataCachePrefix + metricName
 		if err := r.cache.Get(ctx, orgID, cacheKey, metadata); err == nil {
 			cachedMetadata[metricName] = metadata
 		} else {
@@ -122,65 +121,35 @@ func (r *Reader) GetUpdatedMetricsMetadata(ctx context.Context, orgID valuer.UUI
 		}
 	}
 
-	var stillMissing []string
 	if len(missingMetrics) > 0 {
-		query := fmt.Sprintf(`SELECT metric_name, argMax(type, created_at) AS type, argMax(description, created_at) AS description, argMax(temporality, created_at) AS temporality, argMax(is_monotonic, created_at) AS is_monotonic, argMax(unit, created_at) AS unit FROM %s.%s WHERE metric_name IN ({metric_names:Array(String)}) GROUP BY metric_name;`, siginsightMetricDBName, siginsightUpdatedMetricsMetadataTable)
+		query := fmt.Sprintf(`SELECT DISTINCT metric_name, type, description, temporality, is_monotonic, unit FROM %s.%s WHERE metric_name IN ({metric_names:Array(String)})`, siginsightMetricDBName, siginsightTSTableNameV4)
 		rows, err := r.db.Query(
 			context.WithValue(ctx, "clickhouse_max_threads", constants.MetricsExplorerClickhouseThreads),
 			query,
 			clickhouse.Named("metric_names", missingMetrics),
 		)
 		if err != nil {
-			return cachedMetadata, fmt.Errorf("error querying metrics metadata: %w", err)
-		}
-		defer rows.Close()
-
-		found := make(map[string]struct{})
-		for rows.Next() {
-			metadata := new(model.UpdateMetricsMetadata)
-			if err := rows.Scan(&metadata.MetricName, &metadata.MetricType, &metadata.Description, &metadata.Temporality, &metadata.IsMonotonic, &metadata.Unit); err != nil {
-				return cachedMetadata, fmt.Errorf("error scanning metrics metadata: %w", err)
-			}
-			r.cacheMetadata(ctx, orgID, metadata, "Failed to store metrics metadata in cache")
-			cachedMetadata[metadata.MetricName] = metadata
-			found[metadata.MetricName] = struct{}{}
-		}
-		for _, metricName := range missingMetrics {
-			if _, ok := found[metricName]; !ok {
-				stillMissing = append(stillMissing, metricName)
-			}
-		}
-	}
-
-	if len(stillMissing) > 0 {
-		query := fmt.Sprintf(`SELECT DISTINCT metric_name, type, description, temporality, is_monotonic, unit FROM %s.%s WHERE metric_name IN ({metric_names:Array(String)})`, siginsightMetricDBName, siginsightTSTableNameV4)
-		rows, err := r.db.Query(
-			context.WithValue(ctx, "clickhouse_max_threads", constants.MetricsExplorerClickhouseThreads),
-			query,
-			clickhouse.Named("metric_names", stillMissing),
-		)
-		if err != nil {
-			return cachedMetadata, fmt.Errorf("error querying time_series_v4 to get metrics metadata: %w", err)
+			return cachedMetadata, fmt.Errorf("error querying collected metrics metadata: %w", err)
 		}
 		defer rows.Close()
 		for rows.Next() {
-			metadata := new(model.UpdateMetricsMetadata)
+			metadata := new(model.MetricMetadata)
 			if err := rows.Scan(&metadata.MetricName, &metadata.MetricType, &metadata.Description, &metadata.Temporality, &metadata.IsMonotonic, &metadata.Unit); err != nil {
-				return cachedMetadata, fmt.Errorf("error scanning fallback metadata: %w", err)
+				return cachedMetadata, fmt.Errorf("error scanning collected metrics metadata: %w", err)
 			}
-			r.cacheMetadata(ctx, orgID, metadata, "Failed to cache fallback metadata")
+			r.cacheMetadata(ctx, orgID, metadata, "failed to cache collected metrics metadata")
 			cachedMetadata[metadata.MetricName] = metadata
 		}
 		if rowsErr := rows.Err(); rowsErr != nil {
-			return cachedMetadata, fmt.Errorf("error scanning fallback metadata: %w", rowsErr)
+			return cachedMetadata, fmt.Errorf("error scanning collected metrics metadata: %w", rowsErr)
 		}
 	}
 
 	return cachedMetadata, nil
 }
 
-func (r *Reader) cacheMetadata(ctx context.Context, orgID valuer.UUID, metadata *model.UpdateMetricsMetadata, errorMessage string) {
-	if err := r.cache.Set(ctx, orgID, constants.UpdatedMetricsMetadataCachePrefix+metadata.MetricName, metadata, 0); err != nil {
+func (r *Reader) cacheMetadata(ctx context.Context, orgID valuer.UUID, metadata *model.MetricMetadata, errorMessage string) {
+	if err := r.cache.Set(ctx, orgID, constants.MetricsMetadataCachePrefix+metadata.MetricName, metadata, 0); err != nil {
 		r.logger.Error(errorMessage, "metric_name", metadata.MetricName, errorsV2.Attr(err))
 	}
 }

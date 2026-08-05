@@ -1,6 +1,6 @@
 import { PanelMode } from 'container/PanelVisualization/panels/types';
 import { render } from 'tests/test-utils';
-import { Widgets } from 'types/api/dashboard/getAll';
+import { Widgets } from 'types/api/widgets/getAll';
 
 import {
 	thresholds,

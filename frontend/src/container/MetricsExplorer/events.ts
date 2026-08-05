@@ -10,7 +10,6 @@ export enum MetricsExplorerEvents {
 	PageNumberChanged = 'Metrics Explorer: Page number changed',
 	PageSizeChanged = 'Metrics Explorer: Page size changed',
 	OrderByApplied = 'Metrics Explorer: Order by applied',
-	MetricMetadataUpdated = 'Metrics Explorer: Metric metadata updated',
 	OpenInExplorerClicked = 'Metrics Explorer: Open in explorer clicked',
 	InspectViewChanged = 'Metrics Explorer: Inspect view changed',
 	InspectQueryChanged = 'Metrics Explorer: Inspect query changed',

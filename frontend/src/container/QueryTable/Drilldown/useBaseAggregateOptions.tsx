@@ -1,19 +1,15 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useLocation } from 'react-router-dom';
-import { LinkOutlined, LoadingOutlined } from '@ant-design/icons';
+import { useCallback, useMemo } from 'react';
+import { LinkOutlined } from '@ant-design/icons';
 import OverlayScrollbar from 'components/OverlayScrollbar/OverlayScrollbar';
 import { QueryParams } from 'constants/query';
-import { PANEL_TYPES } from 'constants/queryBuilder';
 import ROUTES from 'constants/routes';
-import useUpdatedQuery from 'container/GridCardLayout/useResolveQuery';
 import { processContextLinks } from 'container/NewWidget/RightContainer/ContextLinks/utils';
-import useContextVariables from 'hooks/dashboard/useContextVariables';
+import useContextVariables from 'hooks/useContextVariables';
 import { useSafeNavigate } from 'hooks/useSafeNavigate';
 import createQueryParams from 'lib/createQueryParams';
 import ContextMenu from 'periscope/components/ContextMenu';
-import { useDashboardStore } from 'providers/Dashboard/store/useDashboardStore';
-import { ContextLinksData } from 'types/api/dashboard/getAll';
 import { Query } from 'types/api/queryBuilder/queryBuilderData';
+import { ContextLinksData } from 'types/api/widgets/getAll';
 
 import { ContextMenuItem } from './contextConfig';
 import { getDataLinks } from './dataLinksUtils';
@@ -24,11 +20,9 @@ import { AggregateData } from './useAggregateDrilldown';
 interface UseBaseAggregateOptionsProps {
 	query: Query;
 	onClose: () => void;
-	subMenu: string;
 	setSubMenu: (subMenu: string) => void;
 	aggregateData: AggregateData | null;
 	contextLinks?: ContextLinksData;
-	panelType?: PANEL_TYPES;
 	fieldVariables: Record<string, string | number | boolean>;
 }
 
@@ -56,37 +50,10 @@ const useBaseAggregateOptions = ({
 	setSubMenu,
 	aggregateData,
 	contextLinks,
-	panelType,
 	fieldVariables,
 }: UseBaseAggregateOptionsProps): {
 	baseAggregateOptionsConfig: BaseAggregateOptionsConfig;
 } => {
-	const [resolvedQuery, setResolvedQuery] = useState<Query>(query);
-	const {
-		getUpdatedQuery,
-		isLoading: isResolveQueryLoading,
-	} = useUpdatedQuery();
-	const { selectedDashboard } = useDashboardStore();
-
-	useEffect(() => {
-		if (!aggregateData) {
-			return;
-		}
-		const resolveQuery = async (): Promise<void> => {
-			const updatedQuery = await getUpdatedQuery({
-				widgetConfig: {
-					query,
-					panelTypes: panelType || PANEL_TYPES.TIME_SERIES,
-					timePreferance: 'GLOBAL_TIME',
-				},
-				selectedDashboard,
-			});
-			setResolvedQuery(updatedQuery);
-		};
-		resolveQuery();
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [query, aggregateData, panelType]);
-
 	const { safeNavigate } = useSafeNavigate();
 
 	// Use the new useContextVariables hook
@@ -133,7 +100,7 @@ const useBaseAggregateOptions = ({
 			const timeRange = aggregateData?.timeRange;
 			const filtersToAdd = aggregateData?.filters || [];
 			const viewQuery = getViewQuery(
-				resolvedQuery,
+				query,
 				filtersToAdd,
 				key,
 				aggregateData?.queryName || '',
@@ -164,17 +131,8 @@ const useBaseAggregateOptions = ({
 
 			onClose();
 		},
-		[resolvedQuery, safeNavigate, onClose, aggregateData],
+		[query, safeNavigate, onClose, aggregateData],
 	);
-
-	const { pathname } = useLocation();
-
-	const showDashboardVariablesOption = useMemo(() => {
-		const fieldVariablesExist = Object.keys(fieldVariables).length > 0;
-		// Check if current route is exactly dashboard route (/dashboard/:dashboardId)
-		const dashboardPattern = /^\/dashboard\/[^/]+$/;
-		return fieldVariablesExist && dashboardPattern.test(pathname);
-	}, [pathname, fieldVariables]);
 
 	const baseAggregateOptionsConfig = useMemo(() => {
 		if (!aggregateData) {
@@ -185,14 +143,13 @@ const useBaseAggregateOptions = ({
 		// Extract the non-breakout logic from getAggregateContextMenuConfig
 		const { queryName } = aggregateData;
 		const { dataSource, aggregations } = getAggregateColumnHeader(
-			resolvedQuery,
+			query,
 			queryName as string,
 		);
 
 		const baseContextConfig = getBaseContextConfig({
 			handleBaseDrilldown,
 			setSubMenu,
-			showDashboardVariablesOption,
 			showBreakoutOption: true,
 		}).filter((item) => !item.hidden);
 
@@ -223,15 +180,11 @@ const useBaseAggregateOptions = ({
 						>
 							<>
 								{baseContextConfig.map(({ key, label, icon, onClick }) => {
-									const isLoading =
-										isResolveQueryLoading &&
-										(key === 'view_logs' || key === 'view_traces');
 									return (
 										<ContextMenu.Item
 											key={key}
-											icon={isLoading ? <LoadingOutlined spin /> : icon}
+											icon={icon}
 											onClick={(): void => onClick()}
-											disabled={isLoading}
 										>
 											{label}
 										</ContextMenu.Item>
@@ -248,9 +201,7 @@ const useBaseAggregateOptions = ({
 		handleBaseDrilldown,
 		aggregateData,
 		getContextLinksItems,
-		isResolveQueryLoading,
-		resolvedQuery,
-		showDashboardVariablesOption,
+		query,
 		setSubMenu,
 	]);
 

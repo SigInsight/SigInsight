@@ -1,6 +1,6 @@
 # ADR-012: 在 V5 边界退役 Trace Operator
 
-Status: Accepted
+Status: Superseded by M14
 日期：2026-07-31
 关联里程碑：M8
 
@@ -30,3 +30,8 @@ Lite IR 从 M1 起就不表达 Trace Operator。此前 generic V5 fallback 仍�
 - DTO 兼容层是临时的只读迁移边界，不能重新引入 SQL compiler 或 legacy fallback。
 - 后续确认不再需要读取旧保存对象后，才可以删除 V5 DTO、生成的 OpenAPI variant 和
   前端 `queryTraceOperator` 兼容字段。
+
+## 后续决策
+
+M14 明确允许丢弃旧保存查询数据，因此上述临时只读兼容边界已删除。V5 不再声明、解码
+或校验 `builder_trace_operator`；旧对象必须删除或重新创建为当前 Builder Query/Formula。

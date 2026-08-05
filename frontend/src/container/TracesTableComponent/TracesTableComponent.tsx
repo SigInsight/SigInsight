@@ -20,12 +20,12 @@ import {
 } from 'container/TracesExplorer/ListView/utils';
 import { Pagination } from 'hooks/queryPagination';
 import { useSafeNavigate } from 'hooks/useSafeNavigate';
-import { GetQueryResultsProps } from 'lib/dashboard/getQueryResults';
 import history from 'lib/history';
 import { RowData } from 'lib/query/createTableColumnsFromQuery';
+import { GetQueryResultsProps } from 'lib/query/getQueryResults';
 import { useTimezone } from 'providers/Timezone';
-import { Widgets } from 'types/api/dashboard/getAll';
 import { MetricQueryRangeResult } from 'types/api/metrics/getQueryRange';
+import { Widgets } from 'types/api/widgets/getAll';
 
 import './TracesTableComponent.styles.scss';
 

@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Skeleton, Tooltip, Typography } from 'antd';
 import cx from 'classnames';
@@ -6,13 +6,12 @@ import { QueryParams } from 'constants/query';
 import { PANEL_TYPES } from 'constants/queryBuilder';
 import { PanelMode } from 'container/PanelVisualization/panels/types';
 import PanelVisualization from 'container/PanelVisualization/PanelVisualization';
-import useGetResolvedText from 'hooks/dashboard/useGetResolvedText';
 import { useSafeNavigate } from 'hooks/useSafeNavigate';
 import useUrlQuery from 'hooks/useUrlQuery';
 import createQueryParams from 'lib/createQueryParams';
 import { RowData } from 'lib/query/createTableColumnsFromQuery';
-import { useDashboardStore } from 'providers/Dashboard/store/useDashboardStore';
-import { EQueryType } from 'types/common/dashboard';
+import { EQueryType } from 'types/common/queryType';
+import { truncateText } from 'utils/truncateText';
 
 import WidgetHeader from '../WidgetHeader';
 import FullView from './FullView';
@@ -50,15 +49,6 @@ function WidgetGraphComponent({
 
 	const tableProcessedDataRef = useRef<RowData[]>([]);
 
-	const { setColumnWidths } = useDashboardStore();
-
-	const onColumnWidthsChange = useCallback(
-		(widths: Record<string, number>) => {
-			setColumnWidths((prev) => ({ ...prev, [widget.id]: widths }));
-		},
-		[setColumnWidths, widget.id],
-	);
-
 	const handleOnView = (): void => {
 		const queryParams = {
 			[QueryParams.expandedWidgetId]: widget.id,
@@ -94,10 +84,8 @@ function WidgetGraphComponent({
 
 	const [searchTerm, setSearchTerm] = useState<string>('');
 
-	const { truncatedText, fullText } = useGetResolvedText({
-		text: widget.title as string,
-		maxLength: 100,
-	});
+	const fullText = widget.title as string;
+	const truncatedText = truncateText(fullText, 100);
 
 	return (
 		<div
@@ -181,7 +169,6 @@ function WidgetGraphComponent({
 						onOpenTraceBtnClick={onOpenTraceBtnClick}
 						customOnRowClick={customOnRowClick}
 						enableDrillDown={enableDrillDown}
-						onColumnWidthsChange={onColumnWidthsChange}
 					/>
 				</div>
 			)}

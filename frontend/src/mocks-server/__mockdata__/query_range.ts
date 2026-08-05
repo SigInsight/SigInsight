@@ -1,6 +1,6 @@
 import { PANEL_TYPES } from 'constants/queryBuilder';
 import { QueryRangePayload } from 'types/api/metrics/getQueryRange';
-import { EQueryType } from 'types/common/dashboard';
+import { EQueryType } from 'types/common/queryType';
 
 export const queryRangeSuccessResponse: QueryRangePayload = {
 	status: 'success',

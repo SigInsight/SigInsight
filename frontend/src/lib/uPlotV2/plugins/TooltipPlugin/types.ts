@@ -11,7 +11,7 @@ import type { UPlotConfigBuilder } from '../../config/UPlotConfigBuilder';
 
 export const TOOLTIP_OFFSET = 10;
 
-export enum DashboardCursorSync {
+export enum CursorSyncMode {
 	Crosshair,
 	None,
 	Tooltip,
@@ -37,7 +37,7 @@ export interface TooltipLayoutInfo {
 export interface TooltipPluginProps {
 	config: UPlotConfigBuilder;
 	canPinTooltip?: boolean;
-	syncMode?: DashboardCursorSync;
+	syncMode?: CursorSyncMode;
 	syncKey?: string;
 	render: (args: TooltipRenderArgs) => ReactNode;
 	pinnedTooltipElement?: (clickData: TooltipClickData) => ReactNode;
@@ -106,7 +106,7 @@ export interface TooltipControllerContext {
 	rafId: MutableRefObject<number | null>;
 	updateState: (updates: Partial<TooltipViewState>) => void;
 	renderRef: MutableRefObject<(args: TooltipRenderArgs) => ReactNode>;
-	syncMode: DashboardCursorSync;
+	syncMode: CursorSyncMode;
 	syncKey: string;
 	canPinTooltip: boolean;
 	createTooltipContents: () => React.ReactNode;

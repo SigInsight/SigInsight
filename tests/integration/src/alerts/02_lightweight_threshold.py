@@ -8,31 +8,17 @@ from sqlalchemy import text
 from wiremock.client import HttpMethods, Mapping, MappingRequest, MappingResponse
 
 from fixtures import types
-from fixtures.alertutils import (
-    update_rule_channel_name,
-    verify_webhook_alert_expectation,
-)
+from fixtures.alertutils import verify_webhook_alert_expectation
 from fixtures.metrics import Metrics
 
 
-def _basic_metric_rule(metric_name: str) -> dict:
+def _basic_metric_rule(metric_name: str, channel_name: str) -> dict:
     return {
         "alert": "lightweight_metric_threshold",
         "alertType": "METRIC_BASED_ALERT",
         "ruleType": "threshold_rule",
         "condition": {
-            "thresholds": {
-                "kind": "basic",
-                "spec": [
-                    {
-                        "name": "critical",
-                        "target": 10,
-                        "matchType": "1",
-                        "op": "1",
-                        "channels": [],
-                    }
-                ],
-            },
+            "kind": "numeric",
             "compositeQuery": {
                 "queryType": "builder",
                 "panelType": "graph",
@@ -57,6 +43,18 @@ def _basic_metric_rule(metric_name: str) -> dict:
                 ],
             },
             "selectedQueryName": "A",
+            "dataQuality": {"alertOnNoData": False, "minPoints": 1},
+            "numeric": {
+                "reduction": "at_least_once",
+                "operator": "gt",
+                "thresholds": [
+                    {
+                        "severity": "critical",
+                        "target": 10,
+                        "channels": [channel_name],
+                    }
+                ],
+            },
         },
         "evaluation": {
             "kind": "rolling",
@@ -66,11 +64,9 @@ def _basic_metric_rule(metric_name: str) -> dict:
         "annotations": {"summary": "lightweight threshold integration"},
         "notificationSettings": {
             "groupBy": [],
-            "usePolicy": False,
-            "renotify": {"enabled": False, "interval": "30m", "alertStates": []},
         },
         "version": "v5",
-        "schemaVersion": "v2alpha1",
+        "schemaVersion": "v3alpha1",
     }
 
 
@@ -149,8 +145,7 @@ def test_lightweight_metric_threshold_fires(
         ]
     )
 
-    rule = _basic_metric_rule(metric_name)
-    update_rule_channel_name(rule, channel_name)
+    rule = _basic_metric_rule(metric_name, channel_name)
     rule_id = create_alert_rule(rule)
     _assert_persisted_route_contains_rule(signoz, rule_id, channel_name)
 

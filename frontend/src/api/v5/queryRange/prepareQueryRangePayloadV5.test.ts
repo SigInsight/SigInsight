@@ -1,5 +1,5 @@
 import { PANEL_TYPES } from 'constants/queryBuilder';
-import { GetQueryResultsProps } from 'lib/dashboard/getQueryResults';
+import { GetQueryResultsProps } from 'lib/query/getQueryResults';
 import { DataTypes } from 'types/api/queryBuilder/queryAutocompleteResponse';
 import {
 	IBuilderFormula,
@@ -15,8 +15,8 @@ import {
 	QueryRangePayloadV5,
 	TraceBuilderQuery,
 } from 'types/api/v5/queryRange';
-import { EQueryType } from 'types/common/dashboard';
 import { DataSource, ReduceOperators } from 'types/common/queryBuilder';
+import { EQueryType } from 'types/common/queryType';
 
 import { prepareQueryRangePayloadV5 } from './prepareQueryRangePayloadV5';
 
@@ -96,7 +96,6 @@ describe('prepareQueryRangePayloadV5', () => {
 						}),
 					],
 					queryFormulas: [baseFormula()],
-					queryTraceOperator: [],
 				},
 			},
 			graphType: PANEL_TYPES.TIME_SERIES,
@@ -208,6 +207,31 @@ describe('prepareQueryRangePayloadV5', () => {
 		expect(formulaSpec.legend).toBe('Formula Legend');
 	});
 
+	it('omits an empty formula row while it is still being edited', () => {
+		const result = prepareQueryRangePayloadV5({
+			query: {
+				queryType: EQueryType.QUERY_BUILDER,
+				id: 'q-empty-formula',
+				unit: undefined,
+				clickhouse_sql: [],
+				builder: {
+					queryData: [baseBuilderQuery()],
+					queryFormulas: [baseFormula({ expression: '' })],
+				},
+			},
+			graphType: PANEL_TYPES.TIME_SERIES,
+			selectedTime: 'GLOBAL_TIME',
+			start,
+			end,
+		});
+
+		expect(result.legendMap).toEqual({ A: 'Legend A' });
+		expect(result.queryPayload.compositeQuery.queries).toHaveLength(1);
+		expect(result.queryPayload.compositeQuery.queries[0].type).toBe(
+			'builder_query',
+		);
+	});
+
 	it('builds payload for ClickHouse queries and maps requestType from panel', () => {
 		const props: GetQueryResultsProps = {
 			query: {
@@ -222,7 +246,7 @@ describe('prepareQueryRangePayloadV5', () => {
 						legend: 'LC',
 					},
 				],
-				builder: { queryData: [], queryFormulas: [], queryTraceOperator: [] },
+				builder: { queryData: [], queryFormulas: [] },
 			},
 			graphType: PANEL_TYPES.TABLE,
 			selectedTime: 'GLOBAL_TIME',
@@ -280,7 +304,7 @@ describe('prepareQueryRangePayloadV5', () => {
 				id: 'q4',
 				unit: undefined,
 				clickhouse_sql: [],
-				builder: { queryData: [], queryFormulas: [], queryTraceOperator: [] },
+				builder: { queryData: [], queryFormulas: [] },
 			},
 			graphType: PANEL_TYPES.TIME_SERIES,
 			selectedTime: 'GLOBAL_TIME',
@@ -320,7 +344,6 @@ describe('prepareQueryRangePayloadV5', () => {
 				builder: {
 					queryData: [baseBuilderQuery()],
 					queryFormulas: [],
-					queryTraceOperator: [],
 				},
 			},
 			graphType: PANEL_TYPES.TABLE,
@@ -402,7 +425,6 @@ describe('prepareQueryRangePayloadV5', () => {
 				builder: {
 					queryData: [histogramQuery],
 					queryFormulas: [],
-					queryTraceOperator: [],
 				},
 			},
 			graphType: PANEL_TYPES.TIME_SERIES,
@@ -444,7 +466,6 @@ describe('prepareQueryRangePayloadV5', () => {
 				builder: {
 					queryData: [logsQuery],
 					queryFormulas: [],
-					queryTraceOperator: [],
 				},
 			},
 			graphType: PANEL_TYPES.LIST,
@@ -561,7 +582,6 @@ describe('prepareQueryRangePayloadV5', () => {
 						},
 					],
 					queryFormulas: [],
-					queryTraceOperator: [],
 				},
 			},
 			graphType: PANEL_TYPES.TIME_SERIES,
@@ -659,7 +679,6 @@ describe('prepareQueryRangePayloadV5', () => {
 						}),
 					],
 					queryFormulas: [],
-					queryTraceOperator: [],
 				},
 			},
 			graphType: PANEL_TYPES.LIST,
@@ -702,7 +721,6 @@ describe('prepareQueryRangePayloadV5', () => {
 						}),
 					],
 					queryFormulas: [],
-					queryTraceOperator: [],
 				},
 			},
 			graphType: PANEL_TYPES.LIST,
@@ -745,7 +763,6 @@ describe('prepareQueryRangePayloadV5', () => {
 						}),
 					],
 					queryFormulas: [],
-					queryTraceOperator: [],
 				},
 			},
 			graphType: PANEL_TYPES.LIST,
@@ -788,7 +805,6 @@ describe('prepareQueryRangePayloadV5', () => {
 						}),
 					],
 					queryFormulas: [],
-					queryTraceOperator: [],
 				},
 			},
 			graphType: PANEL_TYPES.LIST,
@@ -854,7 +870,6 @@ describe('prepareQueryRangePayloadV5', () => {
 						}),
 					],
 					queryFormulas: [],
-					queryTraceOperator: [],
 				},
 			},
 			graphType: PANEL_TYPES.LIST,
@@ -915,7 +930,6 @@ describe('prepareQueryRangePayloadV5', () => {
 							}),
 						],
 						queryFormulas: [],
-						queryTraceOperator: [],
 					},
 				},
 				graphType: PANEL_TYPES.LIST,
@@ -972,7 +986,6 @@ describe('prepareQueryRangePayloadV5', () => {
 						}),
 					],
 					queryFormulas: [],
-					queryTraceOperator: [],
 				},
 			},
 			graphType: PANEL_TYPES.LIST,
@@ -1016,7 +1029,6 @@ describe('prepareQueryRangePayloadV5', () => {
 						}),
 					],
 					queryFormulas: [],
-					queryTraceOperator: [],
 				},
 			},
 			graphType: PANEL_TYPES.LIST,
@@ -1049,7 +1061,6 @@ describe('prepareQueryRangePayloadV5', () => {
 						}),
 					],
 					queryFormulas: [],
-					queryTraceOperator: [],
 				},
 			},
 			graphType: PANEL_TYPES.LIST,
@@ -1082,7 +1093,6 @@ describe('prepareQueryRangePayloadV5', () => {
 						}),
 					],
 					queryFormulas: [],
-					queryTraceOperator: [],
 				},
 			},
 			graphType: PANEL_TYPES.LIST,

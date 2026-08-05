@@ -23,8 +23,8 @@ import {
 	QueryRangeResult,
 	SeriesItem,
 } from 'types/api/widgets/getQuery';
-import { EQueryType } from 'types/common/dashboard';
 import { QueryBuilderData } from 'types/common/queryBuilder';
+import { EQueryType } from 'types/common/queryType';
 import { v4 as uuid } from 'uuid';
 
 type CreateTableDataFromQueryParams = Pick<

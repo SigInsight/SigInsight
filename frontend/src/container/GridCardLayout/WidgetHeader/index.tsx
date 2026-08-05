@@ -19,7 +19,6 @@ import Spinner from 'components/Spinner';
 import WarningPopover from 'components/WarningPopover/WarningPopover';
 import { QueryParams } from 'constants/query';
 import { PANEL_TYPES } from 'constants/queryBuilder';
-import useGetResolvedText from 'hooks/dashboard/useGetResolvedText';
 import useCreateAlerts from 'hooks/queryBuilder/useCreateAlerts';
 import useComponentPermission from 'hooks/useComponentPermission';
 import { useSafeNavigate } from 'hooks/useSafeNavigate';
@@ -30,10 +29,11 @@ import { CircleX, SquareArrowOutUpRight, X } from 'lucide-react';
 import { unparse } from 'papaparse';
 import { useAppContext } from 'providers/App/App';
 import { SuccessResponse, Warning } from 'types/api';
-import { Widgets } from 'types/api/dashboard/getAll';
 import APIError from 'types/api/error';
 import { MetricRangePayloadProps } from 'types/api/metrics/getQueryRange';
+import { Widgets } from 'types/api/widgets/getAll';
 import { buildAbsolutePath } from 'utils/app';
+import { truncateText } from 'utils/truncateText';
 
 import { errorTooltipPosition } from './config';
 import { MENUITEM_KEYS_VS_LABELS, MenuItemKeys } from './contants';
@@ -93,7 +93,7 @@ function WidgetHeader({
 		safeNavigate(generatedUrl);
 	}, [safeNavigate, urlQuery, widget.id, widget.panelTypes, widget.query]);
 
-	const onCreateAlertsHandler = useCreateAlerts(widget, 'dashboardView');
+	const onCreateAlertsHandler = useCreateAlerts(widget);
 
 	const onDownloadHandler = useCallback((): void => {
 		const csv = unparse(tableProcessedDataRef.current);
@@ -224,10 +224,8 @@ function WidgetHeader({
 		[updatedMenuList, onMenuItemSelectHandler],
 	);
 
-	const { truncatedText, fullText } = useGetResolvedText({
-		text: widget.title as string,
-		maxLength: 100,
-	});
+	const fullText = widget.title as string;
+	const truncatedText = truncateText(fullText, 100);
 
 	const renderErrorMessage = useMemo(
 		() => <ErrorContent error={queryResponse.error as APIError} />,

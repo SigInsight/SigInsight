@@ -107,25 +107,6 @@ func (provider *provider) addMetricsExplorerRoutes(router *mux.Router) error {
 		return err
 	}
 
-	if err := router.Handle("/api/v5/metrics/{metric_name}/metadata", handler.New(
-		provider.authZ.EditAccess(provider.metricsExplorerHandler.UpdateMetricMetadata),
-		handler.OpenAPIDef{
-			ID:                  "UpdateMetricMetadata",
-			Tags:                []string{"metrics"},
-			Summary:             "Update metric metadata",
-			Description:         "This endpoint helps to update metadata information like metric description, unit, type, temporality, monotonicity for a specified metric",
-			Request:             new(metricsexplorertypes.UpdateMetricMetadataRequest),
-			RequestContentType:  "application/json",
-			Response:            nil,
-			ResponseContentType: "application/json",
-			SuccessStatusCode:   http.StatusOK,
-			ErrorStatusCodes:    []int{http.StatusBadRequest, http.StatusUnauthorized, http.StatusInternalServerError},
-			Deprecated:          false,
-			SecuritySchemes:     newSecuritySchemes(types.RoleEditor),
-		})).Methods(http.MethodPost).GetError(); err != nil {
-		return err
-	}
-
 	if err := router.Handle("/api/v5/metrics/{metric_name}/highlights", handler.New(
 		provider.authZ.ViewAccess(provider.metricsExplorerHandler.GetMetricHighlights),
 		handler.OpenAPIDef{

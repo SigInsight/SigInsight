@@ -1,7 +1,5 @@
-import { AlertDef } from './def';
-
 export interface GetTimelineGraphRequestProps {
-	id: AlertDef['id'];
+	id: string | undefined;
 	start: number;
 	end: number;
 }

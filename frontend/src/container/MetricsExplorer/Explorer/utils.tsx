@@ -1,11 +1,8 @@
-import { UpdateMetricMetadataMutationBody } from 'api/generated/services/metrics';
 import { MetricsexplorertypesMetricMetadataDTO } from 'api/generated/services/sigNoz.schemas';
 import { mapMetricUnitToUniversalUnit } from 'components/YAxisUnitSelector/utils';
 import { useGetMultipleMetrics } from 'hooks/metricsExplorer/useGetMultipleMetrics';
 import { Query } from 'types/api/queryBuilder/queryBuilderData';
 import { v4 as uuid } from 'uuid';
-
-import { determineIsMonotonic } from '../MetricDetails/utils';
 
 /**
  * Split a query with multiple queryData to multiple distinct queries, each with a single queryData.
@@ -95,19 +92,4 @@ export function getMetricUnits(
 	return metrics
 		.map((metric) => metric?.unit)
 		.map((unit) => mapMetricUnitToUniversalUnit(unit) || undefined);
-}
-
-export function buildUpdateMetricYAxisUnitPayload(
-	metricName: string,
-	metric: MetricsexplorertypesMetricMetadataDTO,
-	yAxisUnit: string,
-): UpdateMetricMetadataMutationBody {
-	return {
-		metricName,
-		type: metric.type,
-		description: metric.description,
-		unit: yAxisUnit || '',
-		temporality: metric.temporality,
-		isMonotonic: determineIsMonotonic(metric?.type, metric?.temporality),
-	};
 }

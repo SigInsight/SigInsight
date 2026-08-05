@@ -3,11 +3,11 @@ import { HistogramChartProps } from 'container/PanelVisualization/charts/types';
 import { PanelMode } from 'container/PanelVisualization/panels/types';
 import { LegendPosition } from 'lib/uPlotV2/components/types';
 import { render, screen } from 'tests/test-utils';
-import { Widgets } from 'types/api/dashboard/getAll';
 import {
 	MetricQueryRangeSuccessResponse,
 	MetricRangePayloadProps,
 } from 'types/api/metrics/getQueryRange';
+import { Widgets } from 'types/api/widgets/getAll';
 
 import HistogramPanel from '../HistogramPanel';
 

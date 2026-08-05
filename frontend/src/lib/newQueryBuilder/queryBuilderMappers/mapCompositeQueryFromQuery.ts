@@ -8,7 +8,7 @@ import {
 	IClickHouseQuery,
 	Query,
 } from 'types/api/queryBuilder/queryBuilderData';
-import { EQueryType } from 'types/common/dashboard';
+import { EQueryType } from 'types/common/queryType';
 import { compositeQueryToQueryEnvelope } from 'utils/compositeQueryToQueryEnvelope';
 
 import { mapQueryDataToApi } from './mapQueryDataToApi';
@@ -25,17 +25,12 @@ const buildBuilderQuery = (
 	query: Query,
 	panelType: PANEL_TYPES | null,
 ): ICompositeMetricQueryInput => {
-	const { queryData, queryFormulas, queryTraceOperator } = query.builder;
+	const { queryData, queryFormulas } = query.builder;
 	const currentQueryData = mapQueryDataToApi(queryData, 'queryName');
 	const currentFormulas = mapQueryDataToApi(queryFormulas, 'queryName');
-	const currentTraceOperator = mapQueryDataToApi(
-		queryTraceOperator,
-		'queryName',
-	);
 	const builderQueries = {
 		...currentQueryData.data,
 		...currentFormulas.data,
-		...currentTraceOperator.data,
 	};
 
 	const compositeQuery = createDefaultCompositeQuery();

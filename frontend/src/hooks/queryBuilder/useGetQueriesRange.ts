@@ -9,7 +9,7 @@ import { REACT_QUERY_KEY } from 'constants/reactQueryKeys';
 import {
 	GetMetricQueryRange,
 	GetQueryResultsProps,
-} from 'lib/dashboard/getQueryResults';
+} from 'lib/query/getQueryResults';
 import { SuccessResponse } from 'types/api';
 import { MetricRangePayloadProps } from 'types/api/metrics/getQueryRange';
 

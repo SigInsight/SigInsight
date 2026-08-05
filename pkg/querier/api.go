@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/SigNoz/signoz/pkg/analytics"
-	"github.com/SigNoz/signoz/pkg/errors"
 	"github.com/SigNoz/signoz/pkg/factory"
 	"github.com/SigNoz/signoz/pkg/http/render"
 	"github.com/SigNoz/signoz/pkg/types/authtypes"
@@ -14,7 +13,6 @@ import (
 	"github.com/SigNoz/signoz/pkg/types/instrumentationtypes"
 	qbtypes "github.com/SigNoz/signoz/pkg/types/querybuildertypes/querybuildertypesv5"
 	"github.com/SigNoz/signoz/pkg/valuer"
-	"github.com/SigNoz/signoz/pkg/variables"
 )
 
 type handler struct {
@@ -67,60 +65,6 @@ func (handler *handler) QueryRange(rw http.ResponseWriter, req *http.Request) {
 	handler.logEvent(req.Context(), req.Header.Get("Referer"), queryRangeResponse.QBEvent)
 
 	render.Success(rw, http.StatusOK, queryRangeResponse)
-}
-
-// TODO(srikanthccv): everything done here can be done on frontend as well
-// For the time being I am adding a helper function
-func (handler *handler) ReplaceVariables(rw http.ResponseWriter, req *http.Request) {
-
-	var queryRangeRequest qbtypes.QueryRangeRequest
-	if err := json.NewDecoder(req.Body).Decode(&queryRangeRequest); err != nil {
-		render.Error(rw, err)
-		return
-	}
-
-	errs := []error{}
-
-	for idx, item := range queryRangeRequest.CompositeQuery.Queries {
-		if item.Type == qbtypes.QueryTypeBuilder {
-			switch spec := item.Spec.(type) {
-			case qbtypes.QueryBuilderQuery[qbtypes.LogAggregation]:
-				if spec.Filter != nil && spec.Filter.Expression != "" {
-					replaced, err := variables.ReplaceVariablesInExpression(spec.Filter.Expression, queryRangeRequest.Variables)
-					if err != nil {
-						errs = append(errs, err)
-					}
-					spec.Filter.Expression = replaced
-				}
-				queryRangeRequest.CompositeQuery.Queries[idx].Spec = spec
-			case qbtypes.QueryBuilderQuery[qbtypes.TraceAggregation]:
-				if spec.Filter != nil && spec.Filter.Expression != "" {
-					replaced, err := variables.ReplaceVariablesInExpression(spec.Filter.Expression, queryRangeRequest.Variables)
-					if err != nil {
-						errs = append(errs, err)
-					}
-					spec.Filter.Expression = replaced
-				}
-				queryRangeRequest.CompositeQuery.Queries[idx].Spec = spec
-			case qbtypes.QueryBuilderQuery[qbtypes.MetricAggregation]:
-				if spec.Filter != nil && spec.Filter.Expression != "" {
-					replaced, err := variables.ReplaceVariablesInExpression(spec.Filter.Expression, queryRangeRequest.Variables)
-					if err != nil {
-						errs = append(errs, err)
-					}
-					spec.Filter.Expression = replaced
-				}
-				queryRangeRequest.CompositeQuery.Queries[idx].Spec = spec
-			}
-		}
-	}
-
-	if len(errs) != 0 {
-		render.Error(rw, errors.New(errors.TypeInvalidInput, errors.CodeInvalidInput, errors.Join(errs...).Error()))
-		return
-	}
-
-	render.Success(rw, http.StatusOK, queryRangeRequest)
 }
 
 func (handler *handler) logEvent(ctx context.Context, referrer string, event *qbtypes.QBEvent) {

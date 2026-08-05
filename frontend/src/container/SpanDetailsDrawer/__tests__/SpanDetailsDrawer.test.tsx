@@ -3,7 +3,7 @@ import getUserPreference from 'api/v5/user/preferences/name/get';
 import { QueryParams } from 'constants/query';
 import ROUTES from 'constants/routes';
 const SPAN_ATTRIBUTES = { HTTP_URL: 'http_url' } as const;
-import { GetMetricQueryRange } from 'lib/dashboard/getQueryResults';
+import { GetMetricQueryRange } from 'lib/query/getQueryResults';
 import { server } from 'mocks-server/server';
 import { QueryBuilderContext } from 'providers/QueryBuilder';
 import {
@@ -119,7 +119,7 @@ jest.mock('uplot', () => {
 	};
 });
 
-jest.mock('lib/dashboard/getQueryResults', () => ({
+jest.mock('lib/query/getQueryResults', () => ({
 	GetMetricQueryRange: jest.fn(),
 }));
 

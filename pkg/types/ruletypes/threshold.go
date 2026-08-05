@@ -18,7 +18,8 @@ type ThresholdKind struct {
 }
 
 var (
-	BasicThresholdKind = ThresholdKind{valuer.NewString("basic")}
+	BasicThresholdKind   = ThresholdKind{valuer.NewString("basic")}
+	BooleanThresholdKind = ThresholdKind{valuer.NewString("boolean")}
 )
 
 type RuleThresholdData struct {
@@ -44,6 +45,15 @@ func (r *RuleThresholdData) UnmarshalJSON(data []byte) error {
 			return errors.NewInvalidInputf(errors.CodeInvalidInput, "invalid rule threshold spec: %v", err)
 		}
 		r.Spec = basicThresholds
+	case BooleanThresholdKind:
+		var booleanThreshold BooleanRuleThreshold
+		if err := json.Unmarshal(raw["spec"], &booleanThreshold); err != nil {
+			return errors.NewInvalidInputf(errors.CodeInvalidInput, "failed to unmarshal boolean threshold spec: %v", err)
+		}
+		if err := booleanThreshold.Validate(); err != nil {
+			return errors.NewInvalidInputf(errors.CodeInvalidInput, "invalid boolean threshold spec: %v", err)
+		}
+		r.Spec = booleanThreshold
 
 	default:
 		return errors.NewInvalidInputf(errors.CodeUnsupported, "unknown threshold kind")
@@ -98,6 +108,74 @@ type BasicRuleThreshold struct {
 }
 
 type BasicRuleThresholds []BasicRuleThreshold
+
+// BooleanRuleThreshold evaluates a typed formula result. The legacy
+// RuleThreshold interface is retained as the state-machine boundary, but this
+// implementation never inspects a numeric fallback value for the condition.
+type BooleanRuleThreshold struct {
+	Policy   Reduction `json:"policy"`
+	Severity string    `json:"severity"`
+	Channels []string  `json:"channels"`
+}
+
+func (threshold BooleanRuleThreshold) Validate() error {
+	return BooleanCondition{
+		Policy: threshold.Policy, Severity: threshold.Severity, Channels: threshold.Channels,
+	}.Validate()
+}
+
+func (threshold BooleanRuleThreshold) GetRuleReceivers() []RuleReceivers {
+	return []RuleReceivers{{Name: threshold.Severity, Channels: threshold.Channels}}
+}
+
+func (threshold BooleanRuleThreshold) Eval(series timeseriestypes.Series, _ string, evalData EvalData) (Vector, error) {
+	points := make([]timeseriestypes.Point, 0, len(series.Points))
+	for _, point := range series.Points {
+		if point.BoolValue != nil {
+			points = append(points, point)
+		}
+	}
+	if len(points) == 0 {
+		return nil, nil
+	}
+	matched := false
+	selected := points[len(points)-1]
+	switch threshold.Policy {
+	case ReductionLast:
+		matched = *selected.BoolValue
+	case ReductionAtLeastOnce:
+		for _, point := range points {
+			if *point.BoolValue {
+				matched = true
+				selected = point
+				break
+			}
+		}
+	case ReductionAllTheTime:
+		matched = true
+		for _, point := range points {
+			if !*point.BoolValue {
+				matched = false
+				selected = point
+				break
+			}
+		}
+	default:
+		return nil, errors.NewInvalidInputf(errors.CodeInvalidInput, "unsupported boolean policy %q", threshold.Policy)
+	}
+	if !matched && !evalData.SendUnmatched {
+		return nil, nil
+	}
+	value := 0.0
+	if *selected.BoolValue {
+		value = 1
+	}
+	boolean := *selected.BoolValue
+	return Vector{Sample{
+		Point:  Point{T: selected.Timestamp, V: value, BoolValue: &boolean},
+		Metric: PrepareSampleLabelsForRule(series.Labels, threshold.Severity),
+	}}, nil
+}
 
 func (r BasicRuleThresholds) GetRuleReceivers() []RuleReceivers {
 	thresholds := []BasicRuleThreshold(r)
@@ -510,6 +588,11 @@ func (r *RuleThresholdData) GetRuleThreshold() (RuleThreshold, error) {
 			return basic, nil
 		}
 		return nil, errors.NewInvalidInputf(errors.CodeInvalidInput, "invalid rule threshold spec")
+	case BooleanThresholdKind:
+		if threshold, ok := r.Spec.(BooleanRuleThreshold); ok {
+			return threshold, nil
+		}
+		return nil, errors.NewInvalidInputf(errors.CodeInvalidInput, "invalid boolean threshold spec")
 	default:
 		return nil, errors.NewInvalidInputf(errors.CodeUnsupported, "unknown threshold kind")
 	}

@@ -1,6 +1,6 @@
 import { CONTEXT_LINK_FIELDS } from 'container/NewWidget/RightContainer/ContextLinks/constants';
-import { resolveTexts } from 'hooks/dashboard/useContextVariables';
-import { ContextLinkProps } from 'types/api/dashboard/getAll';
+import { resolveTexts } from 'hooks/useContextVariables';
+import { ContextLinkProps } from 'types/api/widgets/getAll';
 import { v4 as uuid } from 'uuid';
 
 // Configuration for variable source types
@@ -13,9 +13,6 @@ export const VARIABLE_SOURCE_CONFIG = {
 	},
 	GLOBAL: {
 		label: 'Global variable',
-	},
-	DASHBOARD: {
-		label: 'Dashboard variable',
 	},
 } as const;
 
@@ -215,7 +212,7 @@ export const transformContextVariables = (
 
 	// Process variables array from useContextVariables
 	variables.forEach((variable) => {
-		let source = VARIABLE_SOURCE_CONFIG.DASHBOARD.label as string; // Default to dashboard
+		let source = VARIABLE_SOURCE_CONFIG.QUERY.label as string;
 
 		// Check if it's a timestamp variable (special case - use name-based detection)
 		if (variable.name.toLowerCase().includes('timestamp')) {
@@ -226,8 +223,6 @@ export const transformContextVariables = (
 			source = VARIABLE_SOURCE_CONFIG.GLOBAL.label;
 		} else if (variable.source === 'custom') {
 			source = VARIABLE_SOURCE_CONFIG.QUERY.label;
-		} else if (variable.source === 'dashboard') {
-			source = VARIABLE_SOURCE_CONFIG.DASHBOARD.label;
 		}
 
 		// Group variables by source
@@ -249,7 +244,6 @@ export const transformContextVariables = (
 		VARIABLE_SOURCE_CONFIG.TIMESTAMP.label,
 		VARIABLE_SOURCE_CONFIG.GLOBAL.label,
 		VARIABLE_SOURCE_CONFIG.QUERY.label,
-		VARIABLE_SOURCE_CONFIG.DASHBOARD.label,
 	];
 
 	sourceOrder.forEach((source) => {

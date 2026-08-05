@@ -24,7 +24,7 @@ import history from 'lib/history';
 import store from 'store';
 import { UpdateTimeInterval } from 'store/actions';
 import { TagFilterItem } from 'types/api/queryBuilder/queryBuilderData';
-import { EQueryType } from 'types/common/dashboard';
+import { EQueryType } from 'types/common/queryType';
 import { v4 as uuid } from 'uuid';
 
 import { FeatureKeys } from '../../../constants/features';

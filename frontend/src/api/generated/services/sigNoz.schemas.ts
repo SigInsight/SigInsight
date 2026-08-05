@@ -80,10 +80,6 @@ export interface AssistantContextSnapshotDTO {
 	search?: string;
 	selectedEntity?: AssistantSelectedEntityDTO;
 	timeRange?: AssistantTimeRangeDTO;
-	/**
-	 * @type integer
-	 */
-	traceOperatorCount?: number;
 	visibleDataSummary?: AssistantVisibleDataSummaryDTO;
 }
 
@@ -818,27 +814,6 @@ export interface MetricsexplorertypesTreemapResponseDTO {
 	timeseries: MetricsexplorertypesTreemapEntryDTO[] | null;
 }
 
-export interface MetricsexplorertypesUpdateMetricMetadataRequestDTO {
-	/**
-	 * @type string
-	 */
-	description: string;
-	/**
-	 * @type boolean
-	 */
-	isMonotonic: boolean;
-	/**
-	 * @type string
-	 */
-	metricName: string;
-	temporality: MetrictypesTemporalityDTO;
-	type: MetrictypesTypeDTO;
-	/**
-	 * @type string
-	 */
-	unit: string;
-}
-
 export interface MetrictypesComparisonSpaceAggregationParamDTO {
 	/**
 	 * @type string
@@ -926,6 +901,10 @@ export type Querybuildertypesv5AggregationBucketDTOMeta = {
 	 * @type string
 	 */
 	unit?: string;
+	/**
+	 * @type string
+	 */
+	valueType?: string;
 };
 
 export interface Querybuildertypesv5AggregationBucketDTO {
@@ -1451,64 +1430,6 @@ export interface Querybuildertypesv5QueryBuilderQueryGithubComSigNozSignozPkgTyp
 	stepInterval?: Querybuildertypesv5StepDTO;
 }
 
-export interface Querybuildertypesv5QueryBuilderTraceOperatorDTO {
-	/**
-	 * @type array
-	 */
-	aggregations?: Querybuildertypesv5TraceAggregationDTO[];
-	/**
-	 * @type string
-	 */
-	cursor?: string;
-	/**
-	 * @type boolean
-	 */
-	disabled?: boolean;
-	/**
-	 * @type string
-	 */
-	expression?: string;
-	filter?: Querybuildertypesv5FilterDTO;
-	/**
-	 * @type array
-	 */
-	functions?: Querybuildertypesv5FunctionDTO[];
-	/**
-	 * @type array
-	 */
-	groupBy?: Querybuildertypesv5GroupByKeyDTO[];
-	having?: Querybuildertypesv5HavingDTO;
-	/**
-	 * @type string
-	 */
-	legend?: string;
-	/**
-	 * @type integer
-	 */
-	limit?: number;
-	/**
-	 * @type string
-	 */
-	name?: string;
-	/**
-	 * @type integer
-	 */
-	offset?: number;
-	/**
-	 * @type array
-	 */
-	order?: Querybuildertypesv5OrderByDTO[];
-	/**
-	 * @type string
-	 */
-	returnSpansFrom?: string;
-	/**
-	 * @type array
-	 */
-	selectFields?: TelemetrytypesTelemetryFieldKeyDTO[];
-	stepInterval?: Querybuildertypesv5StepDTO;
-}
-
 export type Querybuildertypesv5QueryDataDTO =
 	| (Querybuildertypesv5TimeSeriesDataDTO & {
 			/**
@@ -1549,10 +1470,6 @@ export type Querybuildertypesv5QueryEnvelopeDTO =
 			spec?: unknown;
 			type?: Querybuildertypesv5QueryTypeDTO;
 	  })
-	| (Querybuildertypesv5QueryEnvelopeTraceOperatorDTO & {
-			spec?: unknown;
-			type?: Querybuildertypesv5QueryTypeDTO;
-	  })
 	| (Querybuildertypesv5QueryEnvelopeClickHouseSQLDTO & {
 			spec?: unknown;
 			type?: Querybuildertypesv5QueryTypeDTO;
@@ -1580,11 +1497,6 @@ export interface Querybuildertypesv5QueryEnvelopeClickHouseSQLDTO {
 
 export interface Querybuildertypesv5QueryEnvelopeFormulaDTO {
 	spec?: Querybuildertypesv5QueryBuilderFormulaDTO;
-	type?: Querybuildertypesv5QueryTypeDTO;
-}
-
-export interface Querybuildertypesv5QueryEnvelopeTraceOperatorDTO {
-	spec?: Querybuildertypesv5QueryBuilderTraceOperatorDTO;
 	type?: Querybuildertypesv5QueryTypeDTO;
 }
 
@@ -1636,7 +1548,6 @@ export interface Querybuildertypesv5QueryRangeResponseDTO {
 export enum Querybuildertypesv5QueryTypeDTO {
 	builder_query = 'builder_query',
 	builder_formula = 'builder_formula',
-	builder_trace_operator = 'builder_trace_operator',
 	clickhouse_sql = 'clickhouse_sql',
 }
 export interface Querybuildertypesv5QueryWarnDataDTO {
@@ -1732,6 +1643,10 @@ export interface Querybuildertypesv5ScalarDataDTO {
 	 * @type string
 	 */
 	queryName?: string;
+	/**
+	 * @type string
+	 */
+	valueType?: string;
 }
 
 export interface Querybuildertypesv5SecondaryAggregationDTO {
@@ -1786,9 +1701,18 @@ export interface Querybuildertypesv5TimeSeriesDataDTO {
 	 * @type string
 	 */
 	queryName?: string;
+	/**
+	 * @type string
+	 */
+	valueType?: string;
 }
 
 export interface Querybuildertypesv5TimeSeriesValueDTO {
+	/**
+	 * @type boolean
+	 * @nullable true
+	 */
+	boolValue?: boolean | null;
 	bucket?: Querybuildertypesv5BucketDTO;
 	/**
 	 * @type boolean
@@ -2446,9 +2370,6 @@ export type GetMetricMetadata200 = {
 	status: string;
 };
 
-export type UpdateMetricMetadataPathParameters = {
-	metricName: string;
-};
 export type GetMetricsStats200 = {
 	data: MetricsexplorertypesStatsResponseDTO;
 	/**
@@ -2609,14 +2530,6 @@ export type CreateSessionByEmailPassword200 = {
 
 export type RotateSession200 = {
 	data: AuthtypesGettableTokenDTO;
-	/**
-	 * @type string
-	 */
-	status: string;
-};
-
-export type ReplaceVariables200 = {
-	data: Querybuildertypesv5QueryRangeRequestDTO;
 	/**
 	 * @type string
 	 */

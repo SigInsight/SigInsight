@@ -2,8 +2,8 @@ import { ReactNode } from 'react';
 import { TableColumnsType as ColumnsType, Typography } from 'antd';
 import { TimestampInput } from 'hooks/useTimezoneFormatter/useTimezoneFormatter';
 import { RowData } from 'lib/query/createTableColumnsFromQuery';
-import { Widgets } from 'types/api/dashboard/getAll';
 import { IField } from 'types/api/logs/fields';
+import { Widgets } from 'types/api/widgets/getAll';
 
 export const getLogPanelColumnsList = (
 	selectedLogFields: Widgets['selectedLogFields'],

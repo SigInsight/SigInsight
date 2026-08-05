@@ -7,7 +7,7 @@ import type uPlot from 'uplot';
 import { TooltipRenderArgs } from '../../components/types';
 import { UPlotConfigBuilder } from '../../config/UPlotConfigBuilder';
 import TooltipPlugin from '../TooltipPlugin/TooltipPlugin';
-import { DashboardCursorSync } from '../TooltipPlugin/types';
+import { CursorSyncMode } from '../TooltipPlugin/types';
 
 // Avoid depending on the full uPlot + onClickPlugin behaviour in these tests.
 // We only care that pinning logic runs without throwing, not which series is focused.
@@ -113,7 +113,7 @@ describe('TooltipPlugin', () => {
 			React.createElement(TooltipPlugin, {
 				config,
 				render: renderFn,
-				syncMode: DashboardCursorSync.None,
+				syncMode: CursorSyncMode.None,
 				...extraProps,
 			}),
 		);
@@ -140,7 +140,7 @@ describe('TooltipPlugin', () => {
 				React.createElement(TooltipPlugin, {
 					config,
 					render: () => React.createElement('div', null, 'tooltip-body'),
-					syncMode: DashboardCursorSync.None,
+					syncMode: CursorSyncMode.None,
 				}),
 			);
 
@@ -154,7 +154,7 @@ describe('TooltipPlugin', () => {
 				React.createElement(TooltipPlugin, {
 					config,
 					render: () => null,
-					syncMode: DashboardCursorSync.None,
+					syncMode: CursorSyncMode.None,
 				}),
 			);
 
@@ -306,7 +306,7 @@ describe('TooltipPlugin', () => {
 							{ type: 'button', onClick: args.dismiss },
 							'Dismiss',
 						),
-					syncMode: DashboardCursorSync.None,
+					syncMode: CursorSyncMode.None,
 					canPinTooltip: true,
 				}),
 			);
@@ -356,7 +356,7 @@ describe('TooltipPlugin', () => {
 				React.createElement(TooltipPlugin, {
 					config: config,
 					render: () => React.createElement('div', null, 'tooltip-body'),
-					syncMode: DashboardCursorSync.None,
+					syncMode: CursorSyncMode.None,
 					canPinTooltip: true,
 				}),
 			);
@@ -404,7 +404,7 @@ describe('TooltipPlugin', () => {
 				React.createElement(TooltipPlugin, {
 					config,
 					render: () => React.createElement('div', null, 'pinned content'),
-					syncMode: DashboardCursorSync.None,
+					syncMode: CursorSyncMode.None,
 					canPinTooltip: true,
 				}),
 			);
@@ -454,7 +454,7 @@ describe('TooltipPlugin', () => {
 				React.createElement(TooltipPlugin, {
 					config,
 					render: () => React.createElement('div', null, 'pinned content'),
-					syncMode: DashboardCursorSync.None,
+					syncMode: CursorSyncMode.None,
 					canPinTooltip: true,
 				}),
 			);
@@ -510,7 +510,7 @@ describe('TooltipPlugin', () => {
 				React.createElement(TooltipPlugin, {
 					config,
 					render: () => null,
-					syncMode: DashboardCursorSync.Tooltip,
+					syncMode: CursorSyncMode.Tooltip,
 					syncKey: 'dashboard-sync',
 				}),
 			);
@@ -529,7 +529,7 @@ describe('TooltipPlugin', () => {
 				React.createElement(TooltipPlugin, {
 					config,
 					render: () => null,
-					syncMode: DashboardCursorSync.None,
+					syncMode: CursorSyncMode.None,
 				}),
 			);
 
@@ -545,7 +545,7 @@ describe('TooltipPlugin', () => {
 				React.createElement(TooltipPlugin, {
 					config,
 					render: () => null,
-					syncMode: DashboardCursorSync.Tooltip,
+					syncMode: CursorSyncMode.Tooltip,
 				}),
 			);
 
@@ -565,7 +565,7 @@ describe('TooltipPlugin', () => {
 				React.createElement(TooltipPlugin, {
 					config,
 					render: () => null,
-					syncMode: DashboardCursorSync.None,
+					syncMode: CursorSyncMode.None,
 				}),
 			);
 

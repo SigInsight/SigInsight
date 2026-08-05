@@ -55,7 +55,7 @@ jest.mock('hooks/queryBuilder/useQueryBuilder', () => ({
 		panelType: 'TIME_SERIES',
 		initialDataSource: DataSource.METRICS,
 		currentQuery: {
-			builder: { queryData: [], queryFormulas: [], queryTraceOperator: [] },
+			builder: { queryData: [], queryFormulas: [] },
 			queryType: 'builder',
 		},
 		setLastUsedQuery: jest.fn(),
