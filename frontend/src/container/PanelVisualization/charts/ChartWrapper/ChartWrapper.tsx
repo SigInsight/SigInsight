@@ -6,6 +6,7 @@ import {
 	LegendPosition,
 	TooltipRenderArgs,
 } from 'lib/uPlotV2/components/types';
+import { PlotContextProvider } from 'lib/uPlotV2/context/PlotContext';
 import TooltipPlugin from 'lib/uPlotV2/plugins/TooltipPlugin/TooltipPlugin';
 import noop from 'lodash-es/noop';
 import uPlot from 'uplot';
@@ -62,47 +63,50 @@ export default function ChartWrapper({
 	);
 
 	return (
-		<ChartLayout
-			showLegend={showLegend}
-			config={config}
-			containerWidth={containerWidth}
-			containerHeight={containerHeight}
-			legendConfig={legendConfig}
-			legendComponent={legendComponent}
-			layoutChildren={layoutChildren}
-		>
-			{({ chartWidth, chartHeight, averageLegendWidth }): JSX.Element => (
-				<UPlotChartHost
-					config={config}
-					data={data}
-					width={chartWidth}
-					height={chartHeight}
-					plotRef={(plot): void => {
-						plotInstanceRef.current = plot;
-					}}
-					onDestroy={(plot: uPlot): void => {
-						plotInstanceRef.current = null;
-						onDestroy(plot);
-					}}
-					data-testid={testId}
-				>
-					{children}
-					{showTooltip && (
-						<TooltipPlugin
-							config={config}
-							canPinTooltip={canPinTooltip}
-							syncMode={syncMode}
-							maxWidth={Math.max(
-								TOOLTIP_MIN_WIDTH,
-								averageLegendWidth + TOOLTIP_WIDTH_PADDING,
-							)}
-							syncKey={syncKey}
-							render={renderTooltipCallback}
-							pinnedTooltipElement={pinnedTooltipElement}
-						/>
-					)}
-				</UPlotChartHost>
-			)}
-		</ChartLayout>
+		<PlotContextProvider>
+			<ChartLayout
+				showLegend={showLegend}
+				config={config}
+				containerWidth={containerWidth}
+				containerHeight={containerHeight}
+				legendConfig={legendConfig}
+				legendComponent={legendComponent}
+				layoutChildren={layoutChildren}
+			>
+				{({ chartWidth, chartHeight, averageLegendWidth }): JSX.Element => (
+					<UPlotChartHost
+						withContext={false}
+						config={config}
+						data={data}
+						width={chartWidth}
+						height={chartHeight}
+						plotRef={(plot): void => {
+							plotInstanceRef.current = plot;
+						}}
+						onDestroy={(plot: uPlot): void => {
+							plotInstanceRef.current = null;
+							onDestroy(plot);
+						}}
+						data-testid={testId}
+					>
+						{children}
+						{showTooltip && (
+							<TooltipPlugin
+								config={config}
+								canPinTooltip={canPinTooltip}
+								syncMode={syncMode}
+								maxWidth={Math.max(
+									TOOLTIP_MIN_WIDTH,
+									averageLegendWidth + TOOLTIP_WIDTH_PADDING,
+								)}
+								syncKey={syncKey}
+								render={renderTooltipCallback}
+								pinnedTooltipElement={pinnedTooltipElement}
+							/>
+						)}
+					</UPlotChartHost>
+				)}
+			</ChartLayout>
+		</PlotContextProvider>
 	);
 }

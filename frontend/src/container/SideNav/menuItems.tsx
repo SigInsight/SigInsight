@@ -9,6 +9,7 @@ import {
 	Cloudy,
 	DraftingCompass,
 	FileKey2,
+	Gauge,
 	HardDrive,
 	Home,
 	Keyboard,
@@ -153,6 +154,13 @@ export const defaultMoreMenuItems: SidebarItem[] = [
 		isNew: false,
 		isEnabled: true,
 		itemKey: 'metrics',
+	},
+	{
+		key: ROUTES.METER,
+		label: 'Cost Meter',
+		icon: <Gauge size={16} />,
+		isEnabled: true,
+		itemKey: 'cost-meter',
 	},
 	{
 		key: ROUTES.ALL_ERROR,

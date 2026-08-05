@@ -49,6 +49,12 @@ export interface UPlotChartProps {
 	 * Test ID for the container div
 	 */
 	'data-testid'?: string;
+
+	/**
+	 * ChartWrapper owns the context when the legend is rendered beside the plot.
+	 * Standalone hosts keep the provider for backwards-compatible consumers.
+	 */
+	withContext?: boolean;
 }
 
 export interface TooltipRenderArgs {
