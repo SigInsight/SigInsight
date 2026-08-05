@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import CreateAlertV2 from 'container/CreateAlertV2';
+import BasicAlertEditor from 'features/alerting/basic-editor';
 import { useGetCompositeQueryParam } from 'hooks/queryBuilder/useGetCompositeQueryParam';
 import { AlertTypes } from 'types/api/alerts/alertTypes';
 
@@ -21,7 +21,12 @@ function CreateRules(): JSX.Element {
 		return alertTypeFromURL as AlertTypes;
 	}, [alertTypeFromURL, compositeQuery?.builder.queryData]);
 
-	return <CreateAlertV2 alertType={alertType} />;
+	return (
+		<BasicAlertEditor
+			alertType={alertType}
+			initialQuery={compositeQuery || undefined}
+		/>
+	);
 }
 
 export default CreateRules;

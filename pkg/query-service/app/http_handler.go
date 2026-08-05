@@ -48,6 +48,11 @@ import (
 
 type status string
 
+type testRuleResponse struct {
+	EvaluationPreview rules.EvaluationPreview `json:"evaluationPreview"`
+	Message           string                  `json:"message"`
+}
+
 const (
 	statusSuccess status = "success"
 	statusError   status = "error"
@@ -635,17 +640,16 @@ func (aH *APIHandler) testRule(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
 	defer cancel()
 
-	alertCount, apiRrr := aH.ruleManager.TestNotification(ctx, orgID, string(body))
+	evaluationPreview, apiRrr := aH.ruleManager.TestNotification(ctx, orgID, string(body))
 	if apiRrr != nil {
 		RespondError(w, apiRrr, nil)
 		return
 	}
 
-	response := map[string]interface{}{
-		"alertCount": alertCount,
-		"message":    "notification sent",
-	}
-	aH.Respond(w, response)
+	aH.Respond(w, testRuleResponse{
+		EvaluationPreview: evaluationPreview,
+		Message:           "notification sent",
+	})
 }
 
 func (aH *APIHandler) deleteRule(w http.ResponseWriter, r *http.Request) {

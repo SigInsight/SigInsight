@@ -34,8 +34,8 @@ import { OrderPreferenceItems } from 'pages/Logs/config';
 import PaginationInfoText from 'periscope/components/PaginationInfoText/PaginationInfoText';
 import { useAlertRule } from 'providers/Alert';
 import { ErrorResponse, SuccessResponse } from 'types/api';
+import { PostableBasicAlertRule } from 'types/api/alerts/basicAlert';
 import {
-	AlertDef,
 	AlertRuleStatsPayload,
 	AlertRuleTimelineGraphResponsePayload,
 	AlertRuleTimelineTableResponse,
@@ -414,7 +414,7 @@ export const useAlertRuleStatusToggle = ({
 export const useAlertRuleDuplicate = ({
 	alertDetails,
 }: {
-	alertDetails: AlertDef;
+	alertDetails: PostableBasicAlertRule;
 }): {
 	handleAlertDuplicate: () => void;
 } => {

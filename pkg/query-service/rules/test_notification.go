@@ -15,13 +15,13 @@ import (
 	ruletypes "github.com/SigNoz/signoz/pkg/types/ruletypes"
 )
 
-// TestNotification prepares a dummy rule for given rule parameters and
-// sends a test notification. returns alert count and error (if any)
-func defaultTestNotification(opts PrepareTestRuleOptions) (int, *model.ApiError) {
+// TestNotification prepares an isolated rule evaluation, sends the test
+// notification, and returns the observable evaluation result.
+func defaultTestNotification(opts PrepareTestRuleOptions) (EvaluationPreview, *model.ApiError) {
 	ctx := context.Background()
 
 	if opts.Rule == nil {
-		return 0, model.BadRequest(fmt.Errorf("rule is required"))
+		return EvaluationPreview{}, model.BadRequest(fmt.Errorf("rule is required"))
 	}
 
 	parsedRule := opts.Rule
@@ -61,11 +61,11 @@ func defaultTestNotification(opts PrepareTestRuleOptions) (int, *model.ApiError)
 
 		if err != nil {
 			slog.Error("failed to prepare a new threshold rule for test", errors.Attr(err))
-			return 0, model.BadRequest(err)
+			return EvaluationPreview{}, model.BadRequest(err)
 		}
 
 	} else {
-		return 0, model.BadRequest(fmt.Errorf("failed to derive ruletype with given information"))
+		return EvaluationPreview{}, model.BadRequest(fmt.Errorf("failed to derive ruletype with given information"))
 	}
 
 	// set timestamp to current utc time
@@ -74,9 +74,13 @@ func defaultTestNotification(opts PrepareTestRuleOptions) (int, *model.ApiError)
 	alertsFound, err := rule.Eval(ctx, ts)
 	if err != nil {
 		slog.Error("evaluating rule failed", "rule", rule.Name(), errors.Attr(err))
-		return 0, model.InternalError(fmt.Errorf("rule evaluation failed"))
+		return EvaluationPreview{}, model.InternalError(fmt.Errorf("rule evaluation failed"))
 	}
 	rule.SendAlerts(ctx, ts, 0, time.Duration(1*time.Minute), opts.NotifyFunc)
 
-	return alertsFound, nil
+	return EvaluationPreview{
+		AlertCount:  alertsFound,
+		State:       rule.State(),
+		EvaluatedAt: ts.UnixMilli(),
+	}, nil
 }

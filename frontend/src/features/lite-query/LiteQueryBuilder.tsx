@@ -39,6 +39,11 @@ export type LiteQueryBuilderProps = {
 	config?: LiteQueryBuilderConfig;
 	onSignalSourceChange?: (value: string) => void;
 	signalSourceChangeEnabled?: boolean;
+	limits?: {
+		maxDataQueries?: number;
+		maxFormulas?: number;
+	};
+	alertMode?: boolean;
 };
 
 const sourceOptions = [
@@ -520,10 +525,12 @@ function LiteFormulaRow({
 	index,
 	formula,
 	queryNames,
+	alertMode,
 }: {
 	index: number;
 	formula: IBuilderFormula;
 	queryNames: readonly string[];
+	alertMode: boolean;
 }): JSX.Element {
 	const {
 		currentQuery,
@@ -565,6 +572,7 @@ function LiteFormulaRow({
 				value={formula.expression}
 				placeholder="A / B"
 				queryNames={queryNames}
+				alertMode={alertMode}
 				onChange={update}
 			/>
 			{error && <div className="lite-query-error">{error}</div>}
@@ -577,6 +585,8 @@ function LiteQueryBuilderContent({
 	config,
 	onSignalSourceChange,
 	signalSourceChangeEnabled = false,
+	limits,
+	alertMode = false,
 }: LiteQueryBuilderProps): JSX.Element {
 	const {
 		currentQuery,
@@ -592,6 +602,14 @@ function LiteQueryBuilderContent({
 	const queryVariant = config?.queryVariant || 'dropdown';
 	const isRawPanel =
 		panelType === PANEL_TYPES.LIST || panelType === PANEL_TYPES.TRACE;
+	const maxDataQueries = limits?.maxDataQueries;
+	const maxFormulas = limits?.maxFormulas;
+	const dataQueryLimitReached =
+		maxDataQueries !== undefined &&
+		currentQuery.builder.queryData.length >= maxDataQueries;
+	const formulaLimitReached =
+		maxFormulas !== undefined &&
+		currentQuery.builder.queryFormulas.length >= maxFormulas;
 
 	useEffect(() => {
 		if (initialDataSource !== initialSource || activePanelType !== panelType) {
@@ -646,16 +664,41 @@ function LiteQueryBuilderContent({
 					index={index}
 					formula={formula}
 					queryNames={formulaQueryNames.filter((name) => name !== formula.queryName)}
+					alertMode={alertMode}
 				/>
 			))}
 			{!isRawPanel && (
 				<div className="lite-query-footer">
-					<Button icon={<Plus size={15} />} onClick={addNewBuilderQuery}>
-						Add query
-					</Button>
-					<Button icon={<Sigma size={15} />} onClick={addNewFormula}>
-						Add formula
-					</Button>
+					<Tooltip
+						title={
+							dataQueryLimitReached
+								? `Basic alerts support at most ${maxDataQueries} data queries`
+								: undefined
+						}
+					>
+						<Button
+							icon={<Plus size={15} />}
+							onClick={addNewBuilderQuery}
+							disabled={dataQueryLimitReached}
+						>
+							Add query
+						</Button>
+					</Tooltip>
+					<Tooltip
+						title={
+							formulaLimitReached
+								? `Basic alerts support at most ${maxFormulas} formulas`
+								: undefined
+						}
+					>
+						<Button
+							icon={<Sigma size={15} />}
+							onClick={addNewFormula}
+							disabled={formulaLimitReached}
+						>
+							Add formula
+						</Button>
+					</Tooltip>
 				</div>
 			)}
 		</div>

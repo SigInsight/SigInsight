@@ -7,4 +7,26 @@
 	.alert-header {
 		flex: 1;
 	}
+
+	&__summary {
+		min-width: 0;
+		padding: 16px 0;
+	}
+
+	&__title-row {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		min-width: 0;
+	}
+
+	&__title-row h1 {
+		margin: 0;
+		font-size: 18px;
+		font-weight: 500;
+		line-height: 1.4;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
 }

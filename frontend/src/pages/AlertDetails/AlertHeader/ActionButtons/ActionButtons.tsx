@@ -11,7 +11,6 @@ import {
 import CopyToClipboard from 'periscope/components/CopyToClipboard';
 import { useAlertRule } from 'providers/Alert';
 import { CSSProperties } from 'styled-components';
-import { AlertDef } from 'types/api/alerts/def';
 
 import { AlertHeaderProps } from '../AlertHeader';
 
@@ -34,7 +33,7 @@ function AlertActionButtons({
 
 	const { handleAlertStateToggle } = useAlertRuleStatusToggle({ ruleId });
 	const { handleAlertDuplicate } = useAlertRuleDuplicate({
-		alertDetails: (alertDetails as unknown) as AlertDef,
+		alertDetails,
 	});
 	const { handleAlertDelete } = useAlertRuleDelete({ ruleId });
 	const menuItems: MenuProps['items'] = [

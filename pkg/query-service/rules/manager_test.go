@@ -86,12 +86,13 @@ func TestManager_TestNotification_SendUnmatched_ThresholdRule(t *testing.T) {
 				},
 			})
 
-			count, apiErr := mgr.TestNotification(context.Background(), orgID, string(ruleBytes))
+			preview, apiErr := mgr.TestNotification(context.Background(), orgID, string(ruleBytes))
 			if apiErr != nil {
 				t.Logf("TestNotification error: %v, type: %s", apiErr.Err, apiErr.Typ)
 			}
 			require.Nil(t, apiErr)
-			assert.Equal(t, tc.ExpectAlerts, count)
+			assert.Equal(t, tc.ExpectAlerts, preview.AlertCount)
+			assert.NotZero(t, preview.EvaluatedAt)
 
 			if tc.ExpectAlerts > 0 {
 				// check if the alert has been triggered

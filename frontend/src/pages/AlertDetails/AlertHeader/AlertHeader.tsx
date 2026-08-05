@@ -1,23 +1,30 @@
-import CreateAlertV2Header from 'container/CreateAlertV2/CreateAlertHeader';
-import { PostableAlertRule } from 'types/api/alerts/alertRule';
-import { GettableAlert } from 'types/api/alerts/get';
+import { PostableBasicAlertRule } from 'types/api/alerts/basicAlert';
 
 import AlertActionButtons from './ActionButtons/ActionButtons';
+import AlertLabels from './AlertLabels/AlertLabels';
+import AlertState from './AlertState/AlertState';
 
 import './AlertHeader.styles.scss';
 
 export type AlertHeaderProps = {
-	alertDetails: GettableAlert | PostableAlertRule;
+	alertDetails: PostableBasicAlertRule & {
+		id: string;
+		state: string;
+		disabled: boolean;
+	};
 };
 function AlertHeader({ alertDetails }: AlertHeaderProps): JSX.Element {
 	return (
 		<div className="alert-info">
-			<CreateAlertV2Header />
+			<div className="alert-info__summary">
+				<div className="alert-info__title-row">
+					<h1>{alertDetails.alert}</h1>
+					<AlertState state={alertDetails.state} showLabel />
+				</div>
+				<AlertLabels labels={alertDetails.labels || {}} />
+			</div>
 			<div className="alert-info__action-buttons">
-				<AlertActionButtons
-					alertDetails={alertDetails}
-					ruleId={alertDetails?.id || ''}
-				/>
+				<AlertActionButtons alertDetails={alertDetails} ruleId={alertDetails.id} />
 			</div>
 		</div>
 	);

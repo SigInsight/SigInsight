@@ -1,10 +1,12 @@
-import { AlertDef } from './def';
+import { PostableBasicAlertRule } from './basicAlert';
+import { Labels } from './def';
 
 export interface Props {
-	id: AlertDef['id'];
+	id: string | undefined;
 }
 
-export interface GettableAlert extends AlertDef {
+export interface GettableAlert
+	extends Omit<PostableBasicAlertRule, 'schemaVersion' | 'labels'> {
 	id: string;
 	alert: string;
 	state: string;
@@ -14,6 +16,7 @@ export interface GettableAlert extends AlertDef {
 	updateAt: string;
 	updateBy: string;
 	schemaVersion: string;
+	labels?: Labels;
 }
 
 export type PayloadProps = {

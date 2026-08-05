@@ -17,7 +17,7 @@ import LabelColumn from 'components/TableRenderer/LabelColumn';
 import TextToolTip from 'components/TextToolTip';
 import { QueryParams } from 'constants/query';
 import ROUTES from 'constants/routes';
-import { sanitizeDefaultAlertQuery } from 'container/EditAlertV2/utils';
+import { isV3BasicAlertRule } from 'features/alerting/basic-editor/draft';
 import useSortableTable from 'hooks/ResizeTable/useSortableTable';
 import useComponentPermission from 'hooks/useComponentPermission';
 import useDebouncedFn from 'hooks/useDebouncedFunction';
@@ -25,10 +25,8 @@ import useInterval from 'hooks/useInterval';
 import { useNotifications } from 'hooks/useNotifications';
 import { useSafeNavigate } from 'hooks/useSafeNavigate';
 import useUrlQuery from 'hooks/useUrlQuery';
-import { mapQueryDataFromApi } from 'lib/newQueryBuilder/queryBuilderMappers/mapQueryDataFromApi';
 import { useAppContext } from 'providers/App/App';
 import { ErrorResponse, SuccessResponse } from 'types/api';
-import { AlertTypes } from 'types/api/alerts/alertTypes';
 import { GettableAlert } from 'types/api/alerts/get';
 
 import DeleteAlert from './DeleteAlert';
@@ -109,17 +107,11 @@ function ListAlert({ allAlertRules, refetch }: ListAlertProps): JSX.Element {
 	}, []);
 
 	const onEditHandler = (record: GettableAlert, openInNewTab: boolean): void => {
-		const compositeQuery = sanitizeDefaultAlertQuery(
-			mapQueryDataFromApi(record.condition.compositeQuery),
-			record.alertType as AlertTypes,
-		);
-		params.set(
-			QueryParams.compositeQuery,
-			encodeURIComponent(JSON.stringify(compositeQuery)),
-		);
-
-		params.set(QueryParams.panelTypes, record.condition.compositeQuery.panelType);
-
+		// The v3 editor reloads the canonical rule by id. Carrying an older
+		// serialized builder query here made the edit route depend on legacy
+		// saved-query normalization even though it never executed that query.
+		params.delete(QueryParams.compositeQuery);
+		params.delete(QueryParams.panelTypes);
 		params.set(QueryParams.ruleId, record.id.toString());
 
 		setEditLoader(false);
@@ -134,6 +126,12 @@ function ListAlert({ allAlertRules, refetch }: ListAlertProps): JSX.Element {
 	const onCloneHandler = (
 		originalAlert: GettableAlert,
 	) => async (): Promise<void> => {
+		if (!isV3BasicAlertRule(originalAlert)) {
+			notificationsApi.error({
+				message: 'This alert uses a retired rule schema and cannot be cloned.',
+			});
+			return;
+		}
 		const copyAlert = {
 			...originalAlert,
 			alert: originalAlert.alert.concat(' - Copy'),
@@ -144,32 +142,33 @@ function ListAlert({ allAlertRules, refetch }: ListAlertProps): JSX.Element {
 			setCloneLoader(true);
 			const response = await saveAlertApi(apiReq);
 
-			if (response.statusCode === 200) {
-				notificationsApi.success({
-					message: 'Success',
-					description: 'Alert cloned successfully',
-				});
-
-				const { data: refetchData, status } = await refetch();
-				if (status === 'success' && refetchData.payload) {
-					setData(refetchData.payload || []);
-					setTimeout(() => {
-						const clonedAlert = refetchData.payload[refetchData.payload.length - 1];
-						params.set(QueryParams.ruleId, String(clonedAlert.id));
-						safeNavigate(`${ROUTES.EDIT_ALERTS}?${params.toString()}`);
-					}, 2000);
-				}
-				if (status === 'error') {
-					notificationsApi.error({
-						message: t('something_went_wrong'),
-					});
-				}
-			} else {
+			if (response.statusCode !== 200) {
 				notificationsApi.error({
 					message: 'Error',
 					description: response.error || t('something_went_wrong'),
 				});
+				return;
 			}
+
+			notificationsApi.success({
+				message: 'Success',
+				description: 'Alert cloned successfully',
+			});
+
+			const { data: refetchData, status } = await refetch();
+			if (status === 'error') {
+				notificationsApi.error({ message: t('something_went_wrong') });
+				return;
+			}
+			if (status !== 'success' || !refetchData.payload) {
+				return;
+			}
+			setData(refetchData.payload);
+			setTimeout(() => {
+				const clonedAlert = refetchData.payload[refetchData.payload.length - 1];
+				params.set(QueryParams.ruleId, String(clonedAlert.id));
+				safeNavigate(`${ROUTES.EDIT_ALERTS}?${params.toString()}`);
+			}, 2000);
 		} catch (error) {
 			handleError();
 			console.error(error);

@@ -59,6 +59,14 @@ type PrepareTestRuleOptions struct {
 	OrgID       valuer.UUID
 }
 
+// EvaluationPreview describes one isolated rule evaluation. It is returned by
+// the test-rule API and deliberately excludes notification delivery details.
+type EvaluationPreview struct {
+	AlertCount  int              `json:"alertCount"`
+	State       model.AlertState `json:"state"`
+	EvaluatedAt int64            `json:"evaluatedAt"`
+}
+
 const taskNameSuffix = "webAppEditor"
 
 func RuleIdFromTaskName(n string) string {
@@ -89,7 +97,7 @@ type ManagerOptions struct {
 	EvalDelay valuer.TextDuration
 
 	PrepareTaskFunc     func(opts PrepareTaskOptions) (Task, error)
-	PrepareTestRuleFunc func(opts PrepareTestRuleOptions) (int, *model.ApiError)
+	PrepareTestRuleFunc func(opts PrepareTestRuleOptions) (EvaluationPreview, *model.ApiError)
 	Alertmanager        alertmanager.Alertmanager
 	OrgGetter           organization.Getter
 	RuleStore           ruletypes.RuleStore
@@ -111,7 +119,7 @@ type Manager struct {
 	reader              interfaces.RuleStateHistoryReader
 	cache               cache.Cache
 	prepareTaskFunc     func(opts PrepareTaskOptions) (Task, error)
-	prepareTestRuleFunc func(opts PrepareTestRuleOptions) (int, *model.ApiError)
+	prepareTestRuleFunc func(opts PrepareTestRuleOptions) (EvaluationPreview, *model.ApiError)
 
 	alertmanager alertmanager.Alertmanager
 	sqlstore     sqlstore.SQLStore
@@ -919,11 +927,11 @@ func (m *Manager) PatchRule(ctx context.Context, ruleStr string, id valuer.UUID)
 
 // TestNotification prepares a dummy rule for given rule parameters and
 // sends a test notification. returns alert count and error (if any)
-func (m *Manager) TestNotification(ctx context.Context, orgID valuer.UUID, ruleStr string) (int, *model.ApiError) {
+func (m *Manager) TestNotification(ctx context.Context, orgID valuer.UUID, ruleStr string) (EvaluationPreview, *model.ApiError) {
 	parsedRule := ruletypes.PostableRule{}
 	err := json.Unmarshal([]byte(ruleStr), &parsedRule)
 	if err != nil {
-		return 0, model.BadRequest(err)
+		return EvaluationPreview{}, model.BadRequest(err)
 	}
 	if !slices.Contains(parsedRule.NotificationSettings.GroupBy, ruletypes.LabelThresholdName) {
 		parsedRule.NotificationSettings.GroupBy = append(parsedRule.NotificationSettings.GroupBy, ruletypes.LabelThresholdName)
@@ -931,17 +939,17 @@ func (m *Manager) TestNotification(ctx context.Context, orgID valuer.UUID, ruleS
 	config := parsedRule.NotificationSettings.GetAlertManagerNotificationConfig()
 	config.Channels, err = parsedRule.GetRuleChannels()
 	if err != nil {
-		return 0, &model.ApiError{Typ: model.ErrorBadData, Err: err}
+		return EvaluationPreview{}, &model.ApiError{Typ: model.ErrorBadData, Err: err}
 	}
 	err = m.alertmanager.SetNotificationConfig(ctx, orgID, parsedRule.AlertName, &config)
 	if err != nil {
-		return 0, &model.ApiError{
+		return EvaluationPreview{}, &model.ApiError{
 			Typ: model.ErrorBadData,
 			Err: err,
 		}
 	}
 
-	alertCount, apiErr := m.prepareTestRuleFunc(PrepareTestRuleOptions{
+	evaluationPreview, apiErr := m.prepareTestRuleFunc(PrepareTestRuleOptions{
 		Rule:        &parsedRule,
 		RuleStore:   m.ruleStore,
 		Reader:      m.reader,
@@ -954,7 +962,7 @@ func (m *Manager) TestNotification(ctx context.Context, orgID valuer.UUID, ruleS
 		OrgID:       orgID,
 	})
 
-	return alertCount, apiErr
+	return evaluationPreview, apiErr
 }
 
 func (m *Manager) GetAlertDetailsForMetricNames(ctx context.Context, metricNames []string) (map[string][]ruletypes.GettableRule, *model.ApiError) {

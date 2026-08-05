@@ -1,6 +1,6 @@
 # M15：基础告警编辑器功能边界与交互设计
 
-状态：In progress；设计已确认，10.1 Typed Formula Core 与 10.2 Typed Result 已完成
+状态：In progress；10.1-10.5 已完成，10.6 协作验证进行中
 
 最后更新：2026-08-05
 
@@ -393,6 +393,21 @@ serializer 和同一套 validator，禁止分别拼装三种近似 payload。
 `NumericThresholdCondition | BooleanCondition` 判别联合。`v2alpha1`、旧 cumulative schedule
 和旧 condition JSON 不读取、不转换；部署迁移可以直接删除旧规则数据。
 
+`POST /api/v5/testRule` 成功响应的 `data` 必须包含结构化评估预览：
+
+```json
+{
+  "evaluationPreview": {
+    "alertCount": 2,
+    "state": "firing",
+    "evaluatedAt": 1780000000000
+  }
+}
+```
+
+`state` 使用 `inactive|pending|firing|nodata|recovering|disabled`，`evaluatedAt` 为 Unix
+milliseconds。Test 保留测试通知副作用；该预览只描述当前隔离评估，不能当作已保存规则的持久状态。
+
 ## 9. 验证与删除门槛
 
 实现阶段至少覆盖：
@@ -477,6 +492,14 @@ V5 `time_series`/`scalar` 响应以 `valueType: number|bool` 明确结果类型�
 
 提交锚点：`refactor(frontend): consolidate basic alert editor`
 
+完成记录：`BasicAlertEditor` 用一个 `BasicAlertDraft` 和一个 serializer 覆盖新建、编辑和 Test。
+它只发出 v3 JSON，限制为 4 个数据查询与 4 个公式；数值/布尔条件、固定累计窗口、IANA timezone、
+No Data、最小点数、静态标签和 group-by 都由同一份 validator 约束。Alert 公式补全开放比较、
+布尔运算和 `abs/min/max/clamp`，且不截获复制、粘贴或撤销快捷键。
+
+Exceptions 不再携带旧 `error_index_v2` 原生 SQL：默认值是 `traces` Lite 查询加
+`has_error = true` Filter。这样保留异常告警语义，同时不恢复原生 SQL 能力。
+
 ### 10.5 Legacy UI 与调度实现删除
 
 - 删除被统一编辑器替代的 Create/Edit 包装、calendar/RRULE/custom cadence 控件和重复样式测试。
@@ -484,6 +507,11 @@ V5 `time_series`/`scalar` 响应以 `valueType: number|bool` 明确结果类型�
 - 用代码量、生产 import 和路由审计证明旧树没有残余入口。
 
 提交锚点：`refactor(alerts): remove legacy builder and schedules`
+
+完成记录：已删除 `CreateAlertV2`、`EditAlertV2`、`FormAlertRules`、旧 create/test/update hooks、
+v2 rule JSON 类型和原生 SQL 默认告警。列表编辑只传递 rule id，由编辑页重新读取服务端 v3 rule；
+复制会明确拒绝非 v3 规则，不再进行隐式转换。详情页标题直接消费 v3 读取模型，历史、启停和删除
+不再依赖旧编辑器 context。
 
 ### 10.6 协作验证闭环
 
@@ -493,3 +521,7 @@ V5 `time_series`/`scalar` 响应以 `valueType: number|bool` 明确结果类型�
   可重复执行的验证命令及结果。
 
 提交锚点：`test(alerts): verify basic editor collaboration`
+
+当前记录：规则测试 API 已升级为 `evaluationPreview {alertCount,state,evaluatedAt}`，并有 rules
+和 HTTP handler Go 测试；前端显示状态而不是只显示计数。完整 ClickHouse/SQLite/webhook 与浏览器
+闭环仍须在本阶段完成，且不得将未执行的真实环境验证标记为完成。

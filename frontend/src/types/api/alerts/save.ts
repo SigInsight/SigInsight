@@ -1,4 +1,4 @@
-import { AlertDef } from './def';
+import { PostableBasicAlertRule } from './basicAlert';
 
 export type PayloadProps = {
 	status: string;
@@ -7,5 +7,5 @@ export type PayloadProps = {
 
 export interface Props {
 	id?: string;
-	data: AlertDef;
+	data: PostableBasicAlertRule;
 }
