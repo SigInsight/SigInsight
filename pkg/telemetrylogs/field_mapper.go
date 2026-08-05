@@ -112,11 +112,6 @@ func (m *fieldMapper) FieldFor(ctx context.Context, key *telemetrytypes.Telemetr
 
 			// have to add ::string as clickHouse throws an error :- data types Variant/Dynamic are not allowed in GROUP BY
 			// once clickHouse dependency is updated, we need to check if we can remove it.
-			if key.Materialized {
-				oldKeyName = telemetrytypes.FieldKeyToMaterializedColumnName(key)
-				oldKeyNameExists := telemetrytypes.FieldKeyToMaterializedColumnNameForExists(key)
-				return fmt.Sprintf("multiIf(%s.`%s` IS NOT NULL, %s.`%s`::String, %s==true, %s, NULL)", column.Name, key.Name, column.Name, key.Name, oldKeyNameExists, oldKeyName), nil
-			}
 			return fmt.Sprintf("multiIf(%s.`%s` IS NOT NULL, %s.`%s`::String, mapContains(%s, '%s'), %s, NULL)", column.Name, key.Name, column.Name, key.Name, oldColumn.Name, key.Name, oldKeyName), nil
 		default:
 			return "", errors.Newf(errors.TypeInvalidInput, errors.CodeInvalidInput, "only resource context fields are supported for json columns, got %s", key.FieldContext.String)
@@ -139,10 +134,6 @@ func (m *fieldMapper) FieldFor(ctx context.Context, key *telemetrytypes.Telemetr
 
 		switch valueType := column.Type.(schema.MapColumnType).ValueType; valueType.GetType() {
 		case schema.ColumnTypeEnumString, schema.ColumnTypeEnumBool, schema.ColumnTypeEnumFloat64:
-			// a key could have been materialized, if so return the materialized column name
-			if key.Materialized {
-				return telemetrytypes.FieldKeyToMaterializedColumnName(key), nil
-			}
 			return fmt.Sprintf("%s['%s']", column.Name, key.Name), nil
 		default:
 			return "", errors.NewInvalidInputf(errors.CodeInvalidInput, "exists operator is not supported for map column type %s", valueType)

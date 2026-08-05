@@ -71,10 +71,10 @@ def make_meter_samples(
     base_value: float = 100.0,
     **kwargs,
 ) -> List[MeterSample]:
-    samples = []
+    meter_points = []
     for i in range(count):
         ts = now - timedelta(minutes=count - i)
-        samples.append(
+        meter_points.append(
             MeterSample(
                 metric_name=metric_name,
                 labels=labels,
@@ -83,20 +83,20 @@ def make_meter_samples(
                 **kwargs,
             )
         )
-    return samples
+    return meter_points
 
 
 @pytest.fixture(name="insert_meter_samples", scope="function")
 def insert_meter_samples(
     clickhouse: types.TestContainerClickhouse,
 ) -> Generator[Callable[[List[MeterSample]], None], Any, None]:
-    def _insert_meter_samples(samples: List[MeterSample]) -> None:
-        if len(samples) == 0:
+    def _insert_meter_samples(meter_points: List[MeterSample]) -> None:
+        if len(meter_points) == 0:
             return
 
         clickhouse.conn.insert(
             database="siginsight_meter",
-            table="samples",
+            table="meter_points",
             column_names=[
                 "temporality",
                 "metric_name",
@@ -109,9 +109,9 @@ def insert_meter_samples(
                 "unix_milli",
                 "value",
             ],
-            data=[s.to_samples_row() for s in samples],
+            data=[s.to_samples_row() for s in meter_points],
         )
 
     yield _insert_meter_samples
-    for table in ["samples", "samples_agg_1d"]:
+    for table in ["meter_points", "meter_rollup_1d"]:
         clickhouse.conn.query(f"TRUNCATE TABLE siginsight_meter.{table}")

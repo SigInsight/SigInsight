@@ -36,7 +36,7 @@ def verify_table_partition_expressions(
     Args:
         signoz: SigNoz fixture providing access to telemetry store
         expected_partition_expressions_map: Dictionary mapping table names to expected count of partitions
-                            Example: {"logs_v2": (10, 15, 1), "logs_v2_resource": (10, 15, 1)}
+                            Example: {"logs": (10, 15, 1), "resource_sets": (10, 15, 1)}
     """
 
     time.sleep(2)  # Wait for partitions to be created
@@ -71,7 +71,9 @@ def verify_table_partition_expressions(
 
 
 def verify_table_retention_expression(
-    signoz: types.SigNoz, table_expected_retention_expression_map: dict[str, str]
+    signoz: types.SigNoz,
+    database: str,
+    table_expected_retention_expression_map: dict[str, str],
 ):
     """
     Verify table partitions exist with data and have correct retention values.
@@ -79,12 +81,15 @@ def verify_table_retention_expression(
     Args:
         signoz: SigNoz fixture providing access to telemetry store
         table_expected_retention_expression_map: Dictionary mapping table names to expected retention expressions
-            Example: {"logs_v2": "created_at + INTERVAL 100 DAY", "logs_v2_resource": "created_at + INTERVAL 100 DAY"}
+            Example: {"logs": "created_at + INTERVAL 100 DAY", "resource_sets": "created_at + INTERVAL 100 DAY"}
     """
 
     for table in table_expected_retention_expression_map:
-        query = f"SELECT engine_full FROM system.tables WHERE table = '{table}'"
-        result = signoz.telemetrystore.conn.query(query).result_rows
+        result = signoz.telemetrystore.conn.query(
+            "SELECT engine_full FROM system.tables "
+            "WHERE database = {database:String} AND name = {table:String}",
+            parameters={"database": database, "table": table},
+        ).result_rows
         assert len(result) == 1, f"Table {table} not found in system.tables"
 
         assert all("TTL" in r[0] for r in result)
@@ -141,12 +146,12 @@ def test_set_ttl_traces_success(
 
     verify_table_retention_expression(
         signoz,
+        "siginsight_traces",
         {
-            "span_index_v3": f"toIntervalSecond({test_duration_hours*3600})",  # 3601 hours in seconds
-            "traces_v3_resource": f"toIntervalSecond({test_duration_hours*3600})",  # 3601 hours in seconds
-            "error_index_v2": f"toIntervalSecond({test_duration_hours*3600})",  # 3601 hours in seconds
-            "usage_explorer": f"toIntervalSecond({test_duration_hours*3600})",  # 3601 hours in seconds
-            "dependency_graph_minutes_v2": f"toIntervalSecond({test_duration_hours*3600})",  # 3601 hours in seconds
+            "spans": f"toIntervalSecond({test_duration_hours*3600})",  # 3601 hours in seconds
+            "resource_sets": f"toIntervalSecond({test_duration_hours*3600})",  # 3601 hours in seconds
+            "exceptions": f"toIntervalSecond({test_duration_hours*3600})",  # 3601 hours in seconds
+            "service_edges": f"toIntervalSecond({test_duration_hours*3600})",  # 3601 hours in seconds
             "trace_summary": f"toIntervalSecond({test_duration_hours*3600})",  # 3601 hours in seconds
             "span_attributes_keys": f"toIntervalSecond({test_duration_hours*3600})",  # 3601 hours in seconds
         },
@@ -190,12 +195,12 @@ def test_set_ttl_traces_with_cold_storage(
 
     verify_table_retention_expression(
         signoz,
+        "siginsight_traces",
         {
-            "span_index_v3": f"toIntervalSecond({test_duration_hours*3600})",  # 91 days in seconds
-            "traces_v3_resource": f"toIntervalSecond({test_duration_hours*3600})",  # 91 days in seconds
-            "error_index_v2": f"toIntervalSecond({test_duration_hours*3600})",  # 91 days in seconds
-            "usage_explorer": f"toIntervalSecond({test_duration_hours*3600})",  # 91 days in seconds
-            "dependency_graph_minutes_v2": f"toIntervalSecond({test_duration_hours*3600})",  # 91 days in seconds
+            "spans": f"toIntervalSecond({test_duration_hours*3600})",  # 91 days in seconds
+            "resource_sets": f"toIntervalSecond({test_duration_hours*3600})",  # 91 days in seconds
+            "exceptions": f"toIntervalSecond({test_duration_hours*3600})",  # 91 days in seconds
+            "service_edges": f"toIntervalSecond({test_duration_hours*3600})",  # 91 days in seconds
             "trace_summary": f"toIntervalSecond({test_duration_hours*3600})",  # 91 days in seconds
             "span_attributes_keys": f"toIntervalSecond({test_duration_hours*3600})",  # 91 days in seconds
         },
@@ -203,12 +208,12 @@ def test_set_ttl_traces_with_cold_storage(
 
     verify_table_retention_expression(
         signoz,
+        "siginsight_traces",
         {
-            "span_index_v3": f"toIntervalSecond({test_cold_duration_hours*3600}) TO VOLUME 'cold'",
-            "traces_v3_resource": f"toIntervalSecond({test_cold_duration_hours*3600}) TO VOLUME 'cold'",
-            "error_index_v2": f"toIntervalSecond({test_cold_duration_hours*3600}) TO VOLUME 'cold'",
-            "usage_explorer": f"toIntervalSecond({test_cold_duration_hours*3600}) TO VOLUME 'cold'",
-            "dependency_graph_minutes_v2": f"toIntervalSecond({test_cold_duration_hours*3600}) TO VOLUME 'cold'",
+            "spans": f"toIntervalSecond({test_cold_duration_hours*3600}) TO VOLUME 'cold'",
+            "resource_sets": f"toIntervalSecond({test_cold_duration_hours*3600}) TO VOLUME 'cold'",
+            "exceptions": f"toIntervalSecond({test_cold_duration_hours*3600}) TO VOLUME 'cold'",
+            "service_edges": f"toIntervalSecond({test_cold_duration_hours*3600}) TO VOLUME 'cold'",
             "trace_summary": f"toIntervalSecond({test_cold_duration_hours*3600}) TO VOLUME 'cold'",
             # "span_attributes_keys": f"toIntervalSecond({test_cold_duration_hours*3600}) TO VOLUME",
             # Span attributes keys table does not have cold storage configured
@@ -255,14 +260,15 @@ def test_set_ttl_metrics_success(
     # Check TTL settings on relevant metrics tables
     verify_table_retention_expression(
         signoz,
+        "siginsight_metrics",
         {
-            "samples_v4": f"toIntervalSecond({test_duration_hours * 3600})",  # 92 days in seconds
-            "samples_v4_agg_5m": f"toIntervalSecond({test_duration_hours * 3600})",  # 92 days in seconds
-            "samples_v4_agg_30m": f"toIntervalSecond({test_duration_hours * 3600})",  # 92 days in seconds
-            "time_series_v4": f"toIntervalSecond({test_duration_hours * 3600})",  # 92 days in seconds
-            "time_series_v4_6hrs": f"toIntervalSecond({test_duration_hours * 3600})",  # 92 days in seconds
-            "time_series_v4_1day": f"toIntervalSecond({test_duration_hours * 3600})",  # 92 days in seconds
-            "time_series_v4_1week": f"toIntervalSecond({test_duration_hours * 3600})",  # 92 days in seconds
+            "metric_points": f"toIntervalSecond({test_duration_hours * 3600})",  # 92 days in seconds
+            "metric_rollup_5m": f"toIntervalSecond({test_duration_hours * 3600})",  # 92 days in seconds
+            "metric_rollup_30m": f"toIntervalSecond({test_duration_hours * 3600})",  # 92 days in seconds
+            "metric_series": f"toIntervalSecond({test_duration_hours * 3600})",  # 92 days in seconds
+            "metric_series_6h": f"toIntervalSecond({test_duration_hours * 3600})",  # 92 days in seconds
+            "metric_series_1d": f"toIntervalSecond({test_duration_hours * 3600})",  # 92 days in seconds
+            "metric_series_1w": f"toIntervalSecond({test_duration_hours * 3600})",  # 92 days in seconds
         },
     )
 
@@ -305,35 +311,37 @@ def test_set_ttl_metrics_with_cold_storage(
     # Check TTL settings on relevant metrics tables
     verify_table_retention_expression(
         signoz,
+        "siginsight_metrics",
         {
-            "samples_v4": f"toIntervalSecond({test_duration_hours * 3600})",  # 92 days in seconds
-            "samples_v4_agg_5m": f"toIntervalSecond({test_duration_hours * 3600})",  # 92 days in seconds
-            "samples_v4_agg_30m": f"toIntervalSecond({test_duration_hours * 3600})",  # 92 days in seconds
-            "time_series_v4": f"toIntervalSecond({test_duration_hours * 3600})",  # 92 days in seconds
-            "time_series_v4_6hrs": f"toIntervalSecond({test_duration_hours * 3600})",  # 92 days in seconds
-            "time_series_v4_1day": f"toIntervalSecond({test_duration_hours * 3600})",  # 92 days in seconds
-            "time_series_v4_1week": f"toIntervalSecond({test_duration_hours * 3600})",  # 92 days in seconds
+            "metric_points": f"toIntervalSecond({test_duration_hours * 3600})",  # 92 days in seconds
+            "metric_rollup_5m": f"toIntervalSecond({test_duration_hours * 3600})",  # 92 days in seconds
+            "metric_rollup_30m": f"toIntervalSecond({test_duration_hours * 3600})",  # 92 days in seconds
+            "metric_series": f"toIntervalSecond({test_duration_hours * 3600})",  # 92 days in seconds
+            "metric_series_6h": f"toIntervalSecond({test_duration_hours * 3600})",  # 92 days in seconds
+            "metric_series_1d": f"toIntervalSecond({test_duration_hours * 3600})",  # 92 days in seconds
+            "metric_series_1w": f"toIntervalSecond({test_duration_hours * 3600})",  # 92 days in seconds
         },
     )
 
     # Check cold storage settings on relevant metrics tables
     verify_table_retention_expression(
         signoz,
+        "siginsight_metrics",
         {
             # 21 days in seconds
-            "samples_v4": f"toIntervalSecond({test_cold_duration_hours * 3600}) TO VOLUME 'cold'",
+            "metric_points": f"toIntervalSecond({test_cold_duration_hours * 3600}) TO VOLUME 'cold'",
             # 21 days in seconds
-            "samples_v4_agg_5m": f"toIntervalSecond({test_cold_duration_hours * 3600}) TO VOLUME 'cold'",
+            "metric_rollup_5m": f"toIntervalSecond({test_cold_duration_hours * 3600}) TO VOLUME 'cold'",
             # 21 days in seconds
-            "samples_v4_agg_30m": f"toIntervalSecond({test_cold_duration_hours * 3600}) TO VOLUME 'cold'",
+            "metric_rollup_30m": f"toIntervalSecond({test_cold_duration_hours * 3600}) TO VOLUME 'cold'",
             # 21 days in seconds
-            "time_series_v4": f"toIntervalSecond({test_cold_duration_hours * 3600}) TO VOLUME 'cold'",
+            "metric_series": f"toIntervalSecond({test_cold_duration_hours * 3600}) TO VOLUME 'cold'",
             # 21 days in seconds
-            "time_series_v4_6hrs": f"toIntervalSecond({test_cold_duration_hours * 3600}) TO VOLUME 'cold'",
+            "metric_series_6h": f"toIntervalSecond({test_cold_duration_hours * 3600}) TO VOLUME 'cold'",
             # 21 days in seconds
-            "time_series_v4_1day": f"toIntervalSecond({test_cold_duration_hours * 3600}) TO VOLUME 'cold'",
+            "metric_series_1d": f"toIntervalSecond({test_cold_duration_hours * 3600}) TO VOLUME 'cold'",
             # 21 days in seconds
-            "time_series_v4_1week": f"toIntervalSecond({test_cold_duration_hours * 3600}) TO VOLUME 'cold'",
+            "metric_series_1w": f"toIntervalSecond({test_cold_duration_hours * 3600}) TO VOLUME 'cold'",
         },
     )
 
@@ -409,14 +417,15 @@ def test_set_custom_retention_ttl_basic(
     verify_table_partition_expressions(
         signoz,
         {
-            "siginsight_logs.logs_v2": (test_retention_days, 0, 1),
-            "siginsight_logs.logs_v2_resource": (test_retention_days, 0, 1),
+            "siginsight_logs.logs": (test_retention_days, 0, 1),
+            "siginsight_logs.resource_sets": (test_retention_days, 0, 1),
         },
     )
 
     # Verify retention settings for logs tables
     verify_table_retention_expression(
         signoz,
+        "siginsight_logs",
         {
             "logs_attribute_keys": f"toIntervalDay({test_retention_days})",
             "logs_resource_keys": f"toIntervalDay({test_retention_days})",
@@ -471,12 +480,12 @@ def test_set_custom_retention_ttl_basic_with_cold_storage(
     verify_table_partition_expressions(
         signoz,
         {
-            "siginsight_logs.logs_v2": (
+            "siginsight_logs.logs": (
                 test_retention_days,
                 test_retention_days_cold,
                 1,
             ),
-            "siginsight_logs.logs_v2_resource": (
+            "siginsight_logs.resource_sets": (
                 test_retention_days,
                 test_retention_days_cold,
                 1,
@@ -486,9 +495,10 @@ def test_set_custom_retention_ttl_basic_with_cold_storage(
 
     verify_table_retention_expression(
         signoz,
+        "siginsight_logs",
         {
-            "logs_v2": "toIntervalDay(_retention_days_cold) TO VOLUME 'cold'",
-            "logs_v2_resource": "toIntervalDay(_retention_days_cold) TO VOLUME 'cold'",
+            "logs": "toIntervalDay(_retention_days_cold) TO VOLUME 'cold'",
+            "resource_sets": "toIntervalDay(_retention_days_cold) TO VOLUME 'cold'",
             # Cold storage retention is not applicable for attribute keys table
             "logs_attribute_keys": f"toIntervalDay({test_retention_days})",
             # Cold storage retention is not applicable for resource keys table
@@ -533,6 +543,7 @@ def test_set_custom_retention_ttl_basic_101_times(
     # Verify retention settings for logs tables
     verify_table_retention_expression(
         signoz,
+        "siginsight_logs",
         {
             "logs_attribute_keys": f"toIntervalDay({test_retention_days})",
             "logs_resource_keys": f"toIntervalDay({test_retention_days})",
@@ -607,12 +618,12 @@ def test_set_custom_retention_ttl_with_conditions(
     verify_table_partition_expressions(
         signoz,
         {
-            "siginsight_logs.logs_v2": (
+            "siginsight_logs.logs": (
                 test_retention_days_condition,
                 test_retention_days_cold,
                 1,
             ),
-            "siginsight_logs.logs_v2_resource": (
+            "siginsight_logs.resource_sets": (
                 test_retention_days_condition,
                 test_retention_days_cold,
                 1,
@@ -630,12 +641,12 @@ def test_set_custom_retention_ttl_with_conditions(
     verify_table_partition_expressions(
         signoz,
         {
-            "siginsight_logs.logs_v2": (
+            "siginsight_logs.logs": (
                 test_retention_days,
                 test_retention_days_cold,
                 1,
             ),
-            "siginsight_logs.logs_v2_resource": (
+            "siginsight_logs.resource_sets": (
                 test_retention_days,
                 test_retention_days_cold,
                 1,
@@ -645,9 +656,10 @@ def test_set_custom_retention_ttl_with_conditions(
 
     verify_table_retention_expression(
         signoz,
+        "siginsight_logs",
         {
-            "logs_v2": "toIntervalDay(_retention_days_cold) TO VOLUME 'cold'",
-            "logs_v2_resource": "toIntervalDay(_retention_days_cold) TO VOLUME 'cold'",
+            "logs": "toIntervalDay(_retention_days_cold) TO VOLUME 'cold'",
+            "resource_sets": "toIntervalDay(_retention_days_cold) TO VOLUME 'cold'",
             # Cold storage retention is not applicable for attribute keys table
             "logs_attribute_keys": f"toIntervalDay({max(test_retention_days, test_retention_days_condition)})",
             # Cold storage retention is not applicable for resource keys table

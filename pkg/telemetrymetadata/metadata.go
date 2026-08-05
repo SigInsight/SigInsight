@@ -11,7 +11,6 @@ import (
 
 	"github.com/SigNoz/signoz/pkg/errors"
 	"github.com/SigNoz/signoz/pkg/factory"
-	"github.com/SigNoz/signoz/pkg/querybuilder"
 	"github.com/SigNoz/signoz/pkg/telemetrylogs"
 	"github.com/SigNoz/signoz/pkg/telemetrymetrics"
 	"github.com/SigNoz/signoz/pkg/telemetrystore"
@@ -49,8 +48,6 @@ type telemetryMetaStore struct {
 	logAttributeKeysTblName   string
 	logResourceKeysTblName    string
 	logsV2TblName             string
-	relatedMetadataDBName     string
-	relatedMetadataTblName    string
 
 	fm               qbtypes.FieldMapper
 	conditionBuilder qbtypes.ConditionBuilder
@@ -76,8 +73,6 @@ func NewTelemetryMetaStore(
 	logsFieldsTblName string,
 	logAttributeKeysTblName string,
 	logResourceKeysTblName string,
-	relatedMetadataDBName string,
-	relatedMetadataTblName string,
 ) telemetrytypes.MetadataStore {
 	metadataSettings := factory.NewScopedProviderSettings(settings, "github.com/SigNoz/signoz/pkg/telemetrymetadata")
 
@@ -97,8 +92,6 @@ func NewTelemetryMetaStore(
 		logsFieldsTblName:         logsFieldsTblName,
 		logAttributeKeysTblName:   logAttributeKeysTblName,
 		logResourceKeysTblName:    logResourceKeysTblName,
-		relatedMetadataDBName:     relatedMetadataDBName,
-		relatedMetadataTblName:    relatedMetadataTblName,
 	}
 
 	fm := NewFieldMapper()
@@ -974,149 +967,11 @@ func (t *telemetryMetaStore) GetKey(ctx context.Context, fieldKeySelector *telem
 }
 
 func (t *telemetryMetaStore) getRelatedValues(ctx context.Context, fieldValueSelector *telemetrytypes.FieldValueSelector) ([]string, bool, error) {
-	ctx = ctxtypes.NewContextWithCommentVals(ctx, map[string]string{
-		instrumentationtypes.TelemetrySignal:  fieldValueSelector.Signal.StringValue(),
-		instrumentationtypes.CodeNamespace:    "metadata",
-		instrumentationtypes.CodeFunctionName: "getRelatedValues",
-	})
-
-	// nothing to return as "related" value if there is nothing to filter on
-	if fieldValueSelector.ExistingQuery == "" {
-		return nil, true, nil
-	}
-
-	key := &telemetrytypes.TelemetryFieldKey{
-		Name:          fieldValueSelector.Name,
-		Signal:        fieldValueSelector.Signal,
-		FieldContext:  fieldValueSelector.FieldContext,
-		FieldDataType: fieldValueSelector.FieldDataType,
-	}
-
-	selectColumn, err := t.fm.FieldFor(ctx, key)
-
-	if err != nil {
-		// we don't have a explicit column to select from the related metadata table
-		// so we will select either from resource_attributes or attributes table
-		// in that order
-		resourceColumn, _ := t.fm.FieldFor(ctx, &telemetrytypes.TelemetryFieldKey{
-			Name:          key.Name,
-			FieldContext:  telemetrytypes.FieldContextResource,
-			FieldDataType: telemetrytypes.FieldDataTypeString,
-		})
-		attributeColumn, _ := t.fm.FieldFor(ctx, &telemetrytypes.TelemetryFieldKey{
-			Name:          key.Name,
-			FieldContext:  telemetrytypes.FieldContextAttribute,
-			FieldDataType: telemetrytypes.FieldDataTypeString,
-		})
-		selectColumn = fmt.Sprintf("if(notEmpty(%s), %s, %s)", resourceColumn, resourceColumn, attributeColumn)
-	}
-
-	sb := sqlbuilder.Select("DISTINCT " + selectColumn).From(t.relatedMetadataDBName + "." + t.relatedMetadataTblName)
-
-	if len(fieldValueSelector.ExistingQuery) != 0 {
-		keySelectors := querybuilder.QueryStringToKeysSelectors(fieldValueSelector.ExistingQuery)
-		for _, keySelector := range keySelectors {
-			keySelector.Signal = fieldValueSelector.Signal
-		}
-		keys, _, err := t.GetKeysMulti(ctx, keySelectors)
-		if err != nil {
-			return nil, false, err
-		}
-
-		whereClause, err := querybuilder.PrepareWhereClause(fieldValueSelector.ExistingQuery, querybuilder.FilterExprVisitorOpts{
-			Logger:           t.logger,
-			FieldMapper:      t.fm,
-			ConditionBuilder: t.conditionBuilder,
-			FieldKeys:        keys,
-		}, 0, 0)
-		if err == nil {
-			sb.AddWhereClause(whereClause.WhereClause)
-		} else {
-			t.logger.WarnContext(ctx, "error parsing existing query for related values", errors.Attr(err))
-		}
-	}
-
-	if fieldValueSelector.StartUnixMilli != 0 {
-		sb.Where(sb.GE("unix_milli", fieldValueSelector.StartUnixMilli))
-	}
-
-	if fieldValueSelector.EndUnixMilli != 0 {
-		sb.Where(sb.LE("unix_milli", fieldValueSelector.EndUnixMilli))
-	}
-
-	if fieldValueSelector.Value != "" {
-		var conds []string
-		if fieldValueSelector.FieldContext != telemetrytypes.FieldContextAttribute &&
-			fieldValueSelector.FieldContext != telemetrytypes.FieldContextResource {
-			origContext := key.FieldContext
-
-			// search on attributes
-			key.FieldContext = telemetrytypes.FieldContextAttribute
-			cond, err := t.conditionBuilder.ConditionFor(ctx, key, qbtypes.FilterOperatorContains, fieldValueSelector.Value, sb, 0, 0)
-			if err == nil {
-				conds = append(conds, cond)
-			}
-
-			// search on resource
-			key.FieldContext = telemetrytypes.FieldContextResource
-			cond, err = t.conditionBuilder.ConditionFor(ctx, key, qbtypes.FilterOperatorContains, fieldValueSelector.Value, sb, 0, 0)
-			if err == nil {
-				conds = append(conds, cond)
-			}
-			key.FieldContext = origContext
-		} else {
-			cond, err := t.conditionBuilder.ConditionFor(ctx, key, qbtypes.FilterOperatorContains, fieldValueSelector.Value, sb, 0, 0)
-			if err == nil {
-				conds = append(conds, cond)
-			}
-		}
-
-		if len(conds) != 0 {
-			// see `expr` in condition_builder.go, if key doesn't exist we don't check for value
-			// hence, this is join of conditions on resource and attributes
-			sb.Where(sb.And(conds...))
-		}
-	}
-
-	limit := fieldValueSelector.Limit
-	if limit == 0 {
-		limit = 50
-	}
-	// query one extra to check if we hit the limit
-	sb.Limit(limit + 1)
-
-	query, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
-
-	t.logger.DebugContext(ctx, "query for related values", slog.String("query", query), slog.Any("args", args))
-
-	rows, err := t.telemetrystore.ClickhouseDB().Query(ctx, query, args...)
-	if err != nil {
-		return nil, false, ErrFailedToGetRelatedValues
-	}
-	defer rows.Close()
-
-	var attributeValues []string
-	rowCount := 0
-	for rows.Next() {
-		rowCount++
-		// reached the limit, we know there are more results
-		if rowCount > limit {
-			break
-		}
-
-		var value string
-		if err := rows.Scan(&value); err != nil {
-			return nil, false, ErrFailedToGetRelatedValues
-		}
-		if value != "" {
-			attributeValues = append(attributeValues, value)
-		}
-	}
-
-	// hit the limit?
-	complete := rowCount <= limit
-
-	return attributeValues, complete, nil
+	// Related values depended on siginsight_metadata.attributes_metadata, which
+	// has no Collector writer and is deliberately absent from the canonical schema.
+	// The field-values endpoint continues to return signal-native suggestions via
+	// GetAllValues; query-contextual suggestions are intentionally unsupported.
+	return nil, true, nil
 }
 
 func (t *telemetryMetaStore) GetRelatedValues(ctx context.Context, fieldValueSelector *telemetrytypes.FieldValueSelector) ([]string, bool, error) {
@@ -1331,11 +1186,11 @@ func traceStaticField(name string) (telemetrytypes.TelemetryFieldKey, string, bo
 	column := name
 	switch name {
 	case "http.route":
-		column = "attribute_string_http$$route"
+		column = "http_route"
 	case "service.name":
-		column = "resource_string_service$$name"
+		column = "service_name"
 	case "rpc.method":
-		column = "attribute_string_rpc$$method"
+		column = "rpc_method"
 	}
 	return key, column, true
 }

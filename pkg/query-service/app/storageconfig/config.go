@@ -17,7 +17,6 @@ type Retention struct {
 	TraceLocalTable        string
 	TraceResourceTable     string
 	ErrorTable             string
-	UsageExplorerTable     string
 	DependencyGraphTable   string
 	TraceSummaryTable      string
 	SpanAttributeKeysTable string
@@ -39,27 +38,26 @@ func Default() Config {
 	return Config{
 		Trace: Trace{
 			Database:                "siginsight_traces",
-			IndexTable:              "span_index_v3",
+			IndexTable:              "spans",
 			SummaryTable:            "trace_summary",
-			ErrorTable:              "error_index_v2",
-			DependencyGraphTable:    "dependency_graph_minutes_v2",
-			TopLevelOperationsTable: "top_level_operations",
+			ErrorTable:              "exceptions",
+			DependencyGraphTable:    "service_edges",
+			TopLevelOperationsTable: "operations",
 		},
 		Retention: Retention{
 			TraceDB:                "siginsight_traces",
-			TraceTable:             "span_index_v3",
-			TraceLocalTable:        "span_index_v3",
-			TraceResourceTable:     "traces_v3_resource",
-			ErrorTable:             "error_index_v2",
-			UsageExplorerTable:     "usage_explorer",
-			DependencyGraphTable:   "dependency_graph_minutes_v2",
+			TraceTable:             "spans",
+			TraceLocalTable:        "spans",
+			TraceResourceTable:     "resource_sets",
+			ErrorTable:             "exceptions",
+			DependencyGraphTable:   "service_edges",
 			TraceSummaryTable:      "trace_summary",
 			SpanAttributeKeysTable: "span_attributes_keys",
 			LogsDB:                 "siginsight_logs",
-			LogsTable:              "logs_v2",
-			LogsLocalTable:         "logs_v2",
-			LogsResourceTable:      "logs_v2_resource",
-			LogsResourceLocalTable: "logs_v2_resource",
+			LogsTable:              "logs",
+			LogsLocalTable:         "logs",
+			LogsResourceTable:      "resource_sets",
+			LogsResourceLocalTable: "resource_sets",
 			LogsAttributeKeysTable: "logs_attribute_keys",
 			LogsResourceKeysTable:  "logs_resource_keys",
 		},

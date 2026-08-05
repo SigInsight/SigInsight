@@ -28,12 +28,12 @@ func TestDefaultCatalogResolvesSemanticFields(t *testing.T) {
 		{
 			name: "trace materialized resource string", signal: SignalTraces,
 			field: FieldRef{Name: "service.name", Context: FieldContextResource, Type: ValueTypeString},
-			want:  ResolvedField{SQL: "`resource_string_service$$name`", ExistsSQL: "`resource_string_service$$name_exists`", RequiresExistence: true},
+			want:  ResolvedField{SQL: "`service_name`", ExistsSQL: "`service_name_present`", RequiresExistence: true},
 		},
 		{
 			name: "trace materialized attribute string", signal: SignalTraces,
 			field: FieldRef{Name: "http.route", Context: FieldContextAttribute, Type: ValueTypeString},
-			want:  ResolvedField{SQL: "`attribute_string_http$$route`", ExistsSQL: "`attribute_string_http$$route_exists`", RequiresExistence: true},
+			want:  ResolvedField{SQL: "`http_route`", ExistsSQL: "`http_route_present`", RequiresExistence: true},
 		},
 		{
 			name: "log json body path", signal: SignalLogs,
@@ -100,13 +100,13 @@ func TestCompilerCompilesParameterizedStringPatterns(t *testing.T) {
 		wantSQL   string
 		wantExist bool
 	}{
-		{"like", FilterLike, "/api/%", "toString(`attribute_string_http$$route`) LIKE ?", true},
-		{"not_like", FilterNotLike, "/internal/%", "NOT (toString(`attribute_string_http$$route`) LIKE ?)", false},
-		{"ilike", FilterILike, "/API/%", "toString(`attribute_string_http$$route`) ILIKE ?", true},
-		{"not_ilike", FilterNotILike, "/INTERNAL/%", "NOT (toString(`attribute_string_http$$route`) ILIKE ?)", false},
-		{"regexp", FilterRegexp, "^/api/[a-z]+$", "match(toString(`attribute_string_http$$route`), ?)", true},
-		{"not_regexp", FilterNotRegexp, "^/internal/", "NOT match(toString(`attribute_string_http$$route`), ?)", false},
-		{"not_contains", FilterNotContains, "health", "positionCaseInsensitiveUTF8(toString(`attribute_string_http$$route`), ?) = 0", false},
+		{"like", FilterLike, "/api/%", "toString(`http_route`) LIKE ?", true},
+		{"not_like", FilterNotLike, "/internal/%", "NOT (toString(`http_route`) LIKE ?)", false},
+		{"ilike", FilterILike, "/API/%", "toString(`http_route`) ILIKE ?", true},
+		{"not_ilike", FilterNotILike, "/INTERNAL/%", "NOT (toString(`http_route`) ILIKE ?)", false},
+		{"regexp", FilterRegexp, "^/api/[a-z]+$", "match(toString(`http_route`), ?)", true},
+		{"not_regexp", FilterNotRegexp, "^/internal/", "NOT match(toString(`http_route`), ?)", false},
+		{"not_contains", FilterNotContains, "health", "positionCaseInsensitiveUTF8(toString(`http_route`), ?) = 0", false},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -124,7 +124,7 @@ func TestCompilerCompilesParameterizedStringPatterns(t *testing.T) {
 			if !strings.Contains(statement.SQL, test.wantSQL) {
 				t.Fatalf("SQL = %s, want %s", statement.SQL, test.wantSQL)
 			}
-			hasExistence := strings.Contains(statement.SQL, "`attribute_string_http$$route_exists`")
+			hasExistence := strings.Contains(statement.SQL, "`http_route_present`")
 			if hasExistence != test.wantExist {
 				t.Fatalf("SQL existence guard = %v, want %v: %s", hasExistence, test.wantExist, statement.SQL)
 			}
@@ -151,7 +151,7 @@ func TestCompilerCompilesLogRawWithJSONAndMapParameters(t *testing.T) {
 			Aggregation: LogAggregateCount,
 		}},
 	})
-	wantSQL := "SELECT timestamp AS field_0, JSON_VALUE(body, ?) AS field_1 FROM siginsight_logs.logs_v2 WHERE (siginsight_logs.logs_v2.timestamp >= toUInt64(?) AND siginsight_logs.logs_v2.timestamp < toUInt64(?)) AND ((mapContains(resources_string, ?)) AND (resources_string[?] = ?)) ORDER BY timestamp DESC, id DESC LIMIT ?"
+	wantSQL := "SELECT timestamp AS field_0, JSON_VALUE(body, ?) AS field_1 FROM siginsight_logs.logs WHERE (siginsight_logs.logs.timestamp >= toUInt64(?) AND siginsight_logs.logs.timestamp < toUInt64(?)) AND ((mapContains(resources_string, ?)) AND (resources_string[?] = ?)) ORDER BY timestamp DESC, id DESC LIMIT ?"
 	wantArgs := []any{"$.request.id", int64(1_000_000_000), int64(2_000_000_000), "service.name", "service.name", "api", uint32(26)}
 	assertStatement(t, statement, wantSQL, wantArgs)
 	if statement.Pagination == nil || statement.Pagination.Limit != 25 || statement.Pagination.Offset != 0 || statement.ResultLimit != 0 {
@@ -167,7 +167,7 @@ func TestCompilerCompilesTraceTimeSeriesWithCorrectArgumentOrder(t *testing.T) {
 			Aggregation: TraceAggregateDurationP95,
 		}},
 	})
-	wantSQL := "SELECT intDiv(toUnixTimestamp64Milli(siginsight_traces.span_index_v3.timestamp), ?) * ? AS timestamp, `resource_string_service$$name` AS group_0, quantile(0.95)(duration_nano) AS value FROM siginsight_traces.span_index_v3 WHERE siginsight_traces.span_index_v3.timestamp >= fromUnixTimestamp64Milli(?) AND siginsight_traces.span_index_v3.timestamp < fromUnixTimestamp64Milli(?) GROUP BY intDiv(toUnixTimestamp64Milli(siginsight_traces.span_index_v3.timestamp), ?) * ?, `resource_string_service$$name` ORDER BY timestamp ASC"
+	wantSQL := "SELECT intDiv(toUnixTimestamp64Milli(siginsight_traces.spans.timestamp), ?) * ? AS timestamp, `service_name` AS group_0, quantile(0.95)(duration_nano) AS value FROM siginsight_traces.spans WHERE siginsight_traces.spans.timestamp >= fromUnixTimestamp64Milli(?) AND siginsight_traces.spans.timestamp < fromUnixTimestamp64Milli(?) GROUP BY intDiv(toUnixTimestamp64Milli(siginsight_traces.spans.timestamp), ?) * ?, `service_name` ORDER BY timestamp ASC"
 	wantArgs := []any{int64(1_000), int64(1_000), int64(1_000), int64(61_000), int64(1_000), int64(1_000)}
 	assertStatement(t, statement, wantSQL, wantArgs)
 }
@@ -188,7 +188,7 @@ func TestCompilerCompilesTraceMaterializedFilterAndGroupBy(t *testing.T) {
 			Aggregation: TraceAggregateCount,
 		}},
 	})
-	wantSQL := "SELECT intDiv(toUnixTimestamp64Milli(siginsight_traces.span_index_v3.timestamp), ?) * ? AS timestamp, `attribute_string_http$$route` AS group_0, count() AS value FROM siginsight_traces.span_index_v3 WHERE (siginsight_traces.span_index_v3.timestamp >= fromUnixTimestamp64Milli(?) AND siginsight_traces.span_index_v3.timestamp < fromUnixTimestamp64Milli(?)) AND ((`resource_string_service$$name_exists`) AND (`resource_string_service$$name` = ?)) GROUP BY intDiv(toUnixTimestamp64Milli(siginsight_traces.span_index_v3.timestamp), ?) * ?, `attribute_string_http$$route` ORDER BY timestamp ASC"
+	wantSQL := "SELECT intDiv(toUnixTimestamp64Milli(siginsight_traces.spans.timestamp), ?) * ? AS timestamp, `http_route` AS group_0, count() AS value FROM siginsight_traces.spans WHERE (siginsight_traces.spans.timestamp >= fromUnixTimestamp64Milli(?) AND siginsight_traces.spans.timestamp < fromUnixTimestamp64Milli(?)) AND ((`service_name_present`) AND (`service_name` = ?)) GROUP BY intDiv(toUnixTimestamp64Milli(siginsight_traces.spans.timestamp), ?) * ?, `http_route` ORDER BY timestamp ASC"
 	wantArgs := []any{int64(1_000), int64(1_000), int64(1_000), int64(61_000), "api", int64(1_000), int64(1_000)}
 	assertStatement(t, statement, wantSQL, wantArgs)
 }
@@ -295,7 +295,7 @@ func TestDefaultCatalogMaterializedManifestHasTrustedTraceColumns(t *testing.T) 
 		if key.Signal != SignalTraces || key.Type != ValueTypeString {
 			t.Fatalf("manifest key = %#v, want string trace field", key)
 		}
-		if !strings.HasPrefix(field.Column, string(key.Context)+"_string_") || !strings.HasSuffix(field.ExistsColumn, "_exists") {
+		if field.Column == "" || !strings.HasSuffix(field.ExistsColumn, "_present") {
 			t.Fatalf("manifest field = %#v has invalid trusted column names", field)
 		}
 	}
@@ -307,15 +307,15 @@ func TestDefaultCatalogResolvesEveryMaterializedManifestField(t *testing.T) {
 		column       string
 		existsColumn string
 	}{
-		{FieldRef{Name: "service.name", Context: FieldContextResource, Type: ValueTypeString}, "resource_string_service$$name", "resource_string_service$$name_exists"},
-		{FieldRef{Name: "http.route", Context: FieldContextAttribute, Type: ValueTypeString}, "attribute_string_http$$route", "attribute_string_http$$route_exists"},
-		{FieldRef{Name: "messaging.system", Context: FieldContextAttribute, Type: ValueTypeString}, "attribute_string_messaging$$system", "attribute_string_messaging$$system_exists"},
-		{FieldRef{Name: "messaging.operation", Context: FieldContextAttribute, Type: ValueTypeString}, "attribute_string_messaging$$operation", "attribute_string_messaging$$operation_exists"},
-		{FieldRef{Name: "db.system", Context: FieldContextAttribute, Type: ValueTypeString}, "attribute_string_db$$system", "attribute_string_db$$system_exists"},
-		{FieldRef{Name: "rpc.system", Context: FieldContextAttribute, Type: ValueTypeString}, "attribute_string_rpc$$system", "attribute_string_rpc$$system_exists"},
-		{FieldRef{Name: "rpc.service", Context: FieldContextAttribute, Type: ValueTypeString}, "attribute_string_rpc$$service", "attribute_string_rpc$$service_exists"},
-		{FieldRef{Name: "rpc.method", Context: FieldContextAttribute, Type: ValueTypeString}, "attribute_string_rpc$$method", "attribute_string_rpc$$method_exists"},
-		{FieldRef{Name: "peer.service", Context: FieldContextAttribute, Type: ValueTypeString}, "attribute_string_peer$$service", "attribute_string_peer$$service_exists"},
+		{FieldRef{Name: "service.name", Context: FieldContextResource, Type: ValueTypeString}, "service_name", "service_name_present"},
+		{FieldRef{Name: "http.route", Context: FieldContextAttribute, Type: ValueTypeString}, "http_route", "http_route_present"},
+		{FieldRef{Name: "messaging.system", Context: FieldContextAttribute, Type: ValueTypeString}, "messaging_system", "messaging_system_present"},
+		{FieldRef{Name: "messaging.operation", Context: FieldContextAttribute, Type: ValueTypeString}, "messaging_operation", "messaging_operation_present"},
+		{FieldRef{Name: "db.system", Context: FieldContextAttribute, Type: ValueTypeString}, "db_system", "db_system_present"},
+		{FieldRef{Name: "rpc.system", Context: FieldContextAttribute, Type: ValueTypeString}, "rpc_system", "rpc_system_present"},
+		{FieldRef{Name: "rpc.service", Context: FieldContextAttribute, Type: ValueTypeString}, "rpc_service", "rpc_service_present"},
+		{FieldRef{Name: "rpc.method", Context: FieldContextAttribute, Type: ValueTypeString}, "rpc_method", "rpc_method_present"},
+		{FieldRef{Name: "peer.service", Context: FieldContextAttribute, Type: ValueTypeString}, "peer_service", "peer_service_present"},
 	}
 
 	for _, test := range tests {
@@ -341,7 +341,7 @@ func TestCompilerQualifiesLogTimeBucketForClickHouseAliasResolution(t *testing.T
 		Range: TimeRange{StartMS: 1_000, EndMS: 61_000}, ResultType: ResultTimeSeries, StepMS: 1_000,
 		Queries: []Query{LogQuery{Common: CommonQuery{Name: "logs"}, Aggregation: LogAggregateCount}},
 	})
-	wantSQL := "SELECT intDiv(siginsight_logs.logs_v2.timestamp, toUInt64(?)) * toUInt64(?) AS timestamp, count() AS value FROM siginsight_logs.logs_v2 WHERE siginsight_logs.logs_v2.timestamp >= toUInt64(?) AND siginsight_logs.logs_v2.timestamp < toUInt64(?) GROUP BY intDiv(siginsight_logs.logs_v2.timestamp, toUInt64(?)) * toUInt64(?) ORDER BY timestamp ASC"
+	wantSQL := "SELECT intDiv(siginsight_logs.logs.timestamp, toUInt64(?)) * toUInt64(?) AS timestamp, count() AS value FROM siginsight_logs.logs WHERE siginsight_logs.logs.timestamp >= toUInt64(?) AND siginsight_logs.logs.timestamp < toUInt64(?) GROUP BY intDiv(siginsight_logs.logs.timestamp, toUInt64(?)) * toUInt64(?) ORDER BY timestamp ASC"
 	wantArgs := []any{int64(1_000_000_000), int64(1_000), int64(1_000_000_000), int64(61_000_000_000), int64(1_000_000_000), int64(1_000)}
 	assertStatement(t, statement, wantSQL, wantArgs)
 }
@@ -358,7 +358,7 @@ func TestCompilerCompilesLogAggregationPredicate(t *testing.T) {
 			Field:       FieldRef{Name: "http.response.size", Context: FieldContextAttribute, Type: ValueTypeNumber},
 		}},
 	})
-	wantSQL := "SELECT sum(attributes_number[?]) AS value FROM siginsight_logs.logs_v2 WHERE siginsight_logs.logs_v2.timestamp >= toUInt64(?) AND siginsight_logs.logs_v2.timestamp < toUInt64(?) HAVING sum(attributes_number[?]) > ? ORDER BY value DESC"
+	wantSQL := "SELECT sum(attributes_number[?]) AS value FROM siginsight_logs.logs WHERE siginsight_logs.logs.timestamp >= toUInt64(?) AND siginsight_logs.logs.timestamp < toUInt64(?) HAVING sum(attributes_number[?]) > ? ORDER BY value DESC"
 	wantArgs := []any{"http.response.size", int64(1_000_000), int64(2_000_000), "http.response.size", float64(10)}
 	assertStatement(t, statement, wantSQL, wantArgs)
 }
@@ -407,7 +407,7 @@ func TestCompilerCompilesRawAndTraceOffsets(t *testing.T) {
 			request: Request{Range: TimeRange{StartMS: 1, EndMS: 2}, ResultType: ResultRaw, Queries: []Query{LogQuery{
 				Common: CommonQuery{Name: "logs", Limit: 20, Offset: 100}, Aggregation: LogAggregateCount,
 			}}},
-			wantSQL:  "SELECT timestamp AS field_0, id AS field_1, severity_text AS field_2, body AS field_3, trace_id AS field_4, span_id AS field_5 FROM siginsight_logs.logs_v2 WHERE siginsight_logs.logs_v2.timestamp >= toUInt64(?) AND siginsight_logs.logs_v2.timestamp < toUInt64(?) ORDER BY timestamp DESC, id DESC LIMIT ? OFFSET ?",
+			wantSQL:  "SELECT timestamp AS field_0, id AS field_1, severity_text AS field_2, body AS field_3, trace_id AS field_4, span_id AS field_5 FROM siginsight_logs.logs WHERE siginsight_logs.logs.timestamp >= toUInt64(?) AND siginsight_logs.logs.timestamp < toUInt64(?) ORDER BY timestamp DESC, id DESC LIMIT ? OFFSET ?",
 			wantArgs: []any{int64(1_000_000), int64(2_000_000), uint32(21), uint32(100)},
 		},
 		{
@@ -554,7 +554,7 @@ func TestCompilerCompilesTypedLiveLogCursor(t *testing.T) {
 			After: &RawLogCursor{TimestampNS: 1_500_000, ID: "last"},
 		}, Aggregation: LogAggregateCount}},
 	})
-	wantSQL := "SELECT timestamp AS field_0, id AS field_1, severity_text AS field_2, body AS field_3, trace_id AS field_4, span_id AS field_5 FROM siginsight_logs.logs_v2 WHERE (siginsight_logs.logs_v2.timestamp >= toUInt64(?) AND siginsight_logs.logs_v2.timestamp < toUInt64(?)) AND ((timestamp > toUInt64(?)) OR (timestamp = toUInt64(?) AND id > ?)) ORDER BY timestamp ASC, id ASC LIMIT ?"
+	wantSQL := "SELECT timestamp AS field_0, id AS field_1, severity_text AS field_2, body AS field_3, trace_id AS field_4, span_id AS field_5 FROM siginsight_logs.logs WHERE (siginsight_logs.logs.timestamp >= toUInt64(?) AND siginsight_logs.logs.timestamp < toUInt64(?)) AND ((timestamp > toUInt64(?)) OR (timestamp = toUInt64(?) AND id > ?)) ORDER BY timestamp ASC, id ASC LIMIT ?"
 	wantArgs := []any{int64(1_000_000), int64(2_000_000), uint64(1_500_000), uint64(1_500_000), "last", uint32(101)}
 	assertStatement(t, statement, wantSQL, wantArgs)
 }
@@ -670,7 +670,7 @@ func TestCompilerCompilesMeterWithoutMetricMetadataJoin(t *testing.T) {
 			TimeAggregation: TimeAggregateSum, SpaceAggregation: SpaceAggregateSum,
 		}}},
 	})
-	if !strings.Contains(statement.SQL, "siginsight_meter.samples") || strings.Contains(statement.SQL, "time_series_v4") {
+	if !strings.Contains(statement.SQL, "siginsight_meter.meter_points") || strings.Contains(statement.SQL, "time_series_v4") {
 		t.Fatalf("unexpected meter source SQL: %s", statement.SQL)
 	}
 }
@@ -703,7 +703,7 @@ func TestCompilerUsesCatalogTableForTimeExpressions(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Compile() error = %v", err)
 	}
-	if !strings.Contains(statements[0].SQL, "telemetry.logs.timestamp") || strings.Contains(statements[0].SQL, "siginsight_logs.logs_v2.timestamp") {
+	if !strings.Contains(statements[0].SQL, "telemetry.logs.timestamp") || strings.Contains(statements[0].SQL, "siginsight_logs.logs.timestamp") {
 		t.Fatalf("compiler bypassed catalog table in time expression: %s", statements[0].SQL)
 	}
 }

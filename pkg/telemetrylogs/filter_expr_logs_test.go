@@ -1538,12 +1538,12 @@ func TestFilterExprLogs(t *testing.T) {
 			expectedErrorContains: "function `hasToken` expects value parameter to be a string",
 		},
 
-		// Basic materialized key
+		// Legacy materialized metadata falls back to the canonical typed map.
 		{
-			category:              "Materialized key",
+			category:              "Materialized metadata falls back to map",
 			query:                 "materialized.key.name=\"test\"",
 			shouldPass:            true,
-			expectedQuery:         "WHERE (`attribute_string_materialized$$key$$name` = ? AND `attribute_string_materialized$$key$$name_exists` = ?)",
+			expectedQuery:         "WHERE (attributes_string['materialized.key.name'] = ? AND mapContains(attributes_string, 'materialized.key.name') = ?)",
 			expectedArgs:          []any{"test", true},
 			expectedErrorContains: "",
 		},

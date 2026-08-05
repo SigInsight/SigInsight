@@ -24,8 +24,8 @@ import (
 
 const (
 	siginsightMetricDBName      = "siginsight_metrics"
-	siginsightTSTableNameV4     = "time_series_v4"
-	siginsightTSTableNameV41Day = "time_series_v4_1day"
+	siginsightTSTableNameV4     = "metric_series"
+	siginsightTSTableNameV41Day = "metric_series_1d"
 )
 
 type Reader struct {

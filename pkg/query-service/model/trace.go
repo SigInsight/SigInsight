@@ -9,7 +9,7 @@ type SpanItemV2 struct {
 	TraceID           string             `ch:"trace_id"`
 	HasError          bool               `ch:"has_error"`
 	Kind              int8               `ch:"kind"`
-	ServiceName       string             `ch:"resource_string_service$$name"`
+	ServiceName       string             `ch:"service_name"`
 	Name              string             `ch:"name"`
 	References        string             `ch:"references"`
 	Attributes_string map[string]string  `ch:"attributes_string"`

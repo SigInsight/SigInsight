@@ -19,13 +19,13 @@ def _percentile(values: list[float], percentile: float) -> float:
 
 
 def _measure(
-    clickhouse: types.TestContainerClickhouse, sql: str, samples: int
+    clickhouse: types.TestContainerClickhouse, sql: str, iterations: int
 ) -> list[float]:
     for _ in range(3):
         clickhouse.conn.query(sql)
 
     timings = []
-    for _ in range(samples):
+    for _ in range(iterations):
         started = time.perf_counter()
         result = clickhouse.conn.query(sql).result_rows
         timings.append((time.perf_counter() - started) * 1_000)
@@ -55,11 +55,11 @@ def test_materialized_trace_catalog_benchmark(
     ), "benchmark rows must be between 10000 and 1000000"
 
     run_id = uuid.uuid4().hex
-    table = "siginsight_traces.span_index_v3"
+    table = "siginsight_traces.spans"
     clickhouse.conn.command(f"TRUNCATE TABLE {table}")
     try:
         clickhouse.conn.command(
-            "INSERT INTO siginsight_traces.span_index_v3 "
+            "INSERT INTO siginsight_traces.spans "
             "(timestamp, resources_string, attributes_string) "
             "SELECT now64(9), map('service.name', 'benchmark-api'), "
             "map('http.route', if(number % 20 = 0, '/checkout', '/health')) "
@@ -75,13 +75,13 @@ def test_materialized_trace_catalog_benchmark(
         )
         materialized_sql = (
             f"SELECT count() = {rows // 20} /* m9-materialized-{run_id} */ FROM {table} "
-            "WHERE `resource_string_service$$name_exists` "
-            "AND `resource_string_service$$name` = 'benchmark-api' "
-            "AND `attribute_string_http$$route_exists` "
-            "AND `attribute_string_http$$route` = '/checkout'"
+            "WHERE service_name_present "
+            "AND service_name = 'benchmark-api' "
+            "AND http_route_present "
+            "AND http_route = '/checkout'"
         )
-        map_timings = _measure(clickhouse, map_sql, samples=10)
-        materialized_timings = _measure(clickhouse, materialized_sql, samples=10)
+        map_timings = _measure(clickhouse, map_sql, iterations=10)
+        materialized_timings = _measure(clickhouse, materialized_sql, iterations=10)
 
         clickhouse.conn.command("SYSTEM FLUSH LOGS")
         logs = clickhouse.conn.query(

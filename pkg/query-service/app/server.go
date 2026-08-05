@@ -134,7 +134,6 @@ func NewServer(config signoz.Config, signoz *signoz.SigNoz) (*Server, error) {
 			TraceLocalTable:        retentionStorageConfig.TraceLocalTable,
 			TraceResourceTable:     retentionStorageConfig.TraceResourceTable,
 			ErrorTable:             retentionStorageConfig.ErrorTable,
-			UsageExplorerTable:     retentionStorageConfig.UsageExplorerTable,
 			DependencyGraphTable:   retentionStorageConfig.DependencyGraphTable,
 			TraceSummaryTable:      retentionStorageConfig.TraceSummaryTable,
 			SpanAttributeKeysTable: retentionStorageConfig.SpanAttributeKeysTable,

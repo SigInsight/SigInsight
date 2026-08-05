@@ -28,7 +28,7 @@ import (
 
 const (
 	defaultDatabase               = "siginsight_analytics"
-	defaultTable                  = "rule_state_history_v0"
+	defaultTable                  = "rule_state_history"
 	ruleStateHistorySelectColumns = "rule_id, rule_name, overall_state, overall_state_changed, state, state_changed, unix_milli, labels, fingerprint, value"
 )
 

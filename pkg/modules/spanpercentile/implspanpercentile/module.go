@@ -19,7 +19,7 @@ import (
 	"github.com/SigNoz/signoz/pkg/valuer"
 )
 
-const traceIndexTable = "span_index_v3"
+const traceIndexTable = "spans"
 
 type module struct {
 	telemetryStore telemetrystore.TelemetryStore
@@ -71,7 +71,7 @@ func (m *module) GetSpanPercentile(ctx context.Context, _ valuer.UUID, _ valuer.
 		FROM %s.%s
 		WHERE timestamp >= @start AND timestamp < @end
 			AND ts_bucket_start >= @start_bucket AND ts_bucket_start <= @end_bucket
-			AND resource_string_service$$name = @service_name
+			AND service_name = @service_name
 			AND name = @span_name%s`, telemetrytraces.DBName, traceIndexTable, attributes)
 
 	rows, err := m.telemetryStore.ClickhouseDB().Query(ctx, query, args...)

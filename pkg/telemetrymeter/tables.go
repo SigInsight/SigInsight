@@ -9,10 +9,10 @@ import (
 
 const (
 	DBName                     = "siginsight_meter"
-	SamplesTableName           = "samples"
-	SamplesLocalTableName      = "samples"
-	SamplesAgg1dTableName      = "samples_agg_1d"
-	SamplesAgg1dLocalTableName = "samples_agg_1d"
+	SamplesTableName           = "meter_points"
+	SamplesLocalTableName      = "meter_points"
+	MeterRollup1dTableName     = "meter_rollup_1d"
+	SamplesAgg1dLocalTableName = "meter_rollup_1d"
 )
 
 var (
@@ -54,7 +54,7 @@ func WhichSamplesTableToUse(
 	if end-start < oneMonthInMilliseconds+offsetBucket {
 		return SamplesTableName
 	}
-	return SamplesAgg1dTableName
+	return MeterRollup1dTableName
 
 }
 
@@ -89,7 +89,7 @@ func AggregationColumnForSamplesTable(
 			case metrictypes.TimeAggregationRate, metrictypes.TimeAggregationIncrease: // only these two options give meaningful results
 				aggregationColumn = "sum(value)"
 			}
-		case SamplesAgg1dTableName:
+		case MeterRollup1dTableName:
 			switch timeAggregation {
 			case metrictypes.TimeAggregationLatest:
 				aggregationColumn = "anyLast(last)"
@@ -129,7 +129,7 @@ func AggregationColumnForSamplesTable(
 			case metrictypes.TimeAggregationRate, metrictypes.TimeAggregationIncrease: // only these two options give meaningful results
 				aggregationColumn = "max(value)"
 			}
-		case SamplesAgg1dTableName:
+		case MeterRollup1dTableName:
 			switch timeAggregation {
 			case metrictypes.TimeAggregationLatest:
 				aggregationColumn = "anyLast(last)"
@@ -170,7 +170,7 @@ func AggregationColumnForSamplesTable(
 			case metrictypes.TimeAggregationRate, metrictypes.TimeAggregationIncrease: // ideally, this should never happen
 				aggregationColumn = "sum(value)"
 			}
-		case SamplesAgg1dTableName:
+		case MeterRollup1dTableName:
 			switch timeAggregation {
 			case metrictypes.TimeAggregationLatest:
 				aggregationColumn = "anyLast(last)"

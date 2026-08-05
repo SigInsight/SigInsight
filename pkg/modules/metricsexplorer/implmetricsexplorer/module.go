@@ -415,7 +415,7 @@ func (m *module) CheckMetricExists(ctx context.Context, orgID valuer.UUID, metri
 
 	sb := sqlbuilder.NewSelectBuilder()
 	sb.Select("count(*) > 0 as metricExists")
-	sb.From(fmt.Sprintf("%s.%s", telemetrymetrics.DBName, telemetrymetrics.AttributesMetadataTableName))
+	sb.From(fmt.Sprintf("%s.%s", telemetrymetrics.DBName, telemetrymetrics.MetricMetadataTableName))
 	sb.Where(sb.E("metric_name", metricName))
 
 	query, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
@@ -865,7 +865,7 @@ func (m *module) getMetricLastReceived(ctx context.Context, metricName string) (
 
 	sb := sqlbuilder.NewSelectBuilder()
 	sb.Select("MAX(last_reported_unix_milli) AS last_received_time")
-	sb.From(fmt.Sprintf("%s.%s", telemetrymetrics.DBName, telemetrymetrics.AttributesMetadataTableName))
+	sb.From(fmt.Sprintf("%s.%s", telemetrymetrics.DBName, telemetrymetrics.MetricMetadataTableName))
 	sb.Where(sb.E("metric_name", metricName))
 	query, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
 
@@ -940,7 +940,7 @@ func (m *module) fetchMetricAttributes(ctx context.Context, metricName string, s
 		"groupUniqArray(1000)(attr_string_value) AS values",
 		"uniq(attr_string_value) AS valueCount",
 	)
-	sb.From(fmt.Sprintf("%s.%s", telemetrymetrics.DBName, telemetrymetrics.AttributesMetadataTableName))
+	sb.From(fmt.Sprintf("%s.%s", telemetrymetrics.DBName, telemetrymetrics.MetricMetadataTableName))
 	sb.Where(sb.E("metric_name", metricName))
 	sb.Where("NOT startsWith(attr_name, '__')")
 

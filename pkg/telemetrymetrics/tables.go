@@ -10,23 +10,23 @@ import (
 
 const (
 	DBName                           = "siginsight_metrics"
-	SamplesV4TableName               = "samples_v4"
-	SamplesV4LocalTableName          = "samples_v4"
-	SamplesV4Agg5mTableName          = "samples_v4_agg_5m"
-	SamplesV4Agg5mLocalTableName     = "samples_v4_agg_5m"
-	SamplesV4Agg30mTableName         = "samples_v4_agg_30m"
-	SamplesV4Agg30mLocalTableName    = "samples_v4_agg_30m"
+	SamplesV4TableName               = "metric_points"
+	SamplesV4LocalTableName          = "metric_points"
+	SamplesV4Agg5mTableName          = "metric_rollup_5m"
+	SamplesV4Agg5mLocalTableName     = "metric_rollup_5m"
+	SamplesV4Agg30mTableName         = "metric_rollup_30m"
+	SamplesV4Agg30mLocalTableName    = "metric_rollup_30m"
 	ExpHistogramTableName            = "exp_hist"
 	ExpHistogramLocalTableName       = "exp_hist"
-	TimeseriesV4TableName            = "time_series_v4"
-	TimeseriesV4LocalTableName       = "time_series_v4"
-	TimeseriesV46hrsTableName        = "time_series_v4_6hrs"
-	TimeseriesV46hrsLocalTableName   = "time_series_v4_6hrs"
-	TimeseriesV41dayTableName        = "time_series_v4_1day"
-	TimeseriesV41dayLocalTableName   = "time_series_v4_1day"
-	TimeseriesV41weekTableName       = "time_series_v4_1week"
-	TimeseriesV41weekLocalTableName  = "time_series_v4_1week"
-	AttributesMetadataTableName      = "metadata"
+	TimeseriesV4TableName            = "metric_series"
+	TimeseriesV4LocalTableName       = "metric_series"
+	TimeseriesV46hrsTableName        = "metric_series_6h"
+	TimeseriesV46hrsLocalTableName   = "metric_series_6h"
+	TimeseriesV41dayTableName        = "metric_series_1d"
+	TimeseriesV41dayLocalTableName   = "metric_series_1d"
+	TimeseriesV41weekTableName       = "metric_series_1w"
+	TimeseriesV41weekLocalTableName  = "metric_series_1w"
+	MetricMetadataTableName          = "metadata"
 	AttributesMetadataLocalTableName = "metadata"
 )
 
@@ -76,10 +76,8 @@ func WhichTSTableToUse(
 		}
 	}
 
-	// If time range is less than 6 hours, we need to use the `time_series_v4` table
-	// else if time range is less than 1 day and greater than 6 hours, we need to use the `time_series_v4_6hrs` table
-	// else if time range is less than 1 week and greater than 1 day, we need to use the `time_series_v4_1day` table
-	// else we need to use the `time_series_v4_1week` table
+	// If time range is less than 6 hours, use `metric_series`. Longer ranges
+	// use the matching 6h, 1d, or 1w rollup table.
 	var distributedTableName string
 	var localTableName string
 	if end-start < sixHoursInMilliseconds {
@@ -108,8 +106,8 @@ func WhichTSTableToUse(
 }
 
 // CountExpressionForSamplesTable returns the count expression for a given samples table name.
-// For non-aggregated tables (samples_v4, exp_hist), it returns "count(*)".
-// For aggregated tables (samples_v4_agg_5m, samples_v4_agg_30m), it returns "sum(count)".
+// For non-aggregated tables (metric_points, exp_hist), it returns "count(*)".
+// For aggregated tables (metric_rollup_5m, metric_rollup_30m), it returns "sum(count)".
 func CountExpressionForSamplesTable(tableName string) string {
 	// Non-aggregated tables use count(*)
 	if tableName == SamplesV4TableName ||
@@ -124,9 +122,9 @@ func CountExpressionForSamplesTable(tableName string) string {
 
 // start and end are in milliseconds
 // we have three tables for samples
-// 1. samples_v4
-// 2. samples_v4_agg_5m - for queries with time range above or equal to 1 day and less than 1 week
-// 3. samples_v4_agg_30m - for queries with time range above or equal to 1 week
+// 1. metric_points
+// 2. metric_rollup_5m - for queries with time range above or equal to 1 day and less than 1 week
+// 3. metric_rollup_30m - for queries with time range above or equal to 1 week
 // if the `timeAggregation` is `count_distinct` we can't use the aggregated tables because they don't support it
 func WhichSamplesTableToUse(
 	start, end uint64,
@@ -147,7 +145,7 @@ func WhichSamplesTableToUse(
 		return ExpHistogramLocalTableName
 	}
 
-	// if the time aggregation is count_distinct, we need to use the samples_v4 table
+	// count_distinct requires the raw metric_points table.
 	// because the aggregated tables don't support count_distinct
 	if timeAggregation == metrictypes.TimeAggregationCountDistinct {
 		return SamplesV4TableName

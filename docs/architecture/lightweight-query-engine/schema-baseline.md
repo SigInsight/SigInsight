@@ -1,7 +1,7 @@
 # ClickHouse Schema Baseline
 
-状态：Accepted
-最后验证：2026-07-31
+状态：Accepted（M16 canonical schema）
+最后验证：2026-08-06
 ClickHouse：`clickhouse/clickhouse-server:25.5.6`
 
 ## 目的
@@ -10,18 +10,20 @@ ClickHouse：`clickhouse/clickhouse-server:25.5.6`
 
 查询代码只能依赖后续 Schema Catalog 声明的语义字段。任何物理表、列、projection 或 materialized view 的变更必须同时更新对应 ADR、Catalog 测试和真实协作验证。
 
-## 冻结 v1 Fingerprint
+## M16 Canonical Fingerprint
 
-以下值由 Collector 的 `v1SchemaFingerprints` 定义，并由 `make test-migration-integration` 在 ClickHouse 25.5.6 验证。它们表示 v1 baseline 的 `system.tables` 和 `system.columns`，不包含后续迁移。
+以下值由 Collector 的 `v1SchemaFingerprints` 定义，并由 `make test-migration-integration`
+在 ClickHouse 25.5.6 验证。变量名保留用于迁移框架兼容；其内容是 M16
+direct canonical baseline 的最终 `system.tables` 和 `system.columns` 指纹。
 
 | Database | Tables | Table hash | Columns | Column hash |
 | --- | ---: | ---: | ---: | ---: |
-| `siginsight_analytics` | 1 | 573356622719098860 | 11 | 4111144204702223109 |
-| `siginsight_logs` | 6 | 10013745453448773421 | 43 | 15143235747694373747 |
-| `siginsight_metadata` | 2 | 9471719162152962200 | 13 | 11073036235476819325 |
-| `siginsight_meter` | 3 | 5731232586497943347 | 38 | 8743824752276981965 |
-| `siginsight_metrics` | 18 | 4727395258706994518 | 196 | 954080453982615115 |
-| `siginsight_traces` | 21 | 15141153314076288482 | 235 | 12795843324237009066 |
+| `siginsight_analytics` | 1 | 12242196818159068904 | 11 | 9151060719887308879 |
+| `siginsight_logs` | 6 | 4907456606029717637 | 43 | 6450537337900337272 |
+| `siginsight_metadata` | 0 | 11160318154034397263 | 0 | 11160318154034397263 |
+| `siginsight_meter` | 3 | 4794694533261956589 | 38 | 16828873058290010379 |
+| `siginsight_metrics` | 15 | 13305681492122153582 | 174 | 8325196865590917439 |
+| `siginsight_traces` | 15 | 9151180053864431952 | 131 | 14213257424511927958 |
 
 来源：`OtelCollector/cmd/siginsightschemamigrator/schema_migrator/v1_baseline_migrations.go`。
 
@@ -31,19 +33,21 @@ ClickHouse：`clickhouse/clickhouse-server:25.5.6`
 
 | Signal | 核心表 | 核心物理字段 |
 | --- | --- | --- |
-| Logs | `siginsight_logs.logs_v2` | `timestamp`、`body`、`resource`、attributes/resource maps |
-| Traces | `siginsight_traces.span_index_v3` | `timestamp`、`trace_id`、`span_id`、`resource`、span/resource maps |
-| Metrics | `siginsight_metrics.samples_v4`、`time_series_v4` | `metric_name`、`fingerprint`、`unix_milli`、`value`、labels/attrs/resource attrs |
-| Meter | `siginsight_meter.samples`、`samples_agg_1d` | `metric_name`、`fingerprint`、`unix_milli`、`value`、labels |
+| Logs | `siginsight_logs.logs` | `timestamp`、`body`、`resource`、attributes/resource maps |
+| Traces | `siginsight_traces.spans` | `timestamp`、`trace_id`、`span_id`、`resource`、span/resource maps |
+| Metrics | `siginsight_metrics.metric_points`、`metric_series` | `metric_name`、`fingerprint`、`unix_milli`、`value`、labels/attrs/resource attrs |
+| Meter | `siginsight_meter.meter_points`、`meter_rollup_1d` | `metric_name`、`fingerprint`、`unix_milli`、`value`、labels |
 
-本基线明确不依赖 `body_v2`、`body_promoted`、JSON path metadata tables、`samples_v2`、`time_series_v2`、旧 distributed tables 或 `span_attributes`。日志 body JSON 查询使用 `body String` 上的 ClickHouse JSON 函数。
+本基线明确不支持任何版本后缀业务表、`body_v2`、`body_promoted`、JSON path metadata
+tables、旧 distributed tables 或 Trace camelCase alias。日志 body JSON 查询使用 `body String`
+上的 ClickHouse JSON 函数。
 
 ## 可重复验证
 
 从 SigInsight 根目录运行：
 
 ```bash
-tests/integration/scripts/run-lightweight-query-baseline.sh
+tests/integration/scripts/run-canonical-schema-cutover.sh
 ```
 
 该脚本先运行：
@@ -52,9 +56,9 @@ tests/integration/scripts/run-lightweight-query-baseline.sh
 make -C ../OtelCollector test-migration-integration
 ```
 
-Collector 测试创建 schema、应用后续删除迁移、写入 OTLP logs/traces/metrics，并检查：
+Collector 测试从空 ClickHouse 直接创建 schema、写入 OTLP logs/traces/metrics，并检查：
 
-- 冻结 v1 fingerprint。
+- M16 canonical fingerprint。
 - 当前核心表和列可读。
 - 旧 JSON 列、metadata 表和旧 distributed/过渡表不存在。
 - Collector 写入的数据能够由当前 schema 保存。
@@ -65,6 +69,6 @@ Collector 测试创建 schema、应用后续删除迁移、写入 OTLP logs/trac
 ## 变更规则
 
 1. 不修改 v1 baseline DDL 或本文件的 v1 fingerprint 来“适配”新功能。
-2. 新 schema 通过 post-baseline migration 引入，使用新的 migration ID。
+2. 新 schema 通过 post-baseline migration 引入，使用新的 migration ID；M16 本身没有 create/drop cleanup 链。
 3. 影响核心读取范围的改动必须在 M2/M3 的 Schema Catalog 中显式声明。
 4. 删除任何列或表前，必须执行 production import 扫描、Collector 写入测试和 SigInsight 真实 API 测试。

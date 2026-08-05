@@ -144,10 +144,3 @@ func WhichSampleTableToUse(start, end int64) (string, string) {
 		return constants.SIGINSIGHT_SAMPLES_V4_AGG_30M_TABLENAME, "sum(count)"
 	}
 }
-
-func WhichAttributesTableToUse(start, end int64) (int64, int64, string, string) {
-	if end-start < sixHoursInMilliseconds {
-		start = start - (start % (time.Hour.Milliseconds() * 6))
-	}
-	return start, end, constants.SIGINSIGHT_ATTRIBUTES_METADATA_TABLENAME, constants.SIGINSIGHT_ATTRIBUTES_METADATA_LOCAL_TABLENAME
-}

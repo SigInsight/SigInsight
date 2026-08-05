@@ -5,6 +5,10 @@ import (
 	"testing"
 )
 
+func canonicalFunnelExpectation(value string) string {
+	return strings.ReplaceAll(value, "resource_string_service$$name", "service_name")
+}
+
 func TestBuildFunnelValidationQuery(t *testing.T) {
 	tests := []struct {
 		name  string
@@ -92,6 +96,7 @@ func TestBuildFunnelValidationQuery(t *testing.T) {
 			got := BuildFunnelValidationQuery(tt.steps, tt.startTs, tt.endTs)
 
 			for _, want := range tt.wantContains {
+				want = canonicalFunnelExpectation(want)
 				if !strings.Contains(got, want) {
 					t.Errorf("BuildFunnelValidationQuery() missing expected string: %q", want)
 					t.Logf("Got query:\n%s", got)
@@ -170,6 +175,7 @@ func TestBuildFunnelOverviewQuery(t *testing.T) {
 			got := BuildFunnelOverviewQuery(tt.steps, tt.startTs, tt.endTs)
 
 			for _, want := range tt.wantContains {
+				want = canonicalFunnelExpectation(want)
 				if !strings.Contains(got, want) {
 					t.Errorf("BuildFunnelOverviewQuery() missing expected string: %q", want)
 					t.Logf("Got query:\n%s", got)
@@ -243,6 +249,7 @@ func TestBuildFunnelCountQuery(t *testing.T) {
 			got := BuildFunnelCountQuery(tt.steps, tt.startTs, tt.endTs)
 
 			for _, want := range tt.wantContains {
+				want = canonicalFunnelExpectation(want)
 				if !strings.Contains(got, want) {
 					t.Errorf("BuildFunnelCountQuery() missing expected string: %q", want)
 					t.Logf("Got query:\n%s", got)
@@ -349,6 +356,7 @@ func TestBuildFunnelStepOverviewQuery(t *testing.T) {
 			got := BuildFunnelStepOverviewQuery(tt.steps, tt.startTs, tt.endTs, tt.stepStart, tt.stepEnd)
 
 			for _, want := range tt.wantContains {
+				want = canonicalFunnelExpectation(want)
 				if !strings.Contains(got, want) {
 					t.Errorf("BuildFunnelStepOverviewQuery() missing expected string: %q", want)
 					t.Logf("Got query:\n%s", got)

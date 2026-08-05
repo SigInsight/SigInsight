@@ -20,7 +20,7 @@ import (
 	"github.com/SigNoz/signoz/pkg/valuer"
 )
 
-const traceIndexTable = "span_index_v3"
+const traceIndexTable = "spans"
 
 type module struct {
 	TelemetryStore telemetrystore.TelemetryStore
@@ -89,7 +89,7 @@ func (m *module) Get(ctx context.Context, _ valuer.UUID, req *servicetypesv1.Req
 	args = append(args, filterArgs...)
 	query := fmt.Sprintf(`
 		SELECT
-			resource_string_service$$name AS service_name,
+			service_name,
 			quantile(0.99)(duration_nano) AS p99,
 			avg(duration_nano) AS avg_duration,
 			count() AS num_calls,
@@ -98,7 +98,7 @@ func (m *module) Get(ctx context.Context, _ valuer.UUID, req *servicetypesv1.Req
 		FROM %s.%s
 		WHERE timestamp >= @start AND timestamp < @end
 			AND ts_bucket_start >= @start_bucket AND ts_bucket_start <= @end_bucket
-			AND (parent_span_id = '' OR ((name, resource_string_service$$name) GLOBAL IN (
+			AND (parent_span_id = '' OR ((name, service_name) GLOBAL IN (
 				SELECT DISTINCT name, serviceName FROM %s.%s WHERE time >= @scope_start
 			) AND parent_span_id != ''))%s
 		GROUP BY service_name
@@ -180,7 +180,7 @@ func (m *module) getOperations(ctx context.Context, functionName string, req *se
 
 	scope := ""
 	if entryPoint {
-		scope = fmt.Sprintf(` AND ((name, resource_string_service$$name) GLOBAL IN (
+		scope = fmt.Sprintf(` AND ((name, service_name) GLOBAL IN (
 			SELECT DISTINCT name, serviceName FROM %s.%s WHERE time >= @scope_start
 		) AND parent_span_id != '')`, telemetrytraces.DBName, telemetrytraces.TopLevelOperationsTableName)
 	}
@@ -195,7 +195,7 @@ func (m *module) getOperations(ctx context.Context, functionName string, req *se
 		FROM %s.%s
 		WHERE timestamp >= @start AND timestamp < @end
 			AND ts_bucket_start >= @start_bucket AND ts_bucket_start <= @end_bucket
-			AND resource_string_service$$name = @service_name%s%s
+			AND service_name = @service_name%s%s
 		GROUP BY name
 		ORDER BY p99 DESC
 		LIMIT %d`, telemetrytraces.DBName, traceIndexTable, scope, filters, req.Limit)

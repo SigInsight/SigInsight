@@ -33,14 +33,14 @@ func BuildFunnelValidationQuery(
 	// Build SELECT fields for each step time
 	selectFields := []string{"trace_id"}
 	for i := 0; i < numSteps; i++ {
-		selectFields = append(selectFields, fmt.Sprintf("minIf(timestamp, resource_string_service$$name = step%d.1 AND name = step%d.2) AS t%d_time", i+1, i+1, i+1))
+		selectFields = append(selectFields, fmt.Sprintf("minIf(timestamp, service_name = step%d.1 AND name = step%d.2) AS t%d_time", i+1, i+1, i+1))
 	}
 
 	// Build WHERE conditions
 	whereConditions := []string{"timestamp BETWEEN start_ts AND end_ts"}
 	orConditions := []string{}
 	for i, step := range steps {
-		condition := fmt.Sprintf("(resource_string_service$$name = step%d.1 AND name = step%d.2 AND (contains_error_t%d = 0 OR has_error = true) %s)",
+		condition := fmt.Sprintf("(service_name = step%d.1 AND name = step%d.2 AND (contains_error_t%d = 0 OR has_error = true) %s)",
 			i+1, i+1, i+1, step.Clause)
 		orConditions = append(orConditions, condition)
 	}
@@ -57,7 +57,7 @@ SELECT
 FROM (
     SELECT
         %s
-    FROM siginsight_traces.span_index_v3
+    FROM siginsight_traces.spans
     WHERE
         %s
     GROUP BY trace_id
@@ -107,20 +107,20 @@ func BuildFunnelOverviewQuery(
 		// Check if latency_pointer is 'end' for this step
 		if strings.ToLower(steps[i].LatencyPointer) == "end" {
 			funnelSelectFields = append(funnelSelectFields,
-				fmt.Sprintf("minIf(timestamp, resource_string_service$$name = step%d.1 AND name = step%d.2) + toIntervalNanosecond(minIf(duration_nano, resource_string_service$$name = step%d.1 AND name = step%d.2)) AS t%d_time", i+1, i+1, i+1, i+1, i+1))
+				fmt.Sprintf("minIf(timestamp, service_name = step%d.1 AND name = step%d.2) + toIntervalNanosecond(minIf(duration_nano, service_name = step%d.1 AND name = step%d.2)) AS t%d_time", i+1, i+1, i+1, i+1, i+1))
 		} else {
 			funnelSelectFields = append(funnelSelectFields,
-				fmt.Sprintf("minIf(timestamp, resource_string_service$$name = step%d.1 AND name = step%d.2) AS t%d_time", i+1, i+1, i+1))
+				fmt.Sprintf("minIf(timestamp, service_name = step%d.1 AND name = step%d.2) AS t%d_time", i+1, i+1, i+1))
 		}
 		funnelSelectFields = append(funnelSelectFields,
-			fmt.Sprintf("toUInt8(anyIf(has_error, resource_string_service$$name = step%d.1 AND name = step%d.2)) AS s%d_error", i+1, i+1, i+1))
+			fmt.Sprintf("toUInt8(anyIf(has_error, service_name = step%d.1 AND name = step%d.2)) AS s%d_error", i+1, i+1, i+1))
 	}
 
 	// Build WHERE conditions
 	whereConditions := []string{"timestamp BETWEEN start_ts AND end_ts"}
 	orConditions := []string{}
 	for i, step := range steps {
-		condition := fmt.Sprintf("(resource_string_service$$name = step%d.1 AND name = step%d.2 AND (contains_error_t%d = 0 OR has_error = true) %s)",
+		condition := fmt.Sprintf("(service_name = step%d.1 AND name = step%d.2 AND (contains_error_t%d = 0 OR has_error = true) %s)",
 			i+1, i+1, i+1, step.Clause)
 		orConditions = append(orConditions, condition)
 	}
@@ -182,7 +182,7 @@ WITH
 , funnel AS (
     SELECT
         %s
-    FROM siginsight_traces.span_index_v3
+    FROM siginsight_traces.spans
     WHERE
         %s
     GROUP BY trace_id
@@ -246,16 +246,16 @@ func BuildFunnelCountQuery(
 	for i := 0; i < numSteps; i++ {
 		// No LatencyPointer for this function, keeping original behavior
 		funnelSelectFields = append(funnelSelectFields,
-			fmt.Sprintf("minIf(timestamp, resource_string_service$$name = step%d.1 AND name = step%d.2) AS t%d_time", i+1, i+1, i+1))
+			fmt.Sprintf("minIf(timestamp, service_name = step%d.1 AND name = step%d.2) AS t%d_time", i+1, i+1, i+1))
 		funnelSelectFields = append(funnelSelectFields,
-			fmt.Sprintf("toUInt8(anyIf(has_error, resource_string_service$$name = step%d.1 AND name = step%d.2)) AS t%d_error", i+1, i+1, i+1))
+			fmt.Sprintf("toUInt8(anyIf(has_error, service_name = step%d.1 AND name = step%d.2)) AS t%d_error", i+1, i+1, i+1))
 	}
 
 	// Build WHERE conditions
 	whereConditions := []string{"timestamp BETWEEN start_ts AND end_ts"}
 	orConditions := []string{}
 	for i, step := range steps {
-		condition := fmt.Sprintf("(resource_string_service$$name = step%d.1 AND name = step%d.2 AND (contains_error_t%d = 0 OR has_error = true) %s)",
+		condition := fmt.Sprintf("(service_name = step%d.1 AND name = step%d.2 AND (contains_error_t%d = 0 OR has_error = true) %s)",
 			i+1, i+1, i+1, step.Clause)
 		orConditions = append(orConditions, condition)
 	}
@@ -297,7 +297,7 @@ SELECT
 FROM (
     SELECT
         %s
-    FROM siginsight_traces.span_index_v3
+    FROM siginsight_traces.spans
     WHERE
         %s
     GROUP BY trace_id
@@ -359,20 +359,20 @@ func BuildFunnelStepOverviewQuery(
 		// Check if latency_pointer is 'end' for this step
 		if steps[i].LatencyPointer == "end" {
 			funnelSelectFields = append(funnelSelectFields,
-				fmt.Sprintf("minIf(timestamp, resource_string_service$$name = step%d.1 AND name = step%d.2) + toIntervalNanosecond(minIf(duration_nano, resource_string_service$$name = step%d.1 AND name = step%d.2)) AS t%d_time", i+1, i+1, i+1, i+1, i+1))
+				fmt.Sprintf("minIf(timestamp, service_name = step%d.1 AND name = step%d.2) + toIntervalNanosecond(minIf(duration_nano, service_name = step%d.1 AND name = step%d.2)) AS t%d_time", i+1, i+1, i+1, i+1, i+1))
 		} else {
 			funnelSelectFields = append(funnelSelectFields,
-				fmt.Sprintf("minIf(timestamp, resource_string_service$$name = step%d.1 AND name = step%d.2) AS t%d_time", i+1, i+1, i+1))
+				fmt.Sprintf("minIf(timestamp, service_name = step%d.1 AND name = step%d.2) AS t%d_time", i+1, i+1, i+1))
 		}
 		funnelSelectFields = append(funnelSelectFields,
-			fmt.Sprintf("toUInt8(anyIf(has_error, resource_string_service$$name = step%d.1 AND name = step%d.2)) AS s%d_error", i+1, i+1, i+1))
+			fmt.Sprintf("toUInt8(anyIf(has_error, service_name = step%d.1 AND name = step%d.2)) AS s%d_error", i+1, i+1, i+1))
 	}
 
 	// Build WHERE conditions
 	whereConditions := []string{"timestamp BETWEEN start_ts AND end_ts"}
 	orConditions := []string{}
 	for i, step := range steps {
-		condition := fmt.Sprintf("(resource_string_service$$name = step%d.1 AND name = step%d.2 AND (contains_error_t%d = 0 OR has_error = true) %s)",
+		condition := fmt.Sprintf("(service_name = step%d.1 AND name = step%d.2 AND (contains_error_t%d = 0 OR has_error = true) %s)",
 			i+1, i+1, i+1, step.Clause)
 		orConditions = append(orConditions, condition)
 	}
@@ -431,7 +431,7 @@ FROM (
     FROM (
         SELECT
             %s
-        FROM siginsight_traces.span_index_v3
+        FROM siginsight_traces.spans
         WHERE
             %s
         GROUP BY trace_id
@@ -476,14 +476,14 @@ func BuildFunnelTopSlowTracesQuery(
 	latencyPointerT2 string,
 ) string {
 	// Build time expressions based on latency pointers
-	t1TimeExpr := "minIf(timestamp, resource_string_service$$name = step1.1 AND name = step1.2)"
+	t1TimeExpr := "minIf(timestamp, service_name = step1.1 AND name = step1.2)"
 	if latencyPointerT1 == "end" {
-		t1TimeExpr = "minIf(timestamp, resource_string_service$$name = step1.1 AND name = step1.2) + toIntervalNanosecond(minIf(duration_nano, resource_string_service$$name = step1.1 AND name = step1.2))"
+		t1TimeExpr = "minIf(timestamp, service_name = step1.1 AND name = step1.2) + toIntervalNanosecond(minIf(duration_nano, service_name = step1.1 AND name = step1.2))"
 	}
 
-	t2TimeExpr := "minIf(timestamp, resource_string_service$$name = step2.1 AND name = step2.2)"
+	t2TimeExpr := "minIf(timestamp, service_name = step2.1 AND name = step2.2)"
 	if latencyPointerT2 == "end" {
-		t2TimeExpr = "minIf(timestamp, resource_string_service$$name = step2.1 AND name = step2.2) + toIntervalNanosecond(minIf(duration_nano, resource_string_service$$name = step2.1 AND name = step2.2))"
+		t2TimeExpr = "minIf(timestamp, service_name = step2.1 AND name = step2.2) + toIntervalNanosecond(minIf(duration_nano, service_name = step2.1 AND name = step2.2))"
 	}
 
 	queryTemplate := `
@@ -506,13 +506,13 @@ FROM (
         %[11]s AS t1_time,
         %[12]s AS t2_time,
         count() AS span_count
-    FROM siginsight_traces.span_index_v3
+    FROM siginsight_traces.spans
     WHERE
         timestamp BETWEEN start_ts AND end_ts
         AND (
-            (resource_string_service$$name = step1.1 AND name = step1.2 AND (contains_error_t1 = 0 OR has_error = true) %[9]s)
+		    (service_name = step1.1 AND name = step1.2 AND (contains_error_t1 = 0 OR has_error = true) %[9]s)
          OR
-            (resource_string_service$$name = step2.1 AND name = step2.2 AND (contains_error_t2 = 0 OR has_error = true) %[10]s)
+		    (service_name = step2.1 AND name = step2.2 AND (contains_error_t2 = 0 OR has_error = true) %[10]s)
         )
     GROUP BY trace_id
     HAVING t1_time > 0 AND t2_time > t1_time
@@ -552,14 +552,14 @@ func BuildFunnelTopSlowErrorTracesQuery(
 	latencyPointerT2 string,
 ) string {
 	// Build time expressions based on latency pointers
-	t1TimeExpr := "minIf(timestamp, resource_string_service$$name = step1.1 AND name = step1.2)"
+	t1TimeExpr := "minIf(timestamp, service_name = step1.1 AND name = step1.2)"
 	if latencyPointerT1 == "end" {
-		t1TimeExpr = "minIf(timestamp, resource_string_service$$name = step1.1 AND name = step1.2) + toIntervalNanosecond(minIf(duration_nano, resource_string_service$$name = step1.1 AND name = step1.2))"
+		t1TimeExpr = "minIf(timestamp, service_name = step1.1 AND name = step1.2) + toIntervalNanosecond(minIf(duration_nano, service_name = step1.1 AND name = step1.2))"
 	}
 
-	t2TimeExpr := "minIf(timestamp, resource_string_service$$name = step2.1 AND name = step2.2)"
+	t2TimeExpr := "minIf(timestamp, service_name = step2.1 AND name = step2.2)"
 	if latencyPointerT2 == "end" {
-		t2TimeExpr = "minIf(timestamp, resource_string_service$$name = step2.1 AND name = step2.2) + toIntervalNanosecond(minIf(duration_nano, resource_string_service$$name = step2.1 AND name = step2.2))"
+		t2TimeExpr = "minIf(timestamp, service_name = step2.1 AND name = step2.2) + toIntervalNanosecond(minIf(duration_nano, service_name = step2.1 AND name = step2.2))"
 	}
 
 	queryTemplate := `
@@ -581,16 +581,16 @@ FROM (
         trace_id,
         %[11]s AS t1_time,
         %[12]s AS t2_time,
-        toUInt8(anyIf(has_error, resource_string_service$$name = step1.1 AND name = step1.2)) AS t1_error,
-        toUInt8(anyIf(has_error, resource_string_service$$name = step2.1 AND name = step2.2)) AS t2_error,
+	    toUInt8(anyIf(has_error, service_name = step1.1 AND name = step1.2)) AS t1_error,
+	    toUInt8(anyIf(has_error, service_name = step2.1 AND name = step2.2)) AS t2_error,
         count() AS span_count
-    FROM siginsight_traces.span_index_v3
+    FROM siginsight_traces.spans
     WHERE
         timestamp BETWEEN start_ts AND end_ts
         AND (
-            (resource_string_service$$name = step1.1 AND name = step1.2 AND (contains_error_t1 = 0 OR has_error = true) %[9]s)
+		    (service_name = step1.1 AND name = step1.2 AND (contains_error_t1 = 0 OR has_error = true) %[9]s)
          OR
-            (resource_string_service$$name = step2.1 AND name = step2.2 AND (contains_error_t2 = 0 OR has_error = true) %[10]s)
+		    (service_name = step2.1 AND name = step2.2 AND (contains_error_t2 = 0 OR has_error = true) %[10]s)
         )
     GROUP BY trace_id
     HAVING t1_time > 0 AND t2_time > t1_time

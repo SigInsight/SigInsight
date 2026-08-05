@@ -135,7 +135,7 @@ func (r *Reader) GetWaterfallSpansForTraceWithMetadata(ctx context.Context, orgI
 	if err != nil {
 		r.logger.Info("cache miss for getWaterfallSpansForTraceWithMetadata", "traceID", traceID)
 
-		searchScanResponses, err := r.getSpansForTrace(ctx, traceID, fmt.Sprintf("SELECT DISTINCT ON (span_id) timestamp, duration_nano, span_id, trace_id, has_error, kind, resource_string_service$$name, name, links as references, attributes_string, attributes_number, attributes_bool, resources_string, events, status_message, status_code_string, kind_string FROM %s.%s WHERE trace_id=$1 and ts_bucket_start>=$2 and ts_bucket_start<=$3 ORDER BY timestamp ASC, name ASC", r.traceDB, r.traceTableName))
+		searchScanResponses, err := r.getSpansForTrace(ctx, traceID, fmt.Sprintf("SELECT DISTINCT ON (span_id) timestamp, duration_nano, span_id, trace_id, has_error, kind, service_name, name, links as references, attributes_string, attributes_number, attributes_bool, resources_string, events, status_message, status_code_string, kind_string FROM %s.%s WHERE trace_id=$1 and ts_bucket_start>=$2 and ts_bucket_start<=$3 ORDER BY timestamp ASC, name ASC", r.traceDB, r.traceTableName))
 		if err != nil {
 			return nil, err
 		}
@@ -331,7 +331,7 @@ func (r *Reader) GetFlamegraphSpansForTrace(ctx context.Context, orgID valuer.UU
 	if err != nil {
 		r.logger.Info("cache miss for getFlamegraphSpansForTrace", "traceID", traceID)
 
-		searchScanResponses, err := r.getSpansForTrace(ctx, traceID, fmt.Sprintf("SELECT timestamp, duration_nano, span_id, trace_id, has_error,links as references, resource_string_service$$name, name, events FROM %s.%s WHERE trace_id=$1 and ts_bucket_start>=$2 and ts_bucket_start<=$3 ORDER BY timestamp ASC, name ASC", r.traceDB, r.traceTableName))
+		searchScanResponses, err := r.getSpansForTrace(ctx, traceID, fmt.Sprintf("SELECT timestamp, duration_nano, span_id, trace_id, has_error,links as references, service_name, name, events FROM %s.%s WHERE trace_id=$1 and ts_bucket_start>=$2 and ts_bucket_start<=$3 ORDER BY timestamp ASC, name ASC", r.traceDB, r.traceTableName))
 		if err != nil {
 			return nil, err
 		}

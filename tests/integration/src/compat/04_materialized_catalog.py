@@ -89,20 +89,20 @@ def test_trace_materialized_catalog_uses_all_manifest_columns(
 
     clickhouse.conn.command("SYSTEM FLUSH LOGS")
     manifest_columns = [
-        "resource_string_service$$name",
-        "attribute_string_http$$route",
-        "attribute_string_messaging$$system",
-        "attribute_string_messaging$$operation",
-        "attribute_string_db$$system",
-        "attribute_string_rpc$$system",
-        "attribute_string_rpc$$service",
-        "attribute_string_rpc$$method",
-        "attribute_string_peer$$service",
+        "service_name",
+        "http_route",
+        "messaging_system",
+        "messaging_operation",
+        "db_system",
+        "rpc_system",
+        "rpc_service",
+        "rpc_method",
+        "peer_service",
     ]
     for column in manifest_columns:
         queries = clickhouse.conn.query(
             "SELECT query FROM system.query_log "
-            "WHERE query LIKE '%FROM siginsight_traces.span_index_v3%' "
+            "WHERE query LIKE '%FROM siginsight_traces.spans%' "
             "AND query LIKE {column:String} "
             "ORDER BY event_time_microseconds DESC LIMIT 1",
             parameters={"column": f"%{column}%"},

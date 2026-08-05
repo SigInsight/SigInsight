@@ -196,6 +196,19 @@ func TestConditionFor(t *testing.T) {
 			expectedError: nil,
 		},
 		{
+			name: "Legacy materialized metadata falls back to map",
+			key: telemetrytypes.TelemetryFieldKey{
+				Name:          "deployment.environment",
+				FieldContext:  telemetrytypes.FieldContextResource,
+				FieldDataType: telemetrytypes.FieldDataTypeString,
+				Materialized:  true,
+			},
+			operator:      qbtypes.FilterOperatorEqual,
+			value:         "production",
+			expectedSQL:   "(multiIf(resource.`deployment.environment` IS NOT NULL, resource.`deployment.environment`::String, mapContains(resources_string, 'deployment.environment'), resources_string['deployment.environment'], NULL) = ? AND multiIf(resource.`deployment.environment` IS NOT NULL, resource.`deployment.environment`::String, mapContains(resources_string, 'deployment.environment'), resources_string['deployment.environment'], NULL) IS NOT NULL)",
+			expectedError: nil,
+		},
+		{
 			name: "Not Exists operator - map field",
 			key: telemetrytypes.TelemetryFieldKey{
 				Name:          "user.id",

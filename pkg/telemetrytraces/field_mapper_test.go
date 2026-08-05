@@ -75,7 +75,7 @@ func TestGetFieldKeyName(t *testing.T) {
 				FieldDataType: telemetrytypes.FieldDataTypeString,
 				Materialized:  true,
 			},
-			expectedResult: "multiIf(resource.`deployment.environment` IS NOT NULL, resource.`deployment.environment`::String, `resource_string_deployment$$environment_exists`==true, `resource_string_deployment$$environment`, NULL)",
+			expectedResult: "multiIf(resource.`deployment.environment` IS NOT NULL, resource.`deployment.environment`::String, mapContains(resources_string, 'deployment.environment'), resources_string['deployment.environment'], NULL)",
 			expectedError:  nil,
 		},
 		{
@@ -84,7 +84,7 @@ func TestGetFieldKeyName(t *testing.T) {
 				Name:         "http.route",
 				FieldContext: telemetrytypes.FieldContextSpan,
 			},
-			expectedResult: "attribute_string_http$$route",
+			expectedResult: "http_route",
 			expectedError:  nil,
 		},
 		{
@@ -93,7 +93,7 @@ func TestGetFieldKeyName(t *testing.T) {
 				Name:         "rpc.method",
 				FieldContext: telemetrytypes.FieldContextSpan,
 			},
-			expectedResult: "attribute_string_rpc$$method",
+			expectedResult: "rpc_method",
 			expectedError:  nil,
 		},
 		{

@@ -24,20 +24,18 @@ func newTestTelemetryMetaStoreTestHelper(store telemetrystore.TelemetryStore) te
 		instrumentationtest.New().ToProviderSettings(),
 		store,
 		telemetrytraces.DBName,
-		telemetrytraces.TagAttributesV2TableName,
+		telemetrytraces.FieldValuesTableName,
 		telemetrytraces.SpanAttributesKeysTblName,
-		telemetrytraces.SpanIndexV3TableName,
+		telemetrytraces.SpansTableName,
 		telemetrymetrics.DBName,
-		telemetrymetrics.AttributesMetadataTableName,
+		telemetrymetrics.MetricMetadataTableName,
 		telemetrymeter.DBName,
-		telemetrymeter.SamplesAgg1dTableName,
+		telemetrymeter.MeterRollup1dTableName,
 		telemetrylogs.DBName,
-		telemetrylogs.LogsV2TableName,
-		telemetrylogs.TagAttributesV2TableName,
+		telemetrylogs.LogsTableName,
+		telemetrylogs.FieldValuesTableName,
 		telemetrylogs.LogAttributeKeysTblName,
 		telemetrylogs.LogResourceKeysTblName,
-		DBName,
-		AttributesMetadataLocalTableName,
 	)
 }
 
@@ -63,10 +61,10 @@ func TestGetKeys(t *testing.T) {
 
 	rows := cmock.NewRows([]cmock.ColumnType{
 		{Name: "statement", Type: "String"},
-	}, [][]any{{"CREATE TABLE siginsight_traces.span_index_v3"}})
+	}, [][]any{{"CREATE TABLE siginsight_traces.spans"}})
 
 	mock.
-		ExpectSelect("SHOW CREATE TABLE siginsight_traces.span_index_v3").
+		ExpectSelect("SHOW CREATE TABLE siginsight_traces.spans").
 		WillReturnRows(rows)
 
 	query := `SELECT.*`
@@ -99,10 +97,10 @@ func TestGetTraceStaticCalculatedFieldKey(t *testing.T) {
 	mock := mockTelemetryStore.Mock()
 	metadata := newTestTelemetryMetaStoreTestHelper(mockTelemetryStore)
 
-	mock.ExpectSelect("SHOW CREATE TABLE siginsight_traces.span_index_v3").
+	mock.ExpectSelect("SHOW CREATE TABLE siginsight_traces.spans").
 		WillReturnRows(cmock.NewRows([]cmock.ColumnType{
 			{Name: "statement", Type: "String"},
-		}, [][]any{{"CREATE TABLE siginsight_traces.span_index_v3"}}))
+		}, [][]any{{"CREATE TABLE siginsight_traces.spans"}}))
 	mock.ExpectQuery(`SELECT.*`).
 		WithArgs("http.route", telemetrytypes.FieldDataTypeString.TagDataType(), 2).
 		WillReturnRows(cmock.NewRows([]cmock.ColumnType{
@@ -133,9 +131,9 @@ func TestGetTraceDefaultFieldKey(t *testing.T) {
 	mock := mockTelemetryStore.Mock()
 	metadata := newTestTelemetryMetaStoreTestHelper(mockTelemetryStore)
 
-	mock.ExpectSelect("SHOW CREATE TABLE siginsight_traces.span_index_v3").
-		WillReturnRows(cmock.NewRows([]cmock.ColumnType{{Name: "statement", Type: "String"}}, [][]any{{`CREATE TABLE siginsight_traces.span_index_v3 (
-			` + "`resource_string_service$$name`" + ` String DEFAULT resources_string['service.name']
+	mock.ExpectSelect("SHOW CREATE TABLE siginsight_traces.spans").
+		WillReturnRows(cmock.NewRows([]cmock.ColumnType{{Name: "statement", Type: "String"}}, [][]any{{`CREATE TABLE siginsight_traces.spans (
+			service_name String DEFAULT resources_string['service.name']
 		)`}}))
 	mock.ExpectQuery(`SELECT.*`).
 		WithArgs("service.name", telemetrytypes.FieldContextResource.TagType(), telemetrytypes.FieldDataTypeString.TagDataType(), 2).
@@ -186,7 +184,7 @@ func TestGetTraceStaticStringFieldValuesFromTraceTable(t *testing.T) {
 	mock := mockTelemetryStore.Mock()
 	metadata := newTestTelemetryMetaStoreTestHelper(mockTelemetryStore)
 
-	mock.ExpectQuery(`SELECT DISTINCT.*http_method.*FROM siginsight_traces.span_index_v3.*http_method.*<>.*timestamp >= toDateTime64.*LOWER\(http_method\) LIKE LOWER`).
+	mock.ExpectQuery(`SELECT DISTINCT.*http_method.*FROM siginsight_traces.spans.*http_method.*<>.*timestamp >= toDateTime64.*LOWER\(http_method\) LIKE LOWER`).
 		WithArgs("", "%GE%", 3).
 		WillReturnRows(cmock.NewRows([]cmock.ColumnType{
 			{Name: "http_method", Type: "String"},
@@ -216,10 +214,10 @@ func TestGetTraceStaticStringFieldValuesUsesUnixMilliRange(t *testing.T) {
 		startUnixMilli = int64(1_785_773_225_009)
 		endUnixMilli   = int64(1_785_816_425_009)
 	)
-	mock.ExpectQuery(`SELECT DISTINCT.*resource_string_service.*timestamp >= fromUnixTimestamp64Milli\(\?\).*timestamp <= fromUnixTimestamp64Milli\(\?\)`).
+	mock.ExpectQuery(`SELECT DISTINCT.*service_name.*timestamp >= fromUnixTimestamp64Milli\(\?\).*timestamp <= fromUnixTimestamp64Milli\(\?\)`).
 		WithArgs("", startUnixMilli, startUnixMilli/1_000, endUnixMilli, endUnixMilli/1_000, 3).
 		WillReturnRows(cmock.NewRows([]cmock.ColumnType{
-			{Name: "resource_string_service$$name", Type: "String"},
+			{Name: "service_name", Type: "String"},
 		}, [][]any{{"checkout"}, {"frontend"}}))
 
 	values, complete, err := metadata.GetAllValues(context.Background(), &telemetrytypes.FieldValueSelector{
@@ -245,7 +243,7 @@ func TestGetTraceAttributeFieldValuesFallsBackToMetadata(t *testing.T) {
 	mock := mockTelemetryStore.Mock()
 	metadata := newTestTelemetryMetaStoreTestHelper(mockTelemetryStore)
 
-	mock.ExpectQuery(`SELECT DISTINCT string_value, number_value FROM siginsight_traces.tag_attributes_v2`).
+	mock.ExpectQuery(`SELECT DISTINCT string_value, number_value FROM siginsight_traces.field_values`).
 		WithArgs("custom.field", telemetrytypes.FieldContextAttribute.TagType(), telemetrytypes.FieldDataTypeString.TagDataType(), "%value%", 3).
 		WillReturnRows(cmock.NewRows([]cmock.ColumnType{
 			{Name: "string_value", Type: "String"},
@@ -274,7 +272,7 @@ func TestGetLogSeverityTextValuesFromLogFieldIndex(t *testing.T) {
 	mock := mockTelemetryStore.Mock()
 	metadata := newTestTelemetryMetaStoreTestHelper(mockTelemetryStore)
 
-	mock.ExpectQuery(`SELECT DISTINCT string_value, number_value FROM siginsight_logs.tag_attributes_v2.*tag_key.*LIMIT \?`).
+	mock.ExpectQuery(`SELECT DISTINCT string_value, number_value FROM siginsight_logs.field_values.*tag_key.*LIMIT \?`).
 		WithArgs("severity_text", 5).
 		WillReturnRows(cmock.NewRows([]cmock.ColumnType{
 			{Name: "string_value", Type: "String"},
@@ -302,9 +300,9 @@ func TestGetLogSeverityTextValuesFromLogFieldIndex(t *testing.T) {
 
 func TestTraceStaticFieldColumnMappings(t *testing.T) {
 	for name, expectedColumn := range map[string]string{
-		"service.name":         "resource_string_service$$name",
-		"http.route":           "attribute_string_http$$route",
-		"rpc.method":           "attribute_string_rpc$$method",
+		"service.name":         "service_name",
+		"http.route":           "http_route",
+		"rpc.method":           "rpc_method",
 		"has_error":            "has_error",
 		"response_status_code": "response_status_code",
 		"http_host":            "http_host",
@@ -413,10 +411,10 @@ func TestGetKeysMultiDoesNotAddAliases(t *testing.T) {
 			}
 
 			if hasTraces {
-				mock.ExpectSelect("SHOW CREATE TABLE siginsight_traces.span_index_v3").
+				mock.ExpectSelect("SHOW CREATE TABLE siginsight_traces.spans").
 					WillReturnRows(cmock.NewRows([]cmock.ColumnType{
 						{Name: "statement", Type: "String"},
-					}, [][]any{{"CREATE TABLE siginsight_traces.span_index_v3"}}))
+					}, [][]any{{"CREATE TABLE siginsight_traces.spans"}}))
 
 				var args []interface{}
 				var rows [][]any
