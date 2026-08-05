@@ -3,13 +3,12 @@ import { useSearchParams } from 'react-router-dom-v5-compat';
 import * as Sentry from '@sentry/react';
 import { Switch, Tooltip } from 'antd';
 import logEvent from 'api/common/logEvent';
-import { QueryBuilder } from 'components/QueryBuilder/QueryBuilder';
 import WarningPopover from 'components/WarningPopover/WarningPopover';
 import { initialQueriesMap, PANEL_TYPES } from 'constants/queryBuilder';
 import ExplorerOptionWrapper from 'container/ExplorerOptions/ExplorerOptionWrapper';
 import RightToolbarActions from 'container/QueryBuilder/components/ToolbarActions/RightToolbarActions';
-import { QueryBuilderProps } from 'container/QueryBuilder/QueryBuilder.interfaces';
 import DateTimeSelector from 'container/TopNav/DateTimeSelectionV2';
+import { LiteQueryBuilder } from 'features/lite-query/LiteQueryBuilder';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
 import { useShareBuilderUrl } from 'hooks/queryBuilder/useShareBuilderUrl';
 import {
@@ -222,11 +221,6 @@ function Explorer(): JSX.Element {
 		});
 	}, []);
 
-	const queryComponents = useMemo(
-		(): QueryBuilderProps['queryComponents'] => ({}),
-		[],
-	);
-
 	const [warning, setWarning] = useState<Warning | undefined>(undefined);
 
 	const oneChartPerQueryDisabledTooltip = useMemo(() => {
@@ -274,12 +268,9 @@ function Explorer(): JSX.Element {
 						<RightToolbarActions onStageRunQuery={(): void => handleRunQuery()} />
 					</div>
 				</div>
-				<QueryBuilder
+				<LiteQueryBuilder
 					config={{ initialDataSource: DataSource.METRICS, queryVariant: 'static' }}
 					panelType={PANEL_TYPES.TIME_SERIES}
-					queryComponents={queryComponents}
-					showFunctions={false}
-					version="v5"
 				/>
 				{/* TODO: Enable once we have resolved all related metrics issues */}
 				{/* <Button.Group className="explore-tabs">

@@ -15,7 +15,7 @@ import { Card, GraphContainer } from 'container/MetricsApplication/styles';
 import useResourceAttribute from 'hooks/useResourceAttribute';
 import { resourceAttributesToTagFilterItems } from 'hooks/useResourceAttribute/utils';
 import { useSafeNavigate } from 'hooks/useSafeNavigate';
-import { OnClickPluginOpts } from 'lib/uPlotShared/onClickPlugin';
+import { OnClickPluginOpts } from 'lib/uPlotV2/plugins/onClickPlugin';
 import { useAppContext } from 'providers/App/App';
 import { EQueryType } from 'types/common/dashboard';
 import { v4 as uuid } from 'uuid';

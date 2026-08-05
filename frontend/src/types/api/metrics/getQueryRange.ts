@@ -28,6 +28,15 @@ export type MetricQueryRangeSuccessResponse = SuccessResponse<
 	unknown
 > & { warning?: Warning; meta?: ExecStats };
 
+/** The query state required by visualization panels, independent of React Query internals. */
+export interface MetricQueryRangeResult {
+	data?: MetricQueryRangeSuccessResponse;
+	isLoading: boolean;
+	isFetching: boolean;
+	isError: boolean;
+	error?: Error | null;
+}
+
 export interface QueryRangeViewPayload {
 	data: {
 		result: QueryRangeResult[];

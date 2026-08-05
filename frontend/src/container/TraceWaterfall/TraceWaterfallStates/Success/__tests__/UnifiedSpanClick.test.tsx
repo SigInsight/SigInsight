@@ -73,7 +73,7 @@ jest.mock('components/HttpStatusBadge/HttpStatusBadge', () => {
 });
 
 // Mock other utilities that might cause issues
-jest.mock('lib/uPlotShared/generateColor', () => ({
+jest.mock('lib/color/generateColor', () => ({
 	generateColor: (): string => '#1890ff',
 }));
 

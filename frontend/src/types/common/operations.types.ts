@@ -1,4 +1,4 @@
-import { QueryBuilderProps } from 'container/QueryBuilder/QueryBuilder.interfaces';
+import { WhereClauseConfig } from 'hooks/queryBuilder/useAutoComplete';
 import { BaseAutocompleteData } from 'types/api/queryBuilder/queryAutocompleteResponse';
 import {
 	IBuilderFormula,
@@ -15,7 +15,15 @@ import { DataSource } from 'types/common/queryBuilder';
 
 import { SelectOption } from './select';
 
-type UseQueryOperationsParams = Pick<QueryBuilderProps, 'filterConfigs'> & {
+type FilterConfigs = {
+	[Key in keyof Omit<IBuilderQuery, 'filters'>]: {
+		isHidden: boolean;
+		isDisabled: boolean;
+	};
+} & { filters: WhereClauseConfig };
+
+type UseQueryOperationsParams = {
+	filterConfigs?: Partial<FilterConfigs>;
 	index: number;
 	query: IBuilderQuery;
 	formula?: IBuilderFormula;

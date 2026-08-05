@@ -1,5 +1,4 @@
 import { useMemo, useRef } from 'react';
-import { PanelWrapperProps } from 'container/PanelWrapper/panelWrapper.types';
 import { useIsDarkMode } from 'hooks/useDarkMode';
 import { useResizeObserver } from 'hooks/useDimensions';
 import { LegendPosition } from 'lib/uPlotV2/components/types';
@@ -9,6 +8,7 @@ import uPlot from 'uplot';
 
 import Histogram from '../../charts/Histogram/Histogram';
 import ChartManager from '../../components/ChartManager/ChartManager';
+import { PanelVisualizationProps } from '../types';
 import {
 	prepareHistogramPanelConfig,
 	prepareHistogramPanelData,
@@ -16,7 +16,7 @@ import {
 
 import '../Panel.styles.scss';
 
-function HistogramPanel(props: PanelWrapperProps): JSX.Element {
+function HistogramPanel(props: PanelVisualizationProps): JSX.Element {
 	const {
 		panelMode,
 		queryResponse,

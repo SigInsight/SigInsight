@@ -1,9 +1,6 @@
-import {
-	NULL_EXPAND,
-	NULL_REMOVE,
-	NULL_RETAIN,
-} from 'container/PanelWrapper/constants';
 import { AlignedData } from 'uplot';
+
+import { NULL_EXPAND, NULL_REMOVE, NULL_RETAIN } from '../constants';
 
 /**
  * Expands contiguous runs of `null` values to the left and right of their

@@ -6,7 +6,7 @@
 ## 总体依赖
 
 ```text
-M0 -> M1 -> M2 -> M3 -> M4 -> M5 -> M6 -> M7 -> M8 -> M9 -> M10
+M0 -> M1 -> M2 -> M3 -> M4 -> M5 -> M6 -> M7 -> M8 -> M9 -> M10 -> M11 -> M12 -> M13
 ```
 
 M2 的 Logs 和 Traces compiler 可以分子提交实现。M3 必须在 M2 建立的 Schema Catalog 和 Compiler contract 上完成，禁止形成另一套 Metrics 专用基础设施。
@@ -253,6 +253,18 @@ Explorer、详情页和保存查询兼容层使用的 DTO、状态、自动补�
 - 保留的 field collision、where-clause parser、key selector 和时间归一化通过直接包测试。
 
 提交锚点：`refactor(query): remove unused legacy builder helpers`
+
+## M13：收敛 V2 图表边界与 Container 编排层
+
+状态：已完成。
+
+目标：在旧 uPlot 已删除的前提下，消除 `PanelWrapper`、`TimeSeriesView` 与
+`PanelVisualization` 的重复适配和环依赖，保留 V2 单一渲染栈及核心图表能力。
+
+设计、迁移顺序、删除门槛和验证矩阵见
+[M13 阶段文档](milestones/m13-visualization-container-consolidation.md)。
+
+提交锚点：`refactor(visualization): consolidate panel rendering boundary`
 
 ## 阶段提交准则
 

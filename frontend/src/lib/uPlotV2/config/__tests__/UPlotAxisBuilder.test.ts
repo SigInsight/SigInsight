@@ -1,6 +1,6 @@
 import { getToolTipValue } from 'components/Graph/yAxisConfig';
 import { PANEL_TYPES } from 'constants/queryBuilder';
-import { uPlotXAxisValuesFormat } from 'lib/uPlotShared/uPlotXAxisValuesFormat';
+import { uPlotXAxisValuesFormat } from 'lib/uPlotV2/utils/uPlotXAxisValuesFormat';
 import type uPlot from 'uplot';
 
 import type { AxisProps } from '../types';

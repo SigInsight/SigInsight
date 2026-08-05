@@ -7,12 +7,11 @@ import { useIsDarkMode } from 'hooks/useDarkMode';
 import { useResizeObserver } from 'hooks/useDimensions';
 import useUrlQuery from 'hooks/useUrlQuery';
 import history from 'lib/history';
-import { uPlotXAxisValuesFormat } from 'lib/uPlotShared/uPlotXAxisValuesFormat';
-import UPlotChart from 'lib/uPlotV2/components/UPlotChart/UPlotChart';
+import { UPlotChartHost } from 'lib/uPlotV2';
 import { DrawStyle } from 'lib/uPlotV2/config/types';
 import { UPlotConfigBuilder } from 'lib/uPlotV2/config/UPlotConfigBuilder';
-import { PlotContextProvider } from 'lib/uPlotV2/context/PlotContext';
 import timelinePlugin from 'lib/uPlotV2/plugins/timelinePlugin';
+import { uPlotXAxisValuesFormat } from 'lib/uPlotV2/utils/uPlotXAxisValuesFormat';
 import { UpdateTimeInterval } from 'store/actions';
 import { AlertRuleTimelineGraphResponse } from 'types/api/alerts/def';
 import { AlignedData } from 'uplot';
@@ -90,7 +89,7 @@ function HorizontalTimelineGraph({
 	}, [dispatch, isDarkMode, urlQuery]);
 
 	return (
-		<UPlotChart
+		<UPlotChartHost
 			config={config}
 			data={transformedData}
 			width={width}
@@ -110,13 +109,11 @@ function Graph({ type, data }: Props): JSX.Element | null {
 
 	return (
 		<div ref={graphRef}>
-			<PlotContextProvider>
-				<HorizontalTimelineGraph
-					isDarkMode={isDarkMode}
-					width={containerDimensions.width}
-					data={data}
-				/>
-			</PlotContextProvider>
+			<HorizontalTimelineGraph
+				isDarkMode={isDarkMode}
+				width={containerDimensions.width}
+				data={data}
+			/>
 		</div>
 	);
 }

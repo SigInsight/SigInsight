@@ -1,13 +1,14 @@
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { MemoryRouter } from 'react-router-dom';
 import { fireEvent, render, screen } from '@testing-library/react';
-import { QueryBuilder } from 'components/QueryBuilder/QueryBuilder';
 import { PANEL_TYPES } from 'constants/queryBuilder';
 import { QueryBuilderContext } from 'providers/QueryBuilder';
 import { DataTypes } from 'types/api/queryBuilder/queryAutocompleteResponse';
 import { Query } from 'types/api/queryBuilder/queryBuilderData';
 import { EQueryType } from 'types/common/dashboard';
 import { DataSource, QueryBuilderContextType } from 'types/common/queryBuilder';
+
+import { LiteQueryBuilder } from './LiteQueryBuilder';
 
 jest.mock('features/query-builder-v3/QueryBuilderSearchV3', () => {
 	const React = jest.requireActual('react');
@@ -111,10 +112,9 @@ function renderBuilder(
 		<QueryClientProvider client={new QueryClient()}>
 			<MemoryRouter>
 				<QueryBuilderContext.Provider value={value}>
-					<QueryBuilder
+					<LiteQueryBuilder
 						panelType={panelType}
 						config={{ initialDataSource: DataSource.LOGS, queryVariant: 'static' }}
-						version="v5"
 					/>
 				</QueryBuilderContext.Provider>
 			</MemoryRouter>

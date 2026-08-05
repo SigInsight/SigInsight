@@ -5,11 +5,11 @@ import {
 	OPERATORS,
 } from 'constants/queryBuilder';
 import ROUTES from 'constants/routes';
-import { isApmMetric } from 'container/PanelWrapper/utils';
 import {
 	METRIC_TO_LOGS_TRACES_MAPPINGS,
 	replaceKeysAndValuesInExpression,
 } from 'container/QueryTable/Drilldown/metricsCorrelationUtils';
+import { isApmMetric } from 'container/QueryTable/Drilldown/metricTimeRange';
 import cloneDeep from 'lodash-es/cloneDeep';
 import {
 	BaseAutocompleteData,

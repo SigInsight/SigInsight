@@ -11,10 +11,7 @@ import {
 import { DataSource } from 'types/common/queryBuilder';
 import { v4 as uuid } from 'uuid';
 
-/**
- * Converts Query aggregations to BaseAutocompleteData format
- * for compatibility with existing OrderByFilter component
- */
+/** Converts V5 aggregations to the column metadata used by sort sanitization. */
 export function convertAggregationsToBaseAutocompleteData(
 	aggregations:
 		| TraceAggregation[]
@@ -81,36 +78,8 @@ export function convertAggregationsToBaseAutocompleteData(
 	});
 }
 
-/**
- * Helper function to get aggregation options for OrderByFilter
- * This creates BaseAutocompleteData that can be used with the existing OrderByFilter
- */
-export function getAggregationOptionsForOrderBy(query: {
-	aggregations?: TraceAggregation[] | LogAggregation[] | MetricAggregation[];
-	dataSource: DataSource;
-	aggregateAttribute?: { key: string };
-	spaceAggregation?: string;
-}): BaseAutocompleteData[] {
-	const {
-		aggregations,
-		dataSource,
-		aggregateAttribute,
-		spaceAggregation,
-	} = query;
-
-	return convertAggregationsToBaseAutocompleteData(
-		aggregations,
-		dataSource,
-		aggregateAttribute?.key,
-		spaceAggregation,
-	);
-}
-
-/**
- * Enhanced function that uses createAggregation to parse aggregations first
- * then converts them to BaseAutocompleteData format for OrderByFilter
- */
-export function getParsedAggregationOptionsForOrderBy(query: {
+/** Parse a query's V5 aggregations into selectable sort-column metadata. */
+export function getParsedAggregationColumns(query: {
 	aggregations?: TraceAggregation[] | LogAggregation[] | MetricAggregation[];
 	dataSource: DataSource;
 	aggregateAttribute?: { key: string };

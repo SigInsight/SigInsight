@@ -8,7 +8,6 @@ import {
 import { getLegend } from 'lib/dashboard/getQueryResults';
 import { convertValue } from 'lib/getConvertedValue';
 import getLabelName from 'lib/getLabelName';
-import { OnClickPluginOpts } from 'lib/uPlotShared/onClickPlugin';
 import {
 	DrawStyle,
 	FillMode,
@@ -16,6 +15,7 @@ import {
 	LineStyle,
 } from 'lib/uPlotV2/config/types';
 import { UPlotConfigBuilder } from 'lib/uPlotV2/config/UPlotConfigBuilder';
+import { OnClickPluginOpts } from 'lib/uPlotV2/plugins/onClickPlugin';
 import { isInvalidPlotValue } from 'lib/uPlotV2/utils/dataUtils';
 import get from 'lodash-es/get';
 import { Widgets } from 'types/api/dashboard/getAll';

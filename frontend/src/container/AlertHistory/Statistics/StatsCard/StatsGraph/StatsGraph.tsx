@@ -1,10 +1,9 @@
 import { useMemo, useRef } from 'react';
 import { Color } from '@signozhq/design-tokens';
 import { useResizeObserver } from 'hooks/useDimensions';
-import UPlotChart from 'lib/uPlotV2/components/UPlotChart/UPlotChart';
+import { UPlotChartHost } from 'lib/uPlotV2';
 import { DrawStyle, FillMode } from 'lib/uPlotV2/config/types';
 import { UPlotConfigBuilder } from 'lib/uPlotV2/config/UPlotConfigBuilder';
-import { PlotContextProvider } from 'lib/uPlotV2/context/PlotContext';
 import { AlertRuleStats } from 'types/api/alerts/def';
 
 type Props = {
@@ -83,15 +82,13 @@ function StatsGraph({ timeSeries, changeDirection }: Props): JSX.Element {
 
 	return (
 		<div style={{ height: '100%', width: '100%' }} ref={graphRef}>
-			<PlotContextProvider>
-				<UPlotChart
-					config={config}
-					data={[xData, yData]}
-					width={containerDimensions.width}
-					height={containerDimensions.height}
-					data-testid="alert-history-stats-graph"
-				/>
-			</PlotContextProvider>
+			<UPlotChartHost
+				config={config}
+				data={[xData, yData]}
+				width={containerDimensions.width}
+				height={containerDimensions.height}
+				data-testid="alert-history-stats-graph"
+			/>
 		</div>
 	);
 }

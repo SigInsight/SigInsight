@@ -1,4 +1,4 @@
-import { getUPlotChartData } from '../../../lib/uPlotShared/getUPlotChartData';
+import { getUPlotChartData } from '../../PanelVisualization/panels/utils/getUPlotChartData';
 import {
 	BarNonStackedChartData,
 	BarStackedChartData,

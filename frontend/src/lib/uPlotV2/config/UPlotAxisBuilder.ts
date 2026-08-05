@@ -1,10 +1,10 @@
 import { getToolTipValue } from 'components/Graph/yAxisConfig';
 import { PANEL_TYPES } from 'constants/queryBuilder';
-import { uPlotXAxisValuesFormat } from 'lib/uPlotShared/uPlotXAxisValuesFormat';
+import { uPlotXAxisValuesFormat } from 'lib/uPlotV2/utils/uPlotXAxisValuesFormat';
 import uPlot, { Axis } from 'uplot';
 
-import getGridColor from '../../uPlotShared/getGridColor';
 import { buildYAxisSizeCalculator } from '../utils/axis';
+import getGridColor from '../utils/getGridColor';
 import { AxisProps, ConfigBuilder } from './types';
 
 const PANEL_TYPES_WITH_X_AXIS_DATETIME_FORMAT = [

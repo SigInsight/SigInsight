@@ -188,7 +188,7 @@ function LogsExplorer(): JSX.Element {
 						<div className="log-explorer-query-container">
 							<div>
 								<ExplorerCard sourcepage={DataSource.LOGS}>
-									<LogExplorerQuerySection selectedView={selectedView} />
+									<LogExplorerQuerySection />
 								</ExplorerCard>
 							</div>
 							<div className="logs-explorer-views">

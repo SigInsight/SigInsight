@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import TimeSeries from 'container/PanelVisualization/charts/TimeSeries/TimeSeries';
 import ChartManager from 'container/PanelVisualization/components/ChartManager/ChartManager';
 import { usePanelContextMenu } from 'container/PanelVisualization/hooks/usePanelContextMenu';
-import { PanelWrapperProps } from 'container/PanelWrapper/panelWrapper.types';
 import { useIsDarkMode } from 'hooks/useDarkMode';
 import { useResizeObserver } from 'hooks/useDimensions';
 import { LegendPosition } from 'lib/uPlotV2/components/types';
@@ -12,15 +11,18 @@ import uPlot from 'uplot';
 import { getTimeRange } from 'utils/getTimeRange';
 
 import { prepareChartData, prepareUPlotConfig } from '../TimeSeriesPanel/utils';
+import { PanelVisualizationProps } from '../types';
 
 import '../Panel.styles.scss';
 
-function TimeSeriesPanel(props: PanelWrapperProps): JSX.Element {
+function TimeSeriesPanel(props: PanelVisualizationProps): JSX.Element {
 	const {
 		panelMode,
 		queryResponse,
 		widget,
 		onDragSelect,
+		onClickHandler,
+		contextMenuEnabled = true,
 		isFullViewMode,
 		onToggleModelHandler,
 	} = props;
@@ -66,7 +68,9 @@ function TimeSeriesPanel(props: PanelWrapperProps): JSX.Element {
 			widget,
 			isDarkMode,
 			currentQuery: widget.query,
-			onClick: clickHandlerWithContextMenu,
+			onClick:
+				onClickHandler ??
+				(contextMenuEnabled ? clickHandlerWithContextMenu : undefined),
 			onDragSelect,
 			apiResponse: queryResponse?.data?.payload,
 			timezone,
@@ -78,6 +82,8 @@ function TimeSeriesPanel(props: PanelWrapperProps): JSX.Element {
 		widget,
 		isDarkMode,
 		clickHandlerWithContextMenu,
+		onClickHandler,
+		contextMenuEnabled,
 		onDragSelect,
 		queryResponse?.data?.payload,
 		panelMode,

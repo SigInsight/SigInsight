@@ -1,5 +1,5 @@
 import { themeColors } from 'constants/theme';
-import { generateColor } from 'lib/uPlotShared/generateColor';
+import { generateColor } from 'lib/color/generateColor';
 import { calculateWidthBasedOnStepInterval } from 'lib/uPlotV2/utils';
 import uPlot, { Series } from 'uplot';
 

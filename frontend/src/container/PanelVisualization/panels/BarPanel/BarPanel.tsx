@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { PanelWrapperProps } from 'container/PanelWrapper/panelWrapper.types';
 import { useIsDarkMode } from 'hooks/useDarkMode';
 import { useResizeObserver } from 'hooks/useDimensions';
 import { LegendPosition } from 'lib/uPlotV2/components/types';
@@ -11,16 +10,19 @@ import { getTimeRange } from 'utils/getTimeRange';
 import BarChart from '../../charts/BarChart/BarChart';
 import ChartManager from '../../components/ChartManager/ChartManager';
 import { usePanelContextMenu } from '../../hooks/usePanelContextMenu';
+import { PanelVisualizationProps } from '../types';
 import { prepareBarPanelConfig, prepareBarPanelData } from './utils';
 
 import '../Panel.styles.scss';
 
-function BarPanel(props: PanelWrapperProps): JSX.Element {
+function BarPanel(props: PanelVisualizationProps): JSX.Element {
 	const {
 		panelMode,
 		queryResponse,
 		widget,
 		onDragSelect,
+		onClickHandler,
+		contextMenuEnabled = true,
 		isFullViewMode,
 		onToggleModelHandler,
 	} = props;
@@ -56,7 +58,9 @@ function BarPanel(props: PanelWrapperProps): JSX.Element {
 			widget,
 			isDarkMode,
 			currentQuery: widget.query,
-			onClick: clickHandlerWithContextMenu,
+			onClick:
+				onClickHandler ??
+				(contextMenuEnabled ? clickHandlerWithContextMenu : undefined),
 			onDragSelect,
 			apiResponse: queryResponse?.data?.payload,
 			timezone,
@@ -69,6 +73,8 @@ function BarPanel(props: PanelWrapperProps): JSX.Element {
 		isDarkMode,
 		queryResponse?.data?.payload,
 		clickHandlerWithContextMenu,
+		onClickHandler,
+		contextMenuEnabled,
 		onDragSelect,
 		minTimeScale,
 		maxTimeScale,

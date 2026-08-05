@@ -1,34 +1,23 @@
-import { RefObject, useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Skeleton, Tooltip, Typography } from 'antd';
 import cx from 'classnames';
-import { ToggleGraphProps } from 'components/Graph/types';
 import { QueryParams } from 'constants/query';
 import { PANEL_TYPES } from 'constants/queryBuilder';
 import { PanelMode } from 'container/PanelVisualization/panels/types';
-import PanelWrapper from 'container/PanelWrapper/PanelWrapper';
+import PanelVisualization from 'container/PanelVisualization/PanelVisualization';
 import useGetResolvedText from 'hooks/dashboard/useGetResolvedText';
-import { useNavigateToExplorer } from 'hooks/useNavigateToExplorer';
-import { useNotifications } from 'hooks/useNotifications';
 import { useSafeNavigate } from 'hooks/useSafeNavigate';
 import useUrlQuery from 'hooks/useUrlQuery';
 import createQueryParams from 'lib/createQueryParams';
 import { RowData } from 'lib/query/createTableColumnsFromQuery';
 import { useDashboardStore } from 'providers/Dashboard/store/useDashboardStore';
 import { EQueryType } from 'types/common/dashboard';
-import { DataSource } from 'types/common/queryBuilder';
-import {
-	getCustomTimeRangeWindowSweepInMS,
-	getStartAndEndTimesInMilliseconds,
-} from 'utils/chartTimeRange';
 
-import { useGraphClickToShowButton } from '../useGraphClickToShowButton';
-import useNavigateToExplorerPages from '../useNavigateToExplorerPages';
 import WidgetHeader from '../WidgetHeader';
 import FullView from './FullView';
 import { Modal } from './styles';
 import { WidgetGraphComponentProps } from './types';
-import { getLocalStorageGraphVisibilityState, handleGraphClick } from './utils';
 
 import '../GridCardLayout.styles.scss';
 
@@ -44,48 +33,22 @@ function WidgetGraphComponent({
 	onClickHandler,
 	onDragSelect,
 	customOnDragSelect,
-	customTooltipElement,
 	openTracesButton,
 	onOpenTraceBtnClick,
-	customSeries,
 	customErrorMessage,
 	customOnRowClick,
-	customTimeRangeWindowForCoRelation,
 	enableDrillDown,
 }: WidgetGraphComponentProps): JSX.Element {
 	const { safeNavigate } = useSafeNavigate();
-	const { notifications } = useNotifications();
 	const { pathname, search } = useLocation();
 
 	const params = useUrlQuery();
 
 	const isFullViewOpen = params.get(QueryParams.expandedWidgetId) === widget.id;
 
-	const lineChartRef = useRef<ToggleGraphProps>();
-	const [graphVisibility, setGraphVisibility] = useState<boolean[]>(
-		Array(queryResponse.data?.payload?.data?.result?.length || 0).fill(true),
-	);
 	const graphRef = useRef<HTMLDivElement>(null);
 
-	const [
-		currentGraphRef,
-		setCurrentGraphRef,
-	] = useState<RefObject<HTMLDivElement> | null>(graphRef);
-
-	useEffect(() => {
-		if (!lineChartRef.current) {
-			return;
-		}
-
-		graphVisibility.forEach((state, index) => {
-			lineChartRef.current?.toggleGraph(index, state);
-		});
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, []);
-
 	const tableProcessedDataRef = useRef<RowData[]>([]);
-
-	const navigateToExplorerPages = useNavigateToExplorerPages();
 
 	const { setColumnWidths } = useDashboardStore();
 
@@ -123,15 +86,6 @@ function WidgetGraphComponent({
 		existingSearchParams.delete(QueryParams.compositeQuery);
 		existingSearchParams.delete(QueryParams.graphType);
 		const updatedQueryParams = Object.fromEntries(existingSearchParams.entries());
-		if (queryResponse.data?.payload) {
-			const {
-				graphVisibilityStates: localStoredVisibilityState,
-			} = getLocalStorageGraphVisibilityState({
-				apiResponse: queryResponse.data?.payload?.data?.result,
-				name: widget.id,
-			});
-			setGraphVisibility(localStoredVisibilityState);
-		}
 		safeNavigate({
 			pathname,
 			search: createQueryParams(updatedQueryParams),
@@ -139,54 +93,6 @@ function WidgetGraphComponent({
 	};
 
 	const [searchTerm, setSearchTerm] = useState<string>('');
-
-	const graphClick = useGraphClickToShowButton({
-		graphRef: currentGraphRef?.current ? currentGraphRef : graphRef,
-		isButtonEnabled: (widget?.query?.builder?.queryData &&
-		Array.isArray(widget.query.builder.queryData)
-			? widget.query.builder.queryData
-			: []
-		).some(
-			(q) =>
-				q.dataSource === DataSource.TRACES || q.dataSource === DataSource.LOGS,
-		),
-		buttonClassName: 'view-onclick-show-button',
-	});
-
-	const navigateToExplorer = useNavigateToExplorer();
-
-	const graphClickHandler = (
-		xValue: number,
-		yValue: number,
-		mouseX: number,
-		mouseY: number,
-		metric?: { [key: string]: string },
-		queryData?: { queryName: string; inFocusOrNot: boolean },
-	): void => {
-		const customTracesTimeRange = getCustomTimeRangeWindowSweepInMS(
-			customTimeRangeWindowForCoRelation,
-		);
-		const { start, end } = getStartAndEndTimesInMilliseconds(
-			xValue,
-			customTracesTimeRange,
-		);
-		handleGraphClick({
-			xValue,
-			yValue,
-			mouseX,
-			mouseY,
-			metric,
-			queryData,
-			widget,
-			navigateToExplorerPages,
-			navigateToExplorer,
-			notifications,
-			graphClick,
-			...(customTimeRangeWindowForCoRelation
-				? { customTracesTimeRange: { start, end } }
-				: {}),
-		});
-	};
 
 	const { truncatedText, fullText } = useGetResolvedText({
 		text: widget.title as string,
@@ -218,14 +124,12 @@ function WidgetGraphComponent({
 				<FullView
 					name={`${widget.id}expanded`}
 					version={version}
-					originalName={widget.id}
 					widget={widget}
 					yAxisUnit={widget.yAxisUnit}
 					onToggleModelHandler={onToggleModelHandler}
 					tableProcessedDataRef={tableProcessedDataRef}
-					onClickHandler={onClickHandler ?? graphClickHandler}
+					onClickHandler={onClickHandler}
 					customOnDragSelect={customOnDragSelect}
-					setCurrentGraphRef={setCurrentGraphRef}
 					enableDrillDown={
 						enableDrillDown && widget?.query?.queryType === EQueryType.QUERY_BUILDER
 					}
@@ -264,21 +168,17 @@ function WidgetGraphComponent({
 					)}
 					ref={graphRef}
 				>
-					<PanelWrapper
+					<PanelVisualization
 						panelMode={PanelMode.DASHBOARD_VIEW}
 						widget={widget}
 						queryResponse={queryResponse}
 						setRequestData={setRequestData}
-						setGraphVisibility={setGraphVisibility}
-						graphVisibility={graphVisibility}
-						onClickHandler={onClickHandler ?? graphClickHandler}
+						onClickHandler={onClickHandler}
 						onDragSelect={onDragSelect}
 						tableProcessedDataRef={tableProcessedDataRef}
-						customTooltipElement={customTooltipElement}
 						searchTerm={searchTerm}
 						openTracesButton={openTracesButton}
 						onOpenTraceBtnClick={onOpenTraceBtnClick}
-						customSeries={customSeries}
 						customOnRowClick={customOnRowClick}
 						enableDrillDown={enableDrillDown}
 						onColumnWidthsChange={onColumnWidthsChange}
@@ -293,7 +193,6 @@ WidgetGraphComponent.defaultProps = {
 	yAxisUnit: undefined,
 	setLayout: undefined,
 	onClickHandler: undefined,
-	customTimeRangeWindowForCoRelation: undefined,
 	enableDrillDown: false,
 };
 

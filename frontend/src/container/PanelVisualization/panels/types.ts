@@ -1,3 +1,11 @@
+import { Dispatch, MutableRefObject, SetStateAction } from 'react';
+import { PANEL_TYPES } from 'constants/queryBuilder';
+import { GetQueryResultsProps } from 'lib/dashboard/getQueryResults';
+import { RowData } from 'lib/query/createTableColumnsFromQuery';
+import { OnClickPluginOpts } from 'lib/uPlotV2/plugins/onClickPlugin';
+import { Widgets } from 'types/api/dashboard/getAll';
+import { MetricQueryRangeResult } from 'types/api/metrics/getQueryRange';
+
 /**
  * Represents the visibility state of a single series in a graph
  */
@@ -26,3 +34,23 @@ export enum PanelMode {
 	/** Panel rendered as a widget on a dashboard (read-only view). */
 	DASHBOARD_VIEW = 'DASHBOARD_VIEW',
 }
+
+export type PanelVisualizationProps = {
+	queryResponse: MetricQueryRangeResult;
+	widget: Widgets;
+	setRequestData?: Dispatch<SetStateAction<GetQueryResultsProps>>;
+	isFullViewMode?: boolean;
+	onToggleModelHandler?: () => void;
+	onClickHandler?: OnClickPluginOpts['onClick'];
+	contextMenuEnabled?: boolean;
+	onDragSelect: (start: number, end: number) => void;
+	selectedGraph?: PANEL_TYPES;
+	tableProcessedDataRef?: MutableRefObject<RowData[]>;
+	searchTerm?: string;
+	openTracesButton?: boolean;
+	onOpenTraceBtnClick?: (record: RowData) => void;
+	customOnRowClick?: (record: RowData) => void;
+	enableDrillDown?: boolean;
+	panelMode: PanelMode;
+	onColumnWidthsChange?: (widths: Record<string, number>) => void;
+};

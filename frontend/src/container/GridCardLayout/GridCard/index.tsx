@@ -47,12 +47,10 @@ function GridCardGraph({
 	onClickHandler,
 	onDragSelect,
 	customOnDragSelect,
-	customTooltipElement,
 	dataAvailable,
 	getGraphData,
 	openTracesButton,
 	onOpenTraceBtnClick,
-	customSeries,
 	customErrorMessage,
 	start,
 	end,
@@ -60,7 +58,6 @@ function GridCardGraph({
 	fetchWhenHidden,
 	customTimeRange,
 	customOnRowClick,
-	customTimeRangeWindowForCoRelation,
 	enableDrillDown,
 }: GridCardGraphProps): JSX.Element {
 	const dispatch = useDispatch();
@@ -322,13 +319,10 @@ function GridCardGraph({
 					onClickHandler={onClickHandler}
 					onDragSelect={onDragSelect}
 					customOnDragSelect={customOnDragSelect}
-					customTooltipElement={customTooltipElement}
 					openTracesButton={openTracesButton}
 					onOpenTraceBtnClick={onOpenTraceBtnClick}
-					customSeries={customSeries}
 					customErrorMessage={isInternalServerError ? customErrorMessage : undefined}
 					customOnRowClick={customOnRowClick}
-					customTimeRangeWindowForCoRelation={customTimeRangeWindowForCoRelation}
 					enableDrillDown={enableDrillDown}
 				/>
 			)}
@@ -345,7 +339,6 @@ GridCardGraph.defaultProps = {
 	version: 'v5',
 	analyticsEvent: undefined,
 	fetchWhenHidden: false,
-	customTimeRangeWindowForCoRelation: undefined,
 	enableDrillDown: false,
 };
 

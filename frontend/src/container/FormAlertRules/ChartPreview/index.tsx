@@ -12,7 +12,7 @@ import { INITIAL_CRITICAL_THRESHOLD } from 'container/CreateAlertV2/context/cons
 import { Threshold } from 'container/CreateAlertV2/context/types';
 import { populateMultipleResults } from 'container/NewWidget/LeftContainer/WidgetGraph/util';
 import { PanelMode } from 'container/PanelVisualization/panels/types';
-import PanelWrapper from 'container/PanelWrapper/PanelWrapper';
+import PanelVisualization from 'container/PanelVisualization/PanelVisualization';
 import {
 	CustomTimeType,
 	Time,
@@ -298,7 +298,7 @@ function ChartPreview({
 					{chartQueryResponse.data &&
 						!chartQueryResponse.isError &&
 						!chartQueryResponse.isLoading && (
-							<PanelWrapper
+							<PanelVisualization
 								panelMode={PanelMode.STANDALONE_VIEW}
 								widget={previewWidget}
 								queryResponse={chartQueryResponse}
