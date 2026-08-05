@@ -1,6 +1,6 @@
 # M15：基础告警编辑器功能边界与交互设计
 
-状态：In progress；设计已确认，10.1 Typed Formula Core 已完成
+状态：In progress；设计已确认，10.1 Typed Formula Core 与 10.2 Typed Result 已完成
 
 最后更新：2026-08-05
 
@@ -443,6 +443,12 @@ serializer 和同一套 validator，禁止分别拼装三种近似 payload。
 - 保持非 Alert Lite UI 的数值公式边界，不恢复 legacy result function chain。
 
 提交锚点：`feat(query): execute typed alert formulas`
+
+完成记录：`abs`、`min`、`max`、`clamp` 已在同一 typed parser/evaluator 中实现；Lite Plan
+保存已检查 Formula Program，执行器不再维护旧 float-only tokenizer/evaluator。`QueryResult` 和
+V5 `time_series`/`scalar` 响应以 `valueType: number|bool` 明确结果类型；bool point 使用
+`boolValue`，缺失 bool 不参与 fill-gaps，不能被伪造为 `false`。当前通用 Query Builder 仍只
+开放数值 Formula；布尔 Formula 和函数补全仅会随 10.4 Basic Alert Editor 对 Alert UI 开放。
 
 ### 10.3 Alert v3alpha1 领域模型
 

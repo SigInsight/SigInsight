@@ -79,7 +79,11 @@ func (q *QueryRangeResponse) PrepareJSONSchema(schema *jsonschema.Schema) error 
 }
 
 type TimeSeriesData struct {
-	QueryName    string               `json:"queryName"`
+	QueryName string `json:"queryName"`
+	// ValueType makes the aggregation value union explicit. Number remains the
+	// default for compatibility with existing panel responses; bool is emitted
+	// only by typed lightweight formulas.
+	ValueType    string               `json:"valueType,omitempty"`
 	Aggregations []*AggregationBucket `json:"aggregations"`
 }
 
@@ -87,7 +91,8 @@ type AggregationBucket struct {
 	Index int    `json:"index"` // or string Alias
 	Alias string `json:"alias"`
 	Meta  struct {
-		Unit string `json:"unit,omitempty"`
+		Unit      string `json:"unit,omitempty"`
+		ValueType string `json:"valueType,omitempty"`
 	} `json:"meta,omitempty"`
 	Series []*TimeSeries `json:"series"` // no extra nesting
 
@@ -157,6 +162,9 @@ func GetUniqueSeriesKey(labels []*Label) string {
 type TimeSeriesValue struct {
 	Timestamp int64   `json:"timestamp"`
 	Value     float64 `json:"value"`
+	// BoolValue is used when TimeSeriesData.ValueType is bool. Value is kept at
+	// its historical numeric wire location so number consumers remain stable.
+	BoolValue *bool `json:"boolValue,omitempty"`
 
 	// true if the value is "partial", i.e doesn't cover the complete interval.
 	// for instance, if the query start time is 3:14:15 PM, and the step is 1 minute,
@@ -205,6 +213,7 @@ type ColumnDescriptor struct {
 
 type ScalarData struct {
 	QueryName string              `json:"queryName"`
+	ValueType string              `json:"valueType,omitempty"`
 	Columns   []*ColumnDescriptor `json:"columns"`
 	Data      [][]any             `json:"data"`
 }

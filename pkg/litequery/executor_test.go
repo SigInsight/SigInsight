@@ -2,7 +2,7 @@ package litequery
 
 import (
 	"context"
-	"strings"
+	"reflect"
 	"sync"
 	"testing"
 	"time"
@@ -73,12 +73,12 @@ func TestExecutorResolvesForwardFormulaDependencies(t *testing.T) {
 	}
 }
 
-func TestEvaluateFormulasUsesCollisionSafeAlignmentAndReportsMissingInputs(t *testing.T) {
+func TestEvaluateFormulasUsesCollisionSafeAlignmentAndPreservesMissingInputs(t *testing.T) {
 	groupA := FieldRef{Name: "first", Context: FieldContextAttribute, Type: ValueTypeString}
 	groupB := FieldRef{Name: "second", Context: FieldContextAttribute, Type: ValueTypeString}
 	columns := []ResultColumn{{Name: "group_0", Field: &groupA}, {Name: "group_1", Field: &groupB}, {Name: "value"}}
 	plan := Plan{Formulas: []Formula{{Name: "F", Expression: "A + B"}}}
-	formulaResults, warnings, err := evaluateFormulas(plan, []QueryResult{
+	formulaResults, err := evaluateFormulas(plan, []QueryResult{
 		{Name: "A", Columns: columns, Rows: [][]any{{"a b", "c", float64(1)}, {"a", "b c", float64(2)}}},
 		{Name: "B", Columns: columns, Rows: [][]any{{"a b", "c", float64(10)}}},
 	})
@@ -88,24 +88,97 @@ func TestEvaluateFormulasUsesCollisionSafeAlignmentAndReportsMissingInputs(t *te
 	if len(formulaResults) != 1 || len(formulaResults[0].Rows) != 2 {
 		t.Fatalf("formula results = %#v, want two independently aligned rows", formulaResults)
 	}
-	if formulaResults[0].Rows[0][2] != float64(11) || formulaResults[0].Rows[1][2] != float64(2) {
-		t.Fatalf("formula rows = %#v, want 11 and missing-as-zero 2", formulaResults[0].Rows)
+	if formulaResults[0].Rows[0][2] != float64(11) || formulaResults[0].Rows[1][2] != nil {
+		t.Fatalf("formula rows = %#v, want 11 and a missing aligned result", formulaResults[0].Rows)
 	}
-	if len(warnings) != 1 || !strings.Contains(warnings[0], "missing aligned value") {
-		t.Fatalf("warnings = %#v, want missing alignment warning", warnings)
+}
+
+func TestEvaluateFormulasDefaultsOnlyCountLikeInputsToZero(t *testing.T) {
+	columns := []ResultColumn{{Name: "timestamp"}, {Name: "value"}}
+	plan := Plan{
+		Formulas: []Formula{{Name: "F", Expression: "A + B"}},
+		Queries: []QueryPlan{
+			{Query: LogQuery{Common: CommonQuery{Name: "A"}, Aggregation: LogAggregateCount}},
+			{Query: LogQuery{Common: CommonQuery{Name: "B"}, Aggregation: LogAggregateCount}},
+		},
+	}
+	formulaResults, err := evaluateFormulas(plan, []QueryResult{
+		{Name: "A", Columns: columns, Rows: [][]any{{int64(1), float64(2)}}},
+		{Name: "B", Columns: columns, Rows: [][]any{{int64(2), float64(3)}}},
+	})
+	if err != nil {
+		t.Fatalf("evaluateFormulas() error = %v", err)
+	}
+	if got, want := formulaResults[0].Rows, [][]any{{int64(1), float64(2)}, {int64(2), float64(3)}}; !reflect.DeepEqual(got, want) {
+		t.Fatalf("formula rows = %#v, want %#v", got, want)
+	}
+
+	plan.Queries[0].Query = LogQuery{Common: CommonQuery{Name: "A"}, Aggregation: LogAggregateAvg, Field: FieldRef{Name: "duration", Context: FieldContextAttribute, Type: ValueTypeNumber}}
+	formulaResults, err = evaluateFormulas(plan, []QueryResult{
+		{Name: "A", Columns: columns, Rows: [][]any{{int64(1), float64(2)}}},
+		{Name: "B", Columns: columns, Rows: [][]any{{int64(2), float64(3)}}},
+	})
+	if err != nil {
+		t.Fatalf("evaluateFormulas() error = %v", err)
+	}
+	if got := formulaResults[0].Rows[1][1]; got != nil {
+		t.Fatalf("formula row = %#v, want missing avg input", formulaResults[0].Rows[1])
+	}
+}
+
+func TestExecutorEvaluatesBooleanFormula(t *testing.T) {
+	plan, err := (DefaultPlanner{}).Plan(Request{
+		Range: TimeRange{StartMS: 1, EndMS: 2}, ResultType: ResultScalar,
+		Queries:  []Query{LogQuery{Common: CommonQuery{Name: "A"}, Aggregation: LogAggregateCount}},
+		Formulas: []Formula{{Name: "F1", Expression: "A >= 2"}},
+	})
+	if err != nil {
+		t.Fatalf("Plan() error = %v", err)
+	}
+	result, err := (Executor{Query: func(context.Context, string, ...any) (Rows, error) {
+		return &fakeRows{columns: []string{"value"}, data: [][]any{{float64(2)}}}, nil
+	}}).Execute(context.Background(), plan)
+	if err != nil {
+		t.Fatalf("Execute() error = %v", err)
+	}
+	formula := result.Queries[1]
+	if formula.Columns[0].ValueType != FormulaValueBool || formula.Rows[0][0] != true {
+		t.Fatalf("boolean formula result = %#v", formula)
 	}
 }
 
 func TestEvaluateFormulasRejectsDifferentGroupSchemas(t *testing.T) {
 	service := FieldRef{Name: "service.name", Context: FieldContextResource, Type: ValueTypeString}
 	host := FieldRef{Name: "host.name", Context: FieldContextResource, Type: ValueTypeString}
-	_, _, err := evaluateFormulas(Plan{Formulas: []Formula{{Name: "F", Expression: "A + B"}}}, []QueryResult{
+	_, err := evaluateFormulas(Plan{Formulas: []Formula{{Name: "F", Expression: "A + B"}}}, []QueryResult{
 		{Name: "A", Columns: []ResultColumn{{Name: "group_0", Field: &service}, {Name: "value"}}, Rows: [][]any{{"api", float64(1)}}},
 		{Name: "B", Columns: []ResultColumn{{Name: "group_0", Field: &host}, {Name: "value"}}, Rows: [][]any{{"api", float64(2)}}},
 	})
 	var queryErr *Error
 	if !errors.As(err, &queryErr) || queryErr.Code != ErrorInvalidFormula {
 		t.Fatalf("evaluateFormulas() error = %v, want invalid formula", err)
+	}
+}
+
+func TestEvaluateFormulasRebindsConcreteResultUnits(t *testing.T) {
+	plan, err := (DefaultPlanner{}).Plan(Request{
+		Range:      TimeRange{StartMS: 1, EndMS: 2},
+		ResultType: ResultScalar,
+		Queries: []Query{
+			LogQuery{Common: CommonQuery{Name: "A"}, Aggregation: LogAggregateCount},
+			LogQuery{Common: CommonQuery{Name: "B"}, Aggregation: LogAggregateCount},
+		},
+		Formulas: []Formula{{Name: "F", Expression: "A + B"}},
+	})
+	if err != nil {
+		t.Fatalf("Plan() error = %v", err)
+	}
+	_, err = evaluateFormulas(plan, []QueryResult{
+		{Name: "A", Columns: []ResultColumn{{Name: "value", Unit: "ms"}}, Rows: [][]any{{float64(1)}}},
+		{Name: "B", Columns: []ResultColumn{{Name: "value", Unit: "bytes"}}, Rows: [][]any{{float64(2)}}},
+	})
+	if err == nil {
+		t.Fatal("evaluateFormulas() error = nil, want incompatible result units")
 	}
 }
 

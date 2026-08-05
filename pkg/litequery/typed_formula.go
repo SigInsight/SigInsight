@@ -104,6 +104,13 @@ type typedFormulaBinaryNode struct {
 
 func (*typedFormulaBinaryNode) typedFormulaNode() {}
 
+type typedFormulaCallNode struct {
+	name string
+	args []typedFormulaNode
+}
+
+func (*typedFormulaCallNode) typedFormulaNode() {}
+
 type typedFormulaParser struct {
 	tokens []typedFormulaToken
 	index  int
@@ -516,7 +523,26 @@ func (p *typedFormulaParser) parsePrimary() (typedFormulaNode, error) {
 		return &typedFormulaNumberNode{value: value}, nil
 	case typedFormulaIdentifier:
 		if p.current().kind == typedFormulaLeftParen {
-			return nil, newError(ErrorInvalidFormula, "formula.expression", "formula functions are not enabled yet")
+			p.advance()
+			args := make([]typedFormulaNode, 0, 3)
+			if p.current().kind != typedFormulaRightParen {
+				for {
+					arg, err := p.parseOr()
+					if err != nil {
+						return nil, err
+					}
+					args = append(args, arg)
+					if p.current().kind != typedFormulaComma {
+						break
+					}
+					p.advance()
+				}
+			}
+			if p.current().kind != typedFormulaRightParen {
+				return nil, newError(ErrorInvalidFormula, "formula.expression", "missing closing parenthesis for function %q", token.value)
+			}
+			p.advance()
+			return &typedFormulaCallNode{name: strings.ToLower(token.value), args: args}, nil
 		}
 		p.refs = append(p.refs, token.value)
 		return &typedFormulaReferenceNode{name: token.value}, nil
@@ -632,6 +658,16 @@ func inferTypedFormula(node typedFormulaNode, resolve formulaBindingResolver, in
 		default:
 			err = newError(ErrorInvalidFormula, "formula.expression", "unsupported formula operator %q", current.op)
 		}
+	case *typedFormulaCallNode:
+		arguments := make([]formulaInference, 0, len(current.args))
+		for _, arg := range current.args {
+			argument, inferErr := inferTypedFormula(arg, resolve, inferred)
+			if inferErr != nil {
+				return formulaInference{}, inferErr
+			}
+			arguments = append(arguments, argument)
+		}
+		result, err = inferTypedFormulaCall(current.name, arguments)
 	default:
 		err = newError(ErrorInvalidFormula, "formula.expression", "unsupported formula expression")
 	}
@@ -640,6 +676,94 @@ func inferTypedFormula(node typedFormulaNode, resolve formulaBindingResolver, in
 	}
 	inferred[node] = result
 	return result, nil
+}
+
+func inferTypedFormulaCall(name string, args []formulaInference) (formulaInference, error) {
+	for _, arg := range args {
+		if arg.typ.Kind != FormulaValueNumber {
+			return formulaInference{}, newError(ErrorInvalidFormula, "formula.expression", "function %s requires number arguments", name)
+		}
+	}
+	switch name {
+	case "abs":
+		if len(args) != 1 {
+			return formulaInference{}, newError(ErrorInvalidFormula, "formula.expression", "function abs expects 1 argument")
+		}
+		result := args[0]
+		if result.constant != nil {
+			constant := math.Abs(*result.constant)
+			result.constant = &constant
+		}
+		return result, nil
+	case "min", "max":
+		if len(args) != 2 {
+			return formulaInference{}, newError(ErrorInvalidFormula, "formula.expression", "function %s expects 2 arguments", name)
+		}
+		unit, err := compatibleFormulaUnit(args[0], args[1])
+		if err != nil {
+			return formulaInference{}, err
+		}
+		signature, err := mergeFormulaSeriesSignatures(args[0].seriesSignature, args[1].seriesSignature)
+		if err != nil {
+			return formulaInference{}, err
+		}
+		result := formulaInference{typ: FormulaStaticType{Kind: FormulaValueNumber, Unit: unit}, seriesSignature: signature}
+		if args[0].constant != nil && args[1].constant != nil {
+			left, err := formulaConstantInUnit(args[0], unit)
+			if err != nil {
+				return formulaInference{}, err
+			}
+			right, err := formulaConstantInUnit(args[1], unit)
+			if err != nil {
+				return formulaInference{}, err
+			}
+			constant := math.Min(left, right)
+			if name == "max" {
+				constant = math.Max(left, right)
+			}
+			result.constant = &constant
+		}
+		return result, nil
+	case "clamp":
+		if len(args) != 3 {
+			return formulaInference{}, newError(ErrorInvalidFormula, "formula.expression", "function clamp expects 3 arguments")
+		}
+		unit, err := compatibleFormulaUnit(args[0], args[1])
+		if err != nil {
+			return formulaInference{}, err
+		}
+		unit, err = compatibleFormulaUnit(formulaInference{typ: FormulaStaticType{Kind: FormulaValueNumber, Unit: unit}}, args[2])
+		if err != nil {
+			return formulaInference{}, err
+		}
+		signature, err := mergeFormulaSeriesSignatures(args[0].seriesSignature, args[1].seriesSignature)
+		if err != nil {
+			return formulaInference{}, err
+		}
+		signature, err = mergeFormulaSeriesSignatures(signature, args[2].seriesSignature)
+		if err != nil {
+			return formulaInference{}, err
+		}
+		if args[1].constant != nil && args[2].constant != nil && *args[1].constant > *args[2].constant {
+			return formulaInference{}, newError(ErrorInvalidFormula, "formula.expression", "function clamp requires low to be less than or equal to high")
+		}
+		return formulaInference{typ: FormulaStaticType{Kind: FormulaValueNumber, Unit: unit}, seriesSignature: signature}, nil
+	default:
+		return formulaInference{}, newError(ErrorInvalidFormula, "formula.expression", "unsupported formula function %q", name)
+	}
+}
+
+func formulaConstantInUnit(value formulaInference, targetUnit string) (float64, error) {
+	if value.constant == nil {
+		return 0, newError(ErrorInvalidFormula, "formula.expression", "formula value is not constant")
+	}
+	if targetUnit == "" || value.typ.Unit == "" || value.typ.Unit == targetUnit {
+		return *value.constant, nil
+	}
+	if !units.AreCompatible(units.Unit(value.typ.Unit), units.Unit(targetUnit)) {
+		return 0, newError(ErrorInvalidFormula, "formula.expression", "formula constant unit %q is incompatible with %q", value.typ.Unit, targetUnit)
+	}
+	return units.ConverterFromUnit(units.Unit(value.typ.Unit)).Convert(units.Value{F: *value.constant, U: units.Unit(value.typ.Unit)}, units.Unit(targetUnit)).F, nil
 }
 
 func mergeFormulaSeriesSignatures(left, right string) (string, error) {
@@ -790,8 +914,71 @@ func evaluateTypedFormula(node typedFormulaNode, types map[typedFormulaNode]form
 		case "OR":
 			return FormulaValue{Type: inference.typ, Bool: left.Bool || right.Bool}, nil
 		}
+	case *typedFormulaCallNode:
+		arguments := make([]FormulaValue, 0, len(current.args))
+		for _, arg := range current.args {
+			value, err := evaluateTypedFormula(arg, types, values)
+			if err != nil {
+				return FormulaValue{}, err
+			}
+			arguments = append(arguments, value)
+		}
+		for _, arg := range arguments {
+			if arg.Missing {
+				return FormulaValue{Type: inference.typ, Missing: true}, nil
+			}
+		}
+		return evaluateTypedFormulaCall(current.name, inference.typ, arguments)
 	}
 	return FormulaValue{}, newError(ErrorInvalidFormula, "formula.expression", "unsupported formula expression")
+}
+
+func evaluateTypedFormulaCall(name string, resultType FormulaStaticType, args []FormulaValue) (FormulaValue, error) {
+	switch name {
+	case "abs":
+		if len(args) != 1 || args[0].Type.Kind != FormulaValueNumber {
+			return FormulaValue{}, newError(ErrorInvalidFormula, "formula.expression", "function abs expects 1 number argument")
+		}
+		return checkedFormulaNumber(resultType, math.Abs(args[0].Number)), nil
+	case "min", "max":
+		if len(args) != 2 || args[0].Type.Kind != FormulaValueNumber || args[1].Type.Kind != FormulaValueNumber {
+			return FormulaValue{}, newError(ErrorInvalidFormula, "formula.expression", "function %s expects 2 number arguments", name)
+		}
+		left, err := formulaNumberInUnit(args[0], resultType.Unit)
+		if err != nil {
+			return FormulaValue{}, err
+		}
+		right, err := formulaNumberInUnit(args[1], resultType.Unit)
+		if err != nil {
+			return FormulaValue{}, err
+		}
+		if name == "min" {
+			return checkedFormulaNumber(resultType, math.Min(left, right)), nil
+		}
+		return checkedFormulaNumber(resultType, math.Max(left, right)), nil
+	case "clamp":
+		if len(args) != 3 || args[0].Type.Kind != FormulaValueNumber || args[1].Type.Kind != FormulaValueNumber || args[2].Type.Kind != FormulaValueNumber {
+			return FormulaValue{}, newError(ErrorInvalidFormula, "formula.expression", "function clamp expects 3 number arguments")
+		}
+		value, err := formulaNumberInUnit(args[0], resultType.Unit)
+		if err != nil {
+			return FormulaValue{}, err
+		}
+		low, err := formulaNumberInUnit(args[1], resultType.Unit)
+		if err != nil {
+			return FormulaValue{}, err
+		}
+		high, err := formulaNumberInUnit(args[2], resultType.Unit)
+		if err != nil {
+			return FormulaValue{}, err
+		}
+		if low > high {
+			return FormulaValue{}, newError(ErrorInvalidFormula, "formula.expression", "function clamp requires low to be less than or equal to high")
+		}
+		return checkedFormulaNumber(resultType, math.Min(math.Max(value, low), high)), nil
+	default:
+		return FormulaValue{}, newError(ErrorInvalidFormula, "formula.expression", "unsupported formula function %q", name)
+	}
 }
 
 func evaluateTypedArithmetic(operator string, resultType FormulaStaticType, left, right FormulaValue) (FormulaValue, error) {
@@ -933,6 +1120,12 @@ func formatTypedFormula(node typedFormulaNode, parentPrecedence int) string {
 		}
 		right := formatTypedFormula(current.right, rightPrecedence)
 		text = left + " " + current.op + " " + right
+	case *typedFormulaCallNode:
+		args := make([]string, 0, len(current.args))
+		for _, arg := range current.args {
+			args = append(args, formatTypedFormula(arg, 0))
+		}
+		text = current.name + "(" + strings.Join(args, ", ") + ")"
 	}
 	if precedence < parentPrecedence {
 		return "(" + text + ")"

@@ -1,8 +1,9 @@
 package litequery
 
 import (
-	"errors"
 	"testing"
+
+	"github.com/SigNoz/signoz/pkg/errors"
 )
 
 func TestAnalyzeTypedFormulaCanonicalizesBooleanPrecedence(t *testing.T) {
@@ -201,6 +202,46 @@ func TestTypedFormulaEvaluateConvertsUnitsAndPropagatesMissing(t *testing.T) {
 			t.Fatalf("Evaluate() = %#v, want missing number", value)
 		}
 	})
+}
+
+func TestTypedFormulaInlineFunctions(t *testing.T) {
+	bindings := map[string]FormulaBinding{
+		"A": {Type: FormulaStaticType{Kind: FormulaValueNumber, Unit: "ms"}},
+		"B": {Type: FormulaStaticType{Kind: FormulaValueNumber, Unit: "s"}},
+	}
+	formula, err := AnalyzeTypedFormula("clamp(abs(A - B), 100, max(250, 300))", bindings)
+	if err != nil {
+		t.Fatalf("AnalyzeTypedFormula() error = %v", err)
+	}
+	if got, want := formula.Canonical(), "clamp(abs(A - B), 100, max(250, 300))"; got != want {
+		t.Fatalf("Canonical() = %q, want %q", got, want)
+	}
+	value, err := formula.Evaluate(map[string]FormulaValue{
+		"A": {Type: FormulaStaticType{Kind: FormulaValueNumber, Unit: "ms"}, Number: 2_000},
+		"B": {Type: FormulaStaticType{Kind: FormulaValueNumber, Unit: "s"}, Number: 1},
+	})
+	if err != nil {
+		t.Fatalf("Evaluate() error = %v", err)
+	}
+	if value.Missing || value.Number != 300 || value.Type.Unit != "ms" {
+		t.Fatalf("Evaluate() = %#v, want 300ms", value)
+	}
+
+	for _, expression := range []string{
+		"abs(A, B)",
+		"min(A)",
+		"clamp(A, 10, 1)",
+		"sqrt(A)",
+		"min(A, A > 1)",
+	} {
+		t.Run(expression, func(t *testing.T) {
+			_, err := AnalyzeTypedFormula(expression, bindings)
+			var queryErr *Error
+			if !errors.As(err, &queryErr) || queryErr.Code != ErrorInvalidFormula {
+				t.Fatalf("AnalyzeTypedFormula(%q) error = %v, want invalid formula", expression, err)
+			}
+		})
+	}
 }
 
 func FuzzAnalyzeTypedFormula(f *testing.F) {

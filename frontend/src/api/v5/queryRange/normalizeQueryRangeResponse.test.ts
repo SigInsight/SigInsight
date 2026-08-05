@@ -118,6 +118,46 @@ describe('normalizeQueryRangeResponse', () => {
 		);
 	});
 
+	it('preserves typed boolean time-series values for alert consumers', () => {
+		const timeSeries: TimeSeriesData = {
+			queryName: 'F1',
+			valueType: 'bool',
+			aggregations: [
+				{
+					index: 0,
+					alias: 'value',
+					meta: { valueType: 'bool' },
+					series: [
+						{
+							values: [
+								{ timestamp: 1000, value: 0, boolValue: true },
+								{ timestamp: 2000, value: 0, boolValue: false },
+							],
+						},
+					],
+				},
+			],
+		};
+		const params = makeBaseParams('time_series', [
+			{
+				type: 'builder_formula',
+				spec: { name: 'F1', expression: 'A > 10', disabled: false },
+			},
+		]);
+		const response: QueryRangeResponseV5 = {
+			type: 'time_series',
+			data: { results: [timeSeries] },
+			meta: { rowsScanned: 0, bytesScanned: 0, durationMs: 0, stepIntervals: {} },
+		};
+
+		const input = makeBaseSuccess({ data: response }, params);
+		const result = normalizeQueryRangeResponse(input, {}, false);
+		expect(result.payload.data.result[0].series?.[0].values).toEqual([
+			{ timestamp: 1000, value: 'true' },
+			{ timestamp: 2000, value: 'false' },
+		]);
+	});
+
 	it('converts scalar to legacy table (formatForWeb=false) with names/ids resolved from aggregations', () => {
 		const scalar: ScalarData = {
 			columns: [

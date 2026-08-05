@@ -8,11 +8,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func liteLogEnvelope(name string, disabled bool) QueryEnvelope {
+func liteLogEnvelope(disabled bool) QueryEnvelope {
 	return QueryEnvelope{
 		Type: QueryTypeBuilder,
 		Spec: QueryBuilderQuery[LogAggregation]{
-			Name:         name,
+			Name:         "A",
 			Signal:       telemetrytypes.SignalLogs,
 			Disabled:     disabled,
 			Aggregations: []LogAggregation{{Expression: "count()"}},
@@ -21,7 +21,7 @@ func liteLogEnvelope(name string, disabled bool) QueryEnvelope {
 }
 
 func TestValidateQueryEnvelopeSupportedLiteTypes(t *testing.T) {
-	require.NoError(t, validateQueryEnvelope(liteLogEnvelope("A", false)))
+	require.NoError(t, validateQueryEnvelope(liteLogEnvelope(false)))
 	require.NoError(t, validateQueryEnvelope(QueryEnvelope{
 		Type: QueryTypeFormula,
 		Spec: QueryBuilderFormula{Name: "F1", Expression: "A"},
@@ -38,8 +38,8 @@ func TestValidateQueryEnvelopeRejectsRetiredType(t *testing.T) {
 
 func TestCompositeQueryRejectsDuplicateBuilderNames(t *testing.T) {
 	query := CompositeQuery{Queries: []QueryEnvelope{
-		liteLogEnvelope("A", false),
-		liteLogEnvelope("A", false),
+		liteLogEnvelope(false),
+		liteLogEnvelope(false),
 	}}
 	require.ErrorContains(t, query.Validate(), "duplicate query name")
 }
@@ -49,11 +49,11 @@ func TestQueryRangeRequestRequiresEnabledQuery(t *testing.T) {
 		Start:          1,
 		End:            2,
 		RequestType:    RequestTypeTimeSeries,
-		CompositeQuery: CompositeQuery{Queries: []QueryEnvelope{liteLogEnvelope("A", true)}},
+		CompositeQuery: CompositeQuery{Queries: []QueryEnvelope{liteLogEnvelope(true)}},
 	}
 	require.ErrorContains(t, request.Validate(), "all queries are disabled")
 
-	request.CompositeQuery.Queries[0] = liteLogEnvelope("A", false)
+	request.CompositeQuery.Queries[0] = liteLogEnvelope(false)
 	require.NoError(t, request.Validate())
 }
 

@@ -1,6 +1,7 @@
 package liteadapter
 
 import (
+	"context"
 	"math"
 	"strings"
 	"testing"
@@ -690,6 +691,117 @@ func TestFromLiteProducesV5TimeSeriesAndRawData(t *testing.T) {
 		t.Fatalf("raw pagination warning = %#v, want no warning for a normal next page", rawResult.Warning)
 	}
 }
+
+func TestFromLitePreservesTypedBooleanFormulaResults(t *testing.T) {
+	request := &qbtypes.QueryRangeRequest{
+		Start: 1_000, End: 3_000, RequestType: qbtypes.RequestTypeTimeSeries,
+		FormatOptions: &qbtypes.FormatOptions{FillGaps: true},
+		CompositeQuery: qbtypes.CompositeQuery{Queries: []qbtypes.QueryEnvelope{{
+			Type: qbtypes.QueryTypeBuilder,
+			Spec: qbtypes.QueryBuilderQuery[qbtypes.LogAggregation]{Name: "A", StepInterval: qbtypes.Step{Duration: time.Second}},
+		}}},
+	}
+	response, err := FromLite(request, litequery.ExecutionResult{Queries: []litequery.QueryResult{{
+		Name: "F1",
+		Columns: []litequery.ResultColumn{
+			{Name: "timestamp"},
+			{Name: "value", ValueType: litequery.FormulaValueBool},
+		},
+		Rows: [][]any{{int64(1_000), true}, {int64(2_000), nil}},
+	}}})
+	if err != nil {
+		t.Fatalf("FromLite() error = %v", err)
+	}
+	data := response.Data.Results[0].(*qbtypes.TimeSeriesData)
+	if data.ValueType != string(litequery.FormulaValueBool) || data.Aggregations[0].Meta.ValueType != string(litequery.FormulaValueBool) {
+		t.Fatalf("boolean response type = %#v", data)
+	}
+	values := data.Aggregations[0].Series[0].Values
+	if len(values) != 1 || values[0].BoolValue == nil || !*values[0].BoolValue {
+		t.Fatalf("boolean response values = %#v", values)
+	}
+
+	scalarRequest := &qbtypes.QueryRangeRequest{Start: 1, End: 2, RequestType: qbtypes.RequestTypeScalar}
+	scalarResponse, err := FromLite(scalarRequest, litequery.ExecutionResult{Queries: []litequery.QueryResult{{
+		Name: "F1", Columns: []litequery.ResultColumn{{Name: "value", ValueType: litequery.FormulaValueBool}}, Rows: [][]any{{true}},
+	}}})
+	if err != nil {
+		t.Fatalf("FromLite(scalar) error = %v", err)
+	}
+	scalar := scalarResponse.Data.Results[0].(*qbtypes.ScalarData)
+	if scalar.ValueType != string(litequery.FormulaValueBool) || scalar.Data[0][0] != true {
+		t.Fatalf("boolean scalar response = %#v", scalar)
+	}
+}
+
+func TestV5BooleanFormulaUsesTypedLiteExecutorAndResponse(t *testing.T) {
+	request := &qbtypes.QueryRangeRequest{
+		Start: 1_000, End: 3_000, RequestType: qbtypes.RequestTypeTimeSeries,
+		CompositeQuery: qbtypes.CompositeQuery{Queries: []qbtypes.QueryEnvelope{
+			{
+				Type: qbtypes.QueryTypeBuilder,
+				Spec: qbtypes.QueryBuilderQuery[qbtypes.LogAggregation]{
+					Name: "A", Signal: telemetrytypes.SignalLogs, StepInterval: qbtypes.Step{Duration: time.Second},
+					Aggregations: []qbtypes.LogAggregation{{Expression: "count()"}},
+				},
+			},
+			{Type: qbtypes.QueryTypeFormula, Spec: qbtypes.QueryBuilderFormula{Name: "F1", Expression: "clamp(A, 0, 10) >= 2"}},
+		}},
+	}
+	liteRequest, err := ToLite(request, MetricMetadata{})
+	if err != nil {
+		t.Fatalf("ToLite() error = %v", err)
+	}
+	plan, err := (litequery.DefaultPlanner{}).Plan(liteRequest)
+	if err != nil {
+		t.Fatalf("Plan() error = %v", err)
+	}
+	executed, err := (litequery.Executor{Query: func(context.Context, string, ...any) (litequery.Rows, error) {
+		return &adapterTestRows{columns: []string{"timestamp", "value"}, rows: [][]any{{int64(1_000), float64(2)}}}, nil
+	}}).Execute(context.Background(), plan)
+	if err != nil {
+		t.Fatalf("Execute() error = %v", err)
+	}
+	response, err := FromLite(request, executed)
+	if err != nil {
+		t.Fatalf("FromLite() error = %v", err)
+	}
+	formula := response.Data.Results[1].(*qbtypes.TimeSeriesData)
+	if formula.ValueType != string(litequery.FormulaValueBool) || len(formula.Aggregations[0].Series) != 1 {
+		t.Fatalf("formula response = %#v", formula)
+	}
+	value := formula.Aggregations[0].Series[0].Values[0].BoolValue
+	if value == nil || !*value {
+		t.Fatalf("formula bool value = %#v, want true", formula.Aggregations[0].Series[0].Values)
+	}
+}
+
+type adapterTestRows struct {
+	columns []string
+	rows    [][]any
+	index   int
+}
+
+func (r *adapterTestRows) Columns() []string { return r.columns }
+
+func (r *adapterTestRows) Next() bool {
+	if r.index >= len(r.rows) {
+		return false
+	}
+	r.index++
+	return true
+}
+
+func (r *adapterTestRows) Scan(destinations ...any) error {
+	row := r.rows[r.index-1]
+	for index := range destinations {
+		*(destinations[index].(*any)) = row[index]
+	}
+	return nil
+}
+
+func (*adapterTestRows) Err() error   { return nil }
+func (*adapterTestRows) Close() error { return nil }
 
 func TestFromLiteMarksTruncatedResults(t *testing.T) {
 	request := &qbtypes.QueryRangeRequest{Start: 1, End: 2, RequestType: qbtypes.RequestTypeRaw}

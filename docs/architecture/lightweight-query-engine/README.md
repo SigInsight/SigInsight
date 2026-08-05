@@ -70,7 +70,7 @@
 | M12 QueryBuilderSearchV3 | Complete | V3 文本补全、字符串谓词、生产消费者迁移和旧编辑器删除已完成；全量 build/test 与真实浏览器查询已闭环 |
 | M13 V2 图表与 Container | Complete | 已收敛为 V2 单一渲染栈，删除旧 uPlot 与重复的 Container 适配链路 |
 | M14 运行时兼容删除 | Complete | 已删除旧保存查询兼容、不可达 Dashboard 状态、旧 Alert schema/模板/renotify 和指标元数据写路径 |
-| M15 基础告警编辑器 | In progress | Typed Formula Core 已完成；Alert v3 协议、统一编辑器和 legacy 删除待实现 |
+| M15 基础告警编辑器 | In progress | Typed Formula Core、bool V5 result 与四个内联函数已完成；Alert v3 协议、统一编辑器和 legacy 删除待实现 |
 | 机器可读能力矩阵 | Accepted | `capability-matrix.json` 是后续协议和 UI 的约束来源 |
 
 ## 查询引擎边界：引擎之外的专用查询构建器

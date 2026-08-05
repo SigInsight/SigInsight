@@ -341,6 +341,8 @@ export interface Bucket {
 export interface TimeSeriesValue {
 	timestamp: number; // Unix timestamp in milliseconds
 	value: number;
+	/** Present when the enclosing time-series result has valueType "bool". */
+	boolValue?: boolean;
 	values?: number[]; // For heatmap type charts
 	bucket?: Bucket;
 	partial?: boolean;
@@ -364,6 +366,7 @@ export interface AggregationBucket {
 
 export interface TimeSeriesData {
 	queryName: string;
+	valueType?: 'number' | 'bool';
 	aggregations: AggregationBucket[];
 }
 
@@ -377,6 +380,7 @@ export interface ColumnDescriptor extends TelemetryFieldKey {
 }
 
 export interface ScalarData {
+	valueType?: 'number' | 'bool';
 	columns: ColumnDescriptor[];
 	data: any[][];
 }

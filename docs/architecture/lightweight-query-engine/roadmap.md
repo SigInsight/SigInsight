@@ -282,7 +282,8 @@ Panel 渲染。
 
 ## M15：基础告警编辑器
 
-状态：In progress。10.1 Typed Formula Core 已完成，后续 Alert 协议与编辑器待实现。
+状态：In progress。10.1 Typed Formula Core、10.2 V5 typed result 与内联函数已完成；Alert
+v3 协议与编辑器待实现。
 
 保留固定边界的 Rolling/Cumulative 评估、显式 IANA 时区、多个 Lite 数据查询和有类型的
 算术/布尔公式；删除复杂 cadence 以及日历/自定义调度，并将当前分裂的 Alert Builder 状态
