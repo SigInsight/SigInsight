@@ -775,6 +775,8 @@ components:
           properties:
             unit:
               type: string
+            valueType:
+              type: string
           type: object
         predictedSeries:
           items:
@@ -1380,6 +1382,8 @@ components:
           type: array
         queryName:
           type: string
+        valueType:
+          type: string
       type: object
     Querybuildertypesv5SecondaryAggregation:
       properties:
@@ -1433,9 +1437,14 @@ components:
           type: array
         queryName:
           type: string
+        valueType:
+          type: string
       type: object
     Querybuildertypesv5TimeSeriesValue:
       properties:
+        boolValue:
+          nullable: true
+          type: boolean
         bucket:
           $ref: '#/components/schemas/Querybuildertypesv5Bucket'
         partial:

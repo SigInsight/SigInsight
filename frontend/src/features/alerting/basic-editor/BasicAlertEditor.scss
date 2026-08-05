@@ -101,7 +101,9 @@
 
 .basic-alert-editor__threshold-row {
 	display: grid;
-	grid-template-columns: 130px minmax(120px, 0.65fr) minmax(160px, 0.9fr) minmax(240px, 1.8fr) 36px;
+	grid-template-columns:
+		130px minmax(120px, 0.65fr) minmax(160px, 0.9fr) minmax(240px, 1.8fr)
+		36px;
 	margin-top: 16px;
 }
 

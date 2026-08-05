@@ -36,7 +36,7 @@ func ThresholdRuleAtLeastOnceValueAbove(target float64, recovery *float64) rulet
 		Annotations: map[string]string{
 			"description": "The configured alert condition was met.",
 		},
-		Version: "v5",
+		Version:       "v5",
 		SchemaVersion: ruletypes.CurrentSchemaVersion,
 		RuleCondition: &ruletypes.RuleCondition{
 			MatchType:     ruletypes.AtleastOnce,

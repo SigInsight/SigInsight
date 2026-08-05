@@ -901,6 +901,10 @@ export type Querybuildertypesv5AggregationBucketDTOMeta = {
 	 * @type string
 	 */
 	unit?: string;
+	/**
+	 * @type string
+	 */
+	valueType?: string;
 };
 
 export interface Querybuildertypesv5AggregationBucketDTO {
@@ -1639,6 +1643,10 @@ export interface Querybuildertypesv5ScalarDataDTO {
 	 * @type string
 	 */
 	queryName?: string;
+	/**
+	 * @type string
+	 */
+	valueType?: string;
 }
 
 export interface Querybuildertypesv5SecondaryAggregationDTO {
@@ -1693,9 +1701,18 @@ export interface Querybuildertypesv5TimeSeriesDataDTO {
 	 * @type string
 	 */
 	queryName?: string;
+	/**
+	 * @type string
+	 */
+	valueType?: string;
 }
 
 export interface Querybuildertypesv5TimeSeriesValueDTO {
+	/**
+	 * @type boolean
+	 * @nullable true
+	 */
+	boolValue?: boolean | null;
 	bucket?: Querybuildertypesv5BucketDTO;
 	/**
 	 * @type boolean
