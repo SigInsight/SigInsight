@@ -56,7 +56,6 @@ export interface BasicAlertDraft {
 		name: string;
 		alertType: AlertTypes;
 		labels: Labels;
-		description: string;
 	};
 	condition: BasicAlertConditionDraft;
 	evaluation: BasicEvaluationDraft;
@@ -64,5 +63,6 @@ export interface BasicAlertDraft {
 	notification: {
 		channel: string;
 		groupBy: string[];
+		messageTemplate: string;
 	};
 }

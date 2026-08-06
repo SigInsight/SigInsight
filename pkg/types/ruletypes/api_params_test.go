@@ -157,10 +157,17 @@ func TestPostableRuleRejectsRetiredContract(t *testing.T) {
 	}
 }
 
-func TestPostableRuleRejectsAlertTemplates(t *testing.T) {
-	payload := replaceNotificationSettings(currentRuleJSON, `"annotations":{"description":"value is {{$value}}"}`)
+func TestPostableRuleNotificationMessageTemplate(t *testing.T) {
+	validPayload := replaceNotificationSettings(currentRuleJSON, `"notificationSettings":{"groupBy":[],"messageTemplate":"{{alert.name}} {{value}} {{label.service.name}}"}`)
 	var rule PostableRule
-	require.ErrorContains(t, json.Unmarshal([]byte(payload), &rule), "alert annotation templates are not supported")
+	require.NoError(t, json.Unmarshal([]byte(validPayload), &rule))
+	require.Equal(t, "{{alert.name}} {{value}} {{label.service.name}}", rule.NotificationSettings.MessageTemplate)
+
+	invalidPayload := replaceNotificationSettings(currentRuleJSON, `"notificationSettings":{"groupBy":[],"messageTemplate":"{{ $value }}"}`)
+	require.ErrorContains(t, json.Unmarshal([]byte(invalidPayload), &rule), "unsupported notification message placeholder")
+
+	annotationTemplate := replaceNotificationSettings(currentRuleJSON, `"annotations":{"description":"value is {{$value}}"}`)
+	require.ErrorContains(t, json.Unmarshal([]byte(annotationTemplate), &rule), "alert annotation templates are not supported")
 }
 
 func replaceSchemaVersion(payload, replacement string) string {

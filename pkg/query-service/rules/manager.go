@@ -939,6 +939,9 @@ func (m *Manager) TestNotification(ctx context.Context, orgID valuer.UUID, ruleS
 	if err != nil {
 		return EvaluationPreview{}, model.BadRequest(err)
 	}
+	if parsedRule.NotificationSettings == nil {
+		parsedRule.NotificationSettings = &ruletypes.NotificationSettings{}
+	}
 	if !slices.Contains(parsedRule.NotificationSettings.GroupBy, ruletypes.LabelThresholdName) {
 		parsedRule.NotificationSettings.GroupBy = append(parsedRule.NotificationSettings.GroupBy, ruletypes.LabelThresholdName)
 	}

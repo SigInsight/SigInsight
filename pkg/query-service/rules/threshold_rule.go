@@ -334,18 +334,13 @@ func (r *ThresholdRule) Eval(ctx context.Context, ts time.Time) (int, error) {
 		lb.Set(labels.AlertRuleIdLabel, r.ID())
 		lb.Set(labels.RuleSourceLabel, r.GeneratorURL())
 
-		annotations := make(labels.Labels, 0, len(r.annotations.Map()))
-		for name, value := range r.annotations.Map() {
-			annotations = append(annotations, labels.Label{Name: name, Value: value})
-		}
+		annotations := r.annotations.Map()
 		value := strconv.FormatFloat(smpl.V, 'f', -1, 64)
 		if smpl.BoolValue != nil {
 			value = strconv.FormatBool(*smpl.BoolValue)
 		}
-		annotations = append(annotations,
-			labels.Label{Name: "value", Value: value},
-			labels.Label{Name: "threshold", Value: strconv.FormatFloat(smpl.Target, 'f', -1, 64)},
-		)
+		annotations["value"] = value
+		annotations["threshold"] = strconv.FormatFloat(smpl.Target, 'f', -1, 64)
 		if smpl.IsMissing {
 			lb.Set(labels.AlertNameLabel, "[No data] "+r.Name())
 			lb.Set(labels.NoDataLabel, "true")
@@ -359,17 +354,34 @@ func (r *ThresholdRule) Eval(ctx context.Context, ts time.Time) (int, error) {
 			link := r.prepareLinksToTraces(ctx, ts, smpl.Metric)
 			if link != "" && r.hostFromSource() != "" {
 				r.logger.InfoContext(ctx, "adding traces link to annotations", "link", fmt.Sprintf("%s/traces-explorer?%s", r.hostFromSource(), link))
-				annotations = append(annotations, labels.Label{Name: "related_traces", Value: fmt.Sprintf("%s/traces-explorer?%s", r.hostFromSource(), link)})
+				annotations["related_traces"] = fmt.Sprintf("%s/traces-explorer?%s", r.hostFromSource(), link)
 			}
 		case ruletypes.AlertTypeLogs:
 			link := r.prepareLinksToLogs(ctx, ts, smpl.Metric)
 			if link != "" && r.hostFromSource() != "" {
 				r.logger.InfoContext(ctx, "adding logs link to annotations", "link", fmt.Sprintf("%s/logs/logs-explorer?%s", r.hostFromSource(), link))
-				annotations = append(annotations, labels.Label{Name: "related_logs", Value: fmt.Sprintf("%s/logs/logs-explorer?%s", r.hostFromSource(), link)})
+				annotations["related_logs"] = fmt.Sprintf("%s/logs/logs-explorer?%s", r.hostFromSource(), link)
 			}
 		}
 
 		lbs := lb.Labels()
+		severity := lbs.Get(ruletypes.LabelSeverityName)
+		if smpl.IsMissing {
+			severity = "no_data"
+		}
+		message, err := ruletypes.RenderNotificationMessage(r.messageTemplate, ruletypes.NotificationTemplateData{
+			AlertName: lbs.Get(labels.AlertNameLabel),
+			Severity:  severity,
+			Value:     value,
+			Threshold: annotations["threshold"],
+			Labels:    lbs.Map(),
+		})
+		if err != nil {
+			return 0, err
+		}
+		annotations["description"] = message
+		annotations["summary"] = message
+		annotations["message"] = message
 		h := lbs.Hash()
 		resultFPs[h] = struct{}{}
 
@@ -380,7 +392,7 @@ func (r *ThresholdRule) Eval(ctx context.Context, ts time.Time) (int, error) {
 		alerts[h] = &ruletypes.Alert{
 			Labels:            lbs,
 			QueryResultLables: resultLabels,
-			Annotations:       annotations,
+			Annotations:       labels.FromMap(annotations),
 			ActiveAt:          ts,
 			State:             model.StatePending,
 			Value:             smpl.V,

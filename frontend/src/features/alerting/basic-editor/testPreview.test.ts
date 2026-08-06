@@ -3,7 +3,21 @@ import { RuleEvaluationPreview } from 'types/api/alerts/basicAlert';
 import { testPreviewNotice } from './testPreview';
 
 describe('test rule evaluation preview notice', () => {
-	it('explains an evaluated rule without matching instances', () => {
+	it('reports an inactive rule as a successful non-match', () => {
+		const preview: RuleEvaluationPreview = {
+			alertCount: 0,
+			state: 'inactive',
+			evaluatedAt: 1780000000000,
+		};
+
+		expect(testPreviewNotice(preview)).toEqual({
+			level: 'success',
+			message:
+				'Rule evaluated successfully; no alert instances matched the current window.',
+		});
+	});
+
+	it('reports a no-data evaluation as a warning', () => {
 		const preview: RuleEvaluationPreview = {
 			alertCount: 0,
 			state: 'nodata',
@@ -11,8 +25,9 @@ describe('test rule evaluation preview notice', () => {
 		};
 
 		expect(testPreviewNotice(preview)).toEqual({
-			level: 'error',
-			message: 'No alert instances matched. Evaluation state: nodata.',
+			level: 'warning',
+			message:
+				'Rule evaluated, but no data was available for the evaluation window.',
 		});
 	});
 

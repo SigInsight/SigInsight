@@ -169,10 +169,14 @@ func (store *config) GetMatchers(ctx context.Context, orgID string) (map[string]
 	if err != nil {
 		return nil, err
 	}
+	channels, err := store.ListChannels(ctx, orgID)
+	if err != nil {
+		return nil, err
+	}
 
 	matchersMap := make(map[string][]string)
 	for _, rule := range rules {
-		for _, receiver := range ruleChannels(rule.Data) {
+		for _, receiver := range alertmanagertypes.ResolveChannelNames(channels, ruleChannels(rule.Data)) {
 			matchersMap[rule.ID.StringValue()] = append(matchersMap[rule.ID.StringValue()], receiver)
 		}
 	}

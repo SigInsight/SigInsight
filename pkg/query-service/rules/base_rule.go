@@ -49,9 +49,10 @@ type BaseRule struct {
 
 	// holds the static set of labels and annotations for the rule
 	// these are the same for all alerts created for this rule
-	labels      qslabels.BaseLabels
-	annotations qslabels.BaseLabels
-	mtx         sync.Mutex
+	labels          qslabels.BaseLabels
+	annotations     qslabels.BaseLabels
+	messageTemplate string
+	mtx             sync.Mutex
 	// the time it took to evaluate the rule (most recent evaluation)
 	evaluationDuration time.Duration
 	// the timestamp of the last evaluation
@@ -164,6 +165,19 @@ func NewBaseRule(id string, orgID valuer.UUID, p *ruletypes.PostableRule, reader
 		reader:        reader,
 		Threshold:     threshold,
 		evaluation:    evaluation,
+	}
+	baseRule.messageTemplate = p.Annotations["description"]
+	if p.NotificationSettings != nil && p.NotificationSettings.MessageTemplate != "" {
+		baseRule.messageTemplate = p.NotificationSettings.MessageTemplate
+	}
+	if baseRule.messageTemplate == ruletypes.LegacyDefaultNotificationDescription {
+		baseRule.messageTemplate = ruletypes.DefaultNotificationMessageTemplate
+	}
+	if baseRule.messageTemplate == "" {
+		baseRule.messageTemplate = ruletypes.DefaultNotificationMessageTemplate
+	}
+	if err := ruletypes.ValidateNotificationMessageTemplate(baseRule.messageTemplate); err != nil {
+		return nil, err
 	}
 
 	// Store newGroupEvalDelay and groupBy keys from NotificationSettings

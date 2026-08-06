@@ -157,6 +157,29 @@ func GetChannelByName(channels Channels, name string) (int, *Channel, error) {
 	return 0, nil, errors.Newf(errors.TypeNotFound, ErrCodeAlertmanagerChannelNotFound, "cannot find channel with name %s", name)
 }
 
+// ResolveChannelNames converts channel identifiers stored in rules to the
+// receiver names used by Alertmanager. References that are already receiver
+// names are retained for rules created before channel IDs became canonical.
+func ResolveChannelNames(channels Channels, references []string) []string {
+	namesByID := make(map[string]string, len(channels))
+	for _, channel := range channels {
+		if channel == nil {
+			continue
+		}
+		namesByID[channel.ID.StringValue()] = channel.Name
+	}
+
+	names := make([]string, 0, len(references))
+	for _, reference := range references {
+		if name, ok := namesByID[reference]; ok {
+			names = append(names, name)
+			continue
+		}
+		names = append(names, reference)
+	}
+	return names
+}
+
 func NewStatsFromChannels(channels Channels) map[string]any {
 	stats := make(map[string]any)
 	for _, channel := range channels {

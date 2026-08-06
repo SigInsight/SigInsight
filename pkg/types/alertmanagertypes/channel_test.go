@@ -4,6 +4,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/SigNoz/signoz/pkg/types"
+	"github.com/SigNoz/signoz/pkg/valuer"
 	"github.com/prometheus/alertmanager/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -64,6 +66,17 @@ func TestEmailChannelCreatedBeforeDefaultsInheritsGlobalSMTPConfig(t *testing.T)
 	assert.Equal(t, global.SMTPAuthPassword, emailConfig.AuthPassword)
 	require.NotNil(t, emailConfig.RequireTLS)
 	assert.True(t, *emailConfig.RequireTLS)
+}
+
+func TestResolveChannelNames(t *testing.T) {
+	channelID := valuer.GenerateUUID()
+	channels := Channels{{
+		Identifiable: types.Identifiable{ID: channelID},
+		Name:         "test notification channel",
+	}}
+
+	references := ResolveChannelNames(channels, []string{channelID.StringValue(), "legacy-receiver"})
+	assert.Equal(t, []string{"test notification channel", "legacy-receiver"}, references)
 }
 
 func TestEmailChannelDataPreservesExplicitSMTPTransport(t *testing.T) {

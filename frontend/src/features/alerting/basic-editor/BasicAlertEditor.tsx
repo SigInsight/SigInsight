@@ -5,6 +5,7 @@ import type { InputRef } from 'antd';
 import { Button, Checkbox, Input, InputNumber, Select, Tooltip } from 'antd';
 import { ApiV5Instance as axios } from 'api';
 import getAllChannels from 'api/channels/getAll';
+import { isAxiosError } from 'axios';
 import { PANEL_TYPES } from 'constants/queryBuilder';
 import { LiteQueryBuilder } from 'features/lite-query/LiteQueryBuilder';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
@@ -608,8 +609,11 @@ function BasicAlertEditor({
 					const notice = testPreviewNotice(preview);
 					toast[notice.level](notice.message);
 				},
-				onError: () => {
-					toast.error('Rule test failed.');
+				onError: (error: unknown) => {
+					const reason = isAxiosError(error)
+						? error.response?.data?.error
+						: undefined;
+					toast.error(reason ? `Rule test failed: ${reason}` : 'Rule test failed.');
 				},
 			});
 		} catch (error) {
@@ -955,11 +959,17 @@ function BasicAlertEditor({
 					</div>
 					<Input.TextArea
 						aria-label="Notification message"
-						value={draft.identity.description}
+						value={draft.notification.messageTemplate}
 						rows={4}
-						placeholder="Enter notification message..."
+						aria-description="Available placeholders: alert.name, severity, value, threshold, and label.<name>"
 						onChange={(event): void =>
-							updateIdentity({ description: event.target.value })
+							setDraft((current) => ({
+								...current,
+								notification: {
+									...current.notification,
+									messageTemplate: event.target.value,
+								},
+							}))
 						}
 					/>
 				</div>

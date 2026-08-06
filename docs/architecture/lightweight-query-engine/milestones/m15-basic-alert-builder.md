@@ -484,7 +484,7 @@ V5 `time_series`/`scalar` 响应以 `valueType: number|bool` 明确结果类型�
 
 `cumulative` 仅接受 `{period: 1h|1d|7d, frequency, timezone}`，以 IANA 时区的整点、当地午夜和
 周一午夜计算边界，并有 UTC、上海和纽约 DST 边界测试。旧 `schedule`、`unit`、`thresholds`、
-`v2alpha1`、renotify 和模板字段均在 JSON 解码阶段明确拒绝。规则 evaluator 仍通过一个未序列化的
+`v2alpha1` 和 renotify 均在 JSON 解码阶段明确拒绝。规则 evaluator 仍通过一个未序列化的
 内部适配器复用既有状态机；该适配器不是旧协议兼容层，也不会接受或输出旧 JSON。
 
 ### 10.4 统一 Basic Alert Editor
@@ -503,6 +503,13 @@ No Data、最小点数、静态标签和 group-by 都由同一份 validator 约�
 
 Exceptions 不再携带旧 `error_index_v2` 原生 SQL：默认值是 `traces` Lite 查询加
 `has_error = true` Filter。这样保留异常告警语义，同时不恢复原生 SQL 能力。
+
+通知正文是 `notificationSettings.messageTemplate`，不再混入静态 `annotations`。它只接受
+`{{alert.name}}`、`{{severity}}`、`{{value}}`、`{{threshold}}` 和 `{{label.<name>}}`；新规则默认
+使用包含名称、严重级别、当前值和阈值的多行模板。求值后按每个告警实例渲染为 `description`、`summary`
+和 `message`，因此正常触发与 Test rule 走同一正文。任意 Go/Alertmanager 模板、函数、控制流和缺失
+标签的隐式推断都不支持；缺失的 `label.<name>` 为空字符串。旧规则的静态 `annotations.description`
+保留为回退正文。
 
 ### 10.5 Legacy UI 与调度实现删除
 
