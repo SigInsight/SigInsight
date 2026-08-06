@@ -119,9 +119,7 @@ function validateEvaluation(draft: BasicAlertDraft): string | null {
 
 function validateCondition(draft: BasicAlertDraft): string | null {
 	if (draft.condition.kind === 'boolean') {
-		return !draft.condition.severity || draft.condition.channels.length === 0
-			? 'Choose a severity and at least one notification channel'
-			: null;
+		return !draft.condition.severity ? 'Choose a severity' : null;
 	}
 	if (
 		draft.condition.thresholds.length === 0 ||
@@ -130,12 +128,8 @@ function validateCondition(draft: BasicAlertDraft): string | null {
 		return 'Configure between one and three severity thresholds';
 	}
 	for (const threshold of draft.condition.thresholds) {
-		if (
-			threshold.target === null ||
-			!Number.isFinite(threshold.target) ||
-			threshold.channels.length === 0
-		) {
-			return 'Each threshold needs a numeric target and at least one notification channel';
+		if (threshold.target === null || !Number.isFinite(threshold.target)) {
+			return 'Each threshold needs a numeric target';
 		}
 		if (
 			threshold.recoveryTarget !== null &&
@@ -154,6 +148,9 @@ export function validateBasicAlertDraft(
 ): string | null {
 	if (!draft.identity.name.trim()) {
 		return 'Enter an alert name';
+	}
+	if (!draft.notification.channel) {
+		return 'Choose a notification channel';
 	}
 	const queryError = validateQueryShape(query);
 	if (queryError) {
@@ -190,7 +187,7 @@ function serializeCondition(
 			boolean: {
 				policy: draft.condition.policy,
 				severity: draft.condition.severity,
-				channels: draft.condition.channels,
+				channels: [draft.notification.channel],
 			},
 		};
 	}
@@ -210,7 +207,7 @@ function serializeCondition(
 				threshold.recoveryTarget === undefined
 					? {}
 					: { recoveryTarget: threshold.recoveryTarget }),
-				channels: threshold.channels,
+				channels: [draft.notification.channel],
 			})),
 		},
 	};

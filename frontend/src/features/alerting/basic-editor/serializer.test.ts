@@ -43,7 +43,6 @@ function numericDraft(): BasicAlertDraft {
 					target: 90,
 					targetUnit: '%',
 					recoveryTarget: 80,
-					channels: ['email'],
 				},
 			],
 		},
@@ -52,7 +51,7 @@ function numericDraft(): BasicAlertDraft {
 			spec: { evalWindow: '5m', frequency: '1m' },
 		},
 		dataQuality: { alertOnNoData: true, noDataFor: '30s', minPoints: 2 },
-		notification: { groupBy: [] },
+		notification: { channel: 'email', groupBy: [] },
 	};
 }
 
@@ -137,7 +136,6 @@ describe('basic alert v3 serializer', () => {
 				selectedQueryName: 'F1',
 				policy: 'last',
 				severity: 'critical',
-				channels: ['email'],
 			},
 			evaluation: {
 				kind: 'cumulative',
@@ -156,6 +154,24 @@ describe('basic alert v3 serializer', () => {
 			},
 		});
 		expect(rule.condition).not.toHaveProperty('numeric');
+	});
+
+	it('expands one rule-level channel to every numeric severity', () => {
+		const draft = numericDraft();
+		if (draft.condition.kind !== 'numeric') {
+			throw new Error('expected numeric condition');
+		}
+		draft.condition.thresholds.push({ severity: 'warning', target: 75 });
+
+		const rule = serializeBasicAlertDraft(draft, queryFixture());
+		expect(rule.condition.kind).toBe('numeric');
+		if (rule.condition.kind !== 'numeric') {
+			throw new Error('expected numeric rule');
+		}
+		expect(rule.condition.numeric.thresholds).toEqual([
+			expect.objectContaining({ severity: 'critical', channels: ['email'] }),
+			expect.objectContaining({ severity: 'warning', channels: ['email'] }),
+		]);
 	});
 
 	it.each([
@@ -193,6 +209,14 @@ describe('basic alert v3 serializer', () => {
 				},
 			}),
 			'must not exceed the rolling window',
+		],
+		[
+			'requires one rule-level notification channel',
+			(draft: BasicAlertDraft): BasicAlertDraft => ({
+				...draft,
+				notification: { ...draft.notification, channel: '' },
+			}),
+			'Choose a notification channel',
 		],
 	])('%s', (_name, mutate, expected) => {
 		expect(

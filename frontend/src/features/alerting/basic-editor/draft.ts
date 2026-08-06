@@ -70,7 +70,6 @@ export function defaultBasicAlertDraft(alertType: AlertTypes): BasicAlertDraft {
 				{
 					severity: 'critical',
 					target: null,
-					channels: [],
 				},
 			],
 		},
@@ -83,7 +82,7 @@ export function defaultBasicAlertDraft(alertType: AlertTypes): BasicAlertDraft {
 			noDataFor: '5m',
 			minPoints: 1,
 		},
-		notification: { groupBy: [] },
+		notification: { channel: '', groupBy: [] },
 	};
 }
 
@@ -121,7 +120,6 @@ export function draftFromV3Rule(rule: PostableBasicAlertRule): BasicAlertDraft {
 					selectedQueryName: rule.condition.selectedQueryName,
 					policy: rule.condition.boolean.policy,
 					severity: normalizeSeverity(rule.condition.boolean.severity),
-					channels: rule.condition.boolean.channels,
 			  }
 			: {
 					kind: 'numeric' as const,
@@ -133,9 +131,12 @@ export function draftFromV3Rule(rule: PostableBasicAlertRule): BasicAlertDraft {
 						target: threshold.target,
 						targetUnit: threshold.targetUnit,
 						recoveryTarget: threshold.recoveryTarget,
-						channels: threshold.channels,
 					})),
 			  };
+	const notificationChannel =
+		rule.condition.kind === 'boolean'
+			? rule.condition.boolean.channels[0] || ''
+			: rule.condition.numeric.thresholds[0]?.channels[0] || '';
 	return {
 		identity: {
 			name: rule.alert,
@@ -146,7 +147,10 @@ export function draftFromV3Rule(rule: PostableBasicAlertRule): BasicAlertDraft {
 		condition,
 		evaluation: rule.evaluation,
 		dataQuality,
-		notification: { groupBy: rule.notificationSettings?.groupBy || [] },
+		notification: {
+			channel: notificationChannel,
+			groupBy: rule.notificationSettings?.groupBy || [],
+		},
 	};
 }
 

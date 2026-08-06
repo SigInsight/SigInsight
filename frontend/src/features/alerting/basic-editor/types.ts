@@ -22,7 +22,6 @@ export interface NumericThresholdDraft {
 	target: number | null;
 	targetUnit?: string;
 	recoveryTarget?: number | null;
-	channels: string[];
 }
 
 export interface NumericConditionDraft {
@@ -38,7 +37,6 @@ export interface BooleanConditionDraft {
 	selectedQueryName: string;
 	policy: BooleanPolicy;
 	severity: 'critical' | 'warning' | 'info';
-	channels: string[];
 }
 
 export type BasicAlertConditionDraft =
@@ -64,6 +62,7 @@ export interface BasicAlertDraft {
 	evaluation: BasicEvaluationDraft;
 	dataQuality: DataQualityDraft;
 	notification: {
+		channel: string;
 		groupBy: string[];
 	};
 }

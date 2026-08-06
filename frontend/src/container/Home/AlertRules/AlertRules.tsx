@@ -7,7 +7,6 @@ import logEvent from 'api/common/logEvent';
 import { QueryParams } from 'constants/query';
 import ROUTES from 'constants/routes';
 import history from 'lib/history';
-import { mapQueryDataFromApi } from 'lib/newQueryBuilder/queryBuilderMappers/mapQueryDataFromApi';
 import { ArrowRight, Plus } from 'lucide-react';
 import Card from 'periscope/components/Card/Card';
 import { useAppContext } from 'providers/App/App';
@@ -107,14 +106,8 @@ export default function AlertRules({
 			ruleState: record.state,
 		});
 
-		const compositeQuery = mapQueryDataFromApi(record.condition.compositeQuery);
-		params.set(
-			QueryParams.compositeQuery,
-			encodeURIComponent(JSON.stringify(compositeQuery)),
-		);
-
-		params.set(QueryParams.panelTypes, record.condition.compositeQuery.panelType);
-
+		params.delete(QueryParams.compositeQuery);
+		params.delete(QueryParams.panelTypes);
 		params.set(QueryParams.ruleId, record.id.toString());
 
 		history.push(`${ROUTES.ALERT_OVERVIEW}?${params.toString()}`);
