@@ -56,6 +56,21 @@ function TestComponentWithCopyShortcut({
 	return <span>Test Component</span>;
 }
 
+function TestComponentWithClipboardShortcuts({
+	handleShortcut,
+}: {
+	handleShortcut: () => void;
+}): JSX.Element {
+	const { registerShortcut } = useKeyboardHotkeys();
+
+	useEffect(() => {
+		registerShortcut('ctrl+c', handleShortcut);
+		registerShortcut('ctrl+v', handleShortcut);
+	}, [registerShortcut, handleShortcut]);
+
+	return <input aria-label="clipboard input" />;
+}
+
 describe('KeyboardHotkeysProvider', () => {
 	it('registers and triggers shortcuts correctly', async () => {
 		const handleShortcut = jest.fn();
@@ -110,6 +125,29 @@ describe('KeyboardHotkeysProvider', () => {
 
 		expect(editor.dispatchEvent(copy)).toBe(true);
 		expect(copy.defaultPrevented).toBe(false);
+		expect(handleShortcut).not.toHaveBeenCalled();
+	});
+
+	it('leaves native copy and paste shortcuts untouched in regular inputs', () => {
+		const handleShortcut = jest.fn();
+		const { getByLabelText } = render(
+			<KeyboardHotkeysProvider>
+				<TestComponentWithClipboardShortcuts handleShortcut={handleShortcut} />
+			</KeyboardHotkeysProvider>,
+		);
+		const input = getByLabelText('clipboard input');
+
+		for (const key of ['c', 'v']) {
+			const event = new KeyboardEvent('keydown', {
+				bubbles: true,
+				cancelable: true,
+				ctrlKey: true,
+				key,
+			});
+			expect(input.dispatchEvent(event)).toBe(true);
+			expect(event.defaultPrevented).toBe(false);
+		}
+
 		expect(handleShortcut).not.toHaveBeenCalled();
 	});
 });

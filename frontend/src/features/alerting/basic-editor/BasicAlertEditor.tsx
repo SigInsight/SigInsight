@@ -1,27 +1,32 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery } from 'react-query';
 import { toast } from '@signozhq/sonner';
-import {
-	Button,
-	Checkbox,
-	Input,
-	InputNumber,
-	Modal,
-	Select,
-	Tooltip,
-} from 'antd';
+import type { InputRef } from 'antd';
+import { Button, Checkbox, Input, InputNumber, Select, Tooltip } from 'antd';
 import { ApiV5Instance as axios } from 'api';
 import getAllChannels from 'api/channels/getAll';
 import { PANEL_TYPES } from 'constants/queryBuilder';
 import { LiteQueryBuilder } from 'features/lite-query/LiteQueryBuilder';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
 import { useSafeNavigate } from 'hooks/useSafeNavigate';
-import { Check, Play, Plus, Trash2, X } from 'lucide-react';
+import { cloneDeep } from 'lodash-es';
+import {
+	BarChart2,
+	Check,
+	DraftingCompass,
+	FileText,
+	Play,
+	Plus,
+	ScrollText,
+	Trash2,
+	X,
+} from 'lucide-react';
 import { AlertTypes } from 'types/api/alerts/alertTypes';
 import { RuleEvaluationPreview } from 'types/api/alerts/basicAlert';
 import { Query } from 'types/api/queryBuilder/queryBuilderData';
 import { DataSource } from 'types/common/queryBuilder';
 
+import AlertQueryPreview from './AlertQueryPreview';
 import {
 	browserTimezone,
 	defaultBasicAlertDraft,
@@ -45,6 +50,37 @@ const alertTypeOptions = [
 	{ label: 'Traces', value: AlertTypes.TRACES_BASED_ALERT },
 	{ label: 'Exceptions', value: AlertTypes.EXCEPTIONS_BASED_ALERT },
 ];
+
+const alertTypeIcons: Record<AlertTypes, JSX.Element> = {
+	[AlertTypes.METRICS_BASED_ALERT]: <BarChart2 size={14} />,
+	[AlertTypes.LOGS_BASED_ALERT]: <ScrollText size={14} />,
+	[AlertTypes.TRACES_BASED_ALERT]: <DraftingCompass size={14} />,
+	[AlertTypes.EXCEPTIONS_BASED_ALERT]: <FileText size={14} />,
+};
+
+function alertEditorTitle(isEditing: boolean): string {
+	return isEditing ? 'Edit alert rule' : 'New alert rule';
+}
+
+function alertDataSource(alertType: AlertTypes): DataSource {
+	switch (alertType) {
+		case AlertTypes.METRICS_BASED_ALERT:
+			return DataSource.METRICS;
+		case AlertTypes.LOGS_BASED_ALERT:
+			return DataSource.LOGS;
+		default:
+			return DataSource.TRACES;
+	}
+}
+
+function conditionGuidance(condition: BasicAlertDraft['condition']): string {
+	const subject = condition.selectedQueryName || 'the selected query';
+	const predicate =
+		condition.kind === 'boolean'
+			? 'matches the selected state'
+			: 'meets the configured threshold';
+	return `${subject} ${predicate} during the evaluation window.`;
+}
 
 const numericReductionOptions = [
 	{ label: 'At least once', value: 'at_least_once' },
@@ -121,7 +157,6 @@ function createNumericCondition(
 			{
 				severity: 'critical',
 				target: null,
-				channels: [],
 			},
 		],
 	};
@@ -135,7 +170,6 @@ function createBooleanCondition(
 		selectedQueryName,
 		policy: 'last',
 		severity: 'critical',
-		channels: [],
 	};
 }
 
@@ -148,9 +182,16 @@ function StaticLabels({
 }): JSX.Element {
 	const [key, setKey] = useState('');
 	const [value, setValue] = useState('');
+	const keyInputRef = useRef<InputRef>(null);
+	const valueInputRef = useRef<InputRef>(null);
 	const addLabel = useCallback((): void => {
 		const normalizedKey = key.trim();
 		if (!normalizedKey || !value.trim()) {
+			if (!normalizedKey) {
+				keyInputRef.current?.focus();
+			} else {
+				valueInputRef.current?.focus();
+			}
 			return;
 		}
 		onChange({ ...labels, [normalizedKey]: value.trim() });
@@ -178,19 +219,21 @@ function StaticLabels({
 			</div>
 			<div className="basic-alert-labels__inputs">
 				<Input
+					ref={keyInputRef}
 					aria-label="Alert label key"
 					placeholder="Label key"
 					value={key}
 					onChange={(event): void => setKey(event.target.value)}
 				/>
 				<Input
+					ref={valueInputRef}
 					aria-label="Alert label value"
 					placeholder="Label value"
 					value={value}
 					onChange={(event): void => setValue(event.target.value)}
 					onPressEnter={addLabel}
 				/>
-				<Button icon={<Plus size={14} />} onClick={addLabel}>
+				<Button htmlType="button" icon={<Plus size={14} />} onClick={addLabel}>
 					Add label
 				</Button>
 			</div>
@@ -207,13 +250,11 @@ type NumericThreshold = NumericCondition['thresholds'][number];
 function NumericThresholdRow({
 	threshold,
 	thresholdCount,
-	channelOptions,
 	onChange,
 	onRemove,
 }: {
 	threshold: NumericThreshold;
 	thresholdCount: number;
-	channelOptions: { label: string; value: string }[];
 	onChange: (patch: Partial<NumericThreshold>) => void;
 	onRemove: () => void;
 }): JSX.Element {
@@ -223,6 +264,7 @@ function NumericThresholdRow({
 				value={threshold.severity}
 				options={severityOptions}
 				disabled={thresholdCount > 1}
+				onChange={(severity): void => onChange({ severity })}
 			/>
 			<InputNumber
 				aria-label={`${threshold.severity} threshold`}
@@ -235,14 +277,6 @@ function NumericThresholdRow({
 				placeholder="Recovery (optional)"
 				value={threshold.recoveryTarget}
 				onChange={(recoveryTarget): void => onChange({ recoveryTarget })}
-			/>
-			<Select
-				mode="multiple"
-				aria-label={`Notification channels for ${threshold.severity}`}
-				placeholder="Notification channels"
-				value={threshold.channels}
-				options={channelOptions}
-				onChange={(channels): void => onChange({ channels })}
 			/>
 			<Tooltip title="Remove severity threshold">
 				<Button
@@ -257,11 +291,9 @@ function NumericThresholdRow({
 
 function NumericThresholds({
 	condition,
-	channelOptions,
 	onChange,
 }: {
 	condition: NumericCondition;
-	channelOptions: { label: string; value: string }[];
 	onChange: (condition: NumericCondition) => void;
 }): JSX.Element {
 	const updateThreshold = useCallback(
@@ -297,19 +329,27 @@ function NumericThresholds({
 			...condition,
 			thresholds: [
 				...condition.thresholds,
-				{ severity: nextSeverity, target: null, channels: [] },
+				{ severity: nextSeverity, target: null },
 			],
 		});
 	}, [condition, onChange]);
 
 	return (
 		<div className="basic-alert-editor__thresholds">
+			<div className="basic-alert-editor__threshold-intro">
+				<strong>Alert severities</strong>
+				<span>Set the firing and optional recovery value for each severity.</span>
+			</div>
+			<div className="basic-alert-editor__threshold-headings" aria-hidden="true">
+				<span>Severity</span>
+				<span>Threshold</span>
+				<span>Recovery (optional)</span>
+			</div>
 			{condition.thresholds.map((threshold, index) => (
 				<NumericThresholdRow
 					key={threshold.severity}
 					threshold={threshold}
 					thresholdCount={condition.thresholds.length}
-					channelOptions={channelOptions}
 					onChange={(patch): void => updateThreshold(index, patch)}
 					onRemove={(): void => removeThreshold(index)}
 				/>
@@ -321,6 +361,64 @@ function NumericThresholds({
 			>
 				Add severity
 			</Button>
+		</div>
+	);
+}
+
+function NotificationChannel({
+	channel,
+	channelOptions,
+	groupBy,
+	groupByOptions,
+	onChannelChange,
+	onGroupByChange,
+}: {
+	channel: string;
+	channelOptions: { label: string; value: string }[];
+	groupBy: string[];
+	groupByOptions: { label: string; value: string }[];
+	onChannelChange: (channel: string) => void;
+	onGroupByChange: (groupBy: string[]) => void;
+}): JSX.Element {
+	return (
+		<div className="basic-alert-editor__notification-card">
+			<div className="basic-alert-editor__notification-heading">
+				<strong>Notification channel</strong>
+				<span>
+					All severities and thresholds for this rule use the same channel.
+				</span>
+			</div>
+			<div className="basic-alert-editor__settings-grid">
+				<div className="basic-alert-editor__setting-row">
+					<span className="basic-alert-editor__setting-label">Channel</span>
+					<Select
+						showSearch
+						aria-label="Notification channel"
+						placeholder="Select a notification channel"
+						value={channel || undefined}
+						options={channelOptions}
+						onChange={onChannelChange}
+					/>
+				</div>
+				<div className="basic-alert-editor__setting-row">
+					<span className="basic-alert-editor__setting-label">Group alerts by</span>
+					<div className="basic-alert-editor__setting-control">
+						<Select
+							mode="multiple"
+							aria-label="Group alerts by"
+							value={groupBy}
+							options={groupByOptions}
+							placeholder="Select fields (optional)"
+							onChange={onGroupByChange}
+						/>
+						<span className="basic-alert-editor__notification-help">
+							{groupBy.length
+								? 'Alerts with the same selected values will be grouped.'
+								: 'Empty means all matching alerts are combined.'}
+						</span>
+					</div>
+				</div>
+			</div>
 		</div>
 	);
 }
@@ -348,6 +446,10 @@ function BasicAlertEditor({
 	);
 	const [draft, setDraft] = useState<BasicAlertDraft>(initialDraft);
 	const initialized = useRef(false);
+	const queryDraftsByAlertType = useRef<Partial<Record<AlertTypes, Query>>>({});
+	const conditionDraftsByAlertType = useRef<
+		Partial<Record<AlertTypes, BasicAlertDraft['condition']>>
+	>({});
 	const {
 		currentQuery,
 		handleRunQuery,
@@ -374,9 +476,13 @@ function BasicAlertEditor({
 	useEffect(() => {
 		if (!initialized.current) {
 			initialized.current = true;
+			queryDraftsByAlertType.current[alertType] = cloneDeep(initialQuery);
+			conditionDraftsByAlertType.current[alertType] = cloneDeep(
+				initialDraft.condition,
+			);
 			initQueryBuilderData(initialQuery);
 		}
-	}, [initQueryBuilderData, initialQuery]);
+	}, [alertType, initQueryBuilderData, initialDraft.condition, initialQuery]);
 
 	const outputOptions = useMemo(
 		() => [
@@ -454,19 +560,32 @@ function BasicAlertEditor({
 			if (value === draft.identity.alertType) {
 				return;
 			}
-			Modal.confirm({
-				title: 'Change alert data source?',
-				content:
-					'Changing the data source clears the current queries and formulas.',
-				okText: 'Change source',
-				onOk: () => {
-					initialized.current = true;
-					initQueryBuilderData(defaultQueryForAlertType(value));
-					setDraft(defaultBasicAlertDraft(value));
-				},
-			});
+			queryDraftsByAlertType.current[draft.identity.alertType] = cloneDeep(
+				currentQuery,
+			);
+			conditionDraftsByAlertType.current[draft.identity.alertType] = cloneDeep(
+				draft.condition,
+			);
+			const nextQuery =
+				queryDraftsByAlertType.current[value] || defaultQueryForAlertType(value);
+			const nextCondition =
+				conditionDraftsByAlertType.current[value] || createNumericCondition('A');
+			queryDraftsByAlertType.current[value] = cloneDeep(nextQuery);
+			conditionDraftsByAlertType.current[value] = cloneDeep(nextCondition);
+			initialized.current = true;
+			initQueryBuilderData(cloneDeep(nextQuery));
+			setDraft((current) => ({
+				...current,
+				identity: { ...current.identity, alertType: value },
+				condition: cloneDeep(nextCondition),
+			}));
 		},
-		[draft.identity.alertType, initQueryBuilderData],
+		[
+			currentQuery,
+			draft.condition,
+			draft.identity.alertType,
+			initQueryBuilderData,
+		],
 	);
 	const serialize = useCallback((): PostableBasicAlertRule => {
 		return serializeBasicAlertDraft(
@@ -519,240 +638,263 @@ function BasicAlertEditor({
 
 	return (
 		<div className="basic-alert-editor">
-			<section className="basic-alert-editor__section">
-				<div className="basic-alert-editor__section-heading">
-					<h1>{isEditing ? 'Edit alert rule' : 'New alert rule'}</h1>
-				</div>
-				<div className="basic-alert-editor__identity-grid">
-					<div className="basic-alert-editor__field basic-alert-editor__field--wide">
+			<section className="basic-alert-editor__header">
+				<h1 className="basic-alert-editor__header-tab">
+					{alertEditorTitle(isEditing)}
+				</h1>
+				<div className="basic-alert-editor__header-content">
+					<div className="basic-alert-editor__header-field">
 						<label htmlFor="basic-alert-name">Alert name</label>
 						<Input
 							id="basic-alert-name"
+							className="basic-alert-editor__title-input"
 							value={draft.identity.name}
-							placeholder="Checkout error rate"
+							placeholder="Enter alert rule name"
 							onChange={(event): void => updateIdentity({ name: event.target.value })}
 						/>
 					</div>
-					<div className="basic-alert-editor__field">
-						<label htmlFor="basic-alert-source">Data source</label>
-						<Select
-							id="basic-alert-source"
-							value={draft.identity.alertType}
-							options={alertTypeOptions}
-							disabled={isEditing}
-							onChange={changeAlertType}
-						/>
-					</div>
-					<div className="basic-alert-editor__field basic-alert-editor__field--wide">
-						<label htmlFor="basic-alert-description">Description</label>
-						<Input.TextArea
-							id="basic-alert-description"
-							value={draft.identity.description}
-							rows={2}
-							onChange={(event): void =>
-								updateIdentity({ description: event.target.value })
-							}
-						/>
-					</div>
-					<div className="basic-alert-editor__field basic-alert-editor__field--wide">
-						<span className="basic-alert-editor__label">Static labels</span>
-						<StaticLabels
-							labels={draft.identity.labels}
-							onChange={(labels): void => updateIdentity({ labels })}
-						/>
-					</div>
+					<span className="basic-alert-editor__label">Labels</span>
+					<StaticLabels
+						labels={draft.identity.labels}
+						onChange={(labels): void => updateIdentity({ labels })}
+					/>
 				</div>
 			</section>
 
 			<section className="basic-alert-editor__section">
-				<div className="basic-alert-editor__section-heading">
-					<h2>Queries</h2>
-					<Button icon={<Play size={15} />} onClick={handleRunQuery}>
+				<div className="basic-alert-editor__stepper">
+					<span className="basic-alert-editor__step-number">1</span>
+					<span className="basic-alert-editor__step-label">Define the query</span>
+					<span className="basic-alert-editor__step-line" />
+				</div>
+				<div className="basic-alert-editor__query-tabs">
+					{alertTypeOptions.map((option) => (
+						<Button
+							key={option.value}
+							className={
+								draft.identity.alertType === option.value
+									? 'basic-alert-editor__query-tab basic-alert-editor__query-tab--active'
+									: 'basic-alert-editor__query-tab'
+							}
+							disabled={isEditing}
+							onClick={(): void => changeAlertType(option.value)}
+						>
+							{alertTypeIcons[option.value]}
+							{option.label}
+						</Button>
+					))}
+					<Button
+						className="basic-alert-editor__run-query"
+						icon={<Play size={15} />}
+						onClick={handleRunQuery}
+					>
 						Run preview
 					</Button>
 				</div>
+				<AlertQueryPreview
+					alertType={draft.identity.alertType}
+					condition={draft.condition}
+				/>
 				<LiteQueryBuilder
 					panelType={PANEL_TYPES.TIME_SERIES}
 					config={{
 						queryVariant: 'static',
-						initialDataSource:
-							draft.identity.alertType === AlertTypes.METRICS_BASED_ALERT
-								? DataSource.METRICS
-								: draft.identity.alertType === AlertTypes.LOGS_BASED_ALERT
-								? DataSource.LOGS
-								: DataSource.TRACES,
+						initialDataSource: alertDataSource(draft.identity.alertType),
 					}}
 					limits={{ maxDataQueries: 4, maxFormulas: 4 }}
 					alertMode
 				/>
 			</section>
 
-			<section className="basic-alert-editor__section">
-				<div className="basic-alert-editor__section-heading">
-					<h2>Condition and evaluation</h2>
+			<section className="basic-alert-editor__section basic-alert-editor__section--condition">
+				<div className="basic-alert-editor__stepper">
+					<span className="basic-alert-editor__step-number">2</span>
+					<span className="basic-alert-editor__step-label">
+						Set alert conditions
+					</span>
+					<span className="basic-alert-editor__step-line" />
 				</div>
-				<div className="basic-alert-editor__condition-grid">
-					<div className="basic-alert-editor__field">
-						<span className="basic-alert-editor__label">When</span>
-						<Select
-							value={draft.condition.selectedQueryName}
-							options={outputOptions}
-							onChange={selectOutput}
-						/>
+				<div className="basic-alert-editor__condition-card">
+					<div className="basic-alert-editor__condition-guidance">
+						<strong>Send a notification when</strong>
+						<span>{conditionGuidance(draft.condition)}</span>
 					</div>
-					{draft.condition.kind === 'boolean' ? (
+					<div className="basic-alert-editor__section-heading">
+						<h2>Condition and evaluation</h2>
+					</div>
+					<div className="basic-alert-editor__condition-grid">
 						<div className="basic-alert-editor__field">
-							<span className="basic-alert-editor__label">Matches</span>
+							<span className="basic-alert-editor__label">When</span>
 							<Select
-								value={draft.condition.policy}
-								options={booleanPolicyOptions}
-								onChange={(policy): void =>
-									setDraft((current) => ({
-										...current,
-										condition:
-											current.condition.kind === 'boolean'
-												? { ...current.condition, policy }
-												: current.condition,
-									}))
-								}
+								value={draft.condition.selectedQueryName}
+								options={outputOptions}
+								onChange={selectOutput}
 							/>
 						</div>
-					) : (
-						<>
+						{draft.condition.kind === 'boolean' ? (
 							<div className="basic-alert-editor__field">
-								<span className="basic-alert-editor__label">Reduction</span>
+								<span className="basic-alert-editor__label">Matches</span>
 								<Select
-									value={draft.condition.reduction}
-									options={numericReductionOptions}
-									onChange={(reduction): void =>
+									value={draft.condition.policy}
+									options={booleanPolicyOptions}
+									onChange={(policy): void =>
 										setDraft((current) => ({
 											...current,
 											condition:
-												current.condition.kind === 'numeric'
-													? { ...current.condition, reduction }
+												current.condition.kind === 'boolean'
+													? { ...current.condition, policy }
 													: current.condition,
 										}))
 									}
 								/>
 							</div>
-							<div className="basic-alert-editor__field">
-								<span className="basic-alert-editor__label">Operator</span>
-								<Select
-									value={draft.condition.operator}
-									options={numericOperatorOptions}
-									onChange={(operator): void =>
-										setDraft((current) => ({
-											...current,
-											condition:
-												current.condition.kind === 'numeric'
-													? { ...current.condition, operator }
-													: current.condition,
-										}))
-									}
-								/>
-							</div>
-						</>
-					)}
-					<div className="basic-alert-editor__field">
-						<span className="basic-alert-editor__label">Window</span>
-						<Select
-							value={draft.evaluation.kind}
-							options={[
-								{ label: 'Rolling', value: 'rolling' },
-								{ label: 'Cumulative', value: 'cumulative' },
-							]}
-							onChange={(kind): void =>
-								setDraft((current) => ({
-									...current,
-									evaluation:
-										kind === 'cumulative'
-											? {
-													kind: 'cumulative',
-													spec: {
-														period: '1d',
-														frequency: '1m',
-														timezone: browserTimezone(),
-													},
-											  }
-											: {
-													kind: 'rolling',
-													spec: { evalWindow: '5m', frequency: '1m' },
-											  },
-								}))
-							}
-						/>
-					</div>
-					{draft.evaluation.kind === 'rolling' ? (
+						) : (
+							<>
+								<div className="basic-alert-editor__field">
+									<span className="basic-alert-editor__label">Reduction</span>
+									<Select
+										value={draft.condition.reduction}
+										options={numericReductionOptions}
+										onChange={(reduction): void =>
+											setDraft((current) => ({
+												...current,
+												condition:
+													current.condition.kind === 'numeric'
+														? { ...current.condition, reduction }
+														: current.condition,
+											}))
+										}
+									/>
+								</div>
+								<div className="basic-alert-editor__field">
+									<span className="basic-alert-editor__label">Operator</span>
+									<Select
+										value={draft.condition.operator}
+										options={numericOperatorOptions}
+										onChange={(operator): void =>
+											setDraft((current) => ({
+												...current,
+												condition:
+													current.condition.kind === 'numeric'
+														? { ...current.condition, operator }
+														: current.condition,
+											}))
+										}
+									/>
+								</div>
+							</>
+						)}
 						<div className="basic-alert-editor__field">
-							<span className="basic-alert-editor__label">Lookback</span>
+							<span className="basic-alert-editor__label">Window</span>
 							<Select
-								value={draft.evaluation.spec.evalWindow}
-								options={rollingWindowOptions.map((value) => ({ label: value, value }))}
-								onChange={(evalWindow): void =>
+								value={draft.evaluation.kind}
+								options={[
+									{ label: 'Rolling', value: 'rolling' },
+									{ label: 'Cumulative', value: 'cumulative' },
+								]}
+								onChange={(kind): void =>
 									setDraft((current) => ({
 										...current,
 										evaluation:
-											current.evaluation.kind === 'rolling'
+											kind === 'cumulative'
 												? {
-														...current.evaluation,
-														spec: { ...current.evaluation.spec, evalWindow },
+														kind: 'cumulative',
+														spec: {
+															period: '1d',
+															frequency: '1m',
+															timezone: browserTimezone(),
+														},
 												  }
-												: current.evaluation,
+												: {
+														kind: 'rolling',
+														spec: { evalWindow: '5m', frequency: '1m' },
+												  },
 									}))
 								}
 							/>
 						</div>
-					) : (
-						<>
+						{draft.evaluation.kind === 'rolling' ? (
 							<div className="basic-alert-editor__field">
-								<span className="basic-alert-editor__label">Period</span>
+								<span className="basic-alert-editor__label">Lookback</span>
 								<Select
-									value={draft.evaluation.spec.period}
-									options={cumulativePeriodOptions}
-									onChange={(period): void =>
+									value={draft.evaluation.spec.evalWindow}
+									options={rollingWindowOptions.map((value) => ({
+										label: value,
+										value,
+									}))}
+									onChange={(evalWindow): void =>
 										setDraft((current) => ({
 											...current,
 											evaluation:
-												current.evaluation.kind === 'cumulative'
+												current.evaluation.kind === 'rolling'
 													? {
 															...current.evaluation,
-															spec: { ...current.evaluation.spec, period },
+															spec: { ...current.evaluation.spec, evalWindow },
 													  }
 													: current.evaluation,
 										}))
 									}
 								/>
 							</div>
-							<div className="basic-alert-editor__field">
-								<span className="basic-alert-editor__label">Timezone</span>
-								<Select
-									showSearch
-									value={draft.evaluation.spec.timezone}
-									options={timezoneOptions}
-									onChange={(timezone): void =>
-										setDraft((current) => ({
-											...current,
-											evaluation:
-												current.evaluation.kind === 'cumulative'
-													? {
-															...current.evaluation,
-															spec: { ...current.evaluation.spec, timezone },
-													  }
-													: current.evaluation,
-										}))
-									}
-								/>
-							</div>
-						</>
-					)}
-					<div className="basic-alert-editor__field">
-						<span className="basic-alert-editor__label">Evaluate every</span>
-						<Select
-							value={draft.evaluation.spec.frequency}
-							options={frequencyOptions.map((value) => ({ label: value, value }))}
-							onChange={(frequency): void =>
-								setDraft((current) => {
-									if (current.evaluation.kind === 'rolling') {
+						) : (
+							<>
+								<div className="basic-alert-editor__field">
+									<span className="basic-alert-editor__label">Period</span>
+									<Select
+										value={draft.evaluation.spec.period}
+										options={cumulativePeriodOptions}
+										onChange={(period): void =>
+											setDraft((current) => ({
+												...current,
+												evaluation:
+													current.evaluation.kind === 'cumulative'
+														? {
+																...current.evaluation,
+																spec: { ...current.evaluation.spec, period },
+														  }
+														: current.evaluation,
+											}))
+										}
+									/>
+								</div>
+								<div className="basic-alert-editor__field">
+									<span className="basic-alert-editor__label">Timezone</span>
+									<Select
+										showSearch
+										value={draft.evaluation.spec.timezone}
+										options={timezoneOptions}
+										onChange={(timezone): void =>
+											setDraft((current) => ({
+												...current,
+												evaluation:
+													current.evaluation.kind === 'cumulative'
+														? {
+																...current.evaluation,
+																spec: { ...current.evaluation.spec, timezone },
+														  }
+														: current.evaluation,
+											}))
+										}
+									/>
+								</div>
+							</>
+						)}
+						<div className="basic-alert-editor__field">
+							<span className="basic-alert-editor__label">Evaluate every</span>
+							<Select
+								value={draft.evaluation.spec.frequency}
+								options={frequencyOptions.map((value) => ({ label: value, value }))}
+								onChange={(frequency): void =>
+									setDraft((current) => {
+										if (current.evaluation.kind === 'rolling') {
+											return {
+												...current,
+												evaluation: {
+													...current.evaluation,
+													spec: { ...current.evaluation.spec, frequency },
+												},
+											};
+										}
 										return {
 											...current,
 											evaluation: {
@@ -760,147 +902,165 @@ function BasicAlertEditor({
 												spec: { ...current.evaluation.spec, frequency },
 											},
 										};
-									}
-									return {
-										...current,
-										evaluation: {
-											...current.evaluation,
-											spec: { ...current.evaluation.spec, frequency },
-										},
-									};
-								})
-							}
-						/>
+									})
+								}
+							/>
+						</div>
 					</div>
-				</div>
 
-				{draft.condition.kind === 'boolean' ? (
-					<div className="basic-alert-editor__threshold-row">
-						<Select
-							value={draft.condition.severity}
-							options={severityOptions}
-							onChange={(severity): void =>
+					{draft.condition.kind === 'boolean' ? (
+						<div className="basic-alert-editor__boolean-condition">
+							<span className="basic-alert-editor__label">Severity</span>
+							<Select
+								value={draft.condition.severity}
+								options={severityOptions}
+								onChange={(severity): void =>
+									setDraft((current) => ({
+										...current,
+										condition:
+											current.condition.kind === 'boolean'
+												? { ...current.condition, severity }
+												: current.condition,
+									}))
+								}
+							/>
+						</div>
+					) : (
+						<NumericThresholds
+							condition={draft.condition}
+							onChange={(condition): void =>
 								setDraft((current) => ({
 									...current,
 									condition:
-										current.condition.kind === 'boolean'
-											? { ...current.condition, severity }
-											: current.condition,
+										current.condition.kind === 'numeric' ? condition : current.condition,
 								}))
 							}
 						/>
-						<Select
-							mode="multiple"
-							aria-label="Notification channels for boolean condition"
-							placeholder="Notification channels"
-							value={draft.condition.channels}
-							options={channelOptions}
-							onChange={(channels): void =>
-								setDraft((current) => ({
-									...current,
-									condition:
-										current.condition.kind === 'boolean'
-											? { ...current.condition, channels }
-											: current.condition,
-								}))
-							}
-						/>
-					</div>
-				) : (
-					<NumericThresholds
-						condition={draft.condition}
-						channelOptions={channelOptions}
-						onChange={(condition): void =>
-							setDraft((current) => ({
-								...current,
-								condition:
-									current.condition.kind === 'numeric' ? condition : current.condition,
-							}))
-						}
-					/>
-				)}
+					)}
+				</div>
 			</section>
 
 			<section className="basic-alert-editor__section basic-alert-editor__section--quality">
-				<div className="basic-alert-editor__section-heading">
-					<h2>Data quality and notification grouping</h2>
+				<div className="basic-alert-editor__stepper">
+					<span className="basic-alert-editor__step-number">3</span>
+					<span className="basic-alert-editor__step-label">
+						Notification settings
+					</span>
+					<span className="basic-alert-editor__step-line" />
 				</div>
-				<div className="basic-alert-editor__condition-grid">
-					<div className="basic-alert-editor__field">
-						<Checkbox
-							checked={draft.dataQuality.alertOnNoData}
-							onChange={(event): void =>
-								setDraft((current) => ({
-									...current,
-									dataQuality: {
-										...current.dataQuality,
-										alertOnNoData: event.target.checked,
-									},
-								}))
-							}
-						>
-							Alert when data is missing
-						</Checkbox>
-						{draft.dataQuality.alertOnNoData && (
-							<Input
-								aria-label="No data duration"
-								value={draft.dataQuality.noDataFor}
-								placeholder="5m"
-								onChange={(event): void =>
+				<div className="basic-alert-editor__notification-message">
+					<div className="basic-alert-editor__notification-heading">
+						<strong>Notification message</strong>
+						<span>Customize the message sent when this rule changes state.</span>
+					</div>
+					<Input.TextArea
+						aria-label="Notification message"
+						value={draft.identity.description}
+						rows={4}
+						placeholder="Enter notification message..."
+						onChange={(event): void =>
+							updateIdentity({ description: event.target.value })
+						}
+					/>
+				</div>
+				<NotificationChannel
+					channel={draft.notification.channel}
+					channelOptions={channelOptions}
+					groupBy={draft.notification.groupBy}
+					groupByOptions={groupByOptions}
+					onChannelChange={(channel): void =>
+						setDraft((current) => ({
+							...current,
+							notification: { ...current.notification, channel },
+						}))
+					}
+					onGroupByChange={(groupBy): void =>
+						setDraft((current) => ({
+							...current,
+							notification: { ...current.notification, groupBy },
+						}))
+					}
+				/>
+				<div className="basic-alert-editor__notification-card basic-alert-editor__data-quality">
+					<div className="basic-alert-editor__notification-heading">
+						<strong>Data quality</strong>
+						<span>Control how missing or sparse query results are handled.</span>
+					</div>
+					<div className="basic-alert-editor__settings-grid">
+						<div className="basic-alert-editor__setting-row basic-alert-editor__setting-row--top">
+							<span className="basic-alert-editor__setting-label">Missing data</span>
+							<div className="basic-alert-editor__setting-control">
+								<Checkbox
+									checked={draft.dataQuality.alertOnNoData}
+									onChange={(event): void =>
+										setDraft((current) => ({
+											...current,
+											dataQuality: {
+												...current.dataQuality,
+												alertOnNoData: event.target.checked,
+											},
+										}))
+									}
+								>
+									Alert when data is missing
+								</Checkbox>
+								{draft.dataQuality.alertOnNoData && (
+									<div className="basic-alert-editor__inline-setting">
+										<span>For</span>
+										<Input
+											aria-label="No data duration"
+											value={draft.dataQuality.noDataFor}
+											placeholder="5m"
+											onChange={(event): void =>
+												setDraft((current) => ({
+													...current,
+													dataQuality: {
+														...current.dataQuality,
+														noDataFor: event.target.value,
+													},
+												}))
+											}
+										/>
+									</div>
+								)}
+							</div>
+						</div>
+						<div className="basic-alert-editor__setting-row">
+							<label
+								className="basic-alert-editor__setting-label"
+								htmlFor="basic-alert-min-points"
+							>
+								Minimum data points
+							</label>
+							<InputNumber
+								id="basic-alert-min-points"
+								min={0}
+								precision={0}
+								value={draft.dataQuality.minPoints}
+								onChange={(minPoints): void =>
 									setDraft((current) => ({
 										...current,
 										dataQuality: {
 											...current.dataQuality,
-											noDataFor: event.target.value,
+											minPoints: minPoints || 0,
 										},
 									}))
 								}
 							/>
-						)}
-					</div>
-					<div className="basic-alert-editor__field">
-						<label htmlFor="basic-alert-min-points">Minimum data points</label>
-						<InputNumber
-							id="basic-alert-min-points"
-							min={0}
-							precision={0}
-							value={draft.dataQuality.minPoints}
-							onChange={(minPoints): void =>
-								setDraft((current) => ({
-									...current,
-									dataQuality: {
-										...current.dataQuality,
-										minPoints: minPoints || 0,
-									},
-								}))
-							}
-						/>
-					</div>
-					<div className="basic-alert-editor__field basic-alert-editor__field--wide">
-						<span className="basic-alert-editor__label">
-							Group notifications by query fields
-						</span>
-						<Select
-							mode="multiple"
-							value={draft.notification.groupBy}
-							options={groupByOptions}
-							placeholder="No grouping"
-							onChange={(groupBy): void =>
-								setDraft((current) => ({
-									...current,
-									notification: { groupBy },
-								}))
-							}
-						/>
+						</div>
 					</div>
 				</div>
 			</section>
 
 			<footer className="basic-alert-editor__footer">
-				<Button onClick={(): void => safeNavigate('/alerts')} disabled={isBusy}>
-					Cancel
+				<Button
+					icon={<X size={15} />}
+					onClick={(): void => safeNavigate('/alerts')}
+					disabled={isBusy}
+				>
+					Discard
 				</Button>
-				<div>
+				<div className="basic-alert-editor__footer-actions">
 					<Tooltip title={validationError || undefined}>
 						<Button
 							icon={<Play size={15} />}
