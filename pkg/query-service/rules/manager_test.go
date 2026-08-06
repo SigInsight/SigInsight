@@ -56,6 +56,7 @@ func TestManager_TestNotification_SendUnmatched_ThresholdRule(t *testing.T) {
 	for _, tc := range TcTestNotiSendUnmatchedThresholdRule {
 		t.Run(tc.Name, func(t *testing.T) {
 			rule := ThresholdRuleAtLeastOnceValueAbove(target, &recovery)
+			rule.NotificationSettings.MessageTemplate = "{{alert.name}}|{{severity}}|{{value}}|{{threshold}}|{{label.service.name}}"
 
 			// Marshal rule to JSON as TestNotification expects
 			ruleBytes, err := json.Marshal(rule)
@@ -111,6 +112,9 @@ func TestManager_TestNotification_SendUnmatched_ThresholdRule(t *testing.T) {
 				// check if the alert has triggered with correct threshold value
 				if tc.ExpectValue != 0 {
 					assert.Equal(t, strconv.FormatFloat(tc.ExpectValue, 'f', -1, 64), gotAlerts[0].Annotations["value"])
+					assert.Equal(t, "test-alert_TEST_ALERT|primary|"+strconv.FormatFloat(tc.ExpectValue, 'f', -1, 64)+"|10|frontend", gotAlerts[0].Annotations["description"])
+					assert.Equal(t, gotAlerts[0].Annotations["description"], gotAlerts[0].Annotations["summary"])
+					assert.Equal(t, gotAlerts[0].Annotations["description"], gotAlerts[0].Annotations["message"])
 				}
 			} else {
 				// check if no alerts have been triggered
@@ -243,4 +247,5 @@ func TestManager_TestNotificationReturnsDeliveryFailure(t *testing.T) {
 	_, apiErr := mgr.TestNotification(context.Background(), orgID, string(ruleBytes))
 	require.NotNil(t, apiErr)
 	require.ErrorContains(t, apiErr.Err, "test notification delivery failed")
+	require.ErrorIs(t, apiErr.Err, sql.ErrConnDone)
 }

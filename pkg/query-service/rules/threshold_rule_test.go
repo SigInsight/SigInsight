@@ -687,7 +687,7 @@ func TestThresholdRuleUnitCombinations(t *testing.T) {
 		if c.expectAlerts != 0 {
 			foundCount := 0
 			for _, item := range rule.Active {
-				if item.Annotations.Get("summary") == "The configured alert condition was met." {
+				if strings.Contains(item.Annotations.Get("summary"), "Value:") {
 					foundCount++
 				}
 			}
@@ -1133,7 +1133,7 @@ func TestMultipleThresholdRule(t *testing.T) {
 		if c.expectAlerts != 0 {
 			foundCount := 0
 			for _, item := range rule.Active {
-				if item.Annotations.Get("summary") == "The configured alert condition was met." {
+				if strings.Contains(item.Annotations.Get("summary"), "Value:") {
 					foundCount++
 				}
 			}

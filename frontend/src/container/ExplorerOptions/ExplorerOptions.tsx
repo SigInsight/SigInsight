@@ -153,16 +153,22 @@ function ExplorerOptions({
 			if (!queryToUse) {
 				throw new Error('No query provided');
 			}
+
+			const modifiedQuery = cloneDeep(queryToUse);
+			// The shared query state carries an empty raw-SQL placeholder even for
+			// builder queries. It is not part of the alert contract.
+			modifiedQuery.clickhouse_sql = modifiedQuery.clickhouse_sql.filter(
+				(item) => item.query.trim().length > 0,
+			);
 			if (
 				queryToUse?.builder?.queryData?.[0]?.aggregateOperator !==
 					StringOperators.NOOP &&
 				sourcepage !== DataSource.LOGS
 			) {
-				return JSON.stringify(queryToUse);
+				return JSON.stringify(modifiedQuery);
 			}
 
 			// Convert NOOP to COUNT for alerts and strip orderBy for logs
-			const modifiedQuery = cloneDeep(queryToUse);
 			if (modifiedQuery && modifiedQuery.builder?.queryData) {
 				modifiedQuery.builder.queryData = modifiedQuery.builder.queryData.map(
 					(item) => {

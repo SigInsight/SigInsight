@@ -101,7 +101,17 @@ func (provider *provider) TestAlert(ctx context.Context, orgID string, ruleID st
 	if err != nil {
 		return err
 	}
-	return provider.service.TestAlert(ctx, orgID, receiversMap, config)
+
+	channels, err := provider.configStore.ListChannels(ctx, orgID)
+	if err != nil {
+		return err
+	}
+	resolvedReceivers := make(map[*alertmanagertypes.PostableAlert][]string, len(receiversMap))
+	for alert, references := range receiversMap {
+		resolvedReceivers[alert] = alertmanagertypes.ResolveChannelNames(channels, references)
+	}
+
+	return provider.service.TestAlert(ctx, orgID, resolvedReceivers, config)
 }
 
 func (provider *provider) ListChannels(ctx context.Context, orgID string) ([]*alertmanagertypes.Channel, error) {

@@ -16,6 +16,32 @@ import {
 const maxAlertDataQueries = 4;
 const maxAlertFormulas = 4;
 const durationPattern = /^([1-9]\d*)(s|m|h)$/;
+const notificationPlaceholderPattern = /{{\s*([^{}]+?)\s*}}/g;
+const notificationLabelPattern = /^[A-Za-z_.][A-Za-z0-9_.]*$/;
+
+function validateNotificationMessageTemplate(template: string): string | null {
+	if (!template.trim()) {
+		return 'Enter a notification message';
+	}
+	const tokens = Array.from(template.matchAll(notificationPlaceholderPattern));
+	const plainText = template.replace(notificationPlaceholderPattern, '');
+	if (plainText.includes('{{') || plainText.includes('}}')) {
+		return 'Notification message has invalid template syntax';
+	}
+	for (const match of tokens) {
+		const token = match[1].trim();
+		if (
+			!['alert.name', 'severity', 'value', 'threshold'].includes(token) &&
+			!(
+				token.startsWith('label.') &&
+				notificationLabelPattern.test(token.slice('label.'.length))
+			)
+		) {
+			return `Unsupported notification placeholder: ${token}`;
+		}
+	}
+	return null;
+}
 
 function durationInSeconds(value: string): number | null {
 	const match = value.trim().match(durationPattern);
@@ -65,7 +91,10 @@ function validateFormulaDrafts(formulas: IBuilderFormula[]): string | null {
 }
 
 function validateQueryShape(query: Query): string | null {
-	if (query.queryType !== 'builder' || query.clickhouse_sql.length > 0) {
+	const hasExecutableClickHouseSQL = query.clickhouse_sql.some(
+		(item) => item.query.trim().length > 0,
+	);
+	if (query.queryType !== 'builder' || hasExecutableClickHouseSQL) {
 		return 'Basic alerts only support lightweight builder queries';
 	}
 	if (
@@ -162,7 +191,8 @@ export function validateBasicAlertDraft(
 	return (
 		validateDataQuality(draft) ||
 		validateEvaluation(draft) ||
-		validateCondition(draft)
+		validateCondition(draft) ||
+		validateNotificationMessageTemplate(draft.notification.messageTemplate)
 	);
 }
 
@@ -230,11 +260,11 @@ export function serializeBasicAlertDraft(
 		condition: serializeCondition(draft, query),
 		evaluation: draft.evaluation,
 		labels: draft.identity.labels,
-		annotations: {
-			description: draft.identity.description,
-			summary: draft.identity.description,
+		annotations: {},
+		notificationSettings: {
+			groupBy: draft.notification.groupBy,
+			messageTemplate: draft.notification.messageTemplate,
 		},
-		notificationSettings: { groupBy: draft.notification.groupBy },
 		version: 'v5',
 		...(source ? { source } : {}),
 	};

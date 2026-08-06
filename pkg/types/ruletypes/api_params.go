@@ -50,7 +50,8 @@ type PostableRule struct {
 }
 
 type NotificationSettings struct {
-	GroupBy []string `json:"groupBy,omitempty"`
+	GroupBy         []string `json:"groupBy,omitempty"`
+	MessageTemplate string   `json:"messageTemplate,omitempty"`
 	// NewGroupEvalDelay is the grace period for new series to be excluded from alerts evaluation
 	NewGroupEvalDelay valuer.TextDuration `json:"newGroupEvalDelay,omitzero"`
 }
@@ -278,6 +279,12 @@ func (r *PostableRule) validate() error {
 		}
 		if strings.Contains(v, "{{") || strings.Contains(v, "}}") {
 			errs = append(errs, signozError.NewInvalidInputf(signozError.CodeInvalidInput, "alert annotation templates are not supported"))
+		}
+	}
+
+	if r.NotificationSettings != nil && r.NotificationSettings.MessageTemplate != "" {
+		if err := ValidateNotificationMessageTemplate(r.NotificationSettings.MessageTemplate); err != nil {
+			errs = append(errs, err)
 		}
 	}
 	return signozError.Join(errs...)

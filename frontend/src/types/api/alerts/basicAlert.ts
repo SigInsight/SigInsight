@@ -88,11 +88,12 @@ export interface PostableBasicAlertRule {
 	evaluation: BasicAlertEvaluation;
 	labels: Labels;
 	annotations: {
-		description: string;
-		summary: string;
+		description?: string;
+		summary?: string;
 	};
 	notificationSettings: {
 		groupBy: string[];
+		messageTemplate?: string;
 	};
 	version: 'v5';
 	source?: string;

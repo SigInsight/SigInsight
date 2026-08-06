@@ -92,7 +92,7 @@ func defaultTestNotification(opts PrepareTestRuleOptions) (EvaluationPreview, *m
 		notificationErr = opts.NotifyFunc(ctx, orgID, expr, alerts...)
 	})
 	if notificationErr != nil {
-		return EvaluationPreview{}, model.InternalError(fmt.Errorf("test notification delivery failed"))
+		return EvaluationPreview{}, model.InternalError(fmt.Errorf("test notification delivery failed: %w", notificationErr))
 	}
 
 	return EvaluationPreview{

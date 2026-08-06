@@ -10,7 +10,12 @@ import {
 	PostableBasicAlertRule,
 } from './types';
 
-const defaultDescription = 'The configured alert condition was met.';
+export const defaultNotificationMessageTemplate = `{{alert.name}}
+Severity: {{severity}}
+Value: {{value}}
+Threshold: {{threshold}}`;
+
+const legacyDefaultDescription = 'The configured alert condition was met.';
 
 export function browserTimezone(): string {
 	try {
@@ -59,7 +64,6 @@ export function defaultBasicAlertDraft(alertType: AlertTypes): BasicAlertDraft {
 			name: '',
 			alertType,
 			labels: {},
-			description: defaultDescription,
 		},
 		condition: {
 			kind: 'numeric',
@@ -82,7 +86,11 @@ export function defaultBasicAlertDraft(alertType: AlertTypes): BasicAlertDraft {
 			noDataFor: '5m',
 			minPoints: 1,
 		},
-		notification: { channel: '', groupBy: [] },
+		notification: {
+			channel: '',
+			groupBy: [],
+			messageTemplate: defaultNotificationMessageTemplate,
+		},
 	};
 }
 
@@ -142,7 +150,6 @@ export function draftFromV3Rule(rule: PostableBasicAlertRule): BasicAlertDraft {
 			name: rule.alert,
 			alertType: rule.alertType,
 			labels: rule.labels || {},
-			description: rule.annotations?.description || defaultDescription,
 		},
 		condition,
 		evaluation: rule.evaluation,
@@ -150,6 +157,13 @@ export function draftFromV3Rule(rule: PostableBasicAlertRule): BasicAlertDraft {
 		notification: {
 			channel: notificationChannel,
 			groupBy: rule.notificationSettings?.groupBy || [],
+			messageTemplate:
+				rule.notificationSettings?.messageTemplate ||
+				(rule.annotations?.description &&
+				rule.annotations.description !== legacyDefaultDescription
+					? rule.annotations.description
+					: '') ||
+				defaultNotificationMessageTemplate,
 		},
 	};
 }

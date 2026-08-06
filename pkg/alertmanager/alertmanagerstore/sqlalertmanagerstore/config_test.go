@@ -3,10 +3,13 @@ package sqlalertmanagerstore
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"testing"
+	"time"
 
 	"github.com/SigNoz/signoz/pkg/sqlstore"
 	"github.com/SigNoz/signoz/pkg/types"
+	"github.com/SigNoz/signoz/pkg/types/alertmanagertypes"
 	"github.com/SigNoz/signoz/pkg/types/ruletypes"
 	"github.com/SigNoz/signoz/pkg/valuer"
 	"github.com/stretchr/testify/require"
@@ -30,7 +33,7 @@ func TestGetMatchersUsesCurrentRuleChannelsAndScopesRules(t *testing.T) {
 	db := bun.NewDB(database, sqlitedialect.New())
 	t.Cleanup(func() { require.NoError(t, db.Close()) })
 	ctx := context.Background()
-	require.NoError(t, db.ResetModel(ctx, (*ruletypes.Rule)(nil)))
+	require.NoError(t, db.ResetModel(ctx, (*ruletypes.Rule)(nil), (*alertmanagertypes.Channel)(nil)))
 
 	orgID := "org-a"
 	insertRule := func(orgID string, deleted int, data string) string {
@@ -62,5 +65,50 @@ func TestGetMatchersUsesCurrentRuleChannelsAndScopesRules(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, map[string][]string{
 		currentID: {"critical", "pager", "email"},
+	}, matchers)
+}
+
+func TestGetMatchersResolvesChannelIDsToReceiverNames(t *testing.T) {
+	database, err := sql.Open("sqlite", ":memory:")
+	require.NoError(t, err)
+	t.Cleanup(func() { require.NoError(t, database.Close()) })
+
+	db := bun.NewDB(database, sqlitedialect.New())
+	t.Cleanup(func() { require.NoError(t, db.Close()) })
+	ctx := context.Background()
+	require.NoError(t, db.ResetModel(ctx, (*ruletypes.Rule)(nil), (*alertmanagertypes.Channel)(nil)))
+
+	orgID := "org-a"
+	channelID := valuer.GenerateUUID()
+	channel := &alertmanagertypes.Channel{
+		Identifiable: types.Identifiable{ID: channelID},
+		TimeAuditable: types.TimeAuditable{
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		},
+		Name:  "test notification channel",
+		Type:  "email",
+		Data:  `{"name":"test notification channel","email_configs":[{"to":"alerts@example.com"}]}`,
+		OrgID: orgID,
+	}
+	_, err = db.NewInsert().Model(channel).Exec(ctx)
+	require.NoError(t, err)
+
+	rule := &ruletypes.Rule{
+		Identifiable: types.Identifiable{ID: valuer.GenerateUUID()},
+		Data: fmt.Sprintf(`{
+			"alert":"channel id rule","alertType":"LOGS_BASED_ALERT","ruleType":"threshold_rule","version":"v5","schemaVersion":"v3alpha1",
+			"condition":{"kind":"numeric","compositeQuery":{"queryType":"builder","queries":[{"type":"builder_query","spec":{"name":"A","signal":"logs","aggregations":[{"expression":"count()"}],"stepInterval":"1m"}}]},"selectedQueryName":"A","numeric":{"reduction":"at_least_once","operator":"gt","thresholds":[{"severity":"critical","target":1,"channels":["%s"]}]}},
+			"evaluation":{"kind":"rolling","spec":{"evalWindow":"5m","frequency":"1m"}},"notificationSettings":{"groupBy":[]}
+		}`, channelID.StringValue()),
+		OrgID: orgID,
+	}
+	_, err = db.NewInsert().Model(rule).Exec(ctx)
+	require.NoError(t, err)
+
+	matchers, err := NewConfigStore(&testSQLStore{db: db}).GetMatchers(ctx, orgID)
+	require.NoError(t, err)
+	require.Equal(t, map[string][]string{
+		rule.ID.StringValue(): {"test notification channel"},
 	}, matchers)
 }

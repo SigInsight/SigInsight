@@ -1,4 +1,5 @@
 import {
+	initialClickHouseData,
 	initialFormulaBuilderFormValues,
 	initialQueriesMap,
 } from 'constants/queryBuilder';
@@ -30,7 +31,6 @@ function numericDraft(): BasicAlertDraft {
 			name: 'CPU saturation',
 			alertType: AlertTypes.METRICS_BASED_ALERT,
 			labels: { team: 'platform' },
-			description: 'CPU saturation is above the configured threshold.',
 		},
 		condition: {
 			kind: 'numeric',
@@ -51,7 +51,11 @@ function numericDraft(): BasicAlertDraft {
 			spec: { evalWindow: '5m', frequency: '1m' },
 		},
 		dataQuality: { alertOnNoData: true, noDataFor: '30s', minPoints: 2 },
-		notification: { channel: 'email', groupBy: [] },
+		notification: {
+			channel: 'email',
+			groupBy: [],
+			messageTemplate: '{{alert.name}}: {{value}} > {{threshold}}',
+		},
 	};
 }
 
@@ -91,6 +95,10 @@ describe('basic alert v3 serializer', () => {
 		});
 		expect(rule.condition).not.toHaveProperty('thresholds');
 		expect(JSON.stringify(rule)).not.toContain('"unit"');
+		expect(rule.annotations).toEqual({});
+		expect(rule.notificationSettings.messageTemplate).toBe(
+			'{{alert.name}}: {{value}} > {{threshold}}',
+		);
 	});
 
 	it('omits no-data duration when no-data alerting is disabled', () => {
@@ -172,6 +180,40 @@ describe('basic alert v3 serializer', () => {
 			expect.objectContaining({ severity: 'critical', channels: ['email'] }),
 			expect.objectContaining({ severity: 'warning', channels: ['email'] }),
 		]);
+	});
+
+	it('ignores an empty raw SQL placeholder on builder queries', () => {
+		const query = queryFixture();
+		query.clickhouse_sql = [{ ...initialClickHouseData, query: '' }];
+
+		expect(validateBasicAlertDraft(numericDraft(), query)).toBeNull();
+	});
+
+	it('rejects executable raw SQL on builder queries', () => {
+		const query = queryFixture();
+		query.clickhouse_sql = [{ ...initialClickHouseData, query: 'SELECT 1' }];
+
+		expect(validateBasicAlertDraft(numericDraft(), query)).toBe(
+			'Basic alerts only support lightweight builder queries',
+		);
+	});
+
+	it.each([
+		[
+			'rejects an unsupported placeholder',
+			'{{ $value }}',
+			'Unsupported notification placeholder',
+		],
+		[
+			'rejects an unmatched opening delimiter',
+			'{{alert.name}',
+			'invalid template syntax',
+		],
+		['requires a message', '   ', 'Enter a notification message'],
+	])('%s', (_name, messageTemplate, expected) => {
+		const draft = numericDraft();
+		draft.notification.messageTemplate = messageTemplate;
+		expect(validateBasicAlertDraft(draft, queryFixture())).toContain(expected);
 	});
 
 	it.each([
