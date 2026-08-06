@@ -30,16 +30,16 @@ import (
 const (
 	siginsightMetricDBName = "siginsight_metrics"
 
-	siginsightSampleLocalTableName = "samples_v4"
-	siginsightSampleTableName      = "samples_v4"
+	siginsightSampleLocalTableName = "metric_points"
+	siginsightSampleTableName      = "metric_points"
 
-	siginsightSamplesAgg5mLocalTableName  = "samples_v4_agg_5m"
-	siginsightSamplesAgg30mLocalTableName = "samples_v4_agg_30m"
+	siginsightSamplesAgg5mLocalTableName  = "metric_rollup_5m"
+	siginsightSamplesAgg30mLocalTableName = "metric_rollup_30m"
 	siginsightExpHistLocalTableName       = "exp_hist"
-	siginsightTSLocalTableNameV4          = "time_series_v4"
-	siginsightTSLocalTableNameV46Hrs      = "time_series_v4_6hrs"
-	siginsightTSLocalTableNameV41Day      = "time_series_v4_1day"
-	siginsightTSLocalTableNameV41Week     = "time_series_v4_1week"
+	siginsightTSLocalTableNameV4          = "metric_series"
+	siginsightTSLocalTableNameV46Hrs      = "metric_series_6h"
+	siginsightTSLocalTableNameV41Day      = "metric_series_1d"
+	siginsightTSLocalTableNameV41Week     = "metric_series_1w"
 )
 
 type Config struct {
@@ -48,7 +48,6 @@ type Config struct {
 	TraceLocalTable        string
 	TraceResourceTable     string
 	ErrorTable             string
-	UsageExplorerTable     string
 	DependencyGraphTable   string
 	TraceSummaryTable      string
 	SpanAttributeKeysTable string
@@ -70,7 +69,6 @@ type Reader struct {
 	traceLocalTableName      string
 	traceResourceTableV3     string
 	errorTable               string
-	usageExplorerTable       string
 	dependencyGraphTable     string
 	traceSummaryTable        string
 	spanAttributesKeysTable  string
@@ -95,7 +93,6 @@ func New(logger *slog.Logger, sqlDB sqlstore.SQLStore, db clickhouse.Conn, confi
 		traceLocalTableName:      config.TraceLocalTable,
 		traceResourceTableV3:     config.TraceResourceTable,
 		errorTable:               config.ErrorTable,
-		usageExplorerTable:       config.UsageExplorerTable,
 		dependencyGraphTable:     config.DependencyGraphTable,
 		traceSummaryTable:        config.TraceSummaryTable,
 		spanAttributesKeysTable:  config.SpanAttributeKeysTable,
@@ -109,25 +106,10 @@ func New(logger *slog.Logger, sqlDB sqlstore.SQLStore, db clickhouse.Conn, confi
 	}
 }
 
-// getLocalTableName normalizes historical retention rows to the current single-node schema.
+// getLocalTableName keeps the table-name boundary explicit for TTL status rows.
+// Canonical schema is single-node and does not accept historical aliases.
 func getLocalTableName(tableName string) string {
-	tableNameSplit := strings.SplitN(tableName, ".", 2)
-	if len(tableNameSplit) != 2 {
-		return tableName
-	}
-
-	localName := strings.TrimPrefix(tableNameSplit[1], "distributed_")
-	legacyTraceTables := map[string]string{
-		"signoz_index_v3":       "span_index_v3",
-		"signoz_index_v2":       "span_index_v2",
-		"signoz_error_index_v2": "error_index_v2",
-		"signoz_spans":          "legacy_spans",
-	}
-	if currentName, ok := legacyTraceTables[localName]; ok {
-		localName = currentName
-	}
-
-	return tableNameSplit[0] + "." + localName
+	return tableName
 }
 
 func (r *Reader) setTTLTraces(ctx context.Context, orgID string, params *model.TTLParams) (*model.SetTTLResponseItem, error) {
@@ -143,7 +125,6 @@ func (r *Reader) setTTLTraces(ctx context.Context, orgID string, params *model.T
 		r.traceDB + "." + r.traceTableName,
 		r.traceDB + "." + r.traceResourceTableV3,
 		r.traceDB + "." + r.errorTable,
-		r.traceDB + "." + r.usageExplorerTable,
 		r.traceDB + "." + r.dependencyGraphTable,
 		r.traceDB + "." + r.traceSummaryTable,
 		r.traceDB + "." + r.spanAttributesKeysTable,
@@ -740,10 +721,10 @@ func (r *Reader) setTTLMetrics(ctx context.Context, orgID string, params *model.
 			r.logger.Error("error in inserting to ttl_status table", errorsV2.Attr(dbErr))
 			return
 		}
-		timeColumn := "timestamp_ms"
-		if strings.Contains(tableName, "v4") || strings.Contains(tableName, "exp_hist") {
-			timeColumn = "unix_milli"
-		}
+		// Every canonical metrics table stores event time as unix_milli. The
+		// former name-based v4 check became false after M16 renamed the tables,
+		// causing asynchronous TTL updates to reference nonexistent timestamp_ms.
+		timeColumn := "unix_milli"
 
 		req := fmt.Sprintf(
 			"ALTER TABLE %v MODIFY TTL toDateTime(toUInt32(%s / 1000), 'UTC') + "+
@@ -869,7 +850,7 @@ func (r *Reader) GetTTL(ctx context.Context, orgID string, ttlParams *model.GetT
 	getMetricsTTL := func() (*model.DBResponseTTL, error) {
 		var dbResp []model.DBResponseTTL
 
-		query := fmt.Sprintf("SELECT engine_full FROM system.tables WHERE name='%v'", siginsightSampleLocalTableName)
+		query := fmt.Sprintf("SELECT engine_full FROM system.tables WHERE name='%v' AND database='%v'", siginsightSampleLocalTableName, siginsightMetricDBName)
 
 		err := r.db.Select(ctx, &dbResp, query)
 
@@ -908,7 +889,6 @@ func (r *Reader) GetTTL(ctx context.Context, orgID string, ttlParams *model.GetT
 			r.traceDB + "." + r.traceTableName,
 			r.traceDB + "." + r.traceResourceTableV3,
 			r.traceDB + "." + r.errorTable,
-			r.traceDB + "." + r.usageExplorerTable,
 			r.traceDB + "." + r.dependencyGraphTable,
 			r.traceDB + "." + r.traceSummaryTable,
 		}

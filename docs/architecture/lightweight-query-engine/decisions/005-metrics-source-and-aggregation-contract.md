@@ -10,9 +10,9 @@
 函数链和 response 后处理混在同一条 builder pipeline 中。其 SQL 可支持很宽的能力，
 但无法作为轻量引擎的稳定基础。
 
-Collector 的当前 schema 将普通点保存于 `siginsight_metrics.samples_v4`，并把标签与
-resource/scope/point attributes 保存于 `time_series_v4`。Meter 则在
-`siginsight_meter.samples` 中将标签和点一起保存。显式 Histogram 被展开为以 `.bucket`
+Collector 的 current canonical schema 将普通点保存于 `siginsight_metrics.metric_points`，并把标签与
+resource/scope/point attributes 保存于 `metric_series`。Meter 则在
+`siginsight_meter.meter_points` 中将标签和点一起保存。显式 Histogram 被展开为以 `.bucket`
 结尾、带 `le` label 的累计 bucket series。
 
 ## 决策
@@ -21,8 +21,8 @@ M3 使用固定的原始数据源：
 
 | Signal | 点表 | series/标签表 |
 | --- | --- | --- |
-| Metrics Gauge/Sum/explicit Histogram | `siginsight_metrics.samples_v4` | `siginsight_metrics.time_series_v4` |
-| Meter | `siginsight_meter.samples` | 同一张点表的 `labels` |
+| Metrics Gauge/Sum/explicit Histogram | `siginsight_metrics.metric_points` | `siginsight_metrics.metric_series` |
+| Meter | `siginsight_meter.meter_points` | 同一张点表的 `labels` |
 
 Metrics 查询始终分两阶段：
 
@@ -43,13 +43,13 @@ series，并保留其物理 temporality：Delta 点在查询 bucket 内求和，
 
 ## 明确不支持
 
-- `samples_v4_agg_5m`、`samples_v4_agg_30m`、`samples_agg_1d` 和其表选择 heuristics。
+- `metric_rollup_5m`、`metric_rollup_30m`、`meter_rollup_1d` 和其表选择 heuristics。
 - 指数直方图 `exp_hist`、summary、任意函数链、EWMA/anomaly、二次聚合和 raw SQL。
 - 自动 metadata fallback、自动 materialized-column 选择和跨表 retention 补齐。
 - Histogram 的任意 threshold/interpolation 参数；仅支持预定义 p50/p90/p95/p99。
 
-固定原始表意味着 Metrics 查询只覆盖 Collector 当前 `samples_v4` 保留期，Meter 覆盖
-其 `samples` 保留期。超出保留期时返回空结果而不是悄悄切换近似数据源。
+固定原始表意味着 Metrics 查询只覆盖 Collector 当前 `metric_points` 保留期，Meter 覆盖
+其 `meter_points` 保留期。超出保留期时返回空结果而不是悄悄切换近似数据源。
 
 ## 影响
 

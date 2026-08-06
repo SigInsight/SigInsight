@@ -12,7 +12,7 @@ from fixtures.utils import parse_timestamp
 
 
 class MetricsTimeSeries(ABC):
-    """Represents a row in the time_series_v4 table."""
+    """Represents a row in the metric_series table."""
 
     env: str
     temporality: str
@@ -87,7 +87,7 @@ class MetricsTimeSeries(ABC):
 
 
 class MetricsSample(ABC):
-    """Represents a row in the samples_v4 table."""
+    """Represents a row in the metric_points table."""
 
     env: str
     temporality: str
@@ -425,8 +425,8 @@ def insert_metrics(
         """
         Insert metrics into ClickHouse tables.
         This function handles insertion into:
-        - time_series_v4 (time series metadata)
-        - samples_v4 (actual sample values)
+        - metric_series (time series metadata)
+        - metric_points (actual sample values)
         - metadata (metric attribute metadata)
         """
         time_series_map: dict[int, MetricsTimeSeries] = {}
@@ -438,7 +438,7 @@ def insert_metrics(
         if len(time_series_map) > 0:
             clickhouse.conn.insert(
                 database="siginsight_metrics",
-                table="time_series_v4",
+                table="metric_series",
                 column_names=[
                     "env",
                     "temporality",
@@ -462,7 +462,7 @@ def insert_metrics(
         if len(samples) > 0:
             clickhouse.conn.insert(
                 database="siginsight_metrics",
-                table="samples_v4",
+                table="metric_points",
                 column_names=[
                     "env",
                     "temporality",
@@ -551,8 +551,8 @@ def insert_metrics(
 
     yield _insert_metrics
     tables_to_truncate = [
-        "time_series_v4",
-        "samples_v4",
+        "metric_series",
+        "metric_points",
         "exp_hist",
         "metadata",
     ]
@@ -567,15 +567,14 @@ def remove_metrics_ttl_and_storage_settings(signoz: types.SigNoz):
     Also resets storage policy to default by recreating tables if needed.
     """
     tables = [
-        "samples_v4",
-        "samples_v4_agg_5m",
-        "samples_v4_agg_30m",
-        "time_series_v4",
-        "time_series_v4_6hrs",
-        "time_series_v4_1day",
-        "time_series_v4_1week",
+        "metric_points",
+        "metric_rollup_5m",
+        "metric_rollup_30m",
+        "metric_series",
+        "metric_series_6h",
+        "metric_series_1d",
+        "metric_series_1w",
         "exp_hist",
-        "metadata",
     ]
     for table in tables:
         try:

@@ -21,6 +21,7 @@ import (
 	"github.com/SigNoz/signoz/pkg/modules/user/impluser"
 	"github.com/SigNoz/signoz/pkg/querier"
 	"github.com/SigNoz/signoz/pkg/queryparser"
+	"github.com/SigNoz/signoz/pkg/schemareadiness"
 	"github.com/SigNoz/signoz/pkg/sharder"
 	"github.com/SigNoz/signoz/pkg/sqlmigration"
 	"github.com/SigNoz/signoz/pkg/sqlmigrator"
@@ -185,6 +186,10 @@ func New(
 		return nil, err
 	}
 
+	if err := schemareadiness.Validate(ctx, telemetrystore); err != nil {
+		return nil, err
+	}
+
 	// Initialize querier from the available querier provider factories
 	querier, err := factory.NewProviderFromNamedMap(
 		ctx,
@@ -308,20 +313,18 @@ func New(
 		providerSettings,
 		telemetrystore,
 		telemetrytraces.DBName,
-		telemetrytraces.TagAttributesV2TableName,
+		telemetrytraces.FieldValuesTableName,
 		telemetrytraces.SpanAttributesKeysTblName,
-		telemetrytraces.SpanIndexV3TableName,
+		telemetrytraces.SpansTableName,
 		telemetrymetrics.DBName,
-		telemetrymetrics.AttributesMetadataTableName,
+		telemetrymetrics.MetricMetadataTableName,
 		telemetrymeter.DBName,
-		telemetrymeter.SamplesAgg1dTableName,
+		telemetrymeter.MeterRollup1dTableName,
 		telemetrylogs.DBName,
-		telemetrylogs.LogsV2TableName,
-		telemetrylogs.TagAttributesV2TableName,
+		telemetrylogs.LogsTableName,
+		telemetrylogs.FieldValuesTableName,
 		telemetrylogs.LogAttributeKeysTblName,
 		telemetrylogs.LogResourceKeysTblName,
-		telemetrymetadata.DBName,
-		telemetrymetadata.AttributesMetadataLocalTableName,
 	)
 
 	// Initialize all modules

@@ -68,32 +68,57 @@ var (
 		"has_error":            {Name: "has_error", Type: schema.ColumnTypeBool},
 		"is_remote":            {Name: "is_remote", Type: schema.LowCardinalityColumnType{ElementType: schema.ColumnTypeString}},
 		// materialized columns
-		"resource_string_service$$name":         {Name: "resource_string_service$$name", Type: schema.ColumnTypeString},
-		"attribute_string_http$$route":          {Name: "attribute_string_http$$route", Type: schema.ColumnTypeString},
-		"attribute_string_messaging$$system":    {Name: "attribute_string_messaging$$system", Type: schema.ColumnTypeString},
-		"attribute_string_messaging$$operation": {Name: "attribute_string_messaging$$operation", Type: schema.ColumnTypeString},
-		"attribute_string_db$$system":           {Name: "attribute_string_db$$system", Type: schema.ColumnTypeString},
-		"attribute_string_rpc$$system":          {Name: "attribute_string_rpc$$system", Type: schema.ColumnTypeString},
-		"attribute_string_rpc$$service":         {Name: "attribute_string_rpc$$service", Type: schema.ColumnTypeString},
-		"attribute_string_rpc$$method":          {Name: "attribute_string_rpc$$method", Type: schema.ColumnTypeString},
-		"attribute_string_peer$$service":        {Name: "attribute_string_peer$$service", Type: schema.ColumnTypeString},
-		"http.route":                            {Name: "attribute_string_http$$route", Type: schema.ColumnTypeString},
-		"rpc.method":                            {Name: "attribute_string_rpc$$method", Type: schema.ColumnTypeString},
+		"service_name":        {Name: "service_name", Type: schema.ColumnTypeString},
+		"http_route":          {Name: "http_route", Type: schema.ColumnTypeString},
+		"messaging_system":    {Name: "messaging_system", Type: schema.ColumnTypeString},
+		"messaging_operation": {Name: "messaging_operation", Type: schema.ColumnTypeString},
+		"db_system":           {Name: "db_system", Type: schema.ColumnTypeString},
+		"rpc_system":          {Name: "rpc_system", Type: schema.ColumnTypeString},
+		"rpc_service":         {Name: "rpc_service", Type: schema.ColumnTypeString},
+		"rpc_method":          {Name: "rpc_method", Type: schema.ColumnTypeString},
+		"peer_service":        {Name: "peer_service", Type: schema.ColumnTypeString},
+		"http.route":          {Name: "http_route", Type: schema.ColumnTypeString},
+		"rpc.method":          {Name: "rpc_method", Type: schema.ColumnTypeString},
 
 		// materialized exists columns
-		"resource_string_service$$name_exists":         {Name: "resource_string_service$$name_exists", Type: schema.ColumnTypeBool},
-		"attribute_string_http$$route_exists":          {Name: "attribute_string_http$$route_exists", Type: schema.ColumnTypeBool},
-		"attribute_string_messaging$$system_exists":    {Name: "attribute_string_messaging$$system_exists", Type: schema.ColumnTypeBool},
-		"attribute_string_messaging$$operation_exists": {Name: "attribute_string_messaging$$operation_exists", Type: schema.ColumnTypeBool},
-		"attribute_string_db$$system_exists":           {Name: "attribute_string_db$$system_exists", Type: schema.ColumnTypeBool},
-		"attribute_string_rpc$$system_exists":          {Name: "attribute_string_rpc$$system_exists", Type: schema.ColumnTypeBool},
-		"attribute_string_rpc$$service_exists":         {Name: "attribute_string_rpc$$service_exists", Type: schema.ColumnTypeBool},
-		"attribute_string_rpc$$method_exists":          {Name: "attribute_string_rpc$$method_exists", Type: schema.ColumnTypeBool},
-		"attribute_string_peer$$service_exists":        {Name: "attribute_string_peer$$service_exists", Type: schema.ColumnTypeBool},
+		"service_name_present":        {Name: "service_name_present", Type: schema.ColumnTypeBool},
+		"http_route_present":          {Name: "http_route_present", Type: schema.ColumnTypeBool},
+		"messaging_system_present":    {Name: "messaging_system_present", Type: schema.ColumnTypeBool},
+		"messaging_operation_present": {Name: "messaging_operation_present", Type: schema.ColumnTypeBool},
+		"db_system_present":           {Name: "db_system_present", Type: schema.ColumnTypeBool},
+		"rpc_system_present":          {Name: "rpc_system_present", Type: schema.ColumnTypeBool},
+		"rpc_service_present":         {Name: "rpc_service_present", Type: schema.ColumnTypeBool},
+		"rpc_method_present":          {Name: "rpc_method_present", Type: schema.ColumnTypeBool},
+		"peer_service_present":        {Name: "peer_service_present", Type: schema.ColumnTypeBool},
 	}
 )
 
 type defaultFieldMapper struct {
+}
+
+type canonicalMaterializedField struct {
+	column        string
+	presentColumn string
+}
+
+var canonicalMaterializedFields = map[string]canonicalMaterializedField{
+	"resource:string:service.name":         {column: "service_name", presentColumn: "service_name_present"},
+	"attribute:string:http.route":          {column: "http_route", presentColumn: "http_route_present"},
+	"attribute:string:messaging.system":    {column: "messaging_system", presentColumn: "messaging_system_present"},
+	"attribute:string:messaging.operation": {column: "messaging_operation", presentColumn: "messaging_operation_present"},
+	"attribute:string:db.system":           {column: "db_system", presentColumn: "db_system_present"},
+	"attribute:string:rpc.system":          {column: "rpc_system", presentColumn: "rpc_system_present"},
+	"attribute:string:rpc.service":         {column: "rpc_service", presentColumn: "rpc_service_present"},
+	"attribute:string:rpc.method":          {column: "rpc_method", presentColumn: "rpc_method_present"},
+	"attribute:string:peer.service":        {column: "peer_service", presentColumn: "peer_service_present"},
+}
+
+func canonicalMaterializedFieldFor(key *telemetrytypes.TelemetryFieldKey) (canonicalMaterializedField, bool) {
+	if key == nil {
+		return canonicalMaterializedField{}, false
+	}
+	field, ok := canonicalMaterializedFields[key.FieldContext.StringValue()+":"+key.FieldDataType.StringValue()+":"+key.Name]
+	return field, ok
 }
 
 var _ qbtypes.FieldMapper = (*defaultFieldMapper)(nil)
@@ -177,12 +202,11 @@ func (m *defaultFieldMapper) FieldFor(
 		// have to add ::string as clickHouse throws an error :- data types Variant/Dynamic are not allowed in GROUP BY
 		// once clickHouse dependency is updated, we need to check if we can remove it.
 		if key.Materialized {
-			oldKeyName = telemetrytypes.FieldKeyToMaterializedColumnName(key)
-			oldKeyNameExists := telemetrytypes.FieldKeyToMaterializedColumnNameForExists(key)
-			return fmt.Sprintf("multiIf(%s.`%s` IS NOT NULL, %s.`%s`::String, %s==true, %s, NULL)", column.Name, key.Name, column.Name, key.Name, oldKeyNameExists, oldKeyName), nil
-		} else {
-			return fmt.Sprintf("multiIf(%s.`%s` IS NOT NULL, %s.`%s`::String, mapContains(%s, '%s'), %s, NULL)", column.Name, key.Name, column.Name, key.Name, oldColumn.Name, key.Name, oldKeyName), nil
+			if materialized, ok := canonicalMaterializedFieldFor(key); ok {
+				return fmt.Sprintf("multiIf(%s.`%s` IS NOT NULL, %s.`%s`::String, %s==true, %s, NULL)", column.Name, key.Name, column.Name, key.Name, materialized.presentColumn, materialized.column), nil
+			}
 		}
+		return fmt.Sprintf("multiIf(%s.`%s` IS NOT NULL, %s.`%s`::String, mapContains(%s, '%s'), %s, NULL)", column.Name, key.Name, column.Name, key.Name, oldColumn.Name, key.Name, oldKeyName), nil
 	case schema.ColumnTypeEnumString,
 		schema.ColumnTypeEnumUInt64,
 		schema.ColumnTypeEnumUInt32,
@@ -207,9 +231,10 @@ func (m *defaultFieldMapper) FieldFor(
 
 		switch valueType := column.Type.(schema.MapColumnType).ValueType; valueType.GetType() {
 		case schema.ColumnTypeEnumString, schema.ColumnTypeEnumFloat64, schema.ColumnTypeEnumBool:
-			// a key could have been materialized, if so return the materialized column name
 			if key.Materialized {
-				return telemetrytypes.FieldKeyToMaterializedColumnName(key), nil
+				if materialized, ok := canonicalMaterializedFieldFor(key); ok {
+					return materialized.column, nil
+				}
 			}
 			return fmt.Sprintf("%s['%s']", column.Name, key.Name), nil
 		default:

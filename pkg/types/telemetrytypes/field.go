@@ -182,22 +182,6 @@ func TelemetryFieldKeyToText(key *TelemetryFieldKey) string {
 	return sb.String()
 }
 
-func FieldKeyToMaterializedColumnName(key *TelemetryFieldKey) string {
-	return fmt.Sprintf("`%s_%s_%s`",
-		key.FieldContext.String,
-		fieldDataTypes[key.FieldDataType.StringValue()].StringValue(),
-		strings.ReplaceAll(key.Name, ".", "$$"),
-	)
-}
-
-func FieldKeyToMaterializedColumnNameForExists(key *TelemetryFieldKey) string {
-	return fmt.Sprintf("`%s_%s_%s_exists`",
-		key.FieldContext.String,
-		fieldDataTypes[key.FieldDataType.StringValue()].StringValue(),
-		strings.ReplaceAll(key.Name, ".", "$$"),
-	)
-}
-
 type TelemetryFieldValues struct {
 	StringValues  []string  `json:"stringValues,omitempty"`
 	BoolValues    []bool    `json:"boolValues,omitempty"`

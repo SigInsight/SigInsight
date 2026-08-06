@@ -1,7 +1,6 @@
 import time
 from datetime import datetime, timedelta, timezone
 from http import HTTPStatus
-from typing import Callable
 
 import docker
 import requests
@@ -135,6 +134,68 @@ def _query(
     return body["data"]["data"]["results"][0]
 
 
+def _register_admin(signoz: types.SigNoz) -> None:
+    """Create the integration admin or verify the existing SQLite admin."""
+
+    response = requests.post(
+        signoz.self.host_configs["8080"].get("/api/v5/register"),
+        json={
+            "name": "lite collector admin",
+            "orgName": "lite-collector.integration",
+            "email": USER_ADMIN_EMAIL,
+            "password": USER_ADMIN_PASSWORD,
+        },
+        timeout=10,
+    )
+    if response.status_code == HTTPStatus.OK:
+        return
+
+    assert response.status_code == HTTPStatus.BAD_REQUEST, response.text
+
+    endpoint = signoz.self.host_configs["8080"]
+    context_response = requests.get(
+        endpoint.get("/api/v5/sessions/context"),
+        params={"email": USER_ADMIN_EMAIL, "ref": endpoint.base()},
+        timeout=10,
+    )
+    assert context_response.status_code == HTTPStatus.OK, context_response.text
+    org_id = context_response.json()["data"]["orgs"][0]["id"]
+
+    token_response = requests.post(
+        endpoint.get("/api/v5/sessions/email_password"),
+        json={
+            "email": USER_ADMIN_EMAIL,
+            "password": USER_ADMIN_PASSWORD,
+            "orgId": org_id,
+        },
+        timeout=10,
+    )
+    assert token_response.status_code == HTTPStatus.OK, token_response.text
+
+
+def _access_token(signoz: types.SigNoz) -> str:
+    endpoint = signoz.self.host_configs["8080"]
+    context_response = requests.get(
+        endpoint.get("/api/v5/sessions/context"),
+        params={"email": USER_ADMIN_EMAIL, "ref": endpoint.base()},
+        timeout=10,
+    )
+    assert context_response.status_code == HTTPStatus.OK, context_response.text
+    org_id = context_response.json()["data"]["orgs"][0]["id"]
+
+    token_response = requests.post(
+        endpoint.get("/api/v5/sessions/email_password"),
+        json={
+            "email": USER_ADMIN_EMAIL,
+            "password": USER_ADMIN_PASSWORD,
+            "orgId": org_id,
+        },
+        timeout=10,
+    )
+    assert token_response.status_code == HTTPStatus.OK, token_response.text
+    return token_response.json()["data"]["accessToken"]
+
+
 def _has_values(result: dict) -> bool:
     aggregations = result.get("aggregations", [])
     return bool(
@@ -146,11 +207,11 @@ def _has_values(result: dict) -> bool:
 
 def _collector_row_counts(clickhouse: types.TestContainerClickhouse) -> dict[str, int]:
     tables = {
-        "logs": "siginsight_logs.logs_v2",
-        "traces": "siginsight_traces.span_index_v3",
-        "metrics": "siginsight_metrics.samples_v4",
-        "metric_series": "siginsight_metrics.time_series_v4",
-        "meter": "siginsight_meter.samples",
+        "logs": "siginsight_logs.logs",
+        "traces": "siginsight_traces.spans",
+        "metrics": "siginsight_metrics.metric_points",
+        "metric_series": "siginsight_metrics.metric_series",
+        "meter": "siginsight_meter.meter_points",
     }
     return {
         signal: int(
@@ -165,10 +226,10 @@ def _collector_time_ranges(
 ) -> dict[str, list]:
     return {
         "logs": clickhouse.conn.query(
-            "SELECT min(timestamp), max(timestamp) FROM siginsight_logs.logs_v2"
+            "SELECT min(timestamp), max(timestamp) FROM siginsight_logs.logs"
         ).result_rows[0],
         "traces": clickhouse.conn.query(
-            "SELECT min(timestamp), max(timestamp) FROM siginsight_traces.span_index_v3"
+            "SELECT min(timestamp), max(timestamp) FROM siginsight_traces.spans"
         ).result_rows[0],
     }
 
@@ -177,7 +238,7 @@ def _collector_meter_name(clickhouse: types.TestContainerClickhouse) -> str:
     """Select an actual Delta Sum emitted by the current Collector."""
 
     rows = clickhouse.conn.query(
-        "SELECT metric_name FROM siginsight_meter.samples "
+        "SELECT metric_name FROM siginsight_meter.meter_points "
         "WHERE lower(temporality) = 'delta' AND lower(type) = 'sum' "
         "GROUP BY metric_name ORDER BY metric_name ASC LIMIT 1"
     ).result_rows
@@ -191,11 +252,11 @@ def _collector_meter_range(
     """Return a request range containing Collector's hour-rounded meter rows."""
 
     start, end = clickhouse.conn.query(
-        "SELECT min(unix_milli), max(unix_milli) FROM siginsight_meter.samples"
+        "SELECT min(unix_milli), max(unix_milli) FROM siginsight_meter.meter_points"
     ).result_rows[0]
     assert (
         start is not None and end is not None
-    ), "Collector did not timestamp meter samples"
+    ), "Collector did not timestamp meter meter_points"
     return int(start), int(end) + 60_000
 
 
@@ -210,12 +271,12 @@ def _direct_lite_log_buckets(
     """
 
     return clickhouse.conn.query(
-        "SELECT intDiv(siginsight_logs.logs_v2.timestamp, toUInt64({step_ns:UInt64})) "
+        "SELECT intDiv(siginsight_logs.logs.timestamp, toUInt64({step_ns:UInt64})) "
         "* toUInt64({step_ms:UInt64}) AS timestamp, count() AS value "
-        "FROM siginsight_logs.logs_v2 "
-        "WHERE siginsight_logs.logs_v2.timestamp >= toUInt64({start_ns:UInt64}) "
-        "AND siginsight_logs.logs_v2.timestamp < toUInt64({end_ns:UInt64}) "
-        "GROUP BY intDiv(siginsight_logs.logs_v2.timestamp, toUInt64({step_ns:UInt64})) "
+        "FROM siginsight_logs.logs "
+        "WHERE siginsight_logs.logs.timestamp >= toUInt64({start_ns:UInt64}) "
+        "AND siginsight_logs.logs.timestamp < toUInt64({end_ns:UInt64}) "
+        "GROUP BY intDiv(siginsight_logs.logs.timestamp, toUInt64({step_ns:UInt64})) "
         "* toUInt64({step_ms:UInt64}) "
         "ORDER BY timestamp ASC LIMIT {limit:UInt64}",
         parameters={
@@ -269,10 +330,10 @@ def _assert_no_lite_query_errors(clickhouse: types.TestContainerClickhouse) -> N
     failures = clickhouse.conn.query(
         "SELECT query, exception_code, exception FROM system.query_log "
         "WHERE exception_code != 0 AND ("
-        "query LIKE '%FROM siginsight_logs.logs_v2%' "
-        "OR query LIKE '%FROM siginsight_traces.span_index_v3%' "
-        "OR query LIKE '%FROM siginsight_metrics.samples_v4%' "
-        "OR query LIKE '%FROM siginsight_meter.samples%') "
+        "query LIKE '%FROM siginsight_logs.logs%' "
+        "OR query LIKE '%FROM siginsight_traces.spans%' "
+        "OR query LIKE '%FROM siginsight_metrics.metric_points%' "
+        "OR query LIKE '%FROM siginsight_meter.meter_points%') "
         "ORDER BY event_time_microseconds DESC LIMIT 20"
     ).result_rows
     assert not failures, f"lightweight query emitted ClickHouse errors: {failures}"
@@ -301,8 +362,6 @@ def test_lite_query_reads_data_written_by_current_collector(
     signoz_current_collector: types.SigNoz,
     current_collector: str,
     clickhouse: types.TestContainerClickhouse,
-    create_user_admin: None,  # pylint: disable=unused-argument
-    get_token: Callable[[str, str], str],
 ) -> None:
     """Verify the Lite V5 boundary reads data written by the current Collector."""
 
@@ -322,11 +381,8 @@ def test_lite_query_reads_data_written_by_current_collector(
     )
     meter_name = _collector_meter_name(clickhouse)
     meter_start_ms, meter_end_ms = _collector_meter_range(clickhouse)
-    # Authentication is shared through the SQLite test store. The current
-    # Collector service keeps self-registration disabled after bootstrapping,
-    # so reuse the standard authenticated test user instead of registering a
-    # second account through that service instance.
-    token = get_token(USER_ADMIN_EMAIL, USER_ADMIN_PASSWORD)
+    _register_admin(signoz_current_collector)
+    token = _access_token(signoz_current_collector)
     # Time-series requests deliberately omit `limit`: the lightweight contract
     # does not implement top-series limiting, and the frontend removes its
     # stale raw/trace limit before sending this request type.
@@ -374,10 +430,10 @@ def test_lite_query_reads_data_written_by_current_collector(
     ]
 
     physical_tables = {
-        "logs": "siginsight_logs.logs_v2",
-        "traces": "siginsight_traces.span_index_v3",
-        "metrics": "siginsight_metrics.samples_v4",
-        "meter": "siginsight_meter.samples",
+        "logs": "siginsight_logs.logs",
+        "traces": "siginsight_traces.spans",
+        "metrics": "siginsight_metrics.metric_points",
+        "meter": "siginsight_meter.meter_points",
     }
     for spec in specs:
         query_start_ms, query_end_ms = start_ms, end_ms

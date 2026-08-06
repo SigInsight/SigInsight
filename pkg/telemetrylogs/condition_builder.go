@@ -202,9 +202,6 @@ func (c *conditionBuilder) conditionFor(
 			switch valueType := column.Type.(schema.MapColumnType).ValueType; valueType.GetType() {
 			case schema.ColumnTypeEnumString, schema.ColumnTypeEnumBool, schema.ColumnTypeEnumFloat64:
 				leftOperand := fmt.Sprintf("mapContains(%s, '%s')", column.Name, key.Name)
-				if key.Materialized {
-					leftOperand = telemetrytypes.FieldKeyToMaterializedColumnNameForExists(key)
-				}
 				if operator == qbtypes.FilterOperatorExists {
 					return sb.E(leftOperand, true), nil
 				} else {

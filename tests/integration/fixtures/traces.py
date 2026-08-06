@@ -697,11 +697,11 @@ def insert_traces(
         """
         Insert traces into ClickHouse tables following the same logic as the Go exporter.
         This function handles insertion into multiple tables:
-        - span_index_v3 (main traces table)
-        - traces_v3_resource (resource fingerprints)
-        - tag_attributes_v2 (tag attributes)
+        - spans (main traces table)
+        - resource_sets (resource fingerprints)
+        - field_values (tag attributes)
         - span_attributes_keys (attribute keys)
-        - error_index_v2 (error events)
+                - exceptions (error events)
         """
         resources: List[TracesResource] = []
         for trace in traces:
@@ -710,7 +710,7 @@ def insert_traces(
         if len(resources) > 0:
             clickhouse.conn.insert(
                 database="siginsight_traces",
-                table="traces_v3_resource",
+                table="resource_sets",
                 data=[resource.np_arr() for resource in resources],
             )
 
@@ -721,7 +721,7 @@ def insert_traces(
         if len(tag_attributes) > 0:
             clickhouse.conn.insert(
                 database="siginsight_traces",
-                table="tag_attributes_v2",
+                table="field_values",
                 data=[tag_attribute.np_arr() for tag_attribute in tag_attributes],
             )
 
@@ -750,7 +750,7 @@ def insert_traces(
         # Insert main traces
         clickhouse.conn.insert(
             database="siginsight_traces",
-            table="span_index_v3",
+            table="spans",
             column_names=[
                 "ts_bucket_start",
                 "resource_fingerprint",
@@ -796,17 +796,17 @@ def insert_traces(
         if len(error_events) > 0:
             clickhouse.conn.insert(
                 database="siginsight_traces",
-                table="error_index_v2",
+                table="exceptions",
                 data=[error_event.np_arr() for error_event in error_events],
             )
 
     yield _insert_traces
 
-    clickhouse.conn.query("TRUNCATE TABLE siginsight_traces.span_index_v3")
-    clickhouse.conn.query("TRUNCATE TABLE siginsight_traces.traces_v3_resource")
-    clickhouse.conn.query("TRUNCATE TABLE siginsight_traces.tag_attributes_v2")
+    clickhouse.conn.query("TRUNCATE TABLE siginsight_traces.spans")
+    clickhouse.conn.query("TRUNCATE TABLE siginsight_traces.resource_sets")
+    clickhouse.conn.query("TRUNCATE TABLE siginsight_traces.field_values")
     clickhouse.conn.query("TRUNCATE TABLE siginsight_traces.span_attributes_keys")
-    clickhouse.conn.query("TRUNCATE TABLE siginsight_traces.error_index_v2")
+    clickhouse.conn.query("TRUNCATE TABLE siginsight_traces.exceptions")
 
 
 @pytest.fixture(name="remove_traces_ttl_and_storage_settings", scope="function")
@@ -816,11 +816,10 @@ def remove_traces_ttl_and_storage_settings(signoz: types.SigNoz):
     Also resets storage policy to default by recreating tables if needed.
     """
     tables = [
-        "span_index_v3",
-        "traces_v3_resource",
-        "error_index_v2",
-        "usage_explorer",
-        "dependency_graph_minutes_v2",
+        "spans",
+        "resource_sets",
+        "exceptions",
+        "service_edges",
         "trace_summary",
         "span_attributes_keys",
     ]

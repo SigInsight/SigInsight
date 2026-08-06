@@ -8,7 +8,7 @@ Entrypoint 和 V5 identity 决策继续有效。
 
 ## 背景
 
-Trace Detail 曾用 Collector `top_level_operations` 中的 `(name, serviceName)` 推断
+Trace Detail 曾用 Collector `operations` 中的 `(name, serviceName)` 推断
 Entrypoint。该目录是 operation 聚合，不是 span 身份集合；同名 operation 会扩大匹配，
 Client span 也可能被误判。与此同时，部分前端列表仍兼容 V4 camelCase identity，导致 V5
 返回 `span_id` 时去重键变成 `undefined`。单次 raw limit 还无法区分“结果刚好等于 limit”与
@@ -18,7 +18,7 @@ Client span 也可能被误判。与此同时，部分前端列表仍兼容 V4 c
 
 1. Entrypoint 使用 OTel 接收边界语义：span 必须有 parent，`kind` 为 Server(2) 或
    Consumer(5)，且 `is_remote = 'yes'`。Root 保持 `parent_span_id = ''`，两者互不替代。
-2. Lite compiler 不再读取 `siginsight_traces.top_level_operations`。Collector 可以继续维护
+2. Lite compiler 不再读取 `siginsight_traces.operations`。Collector 可以继续维护
    该表供其他功能使用，但它不再是 Trace Detail scope 的查询契约。
 3. V5 raw transport identity 只使用 `trace_id` 与 `span_id`。前端 API 类型、Trace Explorer、
    Trace Detail filter 和关联日志不得回退读取 `traceID`、`traceId`、`spanID` 或 `spanId`。

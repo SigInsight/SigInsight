@@ -98,29 +98,25 @@ var GroupByColMap = map[string]struct{}{
 
 const (
 	SIGINSIGHT_METRIC_DBNAME                       = "siginsight_metrics"
-	SIGINSIGHT_SAMPLES_V4_LOCAL_TABLENAME          = "samples_v4"
-	SIGINSIGHT_SAMPLES_V4_TABLENAME                = "samples_v4"
-	SIGINSIGHT_SAMPLES_V4_AGG_5M_TABLENAME         = "samples_v4_agg_5m"
-	SIGINSIGHT_SAMPLES_V4_AGG_30M_TABLENAME        = "samples_v4_agg_30m"
+	SIGINSIGHT_SAMPLES_V4_LOCAL_TABLENAME          = "metric_points"
+	SIGINSIGHT_SAMPLES_V4_TABLENAME                = "metric_points"
+	SIGINSIGHT_SAMPLES_V4_AGG_5M_TABLENAME         = "metric_rollup_5m"
+	SIGINSIGHT_SAMPLES_V4_AGG_30M_TABLENAME        = "metric_rollup_30m"
 	SIGINSIGHT_EXP_HISTOGRAM_TABLENAME             = "exp_hist"
 	SIGINSIGHT_EXP_HISTOGRAM_LOCAL_TABLENAME       = "exp_hist"
 	SIGINSIGHT_TRACE_DBNAME                        = "siginsight_traces"
-	SIGINSIGHT_SPAN_INDEX_TABLENAME                = "span_index_v2"
-	SIGINSIGHT_SPAN_INDEX_V3                       = "span_index_v3"
-	SIGINSIGHT_SPAN_INDEX_LOCAL_TABLENAME          = "span_index_v2"
-	SIGINSIGHT_SPAN_INDEX_V3_LOCAL_TABLENAME       = "span_index_v3"
-	SIGINSIGHT_TIMESERIES_v4_LOCAL_TABLENAME       = "time_series_v4"
-	SIGINSIGHT_TIMESERIES_V4_TABLENAME             = "time_series_v4"
-	SIGINSIGHT_TIMESERIES_v4_6HRS_LOCAL_TABLENAME  = "time_series_v4_6hrs"
-	SIGINSIGHT_TIMESERIES_v4_1DAY_LOCAL_TABLENAME  = "time_series_v4_1day"
-	SIGINSIGHT_TIMESERIES_v4_1WEEK_LOCAL_TABLENAME = "time_series_v4_1week"
-	SIGINSIGHT_TIMESERIES_v4_1DAY_TABLENAME        = "time_series_v4_1day"
-	SIGINSIGHT_TOP_LEVEL_OPERATIONS_TABLENAME      = "top_level_operations"
-	SIGINSIGHT_TIMESERIES_v4_TABLENAME             = "time_series_v4"
-	SIGINSIGHT_TIMESERIES_v4_1WEEK_TABLENAME       = "time_series_v4_1week"
-	SIGINSIGHT_TIMESERIES_v4_6HRS_TABLENAME        = "time_series_v4_6hrs"
-	SIGINSIGHT_ATTRIBUTES_METADATA_TABLENAME       = "attributes_metadata"
-	SIGINSIGHT_ATTRIBUTES_METADATA_LOCAL_TABLENAME = "attributes_metadata"
+	SIGINSIGHT_SPAN_INDEX_V3                       = "spans"
+	SIGINSIGHT_SPAN_INDEX_V3_LOCAL_TABLENAME       = "spans"
+	SIGINSIGHT_TIMESERIES_v4_LOCAL_TABLENAME       = "metric_series"
+	SIGINSIGHT_TIMESERIES_V4_TABLENAME             = "metric_series"
+	SIGINSIGHT_TIMESERIES_v4_6HRS_LOCAL_TABLENAME  = "metric_series_6h"
+	SIGINSIGHT_TIMESERIES_v4_1DAY_LOCAL_TABLENAME  = "metric_series_1d"
+	SIGINSIGHT_TIMESERIES_v4_1WEEK_LOCAL_TABLENAME = "metric_series_1w"
+	SIGINSIGHT_TIMESERIES_v4_1DAY_TABLENAME        = "metric_series_1d"
+	SIGINSIGHT_TOP_LEVEL_OPERATIONS_TABLENAME      = "operations"
+	SIGINSIGHT_TIMESERIES_v4_TABLENAME             = "metric_series"
+	SIGINSIGHT_TIMESERIES_v4_1WEEK_TABLENAME       = "metric_series_1w"
+	SIGINSIGHT_TIMESERIES_v4_6HRS_TABLENAME        = "metric_series_6h"
 	SIGINSIGHT_METADATA_TABLENAME                  = "metadata"
 	SIGINSIGHT_METADATA_LOCAL_TABLENAME            = "metadata"
 )
@@ -212,17 +208,6 @@ const (
 		"attributes_bool, " +
 		"resources_string, " +
 		"scope_string "
-	TracesExplorerViewSQLSelectWithSubQuery = "(SELECT traceID, durationNano, " +
-		"serviceName, name FROM %s.%s WHERE parentSpanID = '' AND %s ORDER BY durationNano DESC LIMIT 1 BY traceID"
-	TracesExplorerViewSQLSelectBeforeSubQuery = "SELECT subQuery.serviceName as `subQuery.serviceName`, subQuery.name as `subQuery.name`, count() AS " +
-		"span_count, subQuery.durationNano as `subQuery.durationNano`, subQuery.traceID FROM " +
-		"(SELECT traceID AS dist_traceID, timestamp, ts_bucket_start FROM %s.%s WHERE %s%s) as dist_table " +
-		"INNER JOIN ( SELECT * FROM "
-	TracesExplorerViewSQLSelectAfterSubQuery = " AS inner_subquery ) AS subQuery ON dist_table.dist_traceID = subQuery.traceID " +
-		"GROUP BY subQuery.traceID, subQuery.durationNano, subQuery.name, subQuery.serviceName ORDER BY subQuery.durationNano desc LIMIT 1 BY subQuery.traceID "
-	TracesExplorerSpanCountWithSubQuery  = "(SELECT trace_id, count() as span_count FROM %s.%s WHERE %s %s GROUP BY trace_id ORDER BY span_count DESC LIMIT 1 BY trace_id"
-	TraceExplorerSpanCountBeforeSubQuery = "SELECT serviceName, name, subQuery.span_count as span_count, durationNano, trace_id as traceID from %s.%s GLOBAL INNER JOIN ( SELECT * FROM "
-	TraceExplorerSpanCountAfterSubQuery  = "AS inner_subquery ) AS subQuery ON %s.%s.trace_id = subQuery.trace_id WHERE parent_span_id = '' AND %s ORDER BY subQuery.span_count DESC"
 )
 
 // ReservedColumnTargetAliases identifies result value from a user
@@ -424,49 +409,48 @@ var NewStaticFieldsTraces = map[string]querytypes.AttributeKey{
 		IsColumn: true,
 	},
 
-	// these are just added so that we don't use the aliased columns
-	"resource_string_service$$name": {
-		Key:      "resource_string_service$$name",
+	"service_name": {
+		Key:      "service_name",
 		DataType: querytypes.AttributeKeyDataTypeString,
 		IsColumn: true,
 	},
-	"attribute_string_http$$route": {
-		Key:      "attribute_string_http$$route",
+	"http_route": {
+		Key:      "http_route",
 		DataType: querytypes.AttributeKeyDataTypeString,
 		IsColumn: true,
 	},
-	"attribute_string_messaging$$system": {
-		Key:      "attribute_string_messaging$$system",
+	"messaging_system": {
+		Key:      "messaging_system",
 		DataType: querytypes.AttributeKeyDataTypeString,
 		IsColumn: true,
 	},
-	"attribute_string_messaging$$operation": {
-		Key:      "attribute_string_messaging$$operation",
+	"messaging_operation": {
+		Key:      "messaging_operation",
 		DataType: querytypes.AttributeKeyDataTypeString,
 		IsColumn: true,
 	},
-	"attribute_string_db$$system": {
-		Key:      "attribute_string_db$$system",
+	"db_system": {
+		Key:      "db_system",
 		DataType: querytypes.AttributeKeyDataTypeString,
 		IsColumn: true,
 	},
-	"attribute_string_rpc$$system": {
-		Key:      "attribute_string_rpc$$system",
+	"rpc_system": {
+		Key:      "rpc_system",
 		DataType: querytypes.AttributeKeyDataTypeString,
 		IsColumn: true,
 	},
-	"attribute_string_rpc$$service": {
-		Key:      "attribute_string_rpc$$service",
+	"rpc_service": {
+		Key:      "rpc_service",
 		DataType: querytypes.AttributeKeyDataTypeString,
 		IsColumn: true,
 	},
-	"attribute_string_rpc$$method": {
-		Key:      "attribute_string_rpc$$method",
+	"rpc_method": {
+		Key:      "rpc_method",
 		DataType: querytypes.AttributeKeyDataTypeString,
 		IsColumn: true,
 	},
-	"attribute_string_peer$$service": {
-		Key:      "attribute_string_peer$$service",
+	"peer_service": {
+		Key:      "peer_service",
 		DataType: querytypes.AttributeKeyDataTypeString,
 		IsColumn: true,
 	},

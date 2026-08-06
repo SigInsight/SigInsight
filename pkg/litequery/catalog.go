@@ -50,44 +50,44 @@ type materializedField struct {
 
 var defaultMaterializedFields = map[materializedFieldKey]materializedField{
 	{Signal: SignalTraces, Context: FieldContextResource, Name: "service.name", Type: ValueTypeString}: {
-		Column: "resource_string_service$$name", ExistsColumn: "resource_string_service$$name_exists",
+		Column: "service_name", ExistsColumn: "service_name_present",
 	},
 	{Signal: SignalTraces, Context: FieldContextAttribute, Name: "http.route", Type: ValueTypeString}: {
-		Column: "attribute_string_http$$route", ExistsColumn: "attribute_string_http$$route_exists",
+		Column: "http_route", ExistsColumn: "http_route_present",
 	},
 	{Signal: SignalTraces, Context: FieldContextAttribute, Name: "messaging.system", Type: ValueTypeString}: {
-		Column: "attribute_string_messaging$$system", ExistsColumn: "attribute_string_messaging$$system_exists",
+		Column: "messaging_system", ExistsColumn: "messaging_system_present",
 	},
 	{Signal: SignalTraces, Context: FieldContextAttribute, Name: "messaging.operation", Type: ValueTypeString}: {
-		Column: "attribute_string_messaging$$operation", ExistsColumn: "attribute_string_messaging$$operation_exists",
+		Column: "messaging_operation", ExistsColumn: "messaging_operation_present",
 	},
 	{Signal: SignalTraces, Context: FieldContextAttribute, Name: "db.system", Type: ValueTypeString}: {
-		Column: "attribute_string_db$$system", ExistsColumn: "attribute_string_db$$system_exists",
+		Column: "db_system", ExistsColumn: "db_system_present",
 	},
 	{Signal: SignalTraces, Context: FieldContextAttribute, Name: "rpc.system", Type: ValueTypeString}: {
-		Column: "attribute_string_rpc$$system", ExistsColumn: "attribute_string_rpc$$system_exists",
+		Column: "rpc_system", ExistsColumn: "rpc_system_present",
 	},
 	{Signal: SignalTraces, Context: FieldContextAttribute, Name: "rpc.service", Type: ValueTypeString}: {
-		Column: "attribute_string_rpc$$service", ExistsColumn: "attribute_string_rpc$$service_exists",
+		Column: "rpc_service", ExistsColumn: "rpc_service_present",
 	},
 	{Signal: SignalTraces, Context: FieldContextAttribute, Name: "rpc.method", Type: ValueTypeString}: {
-		Column: "attribute_string_rpc$$method", ExistsColumn: "attribute_string_rpc$$method_exists",
+		Column: "rpc_method", ExistsColumn: "rpc_method_present",
 	},
 	{Signal: SignalTraces, Context: FieldContextAttribute, Name: "peer.service", Type: ValueTypeString}: {
-		Column: "attribute_string_peer$$service", ExistsColumn: "attribute_string_peer$$service_exists",
+		Column: "peer_service", ExistsColumn: "peer_service_present",
 	},
 }
 
 func (DefaultCatalog) Table(signal Signal) (string, error) {
 	switch signal {
 	case SignalLogs:
-		return "siginsight_logs.logs_v2", nil
+		return "siginsight_logs.logs", nil
 	case SignalTraces:
-		return "siginsight_traces.span_index_v3", nil
+		return "siginsight_traces.spans", nil
 	case SignalMetrics:
-		return "siginsight_metrics.samples_v4", nil
+		return "siginsight_metrics.metric_points", nil
 	case SignalMeter:
-		return "siginsight_meter.samples", nil
+		return "siginsight_meter.meter_points", nil
 	default:
 		return "", newError(ErrorUnsupported, "signal", "no ClickHouse table is configured for %q", signal)
 	}
@@ -97,11 +97,11 @@ func (DefaultCatalog) MetricSource(signal Signal) (MetricSource, error) {
 	switch signal {
 	case SignalMetrics:
 		return MetricSource{
-			PointsTable: "siginsight_metrics.samples_v4",
-			SeriesTable: "siginsight_metrics.time_series_v4",
+			PointsTable: "siginsight_metrics.metric_points",
+			SeriesTable: "siginsight_metrics.metric_series",
 		}, nil
 	case SignalMeter:
-		return MetricSource{PointsTable: "siginsight_meter.samples"}, nil
+		return MetricSource{PointsTable: "siginsight_meter.meter_points"}, nil
 	default:
 		return MetricSource{}, newError(ErrorUnsupported, "signal", "no metric source is configured for %q", signal)
 	}

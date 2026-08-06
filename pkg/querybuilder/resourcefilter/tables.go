@@ -2,7 +2,7 @@ package resourcefilter
 
 const (
 	TracesDBName             = "siginsight_traces"
-	TraceResourceV3TableName = "traces_v3_resource"
+	TraceResourceV3TableName = "resource_sets"
 	LogsDBName               = "siginsight_logs"
-	LogsResourceV2TableName  = "logs_v2_resource"
+	LogsResourceV2TableName  = "resource_sets"
 )

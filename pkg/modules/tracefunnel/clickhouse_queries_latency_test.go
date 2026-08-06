@@ -88,6 +88,7 @@ func TestBuildFunnelOverviewQuery_WithLatencyPointer(t *testing.T) {
 			query := BuildFunnelOverviewQuery(tt.steps, tt.startTs, tt.endTs)
 
 			for _, want := range tt.wantContains {
+				want = canonicalFunnelExpectation(want)
 				if !strings.Contains(query, want) {
 					t.Errorf("Query missing expected content: %s", want)
 				}
@@ -144,6 +145,7 @@ func TestBuildFunnelStepOverviewQuery_WithLatencyPointer(t *testing.T) {
 			query := BuildFunnelStepOverviewQuery(tt.steps, 1000000000, 2000000000, tt.stepStart, tt.stepEnd)
 
 			for _, want := range tt.wantContains {
+				want = canonicalFunnelExpectation(want)
 				if !strings.Contains(query, want) {
 					t.Errorf("Query missing expected content: %s", want)
 				}
@@ -201,6 +203,7 @@ func TestBuildFunnelTopSlowTracesQuery_WithLatencyPointer(t *testing.T) {
 			)
 
 			for _, want := range tt.wantContains {
+				want = canonicalFunnelExpectation(want)
 				if !strings.Contains(query, want) {
 					t.Errorf("Query missing expected content: %s", want)
 				}
@@ -249,6 +252,7 @@ func TestBuildFunnelTopSlowErrorTracesQuery_WithLatencyPointer(t *testing.T) {
 			)
 
 			for _, want := range tt.wantContains {
+				want = canonicalFunnelExpectation(want)
 				if !strings.Contains(query, want) {
 					t.Errorf("Query missing expected content: %s", want)
 				}

@@ -73,7 +73,7 @@
 | M13 V2 图表与 Container | Complete | 已收敛为 V2 单一渲染栈，删除旧 uPlot 与重复的 Container 适配链路 |
 | M14 运行时兼容删除 | Complete | 已删除旧保存查询兼容、不可达 Dashboard 状态、旧 Alert schema/模板/renotify 和指标元数据写路径 |
 | M15 基础告警编辑器 | Complete | Typed Formula Core、bool V5 result、四个内联函数、v3 编辑器、legacy 删除和真实协作验证均已完成 |
-| M16 Canonical ClickHouse Schema Cutover | Planned | 将 SigInsight reader/Catalog 切换至 Collector `777a8a9` 的无版本 schema，并进行停机协作验证 |
+| M16 Canonical ClickHouse Schema Cutover | In Progress | 将 SigInsight reader/Catalog 与 Collector v2.0.1 切换至 direct canonical schema，并进行停机协作验证 |
 | 机器可读能力矩阵 | Accepted | `capability-matrix.json` 是后续协议和 UI 的约束来源 |
 
 ## 查询引擎边界：引擎之外的专用查询构建器
@@ -133,8 +133,8 @@
 
 1. **能力矩阵外**：多步时序、点查、流式、预聚合表读取均不在 Lite 的 DSL 能力矩阵内（ADR-010、
    ADR-013、ADR-018）。
-2. **读取的表不同**：多数专用 reader 读预聚合表/专用表/元数据表（`top_level_operations`、
-   `dependency_graph`、规则状态表、错误索引表、trace summary 表），Schema Catalog 只覆盖四
+2. **读取的表不同**：多数专用 reader 读预聚合表/专用表/元数据表（`operations`、
+   `service_edges`、规则状态表、`exceptions`、trace summary 表），Schema Catalog 只覆盖四
    信号主表。
 3. **固定形状 vs 任意查询**：固定输入/输出用参数化模板更简单；DSL 编译链路的复杂度只对"任意
    查询"值得。

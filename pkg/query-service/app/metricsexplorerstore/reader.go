@@ -26,12 +26,11 @@ import (
 )
 
 const (
-	siginsightMetricDBName   = "siginsight_metrics"
-	siginsightMetadataDBName = "siginsight_metadata"
+	siginsightMetricDBName = "siginsight_metrics"
 
-	siginsightTSTableNameV4      = "time_series_v4"
-	siginsightTSTableNameV41Day  = "time_series_v4_1day"
-	siginsightTSTableNameV41Week = "time_series_v4_1week"
+	siginsightTSTableNameV4      = "metric_series"
+	siginsightTSTableNameV41Day  = "metric_series_1d"
+	siginsightTSTableNameV41Week = "metric_series_1w"
 )
 
 type metadataReader interface {
@@ -149,7 +148,7 @@ func (r *Reader) GetMetricAggregateAttributes(ctx context.Context, orgID valuer.
 		normalized = false
 	}
 
-	// Query all relevant metric names from time_series_v4, but leave metadata retrieval to cache/db
+	// Query all relevant metric names from metric_series, but leave metadata retrieval to cache/db.
 	query := fmt.Sprintf(
 		`SELECT DISTINCT metric_name
 		 FROM %s.%s
@@ -610,7 +609,6 @@ func (r *Reader) GetMetricsAllResourceAttributes(ctx context.Context, start int6
 		instrumentationtypes.CodeNamespace:    "clickhouse-reader",
 		instrumentationtypes.CodeFunctionName: "GetMetricsAllResourceAttributes",
 	})
-	start, end, attTable, _ := utils.WhichAttributesTableToUse(start, end)
 	query := fmt.Sprintf(`SELECT
     key,
     count(distinct value) AS distinct_value_count
@@ -618,12 +616,12 @@ FROM (
     SELECT key, value
     FROM %s.%s
     ARRAY JOIN
-        arrayConcat(mapKeys(resource_attributes)) AS key,
-        arrayConcat(mapValues(resource_attributes)) AS value
+        arrayConcat(mapKeys(resource_attrs)) AS key,
+        arrayConcat(mapValues(resource_attrs)) AS value
     WHERE unix_milli between ? and ?
 )
 GROUP BY key
-ORDER BY distinct_value_count DESC;`, siginsightMetadataDBName, attTable)
+ORDER BY distinct_value_count DESC;`, siginsightMetricDBName, siginsightTSTableNameV4)
 	valueCtx := context.WithValue(ctx, "clickhouse_max_threads", constants.MetricsExplorerClickhouseThreads)
 	rows, err := r.db.Query(valueCtx, query, start, end)
 	if err != nil {
@@ -659,7 +657,7 @@ func (r *Reader) GetInspectMetrics(ctx context.Context, req *metrics_explorer.In
                 unix_milli,
                 value as per_series_value
         FROM
-                siginsight_metrics.samples_v4
+		        siginsight_metrics.metric_points
         INNER JOIN (
                 SELECT DISTINCT
                         fingerprint,

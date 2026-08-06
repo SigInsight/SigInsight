@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repository_root="$(git rev-parse --show-toplevel)"
+branch="$(git branch --show-current)"
+
+if [[ "${branch}" == "main" ]]; then
+	echo "You cannot commit directly to the main branch." >&2
+	exit 1
+fi
+
+commitlint="${repository_root}/frontend/node_modules/.bin/commitlint"
+if [[ -x "${commitlint}" ]]; then
+	commit_message="$(realpath "$1")"
+	(
+		cd "${repository_root}/frontend"
+		"${commitlint}" --edit "${commit_message}"
+	)
+fi

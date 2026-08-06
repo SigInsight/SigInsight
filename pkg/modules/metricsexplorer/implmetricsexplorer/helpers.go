@@ -51,16 +51,6 @@ func getStatsOrderByColumn(order *qbtypes.OrderBy) (string, string, error) {
 	return columnName, direction.StringValue(), nil
 }
 
-func extractMissingMetricNamesInMap(metricNames []string, metricMetadataMap map[string]*metricsexplorertypes.MetricMetadata) []string {
-	misses := make([]string, 0)
-	for _, name := range metricNames {
-		if _, ok := metricMetadataMap[name]; !ok {
-			misses = append(misses, name)
-		}
-	}
-	return misses
-}
-
 // enrichStatsWithMetadata enriches metric stats with metadata from the provided metadata map.
 func enrichStatsWithMetadata(metricStats []metricsexplorertypes.Stat, metadata map[string]*metricsexplorertypes.MetricMetadata) {
 	for i := range metricStats {

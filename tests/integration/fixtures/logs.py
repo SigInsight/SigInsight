@@ -392,9 +392,9 @@ def insert_logs(
         """
         Insert logs into ClickHouse tables following the same logic as the Go exporter.
         This function handles insertion into multiple tables:
-        - logs_v2 (main logs table)
-        - logs_v2_resource (resource fingerprints)
-        - tag_attributes_v2 (tag attributes)
+        - logs (main logs table)
+        - resource_sets (resource fingerprints)
+        - field_values (tag attributes)
         - logs_attribute_keys (attribute keys)
         - logs_resource_keys (resource keys)
         """
@@ -405,7 +405,7 @@ def insert_logs(
         if len(resources) > 0:
             clickhouse.conn.insert(
                 database="siginsight_logs",
-                table="logs_v2_resource",
+                table="resource_sets",
                 data=[resource.np_arr() for resource in resources],
                 column_names=[
                     "labels",
@@ -421,7 +421,7 @@ def insert_logs(
         if len(tag_attributes) > 0:
             clickhouse.conn.insert(
                 database="siginsight_logs",
-                table="tag_attributes_v2",
+                table="field_values",
                 data=[tag_attribute.np_arr() for tag_attribute in tag_attributes],
             )
 
@@ -451,7 +451,7 @@ def insert_logs(
 
         clickhouse.conn.insert(
             database="siginsight_logs",
-            table="logs_v2",
+            table="logs",
             data=[log.np_arr() for log in logs],
             column_names=[
                 "ts_bucket_start",
@@ -478,9 +478,9 @@ def insert_logs(
 
     yield _insert_logs
 
-    clickhouse.conn.query("TRUNCATE TABLE siginsight_logs.logs_v2")
-    clickhouse.conn.query("TRUNCATE TABLE siginsight_logs.logs_v2_resource")
-    clickhouse.conn.query("TRUNCATE TABLE siginsight_logs.tag_attributes_v2")
+    clickhouse.conn.query("TRUNCATE TABLE siginsight_logs.logs")
+    clickhouse.conn.query("TRUNCATE TABLE siginsight_logs.resource_sets")
+    clickhouse.conn.query("TRUNCATE TABLE siginsight_logs.field_values")
     clickhouse.conn.query("TRUNCATE TABLE siginsight_logs.logs_attribute_keys")
     clickhouse.conn.query("TRUNCATE TABLE siginsight_logs.logs_resource_keys")
 
@@ -493,10 +493,10 @@ def remove_logs_ttl_settings(signoz: types.SigNoz):
     and resets the _retention_days default value to 0.
     """
     tables = [
-        "logs_v2",
-        "logs_v2_resource",
-        "logs_v2",
-        "logs_v2_resource",
+        "logs",
+        "resource_sets",
+        "logs",
+        "resource_sets",
         "logs_attribute_keys",
         "logs_resource_keys",
     ]
@@ -505,10 +505,10 @@ def remove_logs_ttl_settings(signoz: types.SigNoz):
         try:
             # Reset _retention_days and _retention_days_cold default values to 0 for tables that have these columns
             if table in [
-                "logs_v2",
-                "logs_v2_resource",
-                "logs_v2",
-                "logs_v2_resource",
+                "logs",
+                "resource_sets",
+                "logs",
+                "resource_sets",
             ]:
                 reset_retention_query = f"""
                 ALTER TABLE siginsight_logs.{table}

@@ -63,18 +63,14 @@ func insertTTLStatus(t *testing.T, db *bun.DB, orgID, tableName, status string, 
 	require.NoError(t, err)
 }
 
-func TestGetLocalTableName(t *testing.T) {
+func TestGetLocalTableNameIsCanonicalIdentity(t *testing.T) {
 	assert := assert.New(t)
 
-	assert.Equal("siginsight_traces.span_index_v3", getLocalTableName("siginsight_traces.distributed_signoz_index_v3"))
-	assert.Equal("siginsight_traces.span_index_v2", getLocalTableName("siginsight_traces.distributed_signoz_index_v2"))
-	assert.Equal("siginsight_traces.error_index_v2", getLocalTableName("siginsight_traces.distributed_signoz_error_index_v2"))
-	assert.Equal("siginsight_traces.legacy_spans", getLocalTableName("siginsight_traces.distributed_signoz_spans"))
-	assert.Equal("siginsight_traces.span_index_v3", getLocalTableName("siginsight_traces.span_index_v3"))
-	assert.Equal("span_index_v3", getLocalTableName("span_index_v3"))
+	assert.Equal("siginsight_traces.spans", getLocalTableName("siginsight_traces.spans"))
+	assert.Equal("spans", getLocalTableName("spans"))
 	assert.Equal(
-		[]string{"siginsight_logs.logs_v2", "siginsight_traces.span_index_v3"},
-		getLocalTableNameArray([]string{"siginsight_logs.logs_v2", "siginsight_traces.distributed_signoz_index_v3"}),
+		[]string{"siginsight_logs.logs", "siginsight_traces.spans"},
+		getLocalTableNameArray([]string{"siginsight_logs.logs", "siginsight_traces.spans"}),
 	)
 }
 
@@ -108,31 +104,31 @@ func TestGetTTLQueryStatus(t *testing.T) {
 
 	t.Run("returns empty when no persisted TTL request exists", func(t *testing.T) {
 		reader, _ := newRetentionTestReader(t)
-		status, apiErr := reader.getTTLQueryStatus(ctx, orgID, []string{"siginsight_traces.span_index_v3"})
+		status, apiErr := reader.getTTLQueryStatus(ctx, orgID, []string{"siginsight_traces.spans"})
 		require.Nil(t, apiErr)
 		require.Empty(t, status)
 	})
 
 	t.Run("reports only a recent pending request as pending", func(t *testing.T) {
 		reader, db := newRetentionTestReader(t)
-		insertTTLStatus(t, db, orgID, "siginsight_traces.span_index_v3", constants.StatusPending, time.Now().Add(-30*time.Minute))
-		status, apiErr := reader.getTTLQueryStatus(ctx, orgID, []string{"siginsight_traces.span_index_v3"})
+		insertTTLStatus(t, db, orgID, "siginsight_traces.spans", constants.StatusPending, time.Now().Add(-30*time.Minute))
+		status, apiErr := reader.getTTLQueryStatus(ctx, orgID, []string{"siginsight_traces.spans"})
 		require.Nil(t, apiErr)
 		require.Equal(t, constants.StatusPending, status)
 	})
 
 	t.Run("does not let a stale pending request block future work", func(t *testing.T) {
 		reader, db := newRetentionTestReader(t)
-		insertTTLStatus(t, db, orgID, "siginsight_traces.span_index_v3", constants.StatusPending, time.Now().Add(-time.Hour))
-		status, apiErr := reader.getTTLQueryStatus(ctx, orgID, []string{"siginsight_traces.span_index_v3"})
+		insertTTLStatus(t, db, orgID, "siginsight_traces.spans", constants.StatusPending, time.Now().Add(-time.Hour))
+		status, apiErr := reader.getTTLQueryStatus(ctx, orgID, []string{"siginsight_traces.spans"})
 		require.Nil(t, apiErr)
 		require.Equal(t, constants.StatusSuccess, status)
 	})
 
 	t.Run("retains failed state", func(t *testing.T) {
 		reader, db := newRetentionTestReader(t)
-		insertTTLStatus(t, db, orgID, "siginsight_traces.span_index_v3", constants.StatusFailed, time.Now())
-		status, apiErr := reader.getTTLQueryStatus(ctx, orgID, []string{"siginsight_traces.span_index_v3"})
+		insertTTLStatus(t, db, orgID, "siginsight_traces.spans", constants.StatusFailed, time.Now())
+		status, apiErr := reader.getTTLQueryStatus(ctx, orgID, []string{"siginsight_traces.spans"})
 		require.Nil(t, apiErr)
 		require.Equal(t, constants.StatusFailed, status)
 	})
@@ -151,7 +147,7 @@ func TestGetTTLMissingClickHouseTableReturnsAPIError(t *testing.T) {
 	reader, _ := newRetentionTestReader(t)
 	mock, err := cmock.NewClickHouseNative(nil)
 	require.NoError(t, err)
-	mock.ExpectSelect("SELECT engine_full FROM system.tables WHERE name='samples_v4'").WillReturnRows(
+	mock.ExpectSelect("SELECT engine_full FROM system.tables WHERE name='metric_points' AND database='siginsight_metrics'").WillReturnRows(
 		cmock.NewRows([]cmock.ColumnType{{Name: "engine_full", Type: "String"}}, nil),
 	)
 	reader.db = mock
@@ -159,7 +155,7 @@ func TestGetTTLMissingClickHouseTableReturnsAPIError(t *testing.T) {
 	response, apiErr := reader.GetTTL(context.Background(), "test-org", &model.GetTTLParams{Type: constants.MetricsTTL})
 	require.Nil(t, response)
 	require.NotNil(t, apiErr)
-	require.ErrorContains(t, apiErr, "metrics table samples_v4 is missing")
+	require.ErrorContains(t, apiErr, "metrics table metric_points is missing")
 	require.NoError(t, mock.ExpectationsWereMet())
 }
 
@@ -167,7 +163,7 @@ func TestGetTTLWithoutPersistedRequestUsesUnknownExpectedValues(t *testing.T) {
 	reader, _ := newRetentionTestReader(t)
 	mock, err := cmock.NewClickHouseNative(nil)
 	require.NoError(t, err)
-	mock.ExpectSelect("SELECT engine_full FROM system.tables WHERE name='samples_v4'").WillReturnRows(
+	mock.ExpectSelect("SELECT engine_full FROM system.tables WHERE name='metric_points' AND database='siginsight_metrics'").WillReturnRows(
 		cmock.NewRows([]cmock.ColumnType{{Name: "engine_full", Type: "String"}}, [][]any{{"MergeTree() TTL toDateTime(unix_milli) + toIntervalSecond(7200) DELETE"}}),
 	)
 	reader.db = mock

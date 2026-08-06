@@ -34,7 +34,7 @@ func TestGetSpanPercentileUsesDedicatedBoundQuery(t *testing.T) {
 	maliciousName := "GET /orders') OR 1=1 --"
 	maliciousAttribute := "environment') OR 1=1 --"
 	m := &module{telemetryStore: percentileTelemetryStore{db: percentileQueryConn{query: func(_ context.Context, query string, args ...any) (driver.Rows, error) {
-		require.Contains(t, query, "FROM siginsight_traces.span_index_v3")
+		require.Contains(t, query, "FROM siginsight_traces.spans")
 		require.Contains(t, query, "quantile(0.90)(duration_nano)")
 		require.Contains(t, query, "countIf(duration_nano <= @duration_nano)")
 		require.Contains(t, query, "mapContains(resources_string, @resource_0_key)")
