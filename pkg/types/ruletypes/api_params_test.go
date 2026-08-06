@@ -129,7 +129,7 @@ func TestPostableRuleRejectsRetiredContract(t *testing.T) {
 		},
 		{
 			name:    "renotify settings",
-			payload: replaceNotificationSettings(currentRuleJSON, `"notificationSettings":{"renotify":{"enabled":true,"interval":"1h","alertStates":["firing"]}}`),
+			payload: replaceNotificationSettings(`"notificationSettings":{"renotify":{"enabled":true,"interval":"1h","alertStates":["firing"]}}`),
 			errPart: "retired notification setting",
 		},
 		{
@@ -158,15 +158,15 @@ func TestPostableRuleRejectsRetiredContract(t *testing.T) {
 }
 
 func TestPostableRuleNotificationMessageTemplate(t *testing.T) {
-	validPayload := replaceNotificationSettings(currentRuleJSON, `"notificationSettings":{"groupBy":[],"messageTemplate":"{{alert.name}} {{value}} {{label.service.name}}"}`)
+	validPayload := replaceNotificationSettings(`"notificationSettings":{"groupBy":[],"messageTemplate":"{{alert.name}} {{value}} {{label.service.name}}"}`)
 	var rule PostableRule
 	require.NoError(t, json.Unmarshal([]byte(validPayload), &rule))
 	require.Equal(t, "{{alert.name}} {{value}} {{label.service.name}}", rule.NotificationSettings.MessageTemplate)
 
-	invalidPayload := replaceNotificationSettings(currentRuleJSON, `"notificationSettings":{"groupBy":[],"messageTemplate":"{{ $value }}"}`)
+	invalidPayload := replaceNotificationSettings(`"notificationSettings":{"groupBy":[],"messageTemplate":"{{ $value }}"}`)
 	require.ErrorContains(t, json.Unmarshal([]byte(invalidPayload), &rule), "unsupported notification message placeholder")
 
-	annotationTemplate := replaceNotificationSettings(currentRuleJSON, `"annotations":{"description":"value is {{$value}}"}`)
+	annotationTemplate := replaceNotificationSettings(`"annotations":{"description":"value is {{$value}}"}`)
 	require.ErrorContains(t, json.Unmarshal([]byte(annotationTemplate), &rule), "alert annotation templates are not supported")
 }
 
@@ -174,8 +174,8 @@ func replaceSchemaVersion(payload, replacement string) string {
 	return replaceJSONFragment(payload, `"schemaVersion":"v3alpha1"`, replacement)
 }
 
-func replaceNotificationSettings(payload, replacement string) string {
-	return replaceJSONFragment(payload, `"notificationSettings":{"groupBy":[]}`, replacement)
+func replaceNotificationSettings(replacement string) string {
+	return replaceJSONFragment(currentRuleJSON, `"notificationSettings":{"groupBy":[]}`, replacement)
 }
 
 func replaceJSONFragment(payload, old, replacement string) string {
