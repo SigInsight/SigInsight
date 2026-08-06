@@ -135,6 +135,8 @@ def _query(
 
 
 def _register_admin(signoz: types.SigNoz) -> None:
+    """Create the integration admin or verify the existing SQLite admin."""
+
     response = requests.post(
         signoz.self.host_configs["8080"].get("/api/v5/register"),
         json={
@@ -145,7 +147,30 @@ def _register_admin(signoz: types.SigNoz) -> None:
         },
         timeout=10,
     )
-    assert response.status_code == HTTPStatus.OK, response.text
+    if response.status_code == HTTPStatus.OK:
+        return
+
+    assert response.status_code == HTTPStatus.BAD_REQUEST, response.text
+
+    endpoint = signoz.self.host_configs["8080"]
+    context_response = requests.get(
+        endpoint.get("/api/v5/sessions/context"),
+        params={"email": USER_ADMIN_EMAIL, "ref": endpoint.base()},
+        timeout=10,
+    )
+    assert context_response.status_code == HTTPStatus.OK, context_response.text
+    org_id = context_response.json()["data"]["orgs"][0]["id"]
+
+    token_response = requests.post(
+        endpoint.get("/api/v5/sessions/email_password"),
+        json={
+            "email": USER_ADMIN_EMAIL,
+            "password": USER_ADMIN_PASSWORD,
+            "orgId": org_id,
+        },
+        timeout=10,
+    )
+    assert token_response.status_code == HTTPStatus.OK, token_response.text
 
 
 def _access_token(signoz: types.SigNoz) -> str:
