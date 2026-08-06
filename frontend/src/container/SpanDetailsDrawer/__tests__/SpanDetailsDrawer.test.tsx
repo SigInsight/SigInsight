@@ -21,7 +21,6 @@ import {
 	expectedAfterFilterExpression,
 	expectedBeforeFilterExpression,
 	expectedSpanFilterExpression,
-	expectedTraceOnlyFilterExpression,
 	mockAfterLogsResponse,
 	mockBeforeLogsResponse,
 	mockEmptyLogsResponse,
@@ -29,6 +28,7 @@ import {
 	mockSpanLogsResponse,
 	mockSpanWithLongStatusMessage,
 	mockSpanWithShortStatusMessage,
+	mockTraceOnlyLogsResponse,
 } from './mockData';
 
 // Get typed mocks
@@ -419,24 +419,49 @@ describe('SpanDetailsDrawer', () => {
 		});
 	});
 
-	it('should make 4 API queries when logs tab is opened', async () => {
+	it('renders trace logs when the selected span has no direct log records', async () => {
+		(GetMetricQueryRange as jest.Mock).mockImplementation((query) => {
+			const filterExpression = (query as any)?.query?.builder?.queryData?.[0]
+				?.filter?.expression;
+			if (filterExpression.includes('span_id')) {
+				return Promise.resolve(mockEmptyLogsResponse);
+			}
+			if (filterExpression.includes('trace_id')) {
+				return Promise.resolve(mockTraceOnlyLogsResponse);
+			}
+			return Promise.resolve(mockEmptyLogsResponse);
+		});
+
+		renderSpanDetailsDrawer();
+		fireEvent.click(screen.getByRole('button', { name: /logs/i }));
+
+		await waitFor(() => {
+			expect(screen.getByTestId('raw-log-context-log-before')).toBeInTheDocument();
+		});
+		expect(GetMetricQueryRange).toHaveBeenCalledTimes(2);
+		expect(
+			(GetMetricQueryRange as jest.Mock).mock.calls[1][0].query.builder
+				.queryData[0].filter.expression,
+		).toBe("trace_id = 'test-trace-id'");
+	});
+
+	it('queries span logs and surrounding context when direct span logs exist', async () => {
 		renderSpanDetailsDrawer();
 
 		// Click on logs tab to trigger API calls
 		const logsButton = screen.getByRole('button', { name: /logs/i });
 		fireEvent.click(logsButton);
 
-		// Wait for all API calls to complete
+		// Wait for the direct span query and its before/after context queries.
 		await waitFor(() => {
-			expect(GetMetricQueryRange).toHaveBeenCalledTimes(4);
+			expect(GetMetricQueryRange).toHaveBeenCalledTimes(3);
 		});
 
-		// Verify the four distinct queries were made
+		// Verify the three distinct queries were made
 		const {
 			span_logs: spanQuery,
 			before_logs: beforeQuery,
 			after_logs: afterQuery,
-			trace_only_logs: traceOnlyQuery,
 		} = apiCallHistory;
 
 		// 1. Span logs query (trace_id + span_id)
@@ -454,10 +479,7 @@ describe('SpanDetailsDrawer', () => {
 			expectedAfterFilterExpression,
 		);
 
-		// 4. Trace only logs query (trace_id)
-		expect(traceOnlyQuery.query.builder.queryData[0].filter.expression).toBe(
-			expectedTraceOnlyFilterExpression,
-		);
+		expect(apiCallHistory.trace_only_logs).toBeNull();
 	});
 
 	it('should use correct timestamp ordering for different query types', async () => {
@@ -467,9 +489,9 @@ describe('SpanDetailsDrawer', () => {
 		const logsButton = screen.getByRole('button', { name: /logs/i });
 		fireEvent.click(logsButton);
 
-		// Wait for all API calls to complete
+		// Wait for the direct span query and its context queries to complete.
 		await waitFor(() => {
-			expect(GetMetricQueryRange).toHaveBeenCalledTimes(4);
+			expect(GetMetricQueryRange).toHaveBeenCalledTimes(3);
 		});
 
 		const {
@@ -620,9 +642,9 @@ describe('SpanDetailsDrawer', () => {
 		const logsButton = screen.getByRole('button', { name: /logs/i });
 		fireEvent.click(logsButton);
 
-		// Wait for all API calls to complete first
+		// Wait for the direct span query and its context queries to complete first.
 		await waitFor(() => {
-			expect(GetMetricQueryRange).toHaveBeenCalledTimes(4);
+			expect(GetMetricQueryRange).toHaveBeenCalledTimes(3);
 		});
 
 		// Wait for all logs to be rendered - both span logs and context logs

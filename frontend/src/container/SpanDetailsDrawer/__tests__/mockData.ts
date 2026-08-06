@@ -193,6 +193,25 @@ export const mockEmptyLogsResponse = {
 	},
 };
 
+export const mockTraceOnlyLogsResponse = {
+	payload: {
+		data: {
+			queryResult: {
+				data: {
+					result: [
+						{
+							list: [mockContextLogs[0]].map((log) => ({
+								data: log,
+								timestamp: log.timestamp,
+							})),
+						},
+					],
+				},
+			},
+		},
+	},
+};
+
 // Expected v5 filter expressions
 export const expectedSpanFilterExpression = `trace_id = '${TEST_TRACE_ID}' AND span_id = '${TEST_SPAN_ID}'`;
 export const expectedBeforeFilterExpression = `trace_id = '${TEST_TRACE_ID}' AND id < 'span-log-1'`;

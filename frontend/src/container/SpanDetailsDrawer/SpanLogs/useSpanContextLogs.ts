@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useQuery } from 'react-query';
 import { convertFiltersToExpression } from 'components/QueryBuilder/utils';
 import { OPERATORS } from 'constants/queryBuilder';
@@ -6,6 +6,7 @@ import { REACT_QUERY_KEY } from 'constants/reactQueryKeys';
 import { getOperatorValue } from 'container/QueryBuilder/filters/queryBuilderFilterUtils';
 import { GetMetricQueryRange } from 'lib/query/getQueryResults';
 import { ILog } from 'types/api/logs/log';
+import { MetricQueryRangeSuccessResponse } from 'types/api/metrics/getQueryRange';
 import { DataTypes } from 'types/api/queryBuilder/queryAutocompleteResponse';
 import { Filter } from 'types/api/v5/queryRange';
 import { v4 as uuid } from 'uuid';
@@ -15,11 +16,13 @@ import { getSpanLogsQueryPayload, getTraceOnlyFilters } from './constants';
 interface UseSpanContextLogsProps {
 	traceId: string;
 	spanId: string;
-	timeRange: {
-		startTime: number;
-		endTime: number;
-	};
+	timeRange: TimeRange;
 	isDrawerOpen?: boolean;
+}
+
+interface TimeRange {
+	startTime: number;
+	endTime: number;
 }
 
 interface UseSpanContextLogsReturn {
@@ -30,6 +33,23 @@ interface UseSpanContextLogsReturn {
 	spanLogIds: Set<string>;
 	isLogSpanRelated: (logId: string) => boolean;
 	hasTraceIdLogs: boolean;
+}
+
+interface UseTraceOnlyLogsProps {
+	traceId: string;
+	timeRange: UseSpanContextLogsProps['timeRange'];
+	isDrawerOpen: boolean;
+	spanLogs: ILog[];
+	isSpanLoading: boolean;
+	isSpanFetching: boolean;
+	isSpanError: boolean;
+}
+
+interface TraceOnlyLogsResult {
+	logs: ILog[];
+	isLoading: boolean;
+	isError: boolean;
+	isFetching: boolean;
 }
 
 const traceIdKey = {
@@ -107,32 +127,37 @@ const createContextFilters = (
 };
 
 const FIVE_MINUTES_IN_MS = 5 * 60 * 1000;
-export const useSpanContextLogs = ({
-	traceId,
-	spanId,
-	timeRange,
-	isDrawerOpen = true,
-}: UseSpanContextLogsProps): UseSpanContextLogsReturn => {
-	const [allLogs, setAllLogs] = useState<ILog[]>([]);
-	const [spanLogIds, setSpanLogIds] = useState<Set<string>>(new Set());
 
-	// Phase 1: Fetch span-specific logs (trace_id + span_id)
-	const spanFilter = useMemo(() => createSpanLogsFilters(traceId, spanId), [
+const logsFromResponse = (
+	data: MetricQueryRangeSuccessResponse | undefined,
+): ILog[] =>
+	data?.payload?.data?.queryResult?.data?.result?.[0]?.list?.map((item) => ({
+		...item.data,
+		timestamp: item.timestamp,
+	})) || [];
+
+interface DirectSpanLogsResult {
+	logs: ILog[];
+	logIDs: Set<string>;
+	isLoading: boolean;
+	isError: boolean;
+	isFetching: boolean;
+}
+
+const useDirectSpanLogs = (
+	traceId: string,
+	spanId: string,
+	timeRange: TimeRange,
+): DirectSpanLogsResult => {
+	const filter = useMemo(() => createSpanLogsFilters(traceId, spanId), [
 		traceId,
 		spanId,
 	]);
-	const spanQueryPayload = useMemo(
-		() =>
-			getSpanLogsQueryPayload(timeRange.startTime, timeRange.endTime, spanFilter),
-		[timeRange.startTime, timeRange.endTime, spanFilter],
+	const payload = useMemo(
+		() => getSpanLogsQueryPayload(timeRange.startTime, timeRange.endTime, filter),
+		[timeRange.startTime, timeRange.endTime, filter],
 	);
-
-	const {
-		data: spanData,
-		isLoading: isSpanLoading,
-		isError: isSpanError,
-		isFetching: isSpanFetching,
-	} = useQuery({
+	const { data, isLoading, isError, isFetching } = useQuery({
 		queryKey: [
 			REACT_QUERY_KEY.SPAN_LOGS,
 			traceId,
@@ -140,200 +165,184 @@ export const useSpanContextLogs = ({
 			timeRange.startTime,
 			timeRange.endTime,
 		],
-		queryFn: () => GetMetricQueryRange(spanQueryPayload),
-		enabled: !!traceId && !!spanId,
+		queryFn: () => GetMetricQueryRange(payload),
+		enabled: Boolean(traceId && spanId),
+		staleTime: FIVE_MINUTES_IN_MS,
+	});
+	const logs = useMemo(() => logsFromResponse(data), [data]);
+	const logIDs = useMemo(() => new Set(logs.map((log) => log.id)), [logs]);
+
+	return { logs, logIDs, isLoading, isError, isFetching };
+};
+
+interface ContextLogQueryResult {
+	logs: ILog[];
+	isFetching: boolean;
+}
+
+interface UseContextLogQueryProps {
+	traceId: string;
+	log: ILog | undefined;
+	timeRange: TimeRange;
+	direction: 'lt' | 'gt';
+}
+
+const useContextLogQuery = ({
+	traceId,
+	log,
+	timeRange,
+	direction,
+}: UseContextLogQueryProps): ContextLogQueryResult => {
+	const filter = useMemo(
+		() =>
+			log ? createContextFilters(traceId, log.id, direction) : { expression: '' },
+		[traceId, log, direction],
+	);
+	const payload = useMemo(
+		() =>
+			getSpanLogsQueryPayload(
+				timeRange.startTime,
+				timeRange.endTime,
+				filter,
+				direction === 'gt' ? 'asc' : 'desc',
+			),
+		[timeRange.startTime, timeRange.endTime, filter, direction],
+	);
+	const key =
+		direction === 'lt'
+			? REACT_QUERY_KEY.SPAN_BEFORE_LOGS
+			: REACT_QUERY_KEY.SPAN_AFTER_LOGS;
+	const { data, isFetching } = useQuery({
+		queryKey: [key, traceId, log?.id, timeRange.startTime, timeRange.endTime],
+		queryFn: () => GetMetricQueryRange(payload),
+		enabled: Boolean(log),
 		staleTime: FIVE_MINUTES_IN_MS,
 	});
 
-	// Extract span logs and track their IDs
-	const spanLogs = useMemo(() => {
-		if (!spanData?.payload?.data?.queryResult?.data?.result?.[0]?.list) {
-			setSpanLogIds(new Set());
-			return [];
-		}
+	return { logs: useMemo(() => logsFromResponse(data), [data]), isFetching };
+};
 
-		const logs = spanData.payload.data.queryResult.data.result[0].list.map(
-			(item: any) => ({
-				...item.data,
-				timestamp: item.timestamp,
-			}),
-		);
+interface SurroundingSpanLogsResult {
+	logs: ILog[];
+	isFetching: boolean;
+}
 
-		// Track span log IDs
-		const logIds = new Set(logs.map((log: ILog) => log.id));
-		setSpanLogIds(logIds);
-
-		return logs;
-	}, [spanData]);
-
-	// Get first and last span logs for context queries
-	const { firstSpanLog, lastSpanLog } = useMemo(() => {
-		if (spanLogs.length === 0) {
-			return { firstSpanLog: null, lastSpanLog: null };
-		}
-
-		const sortedLogs = [...spanLogs].sort(
-			(a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
-		);
-
-		return {
-			firstSpanLog: sortedLogs[0],
-			lastSpanLog: sortedLogs[sortedLogs.length - 1],
-		};
-	}, [spanLogs]);
-	// Phase 2: Fetch context logs before first span log
-	const beforeFilter = useMemo(() => {
-		if (!firstSpanLog) {
-			return null;
-		}
-		return createContextFilters(traceId, firstSpanLog.id, 'lt');
-	}, [traceId, firstSpanLog]);
-
-	const beforeQueryPayload = useMemo(() => {
-		if (!beforeFilter) {
-			return null;
-		}
-		return getSpanLogsQueryPayload(
-			timeRange.startTime,
-			timeRange.endTime,
-			beforeFilter,
-		);
-	}, [timeRange.startTime, timeRange.endTime, beforeFilter]);
-
-	const { data: beforeData, isFetching: isBeforeFetching } = useQuery({
-		queryKey: [
-			REACT_QUERY_KEY.SPAN_BEFORE_LOGS,
-			traceId,
-			firstSpanLog?.id,
-			timeRange.startTime,
-			timeRange.endTime,
-		],
-		queryFn: () => GetMetricQueryRange(beforeQueryPayload as any),
-		enabled: !!beforeQueryPayload && !!firstSpanLog,
-		staleTime: FIVE_MINUTES_IN_MS,
+const useSurroundingSpanLogs = (
+	traceId: string,
+	spanLogs: ILog[],
+	timeRange: TimeRange,
+): SurroundingSpanLogsResult => {
+	const orderedSpanLogs = useMemo(
+		() =>
+			[...spanLogs].sort(
+				(a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+			),
+		[spanLogs],
+	);
+	const before = useContextLogQuery({
+		traceId,
+		log: orderedSpanLogs[0],
+		timeRange,
+		direction: 'lt',
 	});
-
-	// Phase 3: Fetch context logs after last span log
-	const afterFilter = useMemo(() => {
-		if (!lastSpanLog) {
-			return null;
-		}
-		return createContextFilters(traceId, lastSpanLog.id, 'gt');
-	}, [traceId, lastSpanLog]);
-
-	const afterQueryPayload = useMemo(() => {
-		if (!afterFilter) {
-			return null;
-		}
-		return getSpanLogsQueryPayload(
-			timeRange.startTime,
-			timeRange.endTime,
-			afterFilter,
-			'asc',
-		);
-	}, [timeRange.startTime, timeRange.endTime, afterFilter]);
-
-	const { data: afterData, isFetching: isAfterFetching } = useQuery({
-		queryKey: [
-			REACT_QUERY_KEY.SPAN_AFTER_LOGS,
-			traceId,
-			lastSpanLog?.id,
-			timeRange.startTime,
-			timeRange.endTime,
-		],
-		queryFn: () => GetMetricQueryRange(afterQueryPayload as any),
-		enabled: !!afterQueryPayload && !!lastSpanLog,
-		staleTime: FIVE_MINUTES_IN_MS,
+	const after = useContextLogQuery({
+		traceId,
+		log: orderedSpanLogs[orderedSpanLogs.length - 1],
+		timeRange,
+		direction: 'gt',
 	});
+	const logs = useMemo(
+		() => [...after.logs].reverse().concat(spanLogs, before.logs),
+		[after.logs, spanLogs, before.logs],
+	);
 
-	// Extract context logs
-	const beforeLogs = useMemo(() => {
-		if (!beforeData?.payload?.data?.queryResult?.data?.result?.[0]?.list) {
-			return [];
-		}
+	return { logs, isFetching: before.isFetching || after.isFetching };
+};
 
-		return beforeData.payload.data.queryResult.data.result[0].list.map(
-			(item: any) => ({
-				...item.data,
-				timestamp: item.timestamp,
-			}),
-		);
-	}, [beforeData]);
-
-	const afterLogs = useMemo(() => {
-		if (!afterData?.payload?.data?.queryResult?.data?.result?.[0]?.list) {
-			return [];
-		}
-
-		return afterData.payload.data.queryResult.data.result[0].list.map(
-			(item: any) => ({
-				...item.data,
-				timestamp: item.timestamp,
-			}),
-		);
-	}, [afterData]);
-
-	useEffect(() => {
-		const combined = [...afterLogs.reverse(), ...spanLogs, ...beforeLogs];
-		setAllLogs(combined);
-	}, [beforeLogs, spanLogs, afterLogs]);
-
-	// Phase 4: Check for trace_id-only logs when span has no logs
-	// This helps differentiate between "no logs for span" vs "no logs for trace"
-	const traceOnlyFilter = useMemo(() => {
-		if (spanLogs.length > 0) {
-			return null;
-		}
-		const filters = getTraceOnlyFilters(traceId);
-		return convertFiltersToExpression(filters);
-	}, [traceId, spanLogs.length]);
-
-	const traceOnlyQueryPayload = useMemo(() => {
-		if (!traceOnlyFilter) {
-			return null;
-		}
-		return getSpanLogsQueryPayload(
-			timeRange.startTime,
-			timeRange.endTime,
-			traceOnlyFilter,
-		);
-	}, [timeRange.startTime, timeRange.endTime, traceOnlyFilter]);
-
-	const { data: traceOnlyData } = useQuery({
+const useTraceOnlyLogs = ({
+	traceId,
+	timeRange,
+	isDrawerOpen,
+	spanLogs,
+	isSpanLoading,
+	isSpanFetching,
+	isSpanError,
+}: UseTraceOnlyLogsProps): TraceOnlyLogsResult => {
+	const traceOnlyFilter = useMemo(
+		() => convertFiltersToExpression(getTraceOnlyFilters(traceId)),
+		[traceId],
+	);
+	const traceOnlyQueryPayload = useMemo(
+		() =>
+			getSpanLogsQueryPayload(
+				timeRange.startTime,
+				timeRange.endTime,
+				traceOnlyFilter,
+			),
+		[timeRange.startTime, timeRange.endTime, traceOnlyFilter],
+	);
+	const canFetchTraceOnlyLogs =
+		isDrawerOpen &&
+		Boolean(traceId) &&
+		spanLogs.length === 0 &&
+		!isSpanLoading &&
+		!isSpanFetching &&
+		!isSpanError;
+	const { data: traceOnlyData, isLoading, isError, isFetching } = useQuery({
 		queryKey: [
 			REACT_QUERY_KEY.TRACE_ONLY_LOGS,
 			traceId,
 			timeRange.startTime,
 			timeRange.endTime,
 		],
-		queryFn: () => GetMetricQueryRange(traceOnlyQueryPayload as any),
-		enabled: isDrawerOpen && !!traceOnlyQueryPayload && spanLogs.length === 0,
+		queryFn: () => GetMetricQueryRange(traceOnlyQueryPayload),
+		enabled: canFetchTraceOnlyLogs,
 		staleTime: FIVE_MINUTES_IN_MS,
 	});
 
-	const hasTraceIdLogs = useMemo(() => {
-		if (spanLogs.length > 0) {
-			return true;
-		}
-		return !!(
-			traceOnlyData?.payload?.data?.queryResult?.data?.result?.[0]?.list?.length ||
-			0
-		);
-	}, [spanLogs.length, traceOnlyData]);
+	const logs = useMemo(() => logsFromResponse(traceOnlyData), [traceOnlyData]);
 
-	// Helper function to check if a log belongs to the span
+	return { logs, isLoading, isError, isFetching };
+};
+
+export const useSpanContextLogs = ({
+	traceId,
+	spanId,
+	timeRange,
+	isDrawerOpen = true,
+}: UseSpanContextLogsProps): UseSpanContextLogsReturn => {
+	const directSpan = useDirectSpanLogs(traceId, spanId, timeRange);
+	const surrounding = useSurroundingSpanLogs(
+		traceId,
+		directSpan.logs,
+		timeRange,
+	);
+	const traceOnly = useTraceOnlyLogs({
+		traceId,
+		timeRange,
+		isDrawerOpen,
+		spanLogs: directSpan.logs,
+		isSpanLoading: directSpan.isLoading,
+		isSpanFetching: directSpan.isFetching,
+		isSpanError: directSpan.isError,
+	});
+	const isTraceOnly = directSpan.logs.length === 0;
+
 	const isLogSpanRelated = useCallback(
-		(logId: string): boolean => spanLogIds.has(logId),
-		[spanLogIds],
+		(logId: string): boolean => directSpan.logIDs.has(logId),
+		[directSpan.logIDs],
 	);
 
 	return {
-		logs: allLogs,
-		isLoading: isSpanLoading && spanLogs.length === 0,
-		isError: isSpanError,
-		isFetching: isSpanFetching || isBeforeFetching || isAfterFetching,
-		spanLogIds,
+		logs: isTraceOnly ? traceOnly.logs : surrounding.logs,
+		isLoading: isTraceOnly && (directSpan.isLoading || traceOnly.isLoading),
+		isError: directSpan.isError || (isTraceOnly && traceOnly.isError),
+		isFetching:
+			directSpan.isFetching ||
+			surrounding.isFetching ||
+			(isTraceOnly && traceOnly.isFetching),
+		spanLogIds: directSpan.logIDs,
 		isLogSpanRelated,
-		hasTraceIdLogs,
+		hasTraceIdLogs: !isTraceOnly || traceOnly.logs.length > 0,
 	};
 };

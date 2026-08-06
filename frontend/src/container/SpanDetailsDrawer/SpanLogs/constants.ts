@@ -64,8 +64,10 @@ export const getSpanLogsQueryPayload = (
 		id: uuidv4(),
 		queryType: EQueryType.QUERY_BUILDER,
 	},
-	start,
-	end,
+	// Trace Detail exposes epoch milliseconds, whereas the shared query
+	// transport accepts epoch seconds and expands them to V5 milliseconds.
+	start: start / 1_000,
+	end: end / 1_000,
 });
 
 /**
