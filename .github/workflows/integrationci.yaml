@@ -46,7 +46,7 @@ jobs:
         clickhouse-version:
           - 25.5.6
         schema-migrator-version:
-          - v1.2.0
+          - v2.0.1
     # Re-enabled for community edition: now builds from cmd/community/Dockerfile.integration
     if: |
       ((github.event_name == 'pull_request' && ! github.event.pull_request.head.repo.fork && github.event.pull_request.user.login != 'dependabot[bot]') ||
@@ -60,7 +60,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: SigInsight/OtelCollector
-          ref: v1.2.0
+          ref: v2.0.1
           path: OtelCollector
       - name: python
         uses: actions/setup-python@v5

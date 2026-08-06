@@ -49,6 +49,16 @@ ci-lint-install: ## Installs the local dependencies used by CI lint jobs
 .PHONY: ci-lint
 ci-lint: go-fmt-check go-lint js-fmt-check js-lint py-fmt-check py-lint ## Runs all CI lint and format jobs locally
 
+.PHONY: format-staged
+format-staged: ## Formats and re-stages supported staged source files
+	@./scripts/format-staged.sh
+
+.PHONY: install-git-hooks
+install-git-hooks: ## Installs the repository-managed Git hooks for this checkout
+	@git config core.hooksPath .githooks
+	@chmod +x .githooks/pre-commit .githooks/commit-msg scripts/format-staged.sh
+	@echo "Installed repository Git hooks."
+
 ##############################################################
 # devenv commands
 ##############################################################

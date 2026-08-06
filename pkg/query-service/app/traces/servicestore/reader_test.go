@@ -52,7 +52,7 @@ func TestGetTopLevelOperationsMapsOperationsByService(t *testing.T) {
 func TestGetDependencyGraphMapsSelectedRows(t *testing.T) {
 	reader := New(slog.New(slog.NewTextHandler(io.Discard, nil)), selectConn{
 		selectFn: func(_ context.Context, dest any, query string, args ...any) error {
-				require.Contains(t, query, "FROM siginsight_traces.service_edges")
+			require.Contains(t, query, "FROM siginsight_traces.service_edges")
 			require.Equal(t, 3, len(args))
 			response := dest.(*[]model.ServiceMapDependencyResponseItem)
 			*response = []model.ServiceMapDependencyResponseItem{{Parent: "frontend", Child: "api", CallCount: 4}}

@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repository_root="$(git rev-parse --show-toplevel)"
+"${repository_root}/scripts/format-staged.sh"
+
+has_frontend_source=false
+while IFS= read -r file; do
+	case "${file}" in
+	frontend/*.js|frontend/*.jsx|frontend/*.ts|frontend/*.tsx)
+		has_frontend_source=true
+		break
+		;;
+	esac
+done < <(git diff --cached --name-only --diff-filter=ACMR)
+
+if [[ "${has_frontend_source}" == true ]]; then
+	if [[ ! -x "${repository_root}/frontend/node_modules/.bin/lint-staged" ]]; then
+		echo "Frontend dependencies are required to commit frontend source changes." >&2
+		exit 1
+	fi
+	(
+		cd "${repository_root}/frontend"
+		./node_modules/.bin/lint-staged
+	)
+fi

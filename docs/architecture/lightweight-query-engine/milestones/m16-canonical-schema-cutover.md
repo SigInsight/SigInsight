@@ -90,7 +90,7 @@ Logs keys tables、Trace `span_attributes_keys`、Metrics `metadata`、Trace `tr
 
 ## 当前依赖与前置
 
-- Collector `v2.0.0` 是唯一 writer，首次 `migrate sync up` 直接创建 M16 最终 schema；
+- Collector `v2.0.1` 是唯一 writer，首次 `migrate sync up` 直接创建 M16 最终 schema；
   `async up` 在此版本没有 schema cleanup 工作。
 - `RENAME TABLE` 不可用：ClickHouse 25.5.6 不会随表重命名更新 Materialized View
   的 source/target；本设计也不使用 rename 或数据复制。
@@ -124,7 +124,7 @@ ClickHouse 物理存储资源：
 1. 停止 SigInsight 和 Collector，删除原有 `siginsight_*` ClickHouse 数据库或重建实例。
 2. 使用本版本 Collector 依次执行 `migrate bootstrap`、`migrate sync up`、`migrate async up`。
    后两者的最终状态已相同；没有旧表创建或 cleanup 阶段。
-3. 部署本阶段的 SigInsight 与 Collector v2.0.0，并启动 schema readiness。
+3. 部署本阶段的 SigInsight 与 Collector v2.0.1，并启动 schema readiness。
 4. 写入新的 OTLP fixture，完成下方验收矩阵后才恢复生产流量。
 
 这是丢旧数据的破坏性升级，无运行时回滚。旧 Collector/SigInsight 不能连接最终 schema；恢复
@@ -157,7 +157,7 @@ ClickHouse 物理存储资源：
 
 ## 实现结果
 
-已完成。Collector v2.0.0 直接创建 canonical baseline，删除 legacy storage adoption、旧对象
+已完成。Collector v2.0.1 直接创建 canonical baseline，删除 legacy storage adoption、旧对象
 create/drop chain、metadata seed 和无读取的 metric ingestion timestamp。SigInsight readers、
 Lite Catalog、专用 reader、fixtures、OpenAPI 示例、retention 与 readiness 已切换至
 canonical 名称。`schema readiness` 会拒绝缺少 canonical 表/列或仍存在任一 M16 legacy

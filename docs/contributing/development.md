@@ -26,6 +26,19 @@ Before diving in, make sure you have these tools installed:
 
 > 💡 **Tip**: Run `make help` to see all available commands with descriptions
 
+### Git hooks
+
+Install the repository-managed hooks once per checkout:
+
+```bash
+make install-git-hooks
+```
+
+The pre-commit hook formats staged Go, integration Python, and frontend files
+and re-stages the result. It refuses partially staged files so unstaged edits
+cannot be included accidentally. CI remains the authoritative read-only
+format and lint check.
+
 ## How do I get the code?
 
 1. Open your terminal

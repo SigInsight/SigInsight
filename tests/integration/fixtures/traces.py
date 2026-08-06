@@ -701,7 +701,7 @@ def insert_traces(
         - resource_sets (resource fingerprints)
         - field_values (tag attributes)
         - span_attributes_keys (attribute keys)
-		- exceptions (error events)
+                - exceptions (error events)
         """
         resources: List[TracesResource] = []
         for trace in traces:

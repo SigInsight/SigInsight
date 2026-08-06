@@ -1,6 +1,6 @@
 services:
   siginsight-otel-collector:
-    image: ghcr.io/siginsight/siginsight-otel-collector:${OTELCOL_TAG:-v1.2.0}
+    image: ghcr.io/siginsight/siginsight-otel-collector:${OTELCOL_TAG:-v2.0.1}
     container_name: siginsight-otel-collector-dev
     entrypoint:
     - /bin/sh
