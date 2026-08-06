@@ -28,10 +28,31 @@ docker compose up -d
 
 Open http://localhost:8081 in your favourite browser.
 
+### Destructive ClickHouse schema cutover
+
+The Collector `v2.0.1` image creates the current canonical ClickHouse schema
+directly. It deliberately cannot migrate the old versioned telemetry tables.
+When upgrading an existing deployment, discard only the ClickHouse telemetry
+volume before the first start:
+
+```sh
+cd deploy/docker
+docker compose down
+docker volume rm siginsight-clickhouse
+docker compose up -d
+docker compose logs -f siginsight-telemetrystore-migrator
+```
+
+Do not use `docker compose down -v` unless you also intend to erase SQLite
+application state such as users and alert rules. The compose stack waits for
+the one-shot migration job to finish successfully before starting SigInsight or
+the Collector; a failed migration remains stopped and its logs are the
+authoritative error.
+
 By default, the compose files use these GHCR images:
 
 ```sh
-ghcr.io/siginsight/siginsight:v1.6.2
+ghcr.io/siginsight/siginsight:v2.2.0
 ghcr.io/siginsight/siginsight-otel-collector:v2.0.1
 ghcr.io/siginsight/clickhouse-init-histogram-quantile:25.5.6-latest
 ```
@@ -41,7 +62,7 @@ The complete deployment currently supports Linux AMD64 hosts only because the `v
 You can override their tags with environment variables:
 
 ```sh
-export VERSION=v1.6.2
+export VERSION=v2.2.0
 export OTELCOL_TAG=v2.0.1
 export HISTOGRAM_QUANTILE_INIT_IMAGE=ghcr.io/siginsight/clickhouse-init-histogram-quantile:25.5.6-latest
 ```
@@ -49,7 +70,7 @@ export HISTOGRAM_QUANTILE_INIT_IMAGE=ghcr.io/siginsight/clickhouse-init-histogra
 To use a different SigInsight registry or repository, set the complete image reference:
 
 ```sh
-export SIGINSIGHT_IMAGE=ghcr.io/siginsight/siginsight:v1.6.2
+export SIGINSIGHT_IMAGE=ghcr.io/siginsight/siginsight:v2.2.0
 ```
 
 To start collecting logs and metrics from your infrastructure, run the following command:
