@@ -5,8 +5,8 @@ import { PanelMode } from 'container/PanelVisualization/panels/types';
 import PanelVisualization from 'container/PanelVisualization/PanelVisualization';
 import { ThresholdProps } from 'features/query-visualization/threshold';
 import { useGetExplorerQueryRange } from 'hooks/queryBuilder/useGetExplorerQueryRange';
-import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
 import { AlertTypes } from 'types/api/alerts/alertTypes';
+import { Query } from 'types/api/queryBuilder/queryBuilderData';
 import { Widgets } from 'types/api/widgets/getAll';
 
 import { BasicAlertDraft } from './types';
@@ -71,22 +71,34 @@ export function alertPreviewThresholds(
 function AlertQueryPreview({
 	alertType,
 	condition,
+	query,
+	runID,
 }: {
 	alertType: AlertTypes;
 	condition: BasicAlertDraft['condition'];
+	query: Query | null;
+	runID: number;
 }): JSX.Element {
-	const { currentQuery, stagedQuery } = useQueryBuilder();
 	const onDragSelect = useCallback((): void => undefined, []);
 	const queryResponse = useGetExplorerQueryRange(
-		stagedQuery,
+		query,
 		PANEL_TYPES.TIME_SERIES,
-		{ enabled: Boolean(stagedQuery), keepPreviousData: true },
+		{
+			enabled: Boolean(query),
+			keepPreviousData: false,
+			queryKey: ['basic-alert-preview', runID],
+		},
+		undefined,
+		false,
 	);
 	const thresholds = useMemo(() => alertPreviewThresholds(condition), [
 		condition,
 	]);
-	const widget = useMemo<Widgets>(
-		() => ({
+	const widget = useMemo<Widgets | null>(() => {
+		if (!query) {
+			return null;
+		}
+		return {
 			id: 'basic-alert-query-preview',
 			panelTypes: PANEL_TYPES.TIME_SERIES,
 			title: '',
@@ -100,10 +112,9 @@ function AlertQueryPreview({
 			selectedLogFields: null,
 			selectedTracesFields: null,
 			thresholds,
-			query: stagedQuery || currentQuery,
-		}),
-		[currentQuery, stagedQuery, thresholds],
-	);
+			query,
+		};
+	}, [query, thresholds]);
 	const hasData = Boolean(
 		queryResponse.data?.payload?.data?.result?.some(
 			(series) => series.values?.length,
@@ -117,16 +128,16 @@ function AlertQueryPreview({
 				<span>{alertType.replace('_BASED_ALERT', '').toLowerCase()}</span>
 			</div>
 			<div className="basic-alert-preview__content">
-				{!stagedQuery && (
+				{!query && (
 					<Empty
 						image={Empty.PRESENTED_IMAGE_SIMPLE}
 						description="Run preview to view the current query"
 					/>
 				)}
-				{stagedQuery && (queryResponse.isLoading || queryResponse.isFetching) && (
+				{query && (queryResponse.isLoading || queryResponse.isFetching) && (
 					<Skeleton active paragraph={{ rows: 5 }} />
 				)}
-				{stagedQuery && queryResponse.isError && (
+				{query && queryResponse.isError && (
 					<Alert
 						type="error"
 						showIcon
@@ -134,7 +145,7 @@ function AlertQueryPreview({
 						description={queryResponse.error?.message}
 					/>
 				)}
-				{stagedQuery &&
+				{query &&
 					!queryResponse.isLoading &&
 					!queryResponse.isFetching &&
 					!queryResponse.isError &&
@@ -144,7 +155,8 @@ function AlertQueryPreview({
 							description="No data for the current query and time range"
 						/>
 					)}
-				{stagedQuery &&
+				{query &&
+					widget &&
 					!queryResponse.isLoading &&
 					!queryResponse.isFetching &&
 					!queryResponse.isError &&

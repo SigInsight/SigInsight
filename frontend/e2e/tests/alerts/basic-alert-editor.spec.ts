@@ -28,7 +28,71 @@ async function selectAlertDataSource(
 		.click();
 }
 
+const traceQueryWithLogFilter = {
+	id: 'e2e-alert-signal-switch',
+	queryType: 'builder',
+	builder: {
+		queryData: [
+			{
+				queryName: 'A',
+				dataSource: 'traces',
+				aggregateOperator: 'count',
+				aggregateAttribute: { id: '', key: '', dataType: '', type: '' },
+				aggregations: [{ expression: 'count()' }],
+				functions: [],
+				filters: { items: [], op: 'AND' },
+				filter: { expression: "severity_text != 'INFO'" },
+				expression: 'A',
+				disabled: false,
+				stepInterval: 60,
+				having: [],
+				limit: null,
+				orderBy: [],
+				groupBy: [],
+				legend: '',
+			},
+		],
+		queryFormulas: [],
+	},
+	clickhouse_sql: [],
+	unit: '',
+};
+
+function alertQuerySignal(page: Page): Promise<string> {
+	return page.evaluate(() => {
+		const compositeQuery = new URL(window.location.href).searchParams.get(
+			'compositeQuery',
+		);
+		if (!compositeQuery) {
+			return '';
+		}
+		return JSON.parse(decodeURIComponent(compositeQuery)).builder.queryData[0]
+			.dataSource;
+	});
+}
+
 test.describe('basic alert editor', () => {
+	test('switching the alert signal rewrites a stale composite query', async ({
+		page,
+	}) => {
+		test.skip(
+			!username || !password,
+			'requires LOGIN_USERNAME and LOGIN_PASSWORD',
+		);
+		await login(page);
+		await page.goto(
+			`/alerts/new?compositeQuery=${encodeURIComponent(
+				JSON.stringify(traceQueryWithLogFilter),
+			)}`,
+		);
+		await expect(
+			page.getByRole('heading', { name: 'New alert rule' }),
+		).toBeVisible({ timeout: 20_000 });
+
+		await selectAlertDataSource(page, 'Logs');
+		await expect.poll(() => alertQuerySignal(page)).toBe('logs');
+	});
+
 	test('renders the v3 editor without legacy scheduling controls', async ({
 		page,
 	}) => {

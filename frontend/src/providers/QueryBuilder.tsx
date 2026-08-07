@@ -1002,14 +1002,24 @@ export function QueryBuilderProvider({
 		location.pathname,
 	]);
 
-	const resetQuery = (newCurrentQuery?: QueryState): void => {
-		setStagedQuery(null);
+	const resetQuery = useCallback(
+		(newCurrentQuery?: QueryState | Query): void => {
+			setStagedQuery(null);
 
-		if (newCurrentQuery) {
-			setCurrentQuery(newCurrentQuery);
-			setSupersetQuery(newCurrentQuery);
-		}
-	};
+			if (newCurrentQuery) {
+				const {
+					queryType: nextQueryType,
+					...nextQueryState
+				} = newCurrentQuery as Query;
+				setCurrentQuery(nextQueryState);
+				setSupersetQuery(nextQueryState);
+				if (nextQueryType) {
+					setQueryType(nextQueryType);
+				}
+			}
+		},
+		[],
+	);
 
 	const handleOnUnitsChange = useCallback(
 		(unit: string) => {
@@ -1103,6 +1113,7 @@ export function QueryBuilderProvider({
 			isDefaultQuery,
 			updateQueriesData,
 			initQueryBuilderData,
+			resetQuery,
 			handleOnUnitsChange,
 			isStagedQueryUpdated,
 		],
