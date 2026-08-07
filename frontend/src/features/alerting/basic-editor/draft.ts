@@ -17,6 +17,11 @@ Threshold: {{threshold}}`;
 
 const legacyDefaultDescription = 'The configured alert condition was met.';
 
+// The lightweight engine requires an explicit interval for time-series
+// requests. Alert evaluation and its chart preview are always time-series
+// queries, including log and trace aggregations.
+export const defaultAlertStepInterval = 60;
+
 export function browserTimezone(): string {
 	try {
 		return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
@@ -41,20 +46,40 @@ export function defaultQueryForAlertType(alertType: AlertTypes): Query {
 		builder: {
 			...query.builder,
 			queryData: query.builder.queryData.map((item) => {
+				const queryWithInterval = {
+					...item,
+					stepInterval: defaultAlertStepInterval,
+				};
 				if (alertType !== AlertTypes.EXCEPTIONS_BASED_ALERT) {
-					return { ...item };
+					return queryWithInterval;
 				}
 				// Exception alerts are trace queries restricted to error spans. The
 				// old implementation used a raw error_index_v2 query, which is not
 				// part of the lightweight alert contract.
 				return {
-					...item,
+					...queryWithInterval,
 					filter: { expression: 'has_error = true' },
 				} as IBuilderQuery;
 			}),
 			queryFormulas: [],
 		},
 		clickhouse_sql: [],
+	};
+}
+
+export function normalizeAlertTimeSeriesQuery(query: Query): Query {
+	return {
+		...query,
+		builder: {
+			...query.builder,
+			queryData: query.builder.queryData.map((item) => ({
+				...item,
+				stepInterval:
+					typeof item.stepInterval === 'number' && item.stepInterval > 0
+						? item.stepInterval
+						: defaultAlertStepInterval,
+			})),
+		},
 	};
 }
 

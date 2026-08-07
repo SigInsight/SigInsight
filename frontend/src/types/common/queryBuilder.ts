@@ -272,7 +272,7 @@ export type QueryBuilderContextType = {
 		newTab?: boolean,
 	) => void;
 	handleRunQuery: () => void;
-	resetQuery: (newCurrentQuery?: QueryState) => void;
+	resetQuery: (newCurrentQuery?: QueryState | Query) => void;
 	handleOnUnitsChange: (units: Format['id']) => void;
 	updateAllQueriesOperators: (
 		queryData: Query,

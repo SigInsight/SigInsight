@@ -51,9 +51,11 @@ jest.mock('d3-interpolate', () => ({
 	interpolate: jest.fn(),
 }));
 
+const mockSafeNavigate = jest.fn();
+
 jest.mock('hooks/useSafeNavigate', () => ({
 	useSafeNavigate: (): any => ({
-		safeNavigate: jest.fn(),
+		safeNavigate: mockSafeNavigate,
 	}),
 }));
 

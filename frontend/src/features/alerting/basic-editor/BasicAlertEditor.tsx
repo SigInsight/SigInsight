@@ -10,7 +10,7 @@ import { PANEL_TYPES } from 'constants/queryBuilder';
 import { LiteQueryBuilder } from 'features/lite-query/LiteQueryBuilder';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
 import { useSafeNavigate } from 'hooks/useSafeNavigate';
-import { cloneDeep } from 'lodash-es';
+import { cloneDeep, isEqual } from 'lodash-es';
 import {
 	BarChart2,
 	Check,
@@ -34,6 +34,7 @@ import {
 	defaultQueryForAlertType,
 	draftFromV3Rule,
 	formulaOutputType,
+	normalizeAlertTimeSeriesQuery,
 	queryFromV3Rule,
 } from './draft';
 import {
@@ -446,15 +447,20 @@ function BasicAlertEditor({
 		[alertType, initialRule, suppliedInitialQuery],
 	);
 	const [draft, setDraft] = useState<BasicAlertDraft>(initialDraft);
+	const [preview, setPreview] = useState<{
+		query: Query;
+		runID: number;
+	} | null>(null);
 	const initialized = useRef(false);
+	const previewRunID = useRef(0);
 	const queryDraftsByAlertType = useRef<Partial<Record<AlertTypes, Query>>>({});
 	const conditionDraftsByAlertType = useRef<
 		Partial<Record<AlertTypes, BasicAlertDraft['condition']>>
 	>({});
 	const {
 		currentQuery,
-		handleRunQuery,
-		initQueryBuilderData,
+		redirectWithQueryBuilderData,
+		resetQuery,
 	} = useQueryBuilder();
 	const { safeNavigate } = useSafeNavigate();
 	const { data: channelsResponse } = useQuery(
@@ -477,13 +483,29 @@ function BasicAlertEditor({
 	useEffect(() => {
 		if (!initialized.current) {
 			initialized.current = true;
-			queryDraftsByAlertType.current[alertType] = cloneDeep(initialQuery);
+			const normalizedInitialQuery = normalizeAlertTimeSeriesQuery(initialQuery);
+			queryDraftsByAlertType.current[alertType] = cloneDeep(
+				normalizedInitialQuery,
+			);
 			conditionDraftsByAlertType.current[alertType] = cloneDeep(
 				initialDraft.condition,
 			);
-			initQueryBuilderData(initialQuery);
+			resetQuery(normalizedInitialQuery);
 		}
-	}, [alertType, initQueryBuilderData, initialDraft.condition, initialQuery]);
+	}, [alertType, initialDraft.condition, initialQuery, resetQuery]);
+
+	const activePreview = useMemo(() => {
+		if (!preview || !isEqual(preview.query, currentQuery)) {
+			return null;
+		}
+		return preview;
+	}, [currentQuery, preview]);
+
+	useEffect(() => {
+		if (preview && !isEqual(preview.query, currentQuery)) {
+			setPreview(null);
+		}
+	}, [currentQuery, preview]);
 
 	const outputOptions = useMemo(
 		() => [
@@ -567,14 +589,20 @@ function BasicAlertEditor({
 			conditionDraftsByAlertType.current[draft.identity.alertType] = cloneDeep(
 				draft.condition,
 			);
-			const nextQuery =
-				queryDraftsByAlertType.current[value] || defaultQueryForAlertType(value);
+			const nextQuery = normalizeAlertTimeSeriesQuery(
+				queryDraftsByAlertType.current[value] || defaultQueryForAlertType(value),
+			);
 			const nextCondition =
 				conditionDraftsByAlertType.current[value] || createNumericCondition('A');
 			queryDraftsByAlertType.current[value] = cloneDeep(nextQuery);
 			conditionDraftsByAlertType.current[value] = cloneDeep(nextCondition);
 			initialized.current = true;
-			initQueryBuilderData(cloneDeep(nextQuery));
+			resetQuery(cloneDeep(nextQuery));
+			// QueryBuilder rehydrates from compositeQuery after navigation. Keeping the
+			// URL aligned with this signal prevents the old query from overwriting the
+			// selected alert query on the next render.
+			redirectWithQueryBuilderData(cloneDeep(nextQuery));
+			setPreview(null);
 			setDraft((current) => ({
 				...current,
 				identity: { ...current.identity, alertType: value },
@@ -585,9 +613,17 @@ function BasicAlertEditor({
 			currentQuery,
 			draft.condition,
 			draft.identity.alertType,
-			initQueryBuilderData,
+			redirectWithQueryBuilderData,
+			resetQuery,
 		],
 	);
+	const runPreview = useCallback((): void => {
+		previewRunID.current += 1;
+		setPreview({
+			query: cloneDeep(normalizeAlertTimeSeriesQuery(currentQuery)),
+			runID: previewRunID.current,
+		});
+	}, [currentQuery]);
 	const serialize = useCallback((): PostableBasicAlertRule => {
 		return serializeBasicAlertDraft(
 			draft,
@@ -690,7 +726,7 @@ function BasicAlertEditor({
 					<Button
 						className="basic-alert-editor__run-query"
 						icon={<Play size={15} />}
-						onClick={handleRunQuery}
+						onClick={runPreview}
 					>
 						Run preview
 					</Button>
@@ -698,6 +734,8 @@ function BasicAlertEditor({
 				<AlertQueryPreview
 					alertType={draft.identity.alertType}
 					condition={draft.condition}
+					query={activePreview?.query || null}
+					runID={activePreview?.runID || 0}
 				/>
 				<LiteQueryBuilder
 					panelType={PANEL_TYPES.TIME_SERIES}
