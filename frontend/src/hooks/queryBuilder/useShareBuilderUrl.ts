@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import useUrlQuery from 'hooks/useUrlQuery';
 import { Query } from 'types/api/queryBuilder/queryBuilderData';
 
@@ -19,8 +19,13 @@ export const useShareBuilderUrl = ({
 	const urlQuery = useUrlQuery();
 
 	const compositeQuery = useGetCompositeQueryParam();
+	const initialized = useRef(false);
 
 	useEffect(() => {
+		if (initialized.current) {
+			return;
+		}
+		initialized.current = true;
 		if (!compositeQuery || forceReset) {
 			resetQuery(defaultValue);
 			redirectWithQueryBuilderData(defaultValue);

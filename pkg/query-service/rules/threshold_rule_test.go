@@ -280,12 +280,16 @@ func TestPrepareLinksToLogs(t *testing.T) {
 							Signal: telemetrytypes.SignalLogs,
 						},
 					},
+					{
+						Type: qbtypes.QueryTypeFormula,
+						Spec: qbtypes.QueryBuilderFormula{Name: "F1", Expression: "A > 0"},
+					},
 				},
 			},
 			CompareOp:     "4", // Not Equals
 			MatchType:     "1", // Once
 			Target:        &[]float64{0.0}[0],
-			SelectedQuery: "A",
+			SelectedQuery: "F1",
 		},
 		Version: "v5",
 	}
@@ -310,6 +314,45 @@ func TestPrepareLinksToLogs(t *testing.T) {
 
 	link := rule.prepareLinksToLogs(context.Background(), ts, labels.Labels{})
 	assert.Contains(t, link, "compositeQuery=%257B%2522queryType%2522%253A%2522builder%2522%252C%2522builder%2522%253A%257B%2522queryData%2522%253A%255B%257B%2522queryName%2522%253A%2522A%2522%252C%2522stepInterval%2522%253A60%252C%2522dataSource%2522%253A%2522logs%2522%252C%2522aggregateOperator%2522%253A%2522noop%2522%252C%2522aggregateAttribute%2522%253A%257B%2522key%2522%253A%2522%2522%252C%2522dataType%2522%253A%2522%2522%252C%2522type%2522%253A%2522%2522%252C%2522isColumn%2522%253Afalse%252C%2522isJSON%2522%253Afalse%257D%252C%2522expression%2522%253A%2522A%2522%252C%2522disabled%2522%253Afalse%252C%2522limit%2522%253A0%252C%2522offset%2522%253A0%252C%2522pageSize%2522%253A0%252C%2522ShiftBy%2522%253A0%252C%2522IsAnomaly%2522%253Afalse%252C%2522QueriesUsedInFormula%2522%253Anull%252C%2522filter%2522%253A%257B%2522expression%2522%253A%2522service.name%2BEXISTS%2522%257D%257D%255D%252C%2522queryFormulas%2522%253A%255B%255D%257D%257D&timeRange=%7B%22start%22%3A1753526700000%2C%22end%22%3A1753527000000%2C%22pageSize%22%3A100%7D&startTime=1753526700000&endTime=1753527000000&options=%7B%22maxLines%22%3A0%2C%22format%22%3A%22%22%2C%22selectColumns%22%3Anull%7D")
+}
+
+func TestSelectedSourceQueryName(t *testing.T) {
+	queries := []qbtypes.QueryEnvelope{
+		{
+			Type: qbtypes.QueryTypeBuilder,
+			Spec: qbtypes.QueryBuilderQuery[qbtypes.LogAggregation]{
+				Name:   "A",
+				Signal: telemetrytypes.SignalLogs,
+			},
+		},
+		{
+			Type: qbtypes.QueryTypeBuilder,
+			Spec: qbtypes.QueryBuilderQuery[qbtypes.LogAggregation]{
+				Name:   "B",
+				Signal: telemetrytypes.SignalLogs,
+			},
+		},
+		{Type: qbtypes.QueryTypeFormula, Spec: qbtypes.QueryBuilderFormula{Name: "F1", Expression: "A > 0"}},
+		{Type: qbtypes.QueryTypeFormula, Spec: qbtypes.QueryBuilderFormula{Name: "F2", Expression: "NOT F1"}},
+		{Type: qbtypes.QueryTypeFormula, Spec: qbtypes.QueryBuilderFormula{Name: "F3", Expression: "A + B"}},
+	}
+
+	testCases := []struct {
+		name     string
+		selected string
+		want     string
+	}{
+		{name: "builder", selected: "B", want: "B"},
+		{name: "formula", selected: "F1", want: "A"},
+		{name: "nested formula", selected: "F2", want: "A"},
+		{name: "multi source formula", selected: "F3", want: ""},
+		{name: "unknown", selected: "missing", want: ""},
+	}
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			assert.Equal(t, testCase.want, selectedSourceQueryName(queries, testCase.selected))
+		})
+	}
 }
 
 func TestPrepareLinksToTraces(t *testing.T) {

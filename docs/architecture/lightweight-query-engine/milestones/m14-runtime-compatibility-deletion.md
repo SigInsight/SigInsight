@@ -80,8 +80,8 @@
 - 删除 `POST /api/v5/metrics/{metric_name}/metadata`、其 OpenAPI/生成 client、模块写入、
   前端表单、临时单位的保存提示和对应测试 mock。
 - `updated_metadata` 不再是读取优先级的一部分。查询服务和 Metrics Explorer 统一从采集的
-  `time_series_v4` 读取元数据，并仅缓存该结果；旧人工 type/unit/description 覆盖允许丢失。
-- Collector schema migration `siginsight_metrics/2001` 直接删除 `updated_metadata`。冻结的
-  v1 baseline 保持不变，因而新库会在 baseline 后立即执行该清理迁移。
+  canonical `metric_series` 读取元数据，并仅缓存该结果；旧人工 type/unit/description 覆盖允许丢失。
+- M16 destructive baseline 不创建 `updated_metadata`，也不通过 post-baseline cleanup 删除它；
+  全新安装从第一条 DDL 起就只有 canonical schema。
 - Summary 和 Metric Details 的元数据显示、Lite compiler 类型解析、指标字段补全和临时 Y 轴
   显示单位保持可用；前端不再能够修改采集端声明的类型或单位。

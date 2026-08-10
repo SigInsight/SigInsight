@@ -1,6 +1,6 @@
 /* eslint-disable sonarjs/cognitive-complexity */
-import { formatValueForExpression } from 'components/QueryBuilder/utils';
 import { getOperatorValue } from 'container/QueryBuilder/filters/queryBuilderFilterUtils';
+import { formatValueForExpression } from 'features/query-builder-v3/queryBuilderUtils';
 import { IQueryPair } from 'types/antlrQueryTypes';
 import { extractQueryPairs } from 'utils/queryContextUtils';
 import { isQuoted, unquote } from 'utils/stringUtils';

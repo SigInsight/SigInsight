@@ -1,10 +1,10 @@
 /* eslint-disable sonarjs/cognitive-complexity */
 /* eslint-disable sonarjs/no-identical-functions */
+import { PANEL_TYPES } from 'constants/queryBuilder';
 import {
 	convertFiltersToExpression,
 	deduplicateEquivalentFilterItems,
-} from 'components/QueryBuilder/utils';
-import { PANEL_TYPES } from 'constants/queryBuilder';
+} from 'features/query-builder-v3/queryBuilderUtils';
 import getStartEndRangeTime from 'lib/getStartEndRangeTime';
 import { mapQueryDataToApi } from 'lib/newQueryBuilder/queryBuilderMappers/mapQueryDataToApi';
 import { GetQueryResultsProps } from 'lib/query/getQueryResults';

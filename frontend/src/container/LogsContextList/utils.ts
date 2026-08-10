@@ -1,5 +1,5 @@
-import { convertFiltersToExpression } from 'components/QueryBuilder/utils';
 import { initialFilters } from 'constants/queryBuilder';
+import { convertFiltersToExpression } from 'features/query-builder-v3/queryBuilderUtils';
 import { getPaginationQueryData } from 'lib/newQueryBuilder/getPaginationQueryData';
 import { ILog } from 'types/api/logs/log';
 import {

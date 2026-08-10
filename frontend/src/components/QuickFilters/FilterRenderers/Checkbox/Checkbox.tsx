@@ -3,11 +3,6 @@ import { Fragment, useMemo, useState } from 'react';
 import { Button, Checkbox, Input, Skeleton, Typography } from 'antd';
 import cx from 'classnames';
 import {
-	convertFiltersToExpressionWithExistingQuery,
-	deduplicateEquivalentFilterItems,
-	removeKeysFromExpression,
-} from 'components/QueryBuilder/utils';
-import {
 	IQuickFiltersConfig,
 	QuickFiltersSource,
 } from 'components/QuickFilters/types';
@@ -18,6 +13,11 @@ import {
 } from 'constants/queryBuilder';
 import { DEBOUNCE_DELAY } from 'constants/queryBuilderFilterConfig';
 import { getOperatorValue } from 'container/QueryBuilder/filters/queryBuilderFilterUtils';
+import {
+	convertFiltersToExpressionWithExistingQuery,
+	deduplicateEquivalentFilterItems,
+	removeKeysFromExpression,
+} from 'features/query-builder-v3/queryBuilderUtils';
 import { useGetAggregateValues } from 'hooks/queryBuilder/useGetAggregateValues';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
 import useDebouncedFn from 'hooks/useDebouncedFunction';

@@ -9,7 +9,7 @@ import {
 	PREVIOUS_QUERY_KEY,
 	removeKeyFromPreviousQuery,
 	saveAsPreviousQuery,
-} from '../Query/previousQuery.utils';
+} from './previousQuery';
 
 describe('previousQuery.utils', () => {
 	const sampleQuery: IBuilderQuery = {

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Select } from 'antd';
-import { removeKeysFromExpression } from 'components/QueryBuilder/utils';
+import { removeKeysFromExpression } from 'features/query-builder-v3/queryBuilderUtils';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
 import { cloneDeep } from 'lodash-es';
 import { DataTypes } from 'types/api/queryBuilder/queryAutocompleteResponse';

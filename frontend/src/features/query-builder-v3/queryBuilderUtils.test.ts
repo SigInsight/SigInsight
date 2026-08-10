@@ -9,7 +9,7 @@ import {
 	deduplicateEquivalentFilterItems,
 	formatValueForExpression,
 	removeKeysFromExpression,
-} from '../utils';
+} from './queryBuilderUtils';
 
 describe('convertFiltersToExpression', () => {
 	beforeEach(() => {

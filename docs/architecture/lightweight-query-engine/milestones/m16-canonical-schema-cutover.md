@@ -4,7 +4,7 @@
 
 负责人：SigInsight query/storage 实施者
 
-起止提交：SigInsight TBD；OtelCollector `777a8a9`
+起止提交：SigInsight `8675694a`..`13796b97`；OtelCollector `777a8a9`..`94d40d4`
 
 关联 ADR：[ADR-003](../decisions/003-schema-catalog-contract.md)、[ADR-010](../decisions/010-specialized-readers-before-legacy-removal.md)
 
