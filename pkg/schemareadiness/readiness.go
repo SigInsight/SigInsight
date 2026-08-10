@@ -270,13 +270,13 @@ func scanCanonicalFingerprintRow(ctx context.Context, store telemetrystore.Telem
 		if err := rows.Err(); err != nil {
 			return err
 		}
-		return fmt.Errorf("fingerprint query for %s returned no rows", database)
+		return errors.NewInternalf(errors.CodeInternal, "fingerprint query for %s returned no rows", database)
 	}
 	if err := rows.Scan(destinations...); err != nil {
 		return err
 	}
 	if rows.Next() {
-		return fmt.Errorf("fingerprint query for %s returned more than one row", database)
+		return errors.NewInternalf(errors.CodeInternal, "fingerprint query for %s returned more than one row", database)
 	}
 	return rows.Err()
 }

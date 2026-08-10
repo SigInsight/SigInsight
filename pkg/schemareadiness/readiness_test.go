@@ -25,7 +25,7 @@ func (regexMatcher) Match(expectedSQL, actualSQL string) error {
 	return nil
 }
 
-func expectCompleteSchema(t *testing.T, store *telemetrystoretest.Provider, omitTable, omitColumn string, includeLegacy bool, driftDatabase string) {
+func expectCompleteSchema(t *testing.T, store *telemetrystoretest.Provider, omitTable, omitColumn, driftDatabase string) {
 	t.Helper()
 	mock := store.Mock()
 	tableRows := make([][]any, 0, len(required)+1)
@@ -41,15 +41,11 @@ func expectCompleteSchema(t *testing.T, store *telemetrystoretest.Provider, omit
 			}
 		}
 	}
-	if includeLegacy {
-		tableRows = append(tableRows, []any{logsDB, "logs_v2"})
-	}
-
 	mock.ExpectQuery(`SELECT database, name FROM system\.tables`).WithArgs(logsDB, tracesDB, metricsDB, meterDB, analyticsDB).WillReturnRows(cmock.NewRows([]cmock.ColumnType{
 		{Name: "database", Type: "String"},
 		{Name: "name", Type: "String"},
 	}, tableRows))
-	if omitTable != "" || includeLegacy {
+	if omitTable != "" {
 		return
 	}
 	mock.ExpectQuery(`SELECT database, table, name FROM system\.columns`).WithArgs(logsDB, tracesDB, metricsDB, meterDB, analyticsDB).WillReturnRows(cmock.NewRows([]cmock.ColumnType{
@@ -88,7 +84,7 @@ func expectCompleteSchema(t *testing.T, store *telemetrystoretest.Provider, omit
 
 func TestValidateAcceptsCanonicalSchema(t *testing.T) {
 	store := telemetrystoretest.New(telemetrystore.Config{}, regexMatcher{})
-	expectCompleteSchema(t, store, "", "", false, "")
+	expectCompleteSchema(t, store, "", "", "")
 
 	require.NoError(t, Validate(context.Background(), store))
 	require.NoError(t, store.Mock().ExpectationsWereMet())
@@ -96,7 +92,7 @@ func TestValidateAcceptsCanonicalSchema(t *testing.T) {
 
 func TestValidateRejectsMissingTable(t *testing.T) {
 	store := telemetrystoretest.New(telemetrystore.Config{}, regexMatcher{})
-	expectCompleteSchema(t, store, tracesDB+".spans", "", false, "")
+	expectCompleteSchema(t, store, tracesDB+".spans", "", "")
 
 	err := Validate(context.Background(), store)
 	require.ErrorContains(t, err, "siginsight_traces.spans")
@@ -124,7 +120,7 @@ func TestValidateRejectsLegacyObjectsBeforeColumnRead(t *testing.T) {
 
 func TestValidateRejectsMissingColumn(t *testing.T) {
 	store := telemetrystoretest.New(telemetrystore.Config{}, regexMatcher{})
-	expectCompleteSchema(t, store, "", tracesDB+".spans.service_name_present", false, "")
+	expectCompleteSchema(t, store, "", tracesDB+".spans.service_name_present", "")
 
 	err := Validate(context.Background(), store)
 	require.ErrorContains(t, err, "siginsight_traces.spans.service_name_present")
@@ -133,7 +129,7 @@ func TestValidateRejectsMissingColumn(t *testing.T) {
 
 func TestValidateRejectsCanonicalFingerprintDrift(t *testing.T) {
 	store := telemetrystoretest.New(telemetrystore.Config{}, regexMatcher{})
-	expectCompleteSchema(t, store, "", "", false, logsDB)
+	expectCompleteSchema(t, store, "", "", logsDB)
 
 	err := Validate(context.Background(), store)
 	require.ErrorContains(t, err, "canonical ClickHouse schema drift in siginsight_logs")
