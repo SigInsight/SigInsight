@@ -27,6 +27,11 @@ direct canonical baseline 的最终 `system.tables` 和 `system.columns` 指纹�
 
 来源：`OtelCollector/cmd/siginsightschemamigrator/schema_migrator/v1_baseline_migrations.go`。
 
+上述完整 fingerprint 用于空库安装完成时验收。运行时由 Collector `migrate sync check` 和
+SigInsight `schemareadiness` 共同验证稳定子集：表引擎/key、MV 定义、列顺序/类型/codec、
+skip index。Retention API 可变的 TTL/storage policy 和日志 retention 默认表达式不参与
+运行时 hash。这样既能发现手工改列、错误引擎或 MV 漂移，也不会拒绝系统自身的 TTL 设置。
+
 ## 当前读取范围
 
 核心查询读取范围在 Collector 的真实 migration test 中以 `LIMIT 0` 验证：

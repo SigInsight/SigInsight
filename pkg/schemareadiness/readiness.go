@@ -22,9 +22,63 @@ const (
 	logsDB      = "siginsight_logs"
 	tracesDB    = "siginsight_traces"
 	metricsDB   = "siginsight_metrics"
+	metadataDB  = "siginsight_metadata"
 	meterDB     = "siginsight_meter"
 	analyticsDB = "siginsight_analytics"
 )
+
+type schemaFingerprint struct {
+	tableCount  uint64
+	tableHash   uint64
+	columnCount uint64
+	columnHash  uint64
+	indexCount  uint64
+	indexHash   uint64
+}
+
+const emptyFingerprintHash uint64 = 11160318154034397263
+
+var canonicalFingerprints = map[string]schemaFingerprint{
+	analyticsDB: {tableCount: 1, tableHash: 11591339041108278501, columnCount: 11, columnHash: 3278462431271298120, indexHash: emptyFingerprintHash},
+	logsDB:      {tableCount: 6, tableHash: 11909639802394019030, columnCount: 43, columnHash: 6345803967174251801, indexCount: 18, indexHash: 4705711304205954561},
+	metadataDB:  {tableHash: emptyFingerprintHash, columnHash: emptyFingerprintHash, indexHash: emptyFingerprintHash},
+	meterDB:     {tableCount: 3, tableHash: 14168883310890703930, columnCount: 38, columnHash: 16828873058290010379, indexHash: emptyFingerprintHash},
+	metricsDB:   {tableCount: 15, tableHash: 3541604166905384461, columnCount: 174, columnHash: 8325196865590917439, indexHash: emptyFingerprintHash},
+	tracesDB:    {tableCount: 15, tableHash: 6154575477337266297, columnCount: 131, columnHash: 14213257424511927958, indexCount: 28, indexHash: 813116833925738708},
+}
+
+var canonicalDatabases = []string{tracesDB, metricsDB, logsDB, metadataDB, analyticsDB, meterDB}
+
+const canonicalTableFingerprintQuery = `SELECT
+	count(),
+	cityHash64(arrayStringConcat(arraySort(groupArray(concat(
+		name, '|', engine, '|', partition_key, '|', sorting_key, '|',
+		primary_key, '|', sampling_key, '|',
+		if(engine = 'MaterializedView', create_table_query, '')
+	))), '\n'))
+FROM system.tables
+WHERE database = ?
+	AND name NOT IN ('schema_migrations', 'schema_migrations_v2')`
+
+const canonicalColumnFingerprintQuery = `SELECT
+	count(),
+	cityHash64(arrayStringConcat(arraySort(groupArray(concat(
+		table, '|', toString(position), '|', name, '|', type, '|',
+		default_kind, '|',
+		if(name IN ('_retention_days', '_retention_days_cold'), '', default_expression), '|',
+		compression_codec
+	))), '\n'))
+FROM system.columns
+WHERE database = ?
+	AND table NOT IN ('schema_migrations', 'schema_migrations_v2')`
+
+const canonicalIndexFingerprintQuery = `SELECT
+	count(),
+	cityHash64(arrayStringConcat(arraySort(groupArray(concat(
+		table, '|', name, '|', type_full, '|', expr, '|', toString(granularity)
+	))), '\n'))
+FROM system.data_skipping_indices
+WHERE database = ?`
 
 var required = []requirement{
 	{logsDB, "logs", []string{"timestamp", "trace_id", "span_id", "body", "attributes_string", "attributes_number", "attributes_bool", "resources_string", "resource_fingerprint", "_retention_days", "_retention_days_cold"}},
@@ -166,5 +220,63 @@ func Validate(ctx context.Context, store telemetrystore.TelemetryStore) error {
 		return errors.NewInternalf(errors.CodeInternal, "canonical ClickHouse schema is missing required columns: %s", strings.Join(missingColumns, ", "))
 	}
 
+	if err := validateCanonicalFingerprints(ctx, store); err != nil {
+		return err
+	}
+
 	return nil
+}
+
+func validateCanonicalFingerprints(ctx context.Context, store telemetrystore.TelemetryStore) error {
+	for _, database := range canonicalDatabases {
+		expected := canonicalFingerprints[database]
+		var exists uint64
+		if err := scanCanonicalFingerprintRow(ctx, store, "SELECT count() FROM system.databases WHERE name = ?", database, &exists); err != nil {
+			return errors.WrapInternalf(err, errors.CodeInternal, "check canonical ClickHouse database %s", database)
+		}
+		if exists != 1 {
+			return errors.NewInternalf(errors.CodeInternal, "canonical ClickHouse database is missing: %s", database)
+		}
+
+		var actual schemaFingerprint
+		if err := scanCanonicalFingerprintRow(ctx, store, canonicalTableFingerprintQuery, database, &actual.tableCount, &actual.tableHash); err != nil {
+			return errors.WrapInternalf(err, errors.CodeInternal, "fingerprint canonical ClickHouse tables for %s", database)
+		}
+		if err := scanCanonicalFingerprintRow(ctx, store, canonicalColumnFingerprintQuery, database, &actual.columnCount, &actual.columnHash); err != nil {
+			return errors.WrapInternalf(err, errors.CodeInternal, "fingerprint canonical ClickHouse columns for %s", database)
+		}
+		if err := scanCanonicalFingerprintRow(ctx, store, canonicalIndexFingerprintQuery, database, &actual.indexCount, &actual.indexHash); err != nil {
+			return errors.WrapInternalf(err, errors.CodeInternal, "fingerprint canonical ClickHouse indexes for %s", database)
+		}
+		if actual != expected {
+			return errors.NewInternalf(errors.CodeInternal,
+				"canonical ClickHouse schema drift in %s: got tables=%d/%d columns=%d/%d indexes=%d/%d, want tables=%d/%d columns=%d/%d indexes=%d/%d",
+				database,
+				actual.tableCount, actual.tableHash, actual.columnCount, actual.columnHash, actual.indexCount, actual.indexHash,
+				expected.tableCount, expected.tableHash, expected.columnCount, expected.columnHash, expected.indexCount, expected.indexHash,
+			)
+		}
+	}
+	return nil
+}
+
+func scanCanonicalFingerprintRow(ctx context.Context, store telemetrystore.TelemetryStore, query, database string, destinations ...any) error {
+	rows, err := store.ClickhouseDB().Query(ctx, query, database)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+	if !rows.Next() {
+		if err := rows.Err(); err != nil {
+			return err
+		}
+		return fmt.Errorf("fingerprint query for %s returned no rows", database)
+	}
+	if err := rows.Scan(destinations...); err != nil {
+		return err
+	}
+	if rows.Next() {
+		return fmt.Errorf("fingerprint query for %s returned more than one row", database)
+	}
+	return rows.Err()
 }

@@ -42,7 +42,7 @@ def test_telemetry_databases_exist(signoz: types.SigNoz) -> None:
 
 def test_single_node_telemetry_schema(signoz: types.SigNoz) -> None:
     rows = signoz.telemetrystore.conn.query(
-        "SELECT database, name, engine FROM system.tables WHERE database LIKE 'signoz_%' AND (engine LIKE 'Replicated%' OR engine = 'Distributed' OR create_table_query LIKE '%ON CLUSTER%')"
+        "SELECT database, name, engine FROM system.tables WHERE database LIKE 'siginsight_%' AND (engine LIKE 'Replicated%' OR engine = 'Distributed' OR create_table_query LIKE '%ON CLUSTER%')"
     ).result_rows
     assert rows == [], f"unexpected coordinated telemetry tables: {rows}"
 

@@ -161,7 +161,10 @@ ClickHouse 物理存储资源：
 create/drop chain、metadata seed 和无读取的 metric ingestion timestamp。SigInsight readers、
 Lite Catalog、专用 reader、fixtures、OpenAPI 示例、retention 与 readiness 已切换至
 canonical 名称。`schema readiness` 会拒绝缺少 canonical 表/列或仍存在任一 M16 legacy
-对象的实例，因此不会静默回退到旧 schema。
+对象的实例，因此不会静默回退到旧 schema。启动检查还会验证与 Collector v2.0.1 相同的
+runtime-stable fingerprint，包括表引擎和 key、物化视图定义、列顺序/类型/codec 与
+data-skipping index。Retention API 会合法修改的 TTL、storage policy 和 `_retention_days*`
+默认表达式被明确排除，避免设置 retention 后重启反而被拒绝。
 
 `Materialized` 元数据不再是生成任意动态物化列名的授权。Logs 一律使用 `resource` JSON
 和 typed map；Traces 仅 Schema Catalog 明确声明的九个 fast-path 可使用 canonical 列，其余
