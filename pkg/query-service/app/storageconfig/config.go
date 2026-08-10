@@ -14,7 +14,6 @@ type Trace struct {
 type Retention struct {
 	TraceDB                string
 	TraceTable             string
-	TraceLocalTable        string
 	TraceResourceTable     string
 	ErrorTable             string
 	DependencyGraphTable   string
@@ -22,9 +21,7 @@ type Retention struct {
 	SpanAttributeKeysTable string
 	LogsDB                 string
 	LogsTable              string
-	LogsLocalTable         string
 	LogsResourceTable      string
-	LogsResourceLocalTable string
 	LogsAttributeKeysTable string
 	LogsResourceKeysTable  string
 }
@@ -47,7 +44,6 @@ func Default() Config {
 		Retention: Retention{
 			TraceDB:                "siginsight_traces",
 			TraceTable:             "spans",
-			TraceLocalTable:        "spans",
 			TraceResourceTable:     "resource_sets",
 			ErrorTable:             "exceptions",
 			DependencyGraphTable:   "service_edges",
@@ -55,9 +51,7 @@ func Default() Config {
 			SpanAttributeKeysTable: "span_attributes_keys",
 			LogsDB:                 "siginsight_logs",
 			LogsTable:              "logs",
-			LogsLocalTable:         "logs",
 			LogsResourceTable:      "resource_sets",
-			LogsResourceLocalTable: "resource_sets",
 			LogsAttributeKeysTable: "logs_attribute_keys",
 			LogsResourceKeysTable:  "logs_resource_keys",
 		},

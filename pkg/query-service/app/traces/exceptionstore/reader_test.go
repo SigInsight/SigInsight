@@ -18,6 +18,7 @@ import (
 type selectResponse struct {
 	queryContains string
 	rows          []model.NextPrevErrorIDsDBResponse
+	err           error
 }
 
 type fakeConn struct {
@@ -69,27 +70,19 @@ func (c *fakeConn) Select(_ context.Context, dest any, query string, _ ...any) e
 	rows, ok := dest.(*[]model.NextPrevErrorIDsDBResponse)
 	require.True(c.t, ok)
 	*rows = append(*rows, response.rows...)
-	return nil
+	return response.err
 }
 
-func TestGetNextErrorIDFallsBackToLaterTimestamp(t *testing.T) {
+func TestGetNextErrorIDUsesLexicographicCursor(t *testing.T) {
 	now := time.Unix(100, 0)
 	next := now.Add(time.Second)
 	conn := &fakeConn{
 		t: t,
 		selectResponses: []selectResponse{
 			{
-				queryContains: "timestamp >= @timestamp",
+				queryContains: "timestamp > @timestamp OR (timestamp = @timestamp AND errorID > @errorID)",
 				rows: []model.NextPrevErrorIDsDBResponse{
-					{NextErrorID: "candidate-a", NextTimestamp: now, Timestamp: now},
-					{NextErrorID: "candidate-b", NextTimestamp: now, Timestamp: now},
-				},
-			},
-			{queryContains: "errorID > @errorID"},
-			{
-				queryContains: "timestamp > @timestamp",
-				rows: []model.NextPrevErrorIDsDBResponse{
-					{NextErrorID: "next", NextTimestamp: next},
+					{ErrorID: "next", Timestamp: next},
 				},
 			},
 		},
@@ -105,7 +98,7 @@ func TestGetNextErrorIDFallsBackToLaterTimestamp(t *testing.T) {
 	require.Nil(t, apiErr)
 	require.Equal(t, "next", errorID)
 	require.Equal(t, next, timestamp)
-	require.Equal(t, 3, conn.selectCalls)
+	require.Equal(t, 1, conn.selectCalls)
 }
 
 func TestGetPrevErrorIDUsesSameTimestampOrdering(t *testing.T) {
@@ -114,16 +107,9 @@ func TestGetPrevErrorIDUsesSameTimestampOrdering(t *testing.T) {
 		t: t,
 		selectResponses: []selectResponse{
 			{
-				queryContains: "timestamp <= @timestamp",
+				queryContains: "timestamp < @timestamp OR (timestamp = @timestamp AND errorID < @errorID)",
 				rows: []model.NextPrevErrorIDsDBResponse{
-					{PrevErrorID: "candidate-a", PrevTimestamp: now, Timestamp: now},
-					{PrevErrorID: "candidate-b", PrevTimestamp: now, Timestamp: now},
-				},
-			},
-			{
-				queryContains: "errorID < @errorID",
-				rows: []model.NextPrevErrorIDsDBResponse{
-					{PrevErrorID: "previous", PrevTimestamp: now},
+					{ErrorID: "previous", Timestamp: now},
 				},
 			},
 		},
@@ -139,5 +125,27 @@ func TestGetPrevErrorIDUsesSameTimestampOrdering(t *testing.T) {
 	require.Nil(t, apiErr)
 	require.Equal(t, "previous", errorID)
 	require.Equal(t, now, timestamp)
-	require.Equal(t, 2, conn.selectCalls)
+	require.Equal(t, 1, conn.selectCalls)
+}
+
+func TestExceptionCursorBoundariesAndErrors(t *testing.T) {
+	now := time.Unix(100, 0)
+
+	t.Run("last item has no next cursor", func(t *testing.T) {
+		conn := &fakeConn{t: t, selectResponses: []selectResponse{{queryContains: "ORDER BY timestamp ASC, errorID ASC"}}}
+		reader := New(slog.New(slog.NewTextHandler(io.Discard, nil)), conn, Config{TraceDB: "traces", ErrorTable: "errors"})
+		id, timestamp, err := reader.getNextErrorID(context.Background(), &model.GetErrorParams{GroupID: "group", ErrorID: "last", Timestamp: &now})
+		require.NoError(t, err)
+		require.Empty(t, id)
+		require.True(t, timestamp.IsZero())
+	})
+
+	t.Run("clickhouse error is preserved", func(t *testing.T) {
+		expected := errors.New("ClickHouse unavailable")
+		conn := &fakeConn{t: t, selectResponses: []selectResponse{{queryContains: "ORDER BY timestamp DESC, errorID DESC", err: expected}}}
+		reader := New(slog.New(slog.NewTextHandler(io.Discard, nil)), conn, Config{TraceDB: "traces", ErrorTable: "errors"})
+		_, _, err := reader.getPrevErrorID(context.Background(), &model.GetErrorParams{GroupID: "group", ErrorID: "first", Timestamp: &now})
+		require.ErrorIs(t, err, expected)
+		require.ErrorContains(t, err, "query exceptions")
+	})
 }

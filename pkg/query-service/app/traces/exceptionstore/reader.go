@@ -217,39 +217,9 @@ func (r *Reader) getNextErrorID(ctx context.Context, queryParams *model.GetError
 	ctx = withTraceQueryMetadata(ctx, "getNextErrorID")
 	var responses []model.NextPrevErrorIDsDBResponse
 
-	query := fmt.Sprintf("SELECT errorID as nextErrorID, timestamp as nextTimestamp FROM %s.%s WHERE groupID = @groupID AND timestamp >= @timestamp AND errorID != @errorID ORDER BY timestamp ASC LIMIT 2", r.traceDB, r.errorTable)
+	query := fmt.Sprintf("SELECT errorID, timestamp FROM %s.%s WHERE groupID = @groupID AND (timestamp > @timestamp OR (timestamp = @timestamp AND errorID > @errorID)) ORDER BY timestamp ASC, errorID ASC LIMIT 1", r.traceDB, r.errorTable)
 	args := errorPositionArgs(queryParams)
 	err := r.db.Select(ctx, &responses, query, args...)
-	r.logger.Info(query)
-	if err != nil {
-		r.logger.Error("Error in processing sql query", errorsV2.Attr(err))
-		return "", time.Time{}, executionError(err)
-	}
-	if len(responses) == 0 {
-		r.logger.Info("NextErrorID not found")
-		return "", time.Time{}, nil
-	}
-	if len(responses) == 1 || responses[0].Timestamp.UnixNano() != responses[1].Timestamp.UnixNano() {
-		r.logger.Info("NextErrorID found")
-		return responses[0].NextErrorID, responses[0].NextTimestamp, nil
-	}
-
-	query = fmt.Sprintf("SELECT errorID as nextErrorID, timestamp as nextTimestamp FROM %s.%s WHERE groupID = @groupID AND timestamp = @timestamp AND errorID > @errorID ORDER BY errorID ASC LIMIT 1", r.traceDB, r.errorTable)
-	responses = nil
-	err = r.db.Select(ctx, &responses, query, args...)
-	r.logger.Info(query)
-	if err != nil {
-		r.logger.Error("Error in processing sql query", errorsV2.Attr(err))
-		return "", time.Time{}, executionError(err)
-	}
-	if len(responses) > 0 {
-		r.logger.Info("NextErrorID found")
-		return responses[0].NextErrorID, responses[0].NextTimestamp, nil
-	}
-
-	query = fmt.Sprintf("SELECT errorID as nextErrorID, timestamp as nextTimestamp FROM %s.%s WHERE groupID = @groupID AND timestamp > @timestamp ORDER BY timestamp ASC LIMIT 1", r.traceDB, r.errorTable)
-	err = r.db.Select(ctx, &responses, query, args...)
-	r.logger.Info(query)
 	if err != nil {
 		r.logger.Error("Error in processing sql query", errorsV2.Attr(err))
 		return "", time.Time{}, executionError(err)
@@ -259,46 +229,16 @@ func (r *Reader) getNextErrorID(ctx context.Context, queryParams *model.GetError
 		return "", time.Time{}, nil
 	}
 	r.logger.Info("NextErrorID found")
-	return responses[0].NextErrorID, responses[0].NextTimestamp, nil
+	return responses[0].ErrorID, responses[0].Timestamp, nil
 }
 
 func (r *Reader) getPrevErrorID(ctx context.Context, queryParams *model.GetErrorParams) (string, time.Time, error) {
 	ctx = withTraceQueryMetadata(ctx, "getPrevErrorID")
 	var responses []model.NextPrevErrorIDsDBResponse
 
-	query := fmt.Sprintf("SELECT errorID as prevErrorID, timestamp as prevTimestamp FROM %s.%s WHERE groupID = @groupID AND timestamp <= @timestamp AND errorID != @errorID ORDER BY timestamp DESC LIMIT 2", r.traceDB, r.errorTable)
+	query := fmt.Sprintf("SELECT errorID, timestamp FROM %s.%s WHERE groupID = @groupID AND (timestamp < @timestamp OR (timestamp = @timestamp AND errorID < @errorID)) ORDER BY timestamp DESC, errorID DESC LIMIT 1", r.traceDB, r.errorTable)
 	args := errorPositionArgs(queryParams)
 	err := r.db.Select(ctx, &responses, query, args...)
-	r.logger.Info(query)
-	if err != nil {
-		r.logger.Error("Error in processing sql query", errorsV2.Attr(err))
-		return "", time.Time{}, executionError(err)
-	}
-	if len(responses) == 0 {
-		r.logger.Info("PrevErrorID not found")
-		return "", time.Time{}, nil
-	}
-	if len(responses) == 1 || responses[0].Timestamp.UnixNano() != responses[1].Timestamp.UnixNano() {
-		r.logger.Info("PrevErrorID found")
-		return responses[0].PrevErrorID, responses[0].PrevTimestamp, nil
-	}
-
-	query = fmt.Sprintf("SELECT errorID as prevErrorID, timestamp as prevTimestamp FROM %s.%s WHERE groupID = @groupID AND timestamp = @timestamp AND errorID < @errorID ORDER BY errorID DESC LIMIT 1", r.traceDB, r.errorTable)
-	responses = nil
-	err = r.db.Select(ctx, &responses, query, args...)
-	r.logger.Info(query)
-	if err != nil {
-		r.logger.Error("Error in processing sql query", errorsV2.Attr(err))
-		return "", time.Time{}, executionError(err)
-	}
-	if len(responses) > 0 {
-		r.logger.Info("PrevErrorID found")
-		return responses[0].PrevErrorID, responses[0].PrevTimestamp, nil
-	}
-
-	query = fmt.Sprintf("SELECT errorID as prevErrorID, timestamp as prevTimestamp FROM %s.%s WHERE groupID = @groupID AND timestamp < @timestamp ORDER BY timestamp DESC LIMIT 1", r.traceDB, r.errorTable)
-	err = r.db.Select(ctx, &responses, query, args...)
-	r.logger.Info(query)
 	if err != nil {
 		r.logger.Error("Error in processing sql query", errorsV2.Attr(err))
 		return "", time.Time{}, executionError(err)
@@ -308,7 +248,7 @@ func (r *Reader) getPrevErrorID(ctx context.Context, queryParams *model.GetError
 		return "", time.Time{}, nil
 	}
 	r.logger.Info("PrevErrorID found")
-	return responses[0].PrevErrorID, responses[0].PrevTimestamp, nil
+	return responses[0].ErrorID, responses[0].Timestamp, nil
 }
 
 func withTraceQueryMetadata(ctx context.Context, functionName string) context.Context {

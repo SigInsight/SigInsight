@@ -177,6 +177,9 @@ func (r *Reader) GetMetricAggregateAttributes(ctx context.Context, orgID valuer.
 		}
 		metricNames = append(metricNames, name)
 	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate metric names: %w", err)
+	}
 
 	if len(metricNames) == 0 {
 		return &response, nil
@@ -244,6 +247,7 @@ func (r *Reader) GetAllMetricFilterAttributeKeys(ctx context.Context, req *metri
 		r.logger.Error("Error while executing query", errorsV2.Attr(err))
 		return nil, fmt.Errorf("query metric filter attribute keys: %w", err)
 	}
+	defer rows.Close()
 
 	var attributeKey string
 	for rows.Next() {
@@ -491,6 +495,9 @@ func (r *Reader) GetAttributeSimilarity(ctx context.Context, req *metrics_explor
 		targetKeys = append(targetKeys, key)
 		targetValues = append(targetValues, value...)
 	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate metric attribute labels: %w", err)
+	}
 
 	priorityPairs := make(clickhouse.ArraySet, 0, len(req.Filters.Items))
 	for _, f := range req.Filters.Items {
@@ -627,6 +634,7 @@ ORDER BY distinct_value_count DESC;`, siginsightMetricDBName, siginsightTSTableN
 	if err != nil {
 		return nil, fmt.Errorf("query metric resource attributes: %w", err)
 	}
+	defer rows.Close()
 	attributes := make(map[string]uint64)
 	for rows.Next() {
 		var attrs string
@@ -649,6 +657,11 @@ func (r *Reader) GetInspectMetrics(ctx context.Context, req *metrics_explorer.In
 		instrumentationtypes.CodeNamespace:    "clickhouse-reader",
 		instrumentationtypes.CodeFunctionName: "GetInspectMetrics",
 	})
+	if len(fingerprints) == 0 {
+		series := []timeseriestypes.Series{}
+		return &metrics_explorer.InspectMetricsResponse{Series: &series}, nil
+	}
+
 	start, end, _, localTsTable := utils.WhichTSTableToUse(req.Start, req.End)
 	fingerprintsString := strings.Join(fingerprints, ",")
 	query := fmt.Sprintf(`SELECT
@@ -770,26 +783,32 @@ func (r *Reader) GetInspectMetricsFingerprints(ctx context.Context, attributes [
 	}
 
 	start, end, tsTable, _ := utils.WhichTSTableToUse(req.Start, req.End)
+	innerSelectSuffix := ""
+	groupByClause := ""
+	if len(jsonExtracts) > 0 {
+		innerSelectSuffix = ",\n        " + strings.Join(jsonExtracts, ", ")
+		groupByClause = "GROUP BY " + strings.Join(groupBys, ", ")
+	}
+
 	query := fmt.Sprintf(`
         SELECT
     arrayDistinct(groupArray(toString(fingerprint))) AS fingerprints
 FROM
 (
     SELECT
-        metric_name, labels, fingerprint,
-        %s
+        metric_name, labels, fingerprint%s
     FROM %s.%s
     WHERE metric_name = ?
       AND unix_milli BETWEEN ? AND ?
     %s
 )
-GROUP BY %s
+%s
 ORDER BY length(fingerprints) DESC, rand()
 LIMIT 40`, // added rand to get diff value every time we run this query
-		strings.Join(jsonExtracts, ", "),
+		innerSelectSuffix,
 		siginsightMetricDBName, tsTable,
 		whereClause,
-		strings.Join(groupBys, ", "))
+		groupByClause)
 	valueCtx := context.WithValue(ctx, "clickhouse_max_threads", constants.MetricsExplorerClickhouseThreads)
 	queryArgs := append(attributeArgs,
 		req.MetricName,
