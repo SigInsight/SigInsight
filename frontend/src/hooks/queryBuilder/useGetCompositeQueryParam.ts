@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
-import { convertFiltersToExpressionWithExistingQuery } from 'components/QueryBuilder/utils';
 import { QueryParams } from 'constants/query';
+import { convertFiltersToExpressionWithExistingQuery } from 'features/query-builder-v3/queryBuilderUtils';
 import useUrlQuery from 'hooks/useUrlQuery';
 import { Query } from 'types/api/queryBuilder/queryBuilderData';
 

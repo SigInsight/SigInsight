@@ -458,11 +458,8 @@ type ErrorWithSpan struct {
 }
 
 type NextPrevErrorIDsDBResponse struct {
-	NextErrorID   string    `ch:"nextErrorID"`
-	NextTimestamp time.Time `ch:"nextTimestamp"`
-	PrevErrorID   string    `ch:"prevErrorID"`
-	PrevTimestamp time.Time `ch:"prevTimestamp"`
-	Timestamp     time.Time `ch:"timestamp"`
+	ErrorID   string    `ch:"errorID"`
+	Timestamp time.Time `ch:"timestamp"`
 }
 
 type NextPrevErrorIDs struct {

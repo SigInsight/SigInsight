@@ -33,7 +33,6 @@ export const getQueryRangeRequestData = ({
 			query: {
 				queryType: EQueryType.QUERY_BUILDER,
 				builder: serviceMetricsQuery(operation, dotMetricsEnabled),
-				clickhouse_sql: [],
 				id: uuid(),
 			},
 			panelTypes: PANEL_TYPES.TABLE,

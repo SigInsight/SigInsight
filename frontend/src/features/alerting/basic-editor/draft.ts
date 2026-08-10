@@ -63,7 +63,6 @@ export function defaultQueryForAlertType(alertType: AlertTypes): Query {
 			}),
 			queryFormulas: [],
 		},
-		clickhouse_sql: [],
 	};
 }
 

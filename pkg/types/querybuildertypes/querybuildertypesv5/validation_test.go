@@ -261,28 +261,6 @@ func TestQueryRangeRequest_ValidateAllQueriesNotDisabled(t *testing.T) {
 			},
 			wantErr: false,
 		},
-		{
-			name: "all ClickHouse queries disabled should return error",
-			request: QueryRangeRequest{
-				Start:       1640995200000,
-				End:         1640998800000,
-				RequestType: RequestTypeTimeSeries,
-				CompositeQuery: CompositeQuery{
-					Queries: []QueryEnvelope{
-						{
-							Type: QueryTypeClickHouseSQL,
-							Spec: ClickHouseQuery{
-								Name:     "CH1",
-								Query:    "SELECT count() FROM logs",
-								Disabled: true,
-							},
-						},
-					},
-				},
-			},
-			wantErr: true,
-			errMsg:  "all queries are disabled - at least one query must be enabled",
-		},
 	}
 
 	for _, tt := range tests {
@@ -461,47 +439,6 @@ func TestQueryRangeRequest_ValidateCompositeQuery(t *testing.T) {
 			errMsg:  "expression is required",
 		},
 		{
-			name: "clickhouse with empty query should return error",
-			request: QueryRangeRequest{
-				Start:       1640995200000,
-				End:         1640998800000,
-				RequestType: RequestTypeTimeSeries,
-				CompositeQuery: CompositeQuery{
-					Queries: []QueryEnvelope{
-						{
-							Type: QueryTypeClickHouseSQL,
-							Spec: ClickHouseQuery{
-								Name:  "CH1",
-								Query: "",
-							},
-						},
-					},
-				},
-			},
-			wantErr: true,
-			errMsg:  "ClickHouse SQL query is required",
-		},
-		{
-			name: "valid clickhouse query should pass",
-			request: QueryRangeRequest{
-				Start:       1640995200000,
-				End:         1640998800000,
-				RequestType: RequestTypeTimeSeries,
-				CompositeQuery: CompositeQuery{
-					Queries: []QueryEnvelope{
-						{
-							Type: QueryTypeClickHouseSQL,
-							Spec: ClickHouseQuery{
-								Name:  "CH1",
-								Query: "SELECT count() FROM logs",
-							},
-						},
-					},
-				},
-			},
-			wantErr: false,
-		},
-		{
 			name: "valid mixed queries with unique builder names should pass",
 			request: QueryRangeRequest{
 				Start:       1640995200000,
@@ -606,30 +543,6 @@ func TestValidateQueryEnvelope(t *testing.T) {
 			wantErr:     true,
 			errMsg:      "expression is required",
 		},
-		{
-			name: "valid join spec",
-			envelope: QueryEnvelope{
-				Type: QueryTypeJoin,
-				Spec: QueryBuilderJoin{
-					Name: "J1",
-				},
-			},
-			requestType: RequestTypeTimeSeries,
-			wantErr:     false,
-		},
-		{
-			name: "clickhouse with empty query should fail",
-			envelope: QueryEnvelope{
-				Type: QueryTypeClickHouseSQL,
-				Spec: ClickHouseQuery{
-					Name:  "CH1",
-					Query: "",
-				},
-			},
-			requestType: RequestTypeTimeSeries,
-			wantErr:     true,
-			errMsg:      "ClickHouse SQL query is required",
-		},
 	}
 
 	for _, tt := range tests {
@@ -680,16 +593,6 @@ func TestQueryEnvelope_Helpers(t *testing.T) {
 				want:     "F1",
 			},
 			{
-				name:     "clickhouse",
-				envelope: QueryEnvelope{Type: QueryTypeClickHouseSQL, Spec: ClickHouseQuery{Name: "CH1"}},
-				want:     "CH1",
-			},
-			{
-				name:     "join",
-				envelope: QueryEnvelope{Type: QueryTypeJoin, Spec: QueryBuilderJoin{Name: "J1"}},
-				want:     "J1",
-			},
-			{
 				name:     "empty name",
 				envelope: QueryEnvelope{Type: QueryTypeBuilder, Spec: QueryBuilderQuery[LogAggregation]{}},
 				want:     "",
@@ -724,16 +627,6 @@ func TestQueryEnvelope_Helpers(t *testing.T) {
 			{
 				name:     "disabled formula",
 				envelope: QueryEnvelope{Type: QueryTypeFormula, Spec: QueryBuilderFormula{Disabled: true}},
-				want:     true,
-			},
-			{
-				name:     "disabled clickhouse",
-				envelope: QueryEnvelope{Type: QueryTypeClickHouseSQL, Spec: ClickHouseQuery{Disabled: true}},
-				want:     true,
-			},
-			{
-				name:     "disabled join",
-				envelope: QueryEnvelope{Type: QueryTypeJoin, Spec: QueryBuilderJoin{Disabled: true}},
 				want:     true,
 			},
 		}
@@ -778,18 +671,6 @@ func TestGetQueryIdentifier(t *testing.T) {
 			envelope: QueryEnvelope{Type: QueryTypeFormula, Spec: QueryBuilderFormula{}},
 			index:    1,
 			want:     "formula at position 2",
-		},
-		{
-			name:     "clickhouse with name",
-			envelope: QueryEnvelope{Type: QueryTypeClickHouseSQL, Spec: ClickHouseQuery{Name: "CH1"}},
-			index:    0,
-			want:     "ClickHouse query 'CH1'",
-		},
-		{
-			name:     "join without name",
-			envelope: QueryEnvelope{Type: QueryTypeJoin, Spec: QueryBuilderJoin{}},
-			index:    0,
-			want:     "join at position 1",
 		},
 	}
 

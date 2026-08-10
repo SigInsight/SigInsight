@@ -178,14 +178,6 @@ export const MOCK_QUERY = {
 		],
 		queryFormulas: [],
 	},
-	clickhouse_sql: [
-		{
-			disabled: false,
-			legend: '',
-			name: 'A',
-			query: '',
-		},
-	],
 	id: '6092c3fd-6877-4cb8-836a-7f30db4e4bfe',
 };
 

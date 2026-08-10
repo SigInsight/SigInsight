@@ -1,5 +1,5 @@
 import { renderHook } from '@testing-library/react';
-import { convertFiltersToExpression } from 'components/QueryBuilder/utils';
+import { convertFiltersToExpression } from 'features/query-builder-v3/queryBuilderUtils';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
 import { ILog } from 'types/api/logs/log';
 import { DataTypes } from 'types/api/queryBuilder/queryAutocompleteResponse';
@@ -19,7 +19,7 @@ jest.mock('hooks/queryBuilder/useQueryBuilder', () => ({
 }));
 
 // Mock the convertFiltersToExpression utility
-jest.mock('components/QueryBuilder/utils', () => ({
+jest.mock('features/query-builder-v3/queryBuilderUtils', () => ({
 	convertFiltersToExpression: jest.fn(),
 }));
 
@@ -72,7 +72,6 @@ describe('useInitialQuery - Priority-Based Resource Filtering', () => {
 			],
 			queryFormulas: [],
 		},
-		clickhouse_sql: [],
 	};
 
 	beforeEach(() => {

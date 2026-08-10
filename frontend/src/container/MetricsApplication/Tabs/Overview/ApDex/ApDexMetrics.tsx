@@ -50,7 +50,6 @@ function ApDexMetrics({
 						metricsBuckets: metricsBuckets || [],
 						dotMetricsEnabled,
 					}),
-					clickhouse_sql: [],
 					id: uuid(),
 				},
 				title: (

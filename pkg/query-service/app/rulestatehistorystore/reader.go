@@ -240,14 +240,13 @@ func readRowsForTimeSeriesResult(rows driver.Rows, vars []interface{}, columnNam
 		if err := rows.Scan(vars...); err != nil {
 			return nil, err
 		}
-		groupBy, groupAttributes, groupAttributesArray, metricPoint := readRow(vars, columnNames, countOfNumberCols)
+		_, groupAttributes, groupAttributesArray, metricPoint := readRow(vars, columnNames, countOfNumberCols)
 		// skip the point if the value is NaN or Inf
 		// are they ever useful enough to be returned?
 		if metricPoint != nil && (math.IsNaN(metricPoint.Value) || math.IsInf(metricPoint.Value, 0)) {
 			continue
 		}
-		sort.Strings(groupBy)
-		key := strings.Join(groupBy, "")
+		key := timeSeriesIdentity(groupAttributes)
 		if _, exists := seriesToAttrs[key]; !exists {
 			keys = append(keys, key)
 		}
@@ -265,6 +264,21 @@ func readRowsForTimeSeriesResult(rows driver.Rows, vars []interface{}, columnNam
 		seriesList = append(seriesList, &series)
 	}
 	return seriesList, getPersonalisedError(rows.Err())
+}
+
+func timeSeriesIdentity(attributes map[string]string) string {
+	names := make([]string, 0, len(attributes))
+	for name := range attributes {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+
+	var key strings.Builder
+	for _, name := range names {
+		value := attributes[name]
+		fmt.Fprintf(&key, "%d:%s%d:%s", len(name), name, len(value), value)
+	}
+	return key.String()
 }
 
 func (r *Reader) getTimeSeriesResult(ctx context.Context, query string, args ...any) ([]*timeseriestypes.Series, error) {
@@ -555,7 +569,7 @@ ORDER BY firing_time ASC;`
 
 	// fetch the most recent overall_state from the table
 	var state model.AlertState
-	stateQuery := fmt.Sprintf("SELECT state FROM %s.%s WHERE rule_id = ? AND unix_milli <= ? ORDER BY unix_milli DESC LIMIT 1",
+	stateQuery := fmt.Sprintf("SELECT overall_state FROM %s.%s WHERE rule_id = ? AND unix_milli <= ? ORDER BY unix_milli DESC LIMIT 1",
 		r.database, r.table)
 	if err := r.db.QueryRow(ctx, stateQuery, ruleID, params.End).Scan(&state); err != nil {
 		if err != sql.ErrNoRows {

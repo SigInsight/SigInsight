@@ -1,8 +1,8 @@
-import { convertFiltersToExpression } from 'components/QueryBuilder/utils';
 import {
 	parseLiteFilterExpression,
 	toLiteFilterExpression,
 } from 'features/lite-query/capabilities';
+import { convertFiltersToExpression } from 'features/query-builder-v3/queryBuilderUtils';
 
 import { traceDetailFilterFields } from './traceFilterFields';
 

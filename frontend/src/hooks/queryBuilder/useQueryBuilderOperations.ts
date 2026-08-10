@@ -1,11 +1,5 @@
 /* eslint-disable sonarjs/cognitive-complexity */
 import { useCallback, useEffect, useState } from 'react';
-import {
-	getPreviousQueryFromKey,
-	getQueryKey,
-	removeKeyFromPreviousQuery,
-	saveAsPreviousQuery,
-} from 'components/QueryBuilder/Query/previousQuery.utils';
 import { LEGEND } from 'constants/global';
 import {
 	ATTRIBUTE_TYPES,
@@ -24,6 +18,12 @@ import {
 	metricsUnknownSpaceAggregateOperatorOptions,
 	metricsUnknownTimeAggregateOperatorOptions,
 } from 'constants/queryBuilderOperators';
+import {
+	getPreviousQueryFromKey,
+	getQueryKey,
+	removeKeyFromPreviousQuery,
+	saveAsPreviousQuery,
+} from 'features/query-builder-v3/previousQuery';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
 import { getMetricsOperatorsByAttributeType } from 'lib/newQueryBuilder/getMetricsOperatorsByAttributeType';
 import { getOperatorsBySourceAndPanelType } from 'lib/newQueryBuilder/getOperatorsBySourceAndPanelType';

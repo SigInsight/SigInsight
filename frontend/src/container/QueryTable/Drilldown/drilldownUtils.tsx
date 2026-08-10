@@ -1,5 +1,4 @@
 import { PieArcDatum } from '@visx/shape/lib/shapes/Pie';
-import { convertFiltersToExpressionWithExistingQuery } from 'components/QueryBuilder/utils';
 import {
 	initialQueryBuilderFormValuesMap,
 	OPERATORS,
@@ -10,6 +9,7 @@ import {
 	replaceKeysAndValuesInExpression,
 } from 'container/QueryTable/Drilldown/metricsCorrelationUtils';
 import { isApmMetric } from 'container/QueryTable/Drilldown/metricTimeRange';
+import { convertFiltersToExpressionWithExistingQuery } from 'features/query-builder-v3/queryBuilderUtils';
 import cloneDeep from 'lodash-es/cloneDeep';
 import {
 	BaseAutocompleteData,

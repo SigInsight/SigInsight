@@ -14,7 +14,6 @@ import {
 	HavingForm,
 	IBuilderFormula,
 	IBuilderQuery,
-	IClickHouseQuery,
 	Query,
 	QueryState,
 	TagFilter,
@@ -266,27 +265,14 @@ export const initialFormulaBuilderFormValues: IBuilderFormula = {
 	legend: '',
 };
 
-export const initialClickHouseData: IClickHouseQuery = {
-	name: createNewBuilderItemName({ existNames: [], sourceNames: alphabet }),
-	legend: '',
-	disabled: false,
-	query: '',
-};
-
 export const initialQueryBuilderData: QueryBuilderData = {
 	queryData: [initialQueryBuilderFormValues],
 	queryFormulas: [],
 };
 
-export const initialSingleQueryMap: Record<
-	EQueryType.CLICKHOUSE,
-	IClickHouseQuery
-> = { clickhouse_sql: initialClickHouseData };
-
 export const initialQueryState: QueryState = {
 	id: uuid(),
 	builder: initialQueryBuilderData,
-	clickhouse_sql: [initialClickHouseData],
 	unit: '',
 };
 

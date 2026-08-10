@@ -10,11 +10,11 @@ import {
 	Spin,
 } from 'antd';
 import { Filter } from 'api/v5/v5';
+import { REACT_QUERY_KEY } from 'constants/reactQueryKeys';
 import {
 	convertExpressionToFilters,
 	convertFiltersToExpression,
-} from 'components/QueryBuilder/utils';
-import { REACT_QUERY_KEY } from 'constants/reactQueryKeys';
+} from 'features/query-builder-v3/queryBuilderUtils';
 import { useGetMetricsListFilterValues } from 'hooks/metricsExplorer/useGetMetricsListFilterValues';
 import useDebouncedFn from 'hooks/useDebouncedFunction';
 import { Search } from 'lucide-react';

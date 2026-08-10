@@ -798,17 +798,6 @@ components:
           format: double
           type: number
       type: object
-    Querybuildertypesv5ClickHouseQuery:
-      properties:
-        disabled:
-          type: boolean
-        legend:
-          type: string
-        name:
-          type: string
-        query:
-          type: string
-      type: object
     Querybuildertypesv5ColumnDescriptor:
       properties:
         aggregationIndex:
@@ -1220,7 +1209,6 @@ components:
       - $ref: '#/components/schemas/Querybuildertypesv5QueryEnvelopeBuilderLog'
       - $ref: '#/components/schemas/Querybuildertypesv5QueryEnvelopeBuilderMetric'
       - $ref: '#/components/schemas/Querybuildertypesv5QueryEnvelopeFormula'
-      - $ref: '#/components/schemas/Querybuildertypesv5QueryEnvelopeClickHouseSQL'
       properties:
         spec: {}
         type:
@@ -1244,13 +1232,6 @@ components:
       properties:
         spec:
           $ref: '#/components/schemas/Querybuildertypesv5QueryBuilderQueryGithubComSigNozSignozPkgTypesQuerybuildertypesQuerybuildertypesv5TraceAggregation'
-        type:
-          $ref: '#/components/schemas/Querybuildertypesv5QueryType'
-      type: object
-    Querybuildertypesv5QueryEnvelopeClickHouseSQL:
-      properties:
-        spec:
-          $ref: '#/components/schemas/Querybuildertypesv5ClickHouseQuery'
         type:
           $ref: '#/components/schemas/Querybuildertypesv5QueryType'
       type: object
@@ -1306,7 +1287,6 @@ components:
       enum:
       - builder_query
       - builder_formula
-      - clickhouse_sql
       type: string
     Querybuildertypesv5QueryWarnData:
       properties:
@@ -3198,70 +3178,6 @@ paths:
         content:
           application/json:
             examples:
-              clickhouse_sql_logs_raw:
-                summary: 'ClickHouse SQL: raw logs with resource filter'
-                value:
-                  compositeQuery:
-                    queries:
-                    - spec:
-                        name: recent_errors
-                        query: WITH __resource_filter AS ( SELECT fingerprint FROM
-                          siginsight_logs.resource_sets WHERE seen_at_ts_bucket_start
-                          >= $start_timestamp - 1800 AND seen_at_ts_bucket_start <=
-                          $end_timestamp ) SELECT timestamp, body FROM siginsight_logs.logs
-                          WHERE resource_fingerprint GLOBAL IN (SELECT fingerprint
-                          FROM __resource_filter) AND timestamp >= $start_timestamp_nano
-                          AND timestamp <= $end_timestamp_nano AND ts_bucket_start
-                          >= $start_timestamp - 1800 AND ts_bucket_start <= $end_timestamp
-                          AND severity_text = 'ERROR' ORDER BY timestamp DESC LIMIT
-                          100
-                      type: clickhouse_sql
-                  end: 1640998800000
-                  requestType: raw
-                  schemaVersion: v1
-                  start: 1640995200000
-              clickhouse_sql_traces_scalar:
-                summary: 'ClickHouse SQL: scalar aggregate with resource filter'
-                value:
-                  compositeQuery:
-                    queries:
-                    - spec:
-                        name: total_spans
-                        query: WITH __resource_filter AS ( SELECT fingerprint FROM
-                          siginsight_traces.resource_sets WHERE seen_at_ts_bucket_start
-                          >= $start_timestamp - 1800 AND seen_at_ts_bucket_start <=
-                          $end_timestamp ) SELECT count() AS value FROM siginsight_traces.spans
-                          WHERE resource_fingerprint GLOBAL IN (SELECT fingerprint
-                          FROM __resource_filter) AND timestamp >= $start_datetime
-                          AND timestamp <= $end_datetime AND ts_bucket_start >= $start_timestamp
-                          - 1800 AND ts_bucket_start <= $end_timestamp
-                      type: clickhouse_sql
-                  end: 1640998800000
-                  requestType: scalar
-                  schemaVersion: v1
-                  start: 1640995200000
-              clickhouse_sql_traces_time_series:
-                summary: 'ClickHouse SQL: traces time series with resource filter'
-                value:
-                  compositeQuery:
-                    queries:
-                    - spec:
-                        name: span_rate
-                        query: WITH __resource_filter AS ( SELECT fingerprint FROM
-                          siginsight_traces.resource_sets WHERE seen_at_ts_bucket_start
-                          >= $start_timestamp - 1800 AND seen_at_ts_bucket_start <=
-                          $end_timestamp ) SELECT toStartOfInterval(timestamp, INTERVAL
-                          60 SECOND) AS ts, count() AS value FROM siginsight_traces.spans
-                          WHERE resource_fingerprint GLOBAL IN (SELECT fingerprint
-                          FROM __resource_filter) AND timestamp >= $start_datetime
-                          AND timestamp <= $end_datetime AND ts_bucket_start >= $start_timestamp
-                          - 1800 AND ts_bucket_start <= $end_timestamp GROUP BY ts
-                          ORDER BY ts
-                      type: clickhouse_sql
-                  end: 1640998800000
-                  requestType: time_series
-                  schemaVersion: v1
-                  start: 1640995200000
               formula:
                 summary: 'Formula: error rate from two trace queries'
                 value:

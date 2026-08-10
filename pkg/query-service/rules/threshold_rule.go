@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/SigNoz/signoz/pkg/types/timeseriestypes"
 	"log/slog"
 	"net/url"
 	"strconv"
@@ -12,6 +11,7 @@ import (
 
 	"github.com/SigNoz/signoz/pkg/contextlinks"
 	"github.com/SigNoz/signoz/pkg/errors"
+	"github.com/SigNoz/signoz/pkg/litequery"
 	"github.com/SigNoz/signoz/pkg/query-service/interfaces"
 	"github.com/SigNoz/signoz/pkg/query-service/model"
 	"github.com/SigNoz/signoz/pkg/query-service/utils/labels"
@@ -20,6 +20,7 @@ import (
 	qbtypes "github.com/SigNoz/signoz/pkg/types/querybuildertypes/querybuildertypesv5"
 	"github.com/SigNoz/signoz/pkg/types/ruletypes"
 	"github.com/SigNoz/signoz/pkg/types/telemetrytypes"
+	"github.com/SigNoz/signoz/pkg/types/timeseriestypes"
 	"github.com/SigNoz/signoz/pkg/valuer"
 )
 
@@ -89,8 +90,57 @@ func (r *ThresholdRule) prepareQueryRange(ctx context.Context, ts time.Time) (*q
 	return req, nil
 }
 
+// selectedSourceQueryName resolves a selected formula to its terminal builder
+// query. A link is omitted for multi-source formulas because one explorer URL
+// cannot faithfully represent multiple independent filters.
+func selectedSourceQueryName(queries []qbtypes.QueryEnvelope, selected string) string {
+	bindings := make(map[string]litequery.FormulaBinding)
+	formulas := make([]litequery.Formula, 0)
+	for _, query := range queries {
+		switch spec := query.Spec.(type) {
+		case qbtypes.QueryBuilderQuery[qbtypes.LogAggregation]:
+			bindings[spec.Name] = litequery.FormulaBinding{Type: litequery.FormulaStaticType{Kind: litequery.FormulaValueNumber}}
+		case qbtypes.QueryBuilderQuery[qbtypes.TraceAggregation]:
+			bindings[spec.Name] = litequery.FormulaBinding{Type: litequery.FormulaStaticType{Kind: litequery.FormulaValueNumber}}
+		case qbtypes.QueryBuilderQuery[qbtypes.MetricAggregation]:
+			bindings[spec.Name] = litequery.FormulaBinding{Type: litequery.FormulaStaticType{Kind: litequery.FormulaValueNumber}}
+		case qbtypes.QueryBuilderFormula:
+			formulas = append(formulas, litequery.Formula{Name: spec.Name, Expression: spec.Expression})
+		}
+	}
+	if _, ok := bindings[selected]; ok {
+		return selected
+	}
+
+	programs, err := litequery.AnalyzeTypedFormulaSet(formulas, bindings)
+	if err != nil || programs[selected] == nil {
+		return ""
+	}
+	terminal := make(map[string]struct{})
+	var resolve func(string)
+	resolve = func(name string) {
+		if _, ok := bindings[name]; ok {
+			terminal[name] = struct{}{}
+			return
+		}
+		if program := programs[name]; program != nil {
+			for _, reference := range program.References() {
+				resolve(reference)
+			}
+		}
+	}
+	resolve(selected)
+	if len(terminal) != 1 {
+		return ""
+	}
+	for name := range terminal {
+		return name
+	}
+	return ""
+}
+
 func (r *ThresholdRule) prepareLinksToLogs(ctx context.Context, ts time.Time, lbls labels.Labels) string {
-	selectedQuery := r.GetSelectedQuery()
+	selectedQuery := selectedSourceQueryName(r.ruleCondition.CompositeQuery.Queries, r.GetSelectedQuery())
 
 	qr, err := r.prepareQueryRange(ctx, ts)
 	if err != nil {
@@ -99,8 +149,7 @@ func (r *ThresholdRule) prepareLinksToLogs(ctx context.Context, ts time.Time, lb
 	start := time.UnixMilli(int64(qr.Start))
 	end := time.UnixMilli(int64(qr.End))
 
-	// TODO(srikanthccv): handle formula queries
-	if selectedQuery < "A" || selectedQuery > "Z" {
+	if selectedQuery == "" {
 		return ""
 	}
 
@@ -110,7 +159,9 @@ func (r *ThresholdRule) prepareLinksToLogs(ctx context.Context, ts time.Time, lb
 		if query.Type == qbtypes.QueryTypeBuilder {
 			switch spec := query.Spec.(type) {
 			case qbtypes.QueryBuilderQuery[qbtypes.LogAggregation]:
-				q = spec
+				if spec.Name == selectedQuery {
+					q = spec
+				}
 			}
 		}
 	}
@@ -130,7 +181,7 @@ func (r *ThresholdRule) prepareLinksToLogs(ctx context.Context, ts time.Time, lb
 }
 
 func (r *ThresholdRule) prepareLinksToTraces(ctx context.Context, ts time.Time, lbls labels.Labels) string {
-	selectedQuery := r.GetSelectedQuery()
+	selectedQuery := selectedSourceQueryName(r.ruleCondition.CompositeQuery.Queries, r.GetSelectedQuery())
 
 	qr, err := r.prepareQueryRange(ctx, ts)
 	if err != nil {
@@ -139,8 +190,7 @@ func (r *ThresholdRule) prepareLinksToTraces(ctx context.Context, ts time.Time, 
 	start := time.UnixMilli(int64(qr.Start))
 	end := time.UnixMilli(int64(qr.End))
 
-	// TODO(srikanthccv): handle formula queries
-	if selectedQuery < "A" || selectedQuery > "Z" {
+	if selectedQuery == "" {
 		return ""
 	}
 
@@ -150,7 +200,9 @@ func (r *ThresholdRule) prepareLinksToTraces(ctx context.Context, ts time.Time, 
 		if query.Type == qbtypes.QueryTypeBuilder {
 			switch spec := query.Spec.(type) {
 			case qbtypes.QueryBuilderQuery[qbtypes.TraceAggregation]:
-				q = spec
+				if spec.Name == selectedQuery {
+					q = spec
+				}
 			}
 		}
 	}

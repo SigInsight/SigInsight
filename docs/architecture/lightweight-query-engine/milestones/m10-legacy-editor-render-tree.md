@@ -45,6 +45,8 @@ M10 删除这棵不可达树，降低前端生产代码和测试负担。它不�
   不再反向依赖已删除的渲染组件类型。
 - `filters/index.ts` 只保留仍有生产消费者的 `BuilderUnitsFilter`、`MetricNameSelector` 和
   `OrderByFilter`。
+- 后续 M12 删除 `QuerySearch`/V2；2026-08-10 收敛复核将仍活跃的 filter conversion 和
+  previous-query 工具迁入 `features/query-builder-v3`。`components/QueryBuilder` 当前已删除。
 
 ## 验证结果
 

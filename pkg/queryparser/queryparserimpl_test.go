@@ -55,41 +55,6 @@ func TestBaseRule_ExtractMetricAndGroupBys(t *testing.T) {
 			},
 		},
 		{
-			name:    "clickhouse multiple grouping",
-			payload: clickHouseQueryWithGrouping,
-			wantResults: map[string]*queryfilterextractor.FilterResult{
-				"CH1": {
-					MetricNames: []string{"cpu"},
-					GroupByColumns: []queryfilterextractor.ColumnInfo{
-						{Name: "region", Alias: "r", OriginExpr: "region", OriginField: "region"},
-						{Name: "zone", Alias: "", OriginExpr: "zone", OriginField: "zone"},
-					},
-				},
-			},
-		},
-		{
-			name:    "clickhouse single grouping",
-			payload: clickHouseQuerySingleGrouping,
-			wantResults: map[string]*queryfilterextractor.FilterResult{
-				"CH2": {
-					MetricNames: []string{"cpu_usage"},
-					GroupByColumns: []queryfilterextractor.ColumnInfo{
-						{Name: "region", Alias: "r", OriginExpr: "region", OriginField: "region"},
-					},
-				},
-			},
-		},
-		{
-			name:    "clickhouse no grouping",
-			payload: clickHouseQueryNoGrouping,
-			wantResults: map[string]*queryfilterextractor.FilterResult{
-				"CH3": {
-					MetricNames:    []string{"memory_usage"},
-					GroupByColumns: []queryfilterextractor.ColumnInfo{},
-				},
-			},
-		},
-		{
 			name:    "builder formula for builder queries",
 			payload: builderQueryWithFormula,
 			wantResults: map[string]*queryfilterextractor.FilterResult{

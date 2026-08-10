@@ -73,7 +73,7 @@
 | M13 V2 图表与 Container | Complete | 已收敛为 V2 单一渲染栈，删除旧 uPlot 与重复的 Container 适配链路 |
 | M14 运行时兼容删除 | Complete | 已删除旧保存查询兼容、不可达 Dashboard 状态、旧 Alert schema/模板/renotify 和指标元数据写路径 |
 | M15 基础告警编辑器 | Complete | Typed Formula Core、bool V5 result、四个内联函数、v3 编辑器、legacy 删除和真实协作验证均已完成 |
-| M16 Canonical ClickHouse Schema Cutover | In Progress | 将 SigInsight reader/Catalog 与 Collector v2.0.1 切换至 direct canonical schema，并进行停机协作验证 |
+| M16 Canonical ClickHouse Schema Cutover | Complete | SigInsight reader/Catalog 与 Collector v2.0.1 已切换至 direct canonical schema；ClickHouse 25.5.6 停机协作验证与 runtime fingerprint gate 已完成 |
 | 机器可读能力矩阵 | Accepted | `capability-matrix.json` 是后续协议和 UI 的约束来源 |
 
 ## 查询引擎边界：引擎之外的专用查询构建器
@@ -152,8 +152,19 @@
 5. 跨 SigInsight 与 OtelCollector 的 schema 或写入协议变化，两个仓库都要记录对应提交和协作验证结果。
 6. `capability-matrix.json` 的每次变化都必须同步更新对应 ADR、阶段文档和测试。
 
+## 2026-08-10 收敛复核
+
+- `/api/v5/query_range` 的公共 query envelope 只声明 `builder_query` 和
+  `builder_formula`。Trace Funnel 的专用 SQL 使用模块私有执行类型，不再借用公共 V5 DTO。
+- 前端 Query state、Saved View、Panel 和 Basic Alert 只保留 builder/formula；旧
+  `clickhouse_sql`、`builder_join`、`builder_sub_query` 不提供读取兼容。
+- 文本筛选、结构化筛选转换和 previous-query 会话状态归属
+  `features/query-builder-v3`；`components/QueryBuilder` 不再是生产边界。
+- Alert source link 可沿单一公式依赖解析到 Logs/Traces builder query。多源公式不会生成单一
+  Explorer 链接，因为一个 URL 无法忠实表达多个独立 filter。
+
 ## 分支与提交
 
-- SigInsight 工作分支：`feature/lightweight-query-engine`
-- OtelCollector 在首次发生 schema、迁移或写入修改时创建同名分支。
-- 宏观提交锚点采用 `M0` 至 `M9`，阶段内可以有可独立验证的子提交。
+- 当前发布维护基线：`main`；实现使用不含工具名称的主题分支，并通过里程碑提交合并。
+- 跨仓库改动在 SigInsight 与 OtelCollector 使用相同主题分支名。
+- 宏观提交锚点采用阶段文档中的里程碑，阶段内只保留可独立验证的子提交。

@@ -1,5 +1,5 @@
-import { convertFiltersToExpression } from 'components/QueryBuilder/utils';
 import { initialQueriesMap, PANEL_TYPES } from 'constants/queryBuilder';
+import { convertFiltersToExpression } from 'features/query-builder-v3/queryBuilderUtils';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
 import { ILog } from 'types/api/logs/log';
 import { Query } from 'types/api/queryBuilder/queryBuilderData';

@@ -30,29 +30,11 @@ func isSelectedLogCountQuery(condition *RuleCondition) bool {
 	return false
 }
 
-func isSelectedExceptionCountQuery(rule *PostableRule) bool {
-	if rule == nil || rule.AlertType != AlertTypeExceptions || rule.RuleCondition == nil || rule.RuleCondition.CompositeQuery == nil {
-		return false
-	}
-	selectedQuery := rule.RuleCondition.SelectedQuery
-	for _, envelope := range rule.RuleCondition.CompositeQuery.Queries {
-		if envelope.Type != qbtypes.QueryTypeClickHouseSQL {
-			continue
-		}
-		spec, ok := envelope.Spec.(qbtypes.ClickHouseQuery)
-		if !ok || (selectedQuery != "" && spec.Name != selectedQuery) {
-			continue
-		}
-		return strings.Contains(strings.ToLower(spec.Query), "count(")
-	}
-	return false
-}
-
 func inferredRuleResultUnit(rule *PostableRule) string {
 	if rule == nil {
 		return ""
 	}
-	if isSelectedLogCountQuery(rule.RuleCondition) || isSelectedExceptionCountQuery(rule) {
+	if isSelectedLogCountQuery(rule.RuleCondition) {
 		return countResultUnit
 	}
 	return ""

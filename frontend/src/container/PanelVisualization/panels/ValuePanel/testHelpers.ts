@@ -8,14 +8,6 @@ export const valuePanelWidget = {
 	opacity: '1',
 	panelTypes: 'value',
 	query: {
-		clickhouse_sql: [
-			{
-				name: 'A',
-				legend: '',
-				disabled: false,
-				query: '',
-			},
-		],
 		builder: {
 			queryData: [
 				{

@@ -45,7 +45,6 @@ const (
 type Config struct {
 	TraceDB                string
 	TraceTable             string
-	TraceLocalTable        string
 	TraceResourceTable     string
 	ErrorTable             string
 	DependencyGraphTable   string
@@ -53,63 +52,49 @@ type Config struct {
 	SpanAttributeKeysTable string
 	LogsDB                 string
 	LogsTable              string
-	LogsLocalTable         string
 	LogsResourceTable      string
-	LogsResourceLocalTable string
 	LogsAttributeKeysTable string
 	LogsResourceKeysTable  string
 }
 
 type Reader struct {
-	db                       clickhouse.Conn
-	sqlDB                    sqlstore.SQLStore
-	logger                   *slog.Logger
-	traceDB                  string
-	traceTableName           string
-	traceLocalTableName      string
-	traceResourceTableV3     string
-	errorTable               string
-	dependencyGraphTable     string
-	traceSummaryTable        string
-	spanAttributesKeysTable  string
-	logsDB                   string
-	logsTableV2              string
-	logsLocalTableV2         string
-	logsResourceTableV2      string
-	logsResourceLocalTableV2 string
-	logsAttributeKeys        string
-	logsResourceKeys         string
+	db                      clickhouse.Conn
+	sqlDB                   sqlstore.SQLStore
+	logger                  *slog.Logger
+	traceDB                 string
+	traceTableName          string
+	traceResourceTableV3    string
+	errorTable              string
+	dependencyGraphTable    string
+	traceSummaryTable       string
+	spanAttributesKeysTable string
+	logsDB                  string
+	logsTable               string
+	logsResourceTable       string
+	logsAttributeKeys       string
+	logsResourceKeys        string
 }
 
 var _ interfaces.RetentionReader = (*Reader)(nil)
 
 func New(logger *slog.Logger, sqlDB sqlstore.SQLStore, db clickhouse.Conn, config Config) *Reader {
 	return &Reader{
-		db:                       db,
-		sqlDB:                    sqlDB,
-		logger:                   logger,
-		traceDB:                  config.TraceDB,
-		traceTableName:           config.TraceTable,
-		traceLocalTableName:      config.TraceLocalTable,
-		traceResourceTableV3:     config.TraceResourceTable,
-		errorTable:               config.ErrorTable,
-		dependencyGraphTable:     config.DependencyGraphTable,
-		traceSummaryTable:        config.TraceSummaryTable,
-		spanAttributesKeysTable:  config.SpanAttributeKeysTable,
-		logsDB:                   config.LogsDB,
-		logsTableV2:              config.LogsTable,
-		logsLocalTableV2:         config.LogsLocalTable,
-		logsResourceTableV2:      config.LogsResourceTable,
-		logsResourceLocalTableV2: config.LogsResourceLocalTable,
-		logsAttributeKeys:        config.LogsAttributeKeysTable,
-		logsResourceKeys:         config.LogsResourceKeysTable,
+		db:                      db,
+		sqlDB:                   sqlDB,
+		logger:                  logger,
+		traceDB:                 config.TraceDB,
+		traceTableName:          config.TraceTable,
+		traceResourceTableV3:    config.TraceResourceTable,
+		errorTable:              config.ErrorTable,
+		dependencyGraphTable:    config.DependencyGraphTable,
+		traceSummaryTable:       config.TraceSummaryTable,
+		spanAttributesKeysTable: config.SpanAttributeKeysTable,
+		logsDB:                  config.LogsDB,
+		logsTable:               config.LogsTable,
+		logsResourceTable:       config.LogsResourceTable,
+		logsAttributeKeys:       config.LogsAttributeKeysTable,
+		logsResourceKeys:        config.LogsResourceKeysTable,
 	}
-}
-
-// getLocalTableName keeps the table-name boundary explicit for TTL status rows.
-// Canonical schema is single-node and does not accept historical aliases.
-func getLocalTableName(tableName string) string {
-	return tableName
 }
 
 func (r *Reader) setTTLTraces(ctx context.Context, orgID string, params *model.TTLParams) (*model.SetTTLResponseItem, error) {
@@ -148,20 +133,19 @@ func (r *Reader) setTTLTraces(ctx context.Context, orgID string, params *model.T
 
 	// TTL query
 	ttlV2 := "ALTER TABLE %s MODIFY TTL toDateTime(%s) + INTERVAL %v SECOND DELETE"
-	ttlV2ColdStorage := ", toDateTime(%s) + INTERVAL %v SECOND TO VOLUME '%s'"
+	ttlV2ColdStorage := ", toDateTime(%s) + INTERVAL %v SECOND TO VOLUME %s"
 
 	// TTL query for resource table
 	ttlV2Resource := "ALTER TABLE %s MODIFY TTL toDateTime(seen_at_ts_bucket_start) + toIntervalSecond(1800) + INTERVAL %v SECOND DELETE"
-	ttlTracesV2ResourceColdStorage := ", toDateTime(seen_at_ts_bucket_start) + toIntervalSecond(1800) + INTERVAL %v SECOND TO VOLUME '%s'"
+	ttlTracesV2ResourceColdStorage := ", toDateTime(seen_at_ts_bucket_start) + toIntervalSecond(1800) + INTERVAL %v SECOND TO VOLUME %s"
 
 	operationCtx := asyncTTLContext(ctx)
-	for _, distributedTableName := range tableNames {
-		go func(distributedTableName string) {
-			tableName := getLocalTableName(distributedTableName)
+	for _, tableName := range tableNames {
+		go func(tableName string) {
 
 			// for trace summary table, we need to use end instead of timestamp
 			timestamp := "timestamp"
-			if strings.HasSuffix(distributedTableName, r.traceSummaryTable) {
+			if strings.HasSuffix(tableName, r.traceSummaryTable) {
 				timestamp = "end"
 			}
 
@@ -192,15 +176,15 @@ func (r *Reader) setTTLTraces(ctx context.Context, orgID string, params *model.T
 			}
 
 			req := fmt.Sprintf(ttlV2, tableName, timestamp, params.DelDuration)
-			if strings.HasSuffix(distributedTableName, r.traceResourceTableV3) {
+			if strings.HasSuffix(tableName, r.traceResourceTableV3) {
 				req = fmt.Sprintf(ttlV2Resource, tableName, params.DelDuration)
 			}
 
-			if len(params.ColdStorageVolume) > 0 && !strings.HasSuffix(distributedTableName, r.spanAttributesKeysTable) {
-				if strings.HasSuffix(distributedTableName, r.traceResourceTableV3) {
-					req += fmt.Sprintf(ttlTracesV2ResourceColdStorage, params.ToColdStorageDuration, params.ColdStorageVolume)
+			if len(params.ColdStorageVolume) > 0 && !strings.HasSuffix(tableName, r.spanAttributesKeysTable) {
+				if strings.HasSuffix(tableName, r.traceResourceTableV3) {
+					req += fmt.Sprintf(ttlTracesV2ResourceColdStorage, params.ToColdStorageDuration, clickHouseStringLiteral(params.ColdStorageVolume))
 				} else {
-					req += fmt.Sprintf(ttlV2ColdStorage, timestamp, params.ToColdStorageDuration, params.ColdStorageVolume)
+					req += fmt.Sprintf(ttlV2ColdStorage, timestamp, params.ToColdStorageDuration, clickHouseStringLiteral(params.ColdStorageVolume))
 				}
 			}
 			err := r.setColdStorage(operationCtx, tableName, params.ColdStorageVolume)
@@ -223,7 +207,7 @@ func (r *Reader) setTTLTraces(ctx context.Context, orgID string, params *model.T
 			if dbErr := r.updateTTLStatus(operationCtx, ttl.ID.StringValue(), constants.StatusSuccess); dbErr != nil {
 				r.logger.Error("Error in processing ttl_status update sql query", errorsV2.Attr(dbErr))
 			}
-		}(distributedTableName)
+		}(tableName)
 	}
 	return &model.SetTTLResponseItem{Message: "move ttl has been successfully set up"}, nil
 }
@@ -257,23 +241,15 @@ func (r *Reader) SetCustomRetentionTTL(ctx context.Context, orgID string, params
 		coldStorageDuration = int(params.ToColdStorageDurationDays) // Already in days
 	}
 
-	tableNames := []string{
-		r.logsDB + "." + r.logsLocalTableV2,
-		r.logsDB + "." + r.logsResourceLocalTableV2,
-		getLocalTableName(r.logsDB + "." + r.logsAttributeKeys),
-		getLocalTableName(r.logsDB + "." + r.logsResourceKeys),
-	}
-	distributedTableNames := []string{
-		r.logsDB + "." + r.logsTableV2,
-		r.logsDB + "." + r.logsResourceTableV2,
-	}
+	tableNames := r.customRetentionTableNames()
 
 	for _, tableName := range tableNames {
+
 		statusItem, apiErr := r.checkCustomRetentionTTLStatusItem(ctx, orgID, tableName)
 		if apiErr != nil {
 			return nil, errorsV2.Newf(errorsV2.TypeInternal, errorsV2.CodeInternal, "error in processing custom_retention_ttl_status check sql query")
 		}
-		if statusItem.Status == constants.StatusPending {
+		if isRecentTTLPending(statusItem, time.Now()) {
 			return nil, errorsV2.Newf(errorsV2.TypeInternal, errorsV2.CodeInternal, "custom retention TTL is already running")
 		}
 	}
@@ -286,20 +262,13 @@ func (r *Reader) SetCustomRetentionTTL(ctx context.Context, orgID string, params
 	queries := []string{
 		fmt.Sprintf(`ALTER TABLE %s MODIFY COLUMN _retention_days UInt16 DEFAULT %s`,
 			tableNames[0], multiIfExpr),
-		// for distributed table
-		fmt.Sprintf(`ALTER TABLE %s MODIFY COLUMN _retention_days UInt16 DEFAULT %s`,
-			distributedTableNames[0], multiIfExpr),
 	}
 
 	if len(params.ColdStorageVolume) > 0 && coldStorageDuration > 0 {
 		queries = append(queries, fmt.Sprintf(`ALTER TABLE %s MODIFY COLUMN _retention_days_cold UInt16 DEFAULT %d`,
 			tableNames[0], coldStorageDuration))
-		// for distributed table
-		queries = append(queries, fmt.Sprintf(`ALTER TABLE %s MODIFY COLUMN _retention_days_cold UInt16 DEFAULT %d`,
-			distributedTableNames[0], coldStorageDuration))
-
-		queries = append(queries, fmt.Sprintf(`ALTER TABLE %s MODIFY TTL toDateTime(timestamp / 1000000000) + toIntervalDay(_retention_days) DELETE, toDateTime(timestamp / 1000000000) + toIntervalDay(_retention_days_cold) TO VOLUME '%s' SETTINGS materialize_ttl_after_modify=0`,
-			tableNames[0], params.ColdStorageVolume))
+		queries = append(queries, fmt.Sprintf(`ALTER TABLE %s MODIFY TTL toDateTime(timestamp / 1000000000) + toIntervalDay(_retention_days) DELETE, toDateTime(timestamp / 1000000000) + toIntervalDay(_retention_days_cold) TO VOLUME %s SETTINGS materialize_ttl_after_modify=0`,
+			tableNames[0], clickHouseStringLiteral(params.ColdStorageVolume)))
 	}
 
 	ttlPayload[tableNames[0]] = queries
@@ -307,19 +276,13 @@ func (r *Reader) SetCustomRetentionTTL(ctx context.Context, orgID string, params
 	resourceQueries := []string{
 		fmt.Sprintf(`ALTER TABLE %s MODIFY COLUMN _retention_days UInt16 DEFAULT %s`,
 			tableNames[1], resourceMultiIfExpr),
-		// for distributed table
-		fmt.Sprintf(`ALTER TABLE %s MODIFY COLUMN _retention_days UInt16 DEFAULT %s`,
-			distributedTableNames[1], resourceMultiIfExpr),
 	}
 
 	if len(params.ColdStorageVolume) > 0 && coldStorageDuration > 0 {
 		resourceQueries = append(resourceQueries, fmt.Sprintf(`ALTER TABLE %s MODIFY COLUMN _retention_days_cold UInt16 DEFAULT %d`,
 			tableNames[1], coldStorageDuration))
-		// for distributed table
-		resourceQueries = append(resourceQueries, fmt.Sprintf(`ALTER TABLE %s MODIFY COLUMN _retention_days_cold UInt16 DEFAULT %d`,
-			distributedTableNames[1], coldStorageDuration))
-		resourceQueries = append(resourceQueries, fmt.Sprintf(`ALTER TABLE %s MODIFY TTL toDateTime(seen_at_ts_bucket_start) + toIntervalSecond(1800) + toIntervalDay(_retention_days) DELETE, toDateTime(seen_at_ts_bucket_start) + toIntervalSecond(1800) + toIntervalDay(_retention_days_cold) TO VOLUME '%s' SETTINGS materialize_ttl_after_modify=0`,
-			tableNames[1], params.ColdStorageVolume))
+		resourceQueries = append(resourceQueries, fmt.Sprintf(`ALTER TABLE %s MODIFY TTL toDateTime(seen_at_ts_bucket_start) + toIntervalSecond(1800) + toIntervalDay(_retention_days) DELETE, toDateTime(seen_at_ts_bucket_start) + toIntervalSecond(1800) + toIntervalDay(_retention_days_cold) TO VOLUME %s SETTINGS materialize_ttl_after_modify=0`,
+			tableNames[1], clickHouseStringLiteral(params.ColdStorageVolume)))
 	}
 
 	ttlPayload[tableNames[1]] = resourceQueries
@@ -397,6 +360,15 @@ func (r *Reader) SetCustomRetentionTTL(ctx context.Context, orgID string, params
 	}, nil
 }
 
+func (r *Reader) customRetentionTableNames() []string {
+	return []string{
+		r.logsDB + "." + r.logsTable,
+		r.logsDB + "." + r.logsResourceTable,
+		r.logsDB + "." + r.logsAttributeKeys,
+		r.logsDB + "." + r.logsResourceKeys,
+	}
+}
+
 // New method to build multiIf expressions with support for multiple AND conditions
 func (r *Reader) buildMultiIfExpression(ttlConditions []model.CustomRetentionRule, defaultTTLDays int, isResourceTable bool) string {
 	var conditions []string
@@ -423,22 +395,22 @@ func (r *Reader) buildMultiIfExpression(ttlConditions []model.CustomRetentionRul
 			// Properly quote values for IN clause
 			quotedValues := make([]string, len(condition.Values))
 			for k, v := range condition.Values {
-				quotedValues[k] = fmt.Sprintf("'%s'", v)
+				quotedValues[k] = clickHouseStringLiteral(v)
 			}
 
 			var conditionExpr string
 			if isResourceTable {
 				// For resource table, use JSONExtractString
 				conditionExpr = fmt.Sprintf(
-					"JSONExtractString(labels, '%s') IN (%s)",
-					condition.Key,
+					"JSONExtractString(labels, %s) IN (%s)",
+					clickHouseStringLiteral(condition.Key),
 					strings.Join(quotedValues, ", "),
 				)
 			} else {
 				// For main logs table, use resources_string
 				conditionExpr = fmt.Sprintf(
-					"resources_string['%s'] IN (%s)",
-					condition.Key,
+					"resources_string[%s] IN (%s)",
+					clickHouseStringLiteral(condition.Key),
 					strings.Join(quotedValues, ", "),
 				)
 			}
@@ -470,13 +442,21 @@ func (r *Reader) buildMultiIfExpression(ttlConditions []model.CustomRetentionRul
 	return result
 }
 
+func clickHouseStringLiteral(value string) string {
+	escaped := strings.NewReplacer(
+		`\`, `\\`,
+		`'`, `\'`,
+	).Replace(value)
+	return "'" + escaped + "'"
+}
+
 func (r *Reader) GetCustomRetentionTTL(ctx context.Context, orgID string) (*model.GetCustomRetentionTTLResponse, error) {
 	response := &model.GetCustomRetentionTTLResponse{}
 	customTTL := new(types.TTLSetting)
 	err := r.sqlDB.BunDB().NewSelect().
 		Model(customTTL).
 		Where("org_id = ?", orgID).
-		Where("table_name = ?", r.logsDB+"."+r.logsLocalTableV2).
+		Where("table_name = ?", r.logsDB+"."+r.logsTable).
 		OrderExpr("created_at DESC").
 		Limit(1).
 		Scan(ctx)
@@ -522,6 +502,9 @@ func (r *Reader) checkCustomRetentionTTLStatusItem(ctx context.Context, orgID st
 		r.logger.Error("Error in processing sql query", errorsV2.Attr(err))
 		return ttl, errorsV2.Newf(errorsV2.TypeInternal, errorsV2.CodeInternal, "error in processing custom_retention_ttl_status check sql query")
 	}
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
 
 	return ttl, nil
 }
@@ -562,8 +545,7 @@ func (r *Reader) validateTTLConditions(ctx context.Context, ttlConditions []mode
 		}
 
 		// Create a signature for this rule's conditions to detect duplicates
-		var conditionKeys []string
-		var conditionValues []string
+		var conditionParts []string
 
 		for j, condition := range rule.Filters {
 			if len(condition.Values) == 0 {
@@ -577,14 +559,14 @@ func (r *Reader) validateTTLConditions(ctx context.Context, ttlConditions []mode
 			}
 
 			// Build signature for duplicate detection
-			conditionKeys = append(conditionKeys, condition.Key)
-			conditionValues = append(conditionValues, strings.Join(condition.Values, ","))
+			values := append([]string(nil), condition.Values...)
+			sort.Strings(values)
+			conditionParts = append(conditionParts, condition.Key+"\x00"+strings.Join(values, "\x00"))
 		}
 
 		// Create signature by sorting keys and values to handle order-independent comparison
-		sort.Strings(conditionKeys)
-		sort.Strings(conditionValues)
-		signature := strings.Join(conditionKeys, "|") + ":" + strings.Join(conditionValues, "|")
+		sort.Strings(conditionParts)
+		signature := strings.Join(conditionParts, "\x01")
 
 		if conditionSignatures[signature] {
 			return errorsV2.Newf(errorsV2.TypeInternal, errorsV2.CodeInternal, "duplicate rule detected at index %d: rules with identical conditions are not allowed", i)
@@ -626,6 +608,9 @@ func (r *Reader) validateTTLConditions(ctx context.Context, ttlConditions []mode
 			return errorsV2.Wrapf(err, errorsV2.TypeInternal, errorsV2.CodeInternal, "failed to scan resource keys")
 		}
 		validKeys[name] = struct{}{}
+	}
+	if err := rows.Err(); err != nil {
+		return errorsV2.Wrapf(err, errorsV2.TypeInternal, errorsV2.CodeInternal, "failed to iterate resource keys")
 	}
 
 	// Find invalid keys
@@ -731,8 +716,8 @@ func (r *Reader) setTTLMetrics(ctx context.Context, orgID string, params *model.
 				"INTERVAL %v SECOND DELETE", tableName, timeColumn, params.DelDuration)
 		if len(params.ColdStorageVolume) > 0 {
 			req += fmt.Sprintf(", toDateTime(toUInt32(%s / 1000), 'UTC')"+
-				" + INTERVAL %v SECOND TO VOLUME '%s'",
-				timeColumn, params.ToColdStorageDuration, params.ColdStorageVolume)
+				" + INTERVAL %v SECOND TO VOLUME %s",
+				timeColumn, params.ToColdStorageDuration, clickHouseStringLiteral(params.ColdStorageVolume))
 		}
 		err := r.setColdStorage(operationCtx, tableName, params.ColdStorageVolume)
 		if err != nil {
@@ -802,15 +787,6 @@ func (r *Reader) GetDisks(ctx context.Context) (*[]model.DiskItem, error) {
 	return &diskItems, nil
 }
 
-func getLocalTableNameArray(tableNames []string) []string {
-	localTableNames := make([]string, 0, len(tableNames))
-	for _, tableName := range tableNames {
-		localTableNames = append(localTableNames, getLocalTableName(tableName))
-	}
-
-	return localTableNames
-}
-
 // GetTTL returns current ttl, expected ttl and past setTTL status for metrics/traces.
 func (r *Reader) GetTTL(ctx context.Context, orgID string, ttlParams *model.GetTTLParams) (*model.GetTTLResponseItem, error) {
 
@@ -868,7 +844,7 @@ func (r *Reader) GetTTL(ctx context.Context, orgID string, ttlParams *model.GetT
 	getTracesTTL := func() (*model.DBResponseTTL, error) {
 		var dbResp []model.DBResponseTTL
 
-		query := fmt.Sprintf("SELECT engine_full FROM system.tables WHERE name='%v' AND database='%v'", r.traceLocalTableName, r.traceDB)
+		query := fmt.Sprintf("SELECT engine_full FROM system.tables WHERE name='%v' AND database='%v'", r.traceTableName, r.traceDB)
 
 		err := r.db.Select(ctx, &dbResp, query)
 
@@ -892,7 +868,6 @@ func (r *Reader) GetTTL(ctx context.Context, orgID string, ttlParams *model.GetT
 			r.traceDB + "." + r.dependencyGraphTable,
 			r.traceDB + "." + r.traceSummaryTable,
 		}
-		tableNameArray = getLocalTableNameArray(tableNameArray)
 		status, err := r.getTTLQueryStatus(ctx, orgID, tableNameArray)
 		if err != nil {
 			return nil, err
@@ -902,7 +877,7 @@ func (r *Reader) GetTTL(ctx context.Context, orgID string, ttlParams *model.GetT
 			return nil, err
 		}
 		if dbResp == nil {
-			return nil, fmt.Errorf("trace table %s is missing from ClickHouse", r.traceLocalTableName)
+			return nil, fmt.Errorf("trace table %s is missing from ClickHouse", r.traceTableName)
 		}
 		ttlQuery, err := r.checkTTLStatusItem(ctx, orgID, tableNameArray[0])
 		if err != nil {
@@ -915,7 +890,6 @@ func (r *Reader) GetTTL(ctx context.Context, orgID string, ttlParams *model.GetT
 
 	case constants.MetricsTTL:
 		tableNameArray := []string{siginsightMetricDBName + "." + siginsightSampleTableName}
-		tableNameArray = getLocalTableNameArray(tableNameArray)
 		status, err := r.getTTLQueryStatus(ctx, orgID, tableNameArray)
 		if err != nil {
 			return nil, err

@@ -132,7 +132,6 @@ describe('GridCardLayout Utils', () => {
 				],
 				queryFormulas: [],
 			},
-			clickhouse_sql: [],
 			id: 'test-query',
 		};
 

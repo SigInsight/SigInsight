@@ -4,9 +4,14 @@ import (
 	"strings"
 
 	"github.com/SigNoz/signoz/pkg/errors"
-	qbtypes "github.com/SigNoz/signoz/pkg/types/querybuildertypes/querybuildertypesv5"
 	"github.com/SigNoz/signoz/pkg/types/tracefunneltypes"
 )
+
+// Query is the private execution contract between the funnel compiler and its handler.
+// Funnel SQL is not part of the public V5 query protocol.
+type Query struct {
+	Query string
+}
 
 // sanitizeClause adds AND prefix to non-empty clauses if not already present
 func sanitizeClause(clause string) string {
@@ -20,7 +25,7 @@ func sanitizeClause(clause string) string {
 	return "AND " + clause
 }
 
-func ValidateTraces(funnel *tracefunneltypes.StorableFunnel, timeRange tracefunneltypes.TimeRange) (*qbtypes.ClickHouseQuery, error) {
+func ValidateTraces(funnel *tracefunneltypes.StorableFunnel, timeRange tracefunneltypes.TimeRange) (*Query, error) {
 	funnelSteps := funnel.Steps
 
 	// Build step data for the dynamic query builder
@@ -57,12 +62,12 @@ func ValidateTraces(funnel *tracefunneltypes.StorableFunnel, timeRange tracefunn
 
 	query := BuildFunnelValidationQuery(steps, timeRange.StartTime, timeRange.EndTime)
 
-	return &qbtypes.ClickHouseQuery{
+	return &Query{
 		Query: query,
 	}, nil
 }
 
-func GetFunnelAnalytics(funnel *tracefunneltypes.StorableFunnel, timeRange tracefunneltypes.TimeRange) (*qbtypes.ClickHouseQuery, error) {
+func GetFunnelAnalytics(funnel *tracefunneltypes.StorableFunnel, timeRange tracefunneltypes.TimeRange) (*Query, error) {
 	funnelSteps := funnel.Steps
 
 	// Build step data for the dynamic query builder
@@ -107,10 +112,10 @@ func GetFunnelAnalytics(funnel *tracefunneltypes.StorableFunnel, timeRange trace
 
 	query := BuildFunnelOverviewQuery(steps, timeRange.StartTime, timeRange.EndTime)
 
-	return &qbtypes.ClickHouseQuery{Query: query}, nil
+	return &Query{Query: query}, nil
 }
 
-func GetFunnelStepAnalytics(funnel *tracefunneltypes.StorableFunnel, timeRange tracefunneltypes.TimeRange, stepStart, stepEnd int64) (*qbtypes.ClickHouseQuery, error) {
+func GetFunnelStepAnalytics(funnel *tracefunneltypes.StorableFunnel, timeRange tracefunneltypes.TimeRange, stepStart, stepEnd int64) (*Query, error) {
 	if stepStart == stepEnd {
 		return nil, errors.NewInvalidInputf(errors.CodeInvalidInput, "step start and end cannot be the same for /step/overview")
 	}
@@ -162,10 +167,10 @@ func GetFunnelStepAnalytics(funnel *tracefunneltypes.StorableFunnel, timeRange t
 
 	query := BuildFunnelStepOverviewQuery(steps, timeRange.StartTime, timeRange.EndTime, stepStart, stepEnd)
 
-	return &qbtypes.ClickHouseQuery{Query: query}, nil
+	return &Query{Query: query}, nil
 }
 
-func GetStepAnalytics(funnel *tracefunneltypes.StorableFunnel, timeRange tracefunneltypes.TimeRange) (*qbtypes.ClickHouseQuery, error) {
+func GetStepAnalytics(funnel *tracefunneltypes.StorableFunnel, timeRange tracefunneltypes.TimeRange) (*Query, error) {
 	funnelSteps := funnel.Steps
 
 	// Build step data for the dynamic query builder
@@ -202,12 +207,12 @@ func GetStepAnalytics(funnel *tracefunneltypes.StorableFunnel, timeRange tracefu
 
 	query := BuildFunnelCountQuery(steps, timeRange.StartTime, timeRange.EndTime)
 
-	return &qbtypes.ClickHouseQuery{
+	return &Query{
 		Query: query,
 	}, nil
 }
 
-func GetSlowestTraces(funnel *tracefunneltypes.StorableFunnel, timeRange tracefunneltypes.TimeRange, stepStart, stepEnd int64) (*qbtypes.ClickHouseQuery, error) {
+func GetSlowestTraces(funnel *tracefunneltypes.StorableFunnel, timeRange tracefunneltypes.TimeRange, stepStart, stepEnd int64) (*Query, error) {
 	funnelSteps := funnel.Steps
 	containsErrorT1 := 0
 	containsErrorT2 := 0
@@ -263,11 +268,11 @@ func GetSlowestTraces(funnel *tracefunneltypes.StorableFunnel, timeRange tracefu
 		latencyPointerT1,
 		latencyPointerT2,
 	)
-	return &qbtypes.ClickHouseQuery{Query: query}, nil
+	return &Query{Query: query}, nil
 }
 
 // TODO: Showing traces with error which are slow makes little sense as a product. We should show the error spans directly in the funnel chart. Rather showing traces which has drop between steps will be more relevant
-func GetErroredTraces(funnel *tracefunneltypes.StorableFunnel, timeRange tracefunneltypes.TimeRange, stepStart, stepEnd int64) (*qbtypes.ClickHouseQuery, error) {
+func GetErroredTraces(funnel *tracefunneltypes.StorableFunnel, timeRange tracefunneltypes.TimeRange, stepStart, stepEnd int64) (*Query, error) {
 	funnelSteps := funnel.Steps
 	containsErrorT1 := 0
 	containsErrorT2 := 0
@@ -323,5 +328,5 @@ func GetErroredTraces(funnel *tracefunneltypes.StorableFunnel, timeRange tracefu
 		latencyPointerT1,
 		latencyPointerT2,
 	)
-	return &qbtypes.ClickHouseQuery{Query: query}, nil
+	return &Query{Query: query}, nil
 }

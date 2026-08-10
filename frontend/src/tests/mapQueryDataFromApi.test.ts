@@ -73,7 +73,6 @@ describe('mapQueryDataFromApi', (): void => {
 		const result = mapQueryDataFromApi(compositeQuery);
 
 		expect(result.queryType).toBe(EQueryType.QUERY_BUILDER);
-		expect(result.clickhouse_sql).toEqual([]);
 
 		// Expect one builder query mapped and merged using base query fields
 		expect(result.builder.queryData).toHaveLength(1);
@@ -167,7 +166,6 @@ describe('mapQueryDataFromApi', (): void => {
 				],
 				queryFormulas: [],
 			},
-			clickhouse_sql: [],
 			id: 'b5f4b7db-799c-47d2-bf32-090340995e20',
 		};
 
@@ -202,7 +200,6 @@ describe('mapQueryDataFromApi', (): void => {
 				],
 				queryFormulas: [],
 			},
-			clickhouse_sql: [],
 			id: 'b5f4b7db-799c-47d2-bf32-090340995e20',
 		});
 	});

@@ -8,14 +8,6 @@ export const tablePanelWidgetQuery = {
 	opacity: '1',
 	panelTypes: 'table',
 	query: {
-		clickhouse_sql: [
-			{
-				name: 'A',
-				legend: '',
-				disabled: false,
-				query: '',
-			},
-		],
 		builder: {
 			queryData: [
 				{

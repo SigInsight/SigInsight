@@ -110,7 +110,6 @@ const mockWidget: Widgets = {
 			queryData: [],
 			queryFormulas: [],
 		},
-		clickhouse_sql: [],
 		id: 'query-id',
 		queryType: 'builder' as EQueryType,
 	},

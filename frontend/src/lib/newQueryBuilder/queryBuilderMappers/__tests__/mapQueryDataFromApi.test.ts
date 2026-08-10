@@ -65,7 +65,6 @@ describe('mapQueryDataFromApi', () => {
 			stepInterval: 240,
 			filter: { expression: "service.name = 'frontend'" },
 		});
-		expect(output.clickhouse_sql).toEqual([]);
 	});
 
 	it('normalizes omitted V5 functions for the editable builder model', () => {
@@ -96,31 +95,10 @@ describe('mapQueryDataFromApi', () => {
 		]);
 	});
 
-	it('maps V5 ClickHouse envelopes', () => {
-		const output = mapQueryDataFromApi(
-			compositeQuery([
-				{
-					type: 'clickhouse_sql',
-					spec: {
-						name: 'A',
-						query: 'SELECT 1',
-						legend: 'one',
-						disabled: false,
-					},
-				} as QueryEnvelope,
-			]),
-		);
-
-		expect(output.clickhouse_sql).toEqual([
-			{ name: 'A', query: 'SELECT 1', legend: 'one', disabled: false },
-		]);
-	});
-
 	it('returns empty query collections for an empty V5 envelope', () => {
 		const output = mapQueryDataFromApi(compositeQuery([]));
 
 		expect(output.builder.queryData).toEqual([]);
 		expect(output.builder.queryFormulas).toEqual([]);
-		expect(output.clickhouse_sql).toEqual([]);
 	});
 });

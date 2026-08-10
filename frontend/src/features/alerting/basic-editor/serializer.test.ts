@@ -1,5 +1,4 @@
 import {
-	initialClickHouseData,
 	initialFormulaBuilderFormValues,
 	initialQueriesMap,
 } from 'constants/queryBuilder';
@@ -21,7 +20,6 @@ function queryFixture(): Query {
 			queryData: query.builder.queryData.map((item) => ({ ...item })),
 			queryFormulas: [],
 		},
-		clickhouse_sql: [],
 	};
 }
 
@@ -180,22 +178,6 @@ describe('basic alert v3 serializer', () => {
 			expect.objectContaining({ severity: 'critical', channels: ['email'] }),
 			expect.objectContaining({ severity: 'warning', channels: ['email'] }),
 		]);
-	});
-
-	it('ignores an empty raw SQL placeholder on builder queries', () => {
-		const query = queryFixture();
-		query.clickhouse_sql = [{ ...initialClickHouseData, query: '' }];
-
-		expect(validateBasicAlertDraft(numericDraft(), query)).toBeNull();
-	});
-
-	it('rejects executable raw SQL on builder queries', () => {
-		const query = queryFixture();
-		query.clickhouse_sql = [{ ...initialClickHouseData, query: 'SELECT 1' }];
-
-		expect(validateBasicAlertDraft(numericDraft(), query)).toBe(
-			'Basic alerts only support lightweight builder queries',
-		);
 	});
 
 	it.each([

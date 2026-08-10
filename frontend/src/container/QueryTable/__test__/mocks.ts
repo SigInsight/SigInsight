@@ -139,14 +139,6 @@ export const QueryTableProps: any = {
 			],
 			queryFormulas: [],
 		},
-		clickhouse_sql: [
-			{
-				disabled: false,
-				legend: '',
-				name: 'A',
-				query: '',
-			},
-		],
 		id: '1e08128f-c6a3-42ff-8033-4e38d291cf0a',
 		queryType: 'builder',
 	},
@@ -285,14 +277,6 @@ export const WidgetHeaderProps: any = {
 				],
 				queryFormulas: [],
 			},
-			clickhouse_sql: [
-				{
-					disabled: false,
-					legend: '',
-					name: 'A',
-					query: '',
-				},
-			],
 			id: '1e08128f-c6a3-42ff-8033-4e38d291cf0a',
 			queryType: 'builder',
 		},

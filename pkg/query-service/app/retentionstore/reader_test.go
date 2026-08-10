@@ -10,7 +10,6 @@ import (
 	"time"
 
 	cmock "github.com/srikanthccv/ClickHouse-go-mock"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/sqlitedialect"
@@ -63,17 +62,6 @@ func insertTTLStatus(t *testing.T, db *bun.DB, orgID, tableName, status string, 
 	require.NoError(t, err)
 }
 
-func TestGetLocalTableNameIsCanonicalIdentity(t *testing.T) {
-	assert := assert.New(t)
-
-	assert.Equal("siginsight_traces.spans", getLocalTableName("siginsight_traces.spans"))
-	assert.Equal("spans", getLocalTableName("spans"))
-	assert.Equal(
-		[]string{"siginsight_logs.logs", "siginsight_traces.spans"},
-		getLocalTableNameArray([]string{"siginsight_logs.logs", "siginsight_traces.spans"}),
-	)
-}
-
 func TestBuildMultiIfExpression(t *testing.T) {
 	reader := &Reader{logger: slog.New(slog.NewTextHandler(io.Discard, nil))}
 	rules := []model.CustomRetentionRule{
@@ -96,6 +84,100 @@ func TestBuildMultiIfExpression(t *testing.T) {
 		"multiIf(JSONExtractString(labels, 'service.name') IN ('api', 'worker') AND JSONExtractString(labels, 'deployment.environment') IN ('prod'), 3, 15)",
 		reader.buildMultiIfExpression(rules, 15, true),
 	)
+}
+
+func TestBuildMultiIfExpressionEscapesClickHouseLiterals(t *testing.T) {
+	reader := &Reader{logger: slog.New(slog.NewTextHandler(io.Discard, nil))}
+	rules := []model.CustomRetentionRule{{
+		TTLDays: 3,
+		Filters: []model.FilterCondition{{Key: `service'name\path`, Values: []string{`api'one`, `worker\two`}}},
+	}}
+
+	require.Equal(
+		t,
+		`multiIf(resources_string['service\'name\\path'] IN ('api\'one', 'worker\\two'), 3, 15)`,
+		reader.buildMultiIfExpression(rules, 15, false),
+	)
+}
+
+func TestClickHouseStringLiteral(t *testing.T) {
+	require.Equal(t, `'plain'`, clickHouseStringLiteral("plain"))
+	require.Equal(t, `'volume\'one\\cold'`, clickHouseStringLiteral(`volume'one\cold`))
+}
+
+func TestCustomRetentionUsesEachCanonicalTableOnce(t *testing.T) {
+	reader := &Reader{
+		logsDB:            "siginsight_logs",
+		logsTable:         "logs",
+		logsResourceTable: "resource_sets",
+		logsAttributeKeys: "logs_attribute_keys",
+		logsResourceKeys:  "logs_resource_keys",
+	}
+
+	tables := reader.customRetentionTableNames()
+	require.Equal(t, []string{
+		"siginsight_logs.logs",
+		"siginsight_logs.resource_sets",
+		"siginsight_logs.logs_attribute_keys",
+		"siginsight_logs.logs_resource_keys",
+	}, tables)
+	unique := make(map[string]struct{}, len(tables))
+	for _, table := range tables {
+		unique[table] = struct{}{}
+	}
+	require.Len(t, unique, len(tables))
+}
+
+func TestValidateTTLConditionsDuplicateSignatures(t *testing.T) {
+	reader, _ := newRetentionTestReader(t)
+	mock, err := cmock.NewClickHouseNative(nil)
+	require.NoError(t, err)
+	reader.db = mock
+	reader.logsDB = "siginsight_logs"
+	reader.logsResourceKeys = "logs_resource_keys"
+
+	t.Run("different key value pairs do not collide", func(t *testing.T) {
+		mock.ExpectQuery("SELECT name FROM siginsight_logs.logs_resource_keys WHERE name IN (?, ?)").WithArgs("a", "b").WillReturnRows(
+			cmock.NewRows([]cmock.ColumnType{{Name: "name", Type: "String"}}, [][]any{{"a"}, {"b"}}),
+		)
+		err := reader.validateTTLConditions(context.Background(), []model.CustomRetentionRule{
+			{Filters: []model.FilterCondition{{Key: "a", Values: []string{"x"}}, {Key: "b", Values: []string{"y"}}}},
+			{Filters: []model.FilterCondition{{Key: "a", Values: []string{"y"}}, {Key: "b", Values: []string{"x"}}}},
+		})
+		require.NoError(t, err)
+	})
+
+	t.Run("reordered equivalent rules are rejected", func(t *testing.T) {
+		err := reader.validateTTLConditions(context.Background(), []model.CustomRetentionRule{
+			{Filters: []model.FilterCondition{{Key: "a", Values: []string{"x", "z"}}, {Key: "b", Values: []string{"y"}}}},
+			{Filters: []model.FilterCondition{{Key: "b", Values: []string{"y"}}, {Key: "a", Values: []string{"z", "x"}}}},
+		})
+		require.ErrorContains(t, err, "duplicate rule")
+	})
+
+	require.NoError(t, mock.ExpectationsWereMet())
+}
+
+func TestCheckCustomRetentionTTLStatusItem(t *testing.T) {
+	reader, db := newRetentionTestReader(t)
+	const (
+		orgID     = "test-org"
+		tableName = "siginsight_logs.logs"
+	)
+
+	status, err := reader.checkCustomRetentionTTLStatusItem(context.Background(), orgID, tableName)
+	require.NoError(t, err)
+	require.Nil(t, status)
+
+	insertTTLStatus(t, db, orgID, tableName, constants.StatusPending, time.Now().Add(-time.Hour))
+	status, err = reader.checkCustomRetentionTTLStatusItem(context.Background(), orgID, tableName)
+	require.NoError(t, err)
+	require.False(t, isRecentTTLPending(status, time.Now()))
+
+	insertTTLStatus(t, db, orgID, tableName, constants.StatusPending, time.Now())
+	status, err = reader.checkCustomRetentionTTLStatusItem(context.Background(), orgID, tableName)
+	require.NoError(t, err)
+	require.True(t, isRecentTTLPending(status, time.Now()))
 }
 
 func TestGetTTLQueryStatus(t *testing.T) {

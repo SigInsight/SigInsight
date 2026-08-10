@@ -15,12 +15,10 @@ import {
 	alphabet,
 	baseAutoCompleteIdKeysOrder,
 	formulasNames,
-	initialClickHouseData,
 	initialFormulaBuilderFormValues,
 	initialQueriesMap,
 	initialQueryBuilderFormValuesMap,
 	initialQueryState,
-	initialSingleQueryMap,
 	MAX_FORMULAS,
 	MAX_QUERIES,
 	PANEL_TYPES,
@@ -45,7 +43,6 @@ import { BaseAutocompleteData } from 'types/api/queryBuilder/queryAutocompleteRe
 import {
 	IBuilderFormula,
 	IBuilderQuery,
-	IClickHouseQuery,
 	Query,
 	QueryState,
 } from 'types/api/queryBuilder/queryBuilderData';
@@ -73,15 +70,12 @@ export const QueryBuilderContext = createContext<QueryBuilderContextType>({
 	isEnabledQuery: false,
 	handleSetQueryData: () => {},
 	handleSetFormulaData: () => {},
-	handleSetQueryItemData: () => {},
 	handleSetConfig: () => {},
 	removeQueryBuilderEntityByIndex: () => {},
 	removeAllQueryBuilderEntities: () => {},
-	removeQueryTypeItemByIndex: () => {},
 	addNewBuilderQuery: () => {},
 	cloneQuery: () => {},
 	addNewFormula: () => {},
-	addNewQueryItem: () => {},
 	redirectWithQueryBuilderData: () => {},
 	handleRunQuery: () => {},
 	resetQuery: () => {},
@@ -214,13 +208,7 @@ export function QueryBuilderProvider({
 				return currentElement;
 			});
 
-			const clickHouse: IClickHouseQuery[] = query.clickhouse_sql.map((item) => ({
-				...initialClickHouseData,
-				...item,
-			}));
-
 			const newQueryState: QueryState = {
-				clickhouse_sql: clickHouse,
 				builder: {
 					...builder,
 					queryData: setupedQueryData,
@@ -436,27 +424,6 @@ export function QueryBuilderProvider({
 		[setCurrentQuery, setSupersetQuery],
 	);
 
-	const removeQueryTypeItemByIndex = useCallback(
-		(type: EQueryType.CLICKHOUSE, index: number) => {
-			setCurrentQuery((prevState) => {
-				const targetArray: IClickHouseQuery[] = prevState[type];
-				return {
-					...prevState,
-					[type]: targetArray.filter((_, i) => index !== i),
-				};
-			});
-			// eslint-disable-next-line sonarjs/no-identical-functions
-			setSupersetQuery((prevState) => {
-				const targetArray: IClickHouseQuery[] = prevState[type];
-				return {
-					...prevState,
-					[type]: targetArray.filter((_, i) => index !== i),
-				};
-			});
-		},
-		[],
-	);
-
 	const createNewBuilderQuery = useCallback(
 		(queries: IBuilderQuery[]): IBuilderQuery => {
 			const existNames = queries.map((item) => item.queryName);
@@ -508,57 +475,6 @@ export function QueryBuilderProvider({
 
 		return newFormula;
 	}, []);
-
-	const createNewQueryTypeItem = useCallback(
-		(
-			itemArray: QueryState['clickhouse_sql'],
-			type: EQueryType.CLICKHOUSE,
-		): IClickHouseQuery => {
-			const existNames = itemArray.map((item) => item.name);
-
-			const newItem: IClickHouseQuery = {
-				...initialSingleQueryMap[type],
-				name: createNewBuilderItemName({
-					existNames,
-					sourceNames: alphabet,
-				}),
-			};
-
-			return newItem;
-		},
-		[],
-	);
-
-	const addNewQueryItem = useCallback(
-		(type: EQueryType.CLICKHOUSE) => {
-			setCurrentQuery((prevState) => {
-				if (prevState[type].length >= MAX_QUERIES) {
-					return prevState;
-				}
-
-				const newQuery = createNewQueryTypeItem(prevState[type], type);
-
-				return {
-					...prevState,
-					[type]: [...prevState[type], newQuery],
-				};
-			});
-			// eslint-disable-next-line sonarjs/no-identical-functions
-			setSupersetQuery((prevState) => {
-				if (prevState[type].length >= MAX_QUERIES) {
-					return prevState;
-				}
-
-				const newQuery = createNewQueryTypeItem(prevState[type], type);
-
-				return {
-					...prevState,
-					[type]: [...prevState[type], newQuery],
-				};
-			});
-		},
-		[createNewQueryTypeItem],
-	);
 
 	const addNewBuilderQuery = useCallback(() => {
 		setCurrentQuery((prevState) => {
@@ -707,41 +623,6 @@ export function QueryBuilderProvider({
 		[panelType],
 	);
 
-	const handleSetQueryItemData = useCallback(
-		(
-			index: number,
-			type: EQueryType.CLICKHOUSE,
-			newQueryData: IClickHouseQuery,
-		) => {
-			setCurrentQuery((prevState) => {
-				const updatedQueryBuilderData = updateQueryBuilderData(
-					prevState[type],
-					index,
-					newQueryData,
-				);
-
-				return {
-					...prevState,
-					[type]: updatedQueryBuilderData,
-				};
-			});
-			// eslint-disable-next-line sonarjs/no-identical-functions
-			setSupersetQuery((prevState) => {
-				const updatedQueryBuilderData = updateQueryBuilderData(
-					prevState[type],
-					index,
-					newQueryData,
-				);
-
-				return {
-					...prevState,
-					[type]: updatedQueryBuilderData,
-				};
-			});
-		},
-		[updateQueryBuilderData],
-	);
-
 	const handleSetQueryData = useCallback(
 		(index: number, newQueryData: IBuilderQuery): void => {
 			setCurrentQuery((prevState) => {
@@ -853,15 +734,9 @@ export function QueryBuilderProvider({
 					? initialQueryState.builder
 					: query.builder;
 
-			const clickhouseSql =
-				!query.clickhouse_sql || query.clickhouse_sql.length === 0
-					? initialQueryState.clickhouse_sql
-					: query.clickhouse_sql;
-
 			const currentGeneratedQuery: Query = {
 				queryType,
 				builder,
-				clickhouse_sql: clickhouseSql,
 				id: uuid(),
 				unit: query.unit || initialQueryState.unit,
 				resultUnit: query.resultUnit,
@@ -950,7 +825,6 @@ export function QueryBuilderProvider({
 				...currentQueryData,
 				...updateStepInterval({
 					builder: currentQueryData.builder,
-					clickhouse_sql: currentQueryData.clickhouse_sql,
 					id: currentQueryData.id,
 					queryType,
 					unit: currentQueryData.unit,
@@ -1069,15 +943,12 @@ export function QueryBuilderProvider({
 			isEnabledQuery,
 			handleSetQueryData,
 			handleSetFormulaData,
-			handleSetQueryItemData,
 			handleSetConfig,
 			removeQueryBuilderEntityByIndex,
-			removeQueryTypeItemByIndex,
 			removeAllQueryBuilderEntities,
 			cloneQuery,
 			addNewBuilderQuery,
 			addNewFormula,
-			addNewQueryItem,
 			redirectWithQueryBuilderData,
 			handleRunQuery,
 			resetQuery,
@@ -1098,15 +969,12 @@ export function QueryBuilderProvider({
 			isEnabledQuery,
 			handleSetQueryData,
 			handleSetFormulaData,
-			handleSetQueryItemData,
 			handleSetConfig,
 			removeQueryBuilderEntityByIndex,
-			removeQueryTypeItemByIndex,
 			removeAllQueryBuilderEntities,
 			cloneQuery,
 			addNewBuilderQuery,
 			addNewFormula,
-			addNewQueryItem,
 			redirectWithQueryBuilderData,
 			handleRunQuery,
 			updateAllQueriesOperators,

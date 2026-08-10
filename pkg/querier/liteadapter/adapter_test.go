@@ -577,12 +577,6 @@ func TestToLiteRejectsUnsupportedV5Features(t *testing.T) {
 		request *qbtypes.QueryRangeRequest
 	}{
 		{
-			name: "clickhouse SQL",
-			request: &qbtypes.QueryRangeRequest{Start: 1, End: 2, RequestType: qbtypes.RequestTypeScalar, CompositeQuery: qbtypes.CompositeQuery{Queries: []qbtypes.QueryEnvelope{{
-				Type: qbtypes.QueryTypeClickHouseSQL, Spec: qbtypes.ClickHouseQuery{Name: "A", Query: "SELECT 1"},
-			}}}},
-		},
-		{
 			name: "post processing function",
 			request: &qbtypes.QueryRangeRequest{Start: 1, End: 2, RequestType: qbtypes.RequestTypeScalar, CompositeQuery: qbtypes.CompositeQuery{Queries: []qbtypes.QueryEnvelope{{
 				Type: qbtypes.QueryTypeBuilder,

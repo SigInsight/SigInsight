@@ -14,16 +14,9 @@ export type RequestType =
 	| 'distribution'
 	| '';
 
-export type QueryType =
-	| 'builder_query'
-	| 'builder_formula'
-	| 'builder_sub_query'
-	| 'builder_join'
-	| 'clickhouse_sql';
+export type QueryType = 'builder_query' | 'builder_formula';
 
 export type OrderDirection = 'asc' | 'desc';
-
-export type JoinType = 'inner' | 'left' | 'right' | 'full' | 'cross';
 
 export type SignalType = 'traces' | 'logs' | 'metrics';
 
@@ -162,10 +155,6 @@ export interface LimitBy {
 	value: string;
 }
 
-export interface QueryRef {
-	name: string;
-}
-
 export interface FunctionArg {
 	name?: string;
 	value: string | number;
@@ -265,40 +254,11 @@ export interface QueryBuilderFormula {
 	legend?: string;
 }
 
-export interface QueryBuilderJoin {
-	name: string;
-	disabled?: boolean;
-	left: QueryRef;
-	right: QueryRef;
-	type: JoinType;
-	on: string;
-	aggregations?: any[];
-	selectFields?: TelemetryFieldKey[];
-	filter?: Filter;
-	groupBy?: GroupByKey[];
-	having?: Having;
-	order?: OrderBy[];
-	limit?: number;
-	secondaryAggregations?: SecondaryAggregation[];
-	functions?: QueryFunction[];
-}
-
-export interface ClickHouseQuery {
-	name: string;
-	query: string;
-	disabled?: boolean;
-	legend?: string;
-}
-
 // ===================== Query Envelope =====================
 
 export interface QueryEnvelope {
 	type: QueryType;
-	spec:
-		| BuilderQuery // Will be same for both builder_query and builder_sub_query
-		| QueryBuilderFormula
-		| QueryBuilderJoin
-		| ClickHouseQuery;
+	spec: BuilderQuery | QueryBuilderFormula;
 }
 
 export interface CompositeQuery {

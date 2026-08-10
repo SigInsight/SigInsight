@@ -951,25 +951,6 @@ export interface Querybuildertypesv5BucketDTO {
 	step?: number;
 }
 
-export interface Querybuildertypesv5ClickHouseQueryDTO {
-	/**
-	 * @type boolean
-	 */
-	disabled?: boolean;
-	/**
-	 * @type string
-	 */
-	legend?: string;
-	/**
-	 * @type string
-	 */
-	name?: string;
-	/**
-	 * @type string
-	 */
-	query?: string;
-}
-
 export type Querybuildertypesv5ColumnDescriptorDTOMeta = {
 	/**
 	 * @type string
@@ -1469,10 +1450,6 @@ export type Querybuildertypesv5QueryEnvelopeDTO =
 	| (Querybuildertypesv5QueryEnvelopeFormulaDTO & {
 			spec?: unknown;
 			type?: Querybuildertypesv5QueryTypeDTO;
-	  })
-	| (Querybuildertypesv5QueryEnvelopeClickHouseSQLDTO & {
-			spec?: unknown;
-			type?: Querybuildertypesv5QueryTypeDTO;
 	  });
 
 export interface Querybuildertypesv5QueryEnvelopeBuilderLogDTO {
@@ -1487,11 +1464,6 @@ export interface Querybuildertypesv5QueryEnvelopeBuilderMetricDTO {
 
 export interface Querybuildertypesv5QueryEnvelopeBuilderTraceDTO {
 	spec?: Querybuildertypesv5QueryBuilderQueryGithubComSigNozSignozPkgTypesQuerybuildertypesQuerybuildertypesv5TraceAggregationDTO;
-	type?: Querybuildertypesv5QueryTypeDTO;
-}
-
-export interface Querybuildertypesv5QueryEnvelopeClickHouseSQLDTO {
-	spec?: Querybuildertypesv5ClickHouseQueryDTO;
 	type?: Querybuildertypesv5QueryTypeDTO;
 }
 
@@ -1548,7 +1520,6 @@ export interface Querybuildertypesv5QueryRangeResponseDTO {
 export enum Querybuildertypesv5QueryTypeDTO {
 	builder_query = 'builder_query',
 	builder_formula = 'builder_formula',
-	clickhouse_sql = 'clickhouse_sql',
 }
 export interface Querybuildertypesv5QueryWarnDataDTO {
 	/**

@@ -113,6 +113,27 @@ func TestGetMetricAggregateAttributesRejectsMissingMetadata(t *testing.T) {
 	require.Empty(t, response.AttributeKeys)
 }
 
+func TestGetMetricAggregateAttributesPreservesIterationError(t *testing.T) {
+	expected := errors.New("iteration failed")
+	metadata := &aggregateMetadataReader{metadata: map[string]*model.MetricMetadata{}}
+	reader := New(slog.New(slog.NewTextHandler(io.Discard, nil)), aggregateQueryConn{
+		query: func(_ context.Context, _ string, _ ...any) (driver.Rows, error) {
+			return rowsWithIterationError{Rows: cmock.NewRows([]cmock.ColumnType{{Name: "metric_name", Type: "String"}}, nil), err: expected}, nil
+		},
+	}, metadata)
+
+	_, err := reader.GetMetricAggregateAttributes(context.Background(), valuer.GenerateUUID(), &querytypes.AggregateAttributeRequest{}, false)
+	require.ErrorIs(t, err, expected)
+	require.Empty(t, metadata.requested)
+}
+
+type rowsWithIterationError struct {
+	driver.Rows
+	err error
+}
+
+func (r rowsWithIterationError) Err() error { return r.err }
+
 func TestBuildMetricFilterConditionsBindsKeysAndValues(t *testing.T) {
 	maliciousKey := "service.name') OR 1=1 --"
 	maliciousValue := "prod'); DROP TABLE metrics --"
@@ -206,4 +227,36 @@ func TestGetInspectMetricsFingerprintsBindsAttributesAndFilters(t *testing.T) {
 
 	require.NoError(t, err)
 	require.Empty(t, result)
+}
+
+func TestGetInspectMetricsFingerprintsSupportsNoAttributes(t *testing.T) {
+	reader := New(slog.New(slog.NewTextHandler(io.Discard, nil)), aggregateQueryConn{
+		query: func(_ context.Context, query string, args ...any) (driver.Rows, error) {
+			require.NotContains(t, query, "fingerprint,")
+			require.NotContains(t, query, "GROUP BY \n")
+			require.NotContains(t, query, "GROUP BY ORDER")
+			require.Equal(t, "request.count", args[0])
+			return cmock.NewRows([]cmock.ColumnType{{Name: "fingerprints", Type: "Array(String)"}}, [][]any{{[]string{"1", "2"}}}), nil
+		},
+	}, nil)
+
+	result, err := reader.GetInspectMetricsFingerprints(context.Background(), nil, &metrics_explorer.InspectMetricsRequest{MetricName: "request.count"})
+	require.NoError(t, err)
+	require.Equal(t, []string{"1", "2"}, result)
+}
+
+func TestGetInspectMetricsReturnsEmptyWithoutQuery(t *testing.T) {
+	queryCalled := false
+	reader := New(slog.New(slog.NewTextHandler(io.Discard, nil)), aggregateQueryConn{
+		query: func(context.Context, string, ...any) (driver.Rows, error) {
+			queryCalled = true
+			return nil, errors.New("unexpected query")
+		},
+	}, nil)
+
+	result, err := reader.GetInspectMetrics(context.Background(), &metrics_explorer.InspectMetricsRequest{}, nil)
+	require.NoError(t, err)
+	require.False(t, queryCalled)
+	require.NotNil(t, result.Series)
+	require.Empty(t, *result.Series)
 }

@@ -82,14 +82,6 @@ export const tableDataMultipleQueriesSuccessResponse = {
 };
 
 export const widgetQueryWithLegend = {
-	clickhouse_sql: [
-		{
-			name: 'A',
-			legend: '',
-			disabled: false,
-			query: '',
-		},
-	],
 	builder: {
 		queryData: [
 			{
@@ -286,26 +278,6 @@ export const tableDataQBv5MultiAggregations = {
 };
 
 export const widgetQueryQBv5MultiAggregations = {
-	clickhouse_sql: [
-		{
-			name: 'A',
-			legend: 'p99',
-			disabled: false,
-			query: '',
-		},
-		{
-			name: 'B',
-			legend: '',
-			disabled: false,
-			query: '',
-		},
-		{
-			name: 'C',
-			legend: 'max',
-			disabled: false,
-			query: '',
-		},
-	],
 	builder: {
 		queryData: [
 			{

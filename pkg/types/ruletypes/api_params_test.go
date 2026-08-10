@@ -24,8 +24,6 @@ func TestIsAllQueriesDisabled(t *testing.T) {
 				{Spec: qbtypes.QueryBuilderQuery[qbtypes.LogAggregation]{Disabled: true}},
 				{Spec: qbtypes.QueryBuilderQuery[qbtypes.TraceAggregation]{Disabled: true}},
 				{Spec: qbtypes.QueryBuilderFormula{Disabled: true}},
-				{Spec: qbtypes.QueryBuilderJoin{Disabled: true}},
-				{Spec: qbtypes.ClickHouseQuery{Disabled: true}},
 			}},
 			expected: true,
 		},

@@ -31,6 +31,28 @@ type ruleHistorySelectConn struct {
 	selectRows func(context.Context, any, string, ...any) error
 }
 
+type ruleHistoryRow struct {
+	state model.AlertState
+}
+
+func (r ruleHistoryRow) Err() error { return nil }
+func (r ruleHistoryRow) Scan(dest ...any) error {
+	*dest[0].(*model.AlertState) = r.state
+	return nil
+}
+func (r ruleHistoryRow) ScanStruct(any) error { return nil }
+
+type overallStateConn struct {
+	clickhouse.Conn
+	query string
+}
+
+func (c *overallStateConn) Select(context.Context, any, string, ...any) error { return nil }
+func (c *overallStateConn) QueryRow(_ context.Context, query string, _ ...any) driver.Row {
+	c.query = query
+	return ruleHistoryRow{state: model.StateInactive}
+}
+
 func (c ruleHistorySelectConn) Select(ctx context.Context, dest any, query string, args ...any) error {
 	return c.selectRows(ctx, dest, query, args...)
 }
@@ -68,6 +90,21 @@ func TestReadRowTreatsAdditionalNumberAsLabel(t *testing.T) {
 	require.Equal(t, map[string]string{"shard": "7"}, labels)
 	require.NotNil(t, point)
 	require.Equal(t, value, point.Value)
+}
+
+func TestTimeSeriesIdentityIncludesAttributeBoundaries(t *testing.T) {
+	require.NotEqual(t,
+		timeSeriesIdentity(map[string]string{"first": "ab", "second": "c"}),
+		timeSeriesIdentity(map[string]string{"first": "a", "second": "bc"}),
+	)
+	require.NotEqual(t,
+		timeSeriesIdentity(map[string]string{"a": "same"}),
+		timeSeriesIdentity(map[string]string{"b": "same"}),
+	)
+	require.Equal(t,
+		timeSeriesIdentity(map[string]string{"b": "two", "a": "one"}),
+		timeSeriesIdentity(map[string]string{"a": "one", "b": "two"}),
+	)
 }
 
 func TestPersonalisedErrorMapsClickHouseLimits(t *testing.T) {
@@ -144,4 +181,15 @@ func TestGetTriggersByIntervalPreservesQueryError(t *testing.T) {
 	require.NotContains(t, capturedQuery, ruleID)
 	require.Contains(t, capturedQuery, "rule_id = ?")
 	require.Equal(t, []any{ruleID, model.StateFiring.String(), int64(1), int64(2)}, capturedArgs)
+}
+
+func TestGetOverallStateTransitionsReadsOverallState(t *testing.T) {
+	conn := &overallStateConn{}
+	reader := New(slog.New(slog.NewTextHandler(io.Discard, nil)), conn, DefaultConfig())
+
+	items, err := reader.GetOverallStateTransitions(context.Background(), "rule-id", &model.QueryRuleStateHistory{Start: 1, End: 2})
+	require.NoError(t, err)
+	require.Len(t, items, 1)
+	require.Contains(t, conn.query, "SELECT overall_state FROM")
+	require.NotContains(t, conn.query, "SELECT state FROM")
 }

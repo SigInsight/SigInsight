@@ -44,13 +44,12 @@ func NewStatsFromSavedViews(savedViews []*SavedView) map[string]any {
 type QueryType string
 
 const (
-	QueryTypeBuilder       QueryType = "builder"
-	QueryTypeClickHouseSQL QueryType = "clickhouse_sql"
+	QueryTypeBuilder QueryType = "builder"
 )
 
 func (queryType QueryType) Validate() error {
 	switch queryType {
-	case QueryTypeBuilder, QueryTypeClickHouseSQL:
+	case QueryTypeBuilder:
 		return nil
 	default:
 		return errors.Newf(errors.TypeInvalidInput, errors.CodeInvalidInput, "invalid query type: %s", queryType)

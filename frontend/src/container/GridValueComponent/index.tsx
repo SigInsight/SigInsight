@@ -46,7 +46,6 @@ function GridValueComponent({
 				queryFormulas: [],
 				queryData: [],
 			},
-			clickhouse_sql: [],
 			id: '',
 		},
 		graphData: clickedData,

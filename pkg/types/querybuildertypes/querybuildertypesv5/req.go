@@ -14,7 +14,7 @@ import (
 
 type QueryEnvelope struct {
 	// Type is the type of the query.
-	Type QueryType `json:"type"` // "builder_query" | "builder_formula" | "builder_sub_query" | "builder_join" | "clickhouse_sql"
+	Type QueryType `json:"type"` // "builder_query" | "builder_formula"
 	// Spec is the deferred decoding of the query if any.
 	Spec any `json:"spec"`
 }
@@ -43,18 +43,6 @@ type queryEnvelopeFormula struct {
 	Spec QueryBuilderFormula `json:"spec" description:"The formula specification."`
 }
 
-// queryEnvelopeJoin is the OpenAPI schema for a QueryEnvelope with type=builder_join.
-// type queryEnvelopeJoin struct {
-// 	Type QueryType        `json:"type" description:"The type of the query."`
-// 	Spec QueryBuilderJoin `json:"spec" description:"The join specification."`
-// }
-
-// queryEnvelopeClickHouseSQL is the OpenAPI schema for a QueryEnvelope with type=clickhouse_sql.
-type queryEnvelopeClickHouseSQL struct {
-	Type QueryType       `json:"type" description:"The type of the query."`
-	Spec ClickHouseQuery `json:"spec" description:"The ClickHouse SQL query specification."`
-}
-
 var _ jsonschema.OneOfExposer = QueryEnvelope{}
 
 // JSONSchemaOneOf returns the oneOf variants for the QueryEnvelope discriminated union.
@@ -65,8 +53,6 @@ func (QueryEnvelope) JSONSchemaOneOf() []any {
 		queryEnvelopeBuilderLog{},
 		queryEnvelopeBuilderMetric{},
 		queryEnvelopeFormula{},
-		// queryEnvelopeJoin{},
-		queryEnvelopeClickHouseSQL{},
 	}
 }
 
@@ -84,7 +70,7 @@ func (q *QueryEnvelope) UnmarshalJSON(data []byte) error {
 
 	// 2. Decode the spec based on the Type.
 	switch shadow.Type {
-	case QueryTypeBuilder, QueryTypeSubQuery:
+	case QueryTypeBuilder:
 		var header struct {
 			Signal telemetrytypes.Signal `json:"signal"`
 		}
@@ -133,29 +119,13 @@ func (q *QueryEnvelope) UnmarshalJSON(data []byte) error {
 		}
 		q.Spec = spec
 
-	case QueryTypeJoin:
-		var spec QueryBuilderJoin
-		// TODO(srikanthccv): use json.Unmarshal here after implementing custom unmarshaler for QueryBuilderJoin
-		if err := UnmarshalJSONWithContext(shadow.Spec, &spec, "join spec"); err != nil {
-			return wrapUnmarshalError(err, "invalid join spec: %v", err)
-		}
-		q.Spec = spec
-
-	case QueryTypeClickHouseSQL:
-		var spec ClickHouseQuery
-		// TODO(srikanthccv): use json.Unmarshal here after implementing custom unmarshaler for ClickHouseQuery
-		if err := UnmarshalJSONWithContext(shadow.Spec, &spec, "ClickHouse SQL spec"); err != nil {
-			return wrapUnmarshalError(err, "invalid ClickHouse SQL spec: %v", err)
-		}
-		q.Spec = spec
-
 	default:
 		return errors.NewInvalidInputf(
 			errors.CodeInvalidInput,
 			"unknown query type %q",
 			shadow.Type,
 		).WithAdditional(
-			"Valid query types are: builder_query, builder_sub_query, builder_formula, builder_join, clickhouse_sql",
+			"Valid query types are: builder_query, builder_formula",
 		)
 	}
 
@@ -474,19 +444,6 @@ func (r *QueryRangeRequest) IsAnomalyRequest() (*QueryBuilderQuery[MetricAggrega
 	}
 
 	return &q, hasAnomaly
-}
-
-// We do not support fill gaps for these queries. Maybe support in future?
-func (r *QueryRangeRequest) SkipFillGaps(name string) bool {
-	for _, query := range r.CompositeQuery.Queries {
-		switch spec := query.Spec.(type) {
-		case ClickHouseQuery:
-			if spec.Name == name {
-				return true
-			}
-		}
-	}
-	return false
 }
 
 // UnmarshalJSON implements custom JSON unmarshaling to disallow unknown fields

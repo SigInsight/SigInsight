@@ -5,7 +5,6 @@ import { Button, Divider, Drawer, Radio, Tooltip, Typography } from 'antd';
 import type { RadioChangeEvent } from 'antd/lib';
 import cx from 'classnames';
 import { LogType } from 'components/Logs/LogStateIndicator/LogStateIndicator';
-import { convertExpressionToFilters } from 'components/QueryBuilder/utils';
 import { LOCALSTORAGE } from 'constants/localStorage';
 import ContextView from 'container/LogDetailedView/ContextView/ContextView';
 import JSONView from 'container/LogDetailedView/JsonView';
@@ -18,6 +17,7 @@ import {
 import useInitialQuery from 'container/LogsExplorerContext/useInitialQuery';
 import { useOptionsMenu } from 'container/OptionsMenu';
 import QueryBuilderSearchV3 from 'features/query-builder-v3/QueryBuilderSearchV3';
+import { convertExpressionToFilters } from 'features/query-builder-v3/queryBuilderUtils';
 import { useCopyLogLink } from 'hooks/logs/useCopyLogLink';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
 import { useIsDarkMode } from 'hooks/useDarkMode';

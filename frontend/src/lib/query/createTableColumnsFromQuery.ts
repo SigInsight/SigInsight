@@ -4,7 +4,6 @@ import {
 	TableColumnType as ColumnType,
 } from 'antd';
 import {
-	initialClickHouseData,
 	initialFormulaBuilderFormValues,
 	initialQueryBuilderFormValues,
 } from 'constants/queryBuilder';
@@ -15,7 +14,6 @@ import { get, isEqual, isNaN, isObject } from 'lodash-es';
 import {
 	IBuilderFormula,
 	IBuilderQuery,
-	IClickHouseQuery,
 	Query,
 } from 'types/api/queryBuilder/queryBuilderData';
 import {
@@ -39,7 +37,7 @@ export type RowData = {
 };
 
 export type DynamicColumn = {
-	query: IBuilderQuery | IBuilderFormula | IClickHouseQuery;
+	query: IBuilderQuery | IBuilderFormula;
 	field: string;
 	dataIndex: string;
 	title: string;
@@ -88,15 +86,7 @@ const getQueryByName = <T extends keyof QueryBuilderData>(
 	query: Query,
 	currentQueryName: string,
 	type: T,
-): IBuilderQuery | IBuilderFormula | IClickHouseQuery => {
-	if (query.queryType === EQueryType.CLICKHOUSE) {
-		const queryArray = query.clickhouse_sql;
-		const defaultQueryValue = initialClickHouseData;
-
-		return (
-			queryArray.find((q) => q.name === currentQueryName) || defaultQueryValue
-		);
-	}
+): IBuilderQuery | IBuilderFormula => {
 	if (query.queryType === EQueryType.QUERY_BUILDER) {
 		const queryArray = (query.builder[type] || []) as (
 			| IBuilderQuery
@@ -119,7 +109,7 @@ const getQueryByName = <T extends keyof QueryBuilderData>(
 };
 
 const addLabels = (
-	query: IBuilderQuery | IBuilderFormula | IClickHouseQuery,
+	query: IBuilderQuery | IBuilderFormula,
 	label: string,
 	dynamicColumns: DynamicColumns,
 	columnId?: string,
@@ -142,7 +132,7 @@ const addLabels = (
 };
 
 const addOperatorFormulaColumns = (
-	query: IBuilderFormula | IBuilderQuery | IClickHouseQuery,
+	query: IBuilderFormula | IBuilderQuery,
 	dynamicColumns: DynamicColumns,
 	queryType: EQueryType,
 	customLabel?: string,
@@ -195,31 +185,11 @@ const addOperatorFormulaColumns = (
 
 		dynamicColumns.push(operatorColumn);
 	}
-
-	if (queryType === EQueryType.CLICKHOUSE) {
-		const currentQueryData = query as IClickHouseQuery;
-		let operatorLabel = `${currentQueryData.name}`;
-
-		if (currentQueryData.legend) {
-			operatorLabel = currentQueryData.legend;
-		}
-
-		const operatorColumn: DynamicColumn = {
-			query,
-			field: currentQueryData.name,
-			dataIndex: currentQueryData.name,
-			title: customLabel || operatorLabel,
-			data: [],
-			type: 'operator',
-		};
-
-		dynamicColumns.push(operatorColumn);
-	}
 };
 
 const processTableColumns = (
 	table: NonNullable<QueryRangeResult['table']>,
-	currentStagedQuery: IBuilderQuery | IBuilderFormula | IClickHouseQuery,
+	currentStagedQuery: IBuilderQuery | IBuilderFormula,
 	dynamicColumns: DynamicColumns,
 	queryType: EQueryType,
 ): void => {
@@ -242,7 +212,7 @@ const processTableColumns = (
 
 const processSeriesColumns = (
 	series: NonNullable<QueryRangeResult['series']>,
-	currentStagedQuery: IBuilderQuery | IBuilderFormula | IClickHouseQuery,
+	currentStagedQuery: IBuilderQuery | IBuilderFormula,
 	dynamicColumns: DynamicColumns,
 	queryType: EQueryType,
 	currentQuery: QueryRangeResult,

@@ -23,23 +23,6 @@ func New(settings factory.ProviderSettings) QueryParser {
 	}
 }
 
-func (p *queryParserImpl) AnalyzeQueryFilter(ctx context.Context, queryType qbtypes.QueryType, query string) (*queryfilterextractor.FilterResult, error) {
-	var extractorType queryfilterextractor.ExtractorType
-	switch queryType {
-	case qbtypes.QueryTypeClickHouseSQL:
-		extractorType = queryfilterextractor.ExtractorTypeClickHouseSQL
-	default:
-		return nil, errors.NewInvalidInputf(errors.CodeInvalidInput, "unsupported queryType: %s. Supported value is '%s'", queryType, qbtypes.QueryTypeClickHouseSQL)
-	}
-
-	// Create extractor
-	extractor, err := queryfilterextractor.NewExtractor(extractorType)
-	if err != nil {
-		return nil, err
-	}
-	return extractor.Extract(query)
-}
-
 func (p *queryParserImpl) AnalyzeQueryEnvelopes(ctx context.Context, queries []qbtypes.QueryEnvelope) (map[string]*queryfilterextractor.FilterResult, error) {
 	results := make(map[string]*queryfilterextractor.FilterResult)
 
@@ -77,19 +60,6 @@ func (p *queryParserImpl) AnalyzeQueryEnvelopes(ctx context.Context, queries []q
 				// Skip result for this query
 				continue
 			}
-		case qbtypes.QueryTypeClickHouseSQL:
-			spec, ok := query.Spec.(qbtypes.ClickHouseQuery)
-			if !ok || spec.Query == "" {
-				// Skip result for this query
-				continue
-			}
-			queryName = spec.Name
-			res, err := p.AnalyzeQueryFilter(ctx, qbtypes.QueryTypeClickHouseSQL, spec.Query)
-			if err != nil {
-				return nil, err
-			}
-			result.MetricNames = append(result.MetricNames, res.MetricNames...)
-			result.GroupByColumns = append(result.GroupByColumns, res.GroupByColumns...)
 		case qbtypes.QueryTypeFormula:
 			spec, ok := query.Spec.(qbtypes.QueryBuilderFormula)
 			if !ok {

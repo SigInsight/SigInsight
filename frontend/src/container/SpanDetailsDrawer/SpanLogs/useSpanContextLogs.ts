@@ -1,9 +1,9 @@
 import { useCallback, useMemo } from 'react';
 import { useQuery } from 'react-query';
-import { convertFiltersToExpression } from 'components/QueryBuilder/utils';
 import { OPERATORS } from 'constants/queryBuilder';
 import { REACT_QUERY_KEY } from 'constants/reactQueryKeys';
 import { getOperatorValue } from 'container/QueryBuilder/filters/queryBuilderFilterUtils';
+import { convertFiltersToExpression } from 'features/query-builder-v3/queryBuilderUtils';
 import { GetMetricQueryRange } from 'lib/query/getQueryResults';
 import { ILog } from 'types/api/logs/log';
 import { MetricQueryRangeSuccessResponse } from 'types/api/metrics/getQueryRange';

@@ -225,7 +225,6 @@ describe('TableViewActions', () => {
 				],
 				queryFormulas: [],
 			},
-			clickhouse_sql: [],
 		};
 
 		const mockUpdateQueriesData = jest.fn((query, type, callback) => {

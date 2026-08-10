@@ -12,7 +12,7 @@ jest.mock('api/v5/v5', () => ({
 	prepareQueryRangePayloadV5: jest.fn(() => ({
 		legendMap: {},
 		queryPayload: {
-			compositeQuery: { queries: [{ type: 'clickhouse_sql' }] },
+			compositeQuery: { queries: [{ type: 'builder_query' }] },
 		},
 	})),
 }));
@@ -29,7 +29,11 @@ describe('GetMetricQueryRange', () => {
 		const controller = new AbortController();
 		const headers = { 'X-Test-Header': 'test' };
 		const request = {
-			query: { queryType: EQueryType.CLICKHOUSE },
+			query: {
+				queryType: EQueryType.QUERY_BUILDER,
+				builder: { queryData: [], queryFormulas: [] },
+				id: 'test-query',
+			},
 			graphType: PANEL_TYPES.LIST,
 			selectedTime: 'GLOBAL_TIME',
 			formatForWeb: true,
@@ -47,7 +51,11 @@ describe('GetMetricQueryRange', () => {
 
 	it('forwards query warning notification options', async () => {
 		const request = {
-			query: { queryType: EQueryType.CLICKHOUSE },
+			query: {
+				queryType: EQueryType.QUERY_BUILDER,
+				builder: { queryData: [], queryFormulas: [] },
+				id: 'test-query',
+			},
 			graphType: PANEL_TYPES.LIST,
 			selectedTime: 'GLOBAL_TIME',
 			formatForWeb: true,
