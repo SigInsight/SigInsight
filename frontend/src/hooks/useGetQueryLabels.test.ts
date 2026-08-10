@@ -1,7 +1,6 @@
 import { renderHook } from '@testing-library/react';
 import {
 	IBuilderFormula,
-	IClickHouseQuery,
 	Query,
 } from 'types/api/queryBuilder/queryBuilderData';
 import { EQueryType } from 'types/common/queryType';
@@ -20,7 +19,6 @@ function buildQuery(overrides: Partial<Query> = {}): Query {
 			queryData: [],
 			queryFormulas: [],
 		},
-		clickhouse_sql: [],
 		...overrides,
 	};
 }
@@ -58,36 +56,6 @@ describe('useGetQueryLabels', () => {
 			expect(result.current).toEqual([
 				{ label: 'F1', value: 'F1' },
 				{ label: 'F2', value: 'F2' },
-			]);
-		});
-	});
-
-	describe('CLICKHOUSE type', () => {
-		it('returns empty array when clickhouse_sql is undefined', () => {
-			const query = buildQuery({
-				queryType: EQueryType.CLICKHOUSE,
-				clickhouse_sql: (undefined as unknown) as IClickHouseQuery[],
-			});
-
-			const { result } = renderHook(() => useGetQueryLabels(query));
-
-			expect(result.current).toEqual([]);
-		});
-
-		it('returns labels from clickhouse_sql when populated', () => {
-			const query = buildQuery({
-				queryType: EQueryType.CLICKHOUSE,
-				clickhouse_sql: [
-					({ name: 'query_a' } as unknown) as IClickHouseQuery,
-					({ name: 'query_b' } as unknown) as IClickHouseQuery,
-				],
-			});
-
-			const { result } = renderHook(() => useGetQueryLabels(query));
-
-			expect(result.current).toEqual([
-				{ label: 'query_a', value: 'query_a' },
-				{ label: 'query_b', value: 'query_b' },
 			]);
 		});
 	});

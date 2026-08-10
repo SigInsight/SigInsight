@@ -2,7 +2,6 @@ import { getLegend } from 'lib/query/getQueryResults';
 import { DataTypes } from 'types/api/queryBuilder/queryAutocompleteResponse';
 import { QueryData } from 'types/api/widgets/getQuery';
 import { DataSource } from 'types/common/queryBuilder';
-import { EQueryType } from 'types/common/queryType';
 
 import { getMockQuery, getMockQueryData } from './getLegend.testUtils';
 
@@ -11,18 +10,6 @@ const mockQuery = getMockQuery();
 const MOCK_LABEL_NAME = 'mock-label-name';
 
 describe('getLegend', () => {
-	it('should directly return the label name for clickhouse query', () => {
-		const legendsData = getLegend(
-			mockQueryData,
-			getMockQuery({
-				queryType: EQueryType.CLICKHOUSE,
-			}),
-			MOCK_LABEL_NAME,
-		);
-		expect(legendsData).toBeDefined();
-		expect(legendsData).toBe(MOCK_LABEL_NAME);
-	});
-
 	it('should return alias when single builder query with single aggregation and alias (logs)', () => {
 		const payloadQuery = getMockQuery({
 			...mockQuery,

@@ -41,51 +41,6 @@ func (q *QueryEnvelope) SetSource(source telemetrytypes.Source) {
 	}
 }
 
-// SetQuery sets the raw query string of the spec, if applicable.
-func (q *QueryEnvelope) SetQuery(query string) {
-	switch spec := q.Spec.(type) {
-	case ClickHouseQuery:
-		spec.Query = query
-		q.Spec = spec
-	}
-}
-
-// SetLeft sets the left query reference of a join, if applicable.
-func (q *QueryEnvelope) SetLeft(left QueryRef) {
-	switch spec := q.Spec.(type) {
-	case QueryBuilderJoin:
-		spec.Left = left
-		q.Spec = spec
-	}
-}
-
-// SetRight sets the right query reference of a join, if applicable.
-func (q *QueryEnvelope) SetRight(right QueryRef) {
-	switch spec := q.Spec.(type) {
-	case QueryBuilderJoin:
-		spec.Right = right
-		q.Spec = spec
-	}
-}
-
-// SetJoinType sets the join type, if applicable.
-func (q *QueryEnvelope) SetJoinType(joinType JoinType) {
-	switch spec := q.Spec.(type) {
-	case QueryBuilderJoin:
-		spec.Type = joinType
-		q.Spec = spec
-	}
-}
-
-// SetOn sets the join ON condition, if applicable.
-func (q *QueryEnvelope) SetOn(on string) {
-	switch spec := q.Spec.(type) {
-	case QueryBuilderJoin:
-		spec.On = on
-		q.Spec = spec
-	}
-}
-
 // SetQueryName sets the name of the spec, if applicable.
 func (q *QueryEnvelope) SetQueryName(name string) {
 	switch spec := q.Spec.(type) {
@@ -99,12 +54,6 @@ func (q *QueryEnvelope) SetQueryName(name string) {
 		spec.Name = name
 		q.Spec = spec
 	case QueryBuilderFormula:
-		spec.Name = name
-		q.Spec = spec
-	case QueryBuilderJoin:
-		spec.Name = name
-		q.Spec = spec
-	case ClickHouseQuery:
 		spec.Name = name
 		q.Spec = spec
 	}
@@ -125,12 +74,6 @@ func (q *QueryEnvelope) SetDisabled(disabled bool) {
 	case QueryBuilderFormula:
 		spec.Disabled = disabled
 		q.Spec = spec
-	case QueryBuilderJoin:
-		spec.Disabled = disabled
-		q.Spec = spec
-	case ClickHouseQuery:
-		spec.Disabled = disabled
-		q.Spec = spec
 	}
 }
 
@@ -147,9 +90,6 @@ func (q *QueryEnvelope) SetLimit(limit int) {
 		spec.Limit = limit
 		q.Spec = spec
 	case QueryBuilderFormula:
-		spec.Limit = limit
-		q.Spec = spec
-	case QueryBuilderJoin:
 		spec.Limit = limit
 		q.Spec = spec
 	}
@@ -190,9 +130,6 @@ func (q *QueryEnvelope) SetOrder(order []OrderBy) {
 	case QueryBuilderFormula:
 		spec.Order = order
 		q.Spec = spec
-	case QueryBuilderJoin:
-		spec.Order = order
-		q.Spec = spec
 	}
 }
 
@@ -208,9 +145,6 @@ func (q *QueryEnvelope) SetGroupBy(groupBy []GroupByKey) {
 	case QueryBuilderQuery[MetricAggregation]:
 		spec.GroupBy = groupBy
 		q.Spec = spec
-	case QueryBuilderJoin:
-		spec.GroupBy = groupBy
-		q.Spec = spec
 	}
 }
 
@@ -224,9 +158,6 @@ func (q *QueryEnvelope) SetFilter(filter *Filter) {
 		spec.Filter = filter
 		q.Spec = spec
 	case QueryBuilderQuery[MetricAggregation]:
-		spec.Filter = filter
-		q.Spec = spec
-	case QueryBuilderJoin:
 		spec.Filter = filter
 		q.Spec = spec
 	}
@@ -247,9 +178,6 @@ func (q *QueryEnvelope) SetHaving(having *Having) {
 	case QueryBuilderFormula:
 		spec.Having = having
 		q.Spec = spec
-	case QueryBuilderJoin:
-		spec.Having = having
-		q.Spec = spec
 	}
 }
 
@@ -268,9 +196,6 @@ func (q *QueryEnvelope) SetFunctions(functions []Function) {
 	case QueryBuilderFormula:
 		spec.Functions = functions
 		q.Spec = spec
-	case QueryBuilderJoin:
-		spec.Functions = functions
-		q.Spec = spec
 	}
 }
 
@@ -284,9 +209,6 @@ func (q *QueryEnvelope) SetSelectFields(fields []telemetrytypes.TelemetryFieldKe
 		spec.SelectFields = fields
 		q.Spec = spec
 	case QueryBuilderQuery[MetricAggregation]:
-		spec.SelectFields = fields
-		q.Spec = spec
-	case QueryBuilderJoin:
 		spec.SelectFields = fields
 		q.Spec = spec
 	}
@@ -305,9 +227,6 @@ func (q *QueryEnvelope) SetLegend(legend string) {
 		spec.Legend = legend
 		q.Spec = spec
 	case QueryBuilderFormula:
-		spec.Legend = legend
-		q.Spec = spec
-	case ClickHouseQuery:
 		spec.Legend = legend
 		q.Spec = spec
 	}
@@ -353,9 +272,6 @@ func (q *QueryEnvelope) SetSecondaryAggregations(secondaryAggregations []Seconda
 		spec.SecondaryAggregations = secondaryAggregations
 		q.Spec = spec
 	case QueryBuilderQuery[MetricAggregation]:
-		spec.SecondaryAggregations = secondaryAggregations
-		q.Spec = spec
-	case QueryBuilderJoin:
 		spec.SecondaryAggregations = secondaryAggregations
 		q.Spec = spec
 	}

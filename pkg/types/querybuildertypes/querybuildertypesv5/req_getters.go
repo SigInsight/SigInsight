@@ -37,51 +37,6 @@ func (q *QueryEnvelope) GetSource() telemetrytypes.Source {
 	return telemetrytypes.SourceUnspecified
 }
 
-// GetQuery returns the raw query string.
-func (q *QueryEnvelope) GetQuery() string {
-	switch spec := q.Spec.(type) {
-	case ClickHouseQuery:
-		return spec.Query
-	}
-	return ""
-}
-
-// GetLeft returns the left query reference of a join.
-func (q *QueryEnvelope) GetLeft() QueryRef {
-	switch spec := q.Spec.(type) {
-	case QueryBuilderJoin:
-		return spec.Left
-	}
-	return QueryRef{}
-}
-
-// GetRight returns the right query reference of a join.
-func (q *QueryEnvelope) GetRight() QueryRef {
-	switch spec := q.Spec.(type) {
-	case QueryBuilderJoin:
-		return spec.Right
-	}
-	return QueryRef{}
-}
-
-// GetJoinType returns the join type.
-func (q *QueryEnvelope) GetJoinType() JoinType {
-	switch spec := q.Spec.(type) {
-	case QueryBuilderJoin:
-		return spec.Type
-	}
-	return JoinType{}
-}
-
-// GetOn returns the join ON condition.
-func (q *QueryEnvelope) GetOn() string {
-	switch spec := q.Spec.(type) {
-	case QueryBuilderJoin:
-		return spec.On
-	}
-	return ""
-}
-
 // GetQueryName returns the name of the spec.
 func (q *QueryEnvelope) GetQueryName() string {
 	switch spec := q.Spec.(type) {
@@ -92,10 +47,6 @@ func (q *QueryEnvelope) GetQueryName() string {
 	case QueryBuilderQuery[MetricAggregation]:
 		return spec.Name
 	case QueryBuilderFormula:
-		return spec.Name
-	case QueryBuilderJoin:
-		return spec.Name
-	case ClickHouseQuery:
 		return spec.Name
 	}
 	return ""
@@ -112,10 +63,6 @@ func (q *QueryEnvelope) IsDisabled() bool {
 		return spec.Disabled
 	case QueryBuilderFormula:
 		return spec.Disabled
-	case QueryBuilderJoin:
-		return spec.Disabled
-	case ClickHouseQuery:
-		return spec.Disabled
 	}
 	return false
 }
@@ -130,8 +77,6 @@ func (q *QueryEnvelope) GetLimit() int {
 	case QueryBuilderQuery[MetricAggregation]:
 		return spec.Limit
 	case QueryBuilderFormula:
-		return spec.Limit
-	case QueryBuilderJoin:
 		return spec.Limit
 	}
 	return 0
@@ -166,8 +111,6 @@ func (q *QueryEnvelope) GetOrder() []OrderBy {
 		return spec.Order
 	case QueryBuilderFormula:
 		return spec.Order
-	case QueryBuilderJoin:
-		return spec.Order
 	}
 	return nil
 }
@@ -181,8 +124,6 @@ func (q *QueryEnvelope) GetGroupBy() []GroupByKey {
 		return spec.GroupBy
 	case QueryBuilderQuery[MetricAggregation]:
 		return spec.GroupBy
-	case QueryBuilderJoin:
-		return spec.GroupBy
 	}
 	return nil
 }
@@ -195,8 +136,6 @@ func (q *QueryEnvelope) GetFilter() *Filter {
 	case QueryBuilderQuery[LogAggregation]:
 		return spec.Filter
 	case QueryBuilderQuery[MetricAggregation]:
-		return spec.Filter
-	case QueryBuilderJoin:
 		return spec.Filter
 	}
 	return nil
@@ -213,8 +152,6 @@ func (q *QueryEnvelope) GetHaving() *Having {
 		return spec.Having
 	case QueryBuilderFormula:
 		return spec.Having
-	case QueryBuilderJoin:
-		return spec.Having
 	}
 	return nil
 }
@@ -230,8 +167,6 @@ func (q *QueryEnvelope) GetFunctions() []Function {
 		return spec.Functions
 	case QueryBuilderFormula:
 		return spec.Functions
-	case QueryBuilderJoin:
-		return spec.Functions
 	}
 	return nil
 }
@@ -244,8 +179,6 @@ func (q *QueryEnvelope) GetSelectFields() []telemetrytypes.TelemetryFieldKey {
 	case QueryBuilderQuery[LogAggregation]:
 		return spec.SelectFields
 	case QueryBuilderQuery[MetricAggregation]:
-		return spec.SelectFields
-	case QueryBuilderJoin:
 		return spec.SelectFields
 	}
 	return nil
@@ -261,8 +194,6 @@ func (q *QueryEnvelope) GetLegend() string {
 	case QueryBuilderQuery[MetricAggregation]:
 		return spec.Legend
 	case QueryBuilderFormula:
-		return spec.Legend
-	case ClickHouseQuery:
 		return spec.Legend
 	}
 	return ""
@@ -302,8 +233,6 @@ func (q *QueryEnvelope) GetSecondaryAggregations() []SecondaryAggregation {
 	case QueryBuilderQuery[LogAggregation]:
 		return spec.SecondaryAggregations
 	case QueryBuilderQuery[MetricAggregation]:
-		return spec.SecondaryAggregations
-	case QueryBuilderJoin:
 		return spec.SecondaryAggregations
 	}
 	return nil

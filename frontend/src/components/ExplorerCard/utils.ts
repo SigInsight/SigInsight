@@ -92,16 +92,12 @@ export const isQueryUpdatedInView = ({
 	// Omitting id from aggregateAttribute and groupBy
 	const updatedCurrentQuery = omitIdFromQuery(stagedQuery);
 
-	if (
-		updatedCurrentQuery?.builder === undefined ||
-		updatedCurrentQuery.clickhouse_sql === undefined
-	) {
+	if (updatedCurrentQuery?.builder === undefined) {
 		return false;
 	}
 	return (
 		panelType !== currentPanelType ||
 		!isEqual(query.builder, updatedCurrentQuery?.builder) ||
-		!isEqual(query.clickhouse_sql, updatedCurrentQuery?.clickhouse_sql) ||
 		!isEqual(
 			options?.selectColumns,
 			extraData && JSON.parse(extraData)?.selectColumns,

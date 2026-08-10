@@ -116,31 +116,18 @@ export function getQueryLegend(
 	currentQuery: Query,
 	queryName: string,
 ): string | undefined {
-	let legend: string | undefined;
-	switch (currentQuery.queryType) {
-		case EQueryType.QUERY_BUILDER:
-			// check if the value is present in the queries
-			legend = currentQuery?.builder?.queryData?.find(
-				(query) => query.queryName === queryName,
-			)?.legend;
-
-			if (!legend) {
-				// check if the value is present in the formula
-				legend = currentQuery?.builder?.queryFormulas?.find(
-					(query) => query.queryName === queryName,
-				)?.legend;
-			}
-			break;
-		case EQueryType.CLICKHOUSE:
-			legend = currentQuery?.clickhouse_sql?.find(
-				(query) => query.name === queryName,
-			)?.legend;
-			break;
-		default:
-			legend = undefined;
-			break;
+	if (currentQuery.queryType !== EQueryType.QUERY_BUILDER) {
+		return undefined;
 	}
 
+	let legend = currentQuery.builder.queryData.find(
+		(query) => query.queryName === queryName,
+	)?.legend;
+	if (!legend) {
+		legend = currentQuery.builder.queryFormulas.find(
+			(query) => query.queryName === queryName,
+		)?.legend;
+	}
 	return legend;
 }
 

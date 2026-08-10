@@ -2,7 +2,6 @@ package rules
 
 import (
 	"context"
-	"strings"
 	"testing"
 	"time"
 
@@ -40,17 +39,4 @@ func TestLiteQueryRunnerExecutesSupportedLogRule(t *testing.T) {
 	require.Len(t, data.Aggregations, 1)
 	require.Equal(t, float64(3), data.Aggregations[0].Series[0].Values[0].Value)
 	require.NoError(t, store.Mock().ExpectationsWereMet())
-}
-
-func TestLiteQueryRunnerRejectsAdvancedRuleWithoutLegacyFallback(t *testing.T) {
-	request := &qbtypes.QueryRangeRequest{
-		Start: 1, End: 2, RequestType: qbtypes.RequestTypeScalar,
-		CompositeQuery: qbtypes.CompositeQuery{Queries: []qbtypes.QueryEnvelope{{
-			Type: qbtypes.QueryTypeClickHouseSQL,
-			Spec: qbtypes.ClickHouseQuery{Name: "A", Query: "SELECT 1"},
-		}}},
-	}
-	_, err := NewLiteQueryRunner(nil, nil).Execute(context.Background(), valuer.GenerateUUID(), request)
-	require.Error(t, err)
-	require.True(t, strings.Contains(err.Error(), "unsupported threshold query"))
 }

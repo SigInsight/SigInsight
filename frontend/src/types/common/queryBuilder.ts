@@ -6,13 +6,10 @@ import { Format } from 'features/query-visualization/types';
 import {
 	IBuilderFormula,
 	IBuilderQuery,
-	IClickHouseQuery,
 	Query,
 	QueryState,
 } from 'types/api/queryBuilder/queryBuilderData';
 import { ViewProps } from 'types/api/saveViews/types';
-
-import { EQueryType } from './queryType';
 
 export enum DataSource {
 	METRICS = 'metrics',
@@ -242,11 +239,6 @@ export type QueryBuilderContextType = {
 	isEnabledQuery: boolean;
 	handleSetQueryData: (index: number, queryData: IBuilderQuery) => void;
 	handleSetFormulaData: (index: number, formulaData: IBuilderFormula) => void;
-	handleSetQueryItemData: (
-		index: number,
-		type: EQueryType.CLICKHOUSE,
-		newQueryData: IClickHouseQuery,
-	) => void;
 	handleSetConfig: (
 		newPanelType: PANEL_TYPES,
 		dataSource: DataSource | null,
@@ -256,14 +248,9 @@ export type QueryBuilderContextType = {
 		index: number,
 	) => void;
 	removeAllQueryBuilderEntities: (type: keyof QueryBuilderData) => void;
-	removeQueryTypeItemByIndex: (
-		type: EQueryType.CLICKHOUSE,
-		index: number,
-	) => void;
 	addNewBuilderQuery: () => void;
 	addNewFormula: () => void;
 	cloneQuery: (type: string, query: IBuilderQuery) => void;
-	addNewQueryItem: (type: EQueryType.CLICKHOUSE) => void;
 	redirectWithQueryBuilderData: (
 		query: Query,
 		searchParams?: Record<string, unknown>,

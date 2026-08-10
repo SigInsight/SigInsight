@@ -40,10 +40,8 @@ const mockUseQueryBuilderData = {
 	isStagedQueryUpdated: jest.fn(),
 	handleSetQueryData: jest.fn(),
 	handleSetFormulaData: jest.fn(),
-	handleSetQueryItemData: jest.fn(),
 	handleSetConfig: mockHandleSetConfig,
 	removeQueryBuilderEntityByIndex: jest.fn(),
-	removeQueryTypeItemByIndex: jest.fn(),
 	isDefaultQuery: jest.fn(),
 };
 

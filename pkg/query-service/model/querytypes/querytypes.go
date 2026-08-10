@@ -180,14 +180,13 @@ func (r ReduceToOperator) Validate() error {
 type QueryType string
 
 const (
-	QueryTypeUnknown       QueryType = "unknown"
-	QueryTypeBuilder       QueryType = "builder"
-	QueryTypeClickHouseSQL QueryType = "clickhouse_sql"
+	QueryTypeUnknown QueryType = "unknown"
+	QueryTypeBuilder QueryType = "builder"
 )
 
 func (q QueryType) Validate() error {
 	switch q {
-	case QueryTypeBuilder, QueryTypeClickHouseSQL:
+	case QueryTypeBuilder:
 		return nil
 	default:
 		return fmt.Errorf("invalid query type: %s", q)

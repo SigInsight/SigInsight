@@ -40,7 +40,6 @@ const baseState: Query = {
 	id: 'lite-test',
 	queryType: EQueryType.QUERY_BUILDER,
 	builder: { queryData: [baseQuery], queryFormulas: [] },
-	clickhouse_sql: [],
 };
 
 function createLiteFilter(

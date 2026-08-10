@@ -335,44 +335,6 @@ export function convertBuilderQueriesToV5(
 }
 
 /**
- * Converts ClickHouse queries to V5 format
- */
-export function convertClickHouseQueriesToV5(
-	chQueries: Record<string, any>,
-): QueryEnvelope[] {
-	return Object.entries(chQueries).map(
-		([queryName, queryData]): QueryEnvelope => ({
-			type: 'clickhouse_sql' as QueryType,
-			spec: {
-				name: queryName,
-				query: queryData.query,
-				disabled: queryData.disabled || false,
-				legend: isEmpty(queryData.legend) ? undefined : queryData.legend,
-			},
-		}),
-	);
-}
-
-/**
- * Helper function to reduce query arrays to objects
- */
-function reduceQueriesToObject(
-	queryArray: any[],
-): { queries: Record<string, any>; legends: Record<string, string> } {
-	const legends: Record<string, string> = {};
-	const queries = queryArray.reduce((acc, queryItem) => {
-		if (!queryItem.query) {
-			return acc;
-		}
-		acc[queryItem.name] = queryItem;
-		legends[queryItem.name] = queryItem.legend;
-		return acc;
-	}, {} as Record<string, any>);
-
-	return { queries, legends };
-}
-
-/**
  * Prepares V5 query range payload from GetQueryResultsProps
  */
 export const prepareQueryRangePayloadV5 = ({
@@ -392,64 +354,53 @@ export const prepareQueryRangePayloadV5 = ({
 	const requestType = mapPanelTypeToRequestType(graphType);
 	let queries: QueryEnvelope[] = [];
 
-	switch (query.queryType) {
-		case EQueryType.QUERY_BUILDER: {
-			const { queryData: data, queryFormulas } = query.builder;
-			const currentQueryData = mapQueryDataToApi(data, 'queryName', tableParams);
-			// A newly added formula is an editable UI row until it has an
-			// expression. Do not send that transient row to the backend, whose
-			// formula contract requires a non-empty expression.
-			const currentFormulas = mapQueryDataToApi(
-				queryFormulas.filter((formula) => formula.expression.trim()),
-				'queryName',
-			);
+	if (query.queryType === EQueryType.QUERY_BUILDER) {
+		const { queryData: data, queryFormulas } = query.builder;
+		const currentQueryData = mapQueryDataToApi(data, 'queryName', tableParams);
+		// A newly added formula is an editable UI row until it has an
+		// expression. Do not send that transient row to the backend, whose
+		// formula contract requires a non-empty expression.
+		const currentFormulas = mapQueryDataToApi(
+			queryFormulas.filter((formula) => formula.expression.trim()),
+			'queryName',
+		);
 
-			// Combine legend maps
-			legendMap = {
-				...currentQueryData.newLegendMap,
-				...currentFormulas.newLegendMap,
-			};
+		// Combine legend maps
+		legendMap = {
+			...currentQueryData.newLegendMap,
+			...currentFormulas.newLegendMap,
+		};
 
-			// Convert builder queries
-			const builderQueries = convertBuilderQueriesToV5(
-				currentQueryData.data,
-				requestType,
-				graphType,
-			);
+		// Convert builder queries
+		const builderQueries = convertBuilderQueriesToV5(
+			currentQueryData.data,
+			requestType,
+			graphType,
+		);
 
-			// Convert formulas as separate query type
-			const formulaQueries = Object.entries(currentFormulas.data).map(
-				([queryName, formulaData]): QueryEnvelope => ({
-					type: 'builder_formula' as const,
-					spec: {
-						name: queryName,
-						expression: formulaData.expression || '',
-						disabled: formulaData.disabled,
-						limit: formulaData.limit ?? undefined,
-						legend: isEmpty(formulaData.legend) ? undefined : formulaData.legend,
-						order: formulaData.orderBy?.map(
-							(order: any): OrderBy => ({
-								key: {
-									name: order.columnName,
-								},
-								direction: order.order,
-							}),
-						),
-					},
-				}),
-			);
+		// Convert formulas as separate query type
+		const formulaQueries = Object.entries(currentFormulas.data).map(
+			([queryName, formulaData]): QueryEnvelope => ({
+				type: 'builder_formula' as const,
+				spec: {
+					name: queryName,
+					expression: formulaData.expression || '',
+					disabled: formulaData.disabled,
+					limit: formulaData.limit ?? undefined,
+					legend: isEmpty(formulaData.legend) ? undefined : formulaData.legend,
+					order: formulaData.orderBy?.map(
+						(order: any): OrderBy => ({
+							key: {
+								name: order.columnName,
+							},
+							direction: order.order,
+						}),
+					),
+				},
+			}),
+		);
 
-			queries = [...builderQueries, ...formulaQueries];
-			break;
-		}
-		case EQueryType.CLICKHOUSE: {
-			const chQueries = reduceQueriesToObject(query[query.queryType]);
-			queries = convertClickHouseQueriesToV5(chQueries.queries);
-			legendMap = chQueries.legends;
-			break;
-		}
-		default:
-			break;
+		queries = [...builderQueries, ...formulaQueries];
 	}
 
 	// Calculate time range

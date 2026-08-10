@@ -16,14 +16,10 @@ func getQueryIdentifier(envelope QueryEnvelope, index int) string {
 
 	var typeLabel string
 	switch envelope.Type {
-	case QueryTypeBuilder, QueryTypeSubQuery:
+	case QueryTypeBuilder:
 		typeLabel = "query"
 	case QueryTypeFormula:
 		typeLabel = "formula"
-	case QueryTypeJoin:
-		typeLabel = "join"
-	case QueryTypeClickHouseSQL:
-		typeLabel = "ClickHouse query"
 	default:
 		typeLabel = "query"
 	}
@@ -526,7 +522,7 @@ func (c *CompositeQuery) Validate(opts ...ValidationOption) error {
 		}
 
 		// Check name uniqueness for builder queries
-		if envelope.Type == QueryTypeBuilder || envelope.Type == QueryTypeSubQuery {
+		if envelope.Type == QueryTypeBuilder {
 			name := envelope.GetQueryName()
 			if name != "" {
 				if queryNames[name] {
@@ -546,7 +542,7 @@ func (c *CompositeQuery) Validate(opts ...ValidationOption) error {
 
 func validateQueryEnvelope(envelope QueryEnvelope, opts ...ValidationOption) error {
 	switch envelope.Type {
-	case QueryTypeBuilder, QueryTypeSubQuery:
+	case QueryTypeBuilder:
 		switch spec := envelope.Spec.(type) {
 		case QueryBuilderQuery[TraceAggregation]:
 			return spec.Validate(opts...)
@@ -575,37 +571,13 @@ func validateQueryEnvelope(envelope QueryEnvelope, opts ...ValidationOption) err
 			)
 		}
 		return nil
-	case QueryTypeJoin:
-		_, ok := envelope.Spec.(QueryBuilderJoin)
-		if !ok {
-			return errors.NewInvalidInputf(
-				errors.CodeInvalidInput,
-				"invalid join spec",
-			)
-		}
-		return nil
-	case QueryTypeClickHouseSQL:
-		spec, ok := envelope.Spec.(ClickHouseQuery)
-		if !ok {
-			return errors.NewInvalidInputf(
-				errors.CodeInvalidInput,
-				"invalid ClickHouse SQL spec",
-			)
-		}
-		if spec.Query == "" {
-			return errors.NewInvalidInputf(
-				errors.CodeInvalidInput,
-				"ClickHouse SQL query is required",
-			)
-		}
-		return nil
 	default:
 		return errors.NewInvalidInputf(
 			errors.CodeInvalidInput,
 			"unknown query type: %s",
 			envelope.Type,
 		).WithAdditional(
-			"Valid query types are: builder_query, builder_sub_query, builder_formula, builder_join, clickhouse_sql",
+			"Valid query types are: builder_query, builder_formula",
 		)
 	}
 }

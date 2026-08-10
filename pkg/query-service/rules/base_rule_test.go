@@ -209,36 +209,6 @@ func TestBaseRule_FilterNewSeries(t *testing.T) {
 			}, // svc-old and svc-missing should be included; svc-new is filtered out
 		},
 		{
-			name: "all old series - ClickHouse query",
-			compositeQuery: &ruletypes.CompositeQuery{
-				QueryType: querytypes.QueryTypeClickHouseSQL,
-				Queries: []qbtypes.QueryEnvelope{
-					{
-						Type: qbtypes.QueryTypeClickHouseSQL,
-						Spec: qbtypes.ClickHouseQuery{
-							Name:     "CH1",
-							Query:    "SELECT service_name, env FROM metrics WHERE metric_name='request_total' GROUP BY service_name, env",
-							Disabled: false,
-						},
-					},
-				},
-			},
-			series: []*timeseriestypes.Series{
-				createTestSeries(map[string]string{"service_name": "svc-old1", "env": "prod"}, nil),
-				createTestSeries(map[string]string{"service_name": "svc-old2", "env": "stage"}, nil),
-			},
-			firstSeenMap: mergeFirstSeenMaps(
-				createFirstSeenMap("request_total", defaultGroupByFields, defaultEvalTime, defaultDelay, true, "svc-old1", "prod"),
-				createFirstSeenMap("request_total", defaultGroupByFields, defaultEvalTime, defaultDelay, true, "svc-old2", "stage"),
-			),
-			newGroupEvalDelay: defaultNewGroupEvalDelay,
-			evalTime:          defaultEvalTime,
-			expectedFiltered: []*timeseriestypes.Series{
-				createTestSeries(map[string]string{"service_name": "svc-old1", "env": "prod"}, nil),
-				createTestSeries(map[string]string{"service_name": "svc-old2", "env": "stage"}, nil),
-			}, // all should be included (old series)
-		},
-		{
 			name: "no grouping in query - Builder",
 			compositeQuery: &ruletypes.CompositeQuery{
 				QueryType: querytypes.QueryTypeBuilder,
@@ -336,35 +306,6 @@ func TestBaseRule_FilterNewSeries(t *testing.T) {
 			expectedFiltered: []*timeseriestypes.Series{
 				createTestSeries(map[string]string{"status": "200"}, nil),
 			}, // series included as we can't decide if it's new or old
-		},
-		{
-			name: "series with partial metadata - ClickHouse",
-			compositeQuery: &ruletypes.CompositeQuery{
-				QueryType: querytypes.QueryTypeClickHouseSQL,
-				Queries: []qbtypes.QueryEnvelope{
-					{
-						Type: qbtypes.QueryTypeClickHouseSQL,
-						Spec: qbtypes.ClickHouseQuery{
-							Name:     "CH1",
-							Query:    "SELECT service_name, env FROM metrics WHERE metric_name='request_total' GROUP BY service_name, env",
-							Disabled: false,
-						},
-					},
-				},
-			},
-			series: []*timeseriestypes.Series{
-				createTestSeries(map[string]string{"service_name": "svc-partial", "env": "prod"}, nil),
-			},
-			// Only provide metadata for service_name, not env
-			firstSeenMap: map[telemetrytypes.MetricMetadataLookupKey]int64{
-				{MetricName: "request_total", AttributeName: "service_name", AttributeValue: "svc-partial"}: calculateFirstSeen(defaultEvalTime, defaultDelay, true),
-				// env metadata is missing
-			},
-			newGroupEvalDelay: defaultNewGroupEvalDelay,
-			evalTime:          defaultEvalTime,
-			expectedFiltered: []*timeseriestypes.Series{
-				createTestSeries(map[string]string{"service_name": "svc-partial", "env": "prod"}, nil),
-			}, // has some metadata, uses max first_seen which is old
 		},
 		{
 			name: "empty series array - Builder",

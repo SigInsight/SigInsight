@@ -54,7 +54,6 @@ export const mockQuery: Query = {
 		],
 		queryFormulas: [],
 	},
-	clickhouse_sql: [],
 	id: 'test-query-id',
 };
 

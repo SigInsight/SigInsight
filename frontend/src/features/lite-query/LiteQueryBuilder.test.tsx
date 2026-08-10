@@ -86,7 +86,6 @@ const baseQuery: Query = {
 		],
 		queryFormulas: [],
 	},
-	clickhouse_sql: [],
 };
 
 function renderBuilder(

@@ -91,10 +91,7 @@ function validateFormulaDrafts(formulas: IBuilderFormula[]): string | null {
 }
 
 function validateQueryShape(query: Query): string | null {
-	const hasExecutableClickHouseSQL = query.clickhouse_sql.some(
-		(item) => item.query.trim().length > 0,
-	);
-	if (query.queryType !== 'builder' || hasExecutableClickHouseSQL) {
+	if (query.queryType !== 'builder') {
 		return 'Basic alerts only support lightweight builder queries';
 	}
 	if (

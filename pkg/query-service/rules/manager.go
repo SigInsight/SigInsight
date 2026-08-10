@@ -1014,12 +1014,6 @@ func (m *Manager) GetAlertDetailsForMetricNames(ctx context.Context, metricNames
 						metricRulesMap[aggregation.MetricName] = append(metricRulesMap[aggregation.MetricName], rule)
 					}
 				}
-			case qbtypes.ClickHouseQuery:
-				for _, metricName := range metricNames {
-					if strings.Contains(spec.Query, metricName) {
-						metricRulesMap[metricName] = append(metricRulesMap[metricName], rule)
-					}
-				}
 			}
 		}
 	}

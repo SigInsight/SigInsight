@@ -56,7 +56,6 @@ function TopOperationMetrics(): JSX.Element {
 						servicename,
 						dotMetricsEnabled,
 					}),
-					clickhouse_sql: [],
 					id: uuid(),
 				},
 				panelTypes: PANEL_TYPES.TABLE,

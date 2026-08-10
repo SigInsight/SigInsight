@@ -76,14 +76,6 @@ const mockProps: WidgetGraphComponentProps = {
 				],
 				queryFormulas: [],
 			},
-			clickhouse_sql: [
-				{
-					disabled: false,
-					legend: '',
-					name: 'A',
-					query: '',
-				},
-			],
 			id: '47449208-2c76-4465-9c62-a37fb4f5f11f',
 			queryType: EQueryType.QUERY_BUILDER,
 		},

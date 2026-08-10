@@ -305,7 +305,7 @@ func TestQueryRangeRequest_UnmarshalJSON(t *testing.T) {
 			},
 		},
 		{
-			name: "valid join query",
+			name: "join query is rejected",
 			jsonData: `{
 				"schemaVersion": "v1",
 				"start": 1640995200000,
@@ -326,27 +326,7 @@ func TestQueryRangeRequest_UnmarshalJSON(t *testing.T) {
 					}]
 				}
 			}`,
-			expected: QueryRangeRequest{
-				SchemaVersion: "v1",
-				Start:         1640995200000,
-				End:           1640998800000,
-				RequestType:   RequestTypeScalar,
-				CompositeQuery: CompositeQuery{
-					Queries: []QueryEnvelope{{
-						Type: QueryTypeJoin,
-						Spec: QueryBuilderJoin{
-							Name:         "join_traces_logs",
-							Left:         QueryRef{Name: "A"},
-							Right:        QueryRef{Name: "B"},
-							Type:         JoinTypeInner,
-							On:           "trace_id = trace_id",
-							Aggregations: []any{},
-							Limit:        1000,
-						},
-					}},
-				},
-			},
-			wantErr: false,
+			wantErr: true,
 		},
 		{
 			name: "PromQL query is rejected",
@@ -369,7 +349,7 @@ func TestQueryRangeRequest_UnmarshalJSON(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "valid ClickHouse SQL query",
+			name: "ClickHouse SQL query is rejected",
 			jsonData: `{
 				"schemaVersion": "v1",
 				"start": 1640995200000,
@@ -386,23 +366,7 @@ func TestQueryRangeRequest_UnmarshalJSON(t *testing.T) {
 					}]
 				}
 			}`,
-			expected: QueryRangeRequest{
-				SchemaVersion: "v1",
-				Start:         1640995200000,
-				End:           1640998800000,
-				RequestType:   RequestTypeRaw,
-				CompositeQuery: CompositeQuery{
-					Queries: []QueryEnvelope{{
-						Type: QueryTypeClickHouseSQL,
-						Spec: ClickHouseQuery{
-							Name:     "custom_query",
-							Query:    "SELECT count(*) FROM logs WHERE timestamp >= ? AND timestamp <= ?",
-							Disabled: false,
-						},
-					}},
-				},
-			},
-			wantErr: false,
+			wantErr: true,
 		},
 		{
 			name: "multiple queries",
@@ -626,22 +590,6 @@ func TestQueryRangeRequest_UnmarshalJSON(t *testing.T) {
 					assert.Equal(t, expectedSpec.Name, actualSpec.Name)
 					assert.Equal(t, expectedSpec.Expression, actualSpec.Expression)
 					assert.Equal(t, expectedSpec.Name, actualSpec.Name)
-				case QueryTypeJoin:
-					expectedSpec := expectedQuery.Spec.(QueryBuilderJoin)
-					actualSpec, ok := actualQuery.Spec.(QueryBuilderJoin)
-					require.True(t, ok, "Expected QueryBuilderJoin but got %T", actualQuery.Spec)
-					assert.Equal(t, expectedSpec.Name, actualSpec.Name)
-					assert.Equal(t, expectedSpec.Left.Name, actualSpec.Left.Name)
-					assert.Equal(t, expectedSpec.Right.Name, actualSpec.Right.Name)
-					assert.Equal(t, expectedSpec.Type, actualSpec.Type)
-					assert.Equal(t, expectedSpec.On, actualSpec.On)
-				case QueryTypeClickHouseSQL:
-					expectedSpec := expectedQuery.Spec.(ClickHouseQuery)
-					actualSpec, ok := actualQuery.Spec.(ClickHouseQuery)
-					require.True(t, ok, "Expected ClickHouseQuery but got %T", actualQuery.Spec)
-					assert.Equal(t, expectedSpec.Name, actualSpec.Name)
-					assert.Equal(t, expectedSpec.Query, actualSpec.Query)
-					assert.Equal(t, expectedSpec.Disabled, actualSpec.Disabled)
 				}
 			}
 

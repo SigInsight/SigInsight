@@ -6,7 +6,6 @@ import {
 	IBuilderQuery,
 } from 'types/api/queryBuilder/queryBuilderData';
 import {
-	ClickHouseQuery,
 	LogAggregation,
 	LogBuilderQuery,
 	MetricBuilderQuery,
@@ -86,7 +85,6 @@ describe('prepareQueryRangePayloadV5', () => {
 				queryType: EQueryType.QUERY_BUILDER,
 				id: 'q1',
 				unit: undefined,
-				clickhouse_sql: [],
 				builder: {
 					queryData: [
 						baseBuilderQuery({
@@ -213,7 +211,6 @@ describe('prepareQueryRangePayloadV5', () => {
 				queryType: EQueryType.QUERY_BUILDER,
 				id: 'q-empty-formula',
 				unit: undefined,
-				clickhouse_sql: [],
 				builder: {
 					queryData: [baseBuilderQuery()],
 					queryFormulas: [baseFormula({ expression: '' })],
@@ -232,78 +229,12 @@ describe('prepareQueryRangePayloadV5', () => {
 		);
 	});
 
-	it('builds payload for ClickHouse queries and maps requestType from panel', () => {
-		const props: GetQueryResultsProps = {
-			query: {
-				queryType: EQueryType.CLICKHOUSE,
-				id: 'q3',
-				unit: undefined,
-				clickhouse_sql: [
-					{
-						name: 'Q',
-						query: 'SELECT 1',
-						disabled: false,
-						legend: 'LC',
-					},
-				],
-				builder: { queryData: [], queryFormulas: [] },
-			},
-			graphType: PANEL_TYPES.TABLE,
-			selectedTime: 'GLOBAL_TIME',
-			start,
-			end,
-		};
-
-		const result = prepareQueryRangePayloadV5(props);
-
-		expect(result).toEqual(
-			expect.objectContaining({
-				legendMap: { Q: 'LC' },
-				queryPayload: expect.objectContaining({
-					compositeQuery: expect.objectContaining({
-						queries: [
-							{
-								type: 'clickhouse_sql',
-								spec: expect.objectContaining({
-									name: 'Q',
-									query: 'SELECT 1',
-									legend: 'LC',
-								}),
-							},
-						],
-					}),
-					requestType: 'scalar',
-					formatOptions: expect.objectContaining({
-						formatTableResultForUI: true,
-						fillGaps: false,
-					}),
-					start: start * 1000,
-					end: end * 1000,
-					variables: {},
-				}),
-			}),
-		);
-
-		expect(result.legendMap).toEqual({ Q: 'LC' });
-
-		const payload: QueryRangePayloadV5 = result.queryPayload;
-		expect(payload.requestType).toBe('scalar');
-		expect(payload.compositeQuery.queries).toHaveLength(1);
-		const ch = payload.compositeQuery.queries[0];
-		expect(ch.type).toBe('clickhouse_sql');
-		const chSpec = ch.spec as ClickHouseQuery;
-		expect(chSpec.name).toBe('Q');
-		expect(chSpec.query).toBe('SELECT 1');
-		expect(chSpec.legend).toBe('LC');
-	});
-
 	it('uses getStartEndRangeTime when start/end are not provided', () => {
 		const props: GetQueryResultsProps = {
 			query: {
 				queryType: EQueryType.QUERY_BUILDER,
 				id: 'q4',
 				unit: undefined,
-				clickhouse_sql: [],
 				builder: { queryData: [], queryFormulas: [] },
 			},
 			graphType: PANEL_TYPES.TIME_SERIES,
@@ -340,7 +271,6 @@ describe('prepareQueryRangePayloadV5', () => {
 				queryType: EQueryType.QUERY_BUILDER,
 				id: 'q5',
 				unit: undefined,
-				clickhouse_sql: [],
 				builder: {
 					queryData: [baseBuilderQuery()],
 					queryFormulas: [],
@@ -421,7 +351,6 @@ describe('prepareQueryRangePayloadV5', () => {
 			query: {
 				queryType: EQueryType.QUERY_BUILDER,
 				id: 'histogram',
-				clickhouse_sql: [],
 				builder: {
 					queryData: [histogramQuery],
 					queryFormulas: [],
@@ -462,7 +391,6 @@ describe('prepareQueryRangePayloadV5', () => {
 				queryType: EQueryType.QUERY_BUILDER,
 				id: 'q6',
 				unit: undefined,
-				clickhouse_sql: [],
 				builder: {
 					queryData: [logsQuery],
 					queryFormulas: [],
@@ -533,7 +461,6 @@ describe('prepareQueryRangePayloadV5', () => {
 				queryType: EQueryType.QUERY_BUILDER,
 				id: 'e643e387-1996-4449-97b6-9ef4498a0573',
 				unit: undefined,
-				clickhouse_sql: [{ name: 'A', legend: '', disabled: false, query: '' }],
 				builder: {
 					queryData: [
 						{
@@ -647,7 +574,6 @@ describe('prepareQueryRangePayloadV5', () => {
 				queryType: EQueryType.QUERY_BUILDER,
 				id: 'q8',
 				unit: undefined,
-				clickhouse_sql: [],
 				builder: {
 					queryData: [
 						baseBuilderQuery({
@@ -711,7 +637,6 @@ describe('prepareQueryRangePayloadV5', () => {
 				queryType: EQueryType.QUERY_BUILDER,
 				id: 'q9',
 				unit: undefined,
-				clickhouse_sql: [],
 				builder: {
 					queryData: [
 						baseBuilderQuery({
@@ -743,7 +668,6 @@ describe('prepareQueryRangePayloadV5', () => {
 				queryType: EQueryType.QUERY_BUILDER,
 				id: 'q10',
 				unit: undefined,
-				clickhouse_sql: [],
 				builder: {
 					queryData: [
 						baseBuilderQuery({
@@ -785,7 +709,6 @@ describe('prepareQueryRangePayloadV5', () => {
 				queryType: EQueryType.QUERY_BUILDER,
 				id: 'qualified-filter',
 				unit: undefined,
-				clickhouse_sql: [],
 				builder: {
 					queryData: [
 						baseBuilderQuery({
@@ -829,7 +752,6 @@ describe('prepareQueryRangePayloadV5', () => {
 				queryType: EQueryType.QUERY_BUILDER,
 				id: 'trace-quick-filter',
 				unit: undefined,
-				clickhouse_sql: [],
 				builder: {
 					queryData: [
 						baseBuilderQuery({
@@ -906,7 +828,6 @@ describe('prepareQueryRangePayloadV5', () => {
 					queryType: EQueryType.QUERY_BUILDER,
 					id: 'trace-root-scope',
 					unit: undefined,
-					clickhouse_sql: [],
 					builder: {
 						queryData: [
 							baseBuilderQuery({
@@ -954,7 +875,6 @@ describe('prepareQueryRangePayloadV5', () => {
 				queryType: EQueryType.QUERY_BUILDER,
 				id: 'duplicate-service-filter',
 				unit: undefined,
-				clickhouse_sql: [],
 				builder: {
 					queryData: [
 						baseBuilderQuery({
@@ -1009,7 +929,6 @@ describe('prepareQueryRangePayloadV5', () => {
 				queryType: EQueryType.QUERY_BUILDER,
 				id: 'q11',
 				unit: undefined,
-				clickhouse_sql: [],
 				builder: {
 					queryData: [
 						baseBuilderQuery({
@@ -1051,7 +970,6 @@ describe('prepareQueryRangePayloadV5', () => {
 				queryType: EQueryType.QUERY_BUILDER,
 				id: 'q12',
 				unit: undefined,
-				clickhouse_sql: [],
 				builder: {
 					queryData: [
 						baseBuilderQuery({
@@ -1083,7 +1001,6 @@ describe('prepareQueryRangePayloadV5', () => {
 				queryType: EQueryType.QUERY_BUILDER,
 				id: 'q13',
 				unit: undefined,
-				clickhouse_sql: [],
 				builder: {
 					queryData: [
 						baseBuilderQuery({

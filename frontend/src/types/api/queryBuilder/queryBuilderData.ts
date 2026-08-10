@@ -90,17 +90,9 @@ export type IBuilderQuery = {
 	source?: 'meter' | '';
 };
 
-export interface IClickHouseQuery {
-	name: string;
-	legend: string;
-	disabled: boolean;
-	query: string;
-}
-
 export interface Query {
 	queryType: EQueryType;
 	builder: QueryBuilderData;
-	clickhouse_sql: IClickHouseQuery[];
 	id: string;
 	unit?: Format['id'];
 	resultUnit?: Format['id'];
@@ -109,13 +101,12 @@ export interface Query {
 
 export type QueryState = Omit<Query, 'queryType'>;
 
-export type BuilderClickHouseResource = Record<string, IClickHouseQuery>;
 export type BuilderQueryDataResourse = Record<
 	string,
 	IBuilderQuery | IBuilderFormula
 >;
 
-export type MapData = IBuilderQuery | IBuilderFormula | IClickHouseQuery;
+export type MapData = IBuilderQuery | IBuilderFormula;
 
 export type MapQueryDataToApiResult<T> = {
 	data: T;

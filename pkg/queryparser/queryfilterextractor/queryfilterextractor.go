@@ -4,19 +4,6 @@
 // This is useful for metrics discovery, and query analysis.
 package queryfilterextractor
 
-import (
-	"github.com/SigNoz/signoz/pkg/errors"
-	"github.com/SigNoz/signoz/pkg/valuer"
-)
-
-type ExtractorType struct {
-	valuer.String
-}
-
-var (
-	ExtractorTypeClickHouseSQL = ExtractorType{valuer.NewString("qfe_ch")}
-)
-
 // ColumnInfo represents a column in the query
 type ColumnInfo struct {
 	Name        string
@@ -46,17 +33,4 @@ type FilterResult struct {
 	MetricNames []string
 	// GroupByColumns are the columns that are being grouped by
 	GroupByColumns []ColumnInfo
-}
-
-type FilterExtractor interface {
-	Extract(query string) (*FilterResult, error)
-}
-
-func NewExtractor(extractorType ExtractorType) (FilterExtractor, error) {
-	switch extractorType {
-	case ExtractorTypeClickHouseSQL:
-		return NewClickHouseFilterExtractor(), nil
-	default:
-		return nil, errors.NewInvalidInputf(errors.CodeInvalidInput, "invalid extractor type: %s", extractorType)
-	}
 }

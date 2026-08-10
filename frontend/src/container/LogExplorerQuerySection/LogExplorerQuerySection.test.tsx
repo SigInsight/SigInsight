@@ -160,7 +160,6 @@ const createMockQuery = (): Query => ({
 		],
 		queryFormulas: [],
 	},
-	clickhouse_sql: [],
 });
 
 describe('LogExplorerQuerySection', () => {

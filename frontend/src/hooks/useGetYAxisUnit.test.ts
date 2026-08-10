@@ -42,7 +42,6 @@ function createMockCurrentQuery(
 			queryData,
 			queryFormulas: [],
 		},
-		clickhouse_sql: [],
 		id: 'test-id',
 	};
 }
@@ -61,20 +60,6 @@ describe('useGetYAxisUnit', () => {
 	});
 
 	it('should return undefined yAxisUnit and not call useGetMetrics when currentQuery is null', async () => {
-		const { result } = renderHook(() => useGetYAxisUnit());
-
-		expect(result.current.yAxisUnit).toBeUndefined();
-		expect(result.current.isLoading).toBe(false);
-		expect(result.current.isError).toBe(false);
-		expect(mockUseGetMetrics).toHaveBeenCalledWith([], false);
-	});
-
-	it('should return undefined yAxisUnit when queryType is CLICKHOUSE', async () => {
-		const mockCurrentQuery = createMockCurrentQuery(EQueryType.CLICKHOUSE);
-		mockUseQueryBuilder.mockReturnValueOnce(({
-			currentQuery: mockCurrentQuery,
-		} as Partial<QueryBuilderContextType>) as QueryBuilderContextType);
-
 		const { result } = renderHook(() => useGetYAxisUnit());
 
 		expect(result.current.yAxisUnit).toBeUndefined();

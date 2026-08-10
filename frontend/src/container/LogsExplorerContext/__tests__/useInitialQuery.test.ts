@@ -72,7 +72,6 @@ describe('useInitialQuery - Priority-Based Resource Filtering', () => {
 			],
 			queryFormulas: [],
 		},
-		clickhouse_sql: [],
 	};
 
 	beforeEach(() => {

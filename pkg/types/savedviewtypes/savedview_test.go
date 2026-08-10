@@ -13,11 +13,11 @@ func validView() *View {
 	return &View{
 		CompositeQuery: &CompositeQuery{
 			Queries: []qbtypes.QueryEnvelope{{
-				Type: qbtypes.QueryTypeClickHouseSQL,
-				Spec: qbtypes.ClickHouseQuery{Name: "A", Query: "SELECT 1"},
+				Type: qbtypes.QueryTypeBuilder,
+				Spec: qbtypes.QueryBuilderQuery[qbtypes.LogAggregation]{Name: "A"},
 			}},
 			PanelType: PanelTypeTable,
-			QueryType: QueryTypeClickHouseSQL,
+			QueryType: QueryTypeBuilder,
 		},
 	}
 }

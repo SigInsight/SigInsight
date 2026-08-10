@@ -33,7 +33,7 @@ func TestRuleConditionIsValidRequiresV3Condition(t *testing.T) {
 	require.False(t, (*RuleCondition)(nil).IsValid())
 
 	condition := &RuleCondition{
-		CompositeQuery: &CompositeQuery{QueryType: querytypes.QueryTypeClickHouseSQL},
+		CompositeQuery: &CompositeQuery{QueryType: querytypes.QueryTypeBuilder},
 	}
 
 	require.False(t, condition.IsValid())
@@ -169,10 +169,13 @@ func TestValidateRejectsUnitsWithoutResultUnit(t *testing.T) {
 
 func v5CompositeQuery(name string) *CompositeQuery {
 	return &CompositeQuery{
-		QueryType: querytypes.QueryTypeClickHouseSQL,
+		QueryType: querytypes.QueryTypeBuilder,
 		Queries: []qbtypes.QueryEnvelope{{
-			Type: qbtypes.QueryTypeClickHouseSQL,
-			Spec: qbtypes.ClickHouseQuery{Name: name, Query: "SELECT 1"},
+			Type: qbtypes.QueryTypeBuilder,
+			Spec: qbtypes.QueryBuilderQuery[qbtypes.LogAggregation]{
+				Name:         name,
+				Aggregations: []qbtypes.LogAggregation{{Expression: "count()"}},
+			},
 		}},
 	}
 }

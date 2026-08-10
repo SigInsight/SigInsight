@@ -46,7 +46,6 @@ describe('drilldownUtils', () => {
 					],
 					queryFormulas: [],
 				},
-				clickhouse_sql: [],
 			};
 
 			const result = getQueryData(mockQuery, 'query2');
@@ -76,7 +75,6 @@ describe('drilldownUtils', () => {
 					],
 					queryFormulas: [],
 				},
-				clickhouse_sql: [],
 			};
 
 			const result = getQueryData(mockQuery, 'nonexistent');
@@ -129,7 +127,6 @@ describe('drilldownUtils', () => {
 				],
 				queryFormulas: [],
 			},
-			clickhouse_sql: [],
 		};
 
 		const mockFilters = [
