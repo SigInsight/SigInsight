@@ -249,6 +249,18 @@ export function createAggregation(
 			panelType === PANEL_TYPES.VALUE);
 
 	if (queryData.dataSource === DataSource.METRICS) {
+		const isExplicitHistogram =
+			String(queryData?.aggregateAttribute?.type).toLowerCase() === 'histogram';
+		const nestedTimeAggregation = queryData?.aggregations?.[0]?.timeAggregation;
+		const timeAggregation = isExplicitHistogram
+			? nestedTimeAggregation ?? queryData?.timeAggregation
+			: nestedTimeAggregation || queryData?.timeAggregation;
+		const spaceAggregation =
+			queryData?.aggregations?.[0]?.spaceAggregation ||
+			queryData?.spaceAggregation;
+		const isSupportedHistogramPercentile = ['p50', 'p90', 'p95', 'p99'].includes(
+			spaceAggregation,
+		);
 		const aggregation: MetricAggregation = {
 			metricName:
 				queryData?.aggregations?.[0]?.metricName ||
@@ -257,10 +269,12 @@ export function createAggregation(
 				queryData?.aggregations?.[0]?.temporality ||
 				queryData?.aggregateAttribute?.temporality,
 			timeAggregation:
-				queryData?.aggregations?.[0]?.timeAggregation || queryData?.timeAggregation,
-			spaceAggregation:
-				queryData?.aggregations?.[0]?.spaceAggregation ||
-				queryData?.spaceAggregation,
+				isExplicitHistogram &&
+				isSupportedHistogramPercentile &&
+				(!timeAggregation || timeAggregation === 'noop')
+					? 'count'
+					: timeAggregation,
+			spaceAggregation,
 			reduceTo: haveReduceTo
 				? queryData?.aggregations?.[0]?.reduceTo || queryData?.reduceTo
 				: undefined,

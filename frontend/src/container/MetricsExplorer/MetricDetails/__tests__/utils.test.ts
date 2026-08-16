@@ -142,8 +142,12 @@ describe('MetricDetails utils', () => {
 				ATTRIBUTE_TYPES.HISTOGRAM,
 			);
 			expect(query.builder.queryData[0]?.aggregateOperator).toBe('noop');
-			expect(query.builder.queryData[0]?.timeAggregation).toBe('noop');
+			expect(query.builder.queryData[0]?.timeAggregation).toBe('count');
 			expect(query.builder.queryData[0]?.spaceAggregation).toBe('p90');
+			expect(query.builder.queryData[0]?.aggregations?.[0]).toMatchObject({
+				timeAggregation: 'count',
+				spaceAggregation: 'p90',
+			});
 		});
 
 		it('should create correct query for EXPONENTIAL_HISTOGRAM metric type', () => {

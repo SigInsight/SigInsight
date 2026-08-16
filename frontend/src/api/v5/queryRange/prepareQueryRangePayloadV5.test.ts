@@ -251,6 +251,52 @@ describe('prepareQueryRangePayloadV5', () => {
 		expect(builderSpec.stepInterval).toBe(DefaultStepSize);
 	});
 
+	it.each(['', 'noop'])(
+		'normalizes Histogram %s time aggregation to the lightweight percentile contract',
+		(timeAggregation) => {
+			const result = prepareQueryRangePayloadV5({
+				query: {
+					queryType: EQueryType.QUERY_BUILDER,
+					id: 'q-histogram-percentile',
+					builder: {
+						queryData: [
+							baseBuilderQuery({
+								aggregateAttribute: {
+									key: 'http.server.request.duration.bucket',
+									type: 'Histogram',
+									dataType: DataTypes.String,
+								},
+								aggregations: [
+									{
+										metricName: 'http.server.request.duration.bucket',
+										temporality: '',
+										timeAggregation: timeAggregation as never,
+										spaceAggregation: 'p90',
+									},
+								],
+							}),
+						],
+						queryFormulas: [],
+					},
+				},
+				graphType: PANEL_TYPES.TIME_SERIES,
+				selectedTime: 'GLOBAL_TIME',
+				start,
+				end,
+			});
+
+			const spec = result.queryPayload.compositeQuery.queries[0]
+				.spec as MetricBuilderQuery;
+			expect(spec.aggregations).toEqual([
+				expect.objectContaining({
+					metricName: 'http.server.request.duration.bucket',
+					timeAggregation: 'count',
+					spaceAggregation: 'p90',
+				}),
+			]);
+		},
+	);
+
 	it('uses getStartEndRangeTime when start/end are not provided', () => {
 		const props: GetQueryResultsProps = {
 			query: {
