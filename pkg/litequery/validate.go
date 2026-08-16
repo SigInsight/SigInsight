@@ -194,12 +194,43 @@ func validateQuery(query Query) error {
 	case TraceQuery:
 		return validateTraceQuery(current)
 	case MetricQuery:
-		return validateMetricQuery(current.Aggregation, false)
+		if err := validateMetricQuery(current.Aggregation, false); err != nil {
+			return err
+		}
+		if current.Aggregation.Type == MetricHistogram &&
+			!isHistogramQuantile(current.Aggregation.SpaceAggregation) &&
+			!hasSingleHistogramBucket(current.Common.Filter) {
+			return newError(ErrorInvalidAggregation, "query.filter", "histogram bucket aggregation requires an exact single-value le filter")
+		}
+		return nil
 	case MeterQuery:
 		return validateMetricQuery(current.Aggregation, true)
 	default:
 		return newError(ErrorUnsupported, "query", "unsupported query implementation %T", query)
 	}
+}
+
+func hasSingleHistogramBucket(node FilterNode) bool {
+	switch current := node.(type) {
+	case Predicate:
+		if current.Field.Name != "le" || current.Field.Context != FieldContextLabel {
+			return false
+		}
+		if current.Op == FilterEqual {
+			return current.Value.Kind == ValueString && current.Value.String != ""
+		}
+		return current.Op == FilterIn && current.Value.Kind == ValueStringList && len(current.Value.Strings) == 1
+	case LogicalFilter:
+		if current.Operator != BooleanAnd {
+			return false
+		}
+		for _, item := range current.Items {
+			if hasSingleHistogramBucket(item) {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func validateLogQuery(query LogQuery) error {
@@ -264,11 +295,20 @@ func validateMetricQuery(aggregation MetricAggregation, meter bool) error {
 		if aggregation.Temporality != TemporalityDelta && aggregation.Temporality != TemporalityCumulative {
 			return newError(ErrorInvalidAggregation, "query.temporality", "histogram metrics require delta or cumulative temporality")
 		}
-		if aggregation.TimeAggregation != TimeAggregateCount {
-			return newError(ErrorInvalidAggregation, "query.timeAggregation", "histogram percentiles require count time aggregation")
+		if isHistogramQuantile(aggregation.SpaceAggregation) {
+			if aggregation.TimeAggregation != TimeAggregateCount {
+				return newError(ErrorInvalidAggregation, "query.timeAggregation", "histogram percentiles require count time aggregation")
+			}
+			break
 		}
-		if !isHistogramQuantile(aggregation.SpaceAggregation) {
-			return newError(ErrorInvalidAggregation, "query.spaceAggregation", "histograms support p50, p90, p95, or p99")
+		// A filter on `le` turns an explicit bucket series into a regular
+		// counter. This is the bounded operation used by Apdex and is distinct
+		// from reconstructing a percentile across all buckets.
+		if aggregation.TimeAggregation != TimeAggregateSum && aggregation.TimeAggregation != TimeAggregateRate && aggregation.TimeAggregation != TimeAggregateIncrease && aggregation.TimeAggregation != TimeAggregateCount && aggregation.TimeAggregation != TimeAggregateAvg {
+			return newError(ErrorInvalidAggregation, "query.timeAggregation", "unsupported histogram bucket time aggregation %q", aggregation.TimeAggregation)
+		}
+		if !isBasicSpaceAggregation(aggregation.SpaceAggregation) {
+			return newError(ErrorInvalidAggregation, "query.spaceAggregation", "unsupported histogram bucket space aggregation %q", aggregation.SpaceAggregation)
 		}
 	default:
 		return newError(ErrorUnsupported, "query.type", "unsupported metric type %q", aggregation.Type)

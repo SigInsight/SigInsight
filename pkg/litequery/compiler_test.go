@@ -687,6 +687,32 @@ func TestCompilerAggregatesDeltaHistogramPointsWithinBucket(t *testing.T) {
 	}
 }
 
+func TestCompilerTreatsFilteredHistogramBucketAsCounterSeries(t *testing.T) {
+	le := FieldRef{Name: "le", Context: FieldContextLabel, Type: ValueTypeString}
+	statement := compileOne(t, Request{
+		Range: TimeRange{StartMS: 1_000, EndMS: 61_000}, ResultType: ResultTimeSeries, StepMS: 60_000,
+		Queries: []Query{MetricQuery{Common: CommonQuery{
+			Name:   "satisfied",
+			Filter: Predicate{Field: le, Op: FilterEqual, Value: Value{Kind: ValueString, String: "500"}},
+		}, Aggregation: MetricAggregation{
+			MetricName: "signoz_latency.bucket", Type: MetricHistogram, Temporality: TemporalityDelta,
+			TimeAggregation: TimeAggregateRate, SpaceAggregation: SpaceAggregateSum,
+		}}},
+	})
+	for _, fragment := range []string{"type = ?", "sum(points.value) AS bucket_value", "bucket_value / (? / 1000.0)", "sum(per_series_value) AS value"} {
+		if !strings.Contains(statement.SQL, fragment) {
+			t.Fatalf("histogram bucket SQL does not contain %q:\n%s", fragment, statement.SQL)
+		}
+	}
+	if strings.Contains(statement.SQL, "quantileExactWeighted") {
+		t.Fatalf("filtered histogram bucket unexpectedly uses percentile compilation:\n%s", statement.SQL)
+	}
+	wantPrefix := []any{"signoz_latency.bucket", "Histogram", "Delta", false, "le", "le", "500"}
+	if !reflect.DeepEqual(statement.Args[:len(wantPrefix)], wantPrefix) {
+		t.Fatalf("Args prefix = %#v, want %#v", statement.Args[:len(wantPrefix)], wantPrefix)
+	}
+}
+
 func TestCompilerCompilesMeterWithoutMetricMetadataJoin(t *testing.T) {
 	statement := compileOne(t, Request{
 		Range: TimeRange{StartMS: 1_000, EndMS: 2_000}, ResultType: ResultTimeSeries, StepMS: 1_000,

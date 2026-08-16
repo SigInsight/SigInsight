@@ -12,8 +12,8 @@ pipeline 的前提下，提供 Gauge、Sum、explicit Histogram 与 Meter 所需
 
 ## 范围
 
-- `samples_v4 + time_series_v4` 的 Metrics source、label/resource/scope/attribute filters。
-- `siginsight_meter.samples` 的 Meter source 和 label filters。
+- `metric_points + metric_series` 的 Metrics source、label/resource/scope/attribute filters。
+- `siginsight_meter.meter_points` 的 Meter source 和 label filters。
 - 受约束的 time/space aggregation，Sum/Meter 的 rate/increase，explicit Histogram
   p50/p90/p95/p99。
 - 固定原始表的参数化 SQL、golden tests 和 ClickHouse 25.5.6 真实执行测试。
@@ -35,8 +35,8 @@ pipeline 的前提下，提供 Gauge、Sum、explicit Histogram 与 Meter 所需
 
 ## 实现结果
 
-- `Catalog.MetricSource` 固定了 Metrics 的 `samples_v4/time_series_v4` 与 Meter 的
-  `samples` 物理边界；Compiler 不再选择旧聚合表或 distributed 表。
+- `Catalog.MetricSource` 固定了 Metrics 的 `metric_points/metric_series` 与 Meter 的
+  `meter_points` 物理边界；Compiler 不再选择旧聚合表或 distributed 表。
 - Metrics series CTE 将 label、attrs、scope attrs、resource attrs 绑定到 fingerprint，
   再以 `samples_v4` 做 per-series time aggregation 和 space aggregation。Meter 通过
   同表 JSON labels 走同一套 statement contract。
@@ -47,6 +47,10 @@ pipeline 的前提下，提供 Gauge、Sum、explicit Histogram 与 Meter 所需
   不复用服务端不存在的 `histogramQuantile`。
 - Histogram 从 metadata 恢复 Delta/Cumulative temporality；Delta 点在查询 bucket 内求和，
   Cumulative 点取最后快照后再跨 bucket 求差，避免把 Delta 数据误按 Cumulative 查询。
+- Service Apdex 所需的单 `le` Histogram bucket 支持基础 rate/sum 空间聚合；没有精确
+  单 bucket 条件时明确拒绝，避免累计 bucket 重复计数。
+- 启用公式引用的隐藏 builder 会进入 metadata 和执行依赖闭包，但不进入 V5 响应；无关
+  disabled 查询仍被裁剪。
 - scalar counter 也按原始点时间排序后计算差值，避免把整个范围错误折叠为一个 latest 值。
 
 ## 验证结果
@@ -67,6 +71,10 @@ tests/integration/scripts/run-litequery-compiler-integration.sh
 2026-08-01 补充执行真实 Collector 协作脚本。除 Gauge、Cumulative Sum 和 Meter 外，
 ClickHouse 25.5.6 集成用例同时覆盖 Delta/Cumulative explicit Histogram 的实际 SQL，协作
 脚本确认当前 Collector 写入的 Metrics/Meter 可经认证 V5 API 读回。
+
+2026-08-16 使用 Collector v2.0.1 的真实 ClickHouse 25.5.6 数据补充 Service Detail
+协作验证：Latency、Operations、Apdex、Error Percentage、DB Call duration、External
+Call error/duration/by-address 均通过认证 V5 API 返回 200；公式响应仅包含可见公式结果。
 
 ## 残余风险与后续任务
 

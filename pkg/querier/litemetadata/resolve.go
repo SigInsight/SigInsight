@@ -51,9 +51,10 @@ func Resolve(ctx context.Context, store telemetrytypes.MetadataStore, request *q
 func unresolvedMetricNames(request *qbtypes.QueryRangeRequest) []string {
 	names := make([]string, 0)
 	seen := make(map[string]struct{})
+	requiredBuilders := liteadapter.RequiredBuilderNames(request)
 	for _, envelope := range request.CompositeQuery.Queries {
 		query, ok := envelope.Spec.(qbtypes.QueryBuilderQuery[qbtypes.MetricAggregation])
-		if !ok || query.Disabled {
+		if !ok || (query.Disabled && !requiredBuilders[query.Name]) {
 			continue
 		}
 		for _, aggregation := range query.Aggregations {

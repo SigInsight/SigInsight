@@ -49,6 +49,93 @@ func TestToLiteConvertsStructuredLogFilter(t *testing.T) {
 	}
 }
 
+func TestToLiteExecutesHiddenFormulaDependencyClosure(t *testing.T) {
+	step := qbtypes.Step{Duration: time.Minute}
+	request := &qbtypes.QueryRangeRequest{
+		Start: 1_000, End: 61_000, RequestType: qbtypes.RequestTypeTimeSeries,
+		CompositeQuery: qbtypes.CompositeQuery{Queries: []qbtypes.QueryEnvelope{
+			{
+				Type: qbtypes.QueryTypeBuilder,
+				Spec: qbtypes.QueryBuilderQuery[qbtypes.LogAggregation]{
+					Name: "A", Disabled: true, Signal: telemetrytypes.SignalLogs, StepInterval: step,
+					Aggregations: []qbtypes.LogAggregation{{Expression: "count()"}},
+				},
+			},
+			{
+				Type: qbtypes.QueryTypeBuilder,
+				Spec: qbtypes.QueryBuilderQuery[qbtypes.LogAggregation]{
+					Name: "B", Disabled: true, Signal: telemetrytypes.SignalLogs, StepInterval: step,
+					Aggregations: []qbtypes.LogAggregation{{Expression: "count()"}},
+				},
+			},
+			{
+				Type: qbtypes.QueryTypeBuilder,
+				Spec: qbtypes.QueryBuilderQuery[qbtypes.TraceAggregation]{
+					Name: "retired", Disabled: true, Signal: telemetrytypes.SignalTraces,
+					Functions: []qbtypes.Function{{Name: qbtypes.FunctionNameEWMA3}},
+				},
+			},
+			{
+				Type: qbtypes.QueryTypeFormula,
+				Spec: qbtypes.QueryBuilderFormula{Name: "F0", Expression: "A + B", Disabled: true},
+			},
+			{
+				Type: qbtypes.QueryTypeFormula,
+				Spec: qbtypes.QueryBuilderFormula{Name: "F1", Expression: "F0 / 2"},
+			},
+		}},
+	}
+
+	converted, err := ToLite(request, MetricMetadata{})
+	if err != nil {
+		t.Fatalf("ToLite() error = %v", err)
+	}
+	if converted.StepMS != int64(time.Minute/time.Millisecond) {
+		t.Fatalf("StepMS = %d", converted.StepMS)
+	}
+	if len(converted.Queries) != 2 || converted.Queries[0].GetCommon().Name != "A" || converted.Queries[1].GetCommon().Name != "B" {
+		t.Fatalf("queries = %#v, want hidden dependencies A and B only", converted.Queries)
+	}
+	if len(converted.Formulas) != 2 || converted.Formulas[0].Name != "F0" || converted.Formulas[1].Name != "F1" {
+		t.Fatalf("formulas = %#v, want hidden F0 and visible F1", converted.Formulas)
+	}
+}
+
+func TestFromLiteHidesFormulaDependenciesFromResponse(t *testing.T) {
+	step := qbtypes.Step{Duration: time.Minute}
+	request := &qbtypes.QueryRangeRequest{
+		Start: 1_000, End: 61_000, RequestType: qbtypes.RequestTypeTimeSeries,
+		FormatOptions: &qbtypes.FormatOptions{FillGaps: true},
+		CompositeQuery: qbtypes.CompositeQuery{Queries: []qbtypes.QueryEnvelope{
+			{Type: qbtypes.QueryTypeBuilder, Spec: qbtypes.QueryBuilderQuery[qbtypes.LogAggregation]{Name: "retired", Disabled: true, StepInterval: qbtypes.Step{Duration: 5 * time.Minute}}},
+			{Type: qbtypes.QueryTypeBuilder, Spec: qbtypes.QueryBuilderQuery[qbtypes.LogAggregation]{Name: "A", Disabled: true, StepInterval: step}},
+			{Type: qbtypes.QueryTypeBuilder, Spec: qbtypes.QueryBuilderQuery[qbtypes.LogAggregation]{Name: "B", Disabled: true, StepInterval: step}},
+			{Type: qbtypes.QueryTypeFormula, Spec: qbtypes.QueryBuilderFormula{Name: "F0", Expression: "A + B", Disabled: true}},
+			{Type: qbtypes.QueryTypeFormula, Spec: qbtypes.QueryBuilderFormula{Name: "F1", Expression: "F0 / 2"}},
+		}},
+	}
+	columns := []litequery.ResultColumn{{Name: "timestamp"}, {Name: "value"}}
+	response, err := FromLite(request, litequery.ExecutionResult{Queries: []litequery.QueryResult{
+		{Name: "A", Columns: columns, Rows: [][]any{{int64(1_000), float64(2)}}},
+		{Name: "B", Columns: columns, Rows: [][]any{{int64(1_000), float64(4)}}},
+		{Name: "F0", Columns: columns, Rows: [][]any{{int64(1_000), float64(6)}}},
+		{Name: "F1", Columns: columns, Rows: [][]any{{int64(1_000), float64(3)}}},
+	}})
+	if err != nil {
+		t.Fatalf("FromLite() error = %v", err)
+	}
+	if len(response.Data.Results) != 1 {
+		t.Fatalf("results = %#v, want only visible formula F1", response.Data.Results)
+	}
+	result, ok := response.Data.Results[0].(*qbtypes.TimeSeriesData)
+	if !ok || result.QueryName != "F1" {
+		t.Fatalf("result = %#v, want F1", response.Data.Results[0])
+	}
+	if response.Meta.StepIntervals["F1"] != 60 {
+		t.Fatalf("formula step = %d, want hidden dependency step", response.Meta.StepIntervals["F1"])
+	}
+}
+
 func TestToLiteConvertsTypedInFilters(t *testing.T) {
 	metadata := MetricMetadata{FieldKeys: map[string][]*telemetrytypes.TelemetryFieldKey{
 		"http.status_code": {{Name: "http.status_code", Signal: telemetrytypes.SignalLogs, FieldContext: telemetrytypes.FieldContextAttribute, FieldDataType: telemetrytypes.FieldDataTypeNumber}},

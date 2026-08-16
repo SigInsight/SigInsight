@@ -51,7 +51,7 @@ export const latency = ({
 			? signozLatencyBucketMetrics
 			: WidgetKeys.DurationNano,
 		dataType: DataTypes.Float64,
-		type: isSpanMetricEnable ? '' : MetricsType.Tag,
+		type: isSpanMetricEnable ? '' : MetricsType.Span,
 	};
 
 	const autocompleteData = Array(3).fill(newAutoCompleteData);
@@ -62,7 +62,7 @@ export const latency = ({
 			key: {
 				key: isSpanMetricEnable ? signozMetricsServiceName : WidgetKeys.ServiceName,
 				dataType: DataTypes.String,
-				type: isSpanMetricEnable ? MetricsType.Resource : MetricsType.Tag,
+				type: MetricsType.Resource,
 			},
 			op: isSpanMetricEnable ? OPERATORS.IN : OPERATORS['='],
 			value: isSpanMetricEnable ? [servicename] : servicename,
@@ -72,7 +72,7 @@ export const latency = ({
 			key: {
 				dataType: DataTypes.String,
 				key: isSpanMetricEnable ? WidgetKeys.Operation : WidgetKeys.Name,
-				type: MetricsType.Tag,
+				type: isSpanMetricEnable ? MetricsType.Tag : MetricsType.Span,
 			},
 			op: OPERATORS.IN.toLowerCase(), // TODO: need to remove toLowerCase() this once backend is changed
 			value: [...topLevelOperationsRoute],
@@ -101,6 +101,11 @@ export const latency = ({
 
 	return getQueryBuilderQueries({
 		autocompleteData,
+		aggregationExpressions: isSpanMetricEnable
+			? undefined
+			: LATENCY_AGGREGATEOPERATOR.map(
+					(operator) => `${operator}(${WidgetKeys.DurationNano})`,
+			  ),
 		legends,
 		filterItems,
 		aggregateOperator,
@@ -141,7 +146,7 @@ export const apDexTracesQueryBuilderQueries = ({
 			key: {
 				key: WidgetKeys.ServiceName,
 				dataType: DataTypes.String,
-				type: MetricsType.Tag,
+				type: MetricsType.Resource,
 			},
 			op: OPERATORS['='],
 			value: servicename,
@@ -151,7 +156,7 @@ export const apDexTracesQueryBuilderQueries = ({
 			key: {
 				key: WidgetKeys.Name,
 				dataType: DataTypes.String,
-				type: MetricsType.Tag,
+				type: MetricsType.Span,
 			},
 			op: OPERATORS.IN,
 			value: [...topLevelOperationsRoute],
@@ -165,7 +170,7 @@ export const apDexTracesQueryBuilderQueries = ({
 			key: {
 				key: WidgetKeys.HasError,
 				dataType: DataTypes.bool,
-				type: MetricsType.Tag,
+				type: MetricsType.Span,
 			},
 			op: OPERATORS['='],
 			value: false,
@@ -175,7 +180,7 @@ export const apDexTracesQueryBuilderQueries = ({
 			key: {
 				key: WidgetKeys.DurationNano,
 				dataType: DataTypes.Float64,
-				type: MetricsType.Tag,
+				type: MetricsType.Span,
 			},
 			op: OPERATORS['<='],
 			value: convertMilSecToNanoSec(threashold),
@@ -185,7 +190,7 @@ export const apDexTracesQueryBuilderQueries = ({
 			key: {
 				key: WidgetKeys.ServiceName,
 				dataType: DataTypes.String,
-				type: MetricsType.Tag,
+				type: MetricsType.Resource,
 			},
 			op: OPERATORS['='],
 			value: servicename,
@@ -195,7 +200,7 @@ export const apDexTracesQueryBuilderQueries = ({
 			key: {
 				key: WidgetKeys.Name,
 				dataType: DataTypes.String,
-				type: MetricsType.Tag,
+				type: MetricsType.Span,
 			},
 			op: OPERATORS.IN,
 			value: [...topLevelOperationsRoute],
@@ -208,7 +213,7 @@ export const apDexTracesQueryBuilderQueries = ({
 			key: {
 				key: WidgetKeys.DurationNano,
 				dataType: DataTypes.Float64,
-				type: MetricsType.Tag,
+				type: MetricsType.Span,
 			},
 			op: OPERATORS['<='],
 			value: convertMilSecToNanoSec(threashold * 4),
@@ -218,7 +223,7 @@ export const apDexTracesQueryBuilderQueries = ({
 			key: {
 				key: WidgetKeys.HasError,
 				dataType: DataTypes.bool,
-				type: MetricsType.Tag,
+				type: MetricsType.Span,
 			},
 			op: OPERATORS['='],
 			value: false,
@@ -228,7 +233,7 @@ export const apDexTracesQueryBuilderQueries = ({
 			key: {
 				key: WidgetKeys.ServiceName,
 				dataType: DataTypes.String,
-				type: MetricsType.Tag,
+				type: MetricsType.Resource,
 			},
 			op: OPERATORS['='],
 			value: servicename,
@@ -238,7 +243,7 @@ export const apDexTracesQueryBuilderQueries = ({
 			key: {
 				key: WidgetKeys.Name,
 				dataType: DataTypes.String,
-				type: MetricsType.Tag,
+				type: MetricsType.Span,
 			},
 			op: OPERATORS.IN,
 			value: [...topLevelOperationsRoute],
@@ -576,7 +581,7 @@ export const errorPercentage = ({
 			id: '',
 			key: {
 				key: dotMetricsEnabled ? WidgetKeys.StatusCode : WidgetKeys.StatusCodeNorm,
-				dataType: DataTypes.Int64,
+				dataType: DataTypes.String,
 				type: MetricsType.Tag,
 			},
 			op: OPERATORS.IN,
