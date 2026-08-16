@@ -6,7 +6,7 @@
 </h1>
 
 
-<p align="center">监控你的应用，并且可排查已部署应用的问题，这是一个可替代 DataDog、NewRelic 的开源方案</p>
+<p align="center">监控并排查已部署应用的问题，这是一个可替代 DataDog 的轻量化开源方案。本项目基于Signoz二次开发，重新设计查询引擎&存储架构。</p>
 </p>
 
 
@@ -25,39 +25,32 @@ SigInsight 帮助开发人员监控应用并排查已部署应用的问题。你
 
 👉 你可以找到问题的根因，通过提取相关问题的 traces 日志、单独查看请求 traces 的火焰图详情。
 
-👉 执行 trace 数据聚合，以获取业务相关的 metrics
+👉 执行 trace 数据聚合，以获取业务相关的 logs
 
 👉 对日志过滤和查询，通过日志的属性建立看板和告警
-
-👉 通过 Python，java，Ruby 和 Javascript 自动记录异常
 
 👉 轻松的自定义查询和设置告警
 
 ### 应用 Metrics 展示
 
-![application_metrics](https://user-images.githubusercontent.com/83692067/226637410-900dbc5e-6705-4b11-a10c-bd0faeb2a92f.png)
+<img width="2810" height="1632" alt="image" src="https://github.com/user-attachments/assets/02ebe217-c70a-4669-adf5-7683d583d138" />
 
 ### 分布式追踪
 
-<img width="2068" alt="distributed_tracing_2 2" src="https://user-images.githubusercontent.com/83692067/226536447-bae58321-6a22-4ed3-af80-e3e964cb3489.png">
-
-<img width="2068" alt="distributed_tracing_1" src="https://user-images.githubusercontent.com/83692067/226536462-939745b6-4f9d-45a6-8016-814837e7f7b4.png">
+<img width="2816" height="1640" alt="image" src="https://github.com/user-attachments/assets/6acea12b-45ac-4f6a-b73a-0716c13990b7" />
+<img width="2840" height="1640" alt="image" src="https://github.com/user-attachments/assets/3caeb3d7-0f8b-476f-8d81-75032e5083aa" />
 
 ### 日志管理
+<img width="2822" height="1588" alt="image" src="https://github.com/user-attachments/assets/4cbce008-d340-4d76-a4d5-bbc0a854a2f1" />
 
-<img width="2068" alt="logs_management" src="https://user-images.githubusercontent.com/83692067/226536482-b8a5c4af-b69c-43d5-969c-338bd5eaf1a5.png">
-
-### 基础设施监控
-
-<img width="2068" alt="infrastructure_monitoring" src="https://user-images.githubusercontent.com/83692067/226536496-f38c4dbf-e03c-4158-8be0-32d4a61158c7.png">
 
 ### 异常监控
-
-![exceptions_light](https://user-images.githubusercontent.com/83692067/226637967-4188d024-3ac9-4799-be95-f5ea9c45436f.png)
+<img width="2822" height="1588" alt="image" src="https://github.com/user-attachments/assets/d568a35d-85e6-4b86-bae8-6ed9c2b374b0" />
 
 ### 告警
+<img width="2822" height="1622" alt="image" src="https://github.com/user-attachments/assets/dd7d635d-5e32-421d-bace-e750cd49d8bb" />
 
-<img width="2068" alt="alerts_management" src="https://user-images.githubusercontent.com/83692067/226536548-2c81e2e8-c12d-47e8-bad7-c6be79055def.png">
+<img width="2790" height="1636" alt="image" src="https://github.com/user-attachments/assets/eeceefc6-c78e-47de-a795-a760a8952c24" />
 
 <br /><br />
 
@@ -95,7 +88,7 @@ SigInsight 帮助开发人员监控应用并排查已部署应用的问题。你
 
 ### 支持的编程语言:
 
-我们支持 [OpenTelemetry](https://opentelemetry.io)。作为一个观测你应用的库文件。所以任何 OpenTelemetry 支持的框架和语言，对于 SigInsight 也同样支持。 一些主要支持的语言如下：
+支持 [OpenTelemetry](https://opentelemetry.io)。任何 OpenTelemetry 支持的框架和语言，对于 SigInsight 也同样支持。 一些主要支持的语言如下：
 
 - Java
 - Python
@@ -175,17 +168,3 @@ SigInsight 适用于高基数日志查询和聚合。
 
 <br /><br />
 
-
-## 文档
-
-部署说明请查看 [deploy/README.md](deploy/README.md)。如需帮助或报告问题，请提交 [GitHub Issue](https://github.com/SigInsight/SigInsight/issues)。
-
-<br /><br />
-
-## 社区
-
-不管怎么样，感谢这个项目的所有贡献者!
-
-<a href="https://github.com/SigInsight/SigInsight/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=SigInsight/SigInsight" />
-</a>
