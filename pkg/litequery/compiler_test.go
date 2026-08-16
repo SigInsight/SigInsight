@@ -407,7 +407,7 @@ func TestCompilerCompilesRawAndTraceOffsets(t *testing.T) {
 			request: Request{Range: TimeRange{StartMS: 1, EndMS: 2}, ResultType: ResultRaw, Queries: []Query{LogQuery{
 				Common: CommonQuery{Name: "logs", Limit: 20, Offset: 100}, Aggregation: LogAggregateCount,
 			}}},
-			wantSQL:  "SELECT timestamp AS field_0, id AS field_1, severity_text AS field_2, body AS field_3, trace_id AS field_4, span_id AS field_5 FROM siginsight_logs.logs WHERE siginsight_logs.logs.timestamp >= toUInt64(?) AND siginsight_logs.logs.timestamp < toUInt64(?) ORDER BY timestamp DESC, id DESC LIMIT ? OFFSET ?",
+			wantSQL:  "SELECT timestamp AS field_0, id AS field_1, severity_text AS field_2, body AS field_3, trace_id AS field_4, span_id AS field_5, severity_number AS field_6, trace_flags AS field_7, attributes_string AS field_8, attributes_number AS field_9, attributes_bool AS field_10, resources_string AS field_11, scope_name AS field_12, scope_version AS field_13, scope_string AS field_14 FROM siginsight_logs.logs WHERE siginsight_logs.logs.timestamp >= toUInt64(?) AND siginsight_logs.logs.timestamp < toUInt64(?) ORDER BY timestamp DESC, id DESC LIMIT ? OFFSET ?",
 			wantArgs: []any{int64(1_000_000), int64(2_000_000), uint32(21), uint32(100)},
 		},
 		{
@@ -433,6 +433,31 @@ func TestCompilerCompilesRawAndTraceOffsets(t *testing.T) {
 				t.Fatalf("trace offset statement = %#v", statement)
 			}
 		})
+	}
+}
+
+func TestCompilerProjectsLogDetailTransportFieldsForDefaultRawResults(t *testing.T) {
+	statement := compileOne(t, Request{
+		Range:      TimeRange{StartMS: 1, EndMS: 2},
+		ResultType: ResultRaw,
+		Queries: []Query{LogQuery{
+			Common:      CommonQuery{Name: "logs"},
+			Aggregation: LogAggregateCount,
+		}},
+	})
+
+	wantFields := []string{
+		"timestamp", "id", "severity_text", "body", "trace_id", "span_id",
+		"severity_number", "trace_flags", "attributes_string", "attributes_number",
+		"attributes_bool", "resources_string", "scope_name", "scope_version", "scope_string",
+	}
+	if len(statement.Columns) != len(wantFields) {
+		t.Fatalf("columns = %#v, want %d columns", statement.Columns, len(wantFields))
+	}
+	for index, want := range wantFields {
+		if statement.Columns[index].Field == nil || statement.Columns[index].Field.Name != want {
+			t.Fatalf("column %d = %#v, want field %q", index, statement.Columns[index], want)
+		}
 	}
 }
 
@@ -554,7 +579,7 @@ func TestCompilerCompilesTypedLiveLogCursor(t *testing.T) {
 			After: &RawLogCursor{TimestampNS: 1_500_000, ID: "last"},
 		}, Aggregation: LogAggregateCount}},
 	})
-	wantSQL := "SELECT timestamp AS field_0, id AS field_1, severity_text AS field_2, body AS field_3, trace_id AS field_4, span_id AS field_5 FROM siginsight_logs.logs WHERE (siginsight_logs.logs.timestamp >= toUInt64(?) AND siginsight_logs.logs.timestamp < toUInt64(?)) AND ((timestamp > toUInt64(?)) OR (timestamp = toUInt64(?) AND id > ?)) ORDER BY timestamp ASC, id ASC LIMIT ?"
+	wantSQL := "SELECT timestamp AS field_0, id AS field_1, severity_text AS field_2, body AS field_3, trace_id AS field_4, span_id AS field_5, severity_number AS field_6, trace_flags AS field_7, attributes_string AS field_8, attributes_number AS field_9, attributes_bool AS field_10, resources_string AS field_11, scope_name AS field_12, scope_version AS field_13, scope_string AS field_14 FROM siginsight_logs.logs WHERE (siginsight_logs.logs.timestamp >= toUInt64(?) AND siginsight_logs.logs.timestamp < toUInt64(?)) AND ((timestamp > toUInt64(?)) OR (timestamp = toUInt64(?) AND id > ?)) ORDER BY timestamp ASC, id ASC LIMIT ?"
 	wantArgs := []any{int64(1_000_000), int64(2_000_000), uint64(1_500_000), uint64(1_500_000), "last", uint32(101)}
 	assertStatement(t, statement, wantSQL, wantArgs)
 }
@@ -659,6 +684,32 @@ func TestCompilerAggregatesDeltaHistogramPointsWithinBucket(t *testing.T) {
 	}
 	if strings.Contains(statement.SQL, "row_number() OVER histogram_window") {
 		t.Fatalf("delta histogram SQL unexpectedly differences buckets:\n%s", statement.SQL)
+	}
+}
+
+func TestCompilerTreatsFilteredHistogramBucketAsCounterSeries(t *testing.T) {
+	le := FieldRef{Name: "le", Context: FieldContextLabel, Type: ValueTypeString}
+	statement := compileOne(t, Request{
+		Range: TimeRange{StartMS: 1_000, EndMS: 61_000}, ResultType: ResultTimeSeries, StepMS: 60_000,
+		Queries: []Query{MetricQuery{Common: CommonQuery{
+			Name:   "satisfied",
+			Filter: Predicate{Field: le, Op: FilterEqual, Value: Value{Kind: ValueString, String: "500"}},
+		}, Aggregation: MetricAggregation{
+			MetricName: "signoz_latency.bucket", Type: MetricHistogram, Temporality: TemporalityDelta,
+			TimeAggregation: TimeAggregateRate, SpaceAggregation: SpaceAggregateSum,
+		}}},
+	})
+	for _, fragment := range []string{"type = ?", "sum(points.value) AS bucket_value", "bucket_value / (? / 1000.0)", "sum(per_series_value) AS value"} {
+		if !strings.Contains(statement.SQL, fragment) {
+			t.Fatalf("histogram bucket SQL does not contain %q:\n%s", fragment, statement.SQL)
+		}
+	}
+	if strings.Contains(statement.SQL, "quantileExactWeighted") {
+		t.Fatalf("filtered histogram bucket unexpectedly uses percentile compilation:\n%s", statement.SQL)
+	}
+	wantPrefix := []any{"signoz_latency.bucket", "Histogram", "Delta", false, "le", "le", "500"}
+	if !reflect.DeepEqual(statement.Args[:len(wantPrefix)], wantPrefix) {
+		t.Fatalf("Args prefix = %#v, want %#v", statement.Args[:len(wantPrefix)], wantPrefix)
 	}
 }
 

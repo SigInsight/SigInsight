@@ -171,8 +171,8 @@ func TestValidateRejectsUnsupportedOrInvalidRequests(t *testing.T) {
 			req: Request{Range: TimeRange{StartMS: 1, EndMS: 2}, ResultType: ResultScalar, Queries: []Query{MetricQuery{Common: CommonQuery{Name: "A"}, Aggregation: MetricAggregation{MetricName: "requests", Type: MetricSum, TimeAggregation: TimeAggregateSum, SpaceAggregation: SpaceAggregateSum}}}},
 		},
 		{
-			name: "histogram basic space aggregation", code: ErrorInvalidAggregation,
-			req: Request{Range: TimeRange{StartMS: 1, EndMS: 2}, ResultType: ResultScalar, Queries: []Query{MetricQuery{Common: CommonQuery{Name: "A"}, Aggregation: MetricAggregation{MetricName: "latency.bucket", Type: MetricHistogram, TimeAggregation: TimeAggregateCount, SpaceAggregation: SpaceAggregateSum}}}},
+			name: "histogram bucket aggregation without exact le", code: ErrorInvalidAggregation,
+			req: Request{Range: TimeRange{StartMS: 1, EndMS: 2}, ResultType: ResultScalar, Queries: []Query{MetricQuery{Common: CommonQuery{Name: "A"}, Aggregation: MetricAggregation{MetricName: "latency.bucket", Type: MetricHistogram, Temporality: TemporalityDelta, TimeAggregation: TimeAggregateRate, SpaceAggregation: SpaceAggregateSum}}}},
 		},
 		{
 			name: "typed cursor with offset", code: ErrorInvalidRequest,

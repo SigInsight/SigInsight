@@ -28,7 +28,11 @@ func FromLite(request *qbtypes.QueryRangeRequest, result litequery.ExecutionResu
 			StepIntervals: make(map[string]uint64, len(result.Queries)),
 		},
 	}
+	visibility := resultVisibility(request)
 	for _, query := range result.Queries {
+		if visible, known := visibility[query.Name]; known && !visible {
+			continue
+		}
 		if request.RequestType == qbtypes.RequestTypeTimeSeries {
 			response.Meta.StepIntervals[query.Name] = uint64(stepForQuery(request, query.Name) / 1000)
 		}
@@ -68,6 +72,23 @@ func FromLite(request *qbtypes.QueryRangeRequest, result litequery.ExecutionResu
 		}
 	}
 	return response, nil
+}
+
+func resultVisibility(request *qbtypes.QueryRangeRequest) map[string]bool {
+	visibility := make(map[string]bool, len(request.CompositeQuery.Queries))
+	for _, envelope := range request.CompositeQuery.Queries {
+		switch spec := envelope.Spec.(type) {
+		case qbtypes.QueryBuilderQuery[qbtypes.LogAggregation]:
+			visibility[spec.Name] = !spec.Disabled
+		case qbtypes.QueryBuilderQuery[qbtypes.TraceAggregation]:
+			visibility[spec.Name] = !spec.Disabled
+		case qbtypes.QueryBuilderQuery[qbtypes.MetricAggregation]:
+			visibility[spec.Name] = !spec.Disabled
+		case qbtypes.QueryBuilderFormula:
+			visibility[spec.Name] = !spec.Disabled
+		}
+	}
+	return visibility
 }
 
 func fillTimeSeriesGaps(data *qbtypes.TimeSeriesData, startMS, endMS, stepMS int64) error {
@@ -300,6 +321,8 @@ func fieldKey(field litequery.FieldRef) telemetrytypes.TelemetryFieldKey {
 
 func stepForQuery(request *qbtypes.QueryRangeRequest, name string) int64 {
 	var enabledStep int64
+	var dependencyStep int64
+	requiredBuilders := RequiredBuilderNames(request)
 	for _, envelope := range request.CompositeQuery.Queries {
 		switch spec := envelope.Spec.(type) {
 		case qbtypes.QueryBuilderQuery[qbtypes.LogAggregation]:
@@ -309,12 +332,18 @@ func stepForQuery(request *qbtypes.QueryRangeRequest, name string) int64 {
 			if !spec.Disabled && enabledStep == 0 {
 				enabledStep = spec.StepInterval.Milliseconds()
 			}
+			if spec.Disabled && requiredBuilders[spec.Name] && dependencyStep == 0 {
+				dependencyStep = spec.StepInterval.Milliseconds()
+			}
 		case qbtypes.QueryBuilderQuery[qbtypes.TraceAggregation]:
 			if !spec.Disabled && spec.Name == name {
 				return spec.StepInterval.Milliseconds()
 			}
 			if !spec.Disabled && enabledStep == 0 {
 				enabledStep = spec.StepInterval.Milliseconds()
+			}
+			if spec.Disabled && requiredBuilders[spec.Name] && dependencyStep == 0 {
+				dependencyStep = spec.StepInterval.Milliseconds()
 			}
 		case qbtypes.QueryBuilderQuery[qbtypes.MetricAggregation]:
 			if !spec.Disabled && spec.Name == name {
@@ -323,7 +352,13 @@ func stepForQuery(request *qbtypes.QueryRangeRequest, name string) int64 {
 			if !spec.Disabled && enabledStep == 0 {
 				enabledStep = spec.StepInterval.Milliseconds()
 			}
+			if spec.Disabled && requiredBuilders[spec.Name] && dependencyStep == 0 {
+				dependencyStep = spec.StepInterval.Milliseconds()
+			}
 		}
+	}
+	if enabledStep == 0 {
+		return dependencyStep
 	}
 	return enabledStep
 }

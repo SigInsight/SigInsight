@@ -1,4 +1,5 @@
 import { PANEL_TYPES } from 'constants/queryBuilder';
+import { DefaultStepSize } from 'lib/getStep';
 import { GetQueryResultsProps } from 'lib/query/getQueryResults';
 import { DataTypes } from 'types/api/queryBuilder/queryAutocompleteResponse';
 import {
@@ -227,6 +228,27 @@ describe('prepareQueryRangePayloadV5', () => {
 		expect(result.queryPayload.compositeQuery.queries[0].type).toBe(
 			'builder_query',
 		);
+	});
+
+	it('defaults a missing time-series step before sending the V5 request', () => {
+		const result = prepareQueryRangePayloadV5({
+			query: {
+				queryType: EQueryType.QUERY_BUILDER,
+				id: 'q-missing-step',
+				builder: {
+					queryData: [baseBuilderQuery({ stepInterval: null })],
+					queryFormulas: [],
+				},
+			},
+			graphType: PANEL_TYPES.TIME_SERIES,
+			selectedTime: 'GLOBAL_TIME',
+			start,
+			end,
+		});
+
+		const builderSpec = result.queryPayload.compositeQuery.queries[0]
+			.spec as MetricBuilderQuery;
+		expect(builderSpec.stepInterval).toBe(DefaultStepSize);
 	});
 
 	it('uses getStartEndRangeTime when start/end are not provided', () => {

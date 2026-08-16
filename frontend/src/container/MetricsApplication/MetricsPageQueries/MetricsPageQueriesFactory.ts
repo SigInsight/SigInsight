@@ -6,6 +6,7 @@ import {
 import getStep from 'lib/getStep';
 import store from 'store';
 import { IBuilderQuery } from 'types/api/queryBuilder/queryBuilderData';
+import { MetricAggregation } from 'types/api/v5/queryRange';
 import {
 	MetricAggregateOperator,
 	QueryBuilderData,
@@ -18,8 +19,23 @@ import {
 	BuilderQuerieswithFormulaProps,
 } from '../Tabs/types';
 
+function metricAggregation(
+	metricName: string,
+	timeAggregation: MetricAggregateOperator,
+	spaceAggregation: MetricAggregateOperator,
+	temporality = '',
+): MetricAggregation {
+	return {
+		metricName,
+		temporality: temporality as MetricAggregation['temporality'],
+		timeAggregation: timeAggregation as MetricAggregation['timeAggregation'],
+		spaceAggregation: spaceAggregation as MetricAggregation['spaceAggregation'],
+	};
+}
+
 export const getQueryBuilderQueries = ({
 	autocompleteData,
+	aggregationExpressions,
 	groupBy = [],
 	legends,
 	filterItems,
@@ -31,8 +47,16 @@ export const getQueryBuilderQueries = ({
 }: BuilderQueriesProps): QueryBuilderData => ({
 	queryFormulas: [],
 	queryData: autocompleteData.map((item, index) => {
+		const defaults = initialQueryBuilderFormValuesMap[dataSource];
+		const metricAggregations: IBuilderQuery['aggregations'] = [
+			metricAggregation(
+				item.key,
+				timeAggregateOperators[index],
+				spaceAggregateOperators[index],
+			),
+		];
 		const newQueryData: IBuilderQuery = {
-			...initialQueryBuilderFormValuesMap.metrics,
+			...defaults,
 			aggregateOperator: ((): string => {
 				if (aggregateOperator) {
 					return aggregateOperator[index];
@@ -56,6 +80,12 @@ export const getQueryBuilderQueries = ({
 			spaceAggregation: spaceAggregateOperators[index],
 			timeAggregation: timeAggregateOperators[index],
 			dataSource,
+			aggregations:
+				dataSource === 'metrics'
+					? metricAggregations
+					: aggregationExpressions?.[index]
+					? [{ expression: aggregationExpressions[index] }]
+					: defaults.aggregations,
 		};
 
 		if (queryNameAndExpression) {
@@ -84,15 +114,26 @@ export const getQueryBuilderQuerieswithFormula = ({
 		expression,
 		legend: legendFormulas[index],
 	})),
-	queryData: autocompleteData.map((_, index) => ({
-		...initialQueryBuilderFormValuesMap.metrics,
+	queryData: autocompleteData.map((item, index) => ({
+		...initialQueryBuilderFormValuesMap[dataSource],
+		aggregations:
+			dataSource === 'metrics'
+				? [
+						metricAggregation(
+							item.key,
+							timeAggregateOperators[index],
+							spaceAggregateOperators[index],
+							Temporality.Delta,
+						),
+				  ]
+				: initialQueryBuilderFormValuesMap[dataSource].aggregations,
 		timeAggregation: timeAggregateOperators[index],
 		spaceAggregation: spaceAggregateOperators[index],
 		temporality: Temporality.Delta,
 		disabled: disabled[index],
 		groupBy,
 		legend: legends[index],
-		aggregateAttribute: autocompleteData[index],
+		aggregateAttribute: item,
 		queryName: alphabet[index],
 		expression: alphabet[index],
 		reduceTo: ReduceOperators.AVG,

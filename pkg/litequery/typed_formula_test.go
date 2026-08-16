@@ -29,6 +29,17 @@ func TestAnalyzeTypedFormulaCanonicalizesBooleanPrecedence(t *testing.T) {
 	}
 }
 
+func TestFormulaReferencesUsesTypedFormulaGrammar(t *testing.T) {
+	references, err := FormulaReferences("max(A, abs(B)) + A")
+	if err != nil {
+		t.Fatalf("FormulaReferences() error = %v", err)
+	}
+	want := []string{"A", "B"}
+	if len(references) != len(want) || references[0] != want[0] || references[1] != want[1] {
+		t.Fatalf("FormulaReferences() = %#v, want %#v", references, want)
+	}
+}
+
 func TestAnalyzeTypedFormulaRejectsUnsupportedAliasesAndChainedComparison(t *testing.T) {
 	bindings := map[string]FormulaBinding{
 		"A": {Type: FormulaStaticType{Kind: FormulaValueNumber}},

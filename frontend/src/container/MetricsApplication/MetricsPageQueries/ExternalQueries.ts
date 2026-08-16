@@ -62,7 +62,7 @@ export const externalCallErrorPercent = ({
 			id: '',
 			key: {
 				key: dotMetricsEnabled ? WidgetKeys.StatusCode : WidgetKeys.StatusCodeNorm,
-				dataType: DataTypes.Int64,
+				dataType: DataTypes.String,
 				type: MetricsType.Tag,
 			},
 			op: OPERATORS.IN,

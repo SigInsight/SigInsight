@@ -4,6 +4,7 @@ import {
 } from 'api/generated/services/sigNoz.schemas';
 import { SpaceAggregation, TimeAggregation } from 'api/v5/v5';
 import { initialQueriesMap, toAttributeType } from 'constants/queryBuilder';
+import { DefaultStepSize } from 'lib/getStep';
 import { DataTypes } from 'types/api/queryBuilder/queryAutocompleteResponse';
 import { Query } from 'types/api/queryBuilder/queryBuilderData';
 import { DataSource, ReduceOperators } from 'types/common/queryBuilder';
@@ -133,6 +134,7 @@ export function getMetricDetailsQuery(
 					aggregateOperator,
 					timeAggregation,
 					spaceAggregation,
+					stepInterval: DefaultStepSize,
 					filters: {
 						op: 'AND',
 						items: filter

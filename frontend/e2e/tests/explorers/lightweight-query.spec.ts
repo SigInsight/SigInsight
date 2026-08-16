@@ -167,6 +167,151 @@ test.describe('lightweight query explorer', () => {
 		await expectSuccessfulQueryRange(page, calls);
 	});
 
+	test('opens a log detail row without a client-side contract error', async ({
+		page,
+	}) => {
+		const clientErrors = observeClientErrors(page);
+		await page.goto('/logs/logs-explorer?relativeTime=1d');
+		const logCell = page
+			.locator('.raw-log-content, .logs-list-view-container tbody tr td')
+			.filter({ hasText: /\S/ })
+			.first();
+		try {
+			await logCell.waitFor({ state: 'visible', timeout: 30_000 });
+		} catch {
+			test.skip(true, 'requires at least one log row');
+			return;
+		}
+		await logCell.click();
+
+		await expect(page.getByText('Log details', { exact: true })).toBeVisible();
+		await expect(page.getByText('Something went wrong :/')).toHaveCount(0);
+		expect(
+			clientErrors.filter((error) =>
+				/Cannot convert undefined or null to object|TypeError:.*Object\.keys/i.test(
+					error,
+				),
+			),
+		).toEqual([]);
+	});
+
+	test('opens a service detail after loading metric metadata', async ({
+		page,
+	}) => {
+		const clientErrors = observeClientErrors(page);
+		const calls = observeQueryRange(page);
+		await page.goto('/services?relativeTime=1d');
+		const serviceLink = page.locator('a[href^="/services/"]').first();
+		try {
+			await serviceLink.waitFor({ state: 'visible', timeout: 30_000 });
+		} catch {
+			test.skip(true, 'requires at least one service');
+			return;
+		}
+		const metadataResponse = page.waitForResponse(
+			(response) => response.url().includes('/api/v5/metric/metric_metadata'),
+			{ timeout: 30_000 },
+		);
+		await serviceLink.click();
+
+		expect((await metadataResponse).status()).toBe(200);
+
+		const callsContaining = (fragment: string): QueryRangeCall[] =>
+			calls.filter((call) => JSON.stringify(call.payload).includes(fragment));
+		for (const fragment of ['p50(duration_nano)', '((B + C)/2)/A']) {
+			try {
+				await expect
+					.poll(() => callsContaining(fragment).length, { timeout: 30_000 })
+					.toBeGreaterThan(0);
+			} catch (error) {
+				throw new Error(
+					`Service query ${fragment} was not observed. Payloads: ${JSON.stringify(
+						calls.map(({ status, payload }) => ({ status, payload })),
+					)}`,
+					{ cause: error },
+				);
+			}
+		}
+		await page.getByTestId('error_percentage_%').scrollIntoViewIfNeeded();
+		await expect
+			.poll(() => callsContaining('A*100/B').length, { timeout: 30_000 })
+			.toBeGreaterThan(0);
+
+		const latencyCall = callsContaining('p50(duration_nano)').at(-1);
+		expect(latencyCall?.status, latencyCall?.body).toBe(200);
+		const latencyResponse = JSON.parse(latencyCall?.body || '{}') as {
+			data?: {
+				data?: {
+					results?: Array<{
+						aggregations?: Array<{
+							series?: Array<{ values?: unknown[] }>;
+						}>;
+					}>;
+				};
+			};
+		};
+		const latencyValueCount =
+			latencyResponse.data?.data?.results?.reduce(
+				(total, result) =>
+					total +
+					(result.aggregations?.reduce(
+						(aggregationTotal, aggregation) =>
+							aggregationTotal +
+							(aggregation.series?.reduce(
+								(seriesTotal, series) => seriesTotal + (series.values?.length || 0),
+								0,
+							) || 0),
+						0,
+					) || 0),
+				0,
+			) || 0;
+		expect(latencyValueCount).toBeGreaterThan(0);
+
+		for (const fragment of ['A*100/B', '((B + C)/2)/A']) {
+			const call = callsContaining(fragment).at(-1);
+			expect(call?.status, call?.body).toBe(200);
+			const response = JSON.parse(call?.body || '{}') as {
+				data?: { data?: { results?: unknown[] } };
+			};
+			expect(response.data?.data?.results).toHaveLength(1);
+		}
+
+		await page.getByRole('tab', { name: 'DB Call Metrics' }).click();
+		await expect
+			.poll(() => callsContaining('signoz_db_latency_sum').length, {
+				timeout: 30_000,
+			})
+			.toBeGreaterThan(0);
+		const dbDurationCall = callsContaining('signoz_db_latency_sum').at(-1);
+		expect(dbDurationCall?.status, dbDurationCall?.body).toBe(200);
+
+		await page.getByRole('tab', { name: 'External Metrics' }).click();
+		await expect
+			.poll(() => callsContaining('signoz_external_call_latency_sum').length, {
+				timeout: 30_000,
+			})
+			.toBeGreaterThanOrEqual(2);
+		const externalFormulaCalls = callsContaining(
+			'signoz_external_call_latency_sum',
+		);
+		expect(
+			externalFormulaCalls.filter((call) => call.status !== 200),
+			JSON.stringify(externalFormulaCalls, null, 2),
+		).toEqual([]);
+
+		await expect(page.getByText('Something went wrong :/')).toHaveCount(0);
+		await expect(
+			page.getByText(
+				/invalid lightweight query|invalid_input|unsupported lightweight query capability/i,
+			),
+		).toHaveCount(0);
+		expect(
+			clientErrors.filter((error) =>
+				/TypeError:.*\.slice is not a function/i.test(error),
+			),
+		).toEqual([]);
+	});
+
 	test('runs a filtered logs query through the lightweight protocol', async ({
 		page,
 	}) => {

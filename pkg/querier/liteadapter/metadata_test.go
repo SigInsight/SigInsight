@@ -135,3 +135,27 @@ func TestFieldKeySelectorsSkipsDisabledQueries(t *testing.T) {
 		t.Fatalf("selectors = %#v, want disabled queries ignored", selectors)
 	}
 }
+
+func TestFieldKeySelectorsIncludesHiddenFormulaDependencies(t *testing.T) {
+	request := &qbtypes.QueryRangeRequest{
+		Start: 1_000, End: 61_000,
+		CompositeQuery: qbtypes.CompositeQuery{Queries: []qbtypes.QueryEnvelope{
+			{Type: qbtypes.QueryTypeBuilder, Spec: qbtypes.QueryBuilderQuery[qbtypes.TraceAggregation]{
+				Name: "A", Disabled: true,
+				Filter: &qbtypes.Filter{Expression: "http.route = '/checkout'"},
+			}},
+			{Type: qbtypes.QueryTypeBuilder, Spec: qbtypes.QueryBuilderQuery[qbtypes.TraceAggregation]{
+				Name: "retired", Disabled: true,
+				Filter: &qbtypes.Filter{Expression: "host.name = 'old-host'"},
+			}},
+			{Type: qbtypes.QueryTypeFormula, Spec: qbtypes.QueryBuilderFormula{
+				Name: "F1", Expression: "A / 2", Disabled: false,
+			}},
+		}},
+	}
+
+	selectors := FieldKeySelectors(request)
+	if len(selectors) != 1 || selectors[0].Name != "http.route" {
+		t.Fatalf("selectors = %#v, want only required http.route", selectors)
+	}
+}

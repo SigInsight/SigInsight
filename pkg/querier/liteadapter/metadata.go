@@ -16,6 +16,7 @@ func FieldKeySelectors(request *qbtypes.QueryRangeRequest) []*telemetrytypes.Fie
 	if request == nil {
 		return nil
 	}
+	requiredBuilders := RequiredBuilderNames(request)
 	selectors := make([]*telemetrytypes.FieldKeySelector, 0)
 	for _, envelope := range request.CompositeQuery.Queries {
 		if envelope.Type != qbtypes.QueryTypeBuilder {
@@ -23,7 +24,7 @@ func FieldKeySelectors(request *qbtypes.QueryRangeRequest) []*telemetrytypes.Fie
 		}
 		switch query := envelope.Spec.(type) {
 		case qbtypes.QueryBuilderQuery[qbtypes.LogAggregation]:
-			if query.Disabled {
+			if query.Disabled && !requiredBuilders[query.Name] {
 				continue
 			}
 			selectors = appendBuilderSelectors(selectors, query, telemetrytypes.SignalLogs, request.RequestType, request.Start, request.End)
@@ -33,7 +34,7 @@ func FieldKeySelectors(request *qbtypes.QueryRangeRequest) []*telemetrytypes.Fie
 				}
 			}
 		case qbtypes.QueryBuilderQuery[qbtypes.TraceAggregation]:
-			if query.Disabled {
+			if query.Disabled && !requiredBuilders[query.Name] {
 				continue
 			}
 			selectors = appendBuilderSelectors(selectors, query, telemetrytypes.SignalTraces, request.RequestType, request.Start, request.End)

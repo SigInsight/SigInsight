@@ -29,7 +29,8 @@ Metrics 查询始终分两阶段：
 1. 按 `fingerprint + time bucket + group labels` 聚合为每条 series 的值。
 2. 按 `time bucket + group labels` 做受限制的空间聚合。
 
-`rate` 和 `increase` 仅适用于 Sum/Meter：Delta series 以 bucket sum 为增量；
+`rate` 和 `increase` 适用于 Sum/Meter，以及被精确 `le = value` 或单值 `le in [value]`
+约束的 Histogram bucket series：Delta series 以 time bucket sum 为增量；
 Cumulative series 用相邻 bucket 的差值并将 counter reset 解释为当前值。首个 bucket
 没有前值时为 NULL，不以零伪造数据。Histogram percentile 使用已展开的 `.bucket`
 series，并保留其物理 temporality：Delta 点在查询 bucket 内求和，Cumulative 点取最后
@@ -37,6 +38,17 @@ series，并保留其物理 temporality：Delta 点在查询 bucket 内求和，
 并以 ClickHouse 25.5.6
 提供的 `quantileExactWeighted` 在最终阶段计算。该算法返回离散 bucket 上界，不提供旧
 `histogramQuantile` 的插值语义。
+
+Histogram 的两条路径必须保持互斥：p50/p90/p95/p99 会跨全部 `le` 重建分布；基础
+sum/avg/count/rate/increase 只允许读取一个明确的 bucket。后者用于 Service Apdex 的
+satisfied/tolerating 计数；缺失精确 `le` 条件时请求会被拒绝，避免把累计 bucket 重复
+相加。
+
+Service 图卡中的公式沿用 V5 的展示约定：A/B/C builder 可标记为 `disabled`，表示不在
+响应和图例中展示，而不是停止执行。轻量适配器从所有启用公式计算依赖闭包，只为被引用
+的隐藏 builder 解析 metric type、temporality 和字段元数据并执行；无关的 disabled
+查询仍在 capability 校验前裁剪。最终响应只返回启用公式或启用 builder。这一约定同时
+适用于交互式 `/api/v5/query_range` 与基本 Alert evaluator。
 
 所有 metric name、temporality、label key、attribute key、filter value 和时间范围均为
 绑定参数。SQL 中只有受 Catalog 控制的表、列、aggregation enum 和常量 quantile。
@@ -46,7 +58,8 @@ series，并保留其物理 temporality：Delta 点在查询 bucket 内求和，
 - `metric_rollup_5m`、`metric_rollup_30m`、`meter_rollup_1d` 和其表选择 heuristics。
 - 指数直方图 `exp_hist`、summary、任意函数链、EWMA/anomaly、二次聚合和 raw SQL。
 - 自动 metadata fallback、自动 materialized-column 选择和跨表 retention 补齐。
-- Histogram 的任意 threshold/interpolation 参数；仅支持预定义 p50/p90/p95/p99。
+- Histogram 的任意 threshold/interpolation 参数；分位数仅支持预定义
+  p50/p90/p95/p99，bucket 数值聚合必须带单值 `le` 条件。
 
 固定原始表意味着 Metrics 查询只覆盖 Collector 当前 `metric_points` 保留期，Meter 覆盖
 其 `meter_points` 保留期。超出保留期时返回空结果而不是悄悄切换近似数据源。

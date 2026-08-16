@@ -142,7 +142,7 @@ func TestGetMetricsMetadataBindsMetricNames(t *testing.T) {
 	metricName := "request'count"
 	reader := New(slog.New(slog.NewTextHandler(io.Discard, nil)), queryOnlyConn{
 		query: func(_ context.Context, query string, args ...any) (driver.Rows, error) {
-			require.Contains(t, query, "IN ({metric_names:Array(String)})")
+			require.Contains(t, query, "IN @metric_names")
 			require.NotContains(t, query, metricName)
 			require.Len(t, args, 1)
 			named, ok := args[0].(driver.NamedValue)

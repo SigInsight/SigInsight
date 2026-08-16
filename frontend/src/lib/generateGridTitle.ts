@@ -1,12 +1,17 @@
 import React, { ReactNode } from 'react';
 
-export const generateGridTitle = (title: ReactNode): string => {
-	if (React.isValidElement(title)) {
-		return Array.isArray(title.props.children)
-			? title.props.children
-					.map((child: ReactNode) => (typeof child === 'string' ? child : ''))
-					.join(' ')
-			: title.props.children;
+function nodeText(node: ReactNode): string {
+	if (typeof node === 'string' || typeof node === 'number') {
+		return String(node);
 	}
-	return title?.toString() || '';
-};
+	if (Array.isArray(node)) {
+		return node.map(nodeText).filter(Boolean).join(' ');
+	}
+	if (React.isValidElement<{ children?: ReactNode }>(node)) {
+		return nodeText(node.props.children);
+	}
+	return '';
+}
+
+export const generateGridTitle = (title: ReactNode): string =>
+	nodeText(title).replace(/\s+/g, ' ').trim();

@@ -360,5 +360,14 @@ describe('normalizeQueryRangeResponse', () => {
 
 		expect(result.payload.warning).toBeUndefined();
 		expect(result.payload.data.result[0].pageInfo).toEqual(raw.pageInfo);
+		expect(result.payload.data.result[0].list?.[0].data).toEqual(
+			expect.objectContaining({
+				attributes_string: {},
+				attributes_number: {},
+				attributes_bool: {},
+				resources_string: {},
+				scope_string: {},
+			}),
+		);
 	});
 });

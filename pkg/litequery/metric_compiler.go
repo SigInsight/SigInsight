@@ -23,7 +23,7 @@ func (c Compiler) compileMetric(plan Plan, aggregation MetricAggregation, common
 		return Statement{}, newError(ErrorInvalidAggregation, "query.type", "meter only supports sum metrics")
 	}
 
-	if aggregation.Type == MetricHistogram {
+	if aggregation.Type == MetricHistogram && isHistogramQuantile(aggregation.SpaceAggregation) {
 		return c.compileHistogram(plan, source, aggregation, common)
 	}
 	return c.compileNumericMetric(plan, source, aggregation, common, signal)

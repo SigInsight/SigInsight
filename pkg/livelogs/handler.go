@@ -191,6 +191,14 @@ func (h *Handler) read(ctx context.Context, startMS int64, filter litequery.Filt
 		ResultType: litequery.ResultRaw,
 		Queries: []litequery.Query{litequery.LogQuery{Common: litequery.CommonQuery{
 			Name: "live_logs", Filter: filter, Limit: batchSize, After: after,
+			Select: []litequery.FieldRef{
+				{Name: "timestamp", Context: litequery.FieldContextLog, Type: litequery.ValueTypeNumber},
+				{Name: "id", Context: litequery.FieldContextLog, Type: litequery.ValueTypeString},
+				{Name: "severity_text", Context: litequery.FieldContextLog, Type: litequery.ValueTypeString},
+				{Name: "body", Context: litequery.FieldContextBody, Type: litequery.ValueTypeString},
+				{Name: "trace_id", Context: litequery.FieldContextLog, Type: litequery.ValueTypeString},
+				{Name: "span_id", Context: litequery.FieldContextLog, Type: litequery.ValueTypeString},
+			},
 			Order: []litequery.Order{
 				{Target: litequery.OrderByField, Field: litequery.FieldRef{Name: "timestamp", Context: litequery.FieldContextLog, Type: litequery.ValueTypeNumber}, Direction: litequery.SortAscending},
 				{Target: litequery.OrderByField, Field: litequery.FieldRef{Name: "id", Context: litequery.FieldContextLog, Type: litequery.ValueTypeString}, Direction: litequery.SortAscending},

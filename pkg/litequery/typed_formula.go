@@ -278,6 +278,18 @@ func AnalyzeTypedFormulaSet(formulas []Formula, bindings map[string]FormulaBindi
 	return results, nil
 }
 
+// FormulaReferences parses one formula with the same grammar used by planning
+// and returns its distinct query/formula dependencies in expression order.
+// Boundary adapters use this to retain hidden inputs without duplicating the
+// formula grammar.
+func FormulaReferences(expression string) ([]string, error) {
+	_, references, err := parseTypedFormula(expression)
+	if err != nil {
+		return nil, err
+	}
+	return distinctFormulaReferences(references), nil
+}
+
 // Evaluate executes one typed expression for one aligned timestamp/group key.
 // Missing propagates through all operations; a caller must route it through the
 // alert No Data policy instead of coercing it to zero or false.

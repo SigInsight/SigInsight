@@ -51,6 +51,27 @@ func TestUnresolvedMetricNamesSkipsDisabledQueries(t *testing.T) {
 	}
 }
 
+func TestUnresolvedMetricNamesIncludesHiddenFormulaDependencies(t *testing.T) {
+	request := &qbtypes.QueryRangeRequest{CompositeQuery: qbtypes.CompositeQuery{Queries: []qbtypes.QueryEnvelope{
+		{Type: qbtypes.QueryTypeBuilder, Spec: qbtypes.QueryBuilderQuery[qbtypes.MetricAggregation]{
+			Name: "A", Disabled: true,
+			Aggregations: []qbtypes.MetricAggregation{{
+				MetricName: "required_sum", Type: metrictypes.UnspecifiedType, Temporality: metrictypes.Unknown,
+			}},
+		}},
+		{Type: qbtypes.QueryTypeBuilder, Spec: qbtypes.QueryBuilderQuery[qbtypes.MetricAggregation]{
+			Name: "retired", Disabled: true,
+			Aggregations: []qbtypes.MetricAggregation{{
+				MetricName: "retired_sum", Type: metrictypes.UnspecifiedType, Temporality: metrictypes.Unknown,
+			}},
+		}},
+		{Type: qbtypes.QueryTypeFormula, Spec: qbtypes.QueryBuilderFormula{Name: "F1", Expression: "A * 100", Disabled: false}},
+	}}}
+	if got, want := unresolvedMetricNames(request), []string{"required_sum"}; !reflect.DeepEqual(got, want) {
+		t.Fatalf("unresolvedMetricNames() = %#v, want %#v", got, want)
+	}
+}
+
 func TestResolveDoesNotRequireStoreWhenRequestNeedsNoMetadata(t *testing.T) {
 	request := &qbtypes.QueryRangeRequest{Start: 1, End: 2}
 	metadata, err := Resolve(context.Background(), nil, request)

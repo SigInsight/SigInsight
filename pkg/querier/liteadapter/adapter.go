@@ -39,8 +39,10 @@ func ValidateRequestRange(request *qbtypes.QueryRangeRequest) error {
 		return errors.NewInvalidInputf(errors.CodeInvalidInput, "query range end must be after start")
 	}
 	const maxLogTimestampMS = uint64(math.MaxInt64 / 1_000_000)
+	requiredBuilders := RequiredBuilderNames(request)
 	for _, envelope := range request.CompositeQuery.Queries {
-		if query, ok := envelope.Spec.(qbtypes.QueryBuilderQuery[qbtypes.LogAggregation]); ok && !query.Disabled && request.End > maxLogTimestampMS {
+		if query, ok := envelope.Spec.(qbtypes.QueryBuilderQuery[qbtypes.LogAggregation]); ok &&
+			(!query.Disabled || requiredBuilders[query.Name]) && request.End > maxLogTimestampMS {
 			return errors.NewInvalidInputf(errors.CodeInvalidInput, "log query range exceeds nanosecond timestamp capacity")
 		}
 	}
@@ -70,16 +72,26 @@ func ToLite(request *qbtypes.QueryRangeRequest, metadata MetricMetadata) (litequ
 		Range:      litequery.TimeRange{StartMS: int64(request.Start), EndMS: int64(request.End)},
 		ResultType: resultType,
 	}
+	requiredBuilders, requiredFormulas, err := formulaExecutionRequirements(request)
+	if err != nil {
+		return litequery.Request{}, err
+	}
 	var stepMS int64
 	for _, envelope := range request.CompositeQuery.Queries {
 		switch envelope.Type {
 		case qbtypes.QueryTypeBuilder:
-			query, step, disabled, err := builderToLite(envelope.Spec, resultType, metadata)
+			name, disabled, err := builderIdentity(envelope.Spec)
 			if err != nil {
 				return litequery.Request{}, err
 			}
 			if disabled {
-				continue
+				if _, required := requiredBuilders[name]; !required {
+					continue
+				}
+			}
+			query, step, _, err := builderToLite(envelope.Spec, resultType, metadata)
+			if err != nil {
+				return litequery.Request{}, err
 			}
 			if resultType == litequery.ResultTimeSeries {
 				if step <= 0 {
@@ -93,13 +105,18 @@ func ToLite(request *qbtypes.QueryRangeRequest, metadata MetricMetadata) (litequ
 			}
 			result.Queries = append(result.Queries, query)
 		case qbtypes.QueryTypeFormula:
-			formula, disabled, err := formulaToLite(envelope.Spec)
+			spec, ok := envelope.Spec.(qbtypes.QueryBuilderFormula)
+			if !ok {
+				return litequery.Request{}, unsupported(fmt.Sprintf("formula spec %T", envelope.Spec))
+			}
+			if _, required := requiredFormulas[spec.Name]; !required {
+				continue
+			}
+			formula, _, err := formulaToLite(envelope.Spec)
 			if err != nil {
 				return litequery.Request{}, err
 			}
-			if !disabled {
-				result.Formulas = append(result.Formulas, formula)
-			}
+			result.Formulas = append(result.Formulas, formula)
 		default:
 			return litequery.Request{}, unsupported("V5 query type " + envelope.Type.StringValue())
 		}
@@ -109,6 +126,93 @@ func ToLite(request *qbtypes.QueryRangeRequest, metadata MetricMetadata) (litequ
 	}
 	result.StepMS = stepMS
 	return result, nil
+}
+
+func builderIdentity(spec any) (string, bool, error) {
+	switch query := spec.(type) {
+	case qbtypes.QueryBuilderQuery[qbtypes.LogAggregation]:
+		return query.Name, query.Disabled, nil
+	case qbtypes.QueryBuilderQuery[qbtypes.TraceAggregation]:
+		return query.Name, query.Disabled, nil
+	case qbtypes.QueryBuilderQuery[qbtypes.MetricAggregation]:
+		return query.Name, query.Disabled, nil
+	default:
+		return "", false, unsupported(fmt.Sprintf("builder spec %T", spec))
+	}
+}
+
+func formulaExecutionRequirements(request *qbtypes.QueryRangeRequest) (map[string]struct{}, map[string]struct{}, error) {
+	formulas := make(map[string]qbtypes.QueryBuilderFormula)
+	for _, envelope := range request.CompositeQuery.Queries {
+		if envelope.Type != qbtypes.QueryTypeFormula {
+			continue
+		}
+		formula, ok := envelope.Spec.(qbtypes.QueryBuilderFormula)
+		if !ok {
+			return nil, nil, unsupported(fmt.Sprintf("formula spec %T", envelope.Spec))
+		}
+		formulas[formula.Name] = formula
+	}
+
+	requiredBuilders := make(map[string]struct{})
+	requiredFormulas := make(map[string]struct{})
+	visiting := make(map[string]bool)
+	var visit func(string) error
+	visit = func(name string) error {
+		if _, done := requiredFormulas[name]; done {
+			return nil
+		}
+		if visiting[name] {
+			// The planner reports the dependency cycle with the canonical formula
+			// error after the complete execution set has been adapted.
+			return nil
+		}
+		formula, ok := formulas[name]
+		if !ok {
+			requiredBuilders[name] = struct{}{}
+			return nil
+		}
+		visiting[name] = true
+		references, err := litequery.FormulaReferences(formula.Expression)
+		if err != nil {
+			return err
+		}
+		requiredFormulas[name] = struct{}{}
+		for _, reference := range references {
+			if err := visit(reference); err != nil {
+				return err
+			}
+		}
+		visiting[name] = false
+		return nil
+	}
+
+	for name, formula := range formulas {
+		if formula.Disabled {
+			continue
+		}
+		if err := visit(name); err != nil {
+			return nil, nil, err
+		}
+	}
+	return requiredBuilders, requiredFormulas, nil
+}
+
+// RequiredBuilderNames returns the hidden builder inputs needed by enabled
+// formulas. Invalid formulas are deliberately ignored here: ToLite parses the
+// same expression and returns the canonical validation error before execution.
+// Metadata resolution uses this projection to avoid treating every disabled
+// saved query as live while still resolving actual formula dependencies.
+func RequiredBuilderNames(request *qbtypes.QueryRangeRequest) map[string]bool {
+	required, _, err := formulaExecutionRequirements(request)
+	if err != nil {
+		return nil
+	}
+	result := make(map[string]bool, len(required))
+	for name := range required {
+		result[name] = true
+	}
+	return result
 }
 
 func resultTypeFromV5(kind qbtypes.RequestType) (litequery.ResultType, error) {
@@ -129,9 +233,6 @@ func resultTypeFromV5(kind qbtypes.RequestType) (litequery.ResultType, error) {
 func builderToLite(spec any, resultType litequery.ResultType, metadata MetricMetadata) (litequery.Query, int64, bool, error) {
 	switch query := spec.(type) {
 	case qbtypes.QueryBuilderQuery[qbtypes.LogAggregation]:
-		if query.Disabled {
-			return nil, 0, true, nil
-		}
 		common, err := commonToLite(query.Name, query.Filter, query.SelectFields, query.GroupBy, query.Order, query.Limit, query.Offset, query.Cursor, query.LimitBy, query.Having, query.SecondaryAggregations, query.Functions, litequery.SignalLogs, resultType, metadata)
 		if err != nil {
 			return nil, 0, false, err
@@ -147,11 +248,8 @@ func builderToLite(spec any, resultType litequery.ResultType, metadata MetricMet
 				return nil, 0, false, err
 			}
 		}
-		return litequery.LogQuery{Common: common, Aggregation: aggregation, Field: field}, query.StepInterval.Milliseconds(), false, nil
+		return litequery.LogQuery{Common: common, Aggregation: aggregation, Field: field}, query.StepInterval.Milliseconds(), query.Disabled, nil
 	case qbtypes.QueryBuilderQuery[qbtypes.TraceAggregation]:
-		if query.Disabled {
-			return nil, 0, true, nil
-		}
 		common, err := commonToLite(query.Name, query.Filter, query.SelectFields, query.GroupBy, query.Order, query.Limit, query.Offset, query.Cursor, query.LimitBy, query.Having, query.SecondaryAggregations, query.Functions, litequery.SignalTraces, resultType, metadata)
 		if err != nil {
 			return nil, 0, false, err
@@ -166,11 +264,8 @@ func builderToLite(spec any, resultType litequery.ResultType, metadata MetricMet
 				return nil, 0, false, err
 			}
 		}
-		return litequery.TraceQuery{Common: common, Aggregation: aggregation}, query.StepInterval.Milliseconds(), false, nil
+		return litequery.TraceQuery{Common: common, Aggregation: aggregation}, query.StepInterval.Milliseconds(), query.Disabled, nil
 	case qbtypes.QueryBuilderQuery[qbtypes.MetricAggregation]:
-		if query.Disabled {
-			return nil, 0, true, nil
-		}
 		common, err := commonToLite(query.Name, query.Filter, query.SelectFields, query.GroupBy, query.Order, query.Limit, query.Offset, query.Cursor, query.LimitBy, query.Having, query.SecondaryAggregations, query.Functions, litequery.SignalMetrics, resultType, metadata)
 		if err != nil {
 			return nil, 0, false, err
@@ -183,9 +278,9 @@ func builderToLite(spec any, resultType litequery.ResultType, metadata MetricMet
 			return nil, 0, false, err
 		}
 		if query.Source == telemetrytypes.SourceMeter {
-			return litequery.MeterQuery{Common: common, Aggregation: aggregation}, query.StepInterval.Milliseconds(), false, nil
+			return litequery.MeterQuery{Common: common, Aggregation: aggregation}, query.StepInterval.Milliseconds(), query.Disabled, nil
 		}
-		return litequery.MetricQuery{Common: common, Aggregation: aggregation}, query.StepInterval.Milliseconds(), false, nil
+		return litequery.MetricQuery{Common: common, Aggregation: aggregation}, query.StepInterval.Milliseconds(), query.Disabled, nil
 	default:
 		return nil, 0, false, unsupported(fmt.Sprintf("builder spec %T", spec))
 	}
@@ -366,11 +461,8 @@ func formulaToLite(spec any) (litequery.Formula, bool, error) {
 	if !ok {
 		return litequery.Formula{}, false, unsupported(fmt.Sprintf("formula spec %T", spec))
 	}
-	if formula.Disabled {
-		return litequery.Formula{}, true, nil
-	}
 	if len(formula.Order) != 0 || formula.Limit != 0 || (formula.Having != nil && strings.TrimSpace(formula.Having.Expression) != "") || len(formula.Functions) != 0 {
 		return litequery.Formula{}, false, unsupported("formula ordering, limit, having, or functions")
 	}
-	return litequery.Formula{Name: formula.Name, Expression: formula.Expression}, false, nil
+	return litequery.Formula{Name: formula.Name, Expression: formula.Expression}, formula.Disabled, nil
 }

@@ -25,6 +25,7 @@ export interface ExternalCallProps {
 
 export interface BuilderQueriesProps {
 	autocompleteData: BaseAutocompleteData[];
+	aggregationExpressions?: string[];
 	groupBy?: BaseAutocompleteData[];
 	legends: string[];
 	filterItems: TagFilterItem[][];

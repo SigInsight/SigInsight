@@ -25,21 +25,20 @@ const PRIORITY_CATEGORIES = [
 const SERVICE_AND_ENVIRONMENT_KEYS = ['service.name', 'env', 'environment'];
 
 export const getFiltersFromResources = (
-	resources: ILog['resources_string'],
-): TagFilterItem[] =>
-	Object.keys(resources).map((key: string) => {
-		const resourceValue = resources[key] as string;
-		return {
-			id: uuid(),
-			key: {
-				key,
-				dataType: DataTypes.String,
-				type: 'resource',
-			},
-			op: OPERATORS['='],
-			value: resourceValue,
-		};
-	});
+	resources: ILog['resources_string'] | null | undefined,
+): TagFilterItem[] => {
+	const safeResources = resources || {};
+	return Object.keys(safeResources).map((key: string) => ({
+		id: uuid(),
+		key: {
+			key,
+			dataType: DataTypes.String,
+			type: 'resource',
+		},
+		op: OPERATORS['='],
+		value: safeResources[key] as string,
+	}));
+};
 
 export const isServiceOrEnvironmentAttribute = (key: string): boolean =>
 	SERVICE_AND_ENVIRONMENT_KEYS.includes(key);
