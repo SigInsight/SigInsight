@@ -652,10 +652,13 @@ func TestCompilerCompilesExplicitHistogramAndRejectsAmbiguousName(t *testing.T) 
 		}}},
 	}
 	statement := compileOne(t, request)
-	for _, fragment := range []string{"series.le", "quantileExactWeighted", "__lite_histogram_weights AS"} {
+	for _, fragment := range []string{"series.le", "quantileExactWeighted", "__lite_histogram_bounds AS", "maxIf(toFloat64OrNull(le), le != '+Inf')"} {
 		if !strings.Contains(statement.SQL, fragment) {
 			t.Fatalf("SQL does not contain %q:\n%s", fragment, statement.SQL)
 		}
+	}
+	if strings.Contains(statement.SQL, "1e308") {
+		t.Fatalf("histogram SQL must not expose the synthetic 1e308 upper bound:\n%s", statement.SQL)
 	}
 	metric := request.Queries[0].(MetricQuery)
 	metric.Aggregation.MetricName = "http.server.duration"

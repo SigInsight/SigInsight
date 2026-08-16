@@ -42,6 +42,14 @@ func TestTimeSeriesValue_MarshalJSON(t *testing.T) {
 			expected: `{"timestamp":1234567890,"value":"Inf"}`,
 		},
 		{
+			name: "large finite value does not overflow while rounding",
+			value: TimeSeriesValue{
+				Timestamp: 1234567890,
+				Value:     1e308,
+			},
+			expected: `{"timestamp":1234567890,"value":1e+308}`,
+		},
+		{
 			name: "negative infinity",
 			value: TimeSeriesValue{
 				Timestamp: 1234567890,

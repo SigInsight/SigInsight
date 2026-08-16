@@ -5,6 +5,7 @@ package litequery
 import (
 	"context"
 	"fmt"
+	"math"
 	"os"
 	"reflect"
 	"testing"
@@ -376,6 +377,9 @@ func assertPositiveMetricRows(t *testing.T, name string, rows interface {
 		if name == "latency" || name == "latency_delta" {
 			if err := rows.Scan(&timestamp, &value); err != nil {
 				t.Fatalf("Scan(%s) error = %v", name, err)
+			}
+			if math.IsNaN(value) || math.IsInf(value, 0) || value > 10 {
+				t.Fatalf("Query(%s) percentile = %v, want a finite bucket boundary no greater than 10", name, value)
 			}
 		} else {
 			var group string

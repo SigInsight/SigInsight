@@ -38,11 +38,18 @@ series，并保留其物理 temporality：Delta 点在查询 bucket 内求和，
 并以 ClickHouse 25.5.6
 提供的 `quantileExactWeighted` 在最终阶段计算。该算法返回离散 bucket 上界，不提供旧
 `histogramQuantile` 的插值语义。
+当目标分位落入 `+Inf` 桶时，结果收敛为当前时间与分组内的最大有限桶边界；`+Inf`
+桶仍参与样本权重，但不会以无穷值或伪造的极大浮点数进入 V5 JSON 和图表。只有
+`+Inf`、没有任何有限桶的分布不产生 percentile 数据点。
 
 Histogram 的两条路径必须保持互斥：p50/p90/p95/p99 会跨全部 `le` 重建分布；基础
 sum/avg/count/rate/increase 只允许读取一个明确的 bucket。后者用于 Service Apdex 的
 satisfied/tolerating 计数；缺失精确 `le` 条件时请求会被拒绝，避免把累计 bucket 重复
 相加。
+
+前端 Histogram 编辑器不展示 time aggregation，并在内部可能以空值或 `noop` 表示；V5
+序列化边界必须把受支持的 p50/p90/p95/p99 查询规范为 `timeAggregation=count`，再发送给
+后端。该转换只适用于显式 Histogram，不放宽其他 metric type 或 percentile 的能力边界。
 
 Service 图卡中的公式沿用 V5 的展示约定：A/B/C builder 可标记为 `disabled`，表示不在
 响应和图例中展示，而不是停止执行。轻量适配器从所有启用公式计算依赖闭包，只为被引用
