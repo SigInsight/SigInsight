@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo } from 'react';
 import { Button, Input, InputNumber, Select, Tooltip } from 'antd';
 import { PANEL_TYPES } from 'constants/queryBuilder';
 import { useQueryBuilder } from 'hooks/queryBuilder/useQueryBuilder';
+import { DefaultStepSize } from 'lib/getStep';
 import { Plus, Sigma, Trash2 } from 'lucide-react';
 import {
 	BaseAutocompleteData,
@@ -27,8 +28,6 @@ import {
 import { FormulaExpressionEditor } from './FormulaExpressionEditor';
 
 import './LiteQueryBuilder.scss';
-
-const defaultStepSeconds = 60;
 
 export type LiteQueryBuilderConfig =
 	| { queryVariant: 'static'; initialDataSource: DataSource }
@@ -454,9 +453,9 @@ function LiteBuilderRow({
 						<span>Aggregate every (s)</span>
 						<InputNumber
 							min={1}
-							value={query.stepInterval ?? defaultStepSeconds}
+							value={query.stepInterval ?? DefaultStepSize}
 							onChange={(value): void =>
-								update({ stepInterval: value || defaultStepSeconds })
+								update({ stepInterval: value || DefaultStepSize })
 							}
 						/>
 					</div>
@@ -629,7 +628,7 @@ function LiteQueryBuilderContent({
 		}
 		currentQuery.builder.queryData.forEach((query, index) => {
 			if (!query.stepInterval) {
-				handleSetQueryData(index, { ...query, stepInterval: defaultStepSeconds });
+				handleSetQueryData(index, { ...query, stepInterval: DefaultStepSize });
 			}
 		});
 	}, [currentQuery.builder.queryData, handleSetQueryData, panelType]);

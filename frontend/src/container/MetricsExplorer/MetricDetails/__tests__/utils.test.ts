@@ -1,5 +1,6 @@
 import { MetrictypesTypeDTO } from 'api/generated/services/sigNoz.schemas';
 import { ATTRIBUTE_TYPES } from 'constants/queryBuilder';
+import { DefaultStepSize } from 'lib/getStep';
 
 import { formatTimestampToReadableDate, getMetricDetailsQuery } from '../utils';
 
@@ -108,6 +109,7 @@ describe('MetricDetails utils', () => {
 			expect(query.builder.queryData[0]?.aggregateOperator).toBe('avg');
 			expect(query.builder.queryData[0]?.timeAggregation).toBe('avg');
 			expect(query.builder.queryData[0]?.spaceAggregation).toBe('avg');
+			expect(query.builder.queryData[0]?.stepInterval).toBe(DefaultStepSize);
 		});
 
 		it('should create correct query for SUMMARY metric type', () => {

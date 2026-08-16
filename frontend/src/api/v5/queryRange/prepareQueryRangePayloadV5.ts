@@ -6,6 +6,7 @@ import {
 	deduplicateEquivalentFilterItems,
 } from 'features/query-builder-v3/queryBuilderUtils';
 import getStartEndRangeTime from 'lib/getStartEndRangeTime';
+import { DefaultStepSize } from 'lib/getStep';
 import { mapQueryDataToApi } from 'lib/newQueryBuilder/queryBuilderMappers/mapQueryDataToApi';
 import { GetQueryResultsProps } from 'lib/query/getQueryResults';
 import { isEmpty } from 'lodash-es';
@@ -118,7 +119,10 @@ function createBaseSpec(
 	)[])?.filter((c) => ('key' in c ? c?.key : c?.name));
 
 	return {
-		stepInterval: queryData?.stepInterval || null,
+		stepInterval:
+			requestType === 'time_series'
+				? queryData?.stepInterval || DefaultStepSize
+				: queryData?.stepInterval || null,
 		disabled: queryData.disabled,
 		filter: getFilter(queryData),
 		groupBy:

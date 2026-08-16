@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import * as metricsExplorerHooks from 'api/generated/services/metrics';
 import ROUTES from 'constants/routes';
 import * as useHandleExplorerTabChange from 'hooks/useHandleExplorerTabChange';
+import { DefaultStepSize } from 'lib/getStep';
 import { userEvent } from 'tests/test-utils';
 
 import MetricDetails from '../MetricDetails';
@@ -117,6 +118,10 @@ describe('MetricDetails', () => {
 
 		await userEvent.click(screen.getByTestId('open-in-explorer-button'));
 		expect(mockHandleExplorerTabChange).toHaveBeenCalled();
+		const explorerView = mockHandleExplorerTabChange.mock.calls[0]?.[1];
+		expect(explorerView.query.builder.queryData[0]?.stepInterval).toBe(
+			DefaultStepSize,
+		);
 
 		await userEvent.click(screen.getByTestId('inspect-metric-button'));
 		expect(mockOpenInspectModal).toHaveBeenCalled();
