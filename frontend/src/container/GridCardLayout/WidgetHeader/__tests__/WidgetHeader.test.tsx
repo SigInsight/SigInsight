@@ -182,6 +182,24 @@ describe('WidgetHeader', () => {
 		expect(screen.getByText('Test Widget')).toBeInTheDocument();
 	});
 
+	it('renders a React element title without treating it as a string', () => {
+		const widget = { ...mockWidget, title: <span>ApDex</span> };
+		render(
+			<WidgetHeader
+				title={widget.title}
+				widget={widget}
+				onView={mockOnView}
+				queryResponse={mockQueryResponse}
+				isWarning={false}
+				isFetchingResponse={false}
+				tableProcessedDataRef={tableProcessedDataRef}
+				setSearchTerm={mockSetSearchTerm}
+			/>,
+		);
+
+		expect(screen.getByText('ApDex')).toBeInTheDocument();
+	});
+
 	it('returns null for empty widget', () => {
 		const emptyWidget = {
 			...mockWidget,

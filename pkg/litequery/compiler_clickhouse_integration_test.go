@@ -30,10 +30,18 @@ func TestCompilerExecutesOnCurrentClickHouseSchema(t *testing.T) {
 	defer conn.Close()
 	ctx := context.Background()
 	now := time.Now().UnixMilli()
+	seedLogDetailData(t, conn, now)
 	seedMetricCompilerData(t, conn, now)
 	traceIDs := seedTraceSummaryData(t, conn, now)
 
 	requests := []Request{
+		{
+			Range: TimeRange{StartMS: now - 3_000, EndMS: now + 1_000}, ResultType: ResultRaw,
+			Queries: []Query{LogQuery{
+				Common:      CommonQuery{Name: "log_details"},
+				Aggregation: LogAggregateCount,
+			}},
+		},
 		{
 			Range: TimeRange{StartMS: 1_000, EndMS: 2_000}, ResultType: ResultRaw,
 			Queries: []Query{LogQuery{Common: CommonQuery{
@@ -138,6 +146,9 @@ func TestCompilerExecutesOnCurrentClickHouseSchema(t *testing.T) {
 			rows, err := conn.Query(context.Background(), statement.SQL, statement.Args...)
 			if err != nil {
 				t.Fatalf("Query(%s) error = %v\nSQL: %s\nArgs: %#v", statement.Name, err, statement.SQL, statement.Args)
+			}
+			if statement.Name == "log_details" {
+				assertLogDetailRow(t, rows)
 			}
 			if statement.Name == "requests" || statement.Name == "semantic_gauge" || statement.Name == "latency" || statement.Name == "latency_delta" || statement.Name == "meter" || statement.Name == "trace_pattern_filters" {
 				assertPositiveMetricRows(t, statement.Name, rows)
@@ -283,6 +294,46 @@ func TestCompilerExecutesOnCurrentClickHouseSchema(t *testing.T) {
 	}
 }
 
+func assertLogDetailRow(t *testing.T, rows driver.Rows) {
+	t.Helper()
+	if !rows.Next() {
+		t.Fatal("log_details returned no rows")
+	}
+	var (
+		timestamp        uint64
+		id               string
+		severityText     string
+		body             string
+		traceID          string
+		spanID           string
+		severityNumber   uint8
+		traceFlags       uint32
+		attributesString map[string]string
+		attributesNumber map[string]float64
+		attributesBool   map[string]bool
+		resourcesString  map[string]string
+		scopeName        string
+		scopeVersion     string
+		scopeString      map[string]string
+	)
+	if err := rows.Scan(
+		&timestamp, &id, &severityText, &body, &traceID, &spanID,
+		&severityNumber, &traceFlags, &attributesString, &attributesNumber,
+		&attributesBool, &resourcesString, &scopeName, &scopeVersion, &scopeString,
+	); err != nil {
+		t.Fatalf("Scan(log_details) error = %v", err)
+	}
+	if id == "" || timestamp == 0 || severityText != "INFO" || body != "integration log" {
+		t.Fatalf("log detail identity = %d %q %q %q", timestamp, id, severityText, body)
+	}
+	if attributesString["http.route"] != "/integration" || attributesNumber["retry.count"] != 2 || !attributesBool["cached"] {
+		t.Fatalf("log detail attributes = %#v %#v %#v", attributesString, attributesNumber, attributesBool)
+	}
+	if resourcesString["service.name"] != "integration-service" || scopeName != "integration-scope" || scopeVersion != "1.0" || scopeString["library"] != "integration" {
+		t.Fatalf("log detail resources/scope = %#v %q %q %#v", resourcesString, scopeName, scopeVersion, scopeString)
+	}
+}
+
 // clickHouseRows is a test-side driver adapter. The lightweight executor stays
 // independent of ClickHouse's concrete Scan requirements, while production
 // adapters can make the same conversion at the infrastructure boundary.
@@ -391,6 +442,27 @@ func seedMetricCompilerData(t *testing.T, conn clickhouse.Conn, now int64) {
 	}
 	if seriesCount < 1 || pointsCount < 2 {
 		t.Fatalf("seeded metric data counts = series:%d points:%d", seriesCount, pointsCount)
+	}
+}
+
+func seedLogDetailData(t *testing.T, conn clickhouse.Conn, now int64) {
+	t.Helper()
+	query := "INSERT INTO siginsight_logs.logs " +
+		"(ts_bucket_start, resource_fingerprint, timestamp, observed_timestamp, id, trace_id, span_id, trace_flags, severity_text, severity_number, body, attributes_string, attributes_number, attributes_bool, resources_string, scope_name, scope_version, scope_string) " +
+		"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+	timestamp := uint64(now-1_000) * 1_000_000
+	if err := conn.Exec(
+		context.Background(), query,
+		uint64((now-1_000)/3_600_000), "integration-resource", timestamp, timestamp,
+		fmt.Sprintf("integration-log-%d", now), "integration-trace", "integration-span",
+		uint32(1), "INFO", uint8(9), "integration log",
+		map[string]string{"http.route": "/integration"},
+		map[string]float64{"retry.count": 2},
+		map[string]bool{"cached": true},
+		map[string]string{"service.name": "integration-service"},
+		"integration-scope", "1.0", map[string]string{"library": "integration"},
+	); err != nil {
+		t.Fatalf("insert log detail row error = %v", err)
 	}
 }
 

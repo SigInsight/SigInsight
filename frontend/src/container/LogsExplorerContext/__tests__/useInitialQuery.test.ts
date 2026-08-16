@@ -119,6 +119,18 @@ describe('useInitialQuery - Priority-Based Resource Filtering', () => {
 	};
 
 	describe('Unsupported Resource Context Flow', () => {
+		it('should open details when a raw row has no resource map', () => {
+			const testLog = ({
+				...createTestLog({}),
+				resources_string: undefined,
+			} as unknown) as ILog;
+
+			expect(() => renderHook(() => useInitialQuery(testLog))).not.toThrow();
+			expect(mockedConvertFiltersToExpression).toHaveBeenCalledWith(
+				expect.objectContaining({ items: [] }),
+			);
+		});
+
 		it('should ignore unsupported deployment and orchestrator attributes', () => {
 			const testLog = createTestLog({
 				'service.name': 'frontend-service',

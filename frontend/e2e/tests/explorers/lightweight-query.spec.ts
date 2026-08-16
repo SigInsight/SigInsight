@@ -167,6 +167,62 @@ test.describe('lightweight query explorer', () => {
 		await expectSuccessfulQueryRange(page, calls);
 	});
 
+	test('opens a log detail row without a client-side contract error', async ({
+		page,
+	}) => {
+		const clientErrors = observeClientErrors(page);
+		await page.goto('/logs/logs-explorer?relativeTime=1d');
+		const logCell = page
+			.locator('.raw-log-content, .logs-list-view-container tbody tr td')
+			.filter({ hasText: /\S/ })
+			.first();
+		try {
+			await logCell.waitFor({ state: 'visible', timeout: 30_000 });
+		} catch {
+			test.skip(true, 'requires at least one log row');
+			return;
+		}
+		await logCell.click();
+
+		await expect(page.getByText('Log details', { exact: true })).toBeVisible();
+		await expect(page.getByText('Something went wrong :/')).toHaveCount(0);
+		expect(
+			clientErrors.filter((error) =>
+				/Cannot convert undefined or null to object|TypeError:.*Object\.keys/i.test(
+					error,
+				),
+			),
+		).toEqual([]);
+	});
+
+	test('opens a service detail after loading metric metadata', async ({
+		page,
+	}) => {
+		const clientErrors = observeClientErrors(page);
+		await page.goto('/services?relativeTime=1d');
+		const serviceLink = page.locator('a[href^="/services/"]').first();
+		try {
+			await serviceLink.waitFor({ state: 'visible', timeout: 30_000 });
+		} catch {
+			test.skip(true, 'requires at least one service');
+			return;
+		}
+		const metadataResponse = page.waitForResponse(
+			(response) => response.url().includes('/api/v5/metric/metric_metadata'),
+			{ timeout: 30_000 },
+		);
+		await serviceLink.click();
+
+		expect((await metadataResponse).status()).toBe(200);
+		await page.waitForTimeout(2_000);
+		await expect(page.getByText('Something went wrong :/')).toHaveCount(0);
+		expect(
+			clientErrors.filter((error) =>
+				/TypeError:.*\.slice is not a function/i.test(error),
+			),
+		).toEqual([]);
+	});
+
 	test('runs a filtered logs query through the lightweight protocol', async ({
 		page,
 	}) => {

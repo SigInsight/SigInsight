@@ -122,7 +122,7 @@ func (r *Reader) GetMetricsMetadata(ctx context.Context, orgID valuer.UUID, metr
 	}
 
 	if len(missingMetrics) > 0 {
-		query := fmt.Sprintf(`SELECT DISTINCT metric_name, type, description, temporality, is_monotonic, unit FROM %s.%s WHERE metric_name IN ({metric_names:Array(String)})`, siginsightMetricDBName, siginsightTSTableNameV4)
+		query := fmt.Sprintf(`SELECT DISTINCT metric_name, type, description, temporality, is_monotonic, unit FROM %s.%s WHERE metric_name IN @metric_names`, siginsightMetricDBName, siginsightTSTableNameV4)
 		rows, err := r.db.Query(
 			context.WithValue(ctx, "clickhouse_max_threads", constants.MetricsExplorerClickhouseThreads),
 			query,

@@ -143,6 +143,25 @@ const mockProps: WidgetGraphComponentProps = {
 };
 
 describe('WidgetGraphComponent', () => {
+	it('renders a React element title without treating it as a string', () => {
+		render(
+			<MockQueryClientProvider>
+				<ErrorModalProvider>
+					<Provider store={store}>
+						<AppProvider>
+							<WidgetGraphComponent
+								{...mockProps}
+								widget={{ ...mockProps.widget, title: <span>ApDex</span> }}
+							/>
+						</AppProvider>
+					</Provider>
+				</ErrorModalProvider>
+			</MockQueryClientProvider>,
+		);
+
+		expect(screen.getByText('ApDex')).toBeInTheDocument();
+	});
+
 	it('should show correct menu items when hovering over more options while loading', async () => {
 		const { getByTestId, findByRole, getByText, container } = render(
 			<MockQueryClientProvider>

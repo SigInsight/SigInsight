@@ -91,6 +91,7 @@ func (c Compiler) compileRaw(table string, signal Signal, plan Plan, common Comm
 	if common.After != nil && signal != SignalLogs {
 		return Statement{}, newError(ErrorUnsupported, "query.after", "typed raw cursors are only supported for logs")
 	}
+	includeLogDetails := signal == SignalLogs && len(common.Select) == 0
 	fields := append([]FieldRef(nil), common.Select...)
 	if len(fields) == 0 {
 		fields = defaultFields(signal)
@@ -111,6 +112,27 @@ func (c Compiler) compileRaw(table string, signal Signal, plan Plan, common Comm
 		fieldCopy := field
 		columns = append(columns, ResultColumn{Name: alias, Field: &fieldCopy})
 		args = append(args, resolved.Args...)
+	}
+	if includeLogDetails {
+		// The log explorer opens its detail drawer from the raw row without a
+		// second fetch. Keep these Collector-owned columns as transport data;
+		// they are not user-addressable fields in the query catalog.
+		for _, name := range []string{
+			"severity_number",
+			"trace_flags",
+			"attributes_string",
+			"attributes_number",
+			"attributes_bool",
+			"resources_string",
+			"scope_name",
+			"scope_version",
+			"scope_string",
+		} {
+			alias := fmt.Sprintf("field_%d", len(columns))
+			selects = append(selects, name+" AS "+alias)
+			field := FieldRef{Name: name, Context: FieldContextLog, Type: ValueTypeString}
+			columns = append(columns, ResultColumn{Name: alias, Field: &field})
+		}
 	}
 	where, whereArgs, err := c.compileWhere(table, signal, common.Filter, plan.Range)
 	if err != nil {

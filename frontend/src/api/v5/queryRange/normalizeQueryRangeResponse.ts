@@ -256,6 +256,11 @@ function convertRawData(
 				// Map raw data to ILog structure - spread row.data first to include all properties
 				...row.data,
 				date: row.timestamp,
+				attributes_string: row.data.attributes_string ?? {},
+				attributes_number: row.data.attributes_number ?? {},
+				attributes_bool: row.data.attributes_bool ?? {},
+				resources_string: row.data.resources_string ?? {},
+				scope_string: row.data.scope_string ?? {},
 			} as any,
 		})),
 	};

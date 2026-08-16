@@ -9,6 +9,7 @@ import PanelVisualization from 'container/PanelVisualization/PanelVisualization'
 import { useSafeNavigate } from 'hooks/useSafeNavigate';
 import useUrlQuery from 'hooks/useUrlQuery';
 import createQueryParams from 'lib/createQueryParams';
+import { generateGridTitle } from 'lib/generateGridTitle';
 import { RowData } from 'lib/query/createTableColumnsFromQuery';
 import { EQueryType } from 'types/common/queryType';
 import { truncateText } from 'utils/truncateText';
@@ -84,7 +85,7 @@ function WidgetGraphComponent({
 
 	const [searchTerm, setSearchTerm] = useState<string>('');
 
-	const fullText = widget.title as string;
+	const fullText = generateGridTitle(widget.title);
 	const truncatedText = truncateText(fullText, 100);
 
 	return (

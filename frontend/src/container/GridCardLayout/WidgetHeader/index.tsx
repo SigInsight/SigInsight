@@ -23,6 +23,7 @@ import useCreateAlerts from 'hooks/queryBuilder/useCreateAlerts';
 import useComponentPermission from 'hooks/useComponentPermission';
 import { useSafeNavigate } from 'hooks/useSafeNavigate';
 import useUrlQuery from 'hooks/useUrlQuery';
+import { generateGridTitle } from 'lib/generateGridTitle';
 import { RowData } from 'lib/query/createTableColumnsFromQuery';
 import { isEmpty } from 'lodash-es';
 import { CircleX, SquareArrowOutUpRight, X } from 'lucide-react';
@@ -224,7 +225,7 @@ function WidgetHeader({
 		[updatedMenuList, onMenuItemSelectHandler],
 	);
 
-	const fullText = widget.title as string;
+	const fullText = generateGridTitle(widget.title);
 	const truncatedText = truncateText(fullText, 100);
 
 	const renderErrorMessage = useMemo(
