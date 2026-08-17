@@ -274,6 +274,28 @@ describe('lightweight query capabilities', () => {
 		expect(isLiteFormula({ ...simpleFormula, expression: 'A / 0' })).toBe(false);
 		expect(isLiteFormula({ ...simpleFormula, expression: 'A +' })).toBe(false);
 		expect(isLiteFormula({ ...simpleFormula, limit: 10 })).toBe(false);
+		expect(isLiteFormula({ ...simpleFormula, expression: 'A > 10' })).toBe(false);
+		expect(
+			isLiteFormula({ ...simpleFormula, expression: 'A > 10 AND B < 5' }, true),
+		).toBe(true);
+		expect(
+			isLiteFormula(
+				{
+					...simpleFormula,
+					expression: 'clamp(abs(A - B), 0, 100) >= 90',
+				},
+				true,
+			),
+		).toBe(true);
+		for (const expression of [
+			'A == 10',
+			'A > 10 > 5',
+			'A >',
+			'clamp(A, 0)',
+			'ewma3(A) > 1',
+		]) {
+			expect(isLiteFormula({ ...simpleFormula, expression }, true)).toBe(false);
+		}
 	});
 
 	it('keeps the Lite state on the shared V5 wire contract', () => {

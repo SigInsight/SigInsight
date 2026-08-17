@@ -157,6 +157,70 @@ test.describe('basic alert editor', () => {
 		);
 	});
 
+	test('saves a comparison formula without a notification channel', async ({
+		page,
+		request,
+	}) => {
+		test.skip(
+			!username || !password,
+			'requires LOGIN_USERNAME and LOGIN_PASSWORD',
+		);
+		let ruleID = '';
+		let accessToken = '';
+		try {
+			await login(page);
+			accessToken = await page.evaluate(
+				() => localStorage.getItem('AUTH_TOKEN') || '',
+			);
+			await page.goto('/alerts/new?alertType=LOGS_BASED_ALERT');
+			await page.getByLabel('Alert name').fill('formula without channel e2e');
+
+			await page.getByRole('button', { name: 'Add formula' }).click();
+			await page.getByRole('textbox', { name: 'Formula F1' }).fill('A > 0');
+			await expect(page.getByText(/Use query or formula names/)).toHaveCount(0);
+
+			const outputField = page
+				.locator('.basic-alert-editor__field')
+				.filter({ hasText: 'When' });
+			await outputField.locator('.ant-select-selector').click();
+			await page
+				.locator('.ant-select-dropdown:not(.ant-select-dropdown-hidden)')
+				.getByText('F1 (bool)', { exact: true })
+				.click();
+			await expect(
+				page.getByRole('combobox', { name: 'Notification channel' }),
+			).toHaveValue('');
+
+			const saveResponse = page.waitForResponse(
+				(response) =>
+					response.url().endsWith('/api/v5/rules') &&
+					response.request().method() === 'POST',
+			);
+			await page.getByRole('button', { name: 'Save rule' }).click();
+			const response = await saveResponse;
+			expect(response.ok(), await response.text()).toBe(true);
+			const body = (await response.json()) as {
+				data?: {
+					id?: string;
+					condition?: { boolean?: { channels?: string[] } };
+				};
+			};
+			ruleID = body.data?.id || '';
+			expect(ruleID).not.toBe('');
+			expect(body.data?.condition?.boolean?.channels).toEqual([]);
+		} finally {
+			if (ruleID && accessToken) {
+				const deleteResponse = await request.delete(
+					`${apiBaseURL}/api/v5/rules/${ruleID}`,
+					{
+						headers: { Authorization: `Bearer ${accessToken}` },
+					},
+				);
+				expect(deleteResponse.ok(), await deleteResponse.text()).toBe(true);
+			}
+		}
+	});
+
 	test('saves a v3 rule through the source backend and cleans it up', async ({
 		page,
 		request,

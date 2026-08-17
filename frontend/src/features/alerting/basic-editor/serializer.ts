@@ -175,9 +175,6 @@ export function validateBasicAlertDraft(
 	if (!draft.identity.name.trim()) {
 		return 'Enter an alert name';
 	}
-	if (!draft.notification.channel) {
-		return 'Choose a notification channel';
-	}
 	const queryError = validateQueryShape(query);
 	if (queryError) {
 		return queryError;
@@ -205,6 +202,9 @@ function serializeCondition(
 			? { noDataFor: draft.dataQuality.noDataFor }
 			: {}),
 	};
+	const channels = draft.notification.channel
+		? [draft.notification.channel]
+		: [];
 	if (draft.condition.kind === 'boolean') {
 		return {
 			kind: 'boolean',
@@ -214,7 +214,7 @@ function serializeCondition(
 			boolean: {
 				policy: draft.condition.policy,
 				severity: draft.condition.severity,
-				channels: [draft.notification.channel],
+				channels,
 			},
 		};
 	}
@@ -234,7 +234,7 @@ function serializeCondition(
 				threshold.recoveryTarget === undefined
 					? {}
 					: { recoveryTarget: threshold.recoveryTarget }),
-				channels: [draft.notification.channel],
+				channels,
 			})),
 		},
 	};
