@@ -180,6 +180,21 @@ describe('basic alert v3 serializer', () => {
 		]);
 	});
 
+	it('serializes an alert without a notification channel', () => {
+		const draft = numericDraft();
+		draft.notification.channel = '';
+
+		expect(validateBasicAlertDraft(draft, queryFixture())).toBeNull();
+		const rule = serializeBasicAlertDraft(draft, queryFixture());
+		expect(rule.condition.kind).toBe('numeric');
+		if (rule.condition.kind !== 'numeric') {
+			throw new Error('expected numeric rule');
+		}
+		expect(rule.condition.numeric.thresholds).toEqual([
+			expect.objectContaining({ severity: 'critical', channels: [] }),
+		]);
+	});
+
 	it.each([
 		[
 			'rejects an unsupported placeholder',
@@ -233,14 +248,6 @@ describe('basic alert v3 serializer', () => {
 				},
 			}),
 			'must not exceed the rolling window',
-		],
-		[
-			'requires one rule-level notification channel',
-			(draft: BasicAlertDraft): BasicAlertDraft => ({
-				...draft,
-				notification: { ...draft.notification, channel: '' },
-			}),
-			'Choose a notification channel',
 		],
 	])('%s', (_name, mutate, expected) => {
 		expect(

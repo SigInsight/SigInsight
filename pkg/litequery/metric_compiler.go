@@ -258,8 +258,11 @@ func (c Compiler) compileHistogram(plan Plan, source MetricSource, aggregation M
 	if len(spatialGroups) != 0 {
 		weightPartition = "PARTITION BY " + strings.Join(spatialGroups, ", ") + " "
 	}
-	upperBound := "if(le = '+Inf', 1e308, toFloat64(le))"
-	weights := "__lite_histogram_weights AS (SELECT " + optionalSelectColumns(spatialGroups) + upperBound + " AS upper_bound, greatest(bucket_value - lagInFrame(bucket_value, 1, 0) OVER bucket_window, 0) AS bucket_weight FROM __lite_histogram WINDOW bucket_window AS (" + weightPartition + "ORDER BY " + upperBound + "))"
+	finiteUpperBound := "maxIf(toFloat64OrNull(le), le != '+Inf') OVER (" + weightPartition + ")"
+	bounds := "__lite_histogram_bounds AS (SELECT " + optionalSelectColumns(spatialGroups) + "le, bucket_value, " + finiteUpperBound + " AS finite_upper_bound FROM __lite_histogram)"
+	ctes = append(ctes, bounds)
+	upperBound := "if(le = '+Inf', finite_upper_bound, toFloat64(le))"
+	weights := "__lite_histogram_weights AS (SELECT " + optionalSelectColumns(spatialGroups) + upperBound + " AS upper_bound, greatest(bucket_value - lagInFrame(bucket_value, 1, 0) OVER bucket_window, 0) AS bucket_weight FROM __lite_histogram_bounds WHERE finite_upper_bound IS NOT NULL WINDOW bucket_window AS (" + weightPartition + "ORDER BY " + upperBound + "))"
 	ctes = append(ctes, weights)
 	selects := make([]string, 0, len(groupNames)+2)
 	columns := make([]ResultColumn, 0, len(groupNames)+2)

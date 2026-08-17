@@ -385,9 +385,9 @@ function NotificationChannel({
 	return (
 		<div className="basic-alert-editor__notification-card">
 			<div className="basic-alert-editor__notification-heading">
-				<strong>Notification channel</strong>
+				<strong>Notification channel (optional)</strong>
 				<span>
-					All severities and thresholds for this rule use the same channel.
+					When selected, all severities and thresholds use the same channel.
 				</span>
 			</div>
 			<div className="basic-alert-editor__settings-grid">
@@ -395,11 +395,12 @@ function NotificationChannel({
 					<span className="basic-alert-editor__setting-label">Channel</span>
 					<Select
 						showSearch
+						allowClear
 						aria-label="Notification channel"
-						placeholder="Select a notification channel"
+						placeholder="No notification channel"
 						value={channel || undefined}
 						options={channelOptions}
-						onChange={onChannelChange}
+						onChange={(value): void => onChannelChange(value || '')}
 					/>
 				</div>
 				<div className="basic-alert-editor__setting-row">

@@ -537,8 +537,10 @@ function LiteFormulaRow({
 		removeQueryBuilderEntityByIndex,
 	} = useQueryBuilder();
 	const error =
-		formula.expression.trim() && !isLiteFormula(formula)
-			? 'Use query names or numbers joined by +, -, * or /.'
+		formula.expression.trim() && !isLiteFormula(formula, alertMode)
+			? alertMode
+				? 'Use query or formula names, numbers, abs/min/max/clamp, arithmetic, comparisons, or AND/OR/NOT.'
+				: 'Use query names or numbers joined by +, -, * or /.'
 			: '';
 
 	const update = useCallback(

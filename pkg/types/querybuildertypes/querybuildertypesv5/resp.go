@@ -249,6 +249,9 @@ func roundToNonZeroDecimals(val float64, n int) float64 {
 	if absVal >= 1 {
 		// Round to n decimal places
 		multiplier := math.Pow(10, float64(n))
+		if math.IsInf(multiplier, 0) || absVal > math.MaxFloat64/multiplier {
+			return val
+		}
 		rounded := math.Round(val*multiplier) / multiplier
 
 		// If the result is a whole number, return it as such

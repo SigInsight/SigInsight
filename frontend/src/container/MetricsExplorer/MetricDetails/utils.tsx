@@ -96,6 +96,10 @@ export function getMetricDetailsQuery(
 			aggregateOperator = 'noop';
 			break;
 		case MetrictypesTypeDTO.histogram:
+			timeAggregation = 'count';
+			spaceAggregation = 'p90';
+			aggregateOperator = 'noop';
+			break;
 		case MetrictypesTypeDTO.exponentialhistogram:
 			timeAggregation = 'noop';
 			spaceAggregation = 'p90';

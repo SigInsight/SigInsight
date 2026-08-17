@@ -91,6 +91,7 @@ const baseQuery: Query = {
 function renderBuilder(
 	query: Query,
 	panelType: PANEL_TYPES = PANEL_TYPES.TIME_SERIES,
+	alertMode = false,
 ): QueryBuilderContextType {
 	const value = ({
 		currentQuery: query,
@@ -113,6 +114,7 @@ function renderBuilder(
 					<LiteQueryBuilder
 						panelType={panelType}
 						config={{ initialDataSource: DataSource.LOGS, queryVariant: 'static' }}
+						alertMode={alertMode}
 					/>
 				</QueryBuilderContext.Provider>
 			</MemoryRouter>
@@ -303,6 +305,33 @@ describe('LiteQueryBuilder routing', () => {
 			screen.queryByText(
 				'This saved query uses capabilities that are not supported by the lightweight query engine.',
 			),
+		).not.toBeInTheDocument();
+	});
+
+	it('accepts comparison and boolean formulas in alert mode', () => {
+		renderBuilder(
+			{
+				...baseQuery,
+				builder: {
+					...baseQuery.builder,
+					queryFormulas: [
+						{
+							queryName: 'F1',
+							expression: 'A > 10 AND A < 100',
+							disabled: false,
+							legend: '',
+						},
+					],
+				},
+			},
+			PANEL_TYPES.TIME_SERIES,
+			true,
+		);
+		expect(screen.getByRole('textbox', { name: 'Formula F1' })).toHaveTextContent(
+			'A > 10 AND A < 100',
+		);
+		expect(
+			screen.queryByText(/Use query or formula names/),
 		).not.toBeInTheDocument();
 	});
 });

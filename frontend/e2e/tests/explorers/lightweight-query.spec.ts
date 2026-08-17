@@ -407,6 +407,90 @@ test.describe('lightweight query explorer', () => {
 		);
 	});
 
+	test('restores a Metric Details Histogram URL with the canonical percentile aggregation', async ({
+		page,
+	}) => {
+		const calls = observeQueryRange(page);
+		const metricName = 'http.server.request.duration.bucket';
+		const compositeQuery = {
+			queryType: 'builder',
+			builder: {
+				queryData: [
+					{
+						dataSource: 'metrics',
+						queryName: 'A',
+						aggregateOperator: 'noop',
+						aggregateAttribute: {
+							key: metricName,
+							type: 'Histogram',
+							dataType: 'string',
+						},
+						timeAggregation: 'noop',
+						spaceAggregation: 'p90',
+						aggregations: [
+							{
+								metricName,
+								timeAggregation: 'noop',
+								spaceAggregation: 'p90',
+								temporality: '',
+							},
+						],
+						filters: { op: 'AND', items: [] },
+						filter: { expression: '' },
+						groupBy: [],
+						functions: [],
+						disabled: false,
+						stepInterval: 60,
+						expression: 'A',
+					},
+				],
+				queryFormulas: [],
+			},
+			id: 'metric-details-histogram-regression',
+		};
+		const params = new URLSearchParams({
+			compositeQuery: encodeURIComponent(JSON.stringify(compositeQuery)),
+			panelTypes: JSON.stringify('graph'),
+			relativeTime: '3d',
+		});
+
+		await page.goto(`/metrics-explorer/explorer?${params.toString()}`);
+		await expect
+			.poll(
+				() =>
+					calls.filter((call) => JSON.stringify(call.payload).includes(metricName))
+						.length,
+				{ timeout: 30_000 },
+			)
+			.toBeGreaterThan(0);
+
+		const matchingCall = calls
+			.filter((call) => JSON.stringify(call.payload).includes(metricName))
+			.at(-1);
+		expect(matchingCall?.status, matchingCall?.body).toBe(200);
+		expect(matchingCall?.payload).toEqual(
+			expect.objectContaining({
+				compositeQuery: expect.objectContaining({
+					queries: expect.arrayContaining([
+						expect.objectContaining({
+							spec: expect.objectContaining({
+								aggregations: [
+									expect.objectContaining({
+										timeAggregation: 'count',
+										spaceAggregation: 'p90',
+									}),
+								],
+							}),
+						}),
+					]),
+				}),
+			}),
+		);
+		await expect(
+			page.getByText(/histogram percentiles require count time aggregation/i),
+		).toHaveCount(0);
+	});
+
 	test('opens an alert rule type with the lightweight query builder', async ({
 		page,
 	}) => {

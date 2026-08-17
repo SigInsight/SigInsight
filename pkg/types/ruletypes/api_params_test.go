@@ -109,6 +109,19 @@ func TestPostableRuleAcceptsBooleanV3Contract(t *testing.T) {
 	require.Equal(t, "Asia/Shanghai", cumulative.Timezone)
 }
 
+func TestPostableRuleAcceptsNoNotificationChannels(t *testing.T) {
+	for _, payload := range []string{
+		replaceJSONFragment(currentRuleJSON, `"channels":["email"]`, `"channels":[]`),
+		replaceJSONFragment(booleanRuleJSON, `"channels":["email"]`, `"channels":[]`),
+	} {
+		var rule PostableRule
+		require.NoError(t, json.Unmarshal([]byte(payload), &rule))
+		channels, err := rule.GetRuleChannels()
+		require.NoError(t, err)
+		require.Empty(t, channels)
+	}
+}
+
 func TestPostableRuleRejectsRetiredContract(t *testing.T) {
 	testCases := []struct {
 		name    string

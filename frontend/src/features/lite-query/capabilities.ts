@@ -559,12 +559,258 @@ function isLiteFormulaExpression(expression: string): boolean {
 	return !state.expectsOperand && state.parentheses === 0;
 }
 
-export function isLiteFormula(formula: IBuilderFormula): boolean {
+type AlertFormulaToken = {
+	type:
+		| 'identifier'
+		| 'number'
+		| 'arithmetic'
+		| 'comparison'
+		| 'and'
+		| 'or'
+		| 'not'
+		| 'leftParen'
+		| 'rightParen'
+		| 'comma'
+		| 'eof';
+	value: string;
+};
+
+const alertFormulaTokenPattern = /\s+|[A-Za-z][A-Za-z0-9_]*|(?:\d+(?:\.\d*)?|\.\d+)|>=|<=|!=|==|&&|\|\||[+\-*/><=(),]/y;
+const alertFormulaFunctionArity: Record<string, number> = {
+	abs: 1,
+	min: 2,
+	max: 2,
+	clamp: 3,
+};
+
+function classifyAlertFormulaToken(raw: string): AlertFormulaToken | undefined {
+	if (/^[A-Za-z]/.test(raw)) {
+		const keyword = raw.toUpperCase();
+		const keywords: Record<string, AlertFormulaToken['type']> = {
+			AND: 'and',
+			OR: 'or',
+			NOT: 'not',
+		};
+		return { type: keywords[keyword] || 'identifier', value: raw };
+	}
+	if (/^(?:\d|\.)/.test(raw)) {
+		return { type: 'number', value: raw };
+	}
+	if (['==', '&&', '||'].includes(raw)) {
+		return undefined;
+	}
+	if (['>=', '<=', '!=', '>', '<', '='].includes(raw)) {
+		return { type: 'comparison', value: raw };
+	}
+	if ('+-*/'.includes(raw)) {
+		return { type: 'arithmetic', value: raw };
+	}
+	const punctuation: Record<string, AlertFormulaToken['type']> = {
+		'(': 'leftParen',
+		')': 'rightParen',
+		',': 'comma',
+	};
+	const type = punctuation[raw];
+	return type ? { type, value: raw } : undefined;
+}
+
+function tokenizeLiteAlertFormula(
+	expression: string,
+): AlertFormulaToken[] | undefined {
+	const tokens: AlertFormulaToken[] = [];
+	let index = 0;
+	while (index < expression.length) {
+		alertFormulaTokenPattern.lastIndex = index;
+		const match = alertFormulaTokenPattern.exec(expression);
+		if (!match || match.index !== index) {
+			return undefined;
+		}
+		index = alertFormulaTokenPattern.lastIndex;
+		if (/^\s+$/.test(match[0])) {
+			continue;
+		}
+		const token = classifyAlertFormulaToken(match[0]);
+		if (!token) {
+			return undefined;
+		}
+		tokens.push(token);
+	}
+	tokens.push({ type: 'eof', value: '' });
+	return tokens;
+}
+
+class LiteAlertFormulaParser {
+	private index = 0;
+
+	constructor(private readonly tokens: AlertFormulaToken[]) {}
+
+	parse(): boolean {
+		return this.parseOr() && this.current().type === 'eof';
+	}
+
+	private current(): AlertFormulaToken {
+		return this.tokens[this.index];
+	}
+
+	private advance(): AlertFormulaToken {
+		const current = this.current();
+		if (current.type !== 'eof') {
+			this.index += 1;
+		}
+		return current;
+	}
+
+	private parseOr(): boolean {
+		if (!this.parseAnd()) {
+			return false;
+		}
+		while (this.current().type === 'or') {
+			this.advance();
+			if (!this.parseAnd()) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private parseAnd(): boolean {
+		if (!this.parseNot()) {
+			return false;
+		}
+		while (this.current().type === 'and') {
+			this.advance();
+			if (!this.parseNot()) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private parseNot(): boolean {
+		if (this.current().type === 'not') {
+			this.advance();
+			return this.parseNot();
+		}
+		return this.parseComparison();
+	}
+
+	private parseComparison(): boolean {
+		if (!this.parseAdditive()) {
+			return false;
+		}
+		if (this.current().type !== 'comparison') {
+			return true;
+		}
+		this.advance();
+		return this.parseAdditive() && this.current().type !== 'comparison';
+	}
+
+	private parseAdditive(): boolean {
+		if (!this.parseMultiplicative()) {
+			return false;
+		}
+		while (
+			this.current().type === 'arithmetic' &&
+			['+', '-'].includes(this.current().value)
+		) {
+			this.advance();
+			if (!this.parseMultiplicative()) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private parseMultiplicative(): boolean {
+		if (!this.parseUnaryNumber()) {
+			return false;
+		}
+		while (
+			this.current().type === 'arithmetic' &&
+			['*', '/'].includes(this.current().value)
+		) {
+			const operator = this.advance().value;
+			if (
+				operator === '/' &&
+				this.current().type === 'number' &&
+				Number(this.current().value) === 0
+			) {
+				return false;
+			}
+			if (!this.parseUnaryNumber()) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private parseUnaryNumber(): boolean {
+		if (
+			this.current().type === 'arithmetic' &&
+			['+', '-'].includes(this.current().value)
+		) {
+			this.advance();
+			return this.parseUnaryNumber();
+		}
+		return this.parsePrimary();
+	}
+
+	private parsePrimary(): boolean {
+		const token = this.advance();
+		switch (token.type) {
+			case 'number':
+				return true;
+			case 'leftParen':
+				return this.parseOr() && this.advance().type === 'rightParen';
+			case 'identifier':
+				return this.current().type === 'leftParen'
+					? this.parseFunctionCall(token.value)
+					: true;
+			default:
+				return false;
+		}
+	}
+
+	private parseFunctionCall(name: string): boolean {
+		const expected = alertFormulaFunctionArity[name.toLowerCase()];
+		if (!expected) {
+			return false;
+		}
+		this.advance();
+		let actual = 0;
+		if (this.current().type !== 'rightParen') {
+			for (;;) {
+				if (!this.parseOr()) {
+					return false;
+				}
+				actual += 1;
+				if (this.current().type !== 'comma') {
+					break;
+				}
+				this.advance();
+			}
+		}
+		return this.advance().type === 'rightParen' && actual === expected;
+	}
+}
+
+function isLiteAlertFormulaExpression(expression: string): boolean {
+	const tokens = tokenizeLiteAlertFormula(expression);
+	return Boolean(tokens?.length && new LiteAlertFormulaParser(tokens).parse());
+}
+
+export function isLiteFormula(
+	formula: IBuilderFormula,
+	alertMode = false,
+): boolean {
 	const expression = formula.expression.trim();
 	return (
 		formula.limit == null &&
 		!formula.orderBy?.length &&
 		!formula.having?.length &&
-		(!expression || isLiteFormulaExpression(expression))
+		(!expression ||
+			(alertMode
+				? isLiteAlertFormulaExpression(expression)
+				: isLiteFormulaExpression(expression)))
 	);
 }
