@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { Color, Spacing } from '@signozhq/design-tokens';
-import { Button, Divider, Drawer, Typography } from 'antd';
+import { Button, Divider, Drawer, Segmented, Typography } from 'antd';
 import { QueryParams } from 'constants/query';
 import {
 	initialQueryBuilderFormValuesMap,
@@ -16,6 +16,9 @@ import { LogsAggregatorOperator } from 'types/common/queryBuilder';
 
 import SpanLogs from '../SpanLogs/SpanLogs';
 import { useSpanContextLogs } from '../SpanLogs/useSpanContextLogs';
+import RelatedMetrics from './RelatedMetrics';
+import { getRelatedMetricIdentity } from './relatedMetricsUtils';
+import { RelatedSignalsView } from './types';
 
 import './SpanRelatedSignals.styles.scss';
 
@@ -27,6 +30,8 @@ interface SpanRelatedSignalsProps {
 	traceEndTime: number;
 	isOpen: boolean;
 	onClose: () => void;
+	activeView: RelatedSignalsView;
+	onViewChange: (view: RelatedSignalsView) => void;
 }
 
 function SpanRelatedSignals({
@@ -35,6 +40,8 @@ function SpanRelatedSignals({
 	traceEndTime,
 	isOpen,
 	onClose,
+	activeView,
+	onViewChange,
 }: SpanRelatedSignalsProps): JSX.Element {
 	const isDarkMode = useIsDarkMode();
 	const {
@@ -51,7 +58,7 @@ function SpanRelatedSignals({
 			startTime: traceStartTime - FIVE_MINUTES_IN_MS,
 			endTime: traceEndTime + FIVE_MINUTES_IN_MS,
 		},
-		isDrawerOpen: isOpen,
+		isDrawerOpen: isOpen && activeView === RelatedSignalsView.LOGS,
 	});
 
 	const handleExplorerPageRedirect = useCallback((): void => {
@@ -113,10 +120,28 @@ function SpanRelatedSignals({
 		}),
 		[],
 	);
+	const hasMetricIdentity = Boolean(getRelatedMetricIdentity(selectedSpan));
+	const viewOptions = useMemo(
+		() => [
+			{
+				label: 'Logs',
+				value: RelatedSignalsView.LOGS,
+			},
+			...(hasMetricIdentity
+				? [
+						{
+							label: 'Metrics',
+							value: RelatedSignalsView.METRICS,
+						},
+				  ]
+				: []),
+		],
+		[hasMetricIdentity],
+	);
 
 	return (
 		<Drawer
-			width="50%"
+			width="min(960px, 100vw)"
 			title={
 				<>
 					<Divider type="vertical" />
@@ -139,31 +164,47 @@ function SpanRelatedSignals({
 			{selectedSpan && (
 				<div className="span-related-signals-drawer__content">
 					<div className="views-tabs-container">
-						<Button
-							icon={<Compass size={18} />}
-							className="open-in-explorer"
-							onClick={handleExplorerPageRedirect}
-							data-testid="open-in-explorer-button"
-						>
-							Open in Logs Explorer
-						</Button>
+						<Segmented
+							options={viewOptions}
+							value={activeView}
+							onChange={(value): void => onViewChange(value as RelatedSignalsView)}
+							aria-label="Related signal type"
+						/>
+						{activeView === RelatedSignalsView.LOGS && (
+							<Button
+								icon={<Compass size={18} />}
+								className="open-in-explorer"
+								onClick={handleExplorerPageRedirect}
+								data-testid="open-in-explorer-button"
+							>
+								Open in Logs Explorer
+							</Button>
+						)}
 					</div>
 
-					<SpanLogs
-						traceId={selectedSpan.traceId}
-						spanId={selectedSpan.spanId}
-						timeRange={{
-							startTime: traceStartTime - FIVE_MINUTES_IN_MS,
-							endTime: traceEndTime + FIVE_MINUTES_IN_MS,
-						}}
-						logs={logs}
-						isLoading={isLoading}
-						isError={isError}
-						isFetching={isFetching}
-						isLogSpanRelated={isLogSpanRelated}
-						handleExplorerPageRedirect={handleExplorerPageRedirect}
-						emptyStateConfig={!hasTraceIdLogs ? emptyStateConfig : undefined}
-					/>
+					{activeView === RelatedSignalsView.LOGS ? (
+						<SpanLogs
+							traceId={selectedSpan.traceId}
+							spanId={selectedSpan.spanId}
+							timeRange={{
+								startTime: traceStartTime - FIVE_MINUTES_IN_MS,
+								endTime: traceEndTime + FIVE_MINUTES_IN_MS,
+							}}
+							logs={logs}
+							isLoading={isLoading}
+							isError={isError}
+							isFetching={isFetching}
+							isLogSpanRelated={isLogSpanRelated}
+							handleExplorerPageRedirect={handleExplorerPageRedirect}
+							emptyStateConfig={!hasTraceIdLogs ? emptyStateConfig : undefined}
+						/>
+					) : (
+						<RelatedMetrics
+							selectedSpan={selectedSpan}
+							traceStartTime={traceStartTime}
+							traceEndTime={traceEndTime}
+						/>
+					)}
 				</div>
 			)}
 		</Drawer>

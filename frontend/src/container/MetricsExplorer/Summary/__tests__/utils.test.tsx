@@ -1,5 +1,8 @@
 import { render } from '@testing-library/react';
-import { MetrictypesTypeDTO } from 'api/generated/services/sigNoz.schemas';
+import {
+	MetrictypesTemporalityDTO,
+	MetrictypesTypeDTO,
+} from 'api/generated/services/sigNoz.schemas';
 import { Filter } from 'api/v5/v5';
 import { getUniversalNameFromMetricUnit } from 'components/YAxisUnitSelector/utils';
 
@@ -86,6 +89,8 @@ describe('formatDataForMetricsTable', () => {
 				metricName: 'test_metric',
 				description: 'Test description',
 				type: MetrictypesTypeDTO.gauge,
+				temporality: MetrictypesTemporalityDTO.cumulative,
+				isMonotonic: false,
 				unit: 'bytes',
 				samples: 1000,
 				timeseries: 2000,
@@ -138,6 +143,8 @@ describe('formatDataForMetricsTable', () => {
 				metricName: '',
 				description: '',
 				type: MetrictypesTypeDTO.gauge,
+				temporality: MetrictypesTemporalityDTO.cumulative,
+				isMonotonic: false,
 				unit: '',
 				samples: 0,
 				timeseries: 0,

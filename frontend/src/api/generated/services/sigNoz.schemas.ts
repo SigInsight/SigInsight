@@ -705,6 +705,10 @@ export interface MetricsexplorertypesStatDTO {
 	 */
 	description: string;
 	/**
+	 * @type boolean
+	 */
+	isMonotonic: boolean;
+	/**
 	 * @type string
 	 */
 	metricName: string;
@@ -713,6 +717,7 @@ export interface MetricsexplorertypesStatDTO {
 	 * @minimum 0
 	 */
 	samples: number;
+	temporality: MetrictypesTemporalityDTO;
 	/**
 	 * @type integer
 	 * @minimum 0

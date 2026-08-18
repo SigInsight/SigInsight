@@ -34,6 +34,7 @@ import dayjs from 'dayjs';
 import useClickOutside from 'hooks/useClickOutside';
 import { generateColor } from 'lib/color/generateColor';
 import {
+	Activity,
 	Anvil,
 	Bookmark,
 	Check,
@@ -53,7 +54,9 @@ import Attributes from './Attributes/Attributes';
 import EventAttribute from './Events/components/EventAttribute';
 import Events from './Events/Events';
 import LinkedSpans from './LinkedSpans/LinkedSpans';
+import { getRelatedMetricIdentity } from './SpanRelatedSignals/relatedMetricsUtils';
 import SpanRelatedSignals from './SpanRelatedSignals/SpanRelatedSignals';
+import { RelatedSignalsView } from './SpanRelatedSignals/types';
 
 import './SpanDetailsDrawer.styles.scss';
 
@@ -127,6 +130,10 @@ function SpanDetailsDrawer(props: ISpanDetailsDrawerProps): JSX.Element {
 	const [isRelatedSignalsOpen, setIsRelatedSignalsOpen] = useState<boolean>(
 		false,
 	);
+	const [
+		relatedSignalsView,
+		setRelatedSignalsView,
+	] = useState<RelatedSignalsView>(RelatedSignalsView.LOGS);
 	const [selectedTimeRange, setSelectedTimeRange] = useState<number>(1);
 	const [
 		resourceAttributesSearchQuery,
@@ -192,9 +199,13 @@ function SpanDetailsDrawer(props: ISpanDetailsDrawerProps): JSX.Element {
 		themeColors.traceDetailColors,
 	);
 
-	const handleRelatedSignalsClick = useCallback((): void => {
-		setIsRelatedSignalsOpen(true);
-	}, []);
+	const handleRelatedSignalsClick = useCallback(
+		(view: RelatedSignalsView): void => {
+			setRelatedSignalsView(view);
+			setIsRelatedSignalsOpen(true);
+		},
+		[],
+	);
 
 	const handleRelatedSignalsClose = useCallback((): void => {
 		setIsRelatedSignalsOpen(false);
@@ -913,12 +924,28 @@ function SpanDetailsDrawer(props: ISpanDetailsDrawerProps): JSX.Element {
 								related signals
 							</Typography.Text>
 							<div className="related-signals-section">
-								<Button onClick={handleRelatedSignalsClick}>
+								<Button
+									onClick={(): void =>
+										handleRelatedSignalsClick(RelatedSignalsView.LOGS)
+									}
+								>
 									<div className="view-title">
 										<LogsIcon width={14} height={14} />
 										Logs
 									</div>
 								</Button>
+								{getRelatedMetricIdentity(selectedSpan) && (
+									<Button
+										onClick={(): void =>
+											handleRelatedSignalsClick(RelatedSignalsView.METRICS)
+										}
+									>
+										<div className="view-title">
+											<Activity size={14} />
+											Metrics
+										</div>
+									</Button>
+								)}
 							</div>
 						</div>
 					</section>
@@ -958,6 +985,8 @@ function SpanDetailsDrawer(props: ISpanDetailsDrawerProps): JSX.Element {
 					traceEndTime={traceEndTime}
 					isOpen={isRelatedSignalsOpen}
 					onClose={handleRelatedSignalsClose}
+					activeView={relatedSignalsView}
+					onViewChange={setRelatedSignalsView}
 				/>
 			)}
 

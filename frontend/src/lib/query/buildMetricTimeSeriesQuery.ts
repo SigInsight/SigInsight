@@ -1,0 +1,126 @@
+import { MetrictypesTypeDTO } from 'api/generated/services/sigNoz.schemas';
+import { SpaceAggregation, TimeAggregation } from 'api/v5/v5';
+import { initialQueriesMap, toAttributeType } from 'constants/queryBuilder';
+import { DefaultStepSize } from 'lib/getStep';
+import { DataTypes } from 'types/api/queryBuilder/queryAutocompleteResponse';
+import { Query } from 'types/api/queryBuilder/queryBuilderData';
+import { DataSource, ReduceOperators } from 'types/common/queryBuilder';
+
+export interface MetricQueryFilter {
+	key: string;
+	value: string;
+}
+
+export function buildMetricTimeSeriesQuery(
+	metricName: string,
+	metricType: MetrictypesTypeDTO | undefined,
+	filter?: MetricQueryFilter,
+	groupBy?: string,
+	limit?: number,
+	isMonotonic?: boolean,
+): Query {
+	let timeAggregation;
+	let spaceAggregation;
+	let aggregateOperator;
+	const isNonMonotonicSum =
+		metricType === MetrictypesTypeDTO.sum && isMonotonic === false;
+
+	switch (metricType) {
+		case MetrictypesTypeDTO.sum:
+			if (isNonMonotonicSum) {
+				timeAggregation = 'avg';
+				spaceAggregation = 'avg';
+				aggregateOperator = 'avg';
+			} else {
+				timeAggregation = 'rate';
+				spaceAggregation = 'sum';
+				aggregateOperator = 'rate';
+			}
+			break;
+		case MetrictypesTypeDTO.gauge:
+			timeAggregation = 'avg';
+			spaceAggregation = 'avg';
+			aggregateOperator = 'avg';
+			break;
+		case MetrictypesTypeDTO.summary:
+			timeAggregation = 'noop';
+			spaceAggregation = 'sum';
+			aggregateOperator = 'noop';
+			break;
+		case MetrictypesTypeDTO.histogram:
+			timeAggregation = 'count';
+			spaceAggregation = 'p90';
+			aggregateOperator = 'noop';
+			break;
+		case MetrictypesTypeDTO.exponentialhistogram:
+			timeAggregation = 'noop';
+			spaceAggregation = 'p90';
+			aggregateOperator = 'noop';
+			break;
+		default:
+			timeAggregation = 'noop';
+			spaceAggregation = 'noop';
+			aggregateOperator = 'noop';
+			break;
+	}
+
+	const attributeType = toAttributeType(metricType, isMonotonic);
+
+	return {
+		...initialQueriesMap[DataSource.METRICS],
+		builder: {
+			queryData: [
+				{
+					...initialQueriesMap[DataSource.METRICS].builder.queryData[0],
+					aggregateAttribute: {
+						key: metricName,
+						type: attributeType,
+						id: `${metricName}----${attributeType}---string--`,
+						dataType: DataTypes.String,
+					},
+					aggregations: [
+						{
+							metricName,
+							timeAggregation: timeAggregation as TimeAggregation,
+							spaceAggregation: spaceAggregation as SpaceAggregation,
+							reduceTo: ReduceOperators.AVG,
+							temporality: '',
+						},
+					],
+					aggregateOperator,
+					timeAggregation,
+					spaceAggregation,
+					stepInterval: DefaultStepSize,
+					filters: {
+						op: 'AND',
+						items: filter
+							? [
+									{
+										op: '=',
+										id: filter.key,
+										value: filter.value,
+										key: {
+											key: filter.key,
+											type: DataTypes.String,
+										},
+									},
+							  ]
+							: [],
+					},
+					groupBy: groupBy
+						? [
+								{
+									key: groupBy,
+									dataType: DataTypes.String,
+									type: 'tag',
+									id: `${groupBy}--string--tag--false`,
+								},
+						  ]
+						: [],
+					...(limit ? { limit } : {}),
+				},
+			],
+			queryFormulas: [],
+		},
+	};
+}
