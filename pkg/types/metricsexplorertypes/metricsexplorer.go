@@ -103,12 +103,14 @@ func (req *StatsRequest) UnmarshalJSON(data []byte) error {
 
 // Stat represents the summary information returned per metric.
 type Stat struct {
-	MetricName  string           `json:"metricName" required:"true"`
-	Description string           `json:"description" required:"true"`
-	MetricType  metrictypes.Type `json:"type" required:"true"`
-	MetricUnit  string           `json:"unit" required:"true"`
-	TimeSeries  uint64           `json:"timeseries" required:"true"`
-	Samples     uint64           `json:"samples" required:"true"`
+	MetricName  string                  `json:"metricName" required:"true"`
+	Description string                  `json:"description" required:"true"`
+	MetricType  metrictypes.Type        `json:"type" required:"true"`
+	MetricUnit  string                  `json:"unit" required:"true"`
+	Temporality metrictypes.Temporality `json:"temporality" required:"true"`
+	IsMonotonic bool                    `json:"isMonotonic" required:"true"`
+	TimeSeries  uint64                  `json:"timeseries" required:"true"`
+	Samples     uint64                  `json:"samples" required:"true"`
 }
 
 // StatsResponse represents the aggregated metrics statistics.

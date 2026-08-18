@@ -518,6 +518,10 @@
 			}
 
 			.related-signals-section {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 8px;
+
 				.view-title {
 					display: flex;
 					gap: 8px;

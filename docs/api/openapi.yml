@@ -567,11 +567,15 @@ components:
       properties:
         description:
           type: string
+        isMonotonic:
+          type: boolean
         metricName:
           type: string
         samples:
           minimum: 0
           type: integer
+        temporality:
+          $ref: '#/components/schemas/MetrictypesTemporality'
         timeseries:
           minimum: 0
           type: integer
@@ -584,6 +588,8 @@ components:
       - description
       - type
       - unit
+      - temporality
+      - isMonotonic
       - timeseries
       - samples
       type: object

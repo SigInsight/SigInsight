@@ -58,6 +58,8 @@ func enrichStatsWithMetadata(metricStats []metricsexplorertypes.Stat, metadata m
 			metricStats[i].Description = meta.Description
 			metricStats[i].MetricType = meta.MetricType
 			metricStats[i].MetricUnit = meta.MetricUnit
+			metricStats[i].Temporality = meta.Temporality
+			metricStats[i].IsMonotonic = meta.IsMonotonic
 		}
 	}
 }

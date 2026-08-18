@@ -144,11 +144,19 @@ interface DirectSpanLogsResult {
 	isFetching: boolean;
 }
 
-const useDirectSpanLogs = (
-	traceId: string,
-	spanId: string,
-	timeRange: TimeRange,
-): DirectSpanLogsResult => {
+interface DirectSpanLogsProps {
+	traceId: string;
+	spanId: string;
+	timeRange: TimeRange;
+	enabled: boolean;
+}
+
+const useDirectSpanLogs = ({
+	traceId,
+	spanId,
+	timeRange,
+	enabled,
+}: DirectSpanLogsProps): DirectSpanLogsResult => {
 	const filter = useMemo(() => createSpanLogsFilters(traceId, spanId), [
 		traceId,
 		spanId,
@@ -166,7 +174,7 @@ const useDirectSpanLogs = (
 			timeRange.endTime,
 		],
 		queryFn: () => GetMetricQueryRange(payload),
-		enabled: Boolean(traceId && spanId),
+		enabled: enabled && Boolean(traceId && spanId),
 		staleTime: FIVE_MINUTES_IN_MS,
 	});
 	const logs = useMemo(() => logsFromResponse(data), [data]);
@@ -185,6 +193,7 @@ interface UseContextLogQueryProps {
 	log: ILog | undefined;
 	timeRange: TimeRange;
 	direction: 'lt' | 'gt';
+	enabled: boolean;
 }
 
 const useContextLogQuery = ({
@@ -192,6 +201,7 @@ const useContextLogQuery = ({
 	log,
 	timeRange,
 	direction,
+	enabled,
 }: UseContextLogQueryProps): ContextLogQueryResult => {
 	const filter = useMemo(
 		() =>
@@ -215,7 +225,7 @@ const useContextLogQuery = ({
 	const { data, isFetching } = useQuery({
 		queryKey: [key, traceId, log?.id, timeRange.startTime, timeRange.endTime],
 		queryFn: () => GetMetricQueryRange(payload),
-		enabled: Boolean(log),
+		enabled: enabled && Boolean(log),
 		staleTime: FIVE_MINUTES_IN_MS,
 	});
 
@@ -227,11 +237,19 @@ interface SurroundingSpanLogsResult {
 	isFetching: boolean;
 }
 
-const useSurroundingSpanLogs = (
-	traceId: string,
-	spanLogs: ILog[],
-	timeRange: TimeRange,
-): SurroundingSpanLogsResult => {
+interface SurroundingSpanLogsProps {
+	traceId: string;
+	spanLogs: ILog[];
+	timeRange: TimeRange;
+	enabled: boolean;
+}
+
+const useSurroundingSpanLogs = ({
+	traceId,
+	spanLogs,
+	timeRange,
+	enabled,
+}: SurroundingSpanLogsProps): SurroundingSpanLogsResult => {
 	const orderedSpanLogs = useMemo(
 		() =>
 			[...spanLogs].sort(
@@ -244,12 +262,14 @@ const useSurroundingSpanLogs = (
 		log: orderedSpanLogs[0],
 		timeRange,
 		direction: 'lt',
+		enabled,
 	});
 	const after = useContextLogQuery({
 		traceId,
 		log: orderedSpanLogs[orderedSpanLogs.length - 1],
 		timeRange,
 		direction: 'gt',
+		enabled,
 	});
 	const logs = useMemo(
 		() => [...after.logs].reverse().concat(spanLogs, before.logs),
@@ -311,12 +331,18 @@ export const useSpanContextLogs = ({
 	timeRange,
 	isDrawerOpen = true,
 }: UseSpanContextLogsProps): UseSpanContextLogsReturn => {
-	const directSpan = useDirectSpanLogs(traceId, spanId, timeRange);
-	const surrounding = useSurroundingSpanLogs(
+	const directSpan = useDirectSpanLogs({
 		traceId,
-		directSpan.logs,
+		spanId,
 		timeRange,
-	);
+		enabled: isDrawerOpen,
+	});
+	const surrounding = useSurroundingSpanLogs({
+		traceId,
+		spanLogs: directSpan.logs,
+		timeRange,
+		enabled: isDrawerOpen,
+	});
 	const traceOnly = useTraceOnlyLogs({
 		traceId,
 		timeRange,
