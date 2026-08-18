@@ -149,6 +149,8 @@ describe('RelatedMetrics', () => {
 		expect(screen.getByText('Related by service')).toBeInTheDocument();
 		expect(screen.getByText('service.name=checkout')).toBeInTheDocument();
 		expect(screen.getByText(/not by trace ID/)).toBeInTheDocument();
+		expect(screen.getByText('Average')).toBeInTheDocument();
+		expect(screen.queryByText('s')).not.toBeInTheDocument();
 		expect(screen.getByTestId('metric-chart')).toBeInTheDocument();
 	});
 });

@@ -237,6 +237,18 @@ export function rankRelatedMetricCandidates(
 		.slice(0, RELATED_METRICS_LIMIT);
 }
 
+export function getRelatedMetricAggregationLabel(
+	metric: MetricsexplorertypesStatDTO,
+): 'P90' | 'Rate' | 'Average' {
+	if (metric.type === MetrictypesTypeDTO.histogram) {
+		return 'P90';
+	}
+	if (metric.type === MetrictypesTypeDTO.sum && metric.isMonotonic) {
+		return 'Rate';
+	}
+	return 'Average';
+}
+
 function queryTemporality(
 	temporality: MetrictypesTemporalityDTO,
 ): 'cumulative' | 'delta' | '' {

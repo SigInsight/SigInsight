@@ -105,6 +105,8 @@ Related Signals 提供 `Logs` 和 `Metrics` 两个标签：
 - Metrics 标签仅在 span 至少具有一个可用资源身份时显示。
 - Metrics 顶部显示 `Related by ...`，列出实际关联键和值。
 - 每张图显示 metric name、单位、加载状态、错误状态和空状态。
+- 单位由纵轴和 tooltip 负责格式化，卡片标题不得直接展示 `s`、`By` 等裸 UCUM 缩写；标题区显示实际查询语义 `P90`、`Rate` 或 `Average`。
+- 每张卡片必须为标题栏和图表区分别分配高度，完整显示纵轴、横轴、legend 和 tooltip，不得继承 Explorer 页面使用的 `50vh` 图表高度。
 - 提供 `Open in Metrics Explorer`，携带相同查询和绝对时间窗口。
 - 图表使用 `PanelVisualization` / uPlotV2，不允许恢复 `components/Uplot` 或 `lib/uPlotLib`。
 

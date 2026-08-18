@@ -10,6 +10,7 @@ import { Span } from 'types/api/trace/getTraceWaterfall';
 import {
 	buildRelatedMetricFilterExpression,
 	buildRelatedMetricsQuery,
+	getRelatedMetricAggregationLabel,
 	getRelatedMetricIdentity,
 	getRelatedMetricsQueryRangeSeconds,
 	getRelatedMetricsTimeRange,
@@ -156,6 +157,24 @@ describe('trace related metric candidates', () => {
 			'request.errors',
 			'process.memory',
 		]);
+	});
+
+	it('describes the aggregation rather than exposing raw metric units', () => {
+		expect(
+			getRelatedMetricAggregationLabel(
+				metric('request.duration.bucket', MetrictypesTypeDTO.histogram),
+			),
+		).toBe('P90');
+		expect(
+			getRelatedMetricAggregationLabel(
+				metric('requests', MetrictypesTypeDTO.sum, { isMonotonic: true }),
+			),
+		).toBe('Rate');
+		expect(
+			getRelatedMetricAggregationLabel(
+				metric('memory.usage', MetrictypesTypeDTO.gauge),
+			),
+		).toBe('Average');
 	});
 });
 

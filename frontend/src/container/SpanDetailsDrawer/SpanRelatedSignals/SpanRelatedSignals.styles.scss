@@ -92,8 +92,10 @@
 	}
 
 	.related-metric-card {
+		display: flex;
+		flex-direction: column;
 		min-width: 0;
-		height: 300px;
+		height: 390px;
 		border: 1px solid var(--bg-slate-500);
 		border-radius: 4px;
 		overflow: hidden;
@@ -101,7 +103,7 @@
 
 	.related-metric-card__header {
 		display: flex;
-		height: 42px;
+		flex: 0 0 48px;
 		align-items: center;
 		justify-content: space-between;
 		gap: 8px;
@@ -112,6 +114,22 @@
 			min-width: 0;
 			font-weight: 500;
 		}
+	}
+
+	.related-metric-card__aggregation {
+		margin-inline-end: 0;
+	}
+
+	.related-metric-card .time-series-view {
+		flex: 1 1 auto;
+		width: 100%;
+		height: auto;
+		min-height: 0;
+		padding: 12px 12px 4px;
+	}
+
+	.related-metric-card .time-series-view .graph-container {
+		min-height: 0;
 	}
 
 	.related-metrics-empty,
@@ -190,7 +208,15 @@
 		}
 
 		.related-metric-card {
-			height: 280px;
+			height: 370px;
+		}
+	}
+}
+
+@media (max-width: 720px) {
+	.span-related-signals-drawer {
+		.related-metrics__grid {
+			grid-template-columns: minmax(0, 1fr);
 		}
 	}
 }

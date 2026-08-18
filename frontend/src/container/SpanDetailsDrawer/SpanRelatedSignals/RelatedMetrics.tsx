@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from 'react';
-import { Alert, Button, Empty, Tag, Typography } from 'antd';
+import { Alert, Button, Empty, Tag, Tooltip, Typography } from 'antd';
 import { convertToApiError } from 'api/ErrorResponseHandlerForGeneratedAPIs';
 import { RenderErrorResponseDTO } from 'api/generated/services/sigNoz.schemas';
 import { AxiosError } from 'axios';
@@ -15,7 +15,10 @@ import APIError from 'types/api/error';
 import { Span } from 'types/api/trace/getTraceWaterfall';
 import { DataSource } from 'types/common/queryBuilder';
 
-import { responseForRelatedMetric } from './relatedMetricsUtils';
+import {
+	getRelatedMetricAggregationLabel,
+	responseForRelatedMetric,
+} from './relatedMetricsUtils';
 import { useSpanRelatedMetrics } from './useSpanRelatedMetrics';
 
 interface RelatedMetricsProps {
@@ -163,13 +166,18 @@ function RelatedMetrics({
 				<div className="related-metrics__grid">
 					{metrics.map((metric, index) => {
 						const queryName = alphabet[index];
+						const aggregationLabel = getRelatedMetricAggregationLabel(metric);
 						return (
 							<section className="related-metric-card" key={metric.metricName}>
 								<header className="related-metric-card__header">
 									<Typography.Text ellipsis={{ tooltip: metric.metricName }}>
 										{metric.metricName}
 									</Typography.Text>
-									{metric.unit && <Tag>{metric.unit}</Tag>}
+									<Tooltip title="Aggregation used for this chart">
+										<Tag className="related-metric-card__aggregation">
+											{aggregationLabel}
+										</Tag>
+									</Tooltip>
 								</header>
 								<TimeSeriesView
 									queryResponse={{
